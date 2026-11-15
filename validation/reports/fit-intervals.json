@@ -592,7 +592,7 @@
               "above": 29
             }
           },
-          "mean_error": -0.00705,
+          "mean_error": -0.00706,
           "identification": {
             "median_width": 0.345,
             "stated_width": 12.7,
@@ -767,7 +767,7 @@
               "above": 33
             }
           },
-          "mean_error": 0.00437,
+          "mean_error": 0.00439,
           "identification": {
             "median_width": 0.374,
             "stated_width": 12.7,
@@ -1487,7 +1487,7 @@
               "above": 38
             }
           },
-          "mean_error": -0.00768,
+          "mean_error": -0.0077,
           "identification": {
             "median_width": 0.364,
             "stated_width": 12.7,
@@ -1662,7 +1662,7 @@
               "above": 41
             }
           },
-          "mean_error": 0.00908,
+          "mean_error": 0.00909,
           "identification": {
             "median_width": 0.36,
             "stated_width": 12.7,
@@ -1843,7 +1843,7 @@
               "above": 33
             }
           },
-          "mean_error": -0.000163,
+          "mean_error": -0.000164,
           "identification": {
             "median_width": 0.034,
             "stated_width": 0.036,
@@ -2033,19 +2033,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 49,
-              "inside": 376,
+              "inside": 377,
               "above": 28
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 21,
-              "inside": 525,
+              "inside": 524,
               "above": 1
             }
           },
-          "mean_error": 0.00523,
+          "mean_error": 0.00522,
           "identification": {
             "median_width": 0.123,
             "stated_width": 0.36,
@@ -2214,19 +2214,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 39,
-              "inside": 393,
+              "inside": 394,
               "above": 21
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 15,
-              "inside": 517,
+              "inside": 516,
               "above": 15
             }
           },
-          "mean_error": 0.00164,
+          "mean_error": 0.00165,
           "identification": {
             "median_width": 0.0408,
             "stated_width": 0.108,
@@ -2745,19 +2745,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 22,
-              "inside": 406,
+              "inside": 407,
               "above": 25
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 20,
-              "inside": 494,
+              "inside": 493,
               "above": 33
             }
           },
-          "mean_error": -0.000145,
+          "mean_error": -0.000146,
           "identification": {
             "median_width": 0.035,
             "stated_width": 0.036,
@@ -2928,21 +2928,21 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 47,
-              "inside": 367,
+              "inside": 368,
               "above": 39
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 22,
-              "inside": 510,
+              "inside": 509,
               "above": 15
             }
           },
-          "mean_error": -0.00347,
+          "mean_error": -0.00348,
           "identification": {
-            "median_width": 0.0969,
+            "median_width": 0.0968,
             "stated_width": 0.36,
             "identified": true
           }
@@ -3109,19 +3109,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 52,
-              "inside": 383,
+              "inside": 384,
               "above": 18
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 33,
-              "inside": 498,
+              "inside": 497,
               "above": 16
             }
           },
-          "mean_error": 0.00243,
+          "mean_error": 0.00244,
           "identification": {
             "median_width": 0.0401,
             "stated_width": 0.108,
@@ -3329,17 +3329,17 @@
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 117,
-                "inside": 1251,
+                "below": 118,
+                "inside": 1250,
                 "above": 129
               },
               "below": {
-                "low": 0.05715271178917919,
-                "high": 0.10349022660199769
+                "low": 0.057728648506786995,
+                "high": 0.10424313696791532
               },
               "inside": {
-                "low": 0.8021465731288671,
-                "high": 0.865767761078351
+                "low": 0.8014308911973613,
+                "high": 0.8651543359842759
               },
               "above": {
                 "low": 0.06409460215338408,
@@ -3640,15 +3640,15 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 453,
+              "given": 454,
               "below": 33,
-              "inside": 386,
+              "inside": 387,
               "above": 34
             },
             "heights fit within 1 m": {
-              "given": 547,
+              "given": 546,
               "below": 28,
-              "inside": 484,
+              "inside": 483,
               "above": 35
             }
           },

@@ -14,8 +14,8 @@ Of its first 1216, 216 had nothing to fit and aren't counted, 216 of them logs w
 |---|---:|---:|---:|---|---|---:|---:|---|
 | drag scale | 34 | 905 | 61 | passes | fails, fails, fails | -0.00169 | 0.115 / 0.36 | yes |
 | impulse scale | 35 | 908 | 57 | passes | fails, fails, fails | 0.000363 | 0.0399 / 0.108 | yes |
-| wind toward the east, m/s | 89 | 1343 | 65 | passes | fails, fails, fails | -0.00705 | 0.345 / 12.7 | yes |
-| wind toward the north, m/s | 67 | 1366 | 64 | passes | fails, fails, fails | 0.00437 | 0.374 / 12.7 | yes |
+| wind toward the east, m/s | 89 | 1343 | 65 | passes | fails, fails, fails | -0.00706 | 0.345 / 12.7 | yes |
+| wind toward the north, m/s | 67 | 1366 | 64 | passes | fails, fails, fails | 0.00439 | 0.374 / 12.7 | yes |
 | mass on the weighed mass | 40 | 911 | 49 | passes | fails, fails, fails | -0.000394 | 0.035 / 0.036 | no |
 
 By design (below / inside / above):
@@ -48,9 +48,9 @@ The posterior's 5% and 95% points, as they come. Of the 2276 flights counted her
 |---|---:|---:|---:|---|---|---:|---:|---|
 | drag scale | 30 | 887 | 83 | fails | fails, fails, fails | -0.0106 | 0.0919 / 0.36 | yes |
 | impulse scale | 72 | 878 | 50 | passes | fails, fails, fails | 0.00132 | 0.0391 / 0.108 | yes |
-| wind toward the east, m/s | 59 | 1380 | 58 | passes | fails, fails, fails | -0.00768 | 0.364 / 12.7 | yes |
-| wind toward the north, m/s | 55 | 1384 | 58 | passes | fails, fails, fails | 0.00908 | 0.36 / 12.7 | yes |
-| mass on the weighed mass | 56 | 882 | 62 | passes | fails, fails, fails | -0.000163 | 0.034 / 0.036 | no |
+| wind toward the east, m/s | 59 | 1380 | 58 | passes | fails, fails, fails | -0.0077 | 0.364 / 12.7 | yes |
+| wind toward the north, m/s | 55 | 1384 | 58 | passes | fails, fails, fails | 0.00909 | 0.36 / 12.7 | yes |
+| mass on the weighed mass | 56 | 882 | 62 | passes | fails, fails, fails | -0.000164 | 0.034 / 0.036 | no |
 
 By design (below / inside / above):
 
@@ -75,11 +75,11 @@ Of its first 1193, 193 had nothing to fit and aren't counted, 193 of them logs w
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 70 | 901 | 29 | passes | fails, fails, fails | 0.00523 | 0.123 / 0.36 | yes |
-| impulse scale | 54 | 910 | 36 | passes | fails, fails, fails | 0.00164 | 0.0408 / 0.108 | yes |
+| drag scale | 70 | 901 | 29 | passes | fails, fails, fails | 0.00522 | 0.123 / 0.36 | yes |
+| impulse scale | 54 | 910 | 36 | passes | fails, fails, fails | 0.00165 | 0.0408 / 0.108 | yes |
 | wind toward the east, m/s | 75 | 1349 | 73 | passes | fails, fails, fails | -0.021 | 0.407 / 12.7 | yes |
 | wind toward the north, m/s | 71 | 1362 | 64 | passes | fails, fails, fails | -0.00532 | 0.449 / 12.7 | yes |
-| mass on the weighed mass | 42 | 900 | 58 | passes | fails, fails, fails | -0.000145 | 0.035 / 0.036 | no |
+| mass on the weighed mass | 42 | 900 | 58 | passes | fails, fails, fails | -0.000146 | 0.035 / 0.036 | no |
 
 By design (below / inside / above):
 
@@ -100,8 +100,8 @@ By how well the flight's heights fit (below / inside / above):
 
 | Residual | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| heights fit within 1 m | 21 / 525 / 1 | 15 / 517 / 15 | 29 / 918 / 34 | 32 / 925 / 24 | 20 / 494 / 33 |
-| heights fit to 1 m or worse | 49 / 376 / 28 | 39 / 393 / 21 | 46 / 431 / 39 | 39 / 437 / 40 | 22 / 406 / 25 |
+| heights fit within 1 m | 21 / 524 / 1 | 15 / 516 / 15 | 29 / 918 / 34 | 32 / 925 / 24 | 20 / 493 / 33 |
+| heights fit to 1 m or worse | 49 / 377 / 28 | 39 / 394 / 21 | 46 / 431 / 39 | 39 / 437 / 40 | 22 / 407 / 25 |
 
 ### Bayesian
 
@@ -109,8 +109,8 @@ The posterior's 5% and 95% points, as they come. Of the 2296 flights counted her
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 69 | 877 | 54 | passes | fails, passes, fails | -0.00347 | 0.0969 / 0.36 | yes |
-| impulse scale | 85 | 881 | 34 | fails | fails, fails, fails | 0.00243 | 0.0401 / 0.108 | yes |
+| drag scale | 69 | 877 | 54 | passes | fails, passes, fails | -0.00348 | 0.0968 / 0.36 | yes |
+| impulse scale | 85 | 881 | 34 | fails | fails, fails, fails | 0.00244 | 0.0401 / 0.108 | yes |
 | wind toward the east, m/s | 58 | 1353 | 86 | passes | fails, fails, fails | -0.035 | 0.427 / 12.7 | yes |
 | wind toward the north, m/s | 71 | 1345 | 81 | passes | fails, fails, fails | -0.0287 | 0.447 / 12.7 | yes |
 | mass on the weighed mass | 61 | 870 | 69 | passes | fails, fails, fails | -0.000106 | 0.034 / 0.036 | no |
