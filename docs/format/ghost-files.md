@@ -67,10 +67,10 @@ The pad is the frame's origin: a flat east, north and up grid there, on the
 - `--pad`;
 - the median of the last 20 fixes before liftoff. On the 180° meridian some fixes read near +180°
   and some near −180°. With as many of one as of the other, the two middle values lie one each side,
-  and a plain median lands near 0°. So hpr first finds each longitude's distance from the plain
-  median. If the median of those distances is over 90°, it moves the negative (western) longitudes up
-  by 360°, takes the median, and brings the result back into the range from −180° up to, but not
-  including, 180°. Otherwise the plain median stands. Fixes close together have a median distance
+  and a plain median lands near 0°. So each longitude's distance from the plain median is found
+  first. If the median of those distances is over 90°, the negative (western) longitudes are moved
+  up by 360°, the median is taken, and the result is brought back into the range from −180° up to,
+  but not including, 180°. Otherwise the plain median stands. Fixes close together have a median distance
   over 90° only when the meridian splits them, or near a pole. For fixes at 179.9°E, 179.9°W, 179.8°E
   and 179.8°W, the plain median is 0°; this one is 180°, written −180°;
 - the first fix, and how long after liftoff that was, where the log can tell.
