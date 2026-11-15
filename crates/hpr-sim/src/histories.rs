@@ -1,6 +1,6 @@
 //! Thrust, and mass with the center of mass, against flight time, given from outside in place of
-//! the flight's own: for sizing the difference between two codes, not a model (M2.3c11,
-//! [ADR-349][adr-349]).
+//! the flight's own: for sizing the difference between two codes, not a model
+//! ([M2.3c11][m2-3c11], the increment that added them; [ADR-349][adr-349]).
 //!
 //! The gap between HPR Sim's apogee and another tool's is split into parts by swapping one input
 //! at a time for the other tool's ([ADR-226][adr-226]). A drag table swaps the drag
@@ -54,6 +54,7 @@
 //!
 //! [adr-226]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
 //! [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+//! [m2-3c11]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions-and-roadmap.md#m2-3c11
 
 use serde::{Deserialize, Serialize};
 

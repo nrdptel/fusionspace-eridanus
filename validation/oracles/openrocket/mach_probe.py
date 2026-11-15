@@ -5,13 +5,13 @@ of its own run, sampled at the times of OpenRocket's own flight of the same desi
 within 0.05% of its own apogee, on at least two public designs, one of them passing Mach 1. The
 committed public designs both codes fly stay below Mach 0.81 in OpenRocket's flights
 (`pods-motors-2`); OpenRocket's own example that passes Mach 1 is read from its jar under the
-gitignored `refs/`, so only a machine that fetched the jar can fly it. So this script writes one that passes it: `pod_probes.py`'s
-airframe with no pods (a conical nose, a tube 60 mm across with three fins), its 29 mm mount and
-H128W swapped for a 38 mm mount 0.5 m long holding an AeroTech J570W, which OpenRocket's
-database and HPR Sim's catalog hold as the same curve (`crates/hpr-motor/data/openrocket-curves.json`,
-a largest difference of 0). Every other part, the material, the ids and the motor configuration
-are `pods-none`'s. It has no stored
-simulation, so OpenRocket flies it in its defaults, as `histories.py` flies the public designs.
+gitignored `refs/`, so only a machine that fetched the jar can fly it. So this script writes one
+that passes it: `pod_probes.py`'s airframe with no pods (a conical nose, a tube 60 mm across with
+three fins), its 29 mm mount and H128W swapped for a 38 mm mount 0.5 m long holding an AeroTech
+J570W, which OpenRocket's database and HPR Sim's catalog hold as the same curve, a largest
+difference of 0 in `crates/hpr-motor/data/openrocket-curves.json`. Every other part, the
+material, the ids and the motor configuration are `pods-none`'s. It has no stored simulation, so
+OpenRocket flies it in its defaults, as `histories.py` flies the public designs.
 
 Run from the repository root, then `histories.py` as its docstring says:
 
