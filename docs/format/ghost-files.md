@@ -66,11 +66,13 @@ The pad is the frame's origin: a flat east, north and up grid there, on the
 
 - `--pad`;
 - the median of the last 20 fixes before liftoff. On the 180° meridian some fixes read near +180°
-  and some near −180°, and a plain median would land near 0°. So where the longitudes' median
-  distance from their median is over 90°, which fixes close together reach only when the meridian
-  splits them (or near a pole), the western longitudes are moved up by 360° before the median is
-  taken, and it is brought back between −180° and 180°. For fixes at 179.9°E, 179.9°W, 179.8°E and
-  179.8°W, the plain median is 0°; this one is 180°, written −180°;
+  and some near −180°. With as many of one as of the other, the two middle values lie one each side,
+  and a plain median lands near 0°. So the median first measures how far the longitudes lie from
+  their plain median. Fixes close together lie over 90° from it, as a median, only when the meridian
+  splits them, or near a pole. Then the negative (western) longitudes are moved up by 360° before
+  the median is taken, and the result is brought back into the range from −180° up to, but not
+  including, 180°. For fixes at 179.9°E, 179.9°W, 179.8°E and 179.8°W, the plain median is 0°; this
+  one is 180°, written −180°;
 - the first fix, and how long after liftoff that was, where the log can tell.
 
 A pad from the first fix may be off by what the rocket has already flown. With no fix at all, nothing

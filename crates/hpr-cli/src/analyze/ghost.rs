@@ -234,6 +234,7 @@ mod tests {
             ["flights/a/x.csv", "b/a/x.csv", "y.csv"]
         );
         assert_eq!(names(&["x.csv", "./x.csv"]), ["x.csv (1)", "x.csv (2)"]);
+        assert_eq!(names(&["../x.csv", "x.csv"]), ["x.csv (1)", "x.csv (2)"]);
         assert_eq!(names(&["one.csv"]), ["one.csv"]);
     }
 }

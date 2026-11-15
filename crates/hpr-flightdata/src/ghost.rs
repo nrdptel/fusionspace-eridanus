@@ -1501,6 +1501,17 @@ mod tests {
         assert_eq!(ghost.pad.longitude_deg, Some(lon));
     }
 
+    /// The worked example on `docs/format/ghost-files.md`: four fixes either side of the 180°
+    /// meridian, whose plain median is 0°, take 180°, written −180° (#1093). Fixes on one side
+    /// take the plain median, bit for bit.
+    #[test]
+    fn the_pages_meridian_example_takes_minus_180() {
+        let taken = median_longitude(&[179.9, -179.9, 179.8, -179.8]);
+        assert_eq!(taken.map(f64::to_bits), Some((-180.0f64).to_bits()));
+        assert_eq!(median_longitude(&[10.25, 10.75, 10.5]), Some(10.5));
+        assert_eq!(median_longitude(&[]), None);
+    }
+
     /// A pad on the 180° meridian, its fixes either side of it: the track's middle and the pad's
     /// median longitude sit on the meridian, not near 0°, so no fix is counted out of reach
     /// (#1093). A first fix with its sign flipped doesn't move them. Invented places.
