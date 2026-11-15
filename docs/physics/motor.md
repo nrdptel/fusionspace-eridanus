@@ -316,7 +316,7 @@ holding one [`MountedMotor`](../api/hpr_design/config/struct.MountedMotor.html).
 |---|---|
 | `mount` | The id of the mount in the design, here `motor-mount` |
 | `designation` | A name, for display |
-| `diameter_m`, `length_m` | The case's size, in meters. The design checks compare the diameter with the mount's bore: a motor wider than its mount is an error, and the flight refuses to start unless design errors are accepted ([`--accept-design-errors`](../cli.md)) or a nominal size's real case fits ([a nominal motor in its matching tube](design.md#a-nominal-motor-in-its-matching-tube)). A case that reaches forward past the mount's top is only a warning |
+| `diameter_m`, `length_m` | The case's size, in meters. The design checks compare the diameter with the mount's bore: a motor wider than its mount is an error, and the flight refuses to start unless design errors are accepted ([`--accept-design-errors`](../cli.md#the-motor-and-the-configuration)) or a nominal size's real case fits ([a nominal motor in its matching tube](design.md#a-nominal-motor-in-its-matching-tube)). A case that reaches forward past the mount's top is only a warning |
 | `motor` | The motor built above |
 | `delay` | The [ejection delay](../glossary.md#ejection-delay) chosen, if any. A parachute can fire on it, with the `MotorDelay` trigger ([Recovery](recovery.md#triggers-lag-and-release)) |
 
@@ -603,12 +603,12 @@ of the propellant mass, not a filter on propellant:
   2,103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
   ([Checks](design.md#checks)). A diameter wider than the mount's bore is an error,
   `motor_wider_than_mount`, and the flight refuses to start unless design errors are accepted
-  ([`--accept-design-errors`](../cli.md)). Within a nominal size's slack for its
-  narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
+  ([`--accept-design-errors`](../cli.md#the-motor-and-the-configuration)). Within a nominal
+  size's slack for its narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
   Nor does $c$ involve the loaded mass, so a loaded mass in grams passes too.
 - It lets through every real motor checked. In an earlier survey, the 1,708 ThrustCurve.org
-  files with a catalog propellant mass, each with the record's propellant, ran from 236 to
+  files whose motor's record gives a propellant mass, each taken with that mass, ran from 236 to
   3,031 m/s (774 to 9,944 ft/s). Their median is 1,866, and 90% of them are between 928 and
   2,210. In the [whole catalog](#the-whole-catalog), the 924 motors' default files, each with
   its own header's propellant mass, run from **296.83 m/s** (973.9 ft/s, a black-powder A8) to
