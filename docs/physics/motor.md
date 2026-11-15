@@ -467,11 +467,13 @@ $$
 - This is [RP] `SolidMotor` ([`solid_motor.py:401-418`][rp-401]; [`motor.py:483-524`][rp-483]).
   ThrustCurve's `.rse` files tabulate their mass column the same way
   ([`.rse` files](../format/rse.md)).
-- Holding $c$ constant is an approximation. [SP] defines $c$ only instantaneously. Measured
-  [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the same quantity divided by
-  standard gravity) drifts during a burn. It drifts as the pressure inside the motor changes and
-  the nozzle erodes ([SP] p. 14), so real consumption is not exactly proportional. No data
-  published for commercial motors resolves the difference.
+- Holding $c$ constant is an approximation. [SP] gives $c$ in instantaneous form, $F/\dot m_p$
+  (p. 95). Measured [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the
+  same quantity divided by standard gravity) drifts during a burn as the nozzle erodes: one motor
+  lost 6 to 9 s of it by burnout ([SP] p. 14). It also differs with the pressure inside the motor,
+  in a comparison between motors rather than along one burn ([SP] Fig. 18, p. 40). So real
+  consumption is not exactly proportional. No data published for commercial motors resolves the
+  difference.
 - All propellant is gone at the last sample. The whole burned mass leaves as exhaust. Inert
   material that also leaves (bits of liner and igniter) is not modeled.
 
@@ -652,7 +654,10 @@ $$
   makes the term 16.8 kPa × $A_e$ too large at every altitude.
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
   at sea level, can have its flow come away from the nozzle wall (separate). Then the conversion
-  doesn't hold ([SP] pp. 32–34).
+  doesn't hold. That is this project's inference. [SP] pp. 32–34 say the flow stays attached
+  while the outside pressure is "less than or only slightly greater than" the exit pressure, that
+  an outside pressure "considerably greater" can separate it, and that an overexpanded nozzle
+  delivers less thrust.
 - HPR Sim applies it strictly inside the burn, $0 < t < t_{\mathrm{end}}$ ($t_{\mathrm{end}}$ the curve's last time), as
   RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]). HPR Sim applies the
   term only where the curve's thrust is positive; RocketPy also adds it inside zero-thrust gaps,

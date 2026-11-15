@@ -11,8 +11,9 @@
 //!
 //! This is RocketPy's `SolidMotor` consumption (`rocketpy/motors/solid_motor.py:401-418`,
 //! `motor.py:483-524`), and the mass column of ThrustCurve.org's `.rse` files follows it
-//! (`docs/format/rse.md`). It is an approximation: the real `c` drifts with chamber pressure and
-//! nozzle erosion (SP-8039 p. 14). All propellant is gone when the thrust curve ends.
+//! (`docs/format/rse.md`). It is an approximation: the real `c` drifts as the nozzle erodes
+//! (SP-8039 p. 14), and differs with chamber pressure between motors (SP-8039 Fig. 18,
+//! p. 40). All propellant is gone when the thrust curve ends.
 //!
 //! **Where the propellant is.** A [`Propellant::Column`] keeps its shape and loses density as it
 //! burns, so its center stays put and its inertia scales with its mass (the model of RocketPy's
