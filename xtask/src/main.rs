@@ -59,7 +59,6 @@ mod histories;
 mod lanes;
 mod layering;
 mod logs;
-mod messages;
 mod motor_catalog;
 mod motor_flights;
 mod names;
@@ -97,11 +96,11 @@ mod steps;
 mod synthetic;
 mod two_logs;
 mod validate;
-mod voice;
 mod wasm_check;
 mod workspace;
 
 use std::process::ExitCode;
+use xtask_voice::voice;
 
 const USAGE_TEMPLATE: &str = "\
 Usage: cargo xtask <command> [args]

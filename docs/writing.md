@@ -281,6 +281,11 @@ and fails on a stock phrase. With no path, it also fails when a held page goes o
 misses a sentence target ([below](#measured-not-gated)). A test fails when the report and the
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
+A change to prose alone can run `cargo voice` instead. It is the same check and writes the same
+report, but it builds only the check itself, not the simulator: about a second on a Mac from an
+empty build folder, where `cargo xtask` builds every crate first. `scripts/gate.sh voice` then
+runs the report's test (`cargo test -p xtask-voice`), which builds no simulator crate either.
+
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
 and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and
 a crate's front page in a `.rs` file. That's how
@@ -305,7 +310,7 @@ guides, studies, and Wikipedia's pages on word choice and on signs of generated 
 The list leaves out words that have a technical sense in this project. They are robust, deploy,
 streamline (a streamlined body), boost and powerful (a more powerful motor). Terms such as
 `magic bytes` and `seamless tube` pass. The list is in
-[`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
+[`xtask/voice/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/voice/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates

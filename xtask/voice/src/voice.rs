@@ -45,8 +45,9 @@ use std::process::Command;
 
 use pulldown_cmark::{Event, LinkType, Parser, Tag, TagEnd};
 
-use crate::site;
+use crate::markdown as site;
 
+/// The `voice` command's line in `cargo xtask help`; `cargo voice` takes the same arguments.
 pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
                            bold-label items, labels, long sentences, hedges, minimizers and
@@ -157,7 +158,7 @@ const LONG_SHARE_TARGET: usize = 10;
 const LONG_WORDS: usize = 25;
 
 /// The committed per-page report, relative to the workspace root.
-pub(crate) const REPORT: &str = "validation/reports/voice.md";
+pub const REPORT: &str = "validation/reports/voice.md";
 
 /// The file extensions read under a directory given as a path.
 const EXTENSIONS: [&str; 6] = ["md", "markdown", "html", "htm", "txt", "help"];
@@ -194,7 +195,7 @@ const SKIPPED_DIRS: [&str; 3] = ["node_modules", "target", "_build"];
 
 /// What stands in for code and math in the prose: one word in a sentence's length, and never part
 /// of a phrase.
-pub(crate) const CODE: char = '\u{E000}';
+pub const CODE: char = '\u{E000}';
 
 /// Why a stock phrase is on the list: the rows of `docs/research/plain-voice-docs.md` §1.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -785,7 +786,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         if args.len() > 1 {
             return Err(format!("usage:\n{USAGE}"));
         }
-        let root = crate::designs::root()?;
+        let root = crate::root()?;
         let mut count = 0;
         for census in crate::messages::census(&root)? {
             for line in census_long(&census) {
@@ -801,7 +802,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         if args.len() > 1 {
             return Err(format!("usage:\n{USAGE}"));
         }
-        let root = crate::designs::root()?;
+        let root = crate::root()?;
         let mut count = 0;
         for census in crate::messages::census(&root)? {
             println!("## {}", census.dir);
@@ -836,7 +837,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         println!("{count} {noun} over {LONG_WORDS} words");
         return Ok(());
     }
-    let root = crate::designs::root()?;
+    let root = crate::root()?;
     if args.is_empty() {
         let held = held_paths(&root)?;
         let pages = repository_pages(&root, &held)?;
@@ -854,7 +855,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 
 /// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
 /// and so does a held page that misses.
-pub(crate) fn check(root: &Path) -> Result<(), String> {
+pub fn check(root: &Path) -> Result<(), String> {
     let held = held_paths(root)?;
     let pages = repository_pages(root, &held)?;
     println!("{}", summary(&pages));
@@ -1395,7 +1396,7 @@ fn repository_paths(root: &Path) -> Result<Vec<String>, String> {
 }
 
 /// The tracked files under `paths`, relative to `root`.
-pub(crate) fn tracked(root: &Path, paths: &[&str]) -> Result<Vec<String>, String> {
+pub fn tracked(root: &Path, paths: &[&str]) -> Result<Vec<String>, String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(root)
@@ -1601,7 +1602,7 @@ fn read_markdown(source: &str) -> Reading {
     let mut image = 0usize;
     let mut item_opening = false;
     let mut autolink = 0usize;
-    for (event, range) in Parser::new_ext(source, crate::site::options()).into_offset_iter() {
+    for (event, range) in Parser::new_ext(source, crate::markdown::options()).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => code_block += 1,
             Event::End(TagEnd::CodeBlock) => code_block = code_block.saturating_sub(1),
@@ -2191,7 +2192,7 @@ fn page_from(path: &str, source: &str, reading: Reading, reference: bool) -> Pag
     let line_starts = line_starts(source);
     for run in &reading.runs {
         page.words += word_count(&run.text);
-        page.labels += crate::site::labels(&run.text).len();
+        page.labels += crate::markdown::labels(&run.text).len();
         let all = words(&run.text);
         for (i, entry, found) in stock_in(&all) {
             page.stock.push(Hit {
@@ -2785,7 +2786,7 @@ mod tests {
 
     #[test]
     fn every_model_page_leaves_out_exactly_its_boxs_four_labels() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let physics = tracked(&root, &["docs/physics"]).unwrap();
         let models: Vec<&String> = physics.iter().filter(|path| is_model_page(path)).collect();
         assert!(models.len() >= 20, "{} model pages", models.len());
@@ -3106,7 +3107,7 @@ mod tests {
         fs::write(dir.join("e.rs"), "// delve\n").unwrap();
         #[cfg(unix)]
         std::os::unix::fs::symlink(&dir, dir.join("sub/up")).unwrap();
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let pages = given_pages(&root, &[dir.to_string_lossy().into_owned()]).unwrap();
         assert_eq!(pages.len(), 4);
         assert_eq!(pages.iter().map(|page| page.stock.len()).sum::<usize>(), 2);
@@ -3138,7 +3139,7 @@ mod tests {
 
     #[test]
     fn the_guide_states_the_limits_and_the_list_as_the_code_has_them() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let guide = fs::read_to_string(root.join("docs/writing.md")).unwrap();
         for pattern in Pattern::ALL {
             let limit = match pattern.limit() {
@@ -3160,7 +3161,7 @@ mod tests {
 
     #[test]
     fn the_left_out_and_reference_paths_exist() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let all = tracked(&root, &SCOPE).unwrap();
         for (entry, _) in LEFT_OUT {
             assert!(
@@ -3178,7 +3179,7 @@ mod tests {
 
     #[test]
     fn no_stock_phrase_on_the_model_pages() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let physics = tracked(&root, &["docs/physics"]).unwrap();
         assert!(physics.len() >= 20, "{} model pages", physics.len());
         for path in physics.iter().filter(|path| path.ends_with(".md")) {
@@ -3387,7 +3388,7 @@ mod tests {
     /// held, and when it misses a target the check fails on it.
     #[test]
     fn a_new_page_in_the_contents_is_held() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let contents = fs::read_to_string(root.join(CONTENTS)).unwrap();
         let before = held_from(&contents).unwrap();
         let added = format!("{contents}\n- [A new page](a-new-page.md)\n");
@@ -3443,7 +3444,7 @@ mod tests {
     /// page, and the README and the 404 page; each one read, and each one passing.
     #[test]
     fn the_held_pages_pass() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let held = held_paths(&root).unwrap();
         assert!(held.contains(&"docs/format/flight-logs.md".to_owned()));
         assert!(held.contains(&"README.md".to_owned()));
@@ -3478,13 +3479,13 @@ mod tests {
 
     #[test]
     fn the_committed_report_matches_the_pages() {
-        let root = crate::designs::root().unwrap();
+        let root = crate::root().unwrap();
         let held = held_paths(&root).unwrap();
         let pages = repository_pages(&root, &held).unwrap();
         let committed = fs::read_to_string(root.join(REPORT)).unwrap_or_default();
         assert!(
             committed == report(&pages),
-            "{REPORT} doesn't match the pages: run `cargo xtask voice`"
+            "{REPORT} doesn't match the pages: run `cargo voice` (or `cargo xtask voice`)"
         );
     }
 

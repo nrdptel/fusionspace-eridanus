@@ -19,8 +19,8 @@
 #   scripts/gate.sh clippy test     # just these steps
 #   GATE_TAIL=80 scripts/gate.sh    # show more of each failure (default 40 lines)
 #
-# Steps: fmt clippy test doc wasm deny evidence site validate examples, and pages, refs, ego and
-# python when they apply.
+# Steps: fmt clippy test doc wasm deny evidence site validate examples, and pages, refs, ego,
+# voice and python when they apply.
 # The test step runs the tests with cargo-nextest, each test its own process, in parallel, then the
 # doctests with `cargo test --doc` (nextest doesn't run doctests); together they run what
 # `cargo test` runs in about half the time (146 s against 296 to 309 s, single runs on 2026-10-04,
@@ -361,7 +361,10 @@ cmd_for() {
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
-    docs) echo "cargo test --locked -p xtask" ;;
+    docs) echo "cargo test --locked -p xtask -p xtask-voice" ;;
+    # The voice report's test alone, which builds no simulator crate: a prose-only change runs
+    # `cargo voice` to rewrite the report, then this (#1459).
+    voice) echo "cargo test --locked -p xtask-voice" ;;
     evidence) echo "$XTASK evidence" ;;
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
@@ -372,7 +375,7 @@ cmd_for() {
 }
 
 for step in $STEPS; do
-  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL pages refs ego docs types python)" >&2; exit 64; }
+  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL pages refs ego docs voice types python)" >&2; exit 64; }
 done
 mkdir -p "$LOGDIR"
 

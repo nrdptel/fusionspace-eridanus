@@ -2859,7 +2859,15 @@ dependencies = [
  "tempfile",
  "toml",
  "tungstenite",
+ "xtask-voice",
  "zip",
+]
+
+[[package]]
+name = "xtask-voice"
+version = "0.1.0"
+dependencies = [
+ "pulldown-cmark",
 ]
 
 [[package]]

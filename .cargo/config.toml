@@ -1,3 +1,6 @@
 # Dev automation lives in the `xtask` crate (created in M0.1): `cargo xtask <command>`.
 [alias]
 xtask = "run --quiet --package xtask --"
+# The voice check alone, without building the simulator, for a prose-only change: `cargo voice`
+# rewrites validation/reports/voice.md as `cargo xtask voice` does (#1459).
+voice = "run --quiet --package xtask-voice --"
