@@ -11,8 +11,9 @@
 //!
 //! This is RocketPy's `SolidMotor` consumption (`rocketpy/motors/solid_motor.py:401-418`,
 //! `motor.py:483-524`), and the mass column of ThrustCurve.org's `.rse` files follows it
-//! (`docs/format/rse.md`). It is an approximation: the real `c` drifts with chamber pressure and
-//! nozzle erosion (SP-8039 p. 14). All propellant is gone when the thrust curve ends.
+//! (`docs/format/rse.md`). It is an approximation: the real `c` drifts as the nozzle erodes
+//! (SP-8039 p. 14), and its efficiency differs with chamber pressure between motors (SP-8039
+//! Fig. 18, p. 40). All propellant is gone when the thrust curve ends.
 //!
 //! **Where the propellant is.** A [`Propellant::Column`] keeps its shape and loses density as it
 //! burns, so its center stays put and its inertia scales with its mass (the model of RocketPy's
@@ -24,7 +25,7 @@
 //! **Ambient pressure.** A curve measured at reference pressure `p_ref` gives, at ambient `p_a`,
 //! `F = F_ref + (p_ref − p_a) A_e` (from SP-8039 eq. 2, `F = ṁ u_e + (p_e − p_a) A_e`, with the
 //! flow unchanged; RocketPy's `Motor.pressure_thrust`, `motor.py:1173-1191`). It holds while the
-//! nozzle flows full. See `docs/physics/motor.md`.
+//! nozzle flows full (this project's inference from SP-8039 pp. 32–34). See `docs/physics/motor.md`.
 
 use std::f64::consts::PI;
 
@@ -176,21 +177,24 @@ pub struct MotorState {
 /// imply, m/s.
 ///
 /// Measured over the 1,708 ThrustCurve.org simulator files with both a parsed impulse and a
-/// catalog propellant mass (the mass [`crate::CatalogMotor::motor`] uses, which prefers the
-/// metadata over the curve file's header), `c` runs 236 to 3,031 m/s, with a median of 1,867 and
-/// 90% of them between 928 and 2,210 (the full table is in
-/// `docs/research/exhaust-velocity-guard.md`). The bulk is APCP; the tail below
-/// about 900 m/s is black powder, read low because Estes and Quest count the delay grain and the
-/// ejection charge as propellant.
+/// propellant mass in their motor's ThrustCurve.org record, `c` runs 236 to 3,031 m/s, with a
+/// median of 1,866 and 90% of them between 928 and 2,210 (the full table is in
+/// `docs/research/exhaust-velocity-guard.md`). The record's mass is not the one the bundled
+/// catalog flies: since issue #295 each motor's index masses are its default file's header, and
+/// the record's is kept only for comparison ([`crate::CatalogMotor::stated`]). The bulk is APCP;
+/// most of the tail below about 900 m/s is black powder (64 of its 83 files).
 ///
 /// **The bound rejects none of those 1,708.** It is not a filter on propellant: it is there to
 /// catch a mass-unit slip, grams given as kilograms, which moves `c` by a factor of 1,000: the
 /// worked example in [`SolidMotor::from_envelope`]'s test lands at 1.8 m/s. `c` doesn't depend on
-/// the motor's size, so sizes given in millimeters pass it. The headroom is real but not enormous
-/// at the low end (the lowest catalog entry is 1.2x above the floor, the highest 1.65x below the
-/// ceiling), and a 1/8A whose recorded propellant mass is mostly delay grain could fall through
-/// the floor; issue #11 records the fallback, which is to apply the bound only above a couple of
-/// grams.
+/// the motor's size, so sizes given in millimeters pass it. The headroom is real but not great at
+/// either end. Over the record-mass survey both ends are data errors: the lowest, 1.18x above
+/// the floor, is a Cesaroni E75 record giving 104 g of propellant for a 52 g motor, and the
+/// highest, 1.65x below the ceiling, a misfiled curve. The lowest entry NAR's list backs, the
+/// Quest B4, is 1.85x above the floor. On the header masses the catalog flies, the highest is the
+/// Ellis J228 at 4,128.18 m/s, 1.21x below the ceiling. A small motor whose recorded propellant
+/// mass is too large for its impulse could fall through the floor; issue #11 records the
+/// fallback, which is to apply the bound only above a couple of grams.
 pub const EXHAUST_VELOCITY_RANGE_M_S: std::ops::RangeInclusive<f64> = 200.0..=5000.0;
 
 impl SolidMotor {
@@ -565,7 +569,8 @@ mod tests {
             "{slipped}"
         );
         // The same motor in SI is accepted: 38 mm by 245 mm, 228.9 g of propellant, 437.5 g
-        // loaded, c = 1,859 m/s, which is within 0.5% of the median of the 1,710 surveyed files.
+        // loaded, c = 1,859 m/s, which is within 0.5% of the median, 1,866 m/s, of the 1,708
+        // surveyed files.
         let motor = SolidMotor::from_envelope(i175.clone(), 0.038, 0.245, 0.2289, 0.4375)
             .expect("the same motor in meters and kilograms");
         let c = motor.curve().total_impulse_ns() / motor.propellant_mass_kg(0.0);

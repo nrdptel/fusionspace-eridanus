@@ -42,15 +42,15 @@ burn-rate exponent [4, p. 590, eq. 3; 5, p. 84, eq. 9].
 - SP-8064: low n usually goes with low σ_p; n runs 0.2–0.8 [1, pp. 36, 39–40]. The monographs give no typical σ_p.
 - **Not found:** any value for AP/PBAN, AP/CTPB or a hobby formulation (white, blue, black, red, strontium,
   magnesium). For contrast, a KNSB thesis fits σ_p 0.33 and π_K 0.48 %/K [12, eqs. 6.22–6.23, p. 120]; its conclusion
-  (p. 130) prints 0.0052 and 0.0038 K⁻¹, and only p. 120's pair satisfies π_K = σ_p/(1 − n) at its n = 0.305
-  (**Inference**).
+  (p. 130) prints 0.0052 and 0.0038 K⁻¹, and only p. 120's pair satisfies π_K = σ_p/(1 − n) at its n = 0.305 (**Inference**).
 
 ## 2. From sensitivity to the curve, and what firings show
 
-SP-8039 puts temperature into the burn-rate law as a = a_ref·exp(σ_p ΔT) and the pressure as
-p = p_ref·exp(π_K ΔT) [3, p. 61, eqs. 53–54]. At fixed K burn rate follows pressure, so per 10 K warmer burn time
-scales by exp(−10 π_K) and pressure (so roughly thrust) by exp(+10 π_K) (**Inference**): at π_K = 0.15, 0.22, 0.25
-and 0.32 %/K, burn time −1.5%, −2.2%, −2.5%, −3.1%, thrust +1.5%, +2.2%, +2.5%, +3.3%.
+SP-8039 puts temperature into the burn-rate law as a = a_ref·exp(σ_p ΔT) and the pressure as p = p_ref·exp(π_K ΔT) [3,
+p. 61, eqs. 53–54], ΔT in °F (under eq. 54): a per-K coefficient is 1.8 times the per-°F one, and the %/K values below
+come from other sources. At fixed K burn rate follows pressure, so per 10 K warmer burn time scales by exp(−10 π_K)
+and pressure (so roughly thrust) by exp(+10 π_K) (**Inference**): at π_K = 0.15, 0.22, 0.25 and 0.32 %/K, burn time
+−1.5%, −2.2%, −2.5%, −3.1%, thrust +1.5%, +2.2%, +2.5%, +3.3%.
 
 - **Florczak et al. 2014** [4]: one tubular AP/HTPB/Al charge, 4 throats × 3 temperatures (12 firings), soaked 6 h
   at 233, 288 or 323 K (p. 596; Table 2, p. 600). **Inference** from Table 2, 233 → 323 K, per 10 K: burn time
@@ -170,7 +170,7 @@ All read 2026-10-18. `ntrs:` is `https://ntrs.nasa.gov/citations/`, `ipo:` is
 
 1. NASA SP-8064, *Solid Propellant Selection and Characterization* (1971), pp. 36, 39–40, 72. `ntrs:19720006088`
 2. NASA SP-8076, *Solid Propellant Grain Design and Internal Ballistics* (1972), pp. 11–12, 60–61. `ntrs:19730007077`
-3. NASA SP-8039, *Solid Rocket Motor Performance Analysis and Prediction* (1971), p. 61. <https://ntrs.nasa.gov/>
+3. NASA SP-8039, *Solid Rocket Motor Performance Analysis and Prediction* (1971), p. 61. <https://ntrs.nasa.gov/api/citations/19720011135/downloads/19720011135.pdf>
 4. Florczak, Białek, Cholewiak, Cent. Eur. J. Energ. Mater. 11(4), 589–601 (2014). `ipo:Florczaki-inni.pdf`
 5. Florczak, High Energy Materials 11(2), 83–88 (2019). `ipo:HEM_0185.pdf`
 6. Corrêa, Shimote, Rapozo, Lacava, ENCIT 2006, paper CIT06-1015 (Portuguese).
