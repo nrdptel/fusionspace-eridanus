@@ -1561,7 +1561,7 @@ fn histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust() {
     let last = rows.last().unwrap();
     assert_eq!(last[0], t1);
     // 50 m/s to 101.686 m/s; without the mass term 2q r′ it would be 101.722 m/s, so a center
-    // of mass whose rate was lost would miss by 300 times the bound below.
+    // of mass whose rate was lost would miss by 3.6e5 times the bound below.
     assert!(
         (closed(t1 - t0) - 101.686_021).abs() < 1e-6,
         "{}",

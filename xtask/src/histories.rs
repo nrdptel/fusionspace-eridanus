@@ -514,8 +514,8 @@ mod tests {
 
     /// Each history is flown: 5% more thrust raises the apogee by more than 20 times the bound,
     /// and 20% more mass delays the rail exit by more than 5%. The apogee is no probe of the mass:
-    /// `pods-none` is light and draggy, near its best mass, so 10% more mass raised it 0.26% and
-    /// 20% more lowered it 0.09%. The rail exit's time grows with the mass for any rocket.
+    /// on a light, draggy rocket near its best mass, such as `pods-none`, more mass can raise it
+    /// or lower it. The rail exit's time grows with the mass for any rocket on a fixed thrust.
     #[test]
     fn each_history_moves_the_apogee() {
         for public in public_flights() {

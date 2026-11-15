@@ -43,7 +43,7 @@
 //!
 //! so the inertia's difference from the other tool's stays in the split's remainder.
 //!
-//! **Time.** A history's time is the flight's clock: 0 at launch, when the first motor lights.
+//! **Time.** A history's time is the flight's clock: 0 at launch.
 //!
 //! **What refuses a history.** A sample list that is empty, with times that don't rise, a value
 //! that isn't finite, a negative thrust, a mass that isn't positive, a first sample after

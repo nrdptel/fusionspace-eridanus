@@ -370,12 +370,18 @@ $$
 
 A flight can take its thrust, and its mass with its center of mass, from another program, as
 numbers against time, in place of its own (`Simulation::with_thrust_history` and
-`Simulation::with_mass_history`, since [M2.3c11](../decisions-and-roadmap.md#m2-3c11)). It does
-one job: it splits the gap between HPR Sim's apogee and OpenRocket's by cause, one input swapped
-at a time, as a drag table swaps the drag ([ADR-349][adr-349]). It is not a model, and a flight
-on it is not a prediction. How far to trust it: a flight given its own thrust and mass, sampled
-at OpenRocket's times, comes back to its own apogee within 0.001%, on the two public designs
-tried (below).
+`Simulation::with_mass_history`, since [M2.3c11](../decisions-and-roadmap.md#m2-3c11)). It is
+for one job: splitting the gap between HPR Sim's apogee and OpenRocket's by cause, one input
+swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]). The split itself is
+[M2.3c12](../decisions-and-roadmap.md#m2-3c12), still to come. It is not a model, and a flight on
+it is not a prediction.
+
+> **How far to trust it.** These are checks of the swap itself, code against code and against
+> closed forms, not of either program's physics. A flight given its own thrust and mass, sampled
+> at OpenRocket's times, came back to its own apogee within 0.001% on the two public designs
+> tried, where the test holds it to 0.05%. In a vacuum it follows the closed forms to 1e-7 m/s
+> (both under *Verification*). For how close either program comes to a real flight, rely on
+> [Accuracy](../accuracy.md#real-flights).
 
 - **Between samples.** A history is a list of samples. Between two of them, $(t_i, y_i)$ and
   $(t_{i+1}, y_{i+1})$, it is the straight line
@@ -398,8 +404,9 @@ tried (below).
 - **What stays HPR Sim's under a mass history.** The inertia about the center of mass $I_c$. The
   inertia about $O$ comes from it by the parallel-axis theorem with the history's mass and
   center, $I_O = I_c + m\,(|\mathbf{r}|^2 E - \mathbf{r}\mathbf{r}^{\mathsf{T}})$, so the
-  inertia's difference from OpenRocket's lands in the split's remainder.
-- **Time.** A history's clock is the flight's: 0 at launch, when the first motor lights.
+  inertia's difference from OpenRocket's lands in the split's remainder. The motors' mass flow
+  stays theirs in the nozzle terms, as under a thrust history.
+- **Time.** A history's clock is the flight's: 0 at launch.
   OpenRocket's clock starts at the same instant: its launch and ignition events are both at 0 s.
 - **What is refused, with the reason.** An empty sample list, times that don't rise, a number that
   isn't finite, a negative thrust, a mass that isn't positive, or a first sample after launch. A
@@ -467,13 +474,14 @@ default settings. The numbers were measured on September 17, 2026.
   Sim's own drag and on a constant drag table.
 - A Valetudo flight to the ground costs about 1.3 ms, measured on October 9, 2026 (`docs/perf.md`).
 - Thrust and mass histories (`histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust`).
-  In a vacuum, after its own motor's burnout, Valetudo rises at 50 m/s on a 300 N thrust history.
-  Its mass history falls from 10 kg at 1.5 kg/s, and its center of mass moves aft at 0.05 m/s.
+  In a vacuum, after its own motor's burnout, Valetudo rises at 50 m/s (164 ft/s) on a 300 N
+  thrust history. Its mass history falls from 10 kg at 1.5 kg/s, and its center of mass moves aft
+  at 0.05 m/s (0.16 ft/s).
   The nose tip then rises at
   $v(\tau) = v_0 + ((F + 2 q r')/q) \ln(m_0/(m_0 - q\tau)) - g\tau$, which reaches 101.686 m/s
-  after 2 s. The flight follows it to 1e-7 m/s. Without the term $2 q r'$ the speed would be
-  0.036 m/s higher. Each history alone follows its own closed form to 1e-7 m/s too: the thrust
-  on the design's burnt-out 8.26 kg gains $(F/m - g)\,\tau$, 53.04 m/s in 2 s, and the mass
+  (333.62 ft/s) after 2 s. The flight follows it to 1e-7 m/s. Without the term $2 q r'$ the speed would be
+  0.036 m/s (0.12 ft/s) higher. Each history alone follows its own closed form to 1e-7 m/s too: the thrust
+  on the design's burnt-out 8.26 kg gains $(F/m - g)\,\tau$, 53.04 m/s (174.0 ft/s) in 2 s, and the mass
   alone the closed form above with $F = 0$.
 - A mass history read back at 1 s gives the history's mass and center along the axis, with the
   design's offsets off the axis and inertia. A separation, before or after a history, refuses
@@ -481,8 +489,9 @@ default settings. The numbers were measured on September 17, 2026.
 - The own-history test (`cargo test -p xtask histories`). Two public designs are flown, sampled at
   the times of OpenRocket 24.12's own flight of each (`validation/fixtures/ork/openrocket-histories.json`),
   and flown again on those samples. On `pods-none`, a 251-sample flight to Mach 0.76, the apogee
-  goes from 782.7197 m to 782.7214 m (+0.00022%). On `mach-probe`, a 567-sample flight to
-  Mach 1.73, it goes from 2,030.4623 m to 2,030.4496 m (−0.00063%). The bound is 0.05%, about a
+  goes from 782.7197 m (2,567.978 ft) to 782.7214 m (2,567.984 ft), +0.00022%. On `mach-probe`, a
+  567-sample flight to Mach 1.73, it goes from 2,030.4623 m (6,661.622 ft) to 2,030.4496 m
+  (6,661.580 ft), −0.00063%. The bound is 0.05%, about a
   thirtieth of the 1.63% mean absolute gap to OpenRocket that the split divides. On the same
   flights, 5% more thrust raises the apogee by 2.8% and 3.0%, and 20% more mass delays the rail
   exit by 7.9% and 7.2%: both histories are flown.
