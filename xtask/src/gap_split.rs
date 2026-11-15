@@ -906,7 +906,8 @@ mod tests {
     }
 
     /// What the documentation quotes for the two public designs, per cent of OpenRocket's apogee:
-    /// the whole and the drag part, each held within [`PUBLIC_WITHIN`].
+    /// the whole and the drag part, each held within [`PUBLIC_WITHIN`]. On `pods-none` the whole
+    /// is 0.81% and the drag part 0.79%; on `mach-probe`, 3.06% and 3.03%.
     const PUBLIC_PARTS: [(&str, f64, f64); 2] = [
         ("pods-none.ork", 0.81, 0.79),
         ("mach-probe.ork", 3.06, 3.03),
