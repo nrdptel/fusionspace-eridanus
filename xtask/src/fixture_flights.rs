@@ -23,6 +23,11 @@
 //!   atmosphere anchored at the pad, [`Ussa76::anchored`], in the same wind), with nothing
 //!   deployed; turns each logged barometric apogee into the height climbed in the day's air
 //!   ([`Barometer::height_m`]); and writes only aggregates, [`REPORT_JSON`] and [`REPORT_MD`].
+//! - `validation/oracles/openrocket/histories.py` records OpenRocket's thrust, mass, center of
+//!   mass and drag coefficient along each of its flights ([`crate::histories`], M2.3c11), and
+//!   this flies HPR Sim on them, one swapped in after another, to split the gap between the two
+//!   simulators' apogees into thrust, mass, drag and other on each flight both fly, or count
+//!   the flight under why it isn't split ([`crate::gap_split`], M2.3c12, ADR-349).
 //!
 //! A flight either simulator does not fly is counted under its cause, and every cause names the
 //! open issue that tracks it ([`ISSUES`]); a cause with none stops the run. `--check` writes
@@ -773,6 +778,18 @@ fn hpr_apogee(
     environment: Environment,
     rail: Rail,
 ) -> Result<f64, String> {
+    climbed_m(&simulation_of(design, configuration, environment, rail)?)
+}
+
+/// The flight of `configuration` in `environment` as the comparison flies it: whatever HPR Sim's
+/// checks find in the design, as OpenRocket flies it, with the separations the climb flies and
+/// nothing deployed.
+fn simulation_of(
+    design: &ork::Design,
+    configuration: &ork::MotorConfiguration,
+    environment: Environment,
+    rail: Rail,
+) -> Result<Simulation, String> {
     let settings = FlightSettings {
         accept_design_errors: true,
         ..FlightSettings::default()
@@ -785,7 +802,12 @@ fn hpr_apogee(
         settings,
     )
     .map_err(|error| error.to_string())?;
-    let simulation = as_flown(simulation, configuration)?;
+    as_flown(simulation, configuration)
+}
+
+/// Flies `simulation` and gives the height its center of mass climbed: its height at apogee
+/// above where it started, as OpenRocket's altitude is 0 at launch.
+pub(crate) fn climbed_m(simulation: &Simulation) -> Result<f64, String> {
     let mut climb = Climb::default();
     let result = simulation
         .run(&mut climb)
@@ -960,7 +982,8 @@ fn fly_all(
 > {
     let written = conditions(root, entries, index, supply)?;
     let record = openrocket_record(root, &written)?;
-    let inputs = crate::histories::collection_inputs(root, &written)?;
+    let (inputs, histories) = crate::histories::collection_inputs(root, &written)?;
+    let mut splits = Vec::new();
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -995,6 +1018,7 @@ fn fly_all(
         let rail = rail(entry);
 
         // hpr, in the whole profile and in OpenRocket's air.
+        let mut openrocket_air = None;
         let hpr = match &chosen.left_out {
             Some(out) => Err(named_cause(
                 &out.message,
@@ -1010,6 +1034,7 @@ fn fly_all(
                     Ussa76::anchored(entry.elevation_m, pad.temperature_k, pad.pressure_pa)
                         .map_err(|error| format!("{at}: {error}"))?;
                 let standard = Environment::new(earth, anchored, weather.wind.clone());
+                openrocket_air = Some(standard.clone());
                 hpr_apogee(&design, chosen, day.clone(), rail)
                     .and_then(|day| Ok((day, hpr_apogee(&design, chosen, standard, rail)?)))
                     .map_err(|error| {
@@ -1050,6 +1075,55 @@ fn fly_all(
             continue;
         };
         counts.flown_by_both += 1;
+
+        // The gap between the two, split by cause (M2.3c12): on every flight both fly, the ones
+        // left out of the errors below among them, since the split needs no log.
+        let recorded = histories.get(at).ok_or_else(|| {
+            format!(
+                "{} has no flight {at}; run {} again",
+                crate::histories::COLLECTION_RECORD,
+                crate::histories::ORACLE
+            )
+        })?;
+        let openrocket_air = openrocket_air
+            .ok_or_else(|| format!("{at}: HPR Sim flew it with no OpenRocket air"))?;
+        let build = |air: crate::gap_split::Air| {
+            let environment = match air {
+                crate::gap_split::Air::Day => day.clone(),
+                crate::gap_split::Air::OpenRocket => openrocket_air.clone(),
+            };
+            simulation_of(&design, chosen, environment, rail)
+        };
+        let split = crate::gap_split::split(
+            &build,
+            &climbed_m,
+            recorded,
+            (hpr_m, openrocket_m),
+            crate::histories::own::OWN_HISTORY_BOUND,
+        )
+        .map_err(|error| format!("{at}: {error}"))?;
+        match &split {
+            Ok(split) => {
+                let p = &split.parts;
+                println!(
+                    "fixture-flights: {at:<48} split {:+6.2}% = thrust {:+6.2}% + mass {:+6.2}% \
+                     + drag {:+6.2}% + other {:+6.2}% (air {:+6.2}%); drag first {:+6.2}%",
+                    p.whole,
+                    p.thrust,
+                    p.mass,
+                    p.drag,
+                    p.other(),
+                    p.air,
+                    p.drag_first
+                );
+            }
+            Err(not) => println!(
+                "fixture-flights: {at:<48} not split: {}: {}",
+                crate::gap_split::NOT_SPLIT[not.reason].0,
+                not.detail
+            ),
+        }
+        splits.push((percent(hpr_m, openrocket_m), split));
         if let Some(class) = &entry.excluded_class {
             *excluded.entry(class.clone()).or_default() += 1;
             kept.insert(at.clone(), Err(LEFT_OUT));
@@ -1157,6 +1231,7 @@ fn fly_all(
             logged,
             sets,
             inputs,
+            split: crate::gap_split::GapSplit::of(&splits),
         },
         kept,
     ))
@@ -1223,6 +1298,8 @@ pub(crate) struct Report {
     pub sets: Vec<ErrorSet>,
     /// OpenRocket's thrust, mass, center of mass and drag coefficient along its flights (M2.3c11).
     pub inputs: crate::histories::Inputs,
+    /// The gap between HPR Sim's apogee and OpenRocket's, split by cause (M2.3c12).
+    pub split: crate::gap_split::GapSplit,
 }
 
 /// How many flights went where.
@@ -1508,6 +1585,7 @@ impl Report {
         self.inputs
             .check_consistent(c.flown_by_openrocket)
             .or_else(fail)?;
+        self.split.check_consistent(c.flown_by_both).or_else(fail)?;
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1686,6 +1764,7 @@ impl Report {
             }
         }
         page.push_str(&self.inputs.to_markdown());
+        page.push_str(&self.split.to_markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");

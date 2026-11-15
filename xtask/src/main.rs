@@ -50,6 +50,7 @@ mod flight_residuals;
 mod format;
 mod format_types;
 mod from_boost;
+mod gap_split;
 mod ghost;
 mod grib2;
 mod guides;

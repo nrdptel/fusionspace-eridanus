@@ -912,7 +912,8 @@ Other sources:
   Since that change it's the only fixture repository, its `imported/` holding the two above.
   `cargo xtask fixture-flights` flies its 83 tier-A `.ork` flights in HPR Sim and OpenRocket. Of
   them, 60 are compared with their logged apogees,
-  [rechecked against the collection's catalog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md). Its files may not be redistributed, so
+  [rechecked against the collection's catalog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md). On the 68 both fly, the gap between the two is
+  [split by cause](accuracy.md#real-flights-of-the-private-collection): thrust, mass, drag and other. The collection's files may not be redistributed, so
   only aggregate statistics are published, crediting the sources collectively ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md),
   [how](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md); [the decision that adds it](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)). A result derived from its ERA5 files also
   carries the Copernicus attribution and the ERA5 citation its `LICENSING.md` gives. **Never

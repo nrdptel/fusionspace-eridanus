@@ -136,7 +136,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   doc. Library runs need `drag_curves.py` (ADR-097).
 - Probes (ADR-093, ADR-094): `pod_probes.py`, `rod_probes.py`, then `flights.py` (its docstring's command) and `motor_database.py ...
   refs validation/fixtures/ork/{pod,rod}-flights --jar`. #216: an outside part with no or an unknown `<finish>` reads OR's 60 µm.
-- Histories (M2.3c11): `mach_probe.py`, `histories.py --public`/`--collection` (`fixture-flights` refuses it stale); `histories::own` is `cfg(test)` till M2.3c12.
+- Histories (M2.3c11): `mach_probe.py`, `histories.py --public`/`--collection` (`fixture-flights` refuses it stale). Split (M2.3c12): `gap_split::split` per flight both fly, `GapSplit::check_consistent` holds the floor; a design edit moves `PUBLIC_PARTS`; #1486 is the mass row's one flight.
 - **Census (ADR-084):** a regenerated report that moves a row needs `cargo xtask census --accept --reason "<why>"` in the same PR, or
   `validate --check` fails. #200: Linux's reproduction bound. M2.3c (ADR-083): fly a pair with `hpr_validate::real_flight`, commit only
   statistics (needs `refs/rocketpy`). M2.3d3: `public_predictions::NEW_FLIGHTS`, after `euroc_2022.py`; no log parsed; `MERGED` pins them.

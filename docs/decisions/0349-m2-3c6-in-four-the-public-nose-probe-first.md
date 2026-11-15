@@ -17,6 +17,7 @@
 [adr-273]: 0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
 [i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
 [i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616
+[i-1486]: https://github.com/nrdptel/fusionspace-eridanus/issues/1486
 [or-3391]: https://github.com/openrocket/openrocket/issues/3391
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [forward]: ../../validation/reports/fixture-flights.md
@@ -188,8 +189,55 @@ apogees moved from those `fixture_flights.py` recorded by up to 2.3e-6 of themse
 fixture report gives it. So a flight is taken as the recorded one when its apogee is within 1e-5
 of that one's, a fiftieth of the own-history bound.
 
+**What M2.3c12 found.** [The fixture report][forward] now splits the gap on all 68 flights
+both simulators fly: none lacks an input, none is refused or fails a swapped flight, and none
+fails the own-history test, whose largest miss was 0.018% against the 0.05% bound. So the floor
+of half the flights is met with every flight. Over the 68, as shares of OpenRocket's apogee:
+
+| part | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
+|---|---:|---:|---:|---:|---:|
+| thrust | +0.00% | +0.00% | 0.00% | 0 | 0 |
+| mass | +0.10% | +0.00% | 0.10% | 0 | 1 |
+| drag | +0.58% | +0.44% | 1.57% | 59 | 31 |
+| other | +0.03% | +0.01% | 0.26% | 9 | 4 |
+| other: the air | -0.15% | -0.17% | 0.25% | | |
+| other: the rest | +0.18% | +0.19% | 0.33% | | |
+| the whole | +0.71% | +0.50% | 1.61% | | |
+| drag, swapped first | +0.58% | +0.44% | 1.57% | | |
+
+Drag is most of the gap: the largest part on 59 of the 68 flights. The whole is taken over the 68 flights both fly, the flights left out of
+the errors among them, since the split needs no log; over the 60 compared with a log it was
++0.90% and 1.63%. Five things were settled while building it, none of them narrowing the
+*done when*:
+
+- **The unit** is a share of OpenRocket's apogee, per cent, as the report's row of HPR Sim
+  against OpenRocket already is.
+- **The drag swap** is [ADR-097][adr-097]'s two curves in Mach number, power on and power off,
+  built from the rows M2.3c11's record holds, on OpenRocket's reference length. A record whose
+  rows give no such curve stops the run: it is not counted under a reason.
+- **A tie** between two parts goes to the earlier of thrust, mass, drag and other.
+- **A median and a count** stand beside each mean: the count is of the flights where the part's
+  absolute value is over 1%. They were added because the mass row's mean isn't typical of the
+  flights: its median is 0.00% and it is over 1% on one flight. [#1486][i-1486] follows that
+  flight: the lead is that the two programs weigh the rocket the same and put its center of
+  mass apart.
+- **What no swap replaces** stays HPR Sim's in every flight: its normal force, its center of
+  pressure, its damping of a turn and its inertia. So after the mass swap HPR Sim flies
+  OpenRocket's center of mass against its own center of pressure, which moves its stability
+  margin. What that does to the apogee is in the mass row, and no later swap undoes it: the
+  last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the
+  rest can take back what the mass row holds. The report counts the flights where both are over
+  1% with opposite signs: the 1 flight where the mass part is over 1%. That fits the reading
+  and doesn't prove it.
+
+On the two public designs, held by a test: `pods-none` +0.81% with drag +0.79%, and `mach-probe`
++3.06% with drag +3.03%; thrust and mass under 0.005%, and under 0.05% left after the swaps.
+
 **Consequences.**
-- [M1.14][m1-14] still waits on the split: nothing here says yet which input carries the gap.
+- The split says where [M1.14][m1-14] should look. The gap between the two programs is mostly
+  drag, the largest part on 59 of the 68 flights. Thrust is nil. Mass and the air are small on
+  average, and 0.18% is left that no swap explains. Which part of the drag is M2.3c13's and
+  M1.14's to say.
 - The probe is code against code. Whether the equivalent cone's value matches a measured
   tangent ogive stays open in [#222][i-222] and [#616][i-616].
 - When OpenRocket releases the fix, [M2.3c3][m2-3c3] flies both releases on the flights. The

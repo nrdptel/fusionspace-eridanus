@@ -11,12 +11,14 @@
 //! holds, and the flight is flown again on those histories in place of its own
 //! ([`hpr_sim::ThrustHistory`], [`hpr_sim::MassHistory`]). Its apogee must come back within
 //! `own::OWN_HISTORY_BOUND`, 0.05%, of the first, about a thirtieth of the 1.63% mean absolute
-//! gap between the two programs' apogees on 60 real flights that the split divides (ADR-349 §3).
+//! gap between the two programs' apogees on 60 real flights (ADR-349 §3).
 
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::fixture_flights::Tally;
 
@@ -122,7 +124,7 @@ impl Inputs {
 }
 
 /// `value` rounded to `digits` significant digits.
-fn significant(value: f64, digits: i32) -> f64 {
+pub(crate) fn significant(value: f64, digits: i32) -> f64 {
     if value == 0.0 {
         return 0.0;
     }
@@ -130,8 +132,12 @@ fn significant(value: f64, digits: i32) -> f64 {
     (value * scale).round() / scale
 }
 
-/// The collection's record, checked against the scripts and conditions that wrote it, counted.
-pub(crate) fn collection_inputs(root: &Path, conditions: &str) -> Result<Inputs, String> {
+/// The collection's record, checked against the scripts and conditions that wrote it: its counts,
+/// and its flights by id, each as [`crate::gap_split::OpenRocketInputs::of`] reads it.
+pub(crate) fn collection_inputs(
+    root: &Path,
+    conditions: &str,
+) -> Result<(Inputs, BTreeMap<String, Value>), String> {
     let rerun = format!("run `refs/venv/bin/python {ORACLE} --collection {COLLECTION_RECORD}`");
     let record = crate::ork_flights::read_json(&root.join(COLLECTION_RECORD))
         .map_err(|error| format!("{error}; {rerun}"))?;
@@ -178,6 +184,18 @@ pub(crate) fn collection_inputs(root: &Path, conditions: &str) -> Result<Inputs,
             "{COLLECTION_RECORD}'s reasons are {named:?}, not the {expected:?} this report words"
         ));
     }
+    let columns: Vec<&str> = record["columns"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .collect();
+    if columns != crate::gap_split::COLUMNS {
+        return Err(format!(
+            "{COLLECTION_RECORD}'s columns are {columns:?}, not the {:?} the split reads",
+            crate::gap_split::COLUMNS
+        ));
+    }
     let flights = record["flights"]
         .as_array()
         .ok_or_else(|| format!("{COLLECTION_RECORD} has no flights"))?;
@@ -215,26 +233,34 @@ pub(crate) fn collection_inputs(root: &Path, conditions: &str) -> Result<Inputs,
             }
         }
     }
-    Ok(counted)
+    let mut by_id = BTreeMap::new();
+    for flight in flights {
+        let id = flight["flight_id"]
+            .as_str()
+            .ok_or_else(|| format!("{COLLECTION_RECORD}: a flight without an id"))?;
+        if by_id.insert(id.to_owned(), flight.clone()).is_some() {
+            return Err(format!("{COLLECTION_RECORD} holds a flight twice"));
+        }
+    }
+    Ok((counted, by_id))
 }
 
-/// The own-history test's flights, which M2.3c12 also flies on the collection.
-#[cfg(test)]
+/// The own-history test's flights, which M2.3c12 also flies on the collection
+/// ([`crate::gap_split`]).
 pub(crate) mod own {
     use hpr_sim::{
         EventKind, FlightResult, FlightStep, MassHistory, Observer, SimError, Simulation,
         ThrustHistory,
     };
+    #[cfg(test)]
     use serde_json::Value;
 
     /// OpenRocket's inputs along its flights of the public designs, which the test samples at.
+    #[cfg(test)]
     pub(crate) const PUBLIC_RECORD: &str = "validation/fixtures/ork/openrocket-histories.json";
 
     /// The largest relative difference of the own-history flight's apogee from the flight's own.
     pub(crate) const OWN_HISTORY_BOUND: f64 = 5e-4;
-
-    /// The column of each quantity in a record's rows.
-    pub(crate) const TIME: usize = 0;
 
     /// A flight and its own-history flight.
     #[derive(Debug, Clone, PartialEq)]
@@ -347,13 +373,14 @@ pub(crate) mod own {
     }
 
     /// The times of a record flight's rows.
+    #[cfg(test)]
     pub(crate) fn times_s(flight: &Value) -> Result<Vec<f64>, String> {
         flight["rows"]
             .as_array()
             .ok_or("a flight without rows")?
             .iter()
             .map(|row| {
-                row[TIME]
+                row[crate::gap_split::TIME]
                     .as_f64()
                     .ok_or_else(|| "a row without a time".to_owned())
             })
@@ -362,7 +389,7 @@ pub(crate) mod own {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::own::{
         OWN_HISTORY_BOUND, OwnHistory, PUBLIC_RECORD, apogee_m, flown_on, own_history, times_s,
     };
@@ -382,21 +409,33 @@ mod tests {
 
     /// A public flight as OpenRocket flew it: the design, its configuration, the site and the
     /// rod, and OpenRocket's times.
-    struct Public {
-        file: String,
+    pub(crate) struct Public {
+        pub(crate) file: String,
         rocket: hpr_design::Rocket,
         configuration: String,
         site: Geodetic,
         rail: Rail,
         times_s: Vec<f64>,
+        /// OpenRocket's record of the flight.
+        pub(crate) flight: Value,
     }
 
     impl Public {
-        fn build(&self) -> Result<Simulation, String> {
+        pub(crate) fn build(&self) -> Result<Simulation, String> {
+            self.build_at(self.site.height_m)
+        }
+
+        /// The flight from the same place `height_m` above the ellipsoid, in the standard air
+        /// there.
+        pub(crate) fn build_at(&self, height_m: f64) -> Result<Simulation, String> {
+            let site = Geodetic {
+                height_m,
+                ..self.site
+            };
             Simulation::new(
                 &self.rocket,
                 &self.configuration,
-                Environment::standard(self.site).map_err(|e| e.to_string())?,
+                Environment::standard(site).map_err(|e| e.to_string())?,
                 self.rail,
                 FlightSettings {
                     accept_design_errors: true,
@@ -407,7 +446,7 @@ mod tests {
         }
     }
 
-    fn public_flights() -> Vec<Public> {
+    pub(crate) fn public_flights() -> Vec<Public> {
         let root = crate::ork::root().unwrap();
         let record = record();
         let mut out = Vec::new();
@@ -439,6 +478,7 @@ mod tests {
                     .unwrap(),
                     rail: crate::ork_flights::rod_rail(conditions).unwrap(),
                     times_s: times_s(flight).unwrap(),
+                    flight: flight.clone(),
                 });
             }
         }

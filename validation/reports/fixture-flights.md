@@ -112,6 +112,34 @@ For M2.3c11 (ADR-349), `validation/oracles/openrocket/histories.py` flies each f
 | OpenRocket gave a center of mass as not a number | 0 |
 | OpenRocket gave a drag coefficient as not a number above Mach 0 | 0 |
 
+## The gap to OpenRocket, by cause
+
+For M2.3c12 (ADR-349), HPR Sim flies each flight again with OpenRocket's inputs from the section above swapped in for its own, one after another, each added to the ones before: OpenRocket's thrust against time, then its mass and center of mass against time, then its drag coefficient against Mach number, then its air (the standard atmosphere through the pad's temperature and pressure, in place of the day's profile). A part is the apogee before its swap less the apogee after it. Other is what thrust, mass and drag leave: the air's line, and the last flight's apogee less OpenRocket's own. So the parts sum to the whole, HPR Sim's apogee less OpenRocket's, and the run stops if they don't on a flight. Every number is a share of OpenRocket's apogee. This is code against code: it sizes where the two simulators differ and says nothing about which is nearer a flight.
+
+Of the 68 flights both simulators fly, 68 are split. These include the flights left out of the errors above, whose logs are no fair test: the split needs no log. A part dominates a flight when its absolute value is the largest of thrust, mass, drag and other, the earlier in that order if two tie. The last column counts the flights where a part's absolute value is over 1%.
+
+| part | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
+|---|---:|---:|---:|---:|---:|
+| thrust | +0.00% | +0.00% | 0.00% | 0 | 0 |
+| mass | +0.10% | +0.00% | 0.10% | 0 | 1 |
+| drag | +0.58% | +0.44% | 1.57% | 59 | 31 |
+| other | +0.03% | +0.01% | 0.26% | 9 | 4 |
+| other: the air | -0.15% | -0.17% | 0.25% |  |  |
+| other: the rest | +0.18% | +0.19% | 0.33% |  |  |
+| the whole, on the flights split | +0.71% | +0.50% | 1.61% |  |  |
+| the whole, on every flight both fly | +0.71% | +0.50% | 1.61% |  |  |
+| drag, swapped first | +0.58% | +0.44% | 1.57% |  |  |
+
+The parts depend on the order. The last row is the drag part with the drag swapped first, on HPR Sim's own thrust and mass, beside the drag row's, which comes after thrust and mass. The drag swap is a table in Mach number, power on and power off, read from OpenRocket's own flight, so it leaves out how OpenRocket's drag depends on the Reynolds number and the angle of attack away from that flight's path. The mass swap leaves HPR Sim's inertia and its center of pressure in place, and no swap replaces its normal force, its center of pressure or its damping of a turn: those are in the rest. So where the two simulators put the center of mass apart, HPR Sim flies OpenRocket's center of mass against its own center of pressure from the mass swap on, which moves its stability margin. What that does to the apogee is in the mass row, and no later swap undoes it: the last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the rest can take back what the mass row holds. Of the 1 flight where the mass part is over 1%, the rest is over 1% with the other sign on 1, which fits that reading and doesn't prove it. The air's line is taken with the drag table already in place, so it holds the air's density and speed of sound and not what the air does to friction. Each flight split also passed M2.3c11's test: flown on its own thrust and mass sampled at OpenRocket's times, it came back to its own apogee within 0.05%; the largest miss was 0.018%.
+
+A flight both fly that is not split is counted under the first reason that applies:
+
+| why a flight is not split | flights |
+|---|---:|
+| OpenRocket's record lacks an input for the flight | 0 |
+| HPR Sim refuses a history or fails the swapped flight | 0 |
+| the flight on its own thrust and mass, sampled at OpenRocket's times, misses its own apogee by more than 0.05% | 0 |
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.

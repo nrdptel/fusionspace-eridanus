@@ -372,8 +372,10 @@ A flight can take its thrust, and its mass with its center of mass, from another
 numbers against time, in place of its own (`Simulation::with_thrust_history` and
 `Simulation::with_mass_history`, since [M2.3c11](../decisions-and-roadmap.md#m2-3c11)). It is
 for one job: splitting the gap between HPR Sim's apogee and OpenRocket's by cause, one input
-swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]). The split itself is
-[M2.3c12](../decisions-and-roadmap.md#m2-3c12), still to come. It is not a model, and a flight on
+swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]).
+[The split](../decisions-and-roadmap.md#m2-3c12) is in
+[Accuracy](../accuracy.md#real-flights-of-the-private-collection): drag is the largest part on
+59 of the 68 flights both programs fly. It is not a model, and a flight on
 it is not a prediction. It is in the Rust library only, for the validation harness: no `hpr`
 command, Python call or file option takes a history.
 
@@ -529,7 +531,7 @@ default settings. The numbers were measured on September 17, 2026.
   567-sample flight to Mach 1.73, it goes from 2,030.4623 m (6,661.622 ft) to 2,030.4496 m
   (6,661.580 ft), −0.00063%. The bound is 0.05%, about a
   thirtieth of the 1.63% mean absolute gap between the two programs' apogees on 60 real flights
-  ([accuracy](../accuracy.md#real-flights-of-the-private-collection)) that the split divides. On the same
+  ([accuracy](../accuracy.md#real-flights-of-the-private-collection)). On the same
   flights, 5% more thrust raises the apogee by 2.8% and 3.0%, and 20% more mass delays the rail
   exit by 7.9% and 7.2%: both histories are flown.
 
