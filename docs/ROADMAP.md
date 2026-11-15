@@ -180,8 +180,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       not; and a public fineness-3 probe sets OpenRocket 24.12's and hpr's nose pressure drag, on
       the nose's base area, at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
       test pinning hpr's at each. Moves: accuracy.
-      - [ ] **M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim.** *Done when:*
-        ADR-349 decision 2's for M2.3c11.
       - [ ] **M2.3c12 The split in the fixture report.** *Done when:* ADR-349 decision 2's for
         M2.3c12.
       - [ ] **M2.3c13 The tangent-ogive nose's line.** *Done when:* ADR-349 decision 2's for

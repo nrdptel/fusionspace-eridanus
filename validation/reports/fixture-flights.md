@@ -99,6 +99,19 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 | hpr in OpenRocket's air | +13.52% | +13.03% | 16.34% | 20.16% | 3 | 8 | 0 0 0 0 2 0 2 1 5 3 2 5 1 2 |
 | hpr against OpenRocket | +1.45% | +0.77% | 1.60% | 2.48% | 22 | 23 | 0 0 0 0 0 0 5 17 1 0 0 0 0 0 |
 
+## OpenRocket's inputs along its flights
+
+For M2.3c11 (ADR-349), `validation/oracles/openrocket/histories.py` flies each flight again as OpenRocket's flights above are flown and records, at OpenRocket's own time steps from launch to apogee, its thrust, mass, center of mass and drag coefficient. The record stays on this machine. M2.3c12 flies HPR Sim on those inputs to split the gap between the two simulators by cause. Of the 80 flights OpenRocket was given, 79 hold every input. Each of the rest is counted under the first reason, from the oracle's own list, that applies to it.
+
+| why a flight lacks an input | flights |
+|---|---:|
+| OpenRocket didn't fly it to an apogee | 1 |
+| the flight flown isn't the one OpenRocket's record above holds: its apogee moved by more than 1e-5 of itself | 0 |
+| OpenRocket gave a thrust as not a number | 0 |
+| OpenRocket gave a mass as not a number | 0 |
+| OpenRocket gave a center of mass as not a number | 0 |
+| OpenRocket gave a drag coefficient as not a number above Mach 0 | 0 |
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.

@@ -233,6 +233,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3c4 One fixture repo ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c5 The corpus rechecked ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c10 The fineness-3 nose probe ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.4 Accuracy census gate ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11 Ejected sections and payloads ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11a Pieces at any joint ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1342,6 +1343,8 @@ One line per milestone or increment, in the order it was archived within its pha
       the fixture report regenerated, saying what moved. Moves: accuracy.
     - **M2.3c6** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M2.3c10 The fineness-3 nose probe.** *Done when:* ADR-349 decision 2's for M2.3c10.
+      - [x] **M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim.** *Done when:*
+        ADR-349 decision 2's for M2.3c11.
 - [x] **M2.4 Accuracy census gate.** Generate a summary census (a README table and badge) from the
   report. CI fails on any per-case regression beyond tolerance.
   - Loft lessons: L84, L85, L86, L88.

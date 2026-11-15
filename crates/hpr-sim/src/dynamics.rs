@@ -37,6 +37,7 @@ use hpr_design::Assembly;
 
 use crate::environment::Environment;
 use crate::error::SimError;
+use crate::histories::Histories;
 use crate::shifts::Shifts;
 use crate::state::{STATE_LEN, State};
 
@@ -161,6 +162,8 @@ pub(crate) struct Vehicle {
     reference_area_m2: f64,
     /// The parts that move along the airframe.
     pub(crate) shifts: Shifts,
+    /// The thrust and mass histories flown in place of its own, if any ([`crate::histories`]).
+    pub(crate) histories: Histories,
 }
 
 impl Vehicle {
@@ -228,6 +231,7 @@ impl Vehicle {
             ignition_s,
             reference_area_m2,
             shifts: Shifts::default(),
+            histories: Histories::default(),
         })
     }
 
@@ -245,8 +249,21 @@ impl Vehicle {
             .fold(0.0, f64::max)
     }
 
-    /// The times at which the thrust curves start, have knots or end on the flight's clock,
-    /// sorted, after `0`.
+    /// The mean of the nozzle exits of the motors lit by a known time, in body axes, m, or
+    /// `None` with no such motor: where a thrust history acts ([`crate::histories`]).
+    pub(crate) fn lit_nozzle_mean_m(&self) -> Option<DVec3> {
+        let lit: Vec<DVec3> = self
+            .motors
+            .iter()
+            .filter(|m| m.ignition_s.is_finite())
+            .map(|m| m.nozzle_m)
+            .collect();
+        (!lit.is_empty()).then(|| lit.iter().copied().sum::<DVec3>() / lit.len() as f64)
+    }
+
+    /// The times at which the thrust curves start, have knots or end on the flight's clock, and
+    /// the corners of the histories flown in their place ([`Histories::corners_s`]), sorted,
+    /// after `0`.
     pub(crate) fn thrust_knots_s(&self) -> Vec<f64> {
         let mut times: Vec<f64> = self
             .assembly
@@ -266,6 +283,7 @@ impl Vehicle {
                 )
             })
             .filter(|t| *t > 0.0)
+            .chain(self.histories.corners_s())
             .collect();
         times.sort_by(f64::total_cmp);
         times.dedup();
@@ -276,10 +294,17 @@ impl Vehicle {
     /// `Assembly::mass_properties` kept inside `window` (the current integration interval), so
     /// that no difference straddles a thrust-curve knot or a burnout. The parts that move along
     /// the airframe are then put where they are, with their own rates in closed form
-    /// ([`Shifts::shift_state`]).
+    /// ([`Shifts::shift_state`]). A mass history ([`crate::histories::MassHistory`]) gives the
+    /// mass and the center of mass's axial place, the inertia about the center of mass staying
+    /// the assembly's, and is differenced the same way whenever it changes inside `window`.
     pub(crate) fn mass_state(&self, t: f64, window: (f64, f64)) -> MassState {
+        let history = self.histories.mass.as_ref();
         let props = |t: f64| {
-            let mp = self.assembly.mass_properties_lit(t, &self.ignition_s);
+            let mut mp = self.assembly.mass_properties_lit(t, &self.ignition_s);
+            if let Some(history) = history {
+                mp.mass_kg = history.mass_kg(t);
+                mp.cg_m.z = -history.cg_aft_of_nose_m(t);
+            }
             (
                 mp.mass_kg,
                 mp.cg_m,
@@ -292,7 +317,8 @@ impl Vehicle {
         let burning = self
             .motors
             .iter()
-            .any(|m| a < m.burnout_s && b > m.ignition_s);
+            .any(|m| a < m.burnout_s && b > m.ignition_s)
+            || history.is_some_and(|history| history.varies_within(window));
         let mut state = MassState {
             mass_kg,
             mass_rate_kg_s: 0.0,
@@ -456,6 +482,13 @@ impl Vehicle {
                 + DMat3::from_diagonal(DVec3::splat(n.length_squared()))
                 - outer(n, n);
             jet_gyration += gyration * mdot;
+        }
+
+        // A thrust history takes the motors' place, at the mean of their nozzle exits; their mass
+        // flow and the base area they free stay theirs ([`crate::histories`]).
+        if let Some(history) = &self.histories.thrust {
+            thrust = DVec3::Z * history.thrust_n(t);
+            thrust_moment = self.histories.nozzle_m.cross(thrust);
         }
 
         // Aerodynamics: the airframe in flight, the open canopies during the descent.

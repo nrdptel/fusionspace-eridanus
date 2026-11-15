@@ -51,6 +51,15 @@ pub enum SimError {
         /// The component.
         component: String,
     },
+    /// A thrust or mass history given from outside ([`crate::histories`]) that the flight can't
+    /// take, and why.
+    #[error("the {history} history can't be flown: {why}")]
+    History {
+        /// Which history: `thrust` or `mass`.
+        history: &'static str,
+        /// Why it can't be flown.
+        why: &'static str,
+    },
     /// The design's checks found errors, and the settings don't accept them: every finding,
     /// errors and warnings, in the checks' order. The message counts and names only the errors.
     #[error(

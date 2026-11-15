@@ -47,6 +47,7 @@ use crate::dynamics::{Conditions, Evaluation, Phase, Vehicle};
 use crate::environment::Environment;
 use crate::error::SimError;
 use crate::events::Direction;
+use crate::histories::{MassHistory, ThrustHistory};
 use crate::integrator::{
     Adaptive, Advance, IntegrationError, Integrator, Method, OdeSystem, Stats, Step,
 };
@@ -536,6 +537,93 @@ impl Simulation {
         Ok(self)
     }
 
+    /// Flies `history`'s thrust in place of the motors' ([`crate::histories`]): along the axis, at
+    /// the mean of the lit motors' nozzle exits, not corrected again for the air's pressure. The
+    /// motors still set the burnout, the base area a burning motor frees and the mass flow behind
+    /// jet damping. For sizing a difference from another tool, as a drag table is
+    /// ([ADR-349][adr-349]), not a model.
+    ///
+    /// # Errors
+    ///
+    /// [`SimError::History`] for a flight with no motor lit by a known time, for the thrust to
+    /// act at, and for one with a separation, ejections, mass shifts or releases, whose parts a
+    /// history doesn't give. The builders that add those refuse them once a history is given, so
+    /// they can come in any order.
+    ///
+    /// [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+    pub fn with_thrust_history(mut self, history: ThrustHistory) -> Result<Self, SimError> {
+        Self::takes_history("thrust", self.parts(), self.moves_parts())?;
+        let Some(nozzle_m) = self.vehicle.lit_nozzle_mean_m() else {
+            return Err(SimError::History {
+                history: "thrust",
+                why: "the flight has no motor lit by a known time, at whose nozzle it would act",
+            });
+        };
+        self.vehicle.histories.nozzle_m = nozzle_m;
+        self.vehicle.histories.thrust = Some(history);
+        Ok(self)
+    }
+
+    /// Flies `history`'s mass and center of mass in place of the design's
+    /// ([`crate::histories`]): the inertia about the center of mass stays the design's, moved to
+    /// the nose tip with the history's mass and center. For sizing a difference from another
+    /// tool ([ADR-349][adr-349]), not a model.
+    ///
+    /// # Errors
+    ///
+    /// [`SimError::History`] for a flight with a separation, ejections, mass shifts or releases,
+    /// whose parts a history doesn't give. The builders that add those refuse them once a history
+    /// is given, so they can come in any order.
+    ///
+    /// [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+    pub fn with_mass_history(mut self, history: MassHistory) -> Result<Self, SimError> {
+        Self::takes_history("mass", self.parts(), self.moves_parts())?;
+        self.vehicle.histories.mass = Some(history);
+        Ok(self)
+    }
+
+    /// The thrust and mass histories flown in place of the flight's own, if given.
+    #[must_use]
+    pub fn histories(&self) -> (Option<&ThrustHistory>, Option<&MassHistory>) {
+        let histories = &self.vehicle.histories;
+        (histories.thrust.as_ref(), histories.mass.as_ref())
+    }
+
+    /// Whether the flight moves or releases a part.
+    fn moves_parts(&self) -> bool {
+        !self.shifts.is_empty() || !self.releases.is_empty()
+    }
+
+    /// The refusal of a `history` in a flight that splits (`parts`) or moves or releases a part
+    /// (`moves`).
+    fn takes_history(history: &'static str, parts: bool, moves: bool) -> Result<(), SimError> {
+        if parts {
+            return Err(SimError::History {
+                history,
+                why: "the flight splits, by a separation or an ejection, and a history is the \
+                      whole stack's, with no part's own",
+            });
+        }
+        if moves {
+            return Err(SimError::History {
+                history,
+                why: "the flight moves or releases a part, and a history is the whole stack's \
+                      mass, with no part's own",
+            });
+        }
+        Ok(())
+    }
+
+    /// The refusal of a split (`parts`) or a moved or released part (`moves`) once a history is
+    /// given.
+    fn check_no_history(&self, parts: bool, moves: bool) -> Result<(), SimError> {
+        match &self.vehicle.histories {
+            h if h.thrust.is_some() => Self::takes_history("thrust", parts, moves),
+            h if h.mass.is_some() => Self::takes_history("mass", parts, moves),
+            _ => Ok(()),
+        }
+    }
+
     /// Keeps the aft base's whole drag while a motor burns, as OpenRocket 24.12 does, instead of
     /// taking the burning motor's cross-section off it
     /// ([`hpr_aero::AeroModel::with_full_base_drag_under_power`]). A sustainer lit at a powered
@@ -684,6 +772,7 @@ impl Simulation {
     /// error, as is one that fires before the separation ahead of it in the list.
     pub fn with_separations(mut self, separations: Vec<Separation>) -> Result<Self, SimError> {
         if !separations.is_empty() {
+            self.check_no_history(true, false)?;
             self.check_no_moving_parts()?;
         }
         let stages = self.vehicle.assembly.layout.stages.len();
@@ -807,6 +896,7 @@ impl Simulation {
     /// a flight with ejections and a pushed payload whose section's forward joint hasn't parted.
     pub fn with_ejections(mut self, ejections: Vec<Ejection>) -> Result<Self, SimError> {
         if !ejections.is_empty() {
+            self.check_no_history(true, false)?;
             self.check_no_moving_parts()?;
             if self.separations.len() > 1 {
                 return Err(Self::separations_and_ejections());
@@ -886,6 +976,9 @@ impl Simulation {
     /// [`SimError::Unsupported`] with a separation or ejections, whose pieces are fixed before the
     /// flight with every part where the design puts it.
     pub fn with_shifts(mut self, shifts: Vec<MassShift>) -> Result<Self, SimError> {
+        if !shifts.is_empty() {
+            self.check_no_history(false, true)?;
+        }
         if !shifts.is_empty() && self.parts() {
             return Err(Self::shifts_and_partings());
         }
@@ -923,6 +1016,9 @@ impl Simulation {
     /// [`SimError::Unsupported`] with a separation, ejections or mass shifts, whose parts are
     /// fixed before the flight with every part where the design puts it.
     pub fn with_releases(mut self, releases: Vec<MassRelease>) -> Result<Self, SimError> {
+        if !releases.is_empty() {
+            self.check_no_history(false, true)?;
+        }
         if !releases.is_empty() && (self.parts() || !self.shifts.is_empty()) {
             return Err(Self::releases_and_shifts());
         }
@@ -994,6 +1090,8 @@ impl Simulation {
     /// its trigger's time is known before the flight, and otherwise where `flight` records it
     /// ([`EventKind::MassRelease`]). They are the whole stack's, in body axes about its center of
     /// mass, before any separation (and a flight with a separation has no shifts or releases).
+    /// A mass history ([`Self::with_mass_history`]) gives the mass and the center of mass's
+    /// axial place in their stead, the inertia staying the design's.
     #[must_use]
     pub fn mass_properties(&self, flight: &FlightResult, t_s: f64) -> hpr_design::MassProperties {
         let mut shifts = self.vehicle.shifts.clone();
@@ -1023,7 +1121,12 @@ impl Simulation {
                 structure.without_part(self.release_parts.part(index))
             });
         let whole = assembly.mass_properties_lit_on(structure, t_s, self.vehicle.ignition_s());
-        shifts.apply(whole, t_s)
+        let mut flown = shifts.apply(whole, t_s);
+        if let Some(history) = &self.vehicle.histories.mass {
+            flown.mass_kg = history.mass_kg(t_s);
+            flown.cg_m.z = -history.cg_aft_of_nose_m(t_s);
+        }
+        flown
     }
 
     /// The stack's apogee at `sample`: its event, and the trigger of each of the stack's own

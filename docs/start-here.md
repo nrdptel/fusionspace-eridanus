@@ -167,7 +167,9 @@ bar ([the table](format/ork.md#the-simulators-flights-against-openrockets)). The
 A flight runs from the launch rail through powered flight and the coast to apogee. It takes an
 [adaptive time step](glossary.md#adaptive-time-step) and marks [events](glossary.md#event) such as
 burnout and apogee. The detail is in [Rigid-body flight](physics/flight.md) and
-[Time integration](physics/integration.md).
+[Time integration](physics/integration.md). To size a difference from another program, a flight
+can also take that program's thrust, and its mass and center of mass, as numbers against time in
+place of its own ([Thrust and mass from another program](physics/flight.md#thrust-and-mass-from-another-program)).
 
 ### Recovery
 

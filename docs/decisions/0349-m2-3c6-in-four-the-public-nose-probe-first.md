@@ -22,6 +22,7 @@
 [forward]: ../../validation/reports/fixture-flights.md
 [probe]: ../../validation/fixtures/ork/openrocket-nose-pressure-drag.json
 [aero]: ../physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412
+[flight]: ../physics/flight.md#thrust-and-mass-from-another-program
 
 **Context.** M2.3c6's *done when* asks for three things. The fixture report splits the HPR Sim
 less OpenRocket apogee into thrust, mass and drag parts, each input swapped for OpenRocket's in
@@ -174,6 +175,18 @@ control puts that cone on a body that widens to 80 mm behind it, where the refer
 column is on the rocket's reference area. Its tangent ogive is under 1% of the equivalent
 cone's at each Mach number. HPR Sim's tangent ogive is the equivalent cone's, as the
 documented method gives it. [The aerodynamics page][aero] carries the table.
+
+**What M2.3c11 found.** HPR Sim now flies a thrust history, and a mass with center of mass
+history, in place of its own; [the flight page][flight] gives the equations and what stays HPR
+Sim's. A new public probe, `mach-probe`, is the pod probes' airframe on an AeroTech J570W, which
+both codes fly past Mach 1.6. Sampled at OpenRocket 24.12's own times, 251 for `pods-none` and 567
+for `mach-probe`, each flight's own histories bring it back to its own apogee within +0.00022% and
+−0.00063%, against the 0.05% bound. The oracle recorded the collection's flights: of the 80
+OpenRocket was given, 79 hold every input, and the last is the flight OpenRocket loads no motor
+into. OpenRocket 24.12 is not bit-identical from one run to the next: two runs of the oracle gave
+52 of the 79 apogees apart, by up to 6.5e-7 of themselves. So a flight is the one
+`fixture_flights.py` recorded when its apogee is within 1e-5 of that one's. That is 15 times the
+spread and a fiftieth of the own-history bound.
 
 **Consequences.**
 - [M1.14][m1-14] still waits on the split: nothing here says yet which input carries the gap.
