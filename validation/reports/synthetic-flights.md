@@ -669,8 +669,8 @@ Each flight's own log smoothed (`hpr_flightdata::smoother`, M7.2d, ADR-300) and 
 | top speed | speed | 95.3% (8 / 0) | 96.7% (26 / 1) | 94.3% (47 / 1) |
 | apogee | height | 98.8% (2 / 0) | 97.6% (15 / 5) | 97.3% (19 / 4) |
 | apogee | speed | 96.5% (0 / 6) | 96.1% (5 / 27) | 96% (2 / 32) |
-| a drawn moment | height | 99.4% (1 / 0) | 97.3% (18 / 4) | 97.3% (21 / 2) |
-| a drawn moment | speed | 97.7% (3 / 1) | 97.3% (9 / 13) | 97.2% (14 / 10) |
+| a drawn moment | height | 99.4% (1 / 0) | 97.3% (18 / 4) | 97.4% (20 / 2) |
+| a drawn moment | speed | 97.7% (3 / 1) | 97.2% (9 / 14) | 97.2% (14 / 10) |
 
 ### The standard errors
 
@@ -715,7 +715,7 @@ The share inside the interval, each set's flights by logger.
 | apogee | height | 89.7% (15 / 4) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 99.3% (0 / 1) |
 | apogee | speed | 99.5% (1 / 0) | 94.5% (2 / 8) | 93.6% (1 / 10) | 95.1% (1 / 6) | 97.8% (0 / 3) |
 | a drawn moment | height | 91.4% (14 / 2) | 99.4% (1 / 0) | 98.8% (1 / 1) | 100% (0 / 0) | 97.8% (2 / 1) |
-| a drawn moment | speed | 95.7% (2 / 6) | 98.3% (2 / 1) | 97.1% (3 / 2) | 97.9% (2 / 1) | 97.8% (0 / 3) |
+| a drawn moment | speed | 95.1% (2 / 7) | 98.3% (2 / 1) | 97.1% (3 / 2) | 97.9% (2 / 1) | 97.8% (0 / 3) |
 
 #### B
 
@@ -727,7 +727,7 @@ The share inside the interval, each set's flights by logger.
 | top speed | speed | 92.5% (14 / 0) | 97% (5 / 0) | 92.3% (14 / 0) | 93.9% (7 / 1) | 96% (7 / 0) |
 | apogee | height | 89.2% (19 / 1) | 100% (0 / 0) | 100% (0 / 0) | 98.5% (0 / 2) | 99.4% (0 / 1) |
 | apogee | speed | 99.5% (0 / 1) | 93.5% (0 / 11) | 96.2% (0 / 7) | 93.9% (2 / 6) | 96% (0 / 7) |
-| a drawn moment | height | 90.3% (18 / 0) | 98.8% (1 / 1) | 100% (0 / 0) | 99.2% (1 / 0) | 98.9% (1 / 1) |
+| a drawn moment | height | 90.9% (17 / 0) | 98.8% (1 / 1) | 100% (0 / 0) | 99.2% (1 / 0) | 98.9% (1 / 1) |
 | a drawn moment | speed | 98.4% (1 / 2) | 95.3% (6 / 2) | 97.8% (2 / 2) | 93.9% (5 / 3) | 99.4% (0 / 1) |
 
 ### Trusting the GNSS receiver from liftoff
@@ -771,8 +771,8 @@ The smoothed flights' health cards, summed.
 | | Tuning | A | B |
 |---|---:|---:|---:|
 | GNSS: logs | 33 | 185 | 186 |
-| GNSS: samples rejected / logged / not weighed | 2 / 38300 / 8040 | 18 / 184000 / 37500 | 22 / 175000 / 35000 |
-| GNSS: logs with a rejection | 1 | 10 | 12 |
+| GNSS: samples rejected / logged / not weighed | 2 / 38300 / 8040 | 18 / 184000 / 37500 | 20 / 175000 / 35100 |
+| GNSS: logs with a rejection | 1 | 10 | 11 |
 | GNSS: resets | 0 | 0 | 0 |
 | accelerometer: logs | 71 | 356 | 368 |
 | accelerometer: samples rejected / logged / not weighed | 0 / 4440000 / 3810000 | 0 / 18800000 / 15900000 | 0 / 18700000 / 15600000 |
@@ -780,9 +780,9 @@ The smoothed flights' health cards, summed.
 | accelerometer: resets | 0 | 0 | 0 |
 | barometer: logs | 171 | 820 | 845 |
 | barometer: samples rejected / logged / not weighed | 4450 / 4860000 / 0 | 13800 / 20600000 / 0 | 13400 / 20600000 / 0 |
-| barometer: logs with a rejection | 63 | 319 | 348 |
-| barometer: resets | 9 | 29 | 35 |
-| GNSS receivers trusted | 30 | 173 | 177 |
+| barometer: logs with a rejection | 63 | 319 | 347 |
+| barometer: resets | 9 | 29 | 34 |
+| GNSS receivers trusted | 30 | 173 | 176 |
 | Transonic spans de-weighted | 107 | 479 | 510 |
 | Charge spans de-weighted | 171 | 820 | 845 |
 | Steps the pass back kept forward | 0 | 0 | 0 |
@@ -830,7 +830,7 @@ pass back: every step smoothed
 **imu-500hz**, flight 0:
 
 ```text
-barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.617; largest test ratio 0.736 at 23.9 s, Mach 0.22
+barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.616; largest test ratio 0.736 at 23.9 s, Mach 0.22
 accelerometer: 34602 samples, 15404 fused, 0 rejected, 19198 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00
 barometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s
 barometer less accelerometer at apogee: 88.0 m
@@ -875,7 +875,7 @@ The truths below, inside and above each interval, then the shares, each set's fl
 |---|---|---:|---:|---:|---:|---:|---:|---|
 | A | liftoff | 820 | 35 / 729 / 56 | 4.27% | 6.83% | 0 | 180 | holds |
 | A | apogee height | 820 | 55 / 720 / 45 | 6.71% | 5.49% | 0 | 180 | holds |
-| A | apogee time | 820 | 36 / 752 / 32 | 4.39% | 3.9% | 0 | 180 | holds |
+| A | apogee time | 820 | 36 / 753 / 31 | 4.39% | 3.78% | 0 | 180 | holds |
 | A | top speed | 287 | 11 / 258 / 18 | 3.83% | 6.27% | 0 | 713 | holds |
 | A | landing | 820 | 38 / 746 / 36 | 4.63% | 4.39% | 0 | 180 | holds |
 | A | flight time | 820 | 38 / 750 / 32 | 4.63% | 3.9% | 0 | 180 | holds |
@@ -976,7 +976,7 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 |---|---|---:|---:|---:|
 | A | liftoff | 64 / 628 / 128, fails | 9 / 798 / 13, fails | 2 / 472 / 346, fails |
 | A | apogee height | 115 / 592 / 113, fails | 0 / 820 / 0, fails | 0 / 537 / 283, fails |
-| A | apogee time | 61 / 690 / 69, fails | 5 / 803 / 12, fails | 1 / 680 / 139, fails |
+| A | apogee time | 61 / 691 / 68, fails | 5 / 803 / 12, fails | 1 / 681 / 138, fails |
 | A | top speed | 24 / 237 / 26, fails | 2 / 279 / 6, fails | 0 / 211 / 76, fails |
 | A | landing | 45 / 655 / 120, fails | 22 / 795 / 3, fails | 5 / 327 / 488, fails |
 | A | flight time | 87 / 670 / 63, fails | 11 / 802 / 7, fails | 3 / 626 / 191, fails |
@@ -1007,7 +1007,7 @@ Each reading's mean error, the reading less the truth, over the readings compare
 |---|---|---|---:|---:|---:|
 | A | liftoff | none | +0.243 s | 0.471 s | 6.83% |
 | A | apogee height | low | +1 m | 237 m | 5.49% |
-| A | apogee time | none | +0.006 s | 0.449 s | 3.9% |
+| A | apogee time | none | +0.007 s | 0.449 s | 3.78% |
 | A | top speed | low | +1.2 m/s | 20.4 m/s | 6.27% |
 | A | landing | none | -0.38 s | 1.33 s | 4.39% |
 | A | flight time | none | -0.62 s | 1.56 s | 3.9% |
@@ -1041,7 +1041,7 @@ Set A:
 | rocketpy-bella-lui | 2 / 72 / 2 | 1 / 75 / 0 | 3 / 72 / 1 | 1 / 75 / 0 | 0 / 69 / 7 | 0 / 67 / 9 | 0 / 76 / 0 | 0 / 39 / 0 | 0 / 15 / 0 | none | none | 1 / 73 / 2 |
 | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 80 / 2 | 8 / 72 / 2 | 5 / 75 / 2 | 0 / 2 / 3 | 0 / 82 / 0 | 3 / 79 / 0 | 9 / 71 / 2 | 4 / 28 / 2 | 0 / 34 / 0 | 9 / 71 / 2 | 0 / 82 / 0 | 7 / 73 / 2 |
 | rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 75 / 7 | 2 / 76 / 4 | 1 / 77 / 4 | 0 / 0 / 2 | 0 / 81 / 1 | 2 / 80 / 0 | 3 / 76 / 3 | 0 / 34 / 3 | 0 / 37 / 0 | 3 / 77 / 2 | 1 / 81 / 0 | 2 / 79 / 1 |
-| rocketpy-cavour | 0 / 64 / 21 | 7 / 72 / 6 | 8 / 71 / 6 | none | 38 / 47 / 0 | 21 / 64 / 0 | 1 / 79 / 5 | 3 / 29 / 1 | 2 / 27 / 4 | none | none | 7 / 71 / 7 |
+| rocketpy-cavour | 0 / 64 / 21 | 7 / 72 / 6 | 8 / 72 / 5 | none | 38 / 47 / 0 | 21 / 64 / 0 | 1 / 79 / 5 | 3 / 29 / 1 | 2 / 27 / 4 | none | none | 7 / 71 / 7 |
 | rocketpy-genesis | 0 / 77 / 12 | 8 / 76 / 5 | 4 / 84 / 1 | none | 0 / 87 / 2 | 3 / 86 / 0 | 10 / 70 / 9 | 2 / 36 / 1 | 2 / 37 / 0 | 8 / 76 / 5 | 0 / 66 / 23 | 8 / 77 / 4 |
 | rocketpy-juno-iii | 22 / 54 / 0 | 3 / 65 / 8 | 2 / 73 / 1 | 2 / 22 / 6 | 0 / 76 / 0 | 0 / 67 / 9 | 4 / 64 / 8 | 1 / 30 / 0 | 0 / 26 / 0 | none | none | 4 / 63 / 9 |
 | rocketpy-lince | 0 / 65 / 8 | 9 / 56 / 8 | 4 / 65 / 4 | none | 0 / 73 / 0 | 8 / 65 / 0 | 11 / 51 / 11 | 1 / 29 / 3 | 1 / 27 / 5 | none | none | 10 / 53 / 10 |
@@ -1077,7 +1077,7 @@ Set A:
 | perfectflite | **0 / 126 / 18** | 10 / 125 / 9 | 10 / 134 / 0 | 1 / 45 / 4 | 11 / 130 / 3 | 9 / 132 / 3 | 8 / 131 / 5 | none | none | 6 / 58 / 2 | 1 / 63 / 2 | 9 / 128 / 7 |
 | rrc3 | 1 / 125 / 13 | 8 / 124 / 7 | 1 / 135 / 3 | 2 / 42 / 3 | 6 / 125 / 8 | 3 / 132 / 4 | 8 / 123 / 8 | none | none | 6 / 72 / 3 | 2 / 75 / 4 | 9 / 125 / 5 |
 | eggtimer | **3 / 155 / 23** | 15 / 158 / 8 | 18 / 161 / 2 | 3 / 59 / 6 | 10 / 165 / 6 | 12 / 167 / 2 | 8 / 166 / 7 | none | none | 6 / 85 / 3 | 9 / 80 / 5 | 9 / 162 / 10 |
-| altos | 17 / 166 / 2 | 11 / 162 / 12 | **2 / 156 / 27** | 3 / 62 / 2 | 11 / 171 / 3 | 13 / 171 / 1 | 13 / 158 / 14 | **12 / 151 / 22** | 0 / 129 / 9 | 8 / 78 / 3 | 2 / 79 / 8 | 10 / 166 / 9 |
+| altos | 17 / 166 / 2 | 11 / 162 / 12 | **2 / 157 / 26** | 3 / 62 / 2 | 11 / 171 / 3 | 13 / 171 / 1 | 13 / 158 / 14 | **12 / 151 / 22** | 0 / 129 / 9 | 8 / 78 / 3 | 2 / 79 / 8 | 10 / 166 / 9 |
 | imu-500hz | **14 / 157 / 0** | 11 / 151 / 9 | **5 / 166 / 0** | 2 / 50 / 3 | **0 / 155 / 16** | **1 / 148 / 22** | 10 / 150 / 11 | **0 / 171 / 0** | 10 / 160 / 1 | 7 / 86 / 5 | 8 / 86 / 4 | 9 / 153 / 9 |
 
 Set B:
@@ -1097,7 +1097,7 @@ Set A:
 | The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | colder than −10 K | 3 / 115 / 14 | **55 / 77 / 0** | 10 / 114 / 8 | **10 / 24 / 0** | 7 / 120 / 5 | 10 / 118 / 4 | **47 / 85 / 0** | 1 / 48 / 3 | 2 / 41 / 2 | **33 / 39 / 0** | 2 / 66 / 4 | **46 / 86 / 0** |
-| −10 to +10 K | 27 / 489 / 35 | **0 / 551 / 0** | 21 / 510 / 20 | **1 / 194 / 1** | 26 / 500 / 25 | 23 / 505 / 23 | **0 / 551 / 0** | 10 / 217 / 14 | 6 / 193 / 6 | **0 / 287 / 0** | 14 / 260 / 13 | **0 / 551 / 0** |
+| −10 to +10 K | 27 / 489 / 35 | **0 / 551 / 0** | 21 / 511 / 19 | **1 / 194 / 1** | 26 / 500 / 25 | 23 / 505 / 23 | **0 / 551 / 0** | 10 / 217 / 14 | 6 / 193 / 6 | **0 / 287 / 0** | 14 / 260 / 13 | **0 / 551 / 0** |
 | warmer than +10 K | 5 / 125 / 7 | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 40 / 17** | 5 / 126 / 6 | 5 / 127 / 5 | **0 / 92 / 45** | 1 / 57 / 5 | 2 / 55 / 2 | **0 / 53 / 16** | 6 / 57 / 6 | **0 / 97 / 40** |
 
 Set B:

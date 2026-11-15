@@ -604,7 +604,7 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 13.603657,
+      "apogee_percent": 13.603813,
       "chute_early_s": null,
       "descent": {
         "outcome": "neither tool deploys a device"
@@ -620,10 +620,10 @@
       "margin_cal": 0.060352,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 7.976074,
+      "max_speed_percent": 7.976115,
       "on_openrocket_s_drag": {
-        "apogee_percent": 1.107794,
-        "max_speed_percent": 1.042712
+        "apogee_percent": 1.107933,
+        "max_speed_percent": 1.042756
       },
       "reference_same": true,
       "rod_clearance_cg_cal": -0.044744,
@@ -632,20 +632,20 @@
       "site": "above_sea_level",
       "termination": "ground_hit",
       "whole_base_under_power": {
-        "apogee_percent": -10.711787,
-        "max_speed_percent": -3.434905
+        "apogee_percent": -10.711665,
+        "max_speed_percent": -3.434858
       }
     },
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.682838,
+      "apogee_percent": 0.682846,
       "chute_early_s": 0.55,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.506367,
+        "flight_time_percent": 0.506366,
         "in_scope": true,
-        "landing_speed_percent": 0.000978,
+        "landing_speed_percent": 0.000988,
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "outcome": "compared"
@@ -661,7 +661,7 @@
       "margin_cal": 0.003239,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 1.05628,
+      "max_speed_percent": 1.056285,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": -0.000538,
@@ -1222,7 +1222,7 @@
         "flight_time_percent": {
           "count": 34,
           "max": 3.716487,
-          "mean_absolute": 1.520027176470588,
+          "mean_absolute": 1.5200271470588234,
           "median": 0.14390150000000002,
           "min": -4.975282
         },
@@ -1230,7 +1230,7 @@
         "landing_speed_percent": {
           "count": 34,
           "max": 0.039714,
-          "mean_absolute": 0.05974182352941174,
+          "mean_absolute": 0.0597421176470588,
           "median": 0.0075910000000000005,
           "min": -1.529545
         },
@@ -1284,10 +1284,10 @@
         "scored_by_cause": {
           "hpr's own drag coefficient": {
             "count": 1,
-            "max": 13.603657,
-            "mean_absolute": 13.603657,
-            "median": 13.603657,
-            "min": 13.603657
+            "max": 13.603813,
+            "mean_absolute": 13.603813,
+            "median": 13.603813,
+            "min": 13.603813
           },
           "no named cause": {
             "count": 28,
@@ -1299,7 +1299,7 @@
           "reference parachute open before apogee": {
             "count": 6,
             "max": 2.151293,
-            "mean_absolute": 1.5600014999999996,
+            "mean_absolute": 1.5600028333333331,
             "median": -0.315484,
             "min": -3.09433
           }
@@ -1317,15 +1317,15 @@
         "scored_by_cause": {
           "hpr's own drag coefficient": {
             "count": 1,
-            "max": 7.976074,
-            "mean_absolute": 7.976074,
-            "median": 7.976074,
-            "min": 7.976074
+            "max": 7.976115,
+            "mean_absolute": 7.976115,
+            "median": 7.976115,
+            "min": 7.976115
           },
           "no named cause": {
             "count": 34,
             "max": 2.281658,
-            "mean_absolute": 0.4841714117647059,
+            "mean_absolute": 0.48417155882352936,
             "median": 0.266802,
             "min": -0.65326
           }

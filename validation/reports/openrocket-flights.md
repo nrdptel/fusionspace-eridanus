@@ -33,7 +33,7 @@ hpr's mass and center of mass less OpenRocket's ([M2.2e1][m2-2e1], decision [ADR
 | design | motors | apogee OR (m) | hpr (m) | Δ | max speed OR (m/s) | hpr (m/s) | Δ | max Mach OR | margin OR (cal) | hpr (cal) | Δ (cal) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 3D printable nose cone and fins | [A8-3] | 39.0 | 39.0 | -0.06% | 24.85 | 24.89 | +0.17% | 0.073 | 1.139 | 1.139 | -0.0006 |
-| 3D printable nose cone and fins | [B6-4] | 112.9 | 112.5 | -0.32% (chute 0.10 s early) | 48.64 | 48.77 | +0.26% | 0.143 | 1.071 | 1.071 | -0.0006 |
+| 3D printable nose cone and fins | [B6-4] | 112.9 | 112.5 | -0.33% (chute 0.10 s early) | 48.64 | 48.77 | +0.26% | 0.143 | 1.071 | 1.071 | -0.0006 |
 | 3D printable nose cone and fins | [C6-3] | 244.5 | 274.2 | +12.18% (chute 2.59 s early) | 83.29 | 84.00 | +0.85% | 0.245 | 0.903 | 0.903 | -0.0003 |
 | 3D printable nose cone and fins | [C6-5] | 274.0 | 274.2 | +0.10% (chute 0.59 s early) | 83.29 | 84.00 | +0.85% | 0.245 | 0.903 | 0.903 | -0.0003 |
 | 3D printable nose cone and fins | [C6-7] | 274.7 | 274.2 | -0.16% | 83.29 | 84.00 | +0.85% | 0.245 | 0.903 | 0.903 | -0.0003 |
@@ -98,12 +98,12 @@ The named causes, sized ([M2.2e4][m2-2e4], decision [ADR-073][adr-073]). OpenRoc
 
 | design | motors | Δ apogee | chute early (s) | OR, nothing deployed (m) | Δ | OR, drag settings cleared too (m) | Δ | within 5% after | hpr on OR's drag, nothing deployed (m) | Δ |
 |---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|
-| 3D printable nose cone and fins | [B6-4] | -0.32% | 0.10 | 112.9 | -0.32% | n/a | n/a | n/a | n/a | n/a |
+| 3D printable nose cone and fins | [B6-4] | -0.33% | 0.10 | 112.9 | -0.32% | n/a | n/a | n/a | n/a | n/a |
 | 3D printable nose cone and fins | [C6-3] | +12.18% | 2.59 | 274.7 | -0.16% | n/a | n/a | yes | n/a | n/a |
 | 3D printable nose cone and fins | [C6-5] | +0.10% | 0.59 | 274.7 | -0.16% | n/a | n/a | n/a | n/a | n/a |
 | A simple model rocket | [B4-4] | -0.64% | 0.37 | 136.6 | -0.78% | n/a | n/a | n/a | n/a | n/a |
-| A simple model rocket | [C6-3] | +13.80% | 2.99 | 322.4 | -1.07% | n/a | n/a | yes | n/a | n/a |
-| A simple model rocket | [C6-5] | -0.08% | 0.99 | 322.4 | -1.07% | n/a | n/a | n/a | n/a | n/a |
+| A simple model rocket | [C6-3] | +13.80% | 2.99 | 322.4 | -1.08% | n/a | n/a | yes | n/a | n/a |
+| A simple model rocket | [C6-5] | -0.08% | 0.99 | 322.4 | -1.08% | n/a | n/a | n/a | n/a | n/a |
 | Base drag hack (short-wide) | [D12-3] | +12.96% | 1.80 | 212.6 | +5.84% | n/a | n/a | no | 212.4 | -0.10% |
 | Base drag hack (short-wide) | [E12-4] | +10.79% | 1.24 | 321.8 | +8.92% | n/a | n/a | no | 321.6 | -0.03% |
 | Clustered motors | [4× B4-4] | -0.71% | 0.37 | 143.1 | -0.79% | n/a | n/a | n/a | n/a | n/a |
@@ -209,8 +209,8 @@ Each configuration flown again with the file's parachutes and streamers, as `hpr
 | Base drag hack (short-wide) | [C11-5] | 5.81 / 5.81 | – | 4.22 | 4.22 | +0.11% | 27.5 | 27.9 | +1.72% | met |
 | Base drag hack (short-wide) | [D12-3] | 4.65 / 4.65 | – | 4.19 | 4.20 | +0.12% | 52.7 | 54.9 | +4.11% | met |
 | Base drag hack (short-wide) | [E12-4] | 6.44 / 6.44 | – | 4.23 | 4.23 | +0.11% | 81.4 | 87.2 | +7.07% | missed |
-| Chute release | [G40W-7] | 9.30 / 9.30; 20.51 / 20.15 | –; +0.07 | 4.75 | 4.75 | +0.02% | 51.8 | 51.7 | -0.27% | met |
-| Chute release | [G80T-10] | 11.81 / 11.81; 34.31 / 33.40 (misses) | –; -0.16 | 4.74 | 4.74 | +0.02% | 66.0 | 65.0 | -1.55% | met once sized |
+| Chute release | [G40W-7] | 9.30 / 9.30; 20.51 / 20.15 | –; +0.06 | 4.75 | 4.75 | +0.02% | 51.8 | 51.6 | -0.28% | met |
+| Chute release | [G80T-10] | 11.81 / 11.81; 34.31 / 33.41 (misses) | –; -0.16 | 4.74 | 4.74 | +0.02% | 66.0 | 65.0 | -1.56% | met once sized |
 | Clustered motors | [4× A8-3] | 3.73 / 3.73 | – | 5.95 | 5.95 | +0.02% | 13.8 | 13.8 | +0.03% | met |
 | Clustered motors | [4× B4-4] | 5.03 / 5.03 | – | 5.94 | 5.94 | +0.02% | 29.7 | 29.5 | -0.49% | met |
 | Clustered motors | [4× C6-3] | 4.86 / 4.86 | – | 5.91 | 5.91 | +0.02% | 53.1 | 53.1 | +0.03% | met |

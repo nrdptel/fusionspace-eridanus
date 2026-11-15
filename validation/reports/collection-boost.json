@@ -37,37 +37,37 @@
         "other_logs_apart": 0,
         "every": {
           "flights": 12,
-          "prediction_mean_absolute_percent": 3.190446550954023,
-          "prediction_mean_percent": -0.07740594044455783,
-          "forward_mean_absolute_percent": 9.324258693560383,
-          "forward_mean_percent": 8.840851964141399,
-          "up_to_cut_mean_points": 8.918257904585955,
+          "prediction_mean_absolute_percent": 3.190447195696285,
+          "prediction_mean_percent": -0.07740658518682016,
+          "forward_mean_absolute_percent": 9.324266275344693,
+          "forward_mean_percent": 8.84085954592571,
+          "up_to_cut_mean_points": 8.91826613111253,
           "mostly_up_to_cut": 11,
-          "difference_points": -6.1338121426063585,
+          "difference_points": -6.133819079648408,
           "bootstrap_interval": [
-            -10.076842091392782,
+            -10.076849028434832,
             -2.717620311616363
           ],
           "sign_flip_interval": [
-            -10.636691988238434,
-            -2.0818311577058424
+            -10.636712799364584,
+            -2.0818311571686756
           ]
         },
         "without_early": {
           "flights": 8,
-          "prediction_mean_absolute_percent": 3.033093576828792,
-          "prediction_mean_percent": -1.1162988223736963,
-          "forward_mean_absolute_percent": 10.05280662723802,
-          "forward_mean_percent": 9.327696533109547,
-          "up_to_cut_mean_points": 10.443995355483242,
+          "prediction_mean_absolute_percent": 3.0330945439421857,
+          "prediction_mean_percent": -1.1162997894870896,
+          "forward_mean_absolute_percent": 10.052817999914488,
+          "forward_mean_percent": 9.327707905786015,
+          "up_to_cut_mean_points": 10.444007695273102,
           "mostly_up_to_cut": 7,
-          "difference_points": -7.019713050409228,
+          "difference_points": -7.0197234559723025,
           "bootstrap_interval": [
             -12.649268463136034,
             -2.2977715364475584
           ],
           "sign_flip_interval": [
-            -13.754587846840138,
+            -13.754615596082672,
             -0.8013158692917938
           ]
         }
@@ -127,21 +127,21 @@
       "parameters": [
         {
           "name": "drag scale",
-          "mean": 1.01790762946386,
-          "sd": 0.04864401503527595
+          "mean": 1.0179076835778675,
+          "sd": 0.04864404651103678
         },
         {
           "name": "impulse scale",
-          "mean": 0.9578659482938477,
-          "sd": 0.03340441887254718
+          "mean": 0.9578659113881766,
+          "sd": 0.03340443999012859
         },
         {
           "name": "structure mass scale",
-          "mean": 1.0034801495627657,
-          "sd": 0.002206857589515874
+          "mean": 1.003480151900354,
+          "sd": 0.00220685934571017
         }
       ],
-      "rms_mean_m": 2.72274828458101
+      "rms_mean_m": 2.722746662246369
     },
     "calibration_log_implied": {
       "half": "calibration",
@@ -153,12 +153,12 @@
       "converged": 12,
       "impulse_scale": {
         "name": "impulse scale, the log alone",
-        "mean": 0.9362246280580199,
-        "sd": 0.048071943036614946
+        "mean": 0.9362246266797385,
+        "sd": 0.048071944039306536
       },
-      "impulse_scale_mean_standard_error": 0.013877174626328998,
-      "standard_error_mean": 0.03522716212182398,
-      "drag_standard_error_mean": 0.10840255800525635,
+      "impulse_scale_mean_standard_error": 0.013877174915781127,
+      "standard_error_mean": 0.03522875722725151,
+      "drag_standard_error_mean": 0.10840254730080344,
       "below_rated": 12,
       "flagged": 1
     },
@@ -231,16 +231,16 @@
               "flights": 23,
               "less_flagged": false,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 16.260166004946367,
-              "forward_mean_percent": 13.359412631907137,
-              "corrected_mean_absolute_percent": 10.910674290373725,
-              "corrected_mean_percent": 5.841318036550512,
+              "forward_mean_absolute_percent": 16.260163890738085,
+              "forward_mean_percent": 13.359410517698855,
+              "corrected_mean_absolute_percent": 10.910676840833881,
+              "corrected_mean_percent": 5.841315157133377,
               "mean_absolute_holds": true,
               "bias_holds": true,
               "passes": true,
-              "difference_points": -5.349491714572643,
+              "difference_points": -5.349487049904203,
               "bootstrap_interval": [
-                -7.396633282107792,
+                -7.396633812327553,
                 -2.955822556562109
               ],
               "sign_flip_interval": null,
@@ -252,20 +252,20 @@
               "flights": 13,
               "less_flagged": false,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 11.298087457426977,
-              "forward_mean_percent": 6.877128718113554,
-              "corrected_mean_absolute_percent": 6.842257314204864,
-              "corrected_mean_percent": -0.04985953514614954,
+              "forward_mean_absolute_percent": 11.298083716904632,
+              "forward_mean_percent": 6.877124977591207,
+              "corrected_mean_absolute_percent": 6.842261826557449,
+              "corrected_mean_percent": -0.049864629499541464,
               "mean_absolute_holds": true,
               "bias_holds": true,
               "passes": true,
-              "difference_points": -4.455830143222112,
+              "difference_points": -4.45582189034718,
               "bootstrap_interval": [
-                -7.055779354190452,
+                -7.055781230352687,
                 -1.520756640034956
               ],
               "sign_flip_interval": [
-                -7.743694456159989,
+                -7.743696488669076,
                 -1.0943315483540257
               ],
               "grew": 3,
@@ -276,20 +276,20 @@
               "flights": 12,
               "less_flagged": false,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 9.0028057575811,
-              "forward_mean_percent": -4.908940677398466,
-              "corrected_mean_absolute_percent": 12.159931105405862,
-              "corrected_mean_percent": -12.010482341443748,
+              "forward_mean_absolute_percent": 9.002805142875369,
+              "forward_mean_percent": -4.908941292104195,
+              "corrected_mean_absolute_percent": 12.159931733430838,
+              "corrected_mean_percent": -12.010482969468725,
               "mean_absolute_holds": false,
               "bias_holds": false,
               "passes": false,
-              "difference_points": 3.1571253478247634,
+              "difference_points": 3.1571265905554693,
               "bootstrap_interval": [
-                -0.30281083009745585,
+                -0.3028058591746327,
                 6.293854022057267
               ],
               "sign_flip_interval": [
-                -0.8600327600790525,
+                -0.8600297775253584,
                 7.179486066960109
               ],
               "grew": 8,
@@ -336,20 +336,20 @@
               "flights": 12,
               "less_flagged": true,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 9.0028057575811,
-              "forward_mean_percent": -4.908940677398466,
-              "corrected_mean_absolute_percent": 12.159931105405862,
-              "corrected_mean_percent": -12.010482341443748,
+              "forward_mean_absolute_percent": 9.002805142875369,
+              "forward_mean_percent": -4.908941292104195,
+              "corrected_mean_absolute_percent": 12.159931733430838,
+              "corrected_mean_percent": -12.010482969468725,
               "mean_absolute_holds": false,
               "bias_holds": false,
               "passes": false,
-              "difference_points": 3.1571253478247634,
+              "difference_points": 3.1571265905554693,
               "bootstrap_interval": [
-                -0.30281083009745585,
+                -0.3028058591746327,
                 6.293854022057267
               ],
               "sign_flip_interval": [
-                -0.8600327600790525,
+                -0.8600297775253584,
                 7.179486066960109
               ],
               "grew": 8,
@@ -361,17 +361,17 @@
             "flights": 37,
             "less_flagged": false,
             "failed_to_fly": 0,
-            "forward_mean_absolute_percent": 9.417212756885968,
-            "forward_mean_percent": 4.216989747306126,
-            "corrected_mean_absolute_percent": 8.133792986810963,
-            "corrected_mean_percent": -2.2164326740862137,
+            "forward_mean_absolute_percent": 9.417194665114621,
+            "forward_mean_percent": 4.2169716555347785,
+            "corrected_mean_absolute_percent": 8.133817031140069,
+            "corrected_mean_percent": -2.216452741930586,
             "mean_absolute_holds": true,
             "bias_holds": true,
             "passes": true,
-            "difference_points": -1.283419770075006,
+            "difference_points": -1.283377633974552,
             "bootstrap_interval": [
               -3.1150186013268804,
-              0.5393293427045397
+              0.5394140856201561
             ],
             "sign_flip_interval": null,
             "grew": 16,
@@ -448,20 +448,20 @@
               "flights": 12,
               "less_flagged": false,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 9.0028057575811,
-              "forward_mean_percent": -4.908940677398466,
-              "corrected_mean_absolute_percent": 13.210760480642655,
-              "corrected_mean_percent": -13.210760480642655,
+              "forward_mean_absolute_percent": 9.002805142875369,
+              "forward_mean_percent": -4.908941292104195,
+              "corrected_mean_absolute_percent": 13.21076111640537,
+              "corrected_mean_percent": -13.21076111640537,
               "mean_absolute_holds": false,
               "bias_holds": false,
               "passes": false,
-              "difference_points": 4.2079547230615555,
+              "difference_points": 4.207955973530001,
               "bootstrap_interval": [
-                0.5143274341651421,
+                0.5143286846335863,
                 7.518288249349346
               ],
               "sign_flip_interval": [
-                -0.02607536563726285,
+                -0.02607236451299677,
                 8.432071084981839
               ],
               "grew": 9,
@@ -508,20 +508,20 @@
               "flights": 12,
               "less_flagged": true,
               "failed_to_fly": 0,
-              "forward_mean_absolute_percent": 9.0028057575811,
-              "forward_mean_percent": -4.908940677398466,
-              "corrected_mean_absolute_percent": 13.210760480642655,
-              "corrected_mean_percent": -13.210760480642655,
+              "forward_mean_absolute_percent": 9.002805142875369,
+              "forward_mean_percent": -4.908941292104195,
+              "corrected_mean_absolute_percent": 13.21076111640537,
+              "corrected_mean_percent": -13.21076111640537,
               "mean_absolute_holds": false,
               "bias_holds": false,
               "passes": false,
-              "difference_points": 4.2079547230615555,
+              "difference_points": 4.207955973530001,
               "bootstrap_interval": [
-                0.5143274341651421,
+                0.5143286846335863,
                 7.518288249349346
               ],
               "sign_flip_interval": [
-                -0.02607536563726285,
+                -0.02607236451299677,
                 8.432071084981839
               ],
               "grew": 9,
