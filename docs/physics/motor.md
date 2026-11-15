@@ -316,7 +316,7 @@ holding one [`MountedMotor`](../api/hpr_design/config/struct.MountedMotor.html).
 |---|---|
 | `mount` | The id of the mount in the design, here `motor-mount` |
 | `designation` | A name, for display |
-| `diameter_m`, `length_m` | The case's size, in meters. The design checks compare the diameter with the mount's bore: a motor wider than its mount is an error, and the flight refuses to start, unless a nominal size's real case fits ([a nominal motor in its matching tube](design.md#a-nominal-motor-in-its-matching-tube)). A case that reaches forward past the mount's top is only a warning |
+| `diameter_m`, `length_m` | The case's size, in meters. The design checks compare the diameter with the mount's bore: a motor wider than its mount is an error, and the flight refuses to start unless design errors are accepted ([`--accept-design-errors`](../cli.md)) or a nominal size's real case fits ([a nominal motor in its matching tube](design.md#a-nominal-motor-in-its-matching-tube)). A case that reaches forward past the mount's top is only a warning |
 | `motor` | The motor built above |
 | `delay` | The [ejection delay](../glossary.md#ejection-delay) chosen, if any. A parachute can fire on it, with the `MotorDelay` trigger ([Recovery](recovery.md#triggers-lag-and-release)) |
 
@@ -600,23 +600,28 @@ of the propellant mass, not a filter on propellant:
   `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
   2,103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
   ([Checks](design.md#checks)). A diameter wider than the mount's bore is an error,
-  `motor_wider_than_mount`, and the flight refuses to start. Within a nominal size's slack for its
+  `motor_wider_than_mount`, and the flight refuses to start unless design errors are accepted
+  ([`--accept-design-errors`](../cli.md)). Within a nominal size's slack for its
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
   Nor does $c$ involve the loaded mass, so a loaded mass in grams passes too.
 - It lets through every real motor checked. In an earlier survey, the 1,708 ThrustCurve.org
   files with a catalog propellant mass, each with the record's propellant, ran from 236 to
-  3,031 m/s (774 to 9,944 ft/s). Their median is 1,867, and 90% of them are between 928 and
+  3,031 m/s (774 to 9,944 ft/s). Their median is 1,866, and 90% of them are between 928 and
   2,210. In the [whole catalog](#the-whole-catalog), the 924 motors' default files, each with
   its own header's propellant mass, run from **296.83 m/s** (973.9 ft/s, a black-powder A8) to
   **4,128.18 m/s** (13,543.9 ft/s, a J228). That highest is no real motor's: the J228's header
   gives 270 g of propellant, where ThrustCurve.org's record gives 569 g. The guard lets it
-  through, so once the lookups move it would fly with 270 g unless
-  [issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003) is fixed first.
-- It is tightest at the floor: in the earlier survey, the lowest real value is 1.2x above it. Estes and Quest normally
-  count the delay grain and the ejection charge as propellant, so their small black-powder motors
-  read low. [Issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the
-  fallback if one ever falls below 200 m/s (656 ft/s).
+  through, and the J228 flies with 270 g. Since
+  [issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003) closed, a file more
+  than 5% short of its record's propellant draws a warning when it flies.
+- Its headroom is real but not great at either end. In the earlier survey both ends are data
+  errors. The lowest, 1.18x above the floor, is a Cesaroni E75 record giving 104 g of propellant
+  for a 52 g motor. The highest, 1.65x below the ceiling, is a misfiled curve. The lowest value
+  NAR's list backs, a Quest B4's, is 1.85x above the floor. In the catalog HPR Sim flies, the
+  J228 above is 1.21x below the ceiling.
+  [Issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the fallback if
+  a motor ever falls below 200 m/s (656 ft/s).
 
 $I$ here is the curve's own impulse, uncorrected for air pressure. The reasoning in full, the
 table of percentiles, and two figures that were once got wrong are in
