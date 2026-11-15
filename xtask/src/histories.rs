@@ -2,7 +2,7 @@
 //! Sim's own-history test (M2.3c11, ADR-349).
 //!
 //! `validation/oracles/openrocket/histories.py` records OpenRocket 24.12's inputs at its own
-//! times: for two public designs in [`PUBLIC_RECORD`], committed, and for the collection's
+//! times: for two public designs in `own::PUBLIC_RECORD`, committed, and for the collection's
 //! flights in [`COLLECTION_RECORD`], which stays under the gitignored `corpus-out/`. A flight
 //! that lacks an input says why, under a reason from the oracle's closed list ([`REASONS`]).
 //!
@@ -10,7 +10,7 @@
 //! thrust, mass and center of mass are sampled at the times OpenRocket's flight of the design
 //! holds, and the flight is flown again on those histories in place of its own
 //! ([`hpr_sim::ThrustHistory`], [`hpr_sim::MassHistory`]). Its apogee must come back within
-//! [`OWN_HISTORY_BOUND`] of the first, about a thirtieth of the 1.63% mean absolute gap to
+//! `own::OWN_HISTORY_BOUND`, 0.05%, of the first, about a thirtieth of the 1.63% mean absolute gap to
 //! OpenRocket the split divides (ADR-349 §3).
 
 use std::fmt::Write as _;
@@ -514,8 +514,8 @@ mod tests {
 
     /// Each history is flown: 5% more thrust raises the apogee by more than 20 times the bound,
     /// and 20% more mass delays the rail exit by more than 5%. The apogee is no probe of the mass:
-    /// on a light, draggy rocket near its best mass, such as `pods-none`, more mass can raise it
-    /// or lower it. The rail exit's time grows with the mass for any rocket on a fixed thrust.
+    /// more mass can raise it or lower it. The rail exit's time grows with the mass for any
+    /// rocket on a fixed thrust.
     #[test]
     fn each_history_moves_the_apogee() {
         for public in public_flights() {
