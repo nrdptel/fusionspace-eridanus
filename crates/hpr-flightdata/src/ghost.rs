@@ -1503,7 +1503,7 @@ mod tests {
 
     /// The worked example on `docs/format/ghost-files.md`: four fixes either side of the 180°
     /// meridian, whose plain median is 0°, take 180°, written −180° (#1093). Fixes close together
-    /// away from the meridian take the plain median, bit for bit.
+    /// take the plain median, bit for bit, unless the meridian splits them or they lie near a pole.
     #[test]
     fn the_pages_meridian_example_takes_minus_180() {
         let taken = median_longitude(&[179.9, -179.9, 179.8, -179.8]);
