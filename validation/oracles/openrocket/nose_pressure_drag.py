@@ -4,22 +4,24 @@ OpenRocket's issue #3391 (https://github.com/openrocket/openrocket/issues/3391, 
 2026-10-14) reports that OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag
 above Mach 1, where the method in its own technical documentation gives the drag of a cone of the
 same length and base diameter. Its maintainers confirmed the report and merged a fix to the
-development branch on 2026-11-02 (pull request #3431); no release carries it yet. This script
-measures what the 24.12 release gives: it runs OpenRocket 24.12 as an external oracle on two
-small designs written here and records the nose's own drag columns at Mach 1.3, 1.5 and 2.0, at
-zero angle of attack.
+development branch on 2026-11-02 (pull request #3431); by 2026-11-14 no release carried it. This
+script measures what the 24.12 release gives: it runs OpenRocket 24.12 as an external oracle on
+three small designs written here and records the nose's own drag columns at Mach 1.3, 1.5 and
+2.0, at zero angle of attack.
 
-The designs are invented, and alike but for the nose's shape:
+The designs are invented:
 
 - `tangent ogive`: a tangent-ogive nose 150 mm long on a tube 50 mm across (fineness 3, the
   shape of #3391's report), a body tube 500 mm long, and three trapezoidal fins;
 - `cone`: the same with a conical nose of the same length and base. It is the control: a cone is
-  its own equivalent cone, so OpenRocket's answer for it shows what the accessor returns and on
-  which area, before the ogive's is read.
+  its own equivalent cone, so OpenRocket's answer for it shows what the accessor returns before
+  the ogive's is read;
+- `cone, wider body`: the conical nose on a tube 100 mm long, then a conical shoulder 50 mm long
+  out to a tube 80 mm across, which carries the fins. The rocket's reference area is then 2.56
+  times the nose's base area, so this control shows which of the two areas the coefficient is on.
 
-The record gives each coefficient as OpenRocket returns it, on the rocket's reference area, with
-that area and the nose's base area, so the reader can put it on the nose's base area. Here the
-two areas are the same circle.
+The record gives each coefficient as OpenRocket returns it, with the rocket's reference area
+beside it and the nose's base area, so the reader can put it on the nose's base area.
 
 `hpr_validate::openrocket`'s tests read the same documents with `hpr_io::ork`, pin hpr's nose
 pressure drag at each Mach number, and set OpenRocket's beside it and beside the equivalent
@@ -61,10 +63,16 @@ MATERIAL = '<material type="bulk" density="1000.0">Probe</material>'
 #: The parts' id numbers.
 NOSE, TUBE, FINS, STAGE, ROCKET = 1, 2, 3, 99, 98
 
-#: Each design's nose: the `.ork` shape, and its shape parameter where the shape takes one.
+#: The wider body's radius, m, and the id numbers of its shoulder and its aft tube.
+WIDE_RADIUS_M = 0.04
+SHOULDER, AFT = 4, 5
+
+#: Each design's nose, the `.ork` shape and its shape parameter where the shape takes one, and
+#: whether the body widens behind it.
 DESIGNS = {
-    "tangent ogive": ("ogive", "<shapeparameter>1.0</shapeparameter>"),
-    "cone": ("conical", ""),
+    "tangent ogive": ("ogive", "<shapeparameter>1.0</shapeparameter>", False),
+    "cone": ("conical", "", False),
+    "cone, wider body": ("conical", "", True),
 }
 
 
@@ -77,9 +85,44 @@ def head(name, n):
     return f"<name>{name}</name><id>{uid(n)}</id>"
 
 
+def fins():
+    return (
+        f"<trapezoidfinset>{head('Fins', FINS)}"
+        '<position type="bottom">0.0</position><fincount>3</fincount>'
+        "<rootchord>0.08</rootchord><tipchord>0.04</tipchord><sweeplength>0.04</sweeplength>"
+        "<height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection>"
+        f"<finish>normal</finish>{MATERIAL}</trapezoidfinset>"
+    )
+
+
+def body(wider):
+    """The parts behind the nose: one tube with the fins, or a short tube, a conical shoulder
+    and a wider tube with the fins."""
+    if not wider:
+        return (
+            f"<bodytube>{head('Body', TUBE)}<finish>normal</finish>{MATERIAL}"
+            f"<length>0.5</length><thickness>0.0005</thickness><radius>{BASE_RADIUS_M}</radius>"
+            f"<subcomponents>{fins()}</subcomponents></bodytube>"
+        )
+    return (
+        f"<bodytube>{head('Body', TUBE)}<finish>normal</finish>{MATERIAL}"
+        f"<length>0.1</length><thickness>0.0005</thickness><radius>{BASE_RADIUS_M}</radius>"
+        "</bodytube>"
+        f"<transition>{head('Shoulder', SHOULDER)}<finish>normal</finish>{MATERIAL}"
+        "<length>0.05</length><thickness>0.001</thickness><shape>conical</shape>"
+        f"<foreradius>{BASE_RADIUS_M}</foreradius><aftradius>{WIDE_RADIUS_M}</aftradius>"
+        "<foreshoulderradius>0.0</foreshoulderradius><foreshoulderlength>0.0</foreshoulderlength>"
+        "<aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength>"
+        "</transition>"
+        f"<bodytube>{head('Aft body', AFT)}<finish>normal</finish>{MATERIAL}"
+        f"<length>0.4</length><thickness>0.0005</thickness><radius>{WIDE_RADIUS_M}</radius>"
+        f"<subcomponents>{fins()}</subcomponents></bodytube>"
+    )
+
+
 def document(design):
     """The probe called `design` as a whole `.ork` document."""
-    shape, parameter = DESIGNS[design]
+    shape, parameter, wider = DESIGNS[design]
     return (
         "<?xml version='1.0' encoding='utf-8'?>\n"
         '<openrocket version="1.10" creator="hpr-sim nose pressure drag probe">'
@@ -92,13 +135,7 @@ def document(design):
         "<aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength>"
         "<aftshoulderthickness>0.0</aftshoulderthickness>"
         "<aftshouldercapped>false</aftshouldercapped></nosecone>"
-        f"<bodytube>{head('Body', TUBE)}<finish>normal</finish>{MATERIAL}"
-        f"<length>0.5</length><thickness>0.0005</thickness><radius>{BASE_RADIUS_M}</radius>"
-        f"<subcomponents><trapezoidfinset>{head('Fins', FINS)}"
-        '<position type="bottom">0.0</position><fincount>3</fincount>'
-        "<rootchord>0.08</rootchord><tipchord>0.04</tipchord><sweeplength>0.04</sweeplength>"
-        "<height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection>"
-        f"<finish>normal</finish>{MATERIAL}</trapezoidfinset></subcomponents></bodytube>"
+        f"{body(wider)}"
         "</subcomponents></stage></subcomponents></rocket></openrocket>\n"
     )
 

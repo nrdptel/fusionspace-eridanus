@@ -41,27 +41,29 @@ A survey of the tree on `main` at commit 62204939 found what each needs.
   collection's flights in their day's weather.
 - **Thrust.** HPR Sim flies the curve OpenRocket places, found by its digest, with the total
   impulse held to OpenRocket's within 0.1% ([ADR-067][adr-067]). So the thrust part is what the
-  two codes make of one curve. Nothing lets HPR Sim fly a thrust against time given from outside.
-- **Mass.** Nothing lets HPR Sim fly a mass and center of mass against time given from outside.
-  The simulator scales its structure's mass, and that is all.
+  two codes make of one curve. A flight takes its thrust from its motors' curves: nothing lets
+  it take a sampled thrust against flight time in their place.
+- **Mass.** A flight can scale its structure's mass, and move or drop a mass at an event. Nothing
+  lets it take a sampled mass and center of mass against flight time in place of its design's.
 - **OpenRocket's side.** `fixture_flights.py` records each flight's largest altitude, the time
   to it and the largest Mach number. It records no thrust, mass, center of mass or drag
   coefficient at the flight's times.
 - **The nose's column.** `drag_override.py` reads each part's friction, pressure and base drag
-  through OpenRocket's public interface. No probe has shown what the pressure column holds for
-  a nose, or on which area.
+  through OpenRocket's public interface, and its record holds a tangent ogive's pressure column
+  past Mach 1. No control there says what that column holds for a nose, or on which area.
 
 OpenRocket's [#3391][or-3391] has moved since [ADR-273][adr-273] read it as an unconfirmed
 report. A maintainer confirmed it on 2026-11-02 and merged a fix to the development branch the
 same day ([pull request #3431][or-3431]): above Mach 1 an ogive takes the cone of its length
-and base diameter, as OpenRocket's technical documentation describes. No release carries the
-fix yet, so 24.12, the release every report here flies, still has the defect.
+and base diameter, scaled by its shape's factor (1 for a tangent ogive), as OpenRocket's
+technical documentation describes. By 2026-11-14 no release carried the fix, so 24.12, the
+release every report here flies, still has the defect.
 
 **Decision.**
 
 1. **Four increments, in this order.** The probe goes first. It is public and needs nothing
-   from the private collection. Its control shows which column of OpenRocket's interface holds
-   a nose's pressure drag, which the fourth increment's swap relies on. And it pins what 24.12
+   from the private collection. Its controls show which column of OpenRocket's interface holds
+   a nose's pressure drag, and on which area, which the fourth increment's swap relies on. And it pins what 24.12
    gives before [M2.3c3][m2-3c3] flies a newer release beside it. The inputs come second,
    since the split and the nose's line both fly them.
    They are M2.3c10 to M2.3c13: a roadmap id ends in one letter and a number, so M2.3c6's
@@ -73,8 +75,9 @@ fix yet, so 24.12, the release every report here flies, still has the defect.
      coefficient of the nose at Mach 1.3, 1.5 and 2; a test sets it, on the nose's base area,
      beside HPR Sim's and the equivalent cone's, and pins HPR Sim's at each Mach number; the
      same rocket with a conical nose, the control, shows the column read is the nose's
-     pressure drag, by returning the cone's closed form; the record cites #3391; the
-     aerodynamics page gives the table, what OpenRocket did about #3391, and what stays open.
+     pressure drag, by returning the cone's closed form, and on a body that widens behind the
+     nose shows the area the column is on; the record cites #3391; the aerodynamics page gives
+     the table, what OpenRocket did about #3391, and what stays open.
    - **M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim.** *Done when:* an
      oracle records, under the gitignored `corpus-out/`, OpenRocket 24.12's thrust, mass,
      center of mass and drag coefficient at its flight's own times for every flight of the
@@ -108,8 +111,8 @@ fix yet, so 24.12, the release every report here flies, still has the defect.
      the ones before, so the parts sum to the whole by construction ([ADR-226][adr-226]).
    - A swapped mass history replaces the mass and the center of mass. The inertia stays HPR
      Sim's, so its difference lands in other.
-   - The 0.05% of M2.3c11's own-history test is a thirtieth of the 1.63% mean absolute gap
-     the parts divide. A swap that can't return a flight to itself that closely would hide
+   - The 0.05% of M2.3c11's own-history test is about a thirtieth of the 1.63% mean absolute
+     gap the parts divide. A swap that can't return a flight to itself that closely would hide
      parts of the size the split is after.
    - The air is not swapped: OpenRocket flies the standard atmosphere through the pad's
      temperature and pressure, HPR Sim the day's whole profile. The report already flies HPR
@@ -121,11 +124,12 @@ fix yet, so 24.12, the release every report here flies, still has the defect.
 **What doesn't change.** M2.3c6's *done when* is whole across the four. The split, its order,
 other and the sum test are M2.3c12's, on the inputs M2.3c11 records and flies. The nose's line,
 its counted flights and #222's flight are M2.3c13's. The probe, its citation and the pinned
-test are M2.3c10's. No clause is narrowed. Three are added: the conical control, the air's
-share of other, and the own-history test with its bound.
+test are M2.3c10's. No clause is narrowed. The increments add to it: the conical controls,
+the air's share of other, the own-history test with its bound, and each increment's own
+documentation and checks.
 
 **What M2.3c10 found.** [The probe][probe] is a 150 mm nose on a 50 mm tube, the shape of
-#3391's report, with a tube and three fins behind it. Pressure drag coefficients of the nose,
+#3391's report, with three fins on the tube. Pressure drag coefficients of the nose,
 on its base area, at zero angle of attack:
 
 | Mach | equivalent cone | HPR Sim, tangent ogive | OpenRocket 24.12, tangent ogive | OpenRocket 24.12, cone |
@@ -134,17 +138,20 @@ on its base area, at zero angle of attack:
 | 1.5 | 0.13028 | 0.13028 | 0.00073 | 0.13028 |
 | 2 | 0.10421 | 0.10421 | 0.00047 | 0.10421 |
 
-OpenRocket's cone returns the equivalent cone's closed form: to the last bits at Mach 1.5 and
-2, and 4.8e-6 below it at Mach 1.3. So the column is the nose's pressure drag, on the
-reference area, here the nose's base. Its tangent ogive is under 1% of that at each Mach
-number. HPR Sim's tangent ogive is the equivalent cone's, as the documented method gives it.
-[The aerodynamics page][aero] carries the table.
+OpenRocket's cone returns the equivalent cone's closed form: within 1e-12 at Mach 1.5 and 2,
+and 4.8e-6 below it at Mach 1.3. So the column is the nose's own pressure drag. A second
+control puts that cone on a body that widens to 80 mm behind it, where the reference area is
+2.56 times the nose's base: OpenRocket's number is then 1/2.56 of the first control's, so the
+column is on the rocket's reference area. Its tangent ogive is under 1% of the equivalent
+cone's at each Mach number. HPR Sim's tangent ogive is the equivalent cone's, as the
+documented method gives it. [The aerodynamics page][aero] carries the table.
 
 **Consequences.**
 - [M1.14][m1-14] still waits on the split: nothing here says yet which input carries the gap.
 - The probe is code against code. Whether the equivalent cone's value matches a measured
   tangent ogive stays open in [#222][i-222] and [#616][i-616].
-- When OpenRocket releases the fix, [M2.3c3][m2-3c3] flies both releases, and the probe's
-  24.12 column is the before.
+- When OpenRocket releases the fix, [M2.3c3][m2-3c3] flies both releases on the flights. The
+  probe can be run on the new jar to show the nose's column moved. That run is not in
+  M2.3c3's *done when*.
 - M2.3c11 adds a way to fly outside histories to the simulator's library. It is for sizing a
   difference between two codes, as the drag table is ([ADR-097][adr-097]), not a model.

@@ -87,7 +87,8 @@ that is checked only by flying the jar.
   [S8]. **Size, Inference:** −0.002 is 0.33% to 0.5% of a drag coefficient of 0.4 to 0.6; at −0.31% to −0.57% of
   apogee per 1% of drag ([apogee bias](apogee-bias.md)), OpenRocket's subsonic apogee rises 0.1% to 0.3% on tangent
   ogives.
-- **#3431, ogive wave drag** (merged 2026-11-02, fixing #3391). Above Mach 1 the joint angle also fed the conical
+- **#3431, ogive wave drag** (merged 2026-11-02, fixing #3391: a maintainer confirmed the report that day, the merge
+  closed it, and on 2026-11-14 the newest release was still 24.12). Above Mach 1 the joint angle also fed the conical
   method: about 0.0007 in 24.12, exactly 0 after #2999, plus a fineness-independent bump of 0.074 at Mach 1.1 from the
   Mach 1 to 1.3 cubic. Ogives now take an equal-length cone's half-angle. A 3:1 tangent ogive at Mach 1.5 goes from 0 to
   0.130 (RASAero II's fit: 0.106). A Mach 2.5 test rocket (5:1 nose, L1115) loses 5.5% of apogee, 1.9% with a 0.5 secant
