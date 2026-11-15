@@ -415,7 +415,7 @@ A motor's thrust divided by its propellant mass flow, $c = F/\dot{m}$, in m/s. H
 through the burn, $c = I/m_p$ (total impulse over propellant mass), so propellant burns in
 proportion to the impulse delivered. It also refuses a motor whose $c$ falls outside 200 to
 5,000 m/s (656 to 16,404 ft/s). That catches a propellant mass given in the wrong unit, such as grams for
-kilograms. ThrustCurve.org's catalog has a median of 1,867 m/s (6,125 ft/s). See
+kilograms. ThrustCurve.org's catalog has a median of 1,866 m/s (6,122 ft/s). See
 [Solid motors](physics/motor.md#propellant-consumption).
 
 ### Ejection
