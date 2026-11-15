@@ -292,10 +292,10 @@ A change to prose alone can run `cargo voice` in place of `cargo xtask voice`. I
 paths and `--long`, and writes the same report, which the commit carries. It builds only the check
 and its Markdown reader. `cargo xtask` builds the simulator's crates first. Then
 `scripts/gate.sh voice` runs the check's tests, the report's among them, without the simulator
-either. The gate is the script that runs CI's commands locally
-([CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#how-a-change-ships)).
-That covers the voice check only: `scripts/gate.sh docs pages` runs the site's other checks on
-a page, and those build the simulator.
+either. The gate runs CI's commands locally, as
+[CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#how-a-change-ships)
+describes. This covers the voice check only. `scripts/gate.sh docs pages` runs the site's other
+checks on a page, and those build the simulator.
 
 On any page, the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
 is named by a published list or by the design system's own writing rules. The lists are style
