@@ -126,9 +126,10 @@ fn written(ghost: &Ghost, format: Format) -> Result<String, Failure> {
     }
 }
 
-/// Each log's track name: its file's name, or, where two logs share it, as many of the folders
-/// above it as tell them apart, joined by `/` on every system (#1093). Two logs read from the same
-/// path are numbered in the order given: `x.csv (1)`, `x.csv (2)`.
+/// Each log's track name: its file's name, or, where logs share it, as many of the folders above
+/// it as tell it apart from the others, joined by `/` (#1093). Only a path's named parts count, so
+/// paths whose folders match (one given twice, or `x.csv` and `../x.csv`) are numbered in the
+/// order given: `x.csv (1)`, `x.csv (2)`.
 fn track_names(paths: &[&str]) -> Vec<String> {
     let parts: Vec<Vec<String>> = paths
         .iter()
@@ -164,7 +165,7 @@ fn track_names(paths: &[&str]) -> Vec<String> {
         if grew {
             continue;
         }
-        // What still clashes is the same path given more than once.
+        // What still clashes is paths whose named parts match.
         return names
             .iter()
             .enumerate()
