@@ -11,24 +11,24 @@ the command, so a later run can be compared like for like.
   end of the delay's tolerance. Those two times count from the burnout, which the command took
   from the held flight itself. So it flew that flight twice: once for the burnout, then again
   watched at the two times ([#1343](https://github.com/nrdptel/fusionspace-eridanus/issues/1343)).
-- **The change.** A motor's burnout is its ignition plus its burn time. For a motor lit at launch
-  or at a set time, both are known before the flight. The command now watches the first held
-  flight at the times that guess gives. After the flight it works the two times out again from the
-  flight's own last burnout. Where they are the same bit for bit, the watched speeds are the
-  band's. Where they aren't, as with a motor lit by a separation or by another motor's burnout,
-  it flies the held flight again, as before. No speed depends on the guess.
+- **The change.** The line gives those speeds for one motor lit at launch. That motor's burnout
+  is known before the flight: its burn time. The command now watches the first held flight at the
+  two times that burnout gives. After the flight it works the two times out again from the
+  flight's own last burnout. Where both are the same bit for bit, the watched speeds are the
+  band's. Where they aren't, it flies the held flight again, as before. No speed depends on the
+  guess.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 4ef8140c against the change, release
   builds, by `/usr/bin/time -l target/release/hpr sim
-  validation/fixtures/ork/guides/level-1.ork`, a count the machine's load doesn't move:
+  validation/fixtures/ork/guides/level-1.ork`, the middle of five runs:
 
   | measurement | before | after |
   |---|---|---|
-  | instructions retired | 169.0 million | 128.6 million (−24%) |
+  | instructions retired | 169.0 million | 128.6 million (−23.9%) |
 
 - **What moves.** No output bit. `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice`
   (in `crates/hpr-cli/src/sim.rs`) holds both halves on that design, at delays of 2, 7 and 14 s:
   one flight where the burnout is known beforehand, and the same two speeds to the bit as two
-  flights give, which is what a wrong guess still flies.
+  flights give, which is what a guess wrong at either end of the band still flies.
 
 ## A supersonic table built once a process (2026-11-12, #1427)
 

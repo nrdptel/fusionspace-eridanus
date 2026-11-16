@@ -818,7 +818,7 @@ fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
         },
         _ => None,
     };
-    let flown = fly_held(&simulation, band, expected_last_burnout_s(&simulation))?;
+    let flown = fly_held(&simulation, band)?;
     let last = flown.last;
     let delay_band = band.map(|(delay_s, tolerance_s)| {
         let [shortest_s, longest_s] = band_times_s(last.burnout_s, delay_s, tolerance_s);
@@ -850,11 +850,12 @@ fn band_times_s(burnout_s: f64, delay_s: f64, tolerance_s: f64) -> [f64; 2] {
 }
 
 /// The last burnout the held flight should give, s, from what is known before it flies: the
-/// latest of each motor's ignition, where the design fixes it (at launch or at a set time), plus
-/// its burn. `None` where no motor's ignition is known beforehand. It is only a guess, which
-/// [`fly_held`] checks against the flight: a motor lit by a separation or by another's burnout,
-/// one that burns out after the apogee and one in a body that drops away aren't counted here as
-/// [`metrics::optimum_delays`] counts them.
+/// latest, over the motors whose ignition the design fixes beforehand
+/// ([`hpr_design::Assembly::ignition_times_s`] with no separation yet), of that ignition plus the
+/// motor's burn. `None` where no motor's ignition is known beforehand. It is only a guess, which
+/// [`fly_held_watching`] checks against the flight. It leaves out a motor lit by a separation,
+/// whose time only the flight gives; and it counts a motor that burns out after the held apogee
+/// and one in a body that drops away, which [`metrics::optimum_delays`] leaves out.
 fn expected_last_burnout_s(simulation: &hpr_sim::Simulation) -> Option<f64> {
     let assembly = simulation.assembly();
     assembly
@@ -886,21 +887,32 @@ struct HeldFlight {
 /// `band` (a delay and its tolerance, s), the vertical speed at each end of the band.
 ///
 /// The band's times count from the last burnout, which only the flight gives. So the flight is
-/// watched at the times `expected_burnout_s` puts them at ([`expected_last_burnout_s`]); where the
-/// flight's own last burnout puts them at the very same times, to the bit, those speeds are the
-/// band's and the held flight has been flown once (#1343). Otherwise it is flown again and
-/// watched at the right times, so the speeds never depend on the guess.
-fn fly_held(
+/// watched at the times [`expected_last_burnout_s`] puts them at, and [`fly_held_watching`]
+/// keeps those speeds only where the flight's own burnout puts the band at the very same times.
+fn fly_held(simulation: &hpr_sim::Simulation, band: Option<(f64, f64)>) -> Option<HeldFlight> {
+    let watch_s = band
+        .zip(expected_last_burnout_s(simulation))
+        .map(|((delay_s, tolerance_s), burnout_s)| band_times_s(burnout_s, delay_s, tolerance_s));
+    fly_held_watching(simulation, band, watch_s)
+}
+
+/// [`fly_held`], with the first held flight watched at `watch_s`, two times on the flight's
+/// clock, where there is a band and a guess of them.
+///
+/// Where the flight's own last burnout puts both ends of the band at those very times, to the
+/// bit, the watched speeds are the band's and the held flight has been flown once (#1343). With
+/// a band and any other `watch_s`, or none, the held flight is flown again and watched at the
+/// right times, as it was before, so the speeds never depend on the guess. With no band it is
+/// flown once and gives no speed.
+fn fly_held_watching(
     simulation: &hpr_sim::Simulation,
     band: Option<(f64, f64)>,
-    expected_burnout_s: Option<f64>,
+    watch_s: Option<[f64; 2]>,
 ) -> Option<HeldFlight> {
-    let mut watched = band
-        .zip(expected_burnout_s)
-        .map(|((delay_s, tolerance_s), burnout_s)| SpeedsAt {
-            times_s: band_times_s(burnout_s, delay_s, tolerance_s),
-            speeds_m_s: [None, None],
-        });
+    let mut watched = band.and(watch_s).map(|times_s| SpeedsAt {
+        times_s,
+        speeds_m_s: [None, None],
+    });
     let optimum = match watched.as_mut() {
         Some(at) => metrics::optimum_delays_observed(simulation, at),
         None => metrics::optimum_delays(simulation),
@@ -3576,8 +3588,9 @@ mod tests {
     use super::*;
 
     /// The held flight is flown once where the last burnout is known beforehand, a motor lit at
-    /// launch (#1343), and the band's speeds are, to the bit, those of flying it twice: once for
-    /// the burnout, once watched at the band's times, which is what a wrong guess still does.
+    /// launch (#1343), and the band's two speeds are, to the bit, those of flying it twice: once
+    /// for the burnout, once watched at the band's times. A guess that is wrong at either end of
+    /// the band, or no guess, still flies it twice.
     #[test]
     fn the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice() {
         use clap::Parser;
@@ -3597,25 +3610,36 @@ mod tests {
         let expected_s = expected_last_burnout_s(&simulation).expect("a motor lit at launch");
         let bits = |speeds: [Option<f64>; 2]| speeds.map(|speed| speed.map(f64::to_bits));
         for delay_s in [2.0, 7.0, 14.0] {
-            let band = Some((delay_s, delay_tolerance_s(delay_s)));
-            let once = fly_held(&simulation, band, Some(expected_s)).expect("an apogee");
+            let tolerance_s = delay_tolerance_s(delay_s);
+            let band = Some((delay_s, tolerance_s));
+            let once = fly_held(&simulation, band).expect("an apogee");
             assert_eq!(once.flights, 1, "{delay_s} s");
             assert_eq!(once.last.burnout_s.to_bits(), expected_s.to_bits());
             assert!(
-                once.speeds_m_s[0].is_some(),
-                "{delay_s} s: the short end is flown"
+                once.speeds_m_s.iter().all(Option::is_some),
+                "{delay_s} s: both ends of the band are flown: {:?}",
+                once.speeds_m_s
             );
-            // No guess, and a guess a quarter second late: each flies it twice, to the same speeds.
-            for guess_s in [None, Some(expected_s + 0.25)] {
-                let twice = fly_held(&simulation, band, guess_s).expect("an apogee");
-                assert_eq!(twice.flights, 2, "{delay_s} s, {guess_s:?}");
+            // No guess; a guess a quarter second late; one wrong at the short end alone; one
+            // wrong at the long end alone: each flies it twice, to the same speeds.
+            let [short_s, long_s] = band_times_s(expected_s, delay_s, tolerance_s);
+            for watch_s in [
+                None,
+                Some(band_times_s(expected_s + 0.25, delay_s, tolerance_s)),
+                Some([short_s + 0.25, long_s]),
+                Some([short_s, long_s + 0.25]),
+            ] {
+                let twice = fly_held_watching(&simulation, band, watch_s).expect("an apogee");
+                assert_eq!(twice.flights, 2, "{delay_s} s, {watch_s:?}");
                 assert_eq!(bits(twice.speeds_m_s), bits(once.speeds_m_s), "{delay_s} s");
                 assert_eq!(twice.last, once.last);
             }
         }
-        // With no band asked for, one flight and no speeds.
-        let coast = fly_held(&simulation, None, Some(expected_s)).expect("an apogee");
-        assert_eq!((coast.flights, coast.speeds_m_s), (1, [None, None]));
+        // With no band asked for, one flight and no speeds, whatever is watched.
+        for watch_s in [None, Some([1.0, 2.0])] {
+            let coast = fly_held_watching(&simulation, None, watch_s).expect("an apogee");
+            assert_eq!((coast.flights, coast.speeds_m_s), (1, [None, None]));
+        }
     }
 
     /// NFPA 1125's delay tolerance: 1.5 s up to a 7.5 s delay, 20% of it from there, and never
