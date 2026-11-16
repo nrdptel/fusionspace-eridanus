@@ -3034,7 +3034,7 @@ its causes taken out.
   2.99 s before the apogee the same flight reaches with nothing deployed. OpenRocket's apogee is
   280.2 m (919 ft), and HPR Sim's, with no parachute, is 318.9 m (1,046 ft): +13.80%. Flown again
   with nothing deployed, OpenRocket climbs to 322.4 m (1,058 ft), and against that HPR Sim reads
-  −1.07%. On the *3D printable nose cone and fins* example the same pair reads +12.18% and
+  −1.08%. On the *3D printable nose cone and fins* example the same pair reads +12.18% and
   −0.16%, and on the *Clustered motors* example +9.43% and −0.72%.
 - **The check both ways.** A test (`a_parachute_moves_openrockets_apogee_only_when_it_opens_before_it`
   in `xtask/src/ork_flights.rs`) runs over all 56 flights of OpenRocket's record that finished.
@@ -3072,7 +3072,7 @@ its causes taken out.
   Flown on OpenRocket's own drag along that flight, HPR Sim comes within 0.10% of it. So what is
   left is the drag coefficient, not the setting.
 
-**What the causes leave.** On the three C6-3 flights, what is left is −0.16%, −1.07% and −0.72%,
+**What the causes leave.** On the three C6-3 flights, what is left is −0.16%, −1.08% and −0.72%,
 like the flights with no named cause. The *Deployable payload*'s C6-3, +13.75% against
 OpenRocket's flight, is left at +2.63%, but that pair is not like for like. In OpenRocket's flight
 with nothing deployed the payload still drops its booster and climbs on alone. HPR Sim's

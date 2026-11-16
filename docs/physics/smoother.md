@@ -16,7 +16,7 @@ sensors, and how well its 90% intervals hold.
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-300, the smoother and its check][adr-300].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
-  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.3% to 97.3% of
+  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.3% to 97.4% of
   set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). Two
   logger cells fall under 90%: 89.2% on set B and 89.7% on set A, which the check's rule allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
@@ -79,7 +79,7 @@ was:
 | Burnout | 96.7% | 96.6% | 59.1 m (194 ft), 11.3 m/s (37 ft/s) |
 | Top speed | 97.3% | 94.3% | 62.3 m (204 ft), 10.9 m/s (36 ft/s) |
 | Apogee | 97.3% | 96% | 84.3 m (277 ft), 1.23 m/s (4.04 ft/s) |
-| A drawn moment | 97.3% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
+| A drawn moment | 97.4% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
 
 The intervals are wide on purpose. Two terms are expected to lead the height interval: the
 day's air, which a log without a GNSS receiver can't measure, and the port's error. The widest
