@@ -140,6 +140,30 @@ A flight both fly that is not split is counted under the first reason that appli
 | HPR Sim refuses a history or fails the swapped flight | 0 |
 | the flight on its own thrust and mass, sampled at OpenRocket's times, misses its own apogee by more than 0.05% | 0 |
 
+### The tangent-ogive nose's line
+
+For M2.3c13 (ADR-349, ADR-350), the drag part is split once more. Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag, where HPR Sim gives it the drag of the cone of its length and base (OpenRocket's issue #3391, fixed on its development line and in no release yet). On OpenRocket's thrust and mass, HPR Sim flies once more with its own pressure drag of the nose replaced, above Mach 1, by the pressure drag OpenRocket's public interface reports for the nose; everything else in the drag stays HPR Sim's. The nose's line is the apogee before that swap less the apogee after it. The rest of the drag is the apogee after it less the apogee on OpenRocket's whole drag, so the two sum to the drag part, and the run stops if they don't on a flight.
+
+The line's flights are those whose own HPR Sim flight passes Mach 1 with a tangent-ogive nose at the front of the airframe: 5 of the flights both simulators fly. Of those, 5 are swapped.
+
+| over the 5 flights swapped | mean | median | mean absolute |
+|---|---:|---:|---:|
+| the nose's pressure drag above Mach 1 | -1.28% | -1.33% | 1.28% |
+| the rest of the drag | -0.68% | +0.90% | 2.27% |
+| the drag part | -1.96% | +0.51% | 2.65% |
+
+Each is per cent of OpenRocket's apogee. The top Mach numbers of these flights, by HPR Sim's own flights, average 1.06: the line is measured that far past Mach 1, and says nothing of a faster flight, whose nose spends longer above Mach 1.
+
+A positive line means HPR Sim climbs higher on its own nose drag than on OpenRocket's, a negative one lower. A flight of the line that is not swapped is counted under the first reason that applies:
+
+| why a flight is skipped | flights |
+|---|---:|
+| the design holds more than one nose cone, and no probe shows how OpenRocket's column counts a repeated nose | 0 |
+| the flight is not split, as counted above | 0 |
+| OpenRocket's record holds no column for the nose | 0 |
+| the design states the nose's drag, so HPR Sim has no pressure drag of its own to swap | 0 |
+| HPR Sim fails the flight with the column swapped in | 0 |
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.

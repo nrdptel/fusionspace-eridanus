@@ -39,6 +39,9 @@
 //! the flight on its own thrust and mass, sampled at OpenRocket's times, doesn't come back within
 //! [`OWN_HISTORY_BOUND`] of its own apogee (M2.3c11's test).
 //!
+//! Inside the drag part, [`crate::nose_line`] splits off the pressure drag of a tangent-ogive
+//! nose above Mach 1 (M2.3c13).
+//!
 //! The split sizes a difference between two programs, code against code. It says nothing about
 //! which is nearer a real flight.
 
@@ -360,6 +363,9 @@ impl Parts {
 pub(crate) struct SplitFlight {
     pub(crate) parts: Parts,
     pub(crate) own_history: f64,
+    /// The apogees the parts are taken from, which the nose's line reads
+    /// ([`crate::nose_line`]).
+    pub(crate) apogees: Apogees,
 }
 
 /// Splits one flight both simulators fly. `build` gives its simulation in an air, as the
@@ -428,7 +434,7 @@ pub(crate) fn split(
             100.0 * own_history
         ))));
     }
-    let parts = Parts::of(Apogees {
+    let apogees = Apogees {
         own_m,
         thrust_m,
         mass_m,
@@ -436,9 +442,14 @@ pub(crate) fn split(
         air_m,
         drag_first_m,
         openrocket_m,
-    });
+    };
+    let parts = Parts::of(apogees);
     parts.check_sum()?;
-    Ok(Ok(SplitFlight { parts, own_history }))
+    Ok(Ok(SplitFlight {
+        parts,
+        own_history,
+        apogees,
+    }))
 }
 
 /// A mean, a median and a mean absolute value over some flights, per cent of OpenRocket's
@@ -458,7 +469,7 @@ fn round2(value: f64) -> f64 {
 }
 
 impl Size {
-    fn of(values: impl Iterator<Item = f64> + Clone) -> Self {
+    pub(crate) fn of(values: impl Iterator<Item = f64> + Clone) -> Self {
         let n = values.clone().count();
         if n == 0 {
             return Self::default();
@@ -475,7 +486,7 @@ impl Size {
     }
 
     /// A mean absolute value is no smaller than the mean's own, to the rounding of each.
-    fn consistent(&self, what: &str) -> Result<(), String> {
+    pub(crate) fn consistent(&self, what: &str) -> Result<(), String> {
         if !self.mean_percent.is_finite()
             || !self.median_percent.is_finite()
             || !self.mean_absolute_percent.is_finite()
@@ -1168,8 +1179,26 @@ mod tests {
             left: other - air,
             drag_first: drag + 0.1,
         };
-        (parts.whole, Ok(SplitFlight { parts, own_history }))
+        (
+            parts.whole,
+            Ok(SplitFlight {
+                parts,
+                own_history,
+                apogees: NO_APOGEES,
+            }),
+        )
     }
+
+    /// Apogees no test of the report's numbers reads.
+    const NO_APOGEES: Apogees = Apogees {
+        own_m: 0.0,
+        thrust_m: 0.0,
+        mass_m: 0.0,
+        drag_m: 0.0,
+        air_m: 0.0,
+        drag_first_m: 0.0,
+        openrocket_m: 0.0,
+    };
 
     /// A large mass part with a large rest of the other sign is counted: on the first flight,
     /// not where they share a sign, nor where the rest or the mass part is small.
@@ -1190,6 +1219,7 @@ mod tests {
                 Ok(SplitFlight {
                     parts,
                     own_history: 0.0,
+                    apogees: NO_APOGEES,
                 }),
             )
         };

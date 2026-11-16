@@ -983,7 +983,9 @@ fn fly_all(
     let written = conditions(root, entries, index, supply)?;
     let record = openrocket_record(root, &written)?;
     let (inputs, histories) = crate::histories::collection_inputs(root, &written)?;
+    let nose_columns = crate::nose_line::collection_columns(root, &written)?;
     let mut splits = Vec::new();
+    let mut noses = Vec::new();
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -1123,6 +1125,30 @@ fn fly_all(
                 not.detail
             ),
         }
+        // Inside the drag part, the tangent-ogive nose's line (M2.3c13).
+        let nose = crate::nose_line::flight(
+            &build,
+            &climbed_m,
+            recorded,
+            nose_columns.get(at),
+            &split,
+            openrocket_m,
+        )
+        .map_err(|error| format!("{at}: the nose's line: {error}"))?;
+        match nose {
+            Some(crate::nose_line::NoseFlight::Swapped {
+                nose, rest, drag, ..
+            }) => println!(
+                "fixture-flights: {at:<48} nose {nose:+6.2}% + rest {rest:+6.2}% = drag \
+                 {drag:+6.2}%"
+            ),
+            Some(crate::nose_line::NoseFlight::Skipped(reason)) => println!(
+                "fixture-flights: {at:<48} nose skipped: {}",
+                crate::nose_line::SKIPPED[reason].0
+            ),
+            None => {}
+        }
+        noses.extend(nose);
         splits.push((percent(hpr_m, openrocket_m), split));
         if let Some(class) = &entry.excluded_class {
             *excluded.entry(class.clone()).or_default() += 1;
@@ -1232,6 +1258,7 @@ fn fly_all(
             sets,
             inputs,
             split: crate::gap_split::GapSplit::of(&splits),
+            nose: crate::nose_line::NoseLine::of(&noses),
         },
         kept,
     ))
@@ -1300,6 +1327,8 @@ pub(crate) struct Report {
     pub inputs: crate::histories::Inputs,
     /// The gap between HPR Sim's apogee and OpenRocket's, split by cause (M2.3c12).
     pub split: crate::gap_split::GapSplit,
+    /// Inside the drag part, the tangent-ogive nose's line (M2.3c13).
+    pub nose: crate::nose_line::NoseLine,
 }
 
 /// How many flights went where.
@@ -1586,6 +1615,9 @@ impl Report {
             .check_consistent(c.flown_by_openrocket)
             .or_else(fail)?;
         self.split.check_consistent(c.flown_by_both).or_else(fail)?;
+        self.nose
+            .check_consistent(c.flown_by_both, self.split.split)
+            .or_else(fail)?;
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1765,6 +1797,7 @@ impl Report {
         }
         page.push_str(&self.inputs.to_markdown());
         page.push_str(&self.split.to_markdown());
+        page.push_str(&self.nose.to_markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");

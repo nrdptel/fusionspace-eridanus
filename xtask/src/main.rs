@@ -62,6 +62,7 @@ mod logs;
 mod motor_catalog;
 mod motor_flights;
 mod names;
+mod nose_line;
 mod ork;
 mod ork_cli;
 mod ork_corpus_flights;
