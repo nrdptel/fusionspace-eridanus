@@ -84,17 +84,20 @@ fn row_name(row: &Value, index: usize) -> String {
 
 /// The airframe's bodies and its one fin set among `parts`, in [`AeroModel::components`]'
 /// order: the airframe's bodies, then the pods' bodies, then the lifting surfaces. The split is
-/// right only when the design has one fin set and it is the one part that follows the
-/// airframe's bodies, so any other design (no fins, a second fin set, a pod with a body, with or
-/// without fins) is refused. Tube fins never reach here: HPR Sim refuses them from Mach 0.8,
-/// below every row.
+/// right only when the design has one fin set, on the airframe, and it is the one part that
+/// follows the airframe's bodies, so any other design (no fins, a second fin set, a fin set on a
+/// pod, a pod with a body) is refused. A pod with neither body nor fins adds no term and is let
+/// be. Tube fins never reach here: HPR Sim refuses them from Mach 0.8, below every row.
 fn bodies_and_fins<'a, T>(model: &AeroModel, parts: &'a [T]) -> Result<(&'a [T], &'a [T]), String> {
     let bodies = model.bodies().len();
-    if model.fin_sets().len() != 1 || parts.len() != bodies + 1 {
+    let fin_sets = model.fin_sets();
+    let on_pods = fin_sets.iter().filter(|set| set.pods.is_some()).count();
+    if fin_sets.len() != 1 || on_pods != 0 || parts.len() != bodies + 1 {
         return Err(format!(
-            "the design must have one fin set and no pods: it has {} fin sets, {} pod sets and \
-             {} parts beside its {bodies} bodies",
-            model.fin_sets().len(),
+            "the design must have one fin set, on the airframe, and no pod with a body: it has \
+             {} fin sets ({on_pods} on pods), {} pod sets with a body and {} parts beside its \
+             {bodies} bodies",
+            fin_sets.len(),
             model.pod_sets().len(),
             parts.len().saturating_sub(bodies)
         ));
@@ -105,14 +108,17 @@ fn bodies_and_fins<'a, T>(model: &AeroModel, parts: &'a [T]) -> Result<(&'a [T],
 /// A part's slope and center of pressure, calibers aft of the nose tip, from its terms' slopes and
 /// moment slopes: `moment / slope / d`. A part with no slope has no center of pressure, so it is
 /// refused, naming the Mach number, rather than written as a `null` that `aero --check` would
-/// take as equal to a `null`.
+/// take as equal to a `null`. Terms that cancel to rounding count as no slope, by the model's own
+/// test for a body's slope (`slender_station_m` in `hpr-aero`): within 1e-12 of their size.
 fn part(mach: f64, what: &str, terms: &[(f64, f64)], d: f64) -> Result<(f64, f64), String> {
     let slope: f64 = terms.iter().map(|(slope, _)| slope).sum();
     let moment: f64 = terms.iter().map(|(_, moment)| moment).sum();
+    let size: f64 = terms.iter().map(|(slope, _)| slope.abs()).sum();
     let cp = moment / slope / d;
-    if !(slope.is_finite() && cp.is_finite()) {
+    if !(slope.is_finite() && slope.abs() > 1e-12 * size && cp.is_finite()) {
         return Err(format!(
-            "Mach {mach}: HPR Sim's {what} has a slope of {slope} per radian, so no center of pressure"
+            "Mach {mach}: HPR Sim's {what} has a slope of {slope} per radian and a moment slope \
+             of {moment} m per radian, so no center of pressure"
         ));
     }
     Ok((slope, cp))
@@ -506,13 +512,27 @@ mod tests {
         // What it means: every slope low by more than its fit's probable error; the center of
         // pressure forward by more than its probable error on all rows but those named, narrowly
         // on one, and by more than three times it on every row from a Mach number up.
+        // "Both hold" at each fit's root-mean-square yaw too.
+        assert!(
+            rows.windows(2).all(|w| f(&w[0]["mach"]) < f(&w[1]["mach"])),
+            "rows in Mach order"
+        );
         for row in rows {
-            let miss = -f(&row["cn_alpha_error"]);
-            assert!(miss > f(&row["reference_cn_alpha_probable_error"]), "{row}");
+            let error = f(&row["reference_cn_alpha_probable_error"]);
+            assert!(-f(&row["cn_alpha_error"]) > error, "{row}");
+            assert!(-f(&row["cn_alpha_error_at_rms_yaw"]) > error, "{row}");
+            assert!(f(&row["cp_error_calibers"]) < 0.0, "{row}");
+            assert!(f(&row["cp_error_at_rms_yaw_calibers"]) < 0.0, "{row}");
         }
+        // Each row forward by at most its probable error, "narrowly" more (at most 1.5 times),
+        // or "more than three times it"; none in between.
         let times = |row: &Value| {
             -f(&row["cp_error_calibers"]) / f(&row["reference_cp_probable_error_calibers"])
         };
+        assert!(
+            rows.iter().all(|r| times(r) <= 1.5 || times(r) > 3.0),
+            "no row between 1.5 and 3 times its probable error"
+        );
         let within: Vec<String> = rows
             .iter()
             .filter(|r| times(r) <= 1.0)
@@ -520,7 +540,7 @@ mod tests {
             .collect();
         let narrow: Vec<&Value> = rows
             .iter()
-            .filter(|r| times(r) > 1.0 && times(r) <= 3.0)
+            .filter(|r| times(r) > 1.0 && times(r) <= 1.5)
             .collect();
         let beyond = rows.iter().position(|r| times(r) > 3.0).unwrap();
         assert!(
@@ -614,8 +634,17 @@ mod tests {
             error.contains("Mach 1.832") && error.contains("body"),
             "{error}"
         );
-        // Two terms that cancel are the same case.
+        // Two terms that cancel are the same case, and so are terms that cancel to rounding.
         assert!(part(2.0, "fin set", &[(1.0, 0.2), (-1.0, 0.1)], 0.03).is_err());
+        assert!(
+            part(
+                2.0,
+                "fin set",
+                &[(0.3, 0.2), (-0.1, 0.1), (-0.2, 0.0)],
+                0.03
+            )
+            .is_err()
+        );
         let (slope, cp) = part(2.0, "fin set", &[(2.0, 0.6), (1.0, 0.3)], 0.03).unwrap();
         assert_eq!(slope, 3.0);
         assert!((cp - 10.0).abs() < 1e-12);
@@ -655,7 +684,10 @@ mod tests {
         });
         finless["stages"][0]["components"][1]["children"] = json!([pod]);
         let error = compared(&reference, &design, &finless).unwrap_err();
-        assert!(error.contains("it has 0 fin sets, 1 pod sets"), "{error}");
+        assert!(
+            error.contains("it has 0 fin sets (0 on pods), 1 pod sets"),
+            "{error}"
+        );
         // The same pod beside the airframe's fins: one fin set, but two parts after the bodies.
         let (_, _, mut podded) = committed();
         let children = podded["stages"][0]["components"][1]["children"]
@@ -663,7 +695,23 @@ mod tests {
             .unwrap();
         children.push(finless["stages"][0]["components"][1]["children"][0].clone());
         let error = compared(&reference, &design, &podded).unwrap_err();
-        assert!(error.contains("it has 1 fin sets, 1 pod sets"), "{error}");
+        assert!(
+            error.contains("it has 1 fin sets (0 on pods), 1 pod sets"),
+            "{error}"
+        );
+        // The fins on a pod's tube, the airframe finless: refused, with the fins counted as on a
+        // pod. (A pod's fins need a pod body, which the part count also sees: the design refuses
+        // fins straight on a pod, and a pod's tube of no length.)
+        let (_, _, mut pod_fins) = committed();
+        let fins = pod_fins["stages"][0]["components"][1]["children"][0].clone();
+        let mut pod = finless["stages"][0]["components"][1]["children"][0].clone();
+        let mut tube = pod_fins["stages"][0]["components"][1].clone();
+        tube["id"] = json!("pod-tube");
+        tube["children"] = json!([fins]);
+        pod["children"] = json!([tube]);
+        pod_fins["stages"][0]["components"][1]["children"] = json!([pod]);
+        let error = compared(&reference, &design, &pod_fins).unwrap_err();
+        assert!(error.contains("it has 1 fin sets (1 on pods)"), "{error}");
     }
 
     /// A row with a missing or unreadable field is named by its Mach number, or by its place in
@@ -690,8 +738,7 @@ mod tests {
         tiny["rows"][1]["cn_alpha"] = json!(5e-324);
         let error = compared(&tiny, &design, &rocket).unwrap_err();
         assert!(
-            error.contains("Mach 1.293")
-                && error.contains("`cn_alpha_error` is not a finite number"),
+            error.contains("Mach 1.293") && error.contains("is not a finite number"),
             "{error}"
         );
     }
@@ -715,11 +762,19 @@ mod tests {
             pin["sha256"].as_str(),
             "the reference's source_sha256 is the lock's pin"
         );
+        // A date, no earlier than the report's first fetch (THIRD-PARTY-NOTICES.md).
+        let typed_on = reference["typed_on"].as_str().unwrap();
+        let fields: Vec<&str> = typed_on.split('-').collect();
+        let digits =
+            |text: &str, n: usize| text.len() == n && text.bytes().all(|c| c.is_ascii_digit());
         assert!(
-            reference["typed_on"]
-                .as_str()
-                .is_some_and(|d| d.len() == 10)
+            fields.len() == 3
+                && digits(fields[0], 4)
+                && digits(fields[1], 2)
+                && digits(fields[2], 2),
+            "typed_on {typed_on} is not YYYY-MM-DD"
         );
+        assert!(typed_on >= "2026-10-18", "typed_on {typed_on}");
     }
 
     /// The bands' edges: Mach 1.5 opens the core band, Mach 2.5 closes it.

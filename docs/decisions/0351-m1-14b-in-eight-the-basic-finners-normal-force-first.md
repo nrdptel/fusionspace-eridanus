@@ -1,9 +1,10 @@
 # ADR-351: M1.14b in eight: the Basic Finner's normal force first (2026-11-16)
 
-- **Status:** accepted; splits [M1.14b][m1-14b] into [M1.14b1][m1-14b1] to [M1.14b8][m1-14b8], each with its own *done when*, M1.14b's *done when* whole across the eight, and so plans every remaining increment of M1.14b; under [ADR-143][adr-143] §6b, not changed
+- **Status:** accepted; splits [M1.14b][m1-14b] into [M1.14b1][m1-14b1] to [M1.14b8][m1-14b8], each with its own *done when*, M1.14b's *done when* whole across the eight, and so plans every remaining increment of M1.14b; under [ADR-143][adr-143] §6b, not changed; amended 2026-11-16 ([#1504][i-1504]): M1.14b4's *done when* states how case 3's damping moments are formed, a condition added, none removed
 - **Summary:** ADR-143 §6b names nine references for Mach 1.5 to 2.5. Three are refused on what the research notes found; the other six need work the tree lacks, in eight increments. The first ships here: against DREV-TM-9703's free-flight range fits of the Basic Finner, HPR Sim's normal-force slope reads 11.2% and 16.1% low at Mach 1.832 and 2.375, and its center of pressure 0.34 and 0.18 calibers forward, the side that understates stability.
 
 [m1-14b]: ../decisions-and-roadmap.md#m1-14b
+[i-1504]: https://github.com/nrdptel/fusionspace-eridanus/issues/1504
 [m1-14b1]: ../decisions-and-roadmap.md#m1-14b1
 [m1-14b2]: ../decisions-and-roadmap.md#m1-14b2
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
@@ -107,8 +108,9 @@ found where each stands.
      rows for frames, gravity and rigid-body flight cite it.
    - **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* the same free body, with
      the report's constant roll, pitch and yaw damping coefficients applied by the test as
-     moments, on the report's reference area and lengths and the dynamic pressure, flies case 3, the tumbling brick with damping, and the report gives HPR Sim's
-     largest difference in each inertial body rate from each code's file beside the codes'
+     moments, each on the report's reference area, its reference length for that axis and the
+     dynamic pressure, with the rates made dimensionless as the report defines them, flies
+     case 3, the tumbling brick with damping, and the report gives HPR Sim's largest difference in each inertial body rate from each code's file beside the codes'
      own spread; with a constant drag coefficient applied by the test along its velocity
      through the air, it flies cases 6 to 10: the sphere falling in still air, in a steady
      wind and in a wind that varies with height, and the two shots from sea level, and the
