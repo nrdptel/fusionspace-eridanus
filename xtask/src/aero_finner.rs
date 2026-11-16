@@ -636,9 +636,6 @@ mod tests {
         );
         // Two terms that cancel are the same case, and so are terms that cancel to rounding.
         assert!(part(2.0, "fin set", &[(1.0, 0.2), (-1.0, 0.1)], 0.03).is_err());
-        // A slope with a moment that isn't finite has no center of pressure either.
-        assert!(part(2.0, "body", &[(1.0, f64::NAN)], 0.03).is_err());
-        assert!(part(2.0, "body", &[(f64::INFINITY, 0.1)], 0.03).is_err());
         assert!(
             part(
                 2.0,
@@ -648,6 +645,10 @@ mod tests {
             )
             .is_err()
         );
+        // A slope with a moment that isn't finite has no center of pressure either, nor has an
+        // infinite slope.
+        assert!(part(2.0, "body", &[(1.0, f64::NAN)], 0.03).is_err());
+        assert!(part(2.0, "body", &[(f64::INFINITY, 0.1)], 0.03).is_err());
         let (slope, cp) = part(2.0, "fin set", &[(2.0, 0.6), (1.0, 0.3)], 0.03).unwrap();
         assert_eq!(slope, 3.0);
         assert!((cp - 10.0).abs() < 1e-12);
@@ -746,7 +747,7 @@ mod tests {
             error.contains("row 4 of the reference") && error.contains("mach"),
             "{error}"
         );
-        // A figure that comes out non-finite is refused by its field, not written as `null`.
+        // A figure that comes out non-finite is refused with its Mach number, not written as `null`.
         let mut tiny = reference.clone();
         tiny["rows"][1]["cn_alpha"] = json!(5e-324);
         let error = compared(&tiny, &design, &rocket).unwrap_err();
