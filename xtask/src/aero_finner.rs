@@ -83,15 +83,18 @@ fn row_name(row: &Value, index: usize) -> String {
 }
 
 /// The airframe's bodies and its one fin set among `parts`, in [`AeroModel::components`]'
-/// order: the bodies come first. Any other design (a second fin set, tube fins, pods) is
-/// refused, since the comparison splits HPR Sim's slope into exactly these two parts.
+/// order: the airframe's bodies, then the pods' bodies, then the lifting surfaces. The split is
+/// right only when exactly one part follows the airframe's bodies, so any other design (no fins,
+/// a second fin set, a pod with a body) is refused. Tube fins never reach here: HPR Sim refuses
+/// them from Mach 0.8, below every row.
 fn bodies_and_fins<'a, T>(model: &AeroModel, parts: &'a [T]) -> Result<(&'a [T], &'a [T]), String> {
     let bodies = model.bodies().len();
-    let (fin_sets, pod_sets) = (model.fin_sets().len(), model.pod_sets().len());
-    if fin_sets != 1 || pod_sets != 0 || parts.len() != bodies + 1 {
+    if parts.len() != bodies + 1 {
         return Err(format!(
-            "the design must have one fin set and no pods or tube fins: it has {fin_sets} fin \
-             sets, {pod_sets} pod sets and {} parts beside its {bodies} bodies",
+            "the design must have one fin set and no pods: it has {} fin sets, {} pod sets and \
+             {} parts beside its {bodies} bodies",
+            model.fin_sets().len(),
+            model.pod_sets().len(),
             parts.len().saturating_sub(bodies)
         ));
     }
@@ -617,8 +620,8 @@ mod tests {
         assert!((cp - 10.0).abs() < 1e-12);
     }
 
-    /// The committed design compares; one with a second fin set is refused, since HPR Sim's
-    /// slope is split into the bodies and one fin set.
+    /// The committed design compares; one with a second fin set, or none, is refused, since HPR
+    /// Sim's slope is split into the bodies and one fin set.
     #[test]
     fn a_design_with_other_than_one_fin_set_is_refused() {
         let (reference, design, mut rocket) = committed();
@@ -632,6 +635,11 @@ mod tests {
         children.push(second);
         let error = compared(&reference, &design, &rocket).unwrap_err();
         assert!(error.contains("it has 2 fin sets"), "{error}");
+        // A finless body is the other side of the same rule.
+        let (_, _, mut finless) = committed();
+        finless["stages"][0]["components"][1]["children"] = json!([]);
+        let error = compared(&reference, &design, &finless).unwrap_err();
+        assert!(error.contains("it has 0 fin sets"), "{error}");
     }
 
     /// A row with a missing or unreadable field is named by its Mach number, or by its place in
