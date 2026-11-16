@@ -143,7 +143,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         let (hpr_fins, hpr_fins_cp) = part(fins);
         // hpr at the fit's root-mean-square yaw, where its body lift adds to the slope.
         let mean_squared_yaw_deg2 = number(&row["mean_squared_yaw_deg2"], "mean_squared_yaw_deg2")?;
-        if !(mean_squared_yaw_deg2 > 0.0) {
+        if mean_squared_yaw_deg2 <= 0.0 {
             return Err(format!(
                 "the row at Mach {mach} has no positive mean squared yaw"
             ));
