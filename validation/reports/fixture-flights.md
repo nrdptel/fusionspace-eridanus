@@ -152,7 +152,7 @@ The line's flights are those whose own HPR Sim flight passes Mach 1 with a tange
 | the rest of the drag | -0.68% | +0.90% | 2.27% |
 | the drag part | -1.96% | +0.51% | 2.65% |
 
-Each is per cent of OpenRocket's apogee. The top Mach numbers of these flights, by HPR Sim's own flights, average 1.06, and 0 of the 5 pass Mach 1.3, where the public probe of the nose starts. The line is measured that far past Mach 1, and says nothing of a faster flight.
+Each is per cent of OpenRocket's apogee. The top Mach numbers of these flights, by HPR Sim's own flights, average 1.06, and 0 of the 5 pass Mach 1.3, from which the public probe shows OpenRocket giving the nose almost no pressure drag. The line is measured that far past Mach 1, and says nothing of a faster flight.
 
 A positive line means HPR Sim climbs higher on its own nose drag than on OpenRocket's, a negative one lower. A flight of the line that is not swapped is counted under the first reason that applies:
 

@@ -31,10 +31,11 @@ use std::path::Path;
 use serde_json::{Value, json};
 
 use crate::ork_flights::{
-    DRAG_CURVES, DRAG_OVERRIDE, EARLY_CHUTE, METRICS, Mode, NO_NAMED_CAUSE, OPENROCKET_DRAG_PROBE,
-    OWN_DRAG, WHOLE_BASE_PROBE, descent_lines, descent_row, descent_summary, drag_sizes, fixed,
-    fly_design, margin_at_openrocket_alpha_cal, mass_and_cg_differences, probe_percent, read_json,
-    same, signed, spread, summarize,
+    DRAG_CURVES, DRAG_OVERRIDE, EARLY_CHUTE, METRICS, Mode, NO_NAMED_CAUSE, NOSE_COLUMN_PROBE,
+    NOSE_COLUMN_SKIPPED, NOSE_COLUMN_WHOLE_BASE_PROBE, OPENROCKET_DRAG_PROBE, OWN_DRAG,
+    WHOLE_BASE_PROBE, descent_lines, descent_row, descent_summary, drag_sizes, fixed, fly_design,
+    margin_at_openrocket_alpha_cal, mass_and_cg_differences, probe_percent, read_json, same,
+    signed, spread, summarize,
 };
 use crate::ork_supply::sha256;
 
@@ -83,7 +84,7 @@ pub(crate) const MASS_DIGITS: i32 = 3;
 pub(crate) const CHUTE_DIGITS: i32 = 2;
 
 /// The keys a flight's row holds, and nothing else.
-const ROW_KEYS: [&str; 23] = [
+const ROW_KEYS: [&str; 26] = [
     "flight",
     "aborted",
     "termination",
@@ -105,6 +106,9 @@ const ROW_KEYS: [&str; 23] = [
     "drag_overrides_not_applied",
     "whole_base_under_power",
     "on_openrocket_s_drag",
+    "nose_column",
+    "nose_column_whole_base",
+    "nose_column_skipped",
     "design_checks",
     "descent",
 ];
@@ -350,6 +354,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
             "{DRAG_CURVES} was not written with {jar}; run it again"
         ));
     }
+    let nose_columns = crate::nose_line::LibraryColumns::load(root, &record["jar_sha256"])?;
     let supply = crate::ork_supply::Supply::load(root, true)?;
     if !supply.is_present() {
         return Err(format!(
@@ -417,6 +422,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
         let label = |place: usize, _: &Value| format!("{id}/{place}");
         let mode = Mode::Library {
             drag_curves: &drag_curves,
+            nose_columns: &nose_columns,
         };
         let flown = fly_design(file, &id, bytes, recorded, &supply, label, &mode)?;
         for flight in &flown.flights {
@@ -473,6 +479,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
             "descent": descent_summary(
                 &rows.iter().map(|row| row["descent"].clone()).collect::<Vec<_>>(),
             ),
+            "nose_column": nose_column_summary(&rows),
             "designs_with_all_five": library,
             "public_designs_with_all_five": public,
             "together": library + public,
@@ -612,6 +619,9 @@ pub(crate) fn anonymized(flight: &Value) -> Value {
             .map(Vec::len),
         "whole_base_under_power": probed(WHOLE_BASE_PROBE),
         "on_openrocket_s_drag": probed(OPENROCKET_DRAG_PROBE),
+        "nose_column": probed(NOSE_COLUMN_PROBE),
+        "nose_column_whole_base": probed(NOSE_COLUMN_WHOLE_BASE_PROBE),
+        "nose_column_skipped": flight[NOSE_COLUMN_SKIPPED],
         "design_checks": findings,
         "descent": descent_published(flight),
     })
@@ -737,6 +747,120 @@ pub(crate) fn spreads_of(rows: &[Value]) -> Value {
     })
 }
 
+/// The flights of the nose's line ([`crate::nose_line::library_flight`]) counted from the rows:
+/// how many, how many flown with OpenRocket's column for the nose swapped in, and how many
+/// skipped under each reason of [`crate::nose_line::LIBRARY_SKIPPED`].
+pub(crate) fn nose_column_summary(rows: &[Value]) -> Value {
+    let swapped = rows
+        .iter()
+        .filter(|row| !row["nose_column"].is_null())
+        .count();
+    let mut skipped = serde_json::Map::new();
+    for (reason, _) in crate::nose_line::LIBRARY_SKIPPED {
+        let count = rows
+            .iter()
+            .filter(|row| row["nose_column_skipped"] == reason)
+            .count();
+        skipped.insert(reason.to_owned(), json!(count));
+    }
+    let skipped_count = rows
+        .iter()
+        .filter(|row| !row["nose_column_skipped"].is_null())
+        .count();
+    json!({
+        "flights": swapped + skipped_count,
+        "swapped": swapped,
+        "skipped": skipped,
+    })
+}
+
+/// The report's words for why a flight of the nose's line was skipped.
+fn nose_column_reason(reason: &str) -> &'static str {
+    crate::nose_line::LIBRARY_SKIPPED
+        .iter()
+        .find(|(name, _)| *name == reason)
+        .map_or("for a reason this report does not know", |(_, words)| {
+            *words
+        })
+}
+
+/// The page's part on the nose's column: what it is, the counts, and each flight of the line.
+fn nose_column_part(report: &Value, rows: &[Value]) -> String {
+    let counts = &report["summary"]["nose_column"];
+    let mut out = String::from(
+        "\n## The nose's column swapped in\n\n\
+         Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose far less pressure drag than \
+         hpr, which gives it the equivalent cone's ([OpenRocket's issue \
+         #3391](https://github.com/openrocket/openrocket/issues/3391)). Each flight whose own hpr \
+         flight passes Mach 1 before its apogee, with a tangent-ogive nose at the front of its \
+         airframe, is flown again with hpr's pressure drag of that nose replaced, above Mach 1, \
+         by the pressure drag OpenRocket 24.12 reports for it against Mach number (its \
+         *column*): once with hpr's own base drag, and once \
+         with OpenRocket's base rule as well, the whole base's drag kept while a motor burns. A \
+         flight that can't be is counted under its reason \
+         ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights \
+         are on hpr's own thrust and mass, since the library holds no record of OpenRocket's \
+         against time: this is not the nose's line of the [fixture report](fixture-flights.md), \
+         which is taken on OpenRocket's.\n\n",
+    );
+    // In the order the reasons are tried, not the record's.
+    let skipped: Vec<String> = crate::nose_line::LIBRARY_SKIPPED
+        .iter()
+        .filter_map(|(reason, words)| {
+            let count = counts["skipped"][*reason].as_u64().filter(|n| *n > 0)?;
+            Some(format!("{count} skipped: {words}"))
+        })
+        .collect();
+    out.push_str(&format!(
+        "In the line: {} flights, {} swapped{}.\n",
+        counts["flights"],
+        counts["swapped"],
+        if skipped.is_empty() {
+            String::new()
+        } else {
+            format!("; {}", skipped.join("; "))
+        }
+    ));
+    let line: Vec<&Value> = rows
+        .iter()
+        .filter(|row| !row["nose_column"].is_null() || !row["nose_column_skipped"].is_null())
+        .collect();
+    if line.is_empty() {
+        return out;
+    }
+    out.push_str(
+        "\nEach is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base \
+         drag alone* are the probes of the table above; they are flown only for an apogee more \
+         than 5% off with no other named cause, or with an early parachute that, held, still \
+         leaves more than 5%, and are *not flown* otherwise.\n\n\
+         | flight | Mach | apogee Δ | on OR's drag | with OR's base drag alone | with OR's nose \
+         column | with OR's nose column and base drag |\n|---|---|---:|---:|---:|---:|---:|\n",
+    );
+    for row in line {
+        let probe = |key: &str| {
+            row[key]["apogee_percent"]
+                .as_f64()
+                .map_or_else(|| "not flown".to_owned(), |p| format!("{p:+.2}%"))
+        };
+        let (own, whole) = match row["nose_column_skipped"].as_str() {
+            Some(reason) => {
+                let skipped = format!("skipped: {}", nose_column_reason(reason));
+                (skipped.clone(), skipped)
+            }
+            None => (probe("nose_column"), probe("nose_column_whole_base")),
+        };
+        out.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {own} | {whole} |\n",
+            row["flight"].as_str().unwrap_or_default(),
+            row["mach"].as_str().unwrap_or_default(),
+            cell(row, "apogee_percent", Some("apogee_outcome"), 2, "%"),
+            probe("on_openrocket_s_drag"),
+            probe("whole_base_under_power"),
+        ));
+    }
+    out
+}
+
 /// The summary, as lines for the terminal and the page.
 fn summary_lines(report: &Value) -> String {
     let summary = &report["summary"];
@@ -821,6 +945,12 @@ fn summary_lines(report: &Value) -> String {
     }
     // The descents with the file's recovery against OpenRocket's (ADR-153).
     out.push_str(&descent_lines(&summary["descent"]));
+    let nose = &summary["nose_column"];
+    out.push_str(&format!(
+        "- the nose's column swapped in, on hpr's own thrust and mass: {} flights in the line, {} \
+         swapped\n",
+        nose["flights"], nose["swapped"],
+    ));
     out
 }
 
@@ -1070,6 +1200,7 @@ pub(crate) fn page(report: &Value) -> String {
             out.push_str(&format!("| {why} | {} | {} |\n", ids.len(), ids.join(", ")));
         }
     }
+    out.push_str(&nose_column_part(report, rows));
     out
 }
 
@@ -1097,6 +1228,7 @@ mod tests {
         assert_eq!(spreads["mass_and_cg"], summary["mass_and_cg"]);
         let descents: Vec<Value> = rows.iter().map(|row| row["descent"].clone()).collect();
         assert_eq!(descent_summary(&descents), summary["descent"]);
+        assert_eq!(nose_column_summary(rows), summary["nose_column"]);
         assert_eq!(summary["flown"], rows.len());
         assert_eq!(
             summary["not_flown"],
@@ -1446,6 +1578,112 @@ mod tests {
         let page = page(&json!({ "flights": [row] }));
         assert!(page.contains("nothing deployed (on OR's drag +5.00% and +1.00%"));
         assert!(!page.contains(NO_NAMED_CAUSE));
+    }
+
+    /// Each committed flight of the nose's line is flown with OpenRocket's column for the nose
+    /// both without and with the whole base under power, or skipped under a reason the report
+    /// knows, never both; and the page lists exactly those flights (#1497).
+    #[test]
+    fn every_flight_of_the_nose_s_line_is_swapped_twice_or_skipped_by_name() {
+        let report = committed();
+        let rows = report["flights"].as_array().unwrap();
+        let mut line = Vec::new();
+        for row in rows {
+            let flight = row["flight"].as_str().unwrap();
+            let own = &row["nose_column"];
+            let whole = &row["nose_column_whole_base"];
+            let skipped = &row["nose_column_skipped"];
+            assert_eq!(own.is_null(), whole.is_null(), "{flight}");
+            if !own.is_null() {
+                assert!(skipped.is_null(), "{flight}");
+                for probe in [own, whole] {
+                    for key in ["apogee_percent", "max_speed_percent"] {
+                        assert!(
+                            probe[key].as_f64().is_some_and(f64::is_finite),
+                            "{flight} {key}"
+                        );
+                    }
+                }
+                line.push(flight);
+            } else if let Some(reason) = skipped.as_str() {
+                assert!(
+                    crate::nose_line::LIBRARY_SKIPPED
+                        .iter()
+                        .any(|(known, _)| *known == reason),
+                    "{flight}: {reason}"
+                );
+                line.push(flight);
+            } else {
+                assert!(skipped.is_null(), "{flight}");
+            }
+        }
+        let counts = &report["summary"]["nose_column"];
+        assert_eq!(counts["flights"], line.len());
+        let page = page(&report);
+        let part = &page[page.find("## The nose's column swapped in").unwrap()..];
+        assert!(part.contains(&format!(
+            "In the line: {} flights, {} swapped",
+            counts["flights"], counts["swapped"]
+        )));
+        let listed: Vec<&str> = part
+            .lines()
+            .filter_map(|text| text.strip_prefix("| C"))
+            .map(|text| &text[..text.find(' ').unwrap()])
+            .collect();
+        let expected: Vec<String> = line
+            .iter()
+            .map(|flight| flight.trim_start_matches('C').to_owned())
+            .collect();
+        assert_eq!(listed, expected);
+    }
+
+    /// A flight of the nose's line keeps its two flights' differences rounded, and a skipped one
+    /// its reason, which the page gives in words.
+    #[test]
+    fn a_nose_line_row_is_rounded_and_a_skip_is_named() {
+        let flight = json!({
+            "motors": "C01/1",
+            "metrics": {},
+            NOSE_COLUMN_PROBE: {
+                "apogee_m": { "relative_percent": 31.734_818_4 },
+                "max_speed_m_s": { "relative_percent": 13.317_913_4 },
+            },
+            NOSE_COLUMN_WHOLE_BASE_PROBE: {
+                "apogee_m": { "relative_percent": 0.448_123_4 },
+                "max_speed_m_s": { "relative_percent": 0.823_282_4 },
+            },
+        });
+        let row = anonymized(&flight);
+        assert_eq!(row["nose_column"]["apogee_percent"], 31.734818);
+        assert_eq!(row["nose_column_whole_base"]["apogee_percent"], 0.448123);
+        assert!(row["nose_column_skipped"].is_null());
+        assert!(unpublishable(&row).is_none());
+        let mut skipped = json!({ "motors": "C01/2", "metrics": {} });
+        skipped[NOSE_COLUMN_SKIPPED] = json!("separates");
+        let skipped = anonymized(&skipped);
+        assert_eq!(skipped["nose_column_skipped"], "separates");
+        assert!(skipped["nose_column"].is_null());
+        let rows = [row, skipped];
+        let report = json!({
+            "summary": { "nose_column": nose_column_summary(&rows) },
+            "flights": rows,
+        });
+        assert_eq!(
+            report["summary"]["nose_column"],
+            json!({
+                "flights": 2,
+                "swapped": 1,
+                "skipped": {
+                    "several_noses": 0, "separates": 1, "no_column": 0, "stated": 0, "refused": 0,
+                },
+            })
+        );
+        let page = page(&report);
+        assert!(
+            page.contains("In the line: 2 flights, 1 swapped; 1 skipped: the flight separates")
+        );
+        assert!(page.contains("| +31.73% | +0.45% |"));
+        assert!(page.contains("| skipped: the flight separates, and the column is of the nose"));
     }
 
     fn metric_of(key: &str) -> hpr_validate::flight_metrics::FlightMetric {

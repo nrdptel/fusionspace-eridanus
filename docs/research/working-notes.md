@@ -133,7 +133,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
 - Tube fins: OR's slope and center per part in `openrocket-tube-fin-aero.json` (`tube_fin_aero.py`,
   ADR-102); a new OR with #3235 moves its center past Mach 0.5; body interference open (#234). #185:
   `unlit_motors.py`. Tube-fin drag likely low (#228); public drag curves: `PUBLIC_DRAG_CURVES`'s
-  doc. Library runs need `drag_curves.py` (ADR-097).
+  doc. Library runs need `drag_curves.py` (ADR-097) and `nose_columns.py --public` (#1497).
 - Probes (ADR-093, ADR-094): `pod_probes.py`, `rod_probes.py`, then `flights.py` (its docstring's command) and `motor_database.py ...
   refs validation/fixtures/ork/{pod,rod}-flights --jar`. #216: an outside part with no or an unknown `<finish>` reads OR's 60 µm.
 - Histories (M2.3c11): `mach_probe.py`, `histories.py --public`/`--collection` (`fixture-flights` refuses it stale). Split (M2.3c12): `gap_split::split` per flight both fly, `GapSplit::check_consistent` holds the floor; a design edit moves `PUBLIC_PARTS`; #1486 is the mass row's one flight. Nose's line (M2.3c13, ADR-350): `nose_columns.py --public`/`--collection` (stale refused too), `nose_line::NoseSwap` is a `DragModel` (a Mach number past its column's last row, 2.5, refuses the flight), sizes from 3 swapped; the 5 flights' top Mach averages 1.06, so #1497 (the library's `C06/1`) is where the nose matters.

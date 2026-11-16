@@ -633,3 +633,178 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     // The parts are not read by this module's tests of the report.
     let _ = (Parts::of, Apogees::clone);
 }
+
+/// What the design library's report records of a flight for the nose, from `facts`, with the
+/// record's entry `column` (an error when the record lacks the flight), and every flight that
+/// fails from the `fails_from`-th on (0 the first): the decision, and the flights asked for, by
+/// the nose's id and whether the whole base is under power.
+fn decide(
+    facts: &Value,
+    separates: bool,
+    column: Result<Value, String>,
+    fails_from: usize,
+) -> (Result<LibraryDecision, String>, Vec<(String, bool)>) {
+    let mut asked = Vec::new();
+    let decided = library_flight(facts, separates, || column, &mut |swap, whole_base| {
+        asked.push((swap.nose_id.clone(), whole_base));
+        if asked.len() > fails_from {
+            Err("refused".to_owned())
+        } else {
+            Ok(json!({ "whole_base": whole_base }))
+        }
+    });
+    (decided, asked)
+}
+
+/// A library flight is one of the line's when HPR Sim's own top Mach number is above 1 and the
+/// nose at the front of its airframe is a tangent ogive; it is then skipped under the first
+/// reason that applies, in [`LIBRARY_SKIPPED`]'s order, or flown with the column swapped in,
+/// without and then with the whole base under power (#1497).
+#[test]
+fn a_library_flight_of_the_line_is_swapped_or_skipped_under_its_reason() {
+    let facts = |top: Value, noses: u64, stated: Value| {
+        let nose = json!({ "id": "nose", "noses": noses, "stated": stated });
+        json!({ "top_mach": top, "nose": nose })
+    };
+    let one = |top: f64| facts(json!(top), 1, json!(false));
+    let ogive = || Ok(column(&[(1.0, 0.1), (2.5, 0.001)], 0.002, "OGIVE"));
+    let asked_for_nothing = || Err("the record was read".to_owned());
+    let reason = |name: &'static str| -> Result<LibraryDecision, String> { Ok(Some(Err(name))) };
+
+    // Swapped: both flights, in that order, on the airframe's nose.
+    let (decided, asked) = decide(&one(1.01), false, ogive(), 2);
+    assert_eq!(
+        decided,
+        Ok(Some(Ok([
+            json!({ "whole_base": false }),
+            json!({ "whole_base": true })
+        ])))
+    );
+    assert_eq!(
+        asked,
+        [("nose".to_owned(), false), ("nose".to_owned(), true)]
+    );
+
+    // Not the line's: not above Mach 1, or no tangent-ogive nose (the facts' nose is then null).
+    for not_above in [1.0, 0.99, 0.0] {
+        let (decided, asked) = decide(&one(not_above), false, asked_for_nothing(), 0);
+        assert_eq!(decided, Ok(None), "top Mach {not_above}");
+        assert!(asked.is_empty());
+    }
+    let cone = json!({ "top_mach": 1.6, "nose": null });
+    assert_eq!(decide(&cone, true, asked_for_nothing(), 0).0, Ok(None));
+    // A top Mach number that isn't one is an error, not a flight left out.
+    let unknown = facts(Value::Null, 1, json!(false));
+    let error = decide(&unknown, false, ogive(), 2).0.unwrap_err();
+    assert!(error.contains("not a number"), "{error}");
+
+    // Each reason, with every later one applying too, so that the first is shown to win.
+    assert_eq!(
+        decide(
+            &facts(json!(1.5), 2, json!(true)),
+            true,
+            asked_for_nothing(),
+            0
+        )
+        .0,
+        reason("several_noses")
+    );
+    assert_eq!(
+        decide(
+            &facts(json!(1.5), 1, json!(true)),
+            true,
+            asked_for_nothing(),
+            0
+        )
+        .0,
+        reason("separates")
+    );
+    let lacks = || Ok(json!({ "lacks": "not_finite" }));
+    let (decided, asked) = decide(&facts(json!(1.5), 1, json!(true)), false, lacks(), 0);
+    assert_eq!(decided, reason("no_column"));
+    assert!(asked.is_empty());
+    let (decided, asked) = decide(&facts(json!(1.5), 1, json!(true)), false, ogive(), 0);
+    assert_eq!(decided, reason("stated"));
+    assert!(asked.is_empty());
+    // A nose whose stated drag isn't recorded counts as stated.
+    let unsaid = facts(json!(1.5), 1, Value::Null);
+    assert_eq!(decide(&unsaid, false, ogive(), 0).0, reason("stated"));
+    // Either flight failing skips the flight.
+    for fails_from in [0, 1] {
+        let (decided, asked) = decide(&one(1.5), false, ogive(), fails_from);
+        assert_eq!(
+            decided,
+            reason("refused"),
+            "failing from flight {fails_from}"
+        );
+        assert_eq!(asked.len(), fails_from + 1);
+    }
+    // Every reason this function gives is one the report knows.
+    for name in [
+        "several_noses",
+        "separates",
+        "no_column",
+        "stated",
+        "refused",
+    ] {
+        assert!(LIBRARY_SKIPPED.iter().any(|(known, _)| *known == name));
+    }
+
+    // A record without the flight, and a nose OpenRocket reads as another shape, are errors.
+    let missing = decide(&one(1.5), false, Err("not held".to_owned()), 2).0;
+    assert_eq!(missing, Err("not held".to_owned()));
+    let conical = Ok(column(&[(1.0, 0.1), (2.5, 0.001)], 0.002, "CONICAL"));
+    let error = decide(&one(1.5), false, conical, 2).0.unwrap_err();
+    assert!(error.contains("CONICAL"), "{error}");
+}
+
+/// What the rule reads of HPR Sim's own flight: the airframe's nose when it is a tangent ogive,
+/// with its id, the layout's count of noses and whether its drag is stated; nothing for a cone.
+#[test]
+fn the_facts_name_the_airframe_s_tangent_ogive_nose() {
+    let ogive = ogive_probe().build().unwrap();
+    let nose_id = ogive.assembly().layout.body().next().unwrap().id.clone();
+    assert_eq!(
+        own_facts(&ogive, Some(1.6)),
+        json!({ "top_mach": 1.6, "nose": { "id": nose_id, "noses": 1, "stated": false } })
+    );
+    assert_eq!(
+        own_facts(&ogive, None),
+        json!({ "top_mach": null, "nose": { "id": nose_id, "noses": 1, "stated": false } })
+    );
+    let stated = ogive_probe()
+        .edited(|rocket| {
+            rocket.stages[0].components[0].drag_override = Some(hpr_design::DragOverride {
+                coefficient: 0.05,
+                include_children: false,
+            });
+        })
+        .build()
+        .unwrap();
+    assert_eq!(own_facts(&stated, Some(1.6))["nose"]["stated"], true);
+    let cone = mach_probe().build().unwrap();
+    assert_eq!(
+        own_facts(&cone, Some(1.6)),
+        json!({ "top_mach": 1.6, "nose": null })
+    );
+}
+
+/// The library's record is read by design and configuration as `fly_design` matches the
+/// flights: by id whatever its case, or a renamed configuration as its design's only one.
+#[test]
+fn a_library_column_is_found_by_design_and_configuration() {
+    let flight = |id: &str| json!({ "configuration": id, "lacks": "no_nose" });
+    let columns = LibraryColumns {
+        by_sha: BTreeMap::from([
+            ("one".to_owned(), vec![flight("AB-1")]),
+            ("two".to_owned(), vec![flight("x"), flight("y")]),
+        ]),
+    };
+    assert_eq!(columns.of("one", "ab-1", false), Ok(flight("AB-1")));
+    assert_eq!(columns.of("one", "other", true), Ok(flight("AB-1")));
+    assert!(columns.of("one", "other", false).is_err());
+    assert_eq!(columns.of("two", "Y", false), Ok(flight("y")));
+    assert!(columns.of("two", "z", true).is_err());
+    let error = columns.of("three", "x", true).unwrap_err();
+    assert!(error.contains(LIBRARY_RECORD), "{error}");
+}

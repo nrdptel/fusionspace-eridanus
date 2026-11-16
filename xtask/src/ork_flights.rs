@@ -297,7 +297,7 @@ pub(crate) fn fly_design(
     let design = ork::design_with(&read.value, supply.curves()).value;
     let sha = crate::ork_supply::sha256(bytes);
     let curves = match mode {
-        Mode::Library { drag_curves } | Mode::Public { drag_curves } => drag_curves["designs"]
+        Mode::Library { drag_curves, .. } | Mode::Public { drag_curves } => drag_curves["designs"]
             .as_array()
             .into_iter()
             .flatten()
@@ -405,7 +405,38 @@ pub(crate) fn fly_design(
             }
             Err(error) => return Err(error),
         };
+        let facts = entry
+            .as_object_mut()
+            .and_then(|entry| entry.remove(crate::nose_line::FACTS))
+            .unwrap_or_default();
         entry["file"] = json!(file);
+        if let Mode::Library { nose_columns, .. } = mode {
+            // Every flight of the nose's line, whatever its gap: HPR Sim flies it again with
+            // OpenRocket's column for the nose swapped in, on its own thrust and mass, or
+            // records why it can't (#1497).
+            let decided = crate::nose_line::library_flight(
+                &facts,
+                !stagings.is_empty(),
+                || nose_columns.of(&sha, id, renamed),
+                &mut |swap, whole_base| {
+                    flew_as(&design.rocket, Drag::NoseSwap(swap, whole_base)).map(|probe| {
+                        json!({
+                            "apogee_m": probe["metrics"]["apogee_m"],
+                            "max_speed_m_s": probe["metrics"]["max_speed_m_s"],
+                        })
+                    })
+                },
+            )
+            .map_err(|error| format!("{motors}: {error}"))?;
+            match decided {
+                None => {}
+                Some(Ok([own, whole_base])) => {
+                    entry[NOSE_COLUMN_PROBE] = own;
+                    entry[NOSE_COLUMN_WHOLE_BASE_PROBE] = whole_base;
+                }
+                Some(Err(reason)) => entry[NOSE_COLUMN_SKIPPED] = json!(reason),
+            }
+        }
         if !overrides.is_empty() {
             entry["drag_overrides_not_applied"] =
                 json!(overrides.iter().map(|o| &o.name).collect::<Vec<_>>());
@@ -700,6 +731,13 @@ struct Peaks {
     at_s: Option<f64>,
     /// The height above the start and the speed at `at_s`, m and m/s.
     at: Option<(f64, f64)>,
+    /// The largest Mach number at a sample up to the highest sample so far, as for the speed:
+    /// the flight flies no recovery, so its fall is left out.
+    top_mach: f64,
+    /// The largest Mach number at a sample so far.
+    running_mach: f64,
+    /// Whether a Mach number at a sample was not a number (which `f64::max` drops).
+    mach_not_finite: bool,
 }
 
 impl Observer for Peaks {
@@ -727,9 +765,6 @@ impl Observer for Peaks {
                 start + (end - start) * f64::from(k) / 4.0
             };
             let sample = step.sample(t)?;
-            self.running_speed_m_s = self
-                .running_speed_m_s
-                .max(sample.cg_velocity_enu_m_s.length());
             if step.phase() == Phase::Free
                 && let Some(cal) = step.stability(t)?.static_margin.margin_cal
             {
@@ -741,17 +776,31 @@ impl Observer for Peaks {
             {
                 self.running_turn_s = Some(t);
             }
-            if self
-                .highest_m
-                .is_none_or(|highest| sample.height_above_ground_m > highest)
-            {
-                self.highest_m = Some(sample.height_above_ground_m);
-                self.max_speed_m_s = Some(self.running_speed_m_s);
-                self.least_margin_cal = self.running_margin_cal;
-                self.turns_over_s = self.running_turn_s;
-            }
+            self.sampled(
+                sample.height_above_ground_m,
+                sample.cg_velocity_enu_m_s.length(),
+                sample.mach,
+            );
         }
         Ok(())
+    }
+}
+
+impl Peaks {
+    /// Takes a sample's height above the ground, speed and Mach number, after its margin and
+    /// angle of attack: the running largest speed and Mach number, and every peak committed at a
+    /// new highest sample, so that each is read up to the apogee.
+    fn sampled(&mut self, height_m: f64, speed_m_s: f64, mach: f64) {
+        self.running_speed_m_s = self.running_speed_m_s.max(speed_m_s);
+        self.mach_not_finite |= !mach.is_finite();
+        self.running_mach = self.running_mach.max(mach);
+        if self.highest_m.is_none_or(|highest| height_m > highest) {
+            self.highest_m = Some(height_m);
+            self.max_speed_m_s = Some(self.running_speed_m_s);
+            self.top_mach = self.running_mach;
+            self.least_margin_cal = self.running_margin_cal;
+            self.turns_over_s = self.running_turn_s;
+        }
     }
 }
 
@@ -818,10 +867,13 @@ pub(crate) enum Mode<'a> {
         /// That record.
         drag_curves: &'a Value,
     },
-    /// The private library, with the record `drag_curves.py` wrote of it.
+    /// The private library, with the record `drag_curves.py` wrote of it, and OpenRocket's
+    /// column for each configuration's nose ([`crate::nose_line::LIBRARY_RECORD`]).
     Library {
         /// That record.
         drag_curves: &'a Value,
+        /// The columns.
+        nose_columns: &'a crate::nose_line::LibraryColumns,
     },
 }
 
@@ -850,6 +902,10 @@ enum Drag {
     WholeBase,
     /// OpenRocket's drag coefficient along its own flight ([`openrocket_drag`]).
     OpenRocket(DragTable),
+    /// Its own buildup with the nose's pressure drag swapped for OpenRocket's column above Mach 1
+    /// ([`crate::nose_line::NoseSwap`]), and the base's whole drag kept while a motor burns when
+    /// the flag is set.
+    NoseSwap(crate::nose_line::NoseSwap, bool),
 }
 
 /// OpenRocket's drag along its flight of `configuration`, from the design's entry in
@@ -1001,6 +1057,10 @@ fn fly(
         Drag::Own => simulation,
         Drag::WholeBase => simulation.with_full_base_drag_under_power(),
         Drag::OpenRocket(table) => simulation.with_drag_table(table),
+        Drag::NoseSwap(swap, false) => simulation.with_drag_model(swap),
+        Drag::NoseSwap(swap, true) => simulation
+            .with_drag_model(swap)
+            .with_full_base_drag_under_power(),
     };
     // OpenRocket's last row of a flight it aborted, where the two are compared (ADR-172).
     let last_row_s = aborted
@@ -1248,6 +1308,9 @@ fn fly(
     if let Some(descended) = descended {
         flown["descent"] = descended?;
     }
+    // What the nose's line reads of the flight; `fly_design` takes it out again.
+    let top_mach = (!peaks.mach_not_finite).then_some(peaks.top_mach);
+    flown[crate::nose_line::FACTS] = crate::nose_line::own_facts(&simulation, top_mach);
     Ok(flown)
 }
 
@@ -2489,6 +2552,18 @@ pub(crate) const WHOLE_BASE_PROBE: &str = "with_the_whole_base_under_power";
 /// flight ([`DRAG_CURVES`]): its apogee and largest speed against OpenRocket's.
 pub(crate) const OPENROCKET_DRAG_PROBE: &str = "on_openrocket_s_drag";
 
+/// The library flight of the nose's line flown with OpenRocket's column for the nose swapped in
+/// above Mach 1, on HPR Sim's own thrust and mass ([`crate::nose_line::library_flight`]).
+pub(crate) const NOSE_COLUMN_PROBE: &str = "with_openrocket_s_nose_column";
+
+/// The same with the whole base under power too.
+pub(crate) const NOSE_COLUMN_WHOLE_BASE_PROBE: &str =
+    "with_openrocket_s_nose_column_and_the_whole_base_under_power";
+
+/// Why a library flight of the nose's line was not flown with the column swapped in: a reason
+/// of [`crate::nose_line::LIBRARY_SKIPPED`].
+pub(crate) const NOSE_COLUMN_SKIPPED: &str = "nose_column_skipped";
+
 /// The named cause a flight's difference in `metric` is summarized under. A drag override moves
 /// every metric but the margin; an early parachute only the apogee. A flight with both is put
 /// under the drag override. A flight with neither whose apogee (or largest speed) hpr brings
@@ -3337,6 +3412,53 @@ fn spent_by_apogee(
 
 #[cfg(test)]
 mod tests {
+    /// The nose's line reads HPR Sim's top Mach number from `Peaks`: on the public Mach probe,
+    /// which passes Mach 1.6, it is above 1.6 and within 1e-4 of the largest at the end of a step
+    /// over the whole flight, since the top is reached before the apogee; `Peaks` also samples
+    /// inside each step. On a fall faster than the climb, the top stays the climb's (#1497).
+    #[test]
+    fn the_peaks_hold_the_top_mach_number_read_for_the_rule() {
+        let probe = crate::histories::tests::public_flights().remove(1);
+        assert!(probe.file.ends_with("mach-probe.ork"), "{}", probe.file);
+        let simulation = probe.build().unwrap();
+        let mut peaks = Peaks::default();
+        simulation.run(&mut peaks).unwrap();
+        let whole = crate::nose_line::max_mach(&probe.build().unwrap()).unwrap();
+        assert!(!peaks.mach_not_finite);
+        assert!(peaks.top_mach > 1.6, "{}", peaks.top_mach);
+        assert!(
+            (peaks.top_mach - whole).abs() < 1e-4 * whole,
+            "{} against {whole}",
+            peaks.top_mach
+        );
+        // `running_mach` is the largest over every sample, `top_mach` its value at the highest
+        // one: never less.
+        assert!(peaks.running_mach >= peaks.top_mach);
+        // A fall faster than the climb, as a flight with no recovery can have: the top Mach
+        // number and the largest speed stay the climb's, and a Mach number that isn't one is
+        // marked wherever it comes.
+        let mut fell = Peaks::default();
+        for (height_m, speed_m_s, mach) in [
+            (10.0, 100.0, 0.3),
+            (500.0, 300.0, 0.9),
+            (900.0, 50.0, 0.15),
+            (600.0, 350.0, 1.1),
+            (100.0, 400.0, 1.2),
+        ] {
+            fell.sampled(height_m, speed_m_s, mach);
+        }
+        assert_eq!(
+            (fell.top_mach, fell.running_mach, fell.max_speed_m_s),
+            (0.9, 1.2, Some(300.0))
+        );
+        assert!(!fell.mach_not_finite);
+        fell.sampled(50.0, 400.0, f64::NAN);
+        assert!(fell.mach_not_finite);
+        assert_eq!(fell.top_mach, 0.9);
+        let facts = crate::nose_line::own_facts(&simulation, Some(peaks.top_mach));
+        assert_eq!(facts["top_mach"], peaks.top_mach);
+    }
+
     /// A flight turns over in both tools only with all three signs: OpenRocket's record tumbling
     /// before its apogee, hpr's least margin to apogee negative, and hpr's own angle of attack
     /// passing 90° before its apogee (ADR-168). Each one missing leaves the cause unnamed.

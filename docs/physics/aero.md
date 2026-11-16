@@ -4610,8 +4610,11 @@ Mach 1.3, so they sit in the band of the runs from Mach 1 to 1.3. Flown with
 OpenRocket's number for the nose above Mach 1 in place of its own, HPR Sim climbs higher by 1.28% of
 OpenRocket's apogee on average
 ([the tangent-ogive nose's line](../accuracy.md#the-tangent-ogive-noses-line),
-[M2.3c13, which sized it](../decisions-and-roadmap.md#m2-3c13)). No faster flight is measured that way
-yet ([#1497, the library flight with OpenRocket's nose drag](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)).
+[M2.3c13, which sized it](../decisions-and-roadmap.md#m2-3c13)). The design library's report sizes
+a faster flight, on HPR Sim's own thrust and mass rather than OpenRocket's. On its one supersonic
+flight the swap alone moves the apogee from +13.60% to +31.73% of OpenRocket's. With OpenRocket's
+base rule as well, it comes to +0.45%
+([a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
 
 What stays open: whether the equivalent cone's value matches a measured tangent ogive
 ([evidence row G40, the nose's pressure drag past Mach 1](../evidence.md#g40),

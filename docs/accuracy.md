@@ -1453,8 +1453,10 @@ The flight this difference was first found on is not in the line. It is in the d
 library's report, not this one, and that report holds no record of OpenRocket's thrust and
 mass against time, which the line is taken on
 ([#222, the supersonic drag gap to OpenRocket](https://github.com/nrdptel/fusionspace-eridanus/issues/222)).
-An open issue carries a swap of the nose alone on that flight
-([#1497, the library flight with OpenRocket's nose drag](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)).
+The library's report swaps the nose on it instead, on HPR Sim's own thrust and mass. The swap
+alone moves the flight's apogee from +13.60% to +31.73% of OpenRocket's. With OpenRocket's base
+rule under power as well, it comes to +0.45%
+([a supersonic flight](format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
 
 > **How far to trust it.** The line is code against code, over 5 flights that reach Mach 1.06
 > on average ([report][fixture-report]). It sizes what one difference between the two
