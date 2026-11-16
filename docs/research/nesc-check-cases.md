@@ -8,7 +8,7 @@ of possible solutions" [S1 p. 10]. On the 10 simple cases the worst code is 0.13
 except one code in case 3 (0.972%) and one in cases 4 and 5 (10.0%) [S2 Table 77]. In feet, altitudes after 30 s
 spread from 0.0008 ft to 18.2 ft (**Inference**, §3). The TM and the 2015 paper are US-government works, public use
 permitted [S6]; the data files state no terms. Cases 1 and 2 fit HPR Sim with a test-only free body, 6 to 10 also
-need a sphere's drag; 3, 4 and 5 need a model it lacks; 11 to 17 do not fit. They would move the Frames, Gravity,
+need a sphere's drag; 3, 4 and 5 need a model it lacks (3 later went to M1.14b4); 11 to 17 do not fit. They would move the Frames, Gravity,
 Rigid-body flight and Time integration rows of the [accuracy table](../accuracy.md), not apogee.
 
 **What this covers.** NASA/TM-2015-218675 Volumes I and II [S1, S2], the AIAA papers [S3, S4], the NESC Academy page
@@ -137,7 +137,7 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
   starts from the Earth-relative rates and must report inertial ones. Leaving the Earth's rate out of the rotational
   equations drops terms of order ω·Ω ≈ 4.8e-5 rad/s² (**Inference**); against the 0.005 deg/s spread, unbounded.
 - **Case 3: needs** constant roll, pitch and yaw damping on a finless body; HPR Sim's roll damping comes from fins.
-  New: damping on three axes. Until then, refused.
+  New: damping on three axes. Until then, refused. [ADR-351](../decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md) later gave it to M1.14b4's free body.
 - **Cases 4 and 5: need** inverse-square gravitation on a sphere. HPR Sim's four gravity models are a constant and
   three WGS-84 forms; on its default it would sit about case 6's 8.1 ft from case 5, model not code (**Inference**).
 - **Case 6: fits** once drag acts along the air-relative velocity, as a sphere's does: body x points north and the
@@ -163,7 +163,7 @@ Case 14, on "Mach effects in tables", was never finished [S1 p. 16]; case 17's M
 ## What the project can use
 
 - **For M1.14b's done-when.** Report the item as not a Mach 1.5–2.5 reference: cases 1, 2 and 6 to 10 adopted as
-  checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model; 11 to 17 refused (§6). The band
+  checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model (ADR-351: 3 to M1.14b4, 4 and 5 refused); 11 to 17 refused (§6). The band
   gains nothing.
 - **Pin and cache.** Add `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`), `Atmospheric_models.zip` (`10e2dc26…`)
   and both TM volumes to `validation/refs.lock.toml` as `fetched`, with a `THIRD-PARTY-NOTICES.md` row: reports a

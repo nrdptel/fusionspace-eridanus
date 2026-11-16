@@ -64,7 +64,7 @@ Their mass comes from geometry, with built-in materials and bundled motors:
   a 1266J760-19A, joined by a transition with automatic radii. Both motors ignite at liftoff until
   staging arrives in M1.9.
 
-## Aerodynamic references (`wind-tunnel-*.json`, `mil-hdbk-762-*.json`)
+## Aerodynamic references (`wind-tunnel-*.json`, `mil-hdbk-762-*.json`, `range-*.json`)
 
 These carry no motor and are used for their aerodynamics only; their mass plays no part.
 
@@ -78,3 +78,10 @@ These carry no motor and are used for their aerodynamics only; their mass plays 
   3-calibre tangent ogive on a 21-calibre cylinder 0.16 m across, with four flat-plate fins flush
   with the base. The fins take hpr's square section and the surface is smooth (`mirror`), as the
   handbook's flat-plate friction is.
+- `range-basic-finner.json`: the Basic Finner as Canada's DREV flew it in its aeroballistic range
+  (DREV-TM-9703, Fig. 2), from the geometry recorded in
+  `validation/fixtures/aero/basic-finner-drev.json`, for the normal force and center of pressure
+  only: a cone of 10° half-angle on a cylinder, 10 calibers long and 30 mm across, with four square
+  fins one caliber in chord and span flush with the base. The report's fins are single wedges, a
+  section hpr doesn't have, so they take the square section and the design is not for drag
+  ([the decision that set the comparison up, ADR-351](../../docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md)).

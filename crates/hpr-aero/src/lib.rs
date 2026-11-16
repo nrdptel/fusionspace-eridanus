@@ -1484,6 +1484,229 @@ mod tests {
         assert_eq!(counts[3].1, 0);
     }
 
+    /// M1.14b1: hpr's normal-force slope and center of pressure for the Basic Finner against
+    /// DREV-TM-9703 Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48–49), as
+    /// `cargo xtask aero` writes them to `basic-finner-normal-force.json`. Every figure is
+    /// recomputed here from the committed design and the committed reference, so the report
+    /// can't go stale: the measured center of pressure, `x_ref − C_mα / C_Nα`; its probable
+    /// error, the ratio's; hpr's small-angle slope and CP; and both errors.
+    ///
+    /// It also pins which way hpr errs, and by how much, on each row. Its center of pressure
+    /// lies forward of the measured one at all six Mach numbers, which understates stability:
+    /// the side that doesn't flatter. Its slope reads low at all six. Both hold as the angle
+    /// of attack goes to zero and at each fit's root-mean-square yaw, where hpr's body lift adds
+    /// to its slope: the fits hold their cubic terms at zero, so the measured slopes are linear
+    /// fits over the angles flown.
+    #[expect(
+        clippy::approx_constant,
+        reason = "the table's fifth Mach number is 2.718: a Mach number, not e"
+    )]
+    #[test]
+    fn basic_finner_normal_force_against_drev() {
+        use serde_json::Value;
+        let report: Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/aero/basic-finner-normal-force.json"
+        ))
+        .unwrap();
+        let reference: Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/aero/basic-finner-drev.json"
+        ))
+        .unwrap();
+        let f = |v: &Value| v.as_f64().unwrap();
+        let design = reference["design"].as_str().unwrap();
+        assert_eq!(report["design"], design);
+        let model = AeroModel::new(&committed_design(design).layout().unwrap()).unwrap();
+        let d = model.reference_diameter_m();
+        close(
+            f(&reference["geometry"]["diameter_m"]),
+            d,
+            1e-15,
+            "diameter",
+        );
+        // The report's Fig. 2: 10 calibers overall, the fins flush with the base.
+        close(model.length_m() / d, 10.0, 1e-12, "length in calibers");
+        let x_ref = f(&reference["moment_reference_calibers"]);
+        assert_eq!(x_ref, 5.5);
+        assert_eq!(f(&report["moment_reference_calibers"]), x_ref);
+        close(f(&report["reference_diameter_m"]), d, 1e-15, "diameter");
+        let measured = reference["rows"].as_array().unwrap();
+        let rows = report["rows"].as_array().unwrap();
+        assert_eq!(rows.len(), measured.len());
+        // Mach, the row's band, hpr's slope error and hpr's CP error in calibers (positive aft)
+        // as the angle goes to zero, as the accuracy and aerodynamics pages quote them; then the
+        // same two at the fit's root-mean-square yaw.
+        let (below, core, extended) = (
+            "below Mach 1.5",
+            "core, Mach 1.5 to 2.5",
+            "extended, Mach 2.5 to 3.5",
+        );
+        let pinned = [
+            (1.077, below, (-0.249, -0.07), (-0.241, -0.10)),
+            (1.293, below, (-0.249, -0.03), (-0.239, -0.07)),
+            (1.832, core, (-0.112, -0.34), (-0.101, -0.36)),
+            (2.375, core, (-0.161, -0.18), (-0.146, -0.21)),
+            (2.718, extended, (-0.093, -0.27), (-0.069, -0.31)),
+            (3.147, extended, (-0.130, -0.23), (-0.109, -0.26)),
+        ];
+        assert_eq!(rows.len(), pinned.len());
+        let (mut cp_inside_the_fit, mut cp_inside_the_fit_at_yaw) = (Vec::new(), Vec::new());
+        for ((row, reading), (mach, band, (slope_error, cp_error), at_yaw)) in
+            rows.iter().zip(measured).zip(pinned)
+        {
+            let what = format!("the Basic Finner at Mach {mach}");
+            assert_eq!(f(&row["mach"]), mach, "{what}");
+            assert_eq!(row["band"], band, "{what}");
+            assert_eq!(f(&reading["mach"]), mach, "{what}");
+            let (cn_alpha, cm_alpha) = (f(&reading["cn_alpha"]), f(&reading["cm_alpha"]));
+            assert_eq!(f(&row["reference_cn_alpha_per_rad"]), cn_alpha, "{what}");
+            // The measured center of pressure and its probable error, by the ratio's rule; a
+            // probable error the table prints as 0% is taken as half a percent.
+            let arm = -cm_alpha / cn_alpha;
+            let relative = |key: &str| 0.01 * f(&reading[key]).max(0.5);
+            let (e_n, e_m) = (
+                relative("cn_alpha_probable_error_percent"),
+                relative("cm_alpha_probable_error_percent"),
+            );
+            let cp = x_ref + arm;
+            let cp_probable_error = arm * (e_n * e_n + e_m * e_m).sqrt();
+            close(f(&row["reference_cp_calibers"]), cp, 1e-12, &what);
+            close(
+                f(&row["reference_cn_alpha_probable_error"]),
+                e_n,
+                1e-12,
+                &what,
+            );
+            close(
+                f(&row["reference_cp_probable_error_calibers"]),
+                cp_probable_error,
+                1e-12,
+                &what,
+            );
+            // hpr, straight into the wind.
+            let force = model.normal_force(&Flow::axial(mach)).unwrap();
+            let hpr_cp = force.cp_station_m.unwrap() / d;
+            close(
+                f(&row["hpr_cn_alpha_per_rad"]),
+                force.slope_per_rad,
+                1e-12,
+                &what,
+            );
+            close(f(&row["hpr_cp_calibers"]), hpr_cp, 1e-12, &what);
+            // hpr's slope by part: the bodies come first, then the fin set. The parts sum to
+            // the whole, and their moments to the whole's.
+            let parts = model.components(&Flow::axial(mach)).unwrap();
+            let (bodies, fins) = parts.split_at(model.bodies().len());
+            assert_eq!(fins.len(), 1, "{what}");
+            let sum = |kept: &[ComponentNormalForce]| {
+                (
+                    kept.iter()
+                        .map(|p| p.normal_force.slope_per_rad)
+                        .sum::<f64>(),
+                    kept.iter()
+                        .map(|p| p.normal_force.moment_slope_m)
+                        .sum::<f64>(),
+                )
+            };
+            let ((body, body_moment), (fin, fin_moment)) = (sum(bodies), sum(fins));
+            close(body + fin, force.slope_per_rad, 1e-12, &what);
+            close(
+                (body_moment + fin_moment) / (body + fin) / d,
+                hpr_cp,
+                1e-12,
+                &what,
+            );
+            close(f(&row["hpr_body_cn_alpha_per_rad"]), body, 1e-12, &what);
+            close(f(&row["hpr_fins_cn_alpha_per_rad"]), fin, 1e-12, &what);
+            close(
+                f(&row["hpr_body_cp_calibers"]),
+                body_moment / body / d,
+                1e-12,
+                &what,
+            );
+            close(
+                f(&row["hpr_fins_cp_calibers"]),
+                fin_moment / fin / d,
+                1e-12,
+                &what,
+            );
+            let got_slope_error = force.slope_per_rad / cn_alpha - 1.0;
+            let got_cp_error = hpr_cp - cp;
+            close(f(&row["cn_alpha_error"]), got_slope_error, 1e-9, &what);
+            close(f(&row["cp_error_calibers"]), got_cp_error, 1e-9, &what);
+            // Which way, and how far: the slope low, the CP forward (negative), on every row.
+            assert!(got_slope_error < 0.0, "{what}: slope {got_slope_error}");
+            assert!(got_cp_error < 0.0, "{what}: CP {got_cp_error}");
+            assert!(
+                (got_slope_error - slope_error).abs() < 5e-4,
+                "{what}: slope error {got_slope_error}"
+            );
+            assert!(
+                (got_cp_error - cp_error).abs() < 5e-3,
+                "{what}: CP error {got_cp_error}"
+            );
+            // The slope's miss is the model's, not the fit's scatter: larger than the fit's
+            // probable error on every row.
+            assert!(got_slope_error.abs() > e_n, "{what}");
+            if got_cp_error.abs() <= cp_probable_error {
+                cp_inside_the_fit.push(mach);
+            }
+            // Nearer like for like: hpr at the fit's root-mean-square yaw, where its body lift
+            // adds to the slope. The slope is still low and the CP still forward, on every row.
+            let rms_yaw_deg = f(&reading["mean_squared_yaw_deg2"]).sqrt();
+            close(f(&row["rms_yaw_deg"]), rms_yaw_deg, 1e-12, &what);
+            let yawed = model
+                .normal_force(&Flow::new(mach, rms_yaw_deg.to_radians(), 0.0))
+                .unwrap();
+            assert!(yawed.slope_per_rad > force.slope_per_rad, "{what}");
+            let yawed_cp = yawed.cp_station_m.unwrap() / d;
+            close(
+                f(&row["hpr_cn_over_alpha_at_rms_yaw_per_rad"]),
+                yawed.slope_per_rad,
+                1e-12,
+                &what,
+            );
+            close(
+                f(&row["hpr_cp_at_rms_yaw_calibers"]),
+                yawed_cp,
+                1e-12,
+                &what,
+            );
+            let (yawed_slope_error, yawed_cp_error) =
+                (yawed.slope_per_rad / cn_alpha - 1.0, yawed_cp - cp);
+            close(
+                f(&row["cn_alpha_error_at_rms_yaw"]),
+                yawed_slope_error,
+                1e-9,
+                &what,
+            );
+            close(
+                f(&row["cp_error_at_rms_yaw_calibers"]),
+                yawed_cp_error,
+                1e-9,
+                &what,
+            );
+            assert!(
+                yawed_slope_error < -e_n,
+                "{what}: slope at yaw {yawed_slope_error}"
+            );
+            assert!(yawed_cp_error < 0.0, "{what}: CP at yaw {yawed_cp_error}");
+            assert!(
+                (yawed_slope_error - at_yaw.0).abs() < 5e-4,
+                "{what}: slope error at yaw {yawed_slope_error}"
+            );
+            assert!(
+                (yawed_cp_error - at_yaw.1).abs() < 5e-3,
+                "{what}: CP error at yaw {yawed_cp_error}"
+            );
+            if yawed_cp_error.abs() <= cp_probable_error {
+                cp_inside_the_fit_at_yaw.push(mach);
+            }
+        }
+        assert_eq!(cp_inside_the_fit_at_yaw, [1.293]);
+        // So is the CP's, on every row but one: at Mach 1.293 it is inside the fit's.
+        assert_eq!(cp_inside_the_fit, [1.293]);
+    }
+
     /// M1.8c: hpr's roll forcing against the Arcas Robin's measured roll effectiveness (TN D-4014
     /// Fig. 14) and its roll damping against the Basic Finner's (Barrowman 1967 Fig. 5-7), as
     /// `cargo xtask aero` writes them: every row recomputed from the committed designs and

@@ -15,6 +15,9 @@
 //! - `mil-hdbk-762-sample-rocket.json`: the sample drag rocket of MIL-HDBK-762 (Fig. 5-155), for
 //!   the drag only (M1.8b2), built from the geometry recorded in
 //!   `validation/fixtures/aero/mil-hdbk-762-sample-drag.json`. It carries no motor.
+//! - `range-basic-finner.json`: the Basic Finner as DREV-TM-9703 flew it in its range (Fig. 2), for
+//!   the normal force and center of pressure only (M1.14b1), built from the geometry recorded in
+//!   `validation/fixtures/aero/basic-finner-drev.json`. It carries no motor.
 //!
 //! `--check` compares instead of writing, and a test runs it, so the committed files always match
 //! this generator. It fails on a missing or extra `.json` file and on any difference in content.
@@ -213,11 +216,118 @@ pub fn generate(root: &Path) -> Result<Vec<(String, String)>, String> {
         "mil-hdbk-762-sample-rocket.json".to_owned(),
         to_json(&handbook_sample(&sample["geometry"])?)?,
     ));
+    let path = root.join(BASIC_FINNER);
+    let finner: Value = serde_json::from_str(
+        &fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?,
+    )
+    .map_err(|e| format!("{BASIC_FINNER}: {e}"))?;
+    designs.push((
+        text(&finner, "design")?.to_owned(),
+        to_json(&basic_finner(&finner["geometry"]).map_err(|e| format!("{BASIC_FINNER}: {e}"))?)?,
+    ));
     Ok(designs)
 }
 
 const WIND_TUNNEL: &str = "validation/fixtures/aero/arcas-robin-wind-tunnel.json";
 const HANDBOOK_SAMPLE: &str = "validation/fixtures/aero/mil-hdbk-762-sample-drag.json";
+const BASIC_FINNER: &str = "validation/fixtures/aero/basic-finner-drev.json";
+
+/// The Basic Finner as DREV-TM-9703 flew it (Fig. 2) from the reference's geometry, in calibers of
+/// its 30-mm diameter: a cone of 10° half-angle 2.84 calibers long, a cylinder to 10 calibers, and
+/// four rectangular fins one caliber in chord and span, flush with the base. The report's fins
+/// are single wedges, sharp at the leading edge and 0.08 calibers thick at the base, a section hpr
+/// doesn't have: they take the square section at that thickness, so the design is for the normal
+/// force and the center of pressure, which hpr's fin lift takes from the planform alone, and not
+/// for drag. The drawn nose length must agree with the drawn half-angle to the drawing's two
+/// decimals. Steel, polished; its mass plays no part.
+fn basic_finner(geometry: &Value) -> Result<Rocket, String> {
+    let d = num(geometry, "diameter_m")?;
+    let radius = 0.5 * d;
+    let nose_calibers = num(geometry, "nose_length_calibers")?;
+    let from_angle = 0.5 / num(geometry, "nose_half_angle_deg")?.to_radians().tan();
+    if (nose_calibers - from_angle).abs() > 0.005 {
+        return Err(format!(
+            "the nose is drawn {nose_calibers} calibers long, but its half-angle gives {from_angle}"
+        ));
+    }
+    let nose_length = nose_calibers * d;
+    let length = num(geometry, "length_calibers")? * d;
+    let chord = num(geometry, "fin_chord_calibers")? * d;
+    let steel = material("steel")?;
+    let mut tube = component(
+        "body",
+        Part::BodyTube(BodyTube {
+            length_m: length - nose_length,
+            outer_radius_m: radius,
+            thickness_m: radius,
+            material: steel.clone(),
+        }),
+        None,
+    );
+    tube.children.push(component(
+        "fins",
+        Part::FinSet(FinSet {
+            count: u32::try_from(
+                geometry["fin_count"]
+                    .as_u64()
+                    .ok_or("`fin_count` is missing or not a whole number")?,
+            )
+            .map_err(|e| e.to_string())?,
+            planform: FinPlanform::Trapezoidal {
+                root_chord_m: chord,
+                tip_chord_m: chord,
+                span_m: num(geometry, "fin_span_calibers")? * d,
+                sweep_m: 0.0,
+            },
+            thickness_m: num(geometry, "fin_base_thickness_calibers")? * d,
+            cross_section: FinCrossSection::Square,
+            tab: None,
+            fillet: None,
+            cant_rad: 0.0,
+            base_angle_rad: 0.0,
+            material: steel.clone(),
+        }),
+        Some(Position::Absolute {
+            station_m: length - chord,
+        }),
+    ));
+    let mut body = vec![
+        component(
+            "nose",
+            Part::NoseCone(NoseCone {
+                shape: NoseShape::Conical {},
+                length_m: nose_length,
+                base_radius_m: radius,
+                wall: Wall::Filled {},
+                shoulder: None,
+                material: steel.clone(),
+            }),
+            None,
+        ),
+        tube,
+    ];
+    for part in &mut body {
+        part.finish = Some(Finish::Polished {});
+        for child in &mut part.children {
+            child.finish = Some(Finish::Polished {});
+        }
+    }
+    Ok(Rocket {
+        name: "Basic Finner, DREV-TM-9703's range model (Fig. 2)".to_owned(),
+        stages: vec![Stage {
+            id: "model".to_owned(),
+            name: String::new(),
+            components: body,
+            overrides: Overrides::default(),
+            override_rule: Default::default(),
+            added_mass: None,
+            drag_override: None,
+            parallel: None,
+        }],
+        reference_diameter: ReferenceDiameter::Maximum {},
+        configurations: Vec::new(),
+    })
+}
 
 /// MIL-HDBK-762's sample drag rocket (Fig. 5-155) from the reference's geometry, in calibers of
 /// its 0.16-m diameter: a 3-caliber tangent ogive, a 21-caliber cylinder, and four rectangular fins
@@ -1380,9 +1490,9 @@ mod tests {
         let root = root().unwrap();
         let designs = generate(&root).unwrap();
         // Thirteen from RocketPy's examples (Genesis and Lince since M2.3b; Astra, Andromeda and
-        // Erebus 11 since M2.3d3), two synthetic, the two wind-tunnel models (M1.8a) and
-        // MIL-HDBK-762's sample drag rocket (M1.8b2).
-        assert_eq!(designs.len(), 18);
+        // Erebus 11 since M2.3d3), two synthetic, the two wind-tunnel models (M1.8a),
+        // MIL-HDBK-762's sample drag rocket (M1.8b2) and DREV's Basic Finner (M1.14b1).
+        assert_eq!(designs.len(), 19);
         let stale = stale(&root.join(DIR), &designs);
         assert!(
             stale.is_empty(),

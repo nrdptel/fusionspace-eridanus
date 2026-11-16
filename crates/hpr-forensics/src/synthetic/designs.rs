@@ -3,7 +3,8 @@
 //! The ten are every design under `validation/designs/` that is a published example and can fly:
 //! RocketPy's examples, rebuilt as HPR designs from `validation/oracles/rocketpy/rocket_mass.py`
 //! (`validation/designs/README.md`). The others there have no motor (the MIL-HDBK-762 sample, the
-//! two wind-tunnel models) or are invented (the two synthetic rockets). The designs leave their
+//! two wind-tunnel models, the range's Basic Finner) or are invented (the two synthetic rockets).
+//! The designs leave their
 //! parachutes out, since RocketPy gives only their drag area; the drag areas, triggers and lags
 //! below are each example's own, as `rocket_mass.py` records them, at the lines given.
 
