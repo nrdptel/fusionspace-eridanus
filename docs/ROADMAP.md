@@ -81,6 +81,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 54. M13.1 Ground station
 
 ## Phase 0: Foundations
+
 - [ ] **M0.7 Rocketry explained** (ADR-195; VISION V49, V50). Guides to
   high-power rocketry on the docs site, illustrated, then live ([research](research/guides.md)).
   Each opens with its scope, reader and how far to trust it; words before equations; a worked

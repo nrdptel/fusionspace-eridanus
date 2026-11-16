@@ -93,41 +93,41 @@ Placed with [ADR-352][adr-352], which promotes the first; the other three are SO
 
 - PROMOTED ([M2.14][m2-14]): speed off the rail against the accelerometer logs, predictions
   first. User: a flyer or a range safety officer judging whether a rocket leaves its rail fast
-  enough. Moves: new rows `accuracy.rail-exit` and `bias.rail-exit`, too fast the flattering
-  side. *Done when:* [M2.14][m2-14]'s.
+  enough. Workflow: the analyzer reads each log's speed after the rail's travel; the report
+  sets the prediction merged beforehand against it. Moves: new rows `accuracy.rail-exit`
+  and `bias.rail-exit`, too fast the flattering side. *Done when:* [M2.14][m2-14]'s.
 - SOON: the collection flown as built. User: a flyer whose design file has no rail buttons and
   the smoothest finish. Another simulator's notes give its apogees on seven weighed, logged
   kit flights as 13.8% high "as their design files are set up (polished, no rail buttons)"
   and 3.5% off with regular paint and rail buttons, and say what the rockets really had isn't
-  recorded ([its validation page][prfl-val], read 2026-11-16). HPR Sim's bias on the private
-  collection is +7.72% ([scoreboard][score]). Workflow: the fixture report counts the flown
-  designs with no rail guide and those at the smoothest finish, then flies each again with
-  guides sized by a rule fixed beforehand and a named painted finish. Moves:
-  `bias.collection`, as a shown diagnosis, never the scored cell: a changed default is a
-  correction, which [ADR-346][adr-346]'s rule judges. *Done when:* the guide rule and the
-  finish's roughness are merged with their sources before the second flights are flown; the
-  report gives the two counts and the mean signed and absolute errors both ways, on each half
-  and on the public flights; and it gives the share of the bias the two explain with a paired
-  bootstrap 95% interval.
+  recorded ([its validation page][prfl-val], read 2026-11-16). HPR Sim's apogees on the
+  private collection run +7.72% high on average ([scoreboard][score]). Workflow: the fixture
+  report counts the flown designs with no rail guide and those at the smoothest finish, then
+  flies each again with guides sized by a rule fixed beforehand and a named painted finish.
+  Moves: `bias.collection`, as a shown diagnosis, never the scored cell: a changed default is
+  a correction of another form, which [ADR-346][adr-346] has judged on flights predicted
+  first. *Done when:* the guide rule and the finish's roughness are merged with their sources
+  before the second flights are flown; the report gives the two counts and the mean signed
+  and absolute errors both ways, on each half and on the public flights; and it gives the
+  share of the bias the two explain with a paired bootstrap 95% interval.
 - SOON: an accelerometer's climb against its own barometer. User: a flyer reading a top speed
   or an acceleration from a logger, and a reader weighing [M2.14][m2-14]'s readings. The
   analyzer takes an accelerometer's scale as known to 10%; the same notes say one logger
   family's "read 12–21% low against a second recorder on the same flights". Workflow: for
   each log of the collection with both channels, the analyzer sets the height its summed
-  acceleration gives at apogee against the barometer's, and the report gives that ratio by
+  acceleration gives at burnout against the barometer's, and the report gives that ratio by
   logger family. Moves: `accuracy.rail-exit`, through the width of its readings: the scale
   measured, not assumed. *Done when:* a test pins the ratio on a synthetic log with a known
   scale error; the report gives each family's median ratio and 90% range with its count, for
   families with five flights or more, and all together; and the analyzer's 10% is kept or
   changed by a decision record that cites the measured spread.
 - SOON: how fast the thrust comes up. User: a flyer of a heavy rocket on a slow-lighting
-  motor, whose speed off the rail hangs on the first tenth of a second. Workflow: the analyzer
-  reads, from a log sampled at 400 Hz or faster, the time from first motion to half the
-  boost's peak acceleration, and the fixture report sets it against the same time in the
-  simulated flight. Moves: `accuracy.rail-exit`, as a diagnosis of its error. *Done when:* the
-  reading is checked on synthetic boosts with a known rise; the report gives the median
-  difference in seconds with its count, overall and for each propellant with five flights or
-  more, and its rank correlation with the rail-exit error with a 95% interval.
+  motor. Workflow: the analyzer reads, from a log sampled at 400 Hz or faster, the time from
+  first motion to half the acceleration's first peak, and the fixture report sets it against
+  the same time in the simulated flight. Moves: `accuracy.rail-exit`, as a diagnosis.
+  *Done when:* the reading is checked on synthetic boosts with a known rise; the report gives
+  the median difference in seconds with its count, overall and for each propellant with five
+  flights or more, and its rank correlation with the rail-exit error with a 95% interval.
 
 ## MAINTAINER'S CALL (money, outreach)
 
