@@ -700,8 +700,7 @@ mod tests {
             "{error}"
         );
         // The fins on a pod's tube, the airframe finless: refused, with the fins counted as on a
-        // pod. (A pod's fins need a pod body, which the part count also sees: the design refuses
-        // fins straight on a pod, and a pod's tube of no length.)
+        // pod. The pod's tube adds a part, so the part count refuses this one too.
         let (_, _, mut pod_fins) = committed();
         let fins = pod_fins["stages"][0]["components"][1]["children"][0].clone();
         let mut pod = finless["stages"][0]["components"][1]["children"][0].clone();
@@ -712,6 +711,17 @@ mod tests {
         pod_fins["stages"][0]["components"][1]["children"] = json!([pod]);
         let error = compared(&reference, &design, &pod_fins).unwrap_err();
         assert!(error.contains("it has 1 fin sets (1 on pods)"), "{error}");
+        // The same fins on a phantom tube (no length, no radius), which adds no part: only the
+        // count of fin sets on pods refuses it.
+        let tube = &mut pod_fins["stages"][0]["components"][1]["children"][0]["children"][0];
+        tube["part"]["body_tube"]["length_m"] = json!(0.0);
+        tube["part"]["body_tube"]["outer_radius_m"] = json!(0.0);
+        tube["part"]["body_tube"]["thickness_m"] = json!(0.0);
+        let error = compared(&reference, &design, &pod_fins).unwrap_err();
+        assert!(
+            error.contains("(1 on pods), 0 pod sets with a body and 1 parts"),
+            "{error}"
+        );
     }
 
     /// A row with a missing or unreadable field is named by its Mach number, or by its place in
