@@ -329,6 +329,15 @@ license = "US government work"
 mode = "fetched"
 
 [[file]]
+name = "drev-tm-9703"
+title = "A. D. Dupuis and W. Hathaway, Aeroballistic Range Tests of the Basic Finner Reference Projectile at Supersonic Velocities, DREV-TM-9703, Defence Research Establishment Valcartier, August 1997 (DTIC ADA636861)"
+url = "https://archive.org/download/DTIC_ADA636861/DTIC_ADA636861.pdf"
+sha256 = "b6ddd7d29ed431ac75995792641621adb20c77995bb513819a1900b7ec8d940e"
+dest = "refs/papers/dupuis-hathaway-1997-drev-tm-9703.pdf"
+license = "Crown copyright (Canada); approved for public release, distribution unlimited"
+mode = "fetched"
+
+[[file]]
 name = "nswc-tr-81-156-mason-1981-aero-design-manual"
 title = "L. A. Mason, L. Devan, F. G. Moore and D. McMillan, Aerodynamic design manual for tactical weapons, NSWC TR 81-156 (DTIC AD-A109180), 1981"
 url = "https://archive.org/download/DTIC_ADA109180/DTIC_ADA109180.pdf"
