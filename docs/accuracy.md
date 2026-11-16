@@ -1375,7 +1375,7 @@ and sizes one difference inside its drag part: the pressure drag of a
 drag is the drag from the air's pressure on the nose, mostly
 [wave drag](glossary.md#wave-drag) past Mach 1. It is for anyone comparing the two codes on a
 rocket that flies faster than sound. Like the split, it is code against code, and here over 5
-flights only. None of the 5 passes Mach 1.3, where the probe below shows OpenRocket's defect
+flights only. None of the 5 passes Mach 1.3, where the public probe shows OpenRocket's defect
 ([report][fixture-report]). So the line sizes how the two noses differ between Mach 1 and
 1.3, not the defect itself.
 

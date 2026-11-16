@@ -132,7 +132,7 @@ The register holds 40 rows, as of November 10, 2026.
 | <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three. | real | real | none | 2026-11-02 |
 | <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | 2026-11-02 |
 | <a id="g39"></a>G39 | Public flights predicted first | Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way. **Not checked:** each of the three altimeters' make and sensor. | reasoning | real | [#1403](https://github.com/nrdptel/fusionspace-eridanus/issues/1403) | 2026-11-10 |
-| <a id="g40"></a>G40 | Aerodynamics | A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1.3 to 2 and on 5 real designs' flights just past Mach 1. **Not checked:** a measured pressure drag of a tangent ogive past Mach 1, committed as data with a test that scores HPR Sim's nose against it; and the nose between Mach 1 and 1.3, where the probe has no row. | code to code | real | [#616](https://github.com/nrdptel/fusionspace-eridanus/issues/616) | 2026-10-16 |
+| <a id="g40"></a>G40 | Aerodynamics | A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1.3 to 2 and on the designs of 5 logged flights just past Mach 1. **Not checked:** a measured pressure drag of a tangent ogive past Mach 1, committed as data with a test that scores HPR Sim's nose against it; and the nose between Mach 1 and 1.3, where the probe has no row. | code to code | real | [#616](https://github.com/nrdptel/fusionspace-eridanus/issues/616) | 2026-10-16 |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 10, 2026: none.
 
@@ -402,7 +402,7 @@ The register holds 40 rows, as of November 10, 2026.
   It found no answer. Each notebook imports its log under the name COTS Altimeter Flight and names no make or sensor; Astra's also labels the series Telemetry. The folders hold the log, a drag curve and, for two, a thrust file. The logs are a time and a height (Astra's with a position, Andromeda's with a vertical speed), and none has a header naming a device.
 - [G40](#g40), October 16, 2026, looked at:
   - NASA TR R-100 (Stoney, 1961), for a tangent ogive among its fineness-3 noses
-  - NACA Report 1386 and NACA TN 3716 (Perkins, Jorgensen and Sommer), for measured pressures on tangent ogives
+  - NACA Report 1386 (Perkins, Jorgensen and Sommer) and NACA TN 3716 (Perkins and Jorgensen), for measured pressures on tangent ogives
   - AFATL-TR-77-8 (Butler, Sears and Pallas, 1977)
   - NACA Report 1306, NACA TN 2250 and NACA TN 2399
 
