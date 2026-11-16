@@ -612,7 +612,8 @@ pub(crate) type LibraryDecision = Option<Result<[Value; 2], &'static str>>;
 ///
 /// # Errors
 ///
-/// HPR Sim's own top Mach number not being a number; a record that is not `nose_columns.py`'s or
+/// HPR Sim's own top Mach number not being a number, in a flight whose airframe has a
+/// tangent-ogive nose; a record that is not `nose_columns.py`'s or
 /// lacks the flight; or a nose OpenRocket read as another shape.
 pub(crate) fn library_flight(
     facts: &Value,

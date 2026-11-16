@@ -831,7 +831,8 @@ fn nose_column_part(report: &Value, rows: &[Value]) -> String {
     out.push_str(
         "\nEach is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base \
          drag alone* are the probes of the table above; they are flown only for an apogee more \
-         than 5% off with no other named cause, and are *not flown* otherwise.\n\n\
+         than 5% off with no other named cause, or with an early parachute that, held, still \
+         leaves more than 5%, and are *not flown* otherwise.\n\n\
          | flight | Mach | apogee Δ | on OR's drag | with OR's base drag alone | with OR's nose \
          column | with OR's nose column and base drag |\n|---|---|---:|---:|---:|---:|---:|\n",
     );

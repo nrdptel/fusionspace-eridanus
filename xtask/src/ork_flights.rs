@@ -3409,7 +3409,7 @@ mod tests {
     /// over the whole flight, since the top is reached before the apogee; `Peaks` also samples
     /// inside each step (#1497).
     #[test]
-    fn the_peaks_hold_the_top_mach_number_up_to_the_apogee() {
+    fn the_peaks_hold_the_top_mach_number_read_for_the_rule() {
         let probe = crate::histories::tests::public_flights().remove(1);
         assert!(probe.file.ends_with("mach-probe.ork"), "{}", probe.file);
         let simulation = probe.build().unwrap();
@@ -3423,7 +3423,8 @@ mod tests {
             "{} against {whole}",
             peaks.top_mach
         );
-        // Up to the apogee: the running number may grow after it, the top doesn't.
+        // `running_mach` is the largest over every sample, `top_mach` its value at the highest
+        // one: never less.
         assert!(peaks.running_mach >= peaks.top_mach);
         let facts = crate::nose_line::own_facts(&simulation, Some(peaks.top_mach));
         assert_eq!(facts["top_mach"], peaks.top_mach);
