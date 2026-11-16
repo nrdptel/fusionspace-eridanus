@@ -83,9 +83,9 @@ pub(crate) const SKIPPED: [(&str, &str); 5] = [
     ),
 ];
 
-/// The lowest Mach number of M2.3c10's public probe, from which OpenRocket 24.12 is shown to give
-/// a tangent-ogive nose almost no pressure drag. The report counts the swapped flights that pass
-/// it.
+/// The Mach number from which M2.3c10's public probe shows OpenRocket 24.12 giving a
+/// tangent-ogive nose almost no pressure drag (its probe from Mach 1, #1500, shows the two
+/// joined below it). The report counts the swapped flights that pass it.
 const PROBE_FROM_MACH: f64 = 1.3;
 
 /// The fewest flights swapped whose sizes are published (ADR-349 §3, ADR-151).
@@ -473,6 +473,190 @@ fn check_record(record: &Value, path: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// OpenRocket's column for the nose of each motor configuration of the design library, which
+/// `nose_columns.py --public` writes from the library's designs (private, ADR-151).
+pub(crate) const LIBRARY_RECORD: &str = "corpus-out/openrocket-library-nose-columns.json";
+
+/// Why a flight of the design library's report in the line is not swapped, in the order they
+/// are tried, with the report's words.
+pub(crate) const LIBRARY_SKIPPED: [(&str, &str); 5] = [
+    SKIPPED[0],
+    (
+        "separates",
+        "the flight separates, and the column is of the nose on one airframe",
+    ),
+    SKIPPED[2],
+    SKIPPED[3],
+    SKIPPED[4],
+];
+
+/// The key under which [`crate::ork_flights::fly_design`]'s flight holds what
+/// [`library_flight`] reads of HPR Sim's own flight ([`own_facts`]); removed before the flight is
+/// written.
+pub(crate) const FACTS: &str = "nose_line_facts";
+
+/// What the rule for the line's flights reads of HPR Sim's own flight `simulation`, whose top
+/// Mach number is `top_mach` (`None` when one along it is not a number): that number, and the
+/// nose at the front of the airframe when it is a tangent ogive, with its id, how many nose cones
+/// the layout holds and whether the design states the nose's drag.
+pub(crate) fn own_facts(simulation: &Simulation, top_mach: Option<f64>) -> Value {
+    let nose = tangent_ogive_nose(&simulation.assembly().layout).map(|(id, noses)| {
+        serde_json::json!({ "id": id, "noses": noses, "stated": stated(simulation, id) })
+    });
+    serde_json::json!({ "top_mach": top_mach, "nose": nose })
+}
+
+/// The design library's columns, by the SHA-256 of the design: each design's flights as
+/// `nose_columns.py --public` writes them.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct LibraryColumns {
+    by_sha: BTreeMap<String, Vec<Value>>,
+}
+
+impl LibraryColumns {
+    /// The record at [`LIBRARY_RECORD`], checked against the scripts that wrote it and against
+    /// the jar the library's flights were written with (`jar_sha256`).
+    ///
+    /// # Errors
+    ///
+    /// A record that is missing, was written by other scripts or another jar, or isn't
+    /// `nose_columns.py`'s.
+    pub(crate) fn load(root: &Path, jar_sha256: &Value) -> Result<Self, String> {
+        let rerun = format!(
+            "run `refs/venv/bin/python {ORACLE} --public {LIBRARY_RECORD}` with every library \
+             design OpenRocket flew"
+        );
+        let record = crate::ork_flights::read_json(&root.join(LIBRARY_RECORD))
+            .map_err(|error| format!("{error}; {rerun}"))?;
+        let inputs = record["inputs_sha256"]
+            .as_object()
+            .filter(|inputs| inputs.contains_key(ORACLE))
+            .ok_or_else(|| format!("{LIBRARY_RECORD} has no inputs_sha256 for {ORACLE}"))?;
+        for (path, recorded) in inputs {
+            let bytes =
+                std::fs::read(root.join(path)).map_err(|error| format!("{path}: {error}"))?;
+            if recorded.as_str() != Some(crate::ork_supply::sha256(&bytes).as_str()) {
+                return Err(format!(
+                    "{LIBRARY_RECORD} was written from other scripts ({path} differs); {rerun}"
+                ));
+            }
+        }
+        if record["jar_sha256"] != *jar_sha256 {
+            return Err(format!(
+                "{LIBRARY_RECORD} was written with another jar than the flights; {rerun}"
+            ));
+        }
+        check_record(&record, LIBRARY_RECORD)?;
+        let mut by_sha = BTreeMap::new();
+        for design in record["designs"]
+            .as_array()
+            .ok_or_else(|| format!("{LIBRARY_RECORD} has no designs"))?
+        {
+            let sha = design["sha256"]
+                .as_str()
+                .ok_or_else(|| format!("{LIBRARY_RECORD}: a design without its SHA-256"))?;
+            let flights = design["flights"]
+                .as_array()
+                .ok_or_else(|| format!("{LIBRARY_RECORD}: a design without flights"))?;
+            by_sha.insert(sha.to_owned(), flights.clone());
+        }
+        Ok(Self { by_sha })
+    }
+
+    /// The record's entry for the configuration `configuration` of the design whose SHA-256 is
+    /// `sha`, matched as `fly_design` matches the flights' record: by id, or the design's only
+    /// configuration when OpenRocket `renamed` it.
+    ///
+    /// # Errors
+    ///
+    /// The record holding no such design or configuration: it was written from other files.
+    pub(crate) fn of(
+        &self,
+        sha: &str,
+        configuration: &str,
+        renamed: bool,
+    ) -> Result<Value, String> {
+        let rerun = format!("{LIBRARY_RECORD} doesn't hold the flight; run {ORACLE} again");
+        let flights = self.by_sha.get(sha).ok_or_else(|| rerun.clone())?;
+        let found = flights.iter().find(|flight| {
+            flight["configuration"]
+                .as_str()
+                .is_some_and(|id| id.eq_ignore_ascii_case(configuration))
+        });
+        let only = (renamed && flights.len() == 1)
+            .then(|| flights.first())
+            .flatten();
+        found.or(only).cloned().ok_or(rerun)
+    }
+}
+
+/// A flight of the design library's report, as the line counts it, from what [`own_facts`]
+/// read of HPR Sim's own flight: `None` when it is not one of the line's flights (its top Mach
+/// number not above 1, or no tangent-ogive nose at the front of its airframe, as [`in_line`]
+/// has it); else the reason it is skipped, the first of [`LIBRARY_SKIPPED`] that applies, or what
+/// `fly` gives of it flown with the nose's column swapped in, on HPR Sim's own thrust and mass,
+/// without and then with the whole base under power. `separates` says whether the flight
+/// separates; `column` gives the record's entry for the flight.
+///
+/// The library has no record of OpenRocket's thrust and mass against time, so this is not the
+/// nose's line of the fixture report ([`flight`]), which is taken on them.
+///
+/// # Errors
+///
+/// HPR Sim's own top Mach number not being a number; a record that is not `nose_columns.py`'s or
+/// lacks the flight; or a nose OpenRocket read as another shape.
+pub(crate) fn library_flight(
+    facts: &Value,
+    separates: bool,
+    column: impl FnOnce() -> Result<Value, String>,
+    fly: &mut dyn FnMut(NoseSwap, bool) -> Result<Value, String>,
+) -> Result<Option<Result<[Value; 2], &'static str>>, String> {
+    let top_mach = facts["top_mach"]
+        .as_f64()
+        .ok_or("a Mach number along HPR Sim's own flight is not a number")?;
+    let nose = &facts["nose"];
+    let Some(nose_id) = nose["id"].as_str() else {
+        return Ok(None);
+    };
+    if top_mach.partial_cmp(&ABOVE_MACH) != Some(std::cmp::Ordering::Greater) {
+        return Ok(None);
+    }
+    let skipped = |name: &str| {
+        LIBRARY_SKIPPED
+            .iter()
+            .find(|(reason, _)| *reason == name)
+            .map(|(reason, _)| Some(Err(*reason)))
+            .ok_or_else(|| format!("{name} is not a reason a library flight is skipped"))
+    };
+    if nose["noses"].as_u64() != Some(1) {
+        return skipped("several_noses");
+    }
+    if separates {
+        return skipped("separates");
+    }
+    let Ok(column) = NoseColumn::of(&column()?)? else {
+        return skipped("no_column");
+    };
+    if !column.is_tangent_ogive() {
+        return Err(format!(
+            "HPR Sim reads the nose as a tangent ogive and OpenRocket as {:?}",
+            column.shape
+        ));
+    }
+    if nose["stated"] != Value::Bool(false) {
+        return skipped("stated");
+    }
+    let mut flown = Vec::with_capacity(2);
+    for whole_base in [false, true] {
+        match fly(NoseSwap::new(nose_id, column.clone()), whole_base) {
+            Ok(probe) => flown.push(probe),
+            Err(_) => return skipped("refused"),
+        }
+    }
+    let [own, whole] = <[Value; 2]>::try_from(flown).map_err(|_| "two flights, not two")?;
+    Ok(Some(Ok([own, whole])))
+}
+
 /// The report's lines on the nose: counts, and sizes over the flights swapped.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct NoseLine {
@@ -491,8 +675,8 @@ pub(crate) struct NoseLine {
     /// The mean, over the same flights, of the top Mach number of HPR Sim's own flight, to two
     /// decimals: how far past Mach 1 the line's flights go.
     pub hpr_mean_top_mach: Option<f64>,
-    /// How many of the same flights pass Mach 1.3 in HPR Sim's own flight, the lowest Mach number
-    /// of the public probe ([`PROBE_FROM_MACH`]).
+    /// How many of the same flights pass Mach 1.3 in HPR Sim's own flight, from which the public
+    /// probe shows OpenRocket giving the nose almost no pressure drag ([`PROBE_FROM_MACH`]).
     pub hpr_top_mach_over_1_3: Option<usize>,
 }
 
@@ -680,8 +864,9 @@ impl NoseLine {
                     page,
                     "\nEach is per cent of OpenRocket's apogee. The top Mach numbers of these \
                      flights, by HPR Sim's own flights, average {mach:.2}, and {over} of the {} \
-                     {} Mach {PROBE_FROM_MACH}, where the public probe of the nose starts. The \
-                     line is measured that far past Mach 1, and says nothing of a faster flight.",
+                     {} Mach {PROBE_FROM_MACH}, from which the public probe shows OpenRocket \
+                     giving the nose almost no pressure drag. The line is measured that far \
+                     past Mach 1, and says nothing of a faster flight.",
                     self.swapped,
                     if over == 1 { "passes" } else { "pass" },
                 );

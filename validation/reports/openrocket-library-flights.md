@@ -30,6 +30,7 @@ This report compares hpr's flights of 11 of the library's 12 private designs wit
 - center of mass at rod clearance: 35 compared, median -0.0004 cal, mean absolute 0.0121 cal, from -0.1102 cal to +0.0198 cal
 - descents compared: 34; not compared: neither tool deploys a device: 1
 - 34 with no named cause for the apogee but an early parachute: landing speed median +0.01%, mean absolute 0.06%, from -1.53% to +0.04%; flight time median +0.14%, mean absolute 1.52%, from -4.98% to +3.72%; every deployment within its target in 31; meeting every target 31, and 34 once each deployment that misses is held by what is left of it
+- the nose's column swapped in, on hpr's own thrust and mass: 2 flights in the line, 2 swapped
 
 | flight | Mach | site | apogee Δ | max speed Δ | margin Δ (cal) | at OR's α (cal) | CG Δ (cal) | CP Δ (cal) | launch mass Δ | rod-clearance mass Δ | named cause |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -90,3 +91,16 @@ Configurations OpenRocket flew that hpr does not fly here, by reason:
 |---|---:|---|
 | a curve found by name, which OpenRocket may not fly | 1 | C11/4 |
 | stages hpr can't separate as written | 1 | C10/1 |
+
+## The nose's column swapped in
+
+From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag, where hpr gives it the equivalent cone's ([OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391)). Each flight whose own hpr flight passes Mach 1 with a tangent-ogive nose at the front of its airframe is flown again with hpr's pressure drag of that nose replaced, above Mach 1, by the column OpenRocket 24.12 reports for it, once with hpr's own base drag and once with the whole base's under power as well ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights are on hpr's own thrust and mass, since the library holds no record of OpenRocket's against time: this is not the nose's line of the [fixture report](fixture-flights.md), which is taken on OpenRocket's.
+
+In the line: 2 flights, 2 swapped.
+
+Each is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base drag alone* are the probes of the table above, where they were flown.
+
+| flight | Mach | apogee Δ | on OR's drag | with OR's base drag alone | with OR's nose column | with OR's nose column and base drag |
+|---|---|---:|---:|---:|---:|---:|
+| C03/5 | transonic | -4.83% | not flown | not flown | -3.35% | -6.97% |
+| C06/1 | supersonic | +13.60% | +1.11% | -10.71% | +31.73% | +0.45% |

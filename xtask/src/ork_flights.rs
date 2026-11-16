@@ -297,7 +297,7 @@ pub(crate) fn fly_design(
     let design = ork::design_with(&read.value, supply.curves()).value;
     let sha = crate::ork_supply::sha256(bytes);
     let curves = match mode {
-        Mode::Library { drag_curves } | Mode::Public { drag_curves } => drag_curves["designs"]
+        Mode::Library { drag_curves, .. } | Mode::Public { drag_curves } => drag_curves["designs"]
             .as_array()
             .into_iter()
             .flatten()
@@ -405,7 +405,37 @@ pub(crate) fn fly_design(
             }
             Err(error) => return Err(error),
         };
+        let facts = entry
+            .as_object_mut()
+            .and_then(|entry| entry.remove(crate::nose_line::FACTS))
+            .unwrap_or_default();
         entry["file"] = json!(file);
+        if let Mode::Library { nose_columns, .. } = mode {
+            // Every flight of the nose's line, whatever its gap: HPR Sim flies it again with
+            // OpenRocket's column for the nose swapped in, on its own thrust and mass (#1497).
+            let decided = crate::nose_line::library_flight(
+                &facts,
+                !stagings.is_empty(),
+                || nose_columns.of(&sha, id, renamed),
+                &mut |swap, whole_base| {
+                    flew_as(&design.rocket, Drag::NoseSwap(swap, whole_base)).map(|probe| {
+                        json!({
+                            "apogee_m": probe["metrics"]["apogee_m"],
+                            "max_speed_m_s": probe["metrics"]["max_speed_m_s"],
+                        })
+                    })
+                },
+            )
+            .map_err(|error| format!("{motors}: {error}"))?;
+            match decided {
+                None => {}
+                Some(Ok([own, whole_base])) => {
+                    entry[NOSE_COLUMN_PROBE] = own;
+                    entry[NOSE_COLUMN_WHOLE_BASE_PROBE] = whole_base;
+                }
+                Some(Err(reason)) => entry[NOSE_COLUMN_SKIPPED] = json!(reason),
+            }
+        }
         if !overrides.is_empty() {
             entry["drag_overrides_not_applied"] =
                 json!(overrides.iter().map(|o| &o.name).collect::<Vec<_>>());
@@ -700,6 +730,10 @@ struct Peaks {
     at_s: Option<f64>,
     /// The height above the start and the speed at `at_s`, m and m/s.
     at: Option<(f64, f64)>,
+    /// The largest Mach number at a sample so far.
+    top_mach: f64,
+    /// Whether a Mach number at a sample was not a number (which `f64::max` drops).
+    mach_not_finite: bool,
 }
 
 impl Observer for Peaks {
@@ -730,6 +764,8 @@ impl Observer for Peaks {
             self.running_speed_m_s = self
                 .running_speed_m_s
                 .max(sample.cg_velocity_enu_m_s.length());
+            self.mach_not_finite |= !sample.mach.is_finite();
+            self.top_mach = self.top_mach.max(sample.mach);
             if step.phase() == Phase::Free
                 && let Some(cal) = step.stability(t)?.static_margin.margin_cal
             {
@@ -818,10 +854,13 @@ pub(crate) enum Mode<'a> {
         /// That record.
         drag_curves: &'a Value,
     },
-    /// The private library, with the record `drag_curves.py` wrote of it.
+    /// The private library, with the record `drag_curves.py` wrote of it, and OpenRocket's
+    /// column for each configuration's nose ([`crate::nose_line::LIBRARY_RECORD`]).
     Library {
         /// That record.
         drag_curves: &'a Value,
+        /// The columns.
+        nose_columns: &'a crate::nose_line::LibraryColumns,
     },
 }
 
@@ -850,6 +889,10 @@ enum Drag {
     WholeBase,
     /// OpenRocket's drag coefficient along its own flight ([`openrocket_drag`]).
     OpenRocket(DragTable),
+    /// Its own buildup with the nose's pressure drag swapped for OpenRocket's column above Mach 1
+    /// ([`crate::nose_line::NoseSwap`]), and the base's whole drag kept while a motor burns when
+    /// the flag is set.
+    NoseSwap(crate::nose_line::NoseSwap, bool),
 }
 
 /// OpenRocket's drag along its flight of `configuration`, from the design's entry in
@@ -1001,6 +1044,10 @@ fn fly(
         Drag::Own => simulation,
         Drag::WholeBase => simulation.with_full_base_drag_under_power(),
         Drag::OpenRocket(table) => simulation.with_drag_table(table),
+        Drag::NoseSwap(swap, false) => simulation.with_drag_model(swap),
+        Drag::NoseSwap(swap, true) => simulation
+            .with_drag_model(swap)
+            .with_full_base_drag_under_power(),
     };
     // OpenRocket's last row of a flight it aborted, where the two are compared (ADR-172).
     let last_row_s = aborted
@@ -1248,6 +1295,9 @@ fn fly(
     if let Some(descended) = descended {
         flown["descent"] = descended?;
     }
+    // What the nose's line reads of the flight; `fly_design` takes it out again.
+    let top_mach = (!peaks.mach_not_finite).then_some(peaks.top_mach);
+    flown[crate::nose_line::FACTS] = crate::nose_line::own_facts(&simulation, top_mach);
     Ok(flown)
 }
 
@@ -2488,6 +2538,18 @@ pub(crate) const WHOLE_BASE_PROBE: &str = "with_the_whole_base_under_power";
 /// Where a flight holds hpr's flight again on OpenRocket's drag coefficient along OpenRocket's
 /// flight ([`DRAG_CURVES`]): its apogee and largest speed against OpenRocket's.
 pub(crate) const OPENROCKET_DRAG_PROBE: &str = "on_openrocket_s_drag";
+
+/// The library flight of the nose's line flown with OpenRocket's column for the nose swapped in
+/// above Mach 1, on HPR Sim's own thrust and mass ([`crate::nose_line::library_flight`]).
+pub(crate) const NOSE_COLUMN_PROBE: &str = "with_openrocket_s_nose_column";
+
+/// The same with the whole base under power too.
+pub(crate) const NOSE_COLUMN_WHOLE_BASE_PROBE: &str =
+    "with_openrocket_s_nose_column_and_the_whole_base_under_power";
+
+/// Why a library flight of the nose's line was not flown with the column swapped in: a reason
+/// of [`crate::nose_line::LIBRARY_SKIPPED`].
+pub(crate) const NOSE_COLUMN_SKIPPED: &str = "nose_column_skipped";
 
 /// The named cause a flight's difference in `metric` is summarized under. A drag override moves
 /// every metric but the margin; an early parachute only the apogee. A flight with both is put

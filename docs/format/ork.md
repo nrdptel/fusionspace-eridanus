@@ -3620,6 +3620,8 @@ The report also flies HPR Sim's own drag with OpenRocket's base rule alone, thro
 | its own drag | +13.60% | +7.98% |
 | OpenRocket's drag coefficient | +1.11% | +1.04% |
 | its own drag with OpenRocket's base rule | −10.71% | −3.43% |
+| its own drag with OpenRocket's nose column | +31.73% | +13.32% |
+| its own drag with OpenRocket's nose column and base rule | +0.45% | +0.82% |
 
 On OpenRocket's drag the flight is within the 5% bar, so the drag is the cause. Switching HPR Sim to
 OpenRocket's base rule alone lowers its apogee from +13.60% to −10.71%, 24.3 percentage points.
@@ -3628,6 +3630,27 @@ A look at OpenRocket's per-component columns, not kept as a record, points that 
 supersonic pressure drag. The second number is by subtraction, and the split depends on which
 change is made first. Which supersonic pressure drag is right is open. Neither code has been
 checked against a measurement on this shape, and the public report has no supersonic flight.
+
+The last two rows swap the nose. Any flight that passes Mach 1 in HPR Sim with a tangent-ogive
+nose at the front of its airframe is flown twice more. Each time, the nose's pressure drag above
+Mach 1 is OpenRocket 24.12's for that nose, not HPR Sim's: once with HPR Sim's own base drag, and
+once with OpenRocket's base rule as well. The rest of the drag stays HPR Sim's.
+`validation/oracles/openrocket/nose_columns.py --public` records each library design's nose
+column in the gitignored `corpus-out/openrocket-library-nose-columns.json`. The report's last part
+lists each such flight, swapped or skipped with its reason. Two library flights qualify, and both
+are swapped. They keep HPR Sim's own thrust and mass, since the library holds no record of
+OpenRocket's against time. So this is not
+[the tangent-ogive nose's line](../accuracy.md#the-tangent-ogive-noses-line) of the private
+collection, which is taken on OpenRocket's.
+
+On `C06/1` the nose column alone raises the apogee to +31.73%. OpenRocket gives a tangent-ogive
+nose almost no pressure drag from Mach 1.3 up
+([OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391)), so HPR Sim
+has less drag. With OpenRocket's base rule as well, the apogee comes to +0.45%. That is 0.66
+percentage points below the flight on OpenRocket's whole drag coefficient, +1.11%. From the
+base rule's −10.71%, the nose column adds 11.16 of the 11.82 points that the rest of OpenRocket's
+drag adds. So on this flight the two rules, the base under power and the nose's pressure drag,
+leave under a point of the gap. Which of each is right is still open, as above.
 
 The drag curves are OpenRocket's numbers for private designs, so they stay in the gitignored
 `corpus-out/` with the other records.
