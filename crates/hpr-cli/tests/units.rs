@@ -94,8 +94,9 @@ fn sim_gives_us_units_in_brackets() {
             "apogee                1033.4 m (3390 ft) above the site at 11.47 s",
             "rail exit speed       26.3 m/s (86 ft/s)",
             "descent               4.4 m/s (15 ft/s) at landing under `Parachute`",
-            "launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 84° \
-             above the horizon, leaning toward 000° T, in a 6 m/s (13 mph) wind from 000° T",
+            "launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of rail \
+             above its aft end, 84° above the horizon, leaning toward 000° T, in a 6 m/s (13 mph) \
+             wind from 000° T",
             "event                   time                 height                    speed",
             "liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)",
             "rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)",

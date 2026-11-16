@@ -280,21 +280,21 @@
       "altimeter": "barometric, assumed",
       "altimeter_evidence": "the CATS Vega EuRoC 2023 required, its radio telemetry: the Kalman filter's height from a barometer and an accelerometer, sent in whole meters cut toward zero (as matched on its sister flights' logs), with no pressure; barometric assumed",
       "log_apogee_m": 2785.0,
-      "hpr_apogee_m": 2945.972573999202,
-      "hpr_height_apogee_m": 3052.0704983903734,
-      "apogee_error_percent": 5.779984703741538,
+      "hpr_apogee_m": 2945.972368564547,
+      "hpr_height_apogee_m": 3052.0702865333315,
+      "apogee_error_percent": 5.77997732727279,
       "log_time_to_apogee_s": 22.375,
-      "hpr_time_to_apogee_s": 22.677210062010616,
-      "trace_rms_m": 124.56472468913857,
-      "trace_rms_percent": 4.472701066037291,
-      "hpr_max_mach": 0.9329676689816341,
+      "hpr_time_to_apogee_s": 22.677209102828062,
+      "trace_rms_m": 124.56459728117522,
+      "trace_rms_percent": 4.472696491245071,
+      "hpr_max_mach": 0.9329676762780172,
       "trace_rows": 120,
       "total_impulse_ns": 3617.98,
       "negative_thrust_zeroed_ns": 0.0,
       "example_drag_source": "cavour_flight_sim.ipynb:250-251",
-      "example_drag_apogee_m": 2725.0234556988808,
-      "example_drag_apogee_error_percent": -2.153556348334623,
-      "example_drag_trace_rms_m": 26.93299664973933,
+      "example_drag_apogee_m": 2725.0236377942883,
+      "example_drag_apogee_error_percent": -2.1535498098998804,
+      "example_drag_trace_rms_m": 26.932948940631874,
       "recorded_thrust": null,
       "pressure_reading_max_m": null,
       "gnss_apogee_m": null,
@@ -605,12 +605,12 @@
   ],
   "summary": {
     "flights": 12,
-    "mean_absolute_apogee_error_percent": 9.0028057575811,
+    "mean_absolute_apogee_error_percent": 9.002805142875369,
     "target_percent": 5.0,
     "within_target": false,
-    "mean_apogee_error_percent": -4.908940677398466,
-    "mean_absolute_height_apogee_error_percent": 7.882974651205818,
-    "mean_absolute_known_barometric_apogee_error_percent": 9.141038903323853,
+    "mean_apogee_error_percent": -4.908941292104195,
+    "mean_absolute_height_apogee_error_percent": 7.8829740172828915,
+    "mean_absolute_known_barometric_apogee_error_percent": 9.141038269400925,
     "outliers": [
       "ndrt-2020",
       "prometheus-2022",
@@ -623,11 +623,11 @@
       "macie-xl-2"
     ],
     "max_trace_rms_percent": 7.259076606486406,
-    "example_drag_mean_absolute_apogee_error_percent": 3.4787286232184647,
+    "example_drag_mean_absolute_apogee_error_percent": 3.4787276891563583,
     "compared_first": {
       "flights": 7,
-      "mean_absolute_apogee_error_percent": 6.058557095957765,
-      "mean_apogee_error_percent": -0.2238069136331656
+      "mean_absolute_apogee_error_percent": 6.058556042176514,
+      "mean_apogee_error_percent": -0.2238079674144153
     },
     "predicted_first": {
       "flights": 5,
@@ -641,8 +641,8 @@
     },
     "era5_weather": {
       "flights": 10,
-      "mean_absolute_apogee_error_percent": 6.2670359072783,
-      "mean_apogee_error_percent": -1.354397811059139
+      "mean_absolute_apogee_error_percent": 6.267035169631424,
+      "mean_apogee_error_percent": -1.3543985487060137
     },
     "on_merged_predictions": null
   }

@@ -1,13 +1,13 @@
 //! The launch rail: its direction, length and friction, and where a design's rail buttons or launch
 //! lugs leave it.
 //!
-//! The rocket starts with its aft end (the aft end of its body or its aft-most nozzle exit,
-//! whichever is further aft) at the foot of the rail, its axis along the rail. It is guided, with
-//! one degree of freedom along the rail, until the aft edge of its aft-most guide passes the top
-//! of the rail. A rocket with no rail buttons or lugs is guided until its aft end passes the top,
-//! as from a tower. Between the forward guide leaving and the aft guide leaving, a real rocket can
-//! pivot about the aft guide ("tip-off"); that rotation is not modeled, and the rocket leaves the
-//! rail with no angular velocity.
+//! The rocket starts with its aft end (the aft-most point of its body, of any part on its outside,
+//! fin tips and pods included, or of its nozzle exits) at the foot of the rail, its axis along
+//! the rail. It is guided, with one degree of freedom along the rail, until the aft edge of its
+//! aft-most guide passes the top of the rail. A rocket with no rail buttons or lugs is guided
+//! until its aft end passes the top, as from a tower. Between the forward guide leaving and the
+//! aft guide leaving, a real rocket can pivot about the aft guide ("tip-off"); that rotation is
+//! not modeled, and the rocket leaves the rail with no angular velocity.
 //!
 //! Friction is Coulomb friction, `μ |N|`, with `N` the rail's reaction perpendicular to the rail:
 //! the component of gravity, the aerodynamic force and the variable-mass terms across the rocket's
@@ -104,8 +104,12 @@ impl Rail {
 /// Where a design meets the rail, as stations (m aft of the nose tip).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Guides {
-    /// The rocket's aft end: the aft end of its body, or its aft-most nozzle exit if that is
-    /// further aft. It starts at the foot of the rail.
+    /// The rocket's aft end, which starts at the foot of the rail: the aft-most point of its body,
+    /// of every part on its outside (a fin's tip trailing edge where a swept fin reaches past the
+    /// tube, a tube fin's or a pod's aft end) and of its nozzle exits. The rocket stands on that
+    /// point (the decision record on the rail, [ADR-011][adr-011]; #1254).
+    ///
+    /// [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-011-rigid-body-flight-equations-of-motion-aerodynamic-coupling-rail-phases-and-termination-2026-09-17
     pub aft_station_m: f64,
     /// The aft edge of the forward-most guide (a rail button's aft edge, or a lug's aft end), or
     /// `None` without guides.
@@ -120,11 +124,25 @@ impl Guides {
     #[must_use]
     pub fn of(assembly: &Assembly) -> Self {
         let body_aft = assembly.layout.length_m;
+        // Every body component (a pod's too) and every part on the outside, as far aft as it
+        // reaches: a fin set by its outline, not its root chord. A part with no copies isn't
+        // there. Internal parts aren't counted (a design check warns when one runs past its
+        // parent's end); a motor reaches out by its nozzle.
+        let outside_aft = assembly
+            .layout
+            .components
+            .iter()
+            .filter(|c| (c.part.is_body() || c.part.is_external()) && !c.copies.is_empty())
+            .map(|c| match &c.part {
+                Part::FinSet(fins) => c.fore_station_m + fins.planform.aft_extent_m(),
+                _ => c.aft_station_m(),
+            })
+            .fold(body_aft, f64::max);
         let aft_station_m = assembly
             .motors
             .iter()
             .map(|motor| motor.nozzle_station_m())
-            .fold(body_aft, f64::max);
+            .fold(outside_aft, f64::max);
         let mut first: Option<f64> = None;
         let mut last: Option<f64> = None;
         for component in &assembly.layout.components {

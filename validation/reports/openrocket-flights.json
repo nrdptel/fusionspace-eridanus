@@ -4,8 +4,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.1922129958946188,
-          "north": -0.6513539603092215
+          "east": 0.19493287324010983,
+          "north": -0.6602766861262728
         },
         "openrocket": {
           "east": -0.0001333860723115517,
@@ -34,12 +34,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 38.99421630031205,
+          "hpr": 38.994007680518614,
           "openrocket": 39.01670333395817,
-          "relative_percent": -0.0576343763686223
+          "relative_percent": -0.05816906991166097
         },
         "apogee_s": {
-          "hpr": 3.0917135973677645,
+          "hpr": 3.0917066807304137,
           "openrocket": 3.0704999999999973
         },
         "deploy_height_above_apogee": false,
@@ -51,7 +51,7 @@
           {
             "difference_s": -0.0009999999999998899,
             "expected_difference_s": null,
-            "hpr_height_m": 37.105834862325175,
+            "hpr_height_m": 37.123029180256744,
             "hpr_s": 3.73,
             "openrocket_height_m": 37.02611608399644,
             "openrocket_s": 3.731,
@@ -64,24 +64,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 12.194181160561161,
+          "hpr": 12.194136574666711,
           "openrocket": 12.237062628086832,
-          "relative_percent": -0.35042288193613
+          "relative_percent": -0.35078723321719557
         },
         "landing_speed_m_s": {
-          "hpr": 4.323391741286439,
+          "hpr": 4.3233952250384275,
           "openrocket": 4.32280762784827,
-          "relative_percent": 0.013512362530454491
+          "relative_percent": 0.013592952561011885
         },
         "last_deployment_speed_m_s": {
-          "hpr": 6.222113426232636,
+          "hpr": 6.2219782382767015,
           "openrocket": 6.21534675699178,
-          "relative_percent": 0.10887034151786243
+          "relative_percent": 0.10669527452288723
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.10272922885771026
+        "start_height_m": 0.12012922739045735
       },
       "design": "3D printable nose cone and fins",
       "design_errors_accepted": [],
@@ -93,34 +93,34 @@
       "max_mach_openrocket": 0.07301338477930663,
       "metrics": {
         "apogee_m": {
-          "difference": -0.022487033646122256,
-          "hpr": 38.99421630031205,
+          "difference": -0.022695653439555485,
+          "hpr": 38.994007680518614,
           "openrocket": 39.01670333395817,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 38.99421630031205,
+            "measured": 38.994007680518614,
             "outcome": "scored",
             "reference": 39.01670333395817
           },
-          "relative_percent": -0.0576343763686223
+          "relative_percent": -0.05816906991166097
         },
         "max_speed_m_s": {
-          "difference": 0.04145459961872078,
-          "hpr": 24.89162500254153,
+          "difference": 0.04140459969914545,
+          "hpr": 24.891575002621956,
           "openrocket": 24.85017040292281,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 24.89162500254153,
+            "measured": 24.891575002621956,
             "outcome": "scored",
             "reference": 24.85017040292281
           },
-          "relative_percent": 0.16681817044540265
+          "relative_percent": 0.16661696490530123
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0006322254694384188,
@@ -150,8 +150,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.8964170760447775,
-          "north": -3.0407823370750355
+          "east": 0.9050434651831752,
+          "north": -3.0690687980597193
         },
         "openrocket": {
           "east": -0.00022946791356918335,
@@ -161,9 +161,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 112.86575760275885,
-          "relative_percent": -0.3237037120725049
+          "relative_percent": -0.3243477063659254
         },
-        "remaining_percent": -0.3237037120725049,
+        "remaining_percent": -0.3243477063659254,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -188,12 +188,12 @@
       "deployed_before_apogee_s": 0.09899999999999931,
       "descent": {
         "apogee_m": {
-          "hpr": 112.50022689043898,
+          "hpr": 112.49949889575292,
           "openrocket": 112.86675774145215,
-          "relative_percent": -0.3247465049477117
+          "relative_percent": -0.32539150857909693
         },
         "apogee_s": {
-          "hpr": 4.912340278842532,
+          "hpr": 4.9123264711799965,
           "openrocket": 4.925704126128981
         },
         "deploy_height_above_apogee": false,
@@ -205,7 +205,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 112.58777105052253,
+            "hpr_height_m": 112.60444960549158,
             "hpr_s": 4.86,
             "openrocket_height_m": 112.8467535702114,
             "openrocket_s": 4.861000000000001,
@@ -218,24 +218,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 31.25185831443392,
+          "hpr": 31.251694905642907,
           "openrocket": 31.307973520928755,
-          "relative_percent": -0.17923615036061635
+          "relative_percent": -0.17975809021374936
         },
         "landing_speed_m_s": {
-          "hpr": 4.310182766693208,
+          "hpr": 4.310186357489338,
           "openrocket": 4.309597516991658,
-          "relative_percent": 0.013580147548411865
+          "relative_percent": 0.013663468464495131
         },
         "last_deployment_speed_m_s": {
-          "hpr": 0.7844238830791314,
+          "hpr": 0.7884682195023924,
           "openrocket": 0.6477137369009662,
-          "relative_percent": 21.10656890376678
+          "relative_percent": 21.73097073328664
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.10105519299141247
+        "start_height_m": 0.1184551943332005
       },
       "design": "3D printable nose cone and fins",
       "design_errors_accepted": [],
@@ -247,34 +247,34 @@
       "max_mach_openrocket": 0.1429316354856846,
       "metrics": {
         "apogee_m": {
-          "difference": -0.3663507857121857,
-          "hpr": 112.50040695573996,
+          "difference": -0.36707763475037325,
+          "hpr": 112.49968010670177,
           "openrocket": 112.86675774145215,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 112.50040695573996,
+            "measured": 112.49968010670177,
             "outcome": "scored",
             "reference": 112.86675774145215
           },
-          "relative_percent": -0.3245869670070601
+          "relative_percent": -0.32523095559389675
         },
         "max_speed_m_s": {
-          "difference": 0.12653459898844233,
-          "hpr": 48.766456690876176,
+          "difference": 0.12648494408635003,
+          "hpr": 48.76640703597408,
           "openrocket": 48.63992209188773,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 48.766456690876176,
+            "measured": 48.76640703597408,
             "outcome": "scored",
             "reference": 48.63992209188773
           },
-          "relative_percent": 0.26014556262939825
+          "relative_percent": 0.26004347590730503
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0005902768096892608,
@@ -304,8 +304,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 2.9653422160854026,
-          "north": -10.105070287838611
+          "east": 2.9904059683442688,
+          "north": -10.187265765194649
         },
         "openrocket": {
           "east": -0.002129765721208806,
@@ -315,9 +315,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 274.69734209204887,
-          "relative_percent": -0.1634983577221474
+          "relative_percent": -0.16434330362652308
         },
-        "remaining_percent": -0.1634983577221474,
+        "remaining_percent": -0.16434330362652308,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -342,12 +342,12 @@
       "deployed_before_apogee_s": 2.588882812500107,
       "descent": {
         "apogee_m": {
-          "hpr": 244.89390969025888,
+          "hpr": 244.892148703198,
           "openrocket": 244.46099966440497,
-          "relative_percent": 0.17708756261661832
+          "relative_percent": 0.1763672076056725
         },
         "apogee_s": {
-          "hpr": 5.484745245891291,
+          "hpr": 5.484732127233404,
           "openrocket": 5.43879122741891
         },
         "deploy_height_above_apogee": false,
@@ -359,7 +359,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 241.4615408926488,
+            "hpr_height_m": 241.4772720174718,
             "hpr_s": 4.86,
             "openrocket_height_m": 241.17389979330392,
             "openrocket_s": 4.861000000000001,
@@ -372,24 +372,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 62.40748411724492,
+          "hpr": 62.407025159764395,
           "openrocket": 62.23103943518224,
-          "relative_percent": 0.28353163254883285
+          "relative_percent": 0.28279412682067734
         },
         "landing_speed_m_s": {
-          "hpr": 4.300326071420921,
+          "hpr": 4.300329645201005,
           "openrocket": 4.299740455558791,
-          "relative_percent": 0.013619795617503934
+          "relative_percent": 0.013702911799079247
         },
         "last_deployment_speed_m_s": {
-          "hpr": 26.82774459210971,
+          "hpr": 26.8280218713588,
           "openrocket": 27.053066270434886,
-          "relative_percent": -0.8328877624176036
+          "relative_percent": -0.8318628166819951
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.09705273108581515
+        "start_height_m": 0.11445273240565491
       },
       "design": "3D printable nose cone and fins",
       "design_errors_accepted": [],
@@ -401,34 +401,34 @@
       "max_mach_openrocket": 0.24492736829363904,
       "metrics": {
         "apogee_m": {
-          "difference": 29.787216784617016,
-          "hpr": 274.248216449022,
+          "difference": 29.78489574067558,
+          "hpr": 274.24589540508055,
           "openrocket": 244.46099966440497,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 274.248216449022,
+            "measured": 274.24589540508055,
             "outcome": "scored",
             "reference": 244.46099966440497
           },
-          "relative_percent": 12.184854363480794
+          "relative_percent": 12.183904909807355
         },
         "max_speed_m_s": {
-          "difference": 0.7116489459053241,
-          "hpr": 83.99787179904847,
+          "difference": 0.7114756514275626,
+          "hpr": 83.9976985045707,
           "openrocket": 83.28622285314314,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 83.99787179904847,
+            "measured": 83.9976985045707,
             "outcome": "scored",
             "reference": 83.28622285314314
           },
-          "relative_percent": 0.8544617843459654
+          "relative_percent": 0.8542537133447542
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0003144478439744969,
@@ -458,8 +458,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 2.9653422160854026,
-          "north": -10.105070287838611
+          "east": 2.9904059683442688,
+          "north": -10.187265765194649
         },
         "openrocket": {
           "east": -0.0035469428330509143,
@@ -469,9 +469,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 274.69734213324966,
-          "relative_percent": -0.16349837269623824
+          "relative_percent": -0.16434331860048718
         },
-        "remaining_percent": -0.16349837269623824,
+        "remaining_percent": -0.16434331860048718,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -496,12 +496,12 @@
       "deployed_before_apogee_s": 0.5888828125002004,
       "descent": {
         "apogee_m": {
-          "hpr": 273.66903084299634,
+          "hpr": 273.66655800196156,
           "openrocket": 273.96167633380776,
-          "relative_percent": -0.10681986426993927
+          "relative_percent": -0.10772248724548289
         },
         "apogee_s": {
-          "hpr": 7.2497354669261656,
+          "hpr": 7.2496525755350065,
           "openrocket": 7.235069512879924
         },
         "deploy_height_above_apogee": false,
@@ -513,7 +513,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 272.8864429508432,
+            "hpr_height_m": 272.90160960770703,
             "hpr_s": 6.86,
             "openrocket_height_m": 273.1041162052274,
             "openrocket_s": 6.861000000000001,
@@ -526,24 +526,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 70.78461915087243,
+          "hpr": 70.78396467868889,
           "openrocket": 70.80514554752739,
-          "relative_percent": -0.02898997875963669
+          "relative_percent": -0.029914307321466677
         },
         "landing_speed_m_s": {
-          "hpr": 4.300326157049613,
+          "hpr": 4.300329727076932,
           "openrocket": 4.299740481004982,
-          "relative_percent": 0.013621195214416985
+          "relative_percent": 0.01370422411660266
         },
         "last_deployment_speed_m_s": {
-          "hpr": 5.4863035607766495,
+          "hpr": 5.488177150159652,
           "openrocket": 5.621336814843853,
-          "relative_percent": -2.402155546179536
+          "relative_percent": -2.3688255849138242
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.09705273108581515
+        "start_height_m": 0.11445273240565491
       },
       "design": "3D printable nose cone and fins",
       "design_errors_accepted": [],
@@ -555,34 +555,34 @@
       "max_mach_openrocket": 0.24492736829363904,
       "metrics": {
         "apogee_m": {
-          "difference": 0.2865401152142226,
-          "hpr": 274.248216449022,
+          "difference": 0.284219071272787,
+          "hpr": 274.24589540508055,
           "openrocket": 273.96167633380776,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 274.248216449022,
+            "measured": 274.24589540508055,
             "outcome": "scored",
             "reference": 273.96167633380776
           },
-          "relative_percent": 0.10459131329926917
+          "relative_percent": 0.10374409847254737
         },
         "max_speed_m_s": {
-          "difference": 0.7116489459053241,
-          "hpr": 83.99787179904847,
+          "difference": 0.7114756514275626,
+          "hpr": 83.9976985045707,
           "openrocket": 83.28622285314314,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 83.99787179904847,
+            "measured": 83.9976985045707,
             "outcome": "scored",
             "reference": 83.28622285314314
           },
-          "relative_percent": 0.8544617843459654
+          "relative_percent": 0.8542537133447542
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0003144478439744969,
@@ -612,8 +612,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 2.9653422160854026,
-          "north": -10.105070287838611
+          "east": 2.9904059683442688,
+          "north": -10.187265765194649
         },
         "openrocket": {
           "east": -0.0037484932596100196,
@@ -642,12 +642,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 274.248216449022,
+          "hpr": 274.24589540508055,
           "openrocket": 274.6968333803148,
-          "relative_percent": -0.16331347026185003
+          "relative_percent": -0.16415841773098308
         },
         "apogee_s": {
-          "hpr": 7.4055221941615885,
+          "hpr": 7.405517233247536,
           "openrocket": 7.452624999999982
         },
         "deploy_height_above_apogee": false,
@@ -659,7 +659,7 @@
           {
             "difference_s": -0.0009999999999994458,
             "expected_difference_s": null,
-            "hpr_height_m": 264.6060606382423,
+            "hpr_height_m": 264.6234336947683,
             "hpr_s": 8.86,
             "openrocket_height_m": 265.0975729183906,
             "openrocket_s": 8.860999999999999,
@@ -672,24 +672,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 69.69325356410766,
+          "hpr": 69.69317813674498,
           "openrocket": 69.90831626410989,
-          "relative_percent": -0.30763535941807807
+          "relative_percent": -0.307743254110325
         },
         "landing_speed_m_s": {
-          "hpr": 4.300326074120312,
+          "hpr": 4.300329649145589,
           "openrocket": 4.299740464541911,
-          "relative_percent": 0.013619649446993714
+          "relative_percent": 0.0137027945881266
         },
         "last_deployment_speed_m_s": {
-          "hpr": 12.468086390234081,
+          "hpr": 12.46747720715253,
           "openrocket": 12.499601126685238,
-          "relative_percent": -0.252125936913915
+          "relative_percent": -0.25699955708288286
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.09705273108581515
+        "start_height_m": 0.11445273240565491
       },
       "design": "3D printable nose cone and fins",
       "design_errors_accepted": [],
@@ -701,34 +701,34 @@
       "max_mach_openrocket": 0.24492736829363904,
       "metrics": {
         "apogee_m": {
-          "difference": -0.4486169312928041,
-          "hpr": 274.248216449022,
+          "difference": -0.45093797523423973,
+          "hpr": 274.24589540508055,
           "openrocket": 274.6968333803148,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 274.248216449022,
+            "measured": 274.24589540508055,
             "outcome": "scored",
             "reference": 274.6968333803148
           },
-          "relative_percent": -0.16331347026185003
+          "relative_percent": -0.16415841773098308
         },
         "max_speed_m_s": {
-          "difference": 0.7116489459053241,
-          "hpr": 83.99787179904847,
+          "difference": 0.7114756514275626,
+          "hpr": 83.9976985045707,
           "openrocket": 83.28622285314314,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 83.99787179904847,
+            "measured": 83.9976985045707,
             "outcome": "scored",
             "reference": 83.28622285314314
           },
-          "relative_percent": 0.8544617843459654
+          "relative_percent": 0.8542537133447542
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0003144478439744969,
@@ -758,8 +758,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.07139225866173246,
-          "north": -0.238136759385795
+          "east": 0.0727300199885409,
+          "north": -0.24205030582213038
         },
         "openrocket": {
           "east": -5.128529827676982e-6,
@@ -788,12 +788,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 50.917421754418186,
+          "hpr": 50.917396421125325,
           "openrocket": 51.05382008139654,
-          "relative_percent": -0.26716576107505385
+          "relative_percent": -0.2672153818337364
         },
         "apogee_s": {
-          "hpr": 3.4651306049075425,
+          "hpr": 3.4651296035981396,
           "openrocket": 3.470499999999996
         },
         "deploy_height_above_apogee": false,
@@ -805,7 +805,7 @@
           {
             "difference_s": -0.0009999999999998899,
             "expected_difference_s": null,
-            "hpr_height_m": 50.73366421588204,
+            "hpr_height_m": 50.75103678557466,
             "hpr_s": 3.73,
             "openrocket_height_m": 50.723446539015946,
             "openrocket_s": 3.731,
@@ -818,24 +818,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 15.951682708787102,
+          "hpr": 15.95166667485994,
           "openrocket": 15.962010700750655,
-          "relative_percent": -0.064703577495206
+          "relative_percent": -0.06480402804283801
         },
         "landing_speed_m_s": {
-          "hpr": 4.163433359025553,
+          "hpr": 4.1634367029375285,
           "openrocket": 4.16305493568696,
-          "relative_percent": 0.009090039512789043
+          "relative_percent": 0.009170363025868263
         },
         "last_deployment_speed_m_s": {
-          "hpr": 2.5954293838459677,
+          "hpr": 2.5954656855894602,
           "openrocket": 2.5290781256957446,
-          "relative_percent": 2.6235353299720594
+          "relative_percent": 2.624970704511253
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.1600116106513067
+        "start_height_m": 0.1774116102027296
       },
       "design": "A simple model rocket",
       "design_errors_accepted": [],
@@ -847,34 +847,34 @@
       "max_mach_openrocket": 0.0862141712870821,
       "metrics": {
         "apogee_m": {
-          "difference": -0.13639832697835175,
-          "hpr": 50.917421754418186,
+          "difference": -0.13642366027121255,
+          "hpr": 50.917396421125325,
           "openrocket": 51.05382008139654,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 50.917421754418186,
+            "measured": 50.917396421125325,
             "outcome": "scored",
             "reference": 51.05382008139654
           },
-          "relative_percent": -0.26716576107505385
+          "relative_percent": -0.2672153818337364
         },
         "max_speed_m_s": {
-          "difference": 0.05168715754595965,
-          "hpr": 29.393994812095503,
+          "difference": 0.05168651469436725,
+          "hpr": 29.39399416924391,
           "openrocket": 29.342307654549543,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 29.393994812095503,
+            "measured": 29.39399416924391,
             "outcome": "scored",
             "reference": 29.342307654549543
           },
-          "relative_percent": 0.17615232637623007
+          "relative_percent": 0.17615013550699113
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0008342107027745627,
@@ -904,8 +904,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.25137245987752765,
-          "north": -0.8608082294405415
+          "east": 0.2545983717517527,
+          "north": -0.8702442210520828
         },
         "openrocket": {
           "east": 0.0007260965416821733,
@@ -915,9 +915,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 136.6085662721152,
-          "relative_percent": -0.7828982926266922
+          "relative_percent": -0.782947763727829
         },
-        "remaining_percent": -0.7828982926266922,
+        "remaining_percent": -0.782947763727829,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -942,12 +942,12 @@
       "deployed_before_apogee_s": 0.369644531250489,
       "descent": {
         "apogee_m": {
-          "hpr": 135.42619930411493,
+          "hpr": 135.4261283890586,
           "openrocket": 136.41371945373987,
-          "relative_percent": -0.7239155662490575
+          "relative_percent": -0.7239675515307615
         },
         "apogee_s": {
-          "hpr": 5.3100170821946735,
+          "hpr": 5.310014388919787,
           "openrocket": 5.310002832922046
         },
         "deploy_height_above_apogee": false,
@@ -959,7 +959,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 135.16560542149296,
+            "hpr_height_m": 135.1829390095433,
             "hpr_s": 5.03,
             "openrocket_height_m": 135.97451760838894,
             "openrocket_s": 5.031000000000001,
@@ -972,24 +972,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 38.06805309917979,
+          "hpr": 38.06800929596263,
           "openrocket": 38.264962359857435,
-          "relative_percent": -0.5145941575110867
+          "relative_percent": -0.5147086309469892
         },
         "landing_speed_m_s": {
-          "hpr": 4.158328190347958,
+          "hpr": 4.158331659528912,
           "openrocket": 4.157950330903587,
-          "relative_percent": 0.009087637280384761
+          "relative_percent": 0.00917107216242938
         },
         "last_deployment_speed_m_s": {
-          "hpr": 3.227304813568427,
+          "hpr": 3.2273828110068083,
           "openrocket": 3.546523892421834,
-          "relative_percent": -9.000900276902406
+          "relative_percent": -8.998701012474836
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.15525861135500818
+        "start_height_m": 0.17265861158492218
       },
       "design": "A simple model rocket",
       "design_errors_accepted": [],
@@ -1001,34 +1001,34 @@
       "max_mach_openrocket": 0.1567799390048166,
       "metrics": {
         "apogee_m": {
-          "difference": -0.8746593145508541,
-          "hpr": 135.53906013918902,
+          "difference": -0.8747268963128363,
+          "hpr": 135.53899255742704,
           "openrocket": 136.41371945373987,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 135.53906013918902,
+            "measured": 135.53899255742704,
             "outcome": "scored",
             "reference": 136.41371945373987
           },
-          "relative_percent": -0.6411813401565268
+          "relative_percent": -0.6412308819198135
         },
         "max_speed_m_s": {
-          "difference": 0.14491346701381502,
-          "hpr": 53.49138236912188,
+          "difference": 0.14488639849839302,
+          "hpr": 53.49135530060646,
           "openrocket": 53.346468902108064,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 53.49138236912188,
+            "measured": 53.49135530060646,
             "outcome": "scored",
             "reference": 53.346468902108064
           },
-          "relative_percent": 0.27164584647530166
+          "relative_percent": 0.2715951055059759
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0007764529675555742,
@@ -1058,8 +1058,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.7856009180964293,
-          "north": -2.7031264003162874
+          "east": 0.7954415427744174,
+          "north": -2.7318633451498457
         },
         "openrocket": {
           "east": 0.0010529286664642647,
@@ -1069,9 +1069,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 322.35151005304897,
-          "relative_percent": -1.0749827390650788
+          "relative_percent": -1.0750101209038578
         },
-        "remaining_percent": -1.0749827390650788,
+        "remaining_percent": -1.0750101209038578,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -1096,12 +1096,12 @@
       "deployed_before_apogee_s": 2.9888828125001057,
       "descent": {
         "apogee_m": {
-          "hpr": 279.2873930639783,
+          "hpr": 279.2873354942016,
           "openrocket": 280.2138887908856,
-          "relative_percent": -0.33063875987914804
+          "relative_percent": -0.3306593048196343
         },
         "apogee_s": {
-          "hpr": 5.474597477761114,
+          "hpr": 5.474597174776131,
           "openrocket": 5.428360483216629
         },
         "deploy_height_above_apogee": false,
@@ -1113,7 +1113,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 275.8203549466924,
+            "hpr_height_m": 275.8376968325271,
             "hpr_s": 4.86,
             "openrocket_height_m": 276.81783705890575,
             "openrocket_s": 4.861000000000001,
@@ -1126,24 +1126,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 72.81696394507163,
+          "hpr": 72.81689454610434,
           "openrocket": 72.96168906460761,
-          "relative_percent": -0.19835768797488051
+          "relative_percent": -0.19845280497146858
         },
         "landing_speed_m_s": {
-          "hpr": 4.137847002134204,
+          "hpr": 4.137850458552301,
           "openrocket": 4.13746914168084,
-          "relative_percent": 0.009132647046413015
+          "relative_percent": 0.009216186475449329
         },
         "last_deployment_speed_m_s": {
-          "hpr": 31.213539459864265,
+          "hpr": 31.213591355571626,
           "openrocket": 32.055473966255036,
-          "relative_percent": -2.6264921469483813
+          "relative_percent": -2.62633025351509
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.14817158900144264
+        "start_height_m": 0.1655715898970488
       },
       "design": "A simple model rocket",
       "design_errors_accepted": [],
@@ -1155,34 +1155,34 @@
       "max_mach_openrocket": 0.28067718412998477,
       "metrics": {
         "apogee_m": {
-          "difference": 38.67239816997744,
-          "hpr": 318.88628696086306,
+          "difference": 38.67230990420666,
+          "hpr": 318.8861986950923,
           "openrocket": 280.2138887908856,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 318.88628696086306,
+            "measured": 318.8861986950923,
             "outcome": "scored",
             "reference": 280.2138887908856
           },
-          "relative_percent": 13.80102832762775
+          "relative_percent": 13.800996828200235
         },
         "max_speed_m_s": {
-          "difference": 0.7513680169485895,
-          "hpr": 96.179612150631,
+          "difference": 0.7508919716259186,
+          "hpr": 96.17913610530833,
           "openrocket": 95.42824413368241,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 96.179612150631,
+            "measured": 96.17913610530833,
             "outcome": "scored",
             "reference": 95.42824413368241
           },
-          "relative_percent": 0.7873643948598926
+          "relative_percent": 0.7868655432599365
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0006849146655585336,
@@ -1212,8 +1212,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.7856009180964293,
-          "north": -2.7031264003162874
+          "east": 0.7954415427744174,
+          "north": -2.7318633451498457
         },
         "openrocket": {
           "east": 0.001133864094732251,
@@ -1223,9 +1223,9 @@
       "apogee_with_the_causes_removed": {
         "parachutes_held": {
           "openrocket_m": 322.3515067177913,
-          "relative_percent": -1.0749817155227244
+          "relative_percent": -1.075009097361787
         },
-        "remaining_percent": -1.0749817155227244,
+        "remaining_percent": -1.075009097361787,
         "within_5_percent": true
       },
       "at_rod_clearance": {
@@ -1250,12 +1250,12 @@
       "deployed_before_apogee_s": 0.9888828125001989,
       "descent": {
         "apogee_m": {
-          "hpr": 316.4169625981947,
+          "hpr": 316.4168759032948,
           "openrocket": 319.136127593905,
-          "relative_percent": -0.8520392273388664
+          "relative_percent": -0.8520663928310799
         },
         "apogee_s": {
-          "hpr": 7.344272801049121,
+          "hpr": 7.344268083204626,
           "openrocket": 7.317788536902217
         },
         "deploy_height_above_apogee": false,
@@ -1267,7 +1267,7 @@
           {
             "difference_s": -0.001000000000000334,
             "expected_difference_s": null,
-            "hpr_height_m": 315.02968236859033,
+            "hpr_height_m": 315.04701318194094,
             "hpr_s": 6.86,
             "openrocket_height_m": 317.6354935760408,
             "openrocket_s": 6.861000000000001,
@@ -1280,24 +1280,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 83.5330433132338,
+          "hpr": 83.53295751532532,
           "openrocket": 84.1261491876747,
-          "relative_percent": -0.7050196403472015
+          "relative_percent": -0.7051216275525012
         },
         "landing_speed_m_s": {
-          "hpr": 4.137847048260347,
+          "hpr": 4.137850499321616,
           "openrocket": 4.137469128992551,
-          "relative_percent": 0.00913406858186114
+          "relative_percent": 0.009217478540027618
         },
         "last_deployment_speed_m_s": {
-          "hpr": 8.928465150867737,
+          "hpr": 8.92854523767077,
           "openrocket": 9.706680885348465,
-          "relative_percent": -8.01732068533734
+          "relative_percent": -8.016495616459741
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.14817158900144264
+        "start_height_m": 0.1655715898970488
       },
       "design": "A simple model rocket",
       "design_errors_accepted": [],
@@ -1309,34 +1309,34 @@
       "max_mach_openrocket": 0.28067718412998477,
       "metrics": {
         "apogee_m": {
-          "difference": -0.24984063304191295,
-          "hpr": 318.88628696086306,
+          "difference": -0.24992889881269775,
+          "hpr": 318.8861986950923,
           "openrocket": 319.136127593905,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 318.88628696086306,
+            "measured": 318.8861986950923,
             "outcome": "scored",
             "reference": 319.136127593905
           },
-          "relative_percent": -0.07828654026905744
+          "relative_percent": -0.07831419798723879
         },
         "max_speed_m_s": {
-          "difference": 0.7513680169485895,
-          "hpr": 96.179612150631,
+          "difference": 0.7508919716259186,
+          "hpr": 96.17913610530833,
           "openrocket": 95.42824413368241,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 96.179612150631,
+            "measured": 96.17913610530833,
             "outcome": "scored",
             "reference": 95.42824413368241
           },
-          "relative_percent": 0.7873643948598926
+          "relative_percent": 0.7868655432599365
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0006849146655585336,
@@ -1366,8 +1366,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": 0.7856009180964293,
-          "north": -2.7031264003162874
+          "east": 0.7954415427744174,
+          "north": -2.7318633451498457
         },
         "openrocket": {
           "east": 0.0011516058473569092,
@@ -1396,12 +1396,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 318.88628696086306,
+          "hpr": 318.8861986950923,
           "openrocket": 322.35122162332186,
-          "relative_percent": -1.0748942240732977
+          "relative_percent": -1.0749216059365774
         },
         "apogee_s": {
-          "hpr": 7.761590093370403,
+          "hpr": 7.761588352451638,
           "openrocket": 7.85262499999998
         },
         "deploy_height_above_apogee": false,
@@ -1413,7 +1413,7 @@
           {
             "difference_s": -0.0009999999999994458,
             "expected_difference_s": null,
-            "hpr_height_m": 313.2464749583868,
+            "hpr_height_m": 313.2653682942982,
             "hpr_s": 8.86,
             "openrocket_height_m": 317.3048765848505,
             "openrocket_s": 8.860999999999999,
@@ -1426,24 +1426,24 @@
         ],
         "devices": 1,
         "flight_time_s": {
-          "hpr": 83.73882540877341,
+          "hpr": 83.73947007529702,
           "openrocket": 84.82532335402358,
-          "relative_percent": -1.2808650793061034
+          "relative_percent": -1.280105086301512
         },
         "landing_speed_m_s": {
-          "hpr": 4.137847021941633,
+          "hpr": 4.137850497302226,
           "openrocket": 4.1374691120566265,
-          "relative_percent": 0.009133841843205813
+          "relative_percent": 0.009217839100924517
         },
         "last_deployment_speed_m_s": {
-          "hpr": 9.999525327750693,
+          "hpr": 9.988893514943785,
           "openrocket": 9.574101244414617,
-          "relative_percent": 4.443488453647398
+          "relative_percent": 4.332440820710463
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.14817158900144264
+        "start_height_m": 0.1655715898970488
       },
       "design": "A simple model rocket",
       "design_errors_accepted": [],
@@ -1455,34 +1455,34 @@
       "max_mach_openrocket": 0.28067718412998477,
       "metrics": {
         "apogee_m": {
-          "difference": -3.464934662458802,
-          "hpr": 318.88628696086306,
+          "difference": -3.465022928229587,
+          "hpr": 318.8861986950923,
           "openrocket": 322.35122162332186,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 318.88628696086306,
+            "measured": 318.8861986950923,
             "outcome": "scored",
             "reference": 322.35122162332186
           },
-          "relative_percent": -1.0748942240732977
+          "relative_percent": -1.0749216059365774
         },
         "max_speed_m_s": {
-          "difference": 0.7513680169485895,
-          "hpr": 96.179612150631,
+          "difference": 0.7508919716259186,
+          "hpr": 96.17913610530833,
           "openrocket": 95.42824413368241,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 96.179612150631,
+            "measured": 96.17913610530833,
             "outcome": "scored",
             "reference": 95.42824413368241
           },
-          "relative_percent": 0.7873643948598926
+          "relative_percent": 0.7868655432599365
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0006849146655585336,
@@ -1670,8 +1670,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -1.157593914012158,
-          "north": 0.00008024939575618184
+          "east": -1.1575939870923577,
+          "north": 0.00008024579073741424
         },
         "openrocket": {
           "east": -1.1639235037185196,
@@ -1701,12 +1701,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 1329.88997003124,
+          "hpr": 1329.8900135758,
           "openrocket": 1317.508873255777,
-          "relative_percent": 0.9397353616956905
+          "relative_percent": 0.939738666763371
         },
         "apogee_s": {
-          "hpr": 15.683302689444927,
+          "hpr": 15.683302987932356,
           "openrocket": 15.606000000000092
         },
         "deploy_height_above_apogee": false,
@@ -1716,10 +1716,10 @@
         },
         "deployments": [
           {
-            "difference_s": 0.026302689444834826,
-            "expected_difference_s": 0.02730268944483427,
-            "hpr_height_m": 1331.200078781806,
-            "hpr_s": 15.683302689444927,
+            "difference_s": 0.026302987932263378,
+            "expected_difference_s": 0.027302987932262823,
+            "hpr_height_m": 1331.2009251116763,
+            "hpr_s": 15.683302987932356,
             "openrocket_height_m": 1317.4821450458833,
             "openrocket_s": 15.657000000000092,
             "residual_s": -0.0009999999999994458,
@@ -1729,13 +1729,13 @@
             "within_target": true
           },
           {
-            "difference_s": 0.1339191679799825,
-            "expected_difference_s": 0.11685617409178495,
+            "difference_s": 0.13394904402119323,
+            "expected_difference_s": 0.11688829380610588,
             "hpr_height_m": 182.87999999889493,
-            "hpr_s": 58.87614744109528,
+            "hpr_s": 58.87617731713649,
             "openrocket_height_m": 170.2407745125267,
             "openrocket_s": 58.742228273115295,
-            "residual_s": 0.017062993888197542,
+            "residual_s": 0.01706075021508735,
             "residual_within_target": true,
             "set_height_m": 182.88,
             "trigger": "altitude",
@@ -1744,24 +1744,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 94.81998732619158,
+          "hpr": 94.81985494776596,
           "openrocket": 92.50227404513606,
-          "relative_percent": 2.505574381798009
+          "relative_percent": 2.5054312735047426
         },
         "landing_speed_m_s": {
-          "hpr": 4.947702797028923,
+          "hpr": 4.947702987178832,
           "openrocket": 4.947374574902636,
-          "relative_percent": 0.006634268768585226
+          "relative_percent": 0.0066381122193970585
         },
         "last_deployment_speed_m_s": {
-          "hpr": 27.129698471552953,
+          "hpr": 27.12969847251648,
           "openrocket": 27.108417006700453,
-          "relative_percent": 0.0785050076780194
+          "relative_percent": 0.07850501123236905
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 1.310108750566085
+        "start_height_m": 1.3109115358763643
       },
       "design": "Airstart timing",
       "design_errors_accepted": [],
@@ -1773,34 +1773,34 @@
       "max_mach_openrocket": 0.5492178202400615,
       "metrics": {
         "apogee_m": {
-          "difference": 12.381096775462993,
-          "hpr": 1329.88997003124,
+          "difference": 12.38114032002295,
+          "hpr": 1329.8900135758,
           "openrocket": 1317.508873255777,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 1329.88997003124,
+            "measured": 1329.8900135758,
             "outcome": "scored",
             "reference": 1317.508873255777
           },
-          "relative_percent": 0.9397353616956905
+          "relative_percent": 0.939738666763371
         },
         "max_speed_m_s": {
-          "difference": 1.5160907542483528,
-          "hpr": 187.8658765915813,
+          "difference": 1.5160922593093176,
+          "hpr": 187.86587809664226,
           "openrocket": 186.34978583733294,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 187.8658765915813,
+            "measured": 187.86587809664226,
             "outcome": "scored",
             "reference": 186.34978583733294
           },
-          "relative_percent": 0.8135725766659949
+          "relative_percent": 0.813573384319708
         },
         "rod_clearance_margin_cal": {
           "difference": -0.000954980677018824,
@@ -1830,8 +1830,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -1.3001727250127975,
-          "north": 0.00018823716377561238
+          "east": -1.3001727915813843,
+          "north": 0.0001882317630001062
         },
         "openrocket": {
           "east": -1.3388326276472486,
@@ -1861,12 +1861,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 1306.855485134808,
+          "hpr": 1306.8555257756045,
           "openrocket": 1296.0313570015023,
-          "relative_percent": 0.835174864777072
+          "relative_percent": 0.8351780005651239
         },
         "apogee_s": {
-          "hpr": 16.574045041025766,
+          "hpr": 16.574045348104853,
           "openrocket": 16.54150000000012
         },
         "deploy_height_above_apogee": false,
@@ -1876,10 +1876,10 @@
         },
         "deployments": [
           {
-            "difference_s": 0.03154504102564459,
-            "expected_difference_s": 0.032545041025645816,
-            "hpr_height_m": 1308.1655938853742,
-            "hpr_s": 16.574045041025766,
+            "difference_s": 0.031545348104732085,
+            "expected_difference_s": 0.03254534810473331,
+            "hpr_height_m": 1308.1664373114809,
+            "hpr_s": 16.574045348104853,
             "openrocket_height_m": 1296.0105104299455,
             "openrocket_s": 16.54250000000012,
             "residual_s": -0.0010000000000012221,
@@ -1889,13 +1889,13 @@
             "within_target": true
           },
           {
-            "difference_s": 0.3601843869778989,
-            "expected_difference_s": 0.3037515789073631,
-            "hpr_height_m": 182.87999999891505,
-            "hpr_s": 58.96142772936031,
+            "difference_s": 0.3602142033825473,
+            "expected_difference_s": 0.3037836139570608,
+            "hpr_height_m": 182.87999999891508,
+            "hpr_s": 58.96145754576496,
             "openrocket_height_m": 177.95525902546717,
             "openrocket_s": 58.60124334238241,
-            "residual_s": 0.0564328080705358,
+            "residual_s": 0.056430589425486455,
             "residual_within_target": true,
             "set_height_m": 182.88,
             "trigger": "altitude",
@@ -1904,24 +1904,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 94.90526761884826,
+          "hpr": 94.90513518159864,
           "openrocket": 93.9075873542045,
-          "relative_percent": 1.0624064495243293
+          "relative_percent": 1.0622654201854336
         },
         "landing_speed_m_s": {
-          "hpr": 4.947702797109204,
+          "hpr": 4.947702987264865,
           "openrocket": 4.947374650183087,
-          "relative_percent": 0.006632748666103402
+          "relative_percent": 0.006636592233135224
         },
         "last_deployment_speed_m_s": {
-          "hpr": 27.129698152387892,
+          "hpr": 27.129698152407176,
           "openrocket": 27.118459712571845,
-          "relative_percent": 0.041442028548683355
+          "relative_percent": 0.04144202861979407
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 1.310108750566085
+        "start_height_m": 1.3109115358763643
       },
       "design": "Airstart timing",
       "design_errors_accepted": [],
@@ -1933,34 +1933,34 @@
       "max_mach_openrocket": 0.5239634766492244,
       "metrics": {
         "apogee_m": {
-          "difference": 10.824128133305749,
-          "hpr": 1306.855485134808,
+          "difference": 10.82416877410219,
+          "hpr": 1306.8555257756045,
           "openrocket": 1296.0313570015023,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 1306.855485134808,
+            "measured": 1306.8555257756045,
             "outcome": "scored",
             "reference": 1296.0313570015023
           },
-          "relative_percent": 0.835174864777072
+          "relative_percent": 0.8351780005651239
         },
         "max_speed_m_s": {
-          "difference": 1.2755142161435629,
-          "hpr": 178.91057428299527,
+          "difference": 1.2755158504644157,
+          "hpr": 178.91057591731612,
           "openrocket": 177.6350600668517,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 178.91057428299527,
+            "measured": 178.91057591731612,
             "outcome": "scored",
             "reference": 177.6350600668517
           },
-          "relative_percent": 0.7180531904363542
+          "relative_percent": 0.7180541104804334
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0011336163485649031,
@@ -1990,8 +1990,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -1.1624009076803608,
-          "north": 0.00009975850649495484
+          "east": -1.1624009704568168,
+          "north": 0.00009975338518441233
         },
         "openrocket": {
           "east": -1.1869868171452893,
@@ -2021,12 +2021,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 1305.7726738395866,
+          "hpr": 1305.7727164966584,
           "openrocket": 1292.4908038091478,
-          "relative_percent": 1.0276181456220248
+          "relative_percent": 1.0276214459992281
         },
         "apogee_s": {
-          "hpr": 16.047773669486784,
+          "hpr": 16.047773989268947,
           "openrocket": 16.004000000000097
         },
         "deploy_height_above_apogee": false,
@@ -2036,10 +2036,10 @@
         },
         "deployments": [
           {
-            "difference_s": 0.04277366948668515,
-            "expected_difference_s": 0.04377366948668637,
-            "hpr_height_m": 1307.0827825901526,
-            "hpr_s": 16.047773669486784,
+            "difference_s": 0.04277398926884857,
+            "expected_difference_s": 0.04377398926884979,
+            "hpr_height_m": 1307.0836280325348,
+            "hpr_s": 16.047773989268947,
             "openrocket_height_m": 1292.4703176455507,
             "openrocket_s": 16.0050000000001,
             "residual_s": -0.0010000000000012221,
@@ -2049,13 +2049,13 @@
             "within_target": true
           },
           {
-            "difference_s": 0.3347958254791834,
-            "expected_difference_s": 0.2830461035603886,
+            "difference_s": 0.33482572678008893,
+            "expected_difference_s": 0.2830782328232557,
             "hpr_height_m": 182.87999999890087,
-            "hpr_s": 58.397268910165295,
+            "hpr_s": 58.3972988114662,
             "openrocket_height_m": 174.647479219357,
             "openrocket_s": 58.06247308468611,
-            "residual_s": 0.05174972191879479,
+            "residual_s": 0.0517474939568332,
             "residual_within_target": true,
             "set_height_m": 182.88,
             "trigger": "altitude",
@@ -2064,24 +2064,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 94.34110880153258,
+          "hpr": 94.34097644877453,
           "openrocket": 92.70587199804388,
-          "relative_percent": 1.7638977642357037
+          "relative_percent": 1.7637549979198215
         },
         "landing_speed_m_s": {
-          "hpr": 4.947702797074881,
+          "hpr": 4.947702987243921,
           "openrocket": 4.947374626324775,
-          "relative_percent": 0.006633230246199215
+          "relative_percent": 0.00663707408366838
         },
         "last_deployment_speed_m_s": {
-          "hpr": 27.12969806103712,
+          "hpr": 27.12969806102482,
           "openrocket": 27.114151835739627,
-          "relative_percent": 0.057336203587247
+          "relative_percent": 0.057336203541871994
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 1.310108750566085
+        "start_height_m": 1.3109115358763643
       },
       "design": "Airstart timing",
       "design_errors_accepted": [],
@@ -2093,34 +2093,34 @@
       "max_mach_openrocket": 0.5603407633844455,
       "metrics": {
         "apogee_m": {
-          "difference": 13.281870030438768,
-          "hpr": 1305.7726738395866,
+          "difference": 13.281912687510612,
+          "hpr": 1305.7727164966584,
           "openrocket": 1292.4908038091478,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 1305.7726738395866,
+            "measured": 1305.7727164966584,
             "outcome": "scored",
             "reference": 1292.4908038091478
           },
-          "relative_percent": 1.0276181456220248
+          "relative_percent": 1.0276214459992281
         },
         "max_speed_m_s": {
-          "difference": 1.4522005725241058,
-          "hpr": 191.5907036141352,
+          "difference": 1.452201968313716,
+          "hpr": 191.59070500992482,
           "openrocket": 190.1385030416111,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 191.5907036141352,
+            "measured": 191.59070500992482,
             "outcome": "scored",
             "reference": 190.1385030416111
           },
-          "relative_percent": 0.7637593382158359
+          "relative_percent": 0.763760072306821
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0011336163485649031,
@@ -2150,8 +2150,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -1.6213226149606703,
-          "north": 0.00039219575772832054
+          "east": -1.6213226848436662,
+          "north": 0.00039218908850198415
         },
         "openrocket": {
           "east": -1.6625907799803408,
@@ -2181,12 +2181,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 1311.3799743653208,
+          "hpr": 1311.3800108198254,
           "openrocket": 1303.710797836307,
-          "relative_percent": 0.5882574986524562
+          "relative_percent": 0.5882602948634497
         },
         "apogee_s": {
-          "hpr": 17.7603578480065,
+          "hpr": 17.7603581282257,
           "openrocket": 17.710000000000143
         },
         "deploy_height_above_apogee": false,
@@ -2196,10 +2196,10 @@
         },
         "deployments": [
           {
-            "difference_s": -0.0006421519936452569,
-            "expected_difference_s": 0.00035784800635596525,
-            "hpr_height_m": 1312.6900831158869,
-            "hpr_s": 17.7603578480065,
+            "difference_s": -0.0006418717744445246,
+            "expected_difference_s": 0.00035812822555669754,
+            "hpr_height_m": 1312.6909223557018,
+            "hpr_s": 17.7603581282257,
             "openrocket_height_m": 1303.6739973855074,
             "openrocket_s": 17.761000000000145,
             "residual_s": -0.0010000000000012221,
@@ -2209,13 +2209,13 @@
             "within_target": true
           },
           {
-            "difference_s": 0.41671636498644915,
-            "expected_difference_s": 0.38595138771438386,
-            "hpr_height_m": 182.8799999989483,
-            "hpr_s": 60.30602815370571,
+            "difference_s": 0.4167460016118625,
+            "expected_difference_s": 0.38598324864065425,
+            "hpr_height_m": 182.87999999894828,
+            "hpr_s": 60.306057790331124,
             "openrocket_height_m": 182.8189273335574,
             "openrocket_s": 59.88931178871926,
-            "residual_s": 0.030764977272065286,
+            "residual_s": 0.03076275297120823,
             "residual_within_target": true,
             "set_height_m": 182.88,
             "trigger": "altitude",
@@ -2224,24 +2224,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 96.24986803877187,
+          "hpr": 96.24973542163866,
           "openrocket": 96.17024305814569,
-          "relative_percent": 0.08279586085483447
+          "relative_percent": 0.0826579625517973
         },
         "landing_speed_m_s": {
-          "hpr": 4.947702797153729,
+          "hpr": 4.94770298731929,
           "openrocket": 4.94737458288479,
-          "relative_percent": 0.006634109939331942
+          "relative_percent": 0.0066379537065148365
         },
         "last_deployment_speed_m_s": {
-          "hpr": 27.129698428264792,
+          "hpr": 27.129698428282705,
           "openrocket": 27.12479884784863,
-          "relative_percent": 0.018063103227583737
+          "relative_percent": 0.018063103293622134
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 1.310108750566085
+        "start_height_m": 1.3109115358763643
       },
       "design": "Airstart timing",
       "design_errors_accepted": [],
@@ -2253,34 +2253,34 @@
       "max_mach_openrocket": 0.46026620874901986,
       "metrics": {
         "apogee_m": {
-          "difference": 7.669176529013839,
-          "hpr": 1311.3799743653208,
+          "difference": 7.6692129835184915,
+          "hpr": 1311.3800108198254,
           "openrocket": 1303.710797836307,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 1311.3799743653208,
+            "measured": 1311.3800108198254,
             "outcome": "scored",
             "reference": 1303.710797836307
           },
-          "relative_percent": 0.5882574986524562
+          "relative_percent": 0.5882602948634497
         },
         "max_speed_m_s": {
-          "difference": 0.7973814088508959,
-          "hpr": 156.56199532614994,
+          "difference": 0.7973831508584226,
+          "hpr": 156.56199706815747,
           "openrocket": 155.76461391729904,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 156.56199532614994,
+            "measured": 156.56199706815747,
             "outcome": "scored",
             "reference": 155.76461391729904
           },
-          "relative_percent": 0.5119143487071165
+          "relative_percent": 0.5119154670660832
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0011336163485649031,
@@ -2310,8 +2310,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -2.0453718528300118,
-          "north": 0.0006760196928019204
+          "east": -2.0453719247759934,
+          "north": 0.0006760113233524135
         },
         "openrocket": {
           "east": -2.115386571976486,
@@ -2341,12 +2341,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 1280.341352228154,
+          "hpr": 1280.341384725939,
           "openrocket": 1274.1841296290513,
-          "relative_percent": 0.48322863673519106
+          "relative_percent": 0.4832311872131211
         },
         "apogee_s": {
-          "hpr": 18.905827867401864,
+          "hpr": 18.905828116744992,
           "openrocket": 18.860000000000152
         },
         "deploy_height_above_apogee": false,
@@ -2356,10 +2356,10 @@
         },
         "deployments": [
           {
-            "difference_s": -0.005172132598289636,
-            "expected_difference_s": -0.004172132598288414,
-            "hpr_height_m": 1281.65146097872,
-            "hpr_s": 18.905827867401864,
+            "difference_s": -0.005171883255162157,
+            "expected_difference_s": -0.004171883255160935,
+            "hpr_height_m": 1281.6522962618153,
+            "hpr_s": 18.905828116744992,
             "openrocket_height_m": 1274.1484249945029,
             "openrocket_s": 18.911000000000154,
             "residual_s": -0.0010000000000012221,
@@ -2369,13 +2369,13 @@
             "within_target": true
           },
           {
-            "difference_s": 0.3180389362247311,
-            "expected_difference_s": 0.28345343257286404,
+            "difference_s": 0.31806844822653346,
+            "expected_difference_s": 0.2834851727398686,
             "hpr_height_m": 182.879999999001,
-            "hpr_s": 60.36495404978713,
+            "hpr_s": 60.36498356178893,
             "openrocket_height_m": 181.71560370017949,
             "openrocket_s": 60.0469151135624,
-            "residual_s": 0.03458550365186708,
+            "residual_s": 0.034583275486664844,
             "residual_within_target": true,
             "set_height_m": 182.88,
             "trigger": "altitude",
@@ -2384,24 +2384,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 96.30879394061748,
+          "hpr": 96.30866119869731,
           "openrocket": 96.10678089682673,
-          "relative_percent": 0.21019645222287606
+          "relative_percent": 0.21005833301949628
         },
         "landing_speed_m_s": {
-          "hpr": 4.947702797128188,
+          "hpr": 4.947702987280435,
           "openrocket": 4.947374651535082,
-          "relative_percent": 0.006632721720484702
+          "relative_percent": 0.0066365652185059855
         },
         "last_deployment_speed_m_s": {
-          "hpr": 27.129698100926507,
+          "hpr": 27.12969810090923,
           "openrocket": 27.12336029713589,
-          "relative_percent": 0.023366587772266436
+          "relative_percent": 0.023366587708569142
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 1.310108750566085
+        "start_height_m": 1.3109115358763643
       },
       "design": "Airstart timing",
       "design_errors_accepted": [],
@@ -2413,34 +2413,34 @@
       "max_mach_openrocket": 0.4039594393098261,
       "metrics": {
         "apogee_m": {
-          "difference": 6.157222599102624,
-          "hpr": 1280.341352228154,
+          "difference": 6.1572550968876385,
+          "hpr": 1280.341384725939,
           "openrocket": 1274.1841296290513,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 1280.341352228154,
+            "measured": 1280.341384725939,
             "outcome": "scored",
             "reference": 1274.1841296290513
           },
-          "relative_percent": 0.48322863673519106
+          "relative_percent": 0.4832311872131211
         },
         "max_speed_m_s": {
-          "difference": 0.6243755555867381,
-          "hpr": 137.1751266561023,
+          "difference": 0.6243772205681921,
+          "hpr": 137.17512832108375,
           "openrocket": 136.55075110051555,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 137.1751266561023,
+            "measured": 137.17512832108375,
             "outcome": "scored",
             "reference": 136.55075110051555
           },
-          "relative_percent": 0.45724798329899535
+          "relative_percent": 0.4572492026122841
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0011336163485649031,
@@ -3062,8 +3062,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -0.20794920587614138,
-          "north": 0.6269305661375091
+          "east": -0.20813566201993458,
+          "north": 0.6338660800857449
         },
         "openrocket": {
           "east": -0.2160898069659167,
@@ -3092,12 +3092,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 306.5668443638379,
+          "hpr": 306.5671731742175,
           "openrocket": 309.96229793761296,
-          "relative_percent": -1.0954408314712103
+          "relative_percent": -1.0953347507053324
         },
         "apogee_s": {
-          "hpr": 8.386008474561732,
+          "hpr": 8.38601965546707,
           "openrocket": 8.449999999999985
         },
         "deploy_height_above_apogee": false,
@@ -3109,7 +3109,7 @@
           {
             "difference_s": -0.0009999999999994458,
             "expected_difference_s": null,
-            "hpr_height_m": 303.0406350333509,
+            "hpr_height_m": 303.0986405189126,
             "hpr_s": 9.3,
             "openrocket_height_m": 306.3985707487728,
             "openrocket_s": 9.301,
@@ -3120,13 +3120,13 @@
             "within_target": true
           },
           {
-            "difference_s": -0.36375054782895333,
-            "expected_difference_s": -0.428991186099927,
-            "hpr_height_m": 152.3999999990918,
-            "hpr_s": 20.150138583332968,
+            "difference_s": -0.35969448547880845,
+            "expected_difference_s": -0.4246020534304814,
+            "hpr_height_m": 152.39999999966813,
+            "hpr_s": 20.154194645683113,
             "openrocket_height_m": 150.4117506850871,
             "openrocket_s": 20.51388913116192,
-            "residual_s": 0.06524063827097365,
+            "residual_s": 0.06490756795167296,
             "residual_within_target": true,
             "set_height_m": 152.4,
             "trigger": "altitude",
@@ -3135,24 +3135,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 51.65727406260703,
+          "hpr": 51.64921295879061,
           "openrocket": 51.794805371757896,
-          "relative_percent": -0.2655310859143752
+          "relative_percent": -0.28109462314278594
         },
         "landing_speed_m_s": {
-          "hpr": 4.751239684105206,
+          "hpr": 4.751252780610175,
           "openrocket": 4.750524770670661,
-          "relative_percent": 0.015049146548167311
+          "relative_percent": 0.015324831985055428
         },
         "last_deployment_speed_m_s": {
-          "hpr": 14.235915608101,
+          "hpr": 14.235915620795454,
           "openrocket": 14.230602812978622,
-          "relative_percent": 0.037333591501348254
+          "relative_percent": 0.03733368070667168
         },
         "meets_targets": true,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.5564125361858863
+        "start_height_m": 0.6139841755838839
       },
       "design": "Chute release",
       "design_errors_accepted": [],
@@ -3164,34 +3164,34 @@
       "max_mach_openrocket": 0.21227685900070098,
       "metrics": {
         "apogee_m": {
-          "difference": -3.3954535737750575,
-          "hpr": 306.5668443638379,
+          "difference": -3.395124763395472,
+          "hpr": 306.5671731742175,
           "openrocket": 309.96229793761296,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 306.5668443638379,
+            "measured": 306.5671731742175,
             "outcome": "scored",
             "reference": 309.96229793761296
           },
-          "relative_percent": -1.0954408314712103
+          "relative_percent": -1.0953347507053324
         },
         "max_speed_m_s": {
-          "difference": -0.12159937489795425,
-          "hpr": 72.06209083915657,
+          "difference": -0.12162461812344816,
+          "hpr": 72.06206559593107,
           "openrocket": 72.18369021405452,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 72.06209083915657,
+            "measured": 72.06206559593107,
             "outcome": "scored",
             "reference": 72.18369021405452
           },
-          "relative_percent": -0.1684582411031658
+          "relative_percent": -0.16849321191917568
         },
         "rod_clearance_margin_cal": {
           "difference": -0.0014279071303384683,
@@ -3221,8 +3221,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -0.3532018577760323,
-          "north": 0.8969638903960946
+          "east": -0.3534111542974441,
+          "north": 0.9063416157746684
         },
         "openrocket": {
           "east": -0.37019420031828437,
@@ -3251,12 +3251,12 @@
       "deployed_before_apogee_s": null,
       "descent": {
         "apogee_m": {
-          "hpr": 481.33384378202885,
+          "hpr": 481.3347378417395,
           "openrocket": 490.312021797243,
-          "relative_percent": -1.831115211555402
+          "relative_percent": -1.8309328665034905
         },
         "apogee_s": {
-          "hpr": 9.82792067345718,
+          "hpr": 9.827931049121139,
           "openrocket": 9.948851171875006
         },
         "deploy_height_above_apogee": false,
@@ -3268,7 +3268,7 @@
           {
             "difference_s": -0.0009999999999994458,
             "expected_difference_s": null,
-            "hpr_height_m": 463.1470465179338,
+            "hpr_height_m": 463.2098145255542,
             "hpr_s": 11.8079,
             "openrocket_height_m": 474.31169177345413,
             "openrocket_s": 11.8089,
@@ -3279,13 +3279,13 @@
             "within_target": true
           },
           {
-            "difference_s": -0.9113787445322004,
-            "expected_difference_s": -0.7538510359353661,
-            "hpr_height_m": 152.3999999999988,
-            "hpr_s": 33.4000212554678,
+            "difference_s": -0.9060448321745156,
+            "expected_difference_s": -0.7496299751046573,
+            "hpr_height_m": 152.39999999952877,
+            "hpr_s": 33.40535516782548,
             "openrocket_height_m": 152.03608729896737,
             "openrocket_s": 34.3114,
-            "residual_s": -0.1575277085968343,
+            "residual_s": -0.15641485706985825,
             "residual_within_target": true,
             "set_height_m": 152.4,
             "trigger": "altitude",
@@ -3294,24 +3294,24 @@
         ],
         "devices": 2,
         "flight_time_s": {
-          "hpr": 64.96528871692891,
+          "hpr": 64.95848377301294,
           "openrocket": 65.98949328296018,
-          "relative_percent": -1.5520721785808027
+          "relative_percent": -1.5623843412864433
         },
         "landing_speed_m_s": {
-          "hpr": 4.742747853379548,
+          "hpr": 4.7427609294997195,
           "openrocket": 4.7420327907781346,
-          "relative_percent": 0.015079242024728193
+          "relative_percent": 0.015354991281396543
         },
         "last_deployment_speed_m_s": {
-          "hpr": 14.210453743268136,
+          "hpr": 14.210453539954553,
           "openrocket": 14.206239202285392,
-          "relative_percent": 0.029666831050304248
+          "relative_percent": 0.029665399893331855
         },
         "meets_targets": false,
         "meets_targets_once_sized": true,
         "not_deployed": 0,
-        "start_height_m": 0.5539385486558905
+        "start_height_m": 0.6115101880089594
       },
       "design": "Chute release",
       "design_errors_accepted": [],
@@ -3323,34 +3323,34 @@
       "max_mach_openrocket": 0.31291073974369954,
       "metrics": {
         "apogee_m": {
-          "difference": -8.978178015214155,
-          "hpr": 481.33384378202885,
+          "difference": -8.97728395550348,
+          "hpr": 481.3347378417395,
           "openrocket": 490.312021797243,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 481.33384378202885,
+            "measured": 481.3347378417395,
             "outcome": "scored",
             "reference": 490.312021797243
           },
-          "relative_percent": -1.831115211555402
+          "relative_percent": -1.8309328665034905
         },
         "max_speed_m_s": {
-          "difference": -0.16789890005885866,
-          "hpr": 106.23172120614376,
+          "difference": -0.16773347526402915,
+          "hpr": 106.23188663093859,
           "openrocket": 106.39962010620262,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 106.23172120614376,
+            "measured": 106.23188663093859,
             "outcome": "scored",
             "reference": 106.39962010620262
           },
-          "relative_percent": -0.1578002815153575
+          "relative_percent": -0.15764480652901414
         },
         "rod_clearance_margin_cal": {
           "difference": 0.001387695274203793,
@@ -8890,8 +8890,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -0.5138400904847139,
-          "north": -0.000023227450716176244
+          "east": -0.5138400904234075,
+          "north": -0.00002322745073620698
         },
         "openrocket": {
           "east": -0.5118315539460845,
@@ -8932,34 +8932,34 @@
       "max_mach_openrocket": 0.8068163350730029,
       "metrics": {
         "apogee_m": {
-          "difference": 4.611834498322651,
-          "hpr": 881.4654520509378,
+          "difference": 4.611834501843191,
+          "hpr": 881.4654520544583,
           "openrocket": 876.8536175526151,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 881.4654520509378,
+            "measured": 881.4654520544583,
             "outcome": "scored",
             "reference": 876.8536175526151
           },
-          "relative_percent": 0.5259526112459609
+          "relative_percent": 0.5259526116474579
         },
         "max_speed_m_s": {
-          "difference": 3.388351929570547,
-          "hpr": 277.51692171025786,
+          "difference": 3.3883519027690454,
+          "hpr": 277.51692168345636,
           "openrocket": 274.1285697806873,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 277.51692171025786,
+            "measured": 277.51692168345636,
             "outcome": "scored",
             "reference": 274.1285697806873
           },
-          "relative_percent": 1.2360447990814492
+          "relative_percent": 1.236044789304467
         },
         "rod_clearance_margin_cal": {
           "difference": 0.0010510120580971005,
@@ -9589,7 +9589,7 @@
       "remaining_percent": {
         "count": 15,
         "max": 8.918369832234648,
-        "mean_absolute": 1.734045143572375,
+        "mean_absolute": 1.7342076849644432,
         "median": -0.7218635544745126,
         "min": -1.3710062978177506
       }
@@ -9621,7 +9621,7 @@
         "flight_time_percent": {
           "count": 51,
           "max": 7.074408004455444,
-          "mean_absolute": 0.8904423783543572,
+          "mean_absolute": 0.8909522964390736,
           "median": -0.017306396358825943,
           "min": -1.571322785435797
         },
@@ -9629,8 +9629,8 @@
         "landing_speed_percent": {
           "count": 51,
           "max": 0.11589420918261398,
-          "mean_absolute": 0.01391532020994929,
-          "median": 0.006633230246199215,
+          "mean_absolute": 0.013942742935942495,
+          "median": 0.00663707408366838,
           "min": 0.00022894909666728458
         },
         "meeting_targets": 42,
@@ -9691,15 +9691,15 @@
           "no named cause": {
             "count": 36,
             "max": 1.949826091914676,
-            "mean_absolute": 1.029742014752385,
-            "median": -0.17922663025151775,
+            "mean_absolute": 1.029774884356224,
+            "median": -0.17964910398608425,
             "min": -4.338924022965502
           },
           "reference parachute open before apogee": {
             "count": 15,
-            "max": 13.80102832762775,
-            "mean_absolute": 5.170372347860506,
-            "median": 0.10459131329926917,
+            "max": 13.800996828200235,
+            "mean_absolute": 5.170298549203215,
+            "median": 0.10374409847254737,
             "min": -1.2371514558527539
           },
           "the rocket turns over before apogee in both tools": {
@@ -9732,8 +9732,8 @@
           "no named cause": {
             "count": 51,
             "max": 6.0997049880616965,
-            "mean_absolute": 0.72630575003871,
-            "median": 0.45724798329899535,
+            "mean_absolute": 0.726254912850209,
+            "median": 0.4572492026122841,
             "min": -0.692545666017976
           },
           "the rocket turns over before apogee in both tools": {

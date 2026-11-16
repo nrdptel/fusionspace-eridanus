@@ -276,6 +276,26 @@ impl FinPlanform {
         }
     }
 
+    /// How far aft of the root leading edge the outline reaches, m: the root chord, or the tip's
+    /// trailing edge where it lies further aft (a trapezoid's sweep plus its tip chord), or a
+    /// freeform outline's aft-most point. A fin set placed on a tube's aft end can reach past it
+    /// this way, and the rocket then stands on its fin tips (#1254).
+    pub fn aft_extent_m(&self) -> f64 {
+        match self {
+            Self::Trapezoidal {
+                root_chord_m,
+                tip_chord_m,
+                sweep_m,
+                ..
+            } => root_chord_m.max(sweep_m + tip_chord_m),
+            Self::Elliptical { root_chord_m, .. } => *root_chord_m,
+            Self::Freeform { points_m, root_m } => points_m
+                .iter()
+                .chain(root_m)
+                .fold(self.root_chord_m(), |m, p| m.max(p[0])),
+        }
+    }
+
     /// Span, m.
     pub fn span_m(&self) -> f64 {
         match self {
@@ -1208,6 +1228,40 @@ mod tests {
             1e-14,
             "rounded area",
         );
+    }
+
+    #[test]
+    fn the_aft_extent_is_the_outline_s_aft_most_point() {
+        // #1254: a fin reaches aft of its root chord where its tip's trailing edge lies further
+        // aft, by sweep plus tip chord; a fin swept forward, or a short tip, reaches the root's
+        // trailing edge.
+        let trapezoid = |root: f64, tip: f64, sweep: f64| FinPlanform::Trapezoidal {
+            root_chord_m: root,
+            tip_chord_m: tip,
+            span_m: 0.1,
+            sweep_m: sweep,
+        };
+        assert_eq!(trapezoid(0.2, 0.1, 0.15).aft_extent_m(), 0.15 + 0.1);
+        assert_eq!(trapezoid(0.2, 0.1, 0.05).aft_extent_m(), 0.2);
+        assert_eq!(trapezoid(0.2, 0.1, -0.05).aft_extent_m(), 0.2);
+        let elliptical = FinPlanform::Elliptical {
+            root_chord_m: 0.2,
+            span_m: 0.1,
+        };
+        assert_eq!(elliptical.aft_extent_m(), 0.2);
+        // A freeform fin raked back past its root, and one whose outline stays within it.
+        let raked = FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [0.18, 0.1], [0.26, 0.1], [0.2, 0.0]],
+            root_m: Vec::new(),
+        };
+        raked.validate().unwrap();
+        assert_eq!(raked.aft_extent_m(), 0.26);
+        let swept = FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [0.1, 0.1], [0.15, 0.1], [0.2, 0.0]],
+            root_m: Vec::new(),
+        };
+        swept.validate().unwrap();
+        assert_eq!(swept.aft_extent_m(), swept.root_chord_m());
     }
 
     #[test]

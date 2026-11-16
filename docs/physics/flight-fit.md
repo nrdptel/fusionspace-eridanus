@@ -201,7 +201,7 @@ Those counts have limits:
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 127 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
-  misses more often. Set B's drag interval holds 376 of 453 such flights, and 525 of 547 that fit
+  misses more often. Set B's drag interval holds 377 of 454 such flights, and 524 of 546 that fit
   better (the issue that tracks it: [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
 - Some fits stop short of the bottom of $\chi^2$. Among the flights counted and the wind's, 2 on set
   A and 7 on set B did, counting set B's truths' own fits.

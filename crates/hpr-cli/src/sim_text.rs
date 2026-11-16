@@ -204,11 +204,13 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<(
         launch.rail_length_m,
         fixed(launch.rail_length_m / crate::units::FOOT_M, 1)
     );
+    // The length runs from the rocket's aft end, where it stands, to the rail's top: a standoff
+    // or a blast deflector under the rocket shortens it (#1254).
     let rail = if launch.inclination_deg == 90.0 {
-        format!("a {rail_length} vertical rail")
+        format!("{rail_length} of vertical rail above its aft end")
     } else {
         format!(
-            "a {rail_length} rail {}° above the horizon, leaning toward {}",
+            "{rail_length} of rail above its aft end, {}° above the horizon, leaning toward {}",
             launch.inclination_deg,
             typed_bearing(launch.heading_deg)
         )

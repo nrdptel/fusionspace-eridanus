@@ -10463,11 +10463,11 @@
             "state": "speed",
             "flights": 820,
             "below": 9,
-            "above": 13,
-            "coverage": 0.973,
+            "above": 14,
+            "coverage": 0.972,
             "lowest_miss_share": [
               0.00272,
-              0.00523
+              0.00592
             ],
             "holds": true,
             "median_sd": 1.04,
@@ -10489,7 +10489,7 @@
               ],
               "holds": true,
               "median_sd": 54.5,
-              "largest_sd": 186.0
+              "largest_sd": 188.0
             },
             {
               "moment": "burnout",
@@ -10519,7 +10519,7 @@
               ],
               "holds": true,
               "median_sd": 58.3,
-              "largest_sd": 174.0
+              "largest_sd": 176.0
             },
             {
               "moment": "top-speed",
@@ -10564,7 +10564,7 @@
               ],
               "holds": true,
               "median_sd": 1.56,
-              "largest_sd": 1.96
+              "largest_sd": 1.99
             },
             {
               "moment": "drawn",
@@ -10586,11 +10586,11 @@
               "state": "speed",
               "flights": 185,
               "below": 2,
-              "above": 6,
-              "coverage": 0.957,
+              "above": 7,
+              "coverage": 0.951,
               "lowest_miss_share": [
                 0.000173,
-                0.00529
+                0.00738
               ],
               "holds": true,
               "median_sd": 1.02,
@@ -12117,11 +12117,11 @@
             "moment": "drawn",
             "state": "height",
             "flights": 845,
-            "below": 21,
+            "below": 20,
             "above": 2,
-            "coverage": 0.973,
+            "coverage": 0.974,
             "lowest_miss_share": [
-              0.0108,
+              0.0101,
               0.0000378
             ],
             "holds": true,
@@ -12240,11 +12240,11 @@
               "moment": "drawn",
               "state": "height",
               "flights": 186,
-              "below": 18,
+              "below": 17,
               "above": 0,
-              "coverage": 0.903,
+              "coverage": 0.909,
               "lowest_miss_share": [
-                0.0398,
+                0.0364,
                 0.0
               ],
               "holds": true,
@@ -12761,10 +12761,10 @@
             "GNSS": {
               "logs": 186,
               "samples": 175000,
-              "rejected": 22,
-              "unweighed": 35000,
+              "rejected": 20,
+              "unweighed": 35100,
               "resets": 0,
-              "logs_rejecting": 12
+              "logs_rejecting": 11
             },
             "accelerometer": {
               "logs": 368,
@@ -12779,13 +12779,13 @@
               "samples": 20600000,
               "rejected": 13400,
               "unweighed": 0,
-              "resets": 35,
-              "logs_rejecting": 348
+              "resets": 34,
+              "logs_rejecting": 347
             }
           },
           "transonic_spans": 510,
           "charge_spans": 845,
-          "gnss_trusted": 177,
+          "gnss_trusted": 176,
           "unsmoothed_steps": 0,
           "logs": 845,
           "assumed_pad": 0,
@@ -13710,7 +13710,7 @@
     {
       "logger": "imu-500hz",
       "flight": 0,
-      "card": "barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.617; largest test ratio 0.736 at 23.9 s, Mach 0.22\naccelerometer: 34602 samples, 15404 fused, 0 rejected, 19198 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00\nbarometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s\nbarometer less accelerometer at apogee: 88.0 m\npass back: every step smoothed\n"
+      "card": "barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.616; largest test ratio 0.736 at 23.9 s, Mach 0.22\naccelerometer: 34602 samples, 15404 fused, 0 rejected, 19198 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00\nbarometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s\nbarometer less accelerometer at apogee: 88.0 m\npass back: every step smoothed\n"
     }
   ],
   "intervals": {
@@ -14359,20 +14359,20 @@
                 "counts": {
                   "given": 820,
                   "below": 36,
-                  "inside": 752,
-                  "above": 32
+                  "inside": 753,
+                  "above": 31
                 },
                 "below": {
                   "low": 0.024,
                   "high": 0.0725
                 },
                 "inside": {
-                  "low": 0.881,
-                  "high": 0.945
+                  "low": 0.882,
+                  "high": 0.946
                 },
                 "above": {
-                  "low": 0.0204,
-                  "high": 0.0664
+                  "low": 0.0195,
+                  "high": 0.0649
                 }
               },
               "probes": {
@@ -14380,20 +14380,20 @@
                   "counts": {
                     "given": 820,
                     "below": 61,
-                    "inside": 690,
-                    "above": 69
+                    "inside": 691,
+                    "above": 68
                   },
                   "below": {
                     "low": 0.0476,
                     "high": 0.109
                   },
                   "inside": {
-                    "low": 0.796,
-                    "high": 0.881
+                    "low": 0.797,
+                    "high": 0.882
                   },
                   "above": {
-                    "low": 0.0555,
-                    "high": 0.121
+                    "low": 0.0545,
+                    "high": 0.119
                   }
                 },
                 "widened": {
@@ -14420,20 +14420,20 @@
                   "counts": {
                     "given": 820,
                     "below": 1,
-                    "inside": 680,
-                    "above": 139
+                    "inside": 681,
+                    "above": 138
                   },
                   "below": {
                     "low": 6.1e-7,
                     "high": 0.0121
                   },
                   "inside": {
-                    "low": 0.782,
-                    "high": 0.87
+                    "low": 0.784,
+                    "high": 0.871
                   },
                   "above": {
-                    "low": 0.129,
-                    "high": 0.216
+                    "low": 0.128,
+                    "high": 0.215
                   }
                 }
               },
@@ -14459,8 +14459,8 @@
                 "rocketpy-cavour": {
                   "given": 85,
                   "below": 8,
-                  "inside": 71,
-                  "above": 6
+                  "inside": 72,
+                  "above": 5
                 },
                 "rocketpy-genesis": {
                   "given": 89,
@@ -14503,8 +14503,8 @@
                 "altos": {
                   "given": 185,
                   "below": 2,
-                  "inside": 156,
-                  "above": 27
+                  "inside": 157,
+                  "above": 26
                 },
                 "eggtimer": {
                   "given": 181,
@@ -14541,8 +14541,8 @@
                 "middle": {
                   "given": 551,
                   "below": 21,
-                  "inside": 510,
-                  "above": 20
+                  "inside": 511,
+                  "above": 19
                 },
                 "warm": {
                   "given": 137,
@@ -14551,7 +14551,7 @@
                   "above": 4
                 }
               },
-              "mean_error": 0.006,
+              "mean_error": 0.007,
               "largest_error": 0.449
             }
           },

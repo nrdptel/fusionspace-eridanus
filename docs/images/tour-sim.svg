@@ -19,8 +19,8 @@
 <text x="52" y="263" xml:space="preserve" fill="#0B0F1C">descent               4.4 m/s (15 ft/s) at landing under `Parachute`</text>
 <text x="52" y="295" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
 <text x="52" y="311" xml:space="preserve" fill="#0B0F1C">recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s</text>
-<text x="52" y="327" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical</text>
-<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">    rail, in calm air</text>
+<text x="52" y="327" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical</text>
+<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">    rail above its aft end, in calm air</text>
 <text x="52" y="359" xml:space="preserve" fill="#0B0F1C">note: the file&apos;s 1 recovery device flies as OpenRocket flies it. Each opens fully at its event,</text>
 <text x="52" y="375" xml:space="preserve" fill="#0B0F1C">    with the file&apos;s drag coefficient or OpenRocket&apos;s own. Once one opens, the rocket descends as a</text>
 <text x="52" y="391" xml:space="preserve" fill="#0B0F1C">    point under the open devices&apos; drag alone</text>

@@ -4080,7 +4080,7 @@
       "set": "b",
       "index": 6756,
       "made": [
-        "fit: fitted, with a track, converged, residual 0.001 of the spread, residual RMS 1.08 m, 143 flown, rocketpy-cavour",
+        "fit: fitted, with a track, converged, residual 0.001 of the spread, residual RMS 1.08 m, 145 flown, rocketpy-cavour",
         "drag scale: 1.05 ± 0.017, truth 1.08, share -1.630, above",
         "impulse scale: 0.95 ± 0.0109, truth 0.963, share -1.192, inside",
         "wind toward the east, m/s: 4.67 ± 0.154, truth 4.55, share 0.820, inside",
@@ -4278,7 +4278,7 @@
       "set": "b",
       "index": 8171,
       "made": [
-        "fit: fitted, with a track, converged, residual 0.001 of the spread, residual RMS 1.34 m, 145 flown, rocketpy-cavour",
+        "fit: fitted, with a track, converged, residual 0.001 of the spread, residual RMS 1.34 m, 148 flown, rocketpy-cavour",
         "drag scale: 0.925 ± 0.0162, truth 0.914, share 0.677, inside",
         "impulse scale: 1.01 ± 0.0117, truth 1.01, share -0.542, inside",
         "wind toward the east, m/s: -3.95 ± 0.149, truth -4.26, share 2.067, below",
@@ -4614,7 +4614,7 @@
       "set": "a given noise of ±5 m past the reader",
       "index": 42,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.158 of the spread, no residual RMS, 304 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.158 of the spread, no residual RMS, 308 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4698,7 +4698,7 @@
       "set": "a given noise of ±5 m past the reader",
       "index": 189,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.088 of the spread, no residual RMS, 269 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.086 of the spread, no residual RMS, 294 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4734,7 +4734,7 @@
       "set": "a given noise of ±50 m past the reader",
       "index": 42,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.190 of the spread, no residual RMS, 210 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.187 of the spread, no residual RMS, 182 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4818,7 +4818,7 @@
       "set": "a given noise of ±50 m past the reader",
       "index": 189,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.137 of the spread, no residual RMS, 242 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.137 of the spread, no residual RMS, 233 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4854,7 +4854,7 @@
       "set": "a given noise of ±1000 m past the reader",
       "index": 42,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.040 of the spread, no residual RMS, 432 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.040 of the spread, no residual RMS, 359 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4938,7 +4938,7 @@
       "set": "a given noise of ±1000 m past the reader",
       "index": 189,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.013 of the spread, no residual RMS, 304 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.013 of the spread, no residual RMS, 296 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 5.16 ± 3.88, truth NaN, share NaN, not counted",
@@ -4974,7 +4974,7 @@
       "set": "a given noise of ±5 m and a track of ±5 m past the reader",
       "index": 42,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.075 of the spread, no residual RMS, 206 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.075 of the spread, no residual RMS, 208 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 0 ± 3.88, truth NaN, share NaN, not counted",
@@ -5058,7 +5058,7 @@
       "set": "a given noise of ±5 m and a track of ±5 m past the reader",
       "index": 189,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.118 of the spread, no residual RMS, 325 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.118 of the spread, no residual RMS, 334 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 0 ± 3.88, truth NaN, share NaN, not counted",
@@ -5094,7 +5094,7 @@
       "set": "a given noise of ±1000 m and a track of ±5 m past the reader",
       "index": 42,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.004 of the spread, no residual RMS, 557 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.004 of the spread, no residual RMS, 555 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 0 ± 3.88, truth NaN, share NaN, not counted",
@@ -5178,7 +5178,7 @@
       "set": "a given noise of ±1000 m and a track of ±5 m past the reader",
       "index": 189,
       "made": [
-        "fit: nothing to fit, height alone, at its step limit, residual 1.013 of the spread, no residual RMS, 408 flown, rocketpy-cavour",
+        "fit: nothing to fit, height alone, at its step limit, residual 1.143 of the spread, no residual RMS, 514 flown, rocketpy-cavour",
         "drag scale: 1 ± 0.109, truth NaN, share NaN, not counted",
         "impulse scale: 1 ± 0.0328, truth NaN, share NaN, not counted",
         "wind toward the east, m/s: 0 ± 3.88, truth NaN, share NaN, not counted",

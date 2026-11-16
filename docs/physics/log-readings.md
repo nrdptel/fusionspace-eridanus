@@ -845,7 +845,7 @@ count rules in. The test fails unless both sides' bands hold 5% and the inside c
 |---|---|---:|---:|---:|---:|
 | A | liftoff | 820 | 35 | 729 | 56 |
 | A | apogee height | 820 | 55 | 720 | 45 |
-| A | apogee time | 820 | 36 | 752 | 32 |
+| A | apogee time | 820 | 36 | 753 | 31 |
 | A | top speed | 287 | 11 | 258 | 18 |
 | A | landing | 820 | 38 | 746 | 36 |
 | A | flight time | 820 | 38 | 750 | 32 |
@@ -910,7 +910,7 @@ if the reading is a floor, which has no upper figure. Each bound holds the day's
 only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
-apogee, 27 of 185 apogee times on A and 30 of 186 on B lie later than the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)).
+apogee, 26 of 185 apogee times on A and 30 of 186 on B lie later than the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)).
 Liftoff on the PerfectFlite and EggTimer logs leaves its truth above the interval (18 of 144 and
 23 of 181 on A), and on the AltOS and 500 Hz IMU logs below it. On the 500 Hz IMU logs, landing and the
 flight time leave theirs above it, 16 of 171 and 22 of 171 on A ([#1062](https://github.com/nrdptel/fusionspace-eridanus/issues/1062)).
