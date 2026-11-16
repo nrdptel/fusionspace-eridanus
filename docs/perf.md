@@ -10,9 +10,10 @@ the command, so a later run can be compared like for like.
   it from the last burnout. For one motor lit at launch with a delay in seconds, it also gives
   how fast the rocket climbs or falls at the earliest and at the latest time the delay may fire.
   Those are the delay less and plus NFPA 1125's allowance: 20% of the delay, at least 1.5 s and
-  at most 3 s. The two times count from the last burnout, which the command took from the held
-  flight itself. So it flew that flight twice: once for the burnout, then again watched at the
-  two times ([#1343](https://github.com/nrdptel/fusionspace-eridanus/issues/1343)).
+  at most 3 s. The earliest is never before the burnout. The two times count from the last
+  burnout, which the command took from the held flight itself. So it flew that flight twice:
+  once for the burnout, then again watched at the two times
+  ([#1343](https://github.com/nrdptel/fusionspace-eridanus/issues/1343)).
 - **The change.** That motor's burnout is known before the flight: it is the motor's burn time.
   The command now watches the first held flight at the two times that burn time gives. After the
   flight it works the two times out again from the flight's own last burnout. Where both are the
@@ -28,13 +29,13 @@ the command, so a later run can be compared like for like.
   |---|---|---|
   | instructions retired | 169.2 million | 128.6 million (−24.0%) |
 
-  A design whose line gives no such speeds flew the held flight once before the change, and
-  still does.
+  A design that isn't one motor lit at launch with a delay in seconds flew the held flight
+  once before the change, and still does.
 - **What moves.** No output bit. `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice`
   (in `crates/hpr-cli/src/sim.rs`) holds both halves on that design, at delays of 2, 7 and 14 s.
   With the burn time's estimate, the held flight is flown once. With a wrong estimate (none,
-  one 0.25 s late, or one off at either time alone), it is flown twice, and the two speeds are
-  the same to the bit.
+  one 0.25 s late, or one off at either time alone), it is flown twice, and its two speeds are
+  the same to the bit as the one flight's.
 
 ## A supersonic table built once a process (2026-11-12, #1427)
 
