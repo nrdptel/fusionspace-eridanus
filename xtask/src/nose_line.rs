@@ -84,8 +84,8 @@ pub(crate) const SKIPPED: [(&str, &str); 5] = [
 ];
 
 /// The Mach number from which M2.3c10's public probe shows OpenRocket 24.12 giving a
-/// tangent-ogive nose almost no pressure drag (its probe from Mach 1, #1500, shows the two
-/// joined below it). The report counts the swapped flights that pass it.
+/// tangent-ogive nose almost no pressure drag (its probe from Mach 1, #1500, shows OpenRocket's
+/// value at 0.6% to 32.2% of HPR Sim's below it). The report counts the swapped flights that pass it.
 const PROBE_FROM_MACH: f64 = 1.3;
 
 /// The fewest flights swapped whose sizes are published (ADR-349 §3, ADR-151).
@@ -523,8 +523,8 @@ impl LibraryColumns {
     /// `nose_columns.py`'s.
     pub(crate) fn load(root: &Path, jar_sha256: &Value) -> Result<Self, String> {
         let rerun = format!(
-            "run `refs/venv/bin/python {ORACLE} --public {LIBRARY_RECORD}` with every library \
-             design OpenRocket flew"
+            "run `refs/venv/bin/python {ORACLE} --public {LIBRARY_RECORD} \
+             refs/hpr-sim-fixtures/imported/loft-fixtures/openrocket/*.ork`"
         );
         let record = crate::ork_flights::read_json(&root.join(LIBRARY_RECORD))
             .map_err(|error| format!("{error}; {rerun}"))?;

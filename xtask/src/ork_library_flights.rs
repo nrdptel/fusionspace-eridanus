@@ -747,7 +747,6 @@ pub(crate) fn spreads_of(rows: &[Value]) -> Value {
     })
 }
 
-/// The summary, as lines for the terminal and the page.
 /// The flights of the nose's line ([`crate::nose_line::library_flight`]) counted from the rows:
 /// how many, how many flown with OpenRocket's column for the nose swapped in, and how many
 /// skipped under each reason of [`crate::nose_line::LIBRARY_SKIPPED`].
@@ -796,7 +795,7 @@ fn nose_column_part(report: &Value, rows: &[Value]) -> String {
          flight passes Mach 1 with a tangent-ogive nose at the front of its airframe is flown \
          again with hpr's pressure drag of that nose replaced, above Mach 1, by the column \
          OpenRocket 24.12 reports for it, once with hpr's own base drag and once with the whole \
-         base's under power as well \
+         base's under power as well, or counted under the reason it can't be \
          ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights \
          are on hpr's own thrust and mass, since the library holds no record of OpenRocket's \
          against time: this is not the nose's line of the [fixture report](fixture-flights.md), \
@@ -857,6 +856,7 @@ fn nose_column_part(report: &Value, rows: &[Value]) -> String {
     out
 }
 
+/// The summary, as lines for the terminal and the page.
 fn summary_lines(report: &Value) -> String {
     let summary = &report["summary"];
     let designs = &report["designs"];

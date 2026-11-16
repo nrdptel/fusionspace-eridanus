@@ -412,7 +412,8 @@ pub(crate) fn fly_design(
         entry["file"] = json!(file);
         if let Mode::Library { nose_columns, .. } = mode {
             // Every flight of the nose's line, whatever its gap: HPR Sim flies it again with
-            // OpenRocket's column for the nose swapped in, on its own thrust and mass (#1497).
+            // OpenRocket's column for the nose swapped in, on its own thrust and mass, or
+            // records why it can't (#1497).
             let decided = crate::nose_line::library_flight(
                 &facts,
                 !stagings.is_empty(),
