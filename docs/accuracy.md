@@ -1315,8 +1315,9 @@ The line is taken inside the drag step. With thrust and mass already OpenRocket'
 flies once more with one thing changed: above Mach 1, the nose's pressure drag is the one
 OpenRocket reports for that nose, at each Mach number. Everything else in the drag stays
 HPR Sim's. On the probe at Mach 1.5 that takes 0.13028 off the rocket's drag coefficient and
-puts 0.00073 back, 0.12955 less. The flight after that is the drag swap as before, on
-OpenRocket's whole drag.
+puts 0.00073 back
+([the probe's table](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). The
+flight after that is the drag swap as before, on OpenRocket's whole drag.
 
 - *The nose's line* is the apogee before the nose's swap less the apogee after it, over
   OpenRocket's apogee. A negative line means HPR Sim climbs lower on its own nose drag than
@@ -1338,7 +1339,7 @@ tangent-ogive nose: 5 of the 68. All 5 are swapped ([report][fixture-report]).
 
 What the rows say:
 
-- **The nose's line is about 1.3% of apogee, and negative.** On its own nose drag HPR Sim
+- **The nose's line is small, and negative.** On its own nose drag HPR Sim
   climbs 1.28% lower on average than on OpenRocket's. The mean absolute value is the same to
   two decimals, so the line is negative on every one of the 5, to that rounding
   ([report][fixture-report]).
