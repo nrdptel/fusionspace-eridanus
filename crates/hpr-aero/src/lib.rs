@@ -1494,6 +1494,10 @@ mod tests {
     /// It also pins which way hpr errs, and by how much, on each row. Its center of pressure
     /// lies forward of the measured one at all six Mach numbers, which understates stability:
     /// the side that doesn't flatter. Its slope reads low at all six.
+    #[expect(
+        clippy::approx_constant,
+        reason = "the table's fifth Mach number is 2.718: a Mach number, not e"
+    )]
     #[test]
     fn basic_finner_normal_force_against_drev() {
         use serde_json::Value;

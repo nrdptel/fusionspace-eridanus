@@ -61,7 +61,8 @@ What has been checked so far:
 - The normal force and center of pressure from Mach 0.6 to 4.63, against NASA's wind-tunnel tests
   of a sounding rocket. Also against [RASAero II](glossary.md#rasaero-ii), another code
   ([fixture][nf-fixture]). And from Mach 1.08 to 3.15 against free flights of the Basic Finner, a
-  standard finned test body, in a Canadian aeroballistic range ([report][finner-nf]).
+  standard finned test body, in a Canadian aeroballistic range
+  ([Aerodynamics](physics/aero.md#the-basic-finners-normal-force-against-drevs-range)).
 - Drag from Mach 0.6 to 4.63 against the same wind-tunnel tests, the forebody only
   ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
 - A boattail's own drag and its base pressure, from Mach 0.3 to 3.24, against measured boattails

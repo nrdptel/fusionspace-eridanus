@@ -1490,9 +1490,9 @@ mod tests {
         let root = root().unwrap();
         let designs = generate(&root).unwrap();
         // Thirteen from RocketPy's examples (Genesis and Lince since M2.3b; Astra, Andromeda and
-        // Erebus 11 since M2.3d3), two synthetic, the two wind-tunnel models (M1.8a) and
-        // MIL-HDBK-762's sample drag rocket (M1.8b2).
-        assert_eq!(designs.len(), 18);
+        // Erebus 11 since M2.3d3), two synthetic, the two wind-tunnel models (M1.8a),
+        // MIL-HDBK-762's sample drag rocket (M1.8b2) and DREV's Basic Finner (M1.14b1).
+        assert_eq!(designs.len(), 19);
         let stale = stale(&root.join(DIR), &designs);
         assert!(
             stale.is_empty(),
