@@ -4560,9 +4560,14 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
   and so is the drag. By November 14, 2026 no release carried the fix.
 
 What follows: at Mach 1.3, 1.5 and 2, OpenRocket 24.12 gives this nose almost none of the pressure drag
-its own documented method gives. The probe says nothing between Mach 1 and 1.3. How much of the apogee
-gap between the two codes this explains on real designs isn't measured yet
-([M2.3c13, which sizes this nose's share of the gap on logged flights](../decisions-and-roadmap.md#m2-3c13)).
+its own documented method gives. The probe says nothing between Mach 1 and 1.3.
+
+What it does to an apogee is measured on 5 real designs' flights that pass Mach 1 with a tangent-ogive
+nose, reaching Mach 1.06 on average. Flown with OpenRocket's number for the nose above Mach 1 in place of
+its own, HPR Sim climbs higher by 1.28% of the apogee on average
+([the tangent-ogive nose's line](../accuracy.md#the-tangent-ogive-noses-line),
+[M2.3c13, which sized it](../decisions-and-roadmap.md#m2-3c13)). No faster flight is measured that way
+yet ([#1497, the library flight with OpenRocket's nose drag](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)).
 
 What stays open: whether the equivalent cone's value matches a measured tangent ogive
 ([#222, the supersonic drag gap to OpenRocket](https://github.com/nrdptel/fusionspace-eridanus/issues/222),

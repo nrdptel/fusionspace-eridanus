@@ -1285,9 +1285,9 @@ flight, so it leaves out how OpenRocket's drag changes with the
 [Reynolds number](glossary.md#reynolds-number) and the angle of attack away from that flight's
 path. The air's part is taken with that table in place, so it holds the air's density and speed
 of sound, not what the air does to friction. The mass swap keeps HPR Sim's inertia and can
-change its stability, as above. And the split doesn't say which part of the drag differs:
-[the next step](decisions-and-roadmap.md#m2-3c13) splits off the pressure drag of tangent-ogive
-noses above Mach 1.
+change its stability, as above. And the split doesn't say which part of the drag differs.
+One part is sized by itself, [below](#the-tangent-ogive-noses-line): the pressure drag of
+tangent-ogive noses above Mach 1.
 
 > **How far to trust it.** The split is code against code. It sizes where the two simulators
 > differ, and says nothing about which is nearer a real flight. Over the 60 compared, each
@@ -1296,6 +1296,81 @@ noses above Mach 1.
 > checked on every flight: flown on its own thrust and mass, sampled at OpenRocket's times, each
 > flight must come back to its own apogee within 0.05%. The largest miss was 0.018%
 > ([report][fixture-report]). The paragraph above gives the split's limits.
+
+##### The tangent-ogive nose's line
+
+This part sizes one known difference inside the drag: the pressure drag of a
+[tangent ogive](glossary.md#tangent-ogive) nose above Mach 1
+([the line](decisions-and-roadmap.md#m2-3c13), [decision][adr-350]). It is for anyone
+comparing the two codes on a rocket that flies faster than sound. Like the split, it is code
+against code, and here over 5 flights only.
+
+Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag. HPR Sim
+gives it the drag of the cone with its length and base. On an invented rocket at Mach 1.5 the
+nose's coefficients are 0.00073 and 0.13028
+([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). OpenRocket's
+developers have confirmed the defect and fixed it, in no release yet.
+
+The line is taken inside the drag step. With thrust and mass already OpenRocket's, HPR Sim
+flies once more with one thing changed: above Mach 1, the nose's pressure drag is the one
+OpenRocket reports for that nose, at each Mach number. Everything else in the drag stays
+HPR Sim's. On the probe at Mach 1.5 that takes 0.13028 off the rocket's drag coefficient and
+puts 0.00073 back, 0.12955 less. The flight after that is the drag swap as before, on
+OpenRocket's whole drag.
+
+- *The nose's line* is the apogee before the nose's swap less the apogee after it, over
+  OpenRocket's apogee. A negative line means HPR Sim climbs lower on its own nose drag than
+  on OpenRocket's.
+- *The rest of the drag* is the apogee after the nose's swap less the apogee on OpenRocket's
+  whole drag.
+
+The two sum to the flight's drag part, and the run that writes the report stops on a flight
+where they don't.
+
+The line's flights are those both codes fly whose own HPR Sim flight passes Mach 1 with a
+tangent-ogive nose: 5 of the 68. All 5 are swapped ([report][fixture-report]).
+
+| [over the 5 flights swapped][fixture-report] | mean | median | mean absolute |
+|---|---:|---:|---:|
+| [the nose's pressure drag above Mach 1][fixture-report] | −1.28% | −1.33% | 1.28% |
+| [the rest of the drag][fixture-report] | −0.68% | +0.90% | 2.27% |
+| [the drag part][fixture-report] | −1.96% | +0.51% | 2.65% |
+
+What the rows say:
+
+- **The nose's line is about 1.3% of apogee, and negative.** On its own nose drag HPR Sim
+  climbs 1.28% lower on average than on OpenRocket's. The mean absolute value is the same to
+  two decimals, so the line is negative on every one of the 5, to that rounding
+  ([report][fixture-report]).
+- **These flights only just pass Mach 1.** Their top Mach numbers, by HPR Sim's own flights,
+  average 1.06 ([report][fixture-report]). The nose is above Mach 1 for a short part of each
+  climb. A faster flight spends longer there, and the line says nothing of it.
+- **The rest of the drag is larger, and of either sign.** Its mean absolute value is 2.27%
+  against the nose's 1.28%, with a mean of −0.68% and a median of +0.90%
+  ([report][fixture-report]). So on these flights the nose is not most of the drag part.
+
+A flight of the line that can't be swapped is counted under a reason: more than one nose
+cone, not split, no column in OpenRocket's record, a nose whose drag the design states, or a
+flight HPR Sim fails with the column in. Each counts 0 flights ([report][fixture-report]). A
+test holds the rule for the line's flights and each reason on public designs
+([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/nose_line/tests.rs));
+from a clone, `cargo test -p xtask nose_line` runs them without OpenRocket or the private
+flights.
+
+The flight this difference was first found on is not in the line. It is in the design
+library's report, not this one, and that report holds no record of OpenRocket's thrust and
+mass against time, which the line is taken on
+([#222, the supersonic drag gap to OpenRocket](https://github.com/nrdptel/fusionspace-eridanus/issues/222)).
+An open issue carries a swap of the nose alone on that flight
+([#1497, the library flight with OpenRocket's nose drag](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)).
+
+> **How far to trust it.** The line is code against code, over 5 flights that reach Mach 1.06
+> on average ([report][fixture-report]). It sizes what one difference between the two
+> simulators does to the apogee there. It doesn't say which nose drag is nearer a real
+> tangent ogive: that is unchecked against a measurement
+> ([#616, the nose scored against measured tangent ogives](https://github.com/nrdptel/fusionspace-eridanus/issues/616)).
+> The swap is OpenRocket's number for the nose at zero angle of attack, so it leaves out how
+> that drag changes with the angle of attack.
 
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
@@ -1501,6 +1576,7 @@ rest.
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+[adr-350]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md

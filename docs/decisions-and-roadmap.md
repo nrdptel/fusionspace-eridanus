@@ -378,6 +378,7 @@ until someone rewrites it in plainer words.
 | [ADR-347: The 2026-11-14 review: landing points held to tracked landings, predictions first][adr-347] | `hpr sim` prints how far from the pad a rocket lands, and no report sets that against a real flight. 41 of the private collection's 83 flights are cataloged with a latitude and a longitude column or as a tracker's file (no track has been read yet), and each has the day's winds by height. The milestone reads each track's pad and landing points, merges them and each flight's predicted landing point before any error is computed, then scores the miss. The scoreboard gains a row for the miss and a row for whether the predictions land short. A landing predicted nearer the pad than the real one is the flattering side. |  |
 | [ADR-348: M7.5b's verdict: the shared-bias correction fails on the public flights, and nothing ships][adr-348] | Fitted on the calibration half as [ADR-346][adr-346] fixed it, the correction is an impulse scale of 0.94 with the drag left at 1, in the fit without the flagged flight. It lowers the held-out half's mean absolute apogee error from 16.26% to 10.91% and its mean error from +13.36% to +5.84%. Both fits pass all four held-out sets. On the 12 public flights it raises the mean absolute error from 9.00% to 12.16% and takes the mean error from −4.91% to −12.01%; the other fit does worse. The rule asks that the public flights get no worse, so the verdict is a fail. The held-out half's sealed fit aggregates are published, their file matching its committed hash. |  |
 | [ADR-349: M2.3c6 in four: the public nose probe first][adr-349] | The gap to OpenRocket by cause needs four things the tree lacks: a public probe of the tangent-ogive nose's pressure drag, OpenRocket's thrust, mass and drag along its own flights with a way for HPR Sim to fly them, the split in the fixture report, and the nose's own line. Each becomes an increment. The probe ships first: on an invented fineness-3 tangent ogive, OpenRocket 24.12 gives the nose a pressure drag coefficient of 0.00098, 0.00073 and 0.00047 at Mach 1.3, 1.5 and 2, where HPR Sim and the equivalent cone give 0.1557, 0.1303 and 0.1042. |  |
+| [ADR-350: M2.3c13's result: the tangent-ogive nose's line, and why #222's flight is not in it][adr-350] | Five of the 68 flights both simulators fly pass Mach 1 with a tangent-ogive nose, and all five are swapped. With HPR Sim's own pressure drag of the nose replaced above Mach 1 by OpenRocket 24.12's, the nose's line is −1.28% of apogee on average (median −1.33%, mean absolute 1.28%), inside a drag part of −1.96% on the same flights. Those flights reach Mach 1.06 on average, so the line is measured just past Mach 1. #222's flight is not among them: it is a flight of the design-library report, which holds no thrust and mass histories, and the line is defined on those. [#1497][i-1497] carries a swap of the nose alone on that flight. No flight of the line has a repeated nose, so no probe of one was built. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -695,13 +696,13 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c3"></a>[M2.3c3][phase-1] | OpenRocket's newest release | not yet done |
 | <a id="m2-3c4"></a>[M2.3c4][done-1] | One fixture repo | done |
 | <a id="m2-3c5"></a>[M2.3c5][done-1] | The corpus rechecked | done |
-| <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
+| <a id="m2-3c6"></a>[M2.3c6][done-1] | The gap to OpenRocket, by cause | done |
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
 | <a id="m2-3c10"></a>[M2.3c10][done-1] | The fineness-3 nose probe | done |
 | <a id="m2-3c11"></a>[M2.3c11][done-1] | OpenRocket's inputs along its flights, flown by HPR Sim | done |
 | <a id="m2-3c12"></a>[M2.3c12][done-1] | The split in the fixture report | done |
-| <a id="m2-3c13"></a>[M2.3c13][phase-1] | The tangent-ogive nose's line | not yet done |
+| <a id="m2-3c13"></a>[M2.3c13][done-1] | The tangent-ogive nose's line | done |
 | <a id="m2-3d"></a>[M2.3d][done-1] | Twelve public flights, predictions first | done |
 | <a id="m2-3d1"></a>[M2.3d1][done-1] | The predictions | done |
 | <a id="m2-3d2"></a>[M2.3d2][done-1] | The errors | done |
@@ -1414,6 +1415,7 @@ is the milestone that added or will add that test.
 [adr-347]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md
 [adr-348]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+[adr-350]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

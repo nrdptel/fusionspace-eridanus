@@ -15,6 +15,8 @@
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
 [adr-226]: 0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
 [adr-273]: 0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
+[adr-350]: 0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md
+[i-1484]: https://github.com/nrdptel/fusionspace-eridanus/issues/1484
 [i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
 [i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616
 [i-1486]: https://github.com/nrdptel/fusionspace-eridanus/issues/1486
@@ -144,7 +146,10 @@ release every report here flies, still has the defect.
      pressure drag is swapped, then the rest of the drag, so the line and the rest sum to the
      drag part. OpenRocket's columns are per instance: on the probe, the rocket's pressure
      drag is the nose's plus three times the fins' column. A nose that repeats, on pods, would
-     need its count: M2.3c13 shows that on a probe before it swaps one. M2.3c13's oracle records the nose's column against Mach number
+     need its count. M2.3c13 swaps none: a flight whose design holds more than one nose cone
+     is counted as skipped, and its report counts 0 of them (amended by
+     [ADR-350][adr-350], [#1484][i-1484]; the sentence first said M2.3c13 would show the
+     count on a probe before swapping one). M2.3c13's oracle records the nose's column against Mach number
      for each design it swaps; M2.3c11's records the rocket's drag coefficient only.
    - **Only aggregates leave this machine** ([ADR-151][adr-151]), and ADR-151 governs.
      M2.3c13's set may be small, and an aggregate over one or two flights is a flight's own
