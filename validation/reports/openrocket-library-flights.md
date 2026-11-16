@@ -94,11 +94,11 @@ Configurations OpenRocket flew that hpr does not fly here, by reason:
 
 ## The nose's column swapped in
 
-From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag, where hpr gives it the equivalent cone's ([OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391)). Each flight whose own hpr flight passes Mach 1 with a tangent-ogive nose at the front of its airframe is flown again with hpr's pressure drag of that nose replaced, above Mach 1, by the column OpenRocket 24.12 reports for it, once with hpr's own base drag and once with the whole base's under power as well, or counted under the reason it can't be ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights are on hpr's own thrust and mass, since the library holds no record of OpenRocket's against time: this is not the nose's line of the [fixture report](fixture-flights.md), which is taken on OpenRocket's.
+Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose far less pressure drag than hpr, which gives it the equivalent cone's ([OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391)). Each flight whose own hpr flight passes Mach 1 before its apogee, with a tangent-ogive nose at the front of its airframe, is flown again with hpr's pressure drag of that nose replaced, above Mach 1, by the pressure drag OpenRocket 24.12 reports for it against Mach number (its *column*): once with hpr's own base drag, and once with OpenRocket's base rule as well, the whole base's drag kept while a motor burns. A flight that can't be is counted under its reason ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights are on hpr's own thrust and mass, since the library holds no record of OpenRocket's against time: this is not the nose's line of the [fixture report](fixture-flights.md), which is taken on OpenRocket's.
 
 In the line: 2 flights, 2 swapped.
 
-Each is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base drag alone* are the probes of the table above, where they were flown.
+Each is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base drag alone* are the probes of the table above; they are flown only for an apogee more than 5% off with no other named cause, and are *not flown* otherwise.
 
 | flight | Mach | apogee Δ | on OR's drag | with OR's base drag alone | with OR's nose column | with OR's nose column and base drag |
 |---|---|---:|---:|---:|---:|---:|

@@ -731,8 +731,11 @@ struct Peaks {
     at_s: Option<f64>,
     /// The height above the start and the speed at `at_s`, m and m/s.
     at: Option<(f64, f64)>,
-    /// The largest Mach number at a sample so far.
+    /// The largest Mach number at a sample up to the highest sample so far, as for the speed:
+    /// the flight flies no recovery, so its fall is left out.
     top_mach: f64,
+    /// The largest Mach number at a sample so far.
+    running_mach: f64,
     /// Whether a Mach number at a sample was not a number (which `f64::max` drops).
     mach_not_finite: bool,
 }
@@ -766,7 +769,7 @@ impl Observer for Peaks {
                 .running_speed_m_s
                 .max(sample.cg_velocity_enu_m_s.length());
             self.mach_not_finite |= !sample.mach.is_finite();
-            self.top_mach = self.top_mach.max(sample.mach);
+            self.running_mach = self.running_mach.max(sample.mach);
             if step.phase() == Phase::Free
                 && let Some(cal) = step.stability(t)?.static_margin.margin_cal
             {
@@ -784,6 +787,7 @@ impl Observer for Peaks {
             {
                 self.highest_m = Some(sample.height_above_ground_m);
                 self.max_speed_m_s = Some(self.running_speed_m_s);
+                self.top_mach = self.running_mach;
                 self.least_margin_cal = self.running_margin_cal;
                 self.turns_over_s = self.running_turn_s;
             }
@@ -3400,6 +3404,31 @@ fn spent_by_apogee(
 
 #[cfg(test)]
 mod tests {
+    /// The nose's line reads HPR Sim's top Mach number from `Peaks`: on the public Mach probe,
+    /// which passes Mach 1.6, it is above 1.6 and within 1e-4 of the largest at the end of a step
+    /// over the whole flight, since the top is reached before the apogee; `Peaks` also samples
+    /// inside each step (#1497).
+    #[test]
+    fn the_peaks_hold_the_top_mach_number_up_to_the_apogee() {
+        let probe = crate::histories::tests::public_flights().remove(1);
+        assert!(probe.file.ends_with("mach-probe.ork"), "{}", probe.file);
+        let simulation = probe.build().unwrap();
+        let mut peaks = Peaks::default();
+        simulation.run(&mut peaks).unwrap();
+        let whole = crate::nose_line::max_mach(&probe.build().unwrap()).unwrap();
+        assert!(!peaks.mach_not_finite);
+        assert!(peaks.top_mach > 1.6, "{}", peaks.top_mach);
+        assert!(
+            (peaks.top_mach - whole).abs() < 1e-4 * whole,
+            "{} against {whole}",
+            peaks.top_mach
+        );
+        // Up to the apogee: the running number may grow after it, the top doesn't.
+        assert!(peaks.running_mach >= peaks.top_mach);
+        let facts = crate::nose_line::own_facts(&simulation, Some(peaks.top_mach));
+        assert_eq!(facts["top_mach"], peaks.top_mach);
+    }
+
     /// A flight turns over in both tools only with all three signs: OpenRocket's record tumbling
     /// before its apogee, hpr's least margin to apogee negative, and hpr's own angle of attack
     /// passing 90° before its apogee (ADR-168). Each one missing leaves the cause unnamed.

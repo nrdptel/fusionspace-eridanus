@@ -497,7 +497,8 @@ pub(crate) const LIBRARY_SKIPPED: [(&str, &str); 5] = [
 pub(crate) const FACTS: &str = "nose_line_facts";
 
 /// What the rule for the line's flights reads of HPR Sim's own flight `simulation`, whose top
-/// Mach number is `top_mach` (`None` when one along it is not a number): that number, and the
+/// Mach number up to its apogee is `top_mach` (`None` when one along the flight is not a
+/// number): that number, and the
 /// nose at the front of the airframe when it is a tangent ogive, with its id, how many nose cones
 /// the layout holds and whether the design states the nose's drag.
 pub(crate) fn own_facts(simulation: &Simulation, top_mach: Option<f64>) -> Value {
@@ -577,7 +578,10 @@ impl LibraryColumns {
         configuration: &str,
         renamed: bool,
     ) -> Result<Value, String> {
-        let rerun = format!("{LIBRARY_RECORD} doesn't hold the flight; run {ORACLE} again");
+        let rerun = format!(
+            "{LIBRARY_RECORD} doesn't hold the flight; run `refs/venv/bin/python {ORACLE} \
+             --public {LIBRARY_RECORD} refs/hpr-sim-fixtures/imported/loft-fixtures/openrocket/*.ork`"
+        );
         let flights = self.by_sha.get(sha).ok_or_else(|| rerun.clone())?;
         let found = flights.iter().find(|flight| {
             flight["configuration"]
@@ -616,13 +620,13 @@ pub(crate) fn library_flight(
     column: impl FnOnce() -> Result<Value, String>,
     fly: &mut dyn FnMut(NoseSwap, bool) -> Result<Value, String>,
 ) -> Result<LibraryDecision, String> {
-    let top_mach = facts["top_mach"]
-        .as_f64()
-        .ok_or("a Mach number along HPR Sim's own flight is not a number")?;
     let nose = &facts["nose"];
     let Some(nose_id) = nose["id"].as_str() else {
         return Ok(None);
     };
+    let top_mach = facts["top_mach"]
+        .as_f64()
+        .ok_or("a Mach number along HPR Sim's own flight is not a number")?;
     if top_mach.partial_cmp(&ABOVE_MACH) != Some(std::cmp::Ordering::Greater) {
         return Ok(None);
     }

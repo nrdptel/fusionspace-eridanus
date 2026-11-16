@@ -789,24 +789,27 @@ fn nose_column_part(report: &Value, rows: &[Value]) -> String {
     let counts = &report["summary"]["nose_column"];
     let mut out = String::from(
         "\n## The nose's column swapped in\n\n\
-         From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag, \
-         where hpr gives it the equivalent cone's ([OpenRocket's issue \
+         Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose far less pressure drag than \
+         hpr, which gives it the equivalent cone's ([OpenRocket's issue \
          #3391](https://github.com/openrocket/openrocket/issues/3391)). Each flight whose own hpr \
-         flight passes Mach 1 with a tangent-ogive nose at the front of its airframe is flown \
-         again with hpr's pressure drag of that nose replaced, above Mach 1, by the column \
-         OpenRocket 24.12 reports for it, once with hpr's own base drag and once with the whole \
-         base's under power as well, or counted under the reason it can't be \
+         flight passes Mach 1 before its apogee, with a tangent-ogive nose at the front of its \
+         airframe, is flown again with hpr's pressure drag of that nose replaced, above Mach 1, \
+         by the pressure drag OpenRocket 24.12 reports for it against Mach number (its \
+         *column*): once with hpr's own base drag, and once \
+         with OpenRocket's base rule as well, the whole base's drag kept while a motor burns. A \
+         flight that can't be is counted under its reason \
          ([#1497](https://github.com/nrdptel/fusionspace-eridanus/issues/1497)). The flights \
          are on hpr's own thrust and mass, since the library holds no record of OpenRocket's \
          against time: this is not the nose's line of the [fixture report](fixture-flights.md), \
          which is taken on OpenRocket's.\n\n",
     );
-    let skipped: Vec<String> = counts["skipped"]
-        .as_object()
-        .into_iter()
-        .flatten()
-        .filter(|(_, count)| count.as_u64().is_some_and(|n| n > 0))
-        .map(|(reason, count)| format!("{count} skipped: {}", nose_column_reason(reason)))
+    // In the order the reasons are tried, not the record's.
+    let skipped: Vec<String> = crate::nose_line::LIBRARY_SKIPPED
+        .iter()
+        .filter_map(|(reason, words)| {
+            let count = counts["skipped"][*reason].as_u64().filter(|n| *n > 0)?;
+            Some(format!("{count} skipped: {words}"))
+        })
         .collect();
     out.push_str(&format!(
         "In the line: {} flights, {} swapped{}.\n",
@@ -827,7 +830,8 @@ fn nose_column_part(report: &Value, rows: &[Value]) -> String {
     }
     out.push_str(
         "\nEach is the apogee Δ in per cent of OpenRocket's; *on OR's drag* and *with OR's base \
-         drag alone* are the probes of the table above, where they were flown.\n\n\
+         drag alone* are the probes of the table above; they are flown only for an apogee more \
+         than 5% off with no other named cause, and are *not flown* otherwise.\n\n\
          | flight | Mach | apogee Δ | on OR's drag | with OR's base drag alone | with OR's nose \
          column | with OR's nose column and base drag |\n|---|---|---:|---:|---:|---:|---:|\n",
     );
