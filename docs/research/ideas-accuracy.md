@@ -89,9 +89,28 @@ below are SOON.
 
 ## From the 2026-11-14 planning review ([ADR-347][adr-347])
 
-That review promoted landing points against the tracked landings; that idea and three more
-are in [the backlog](ideas.md).
+That review promoted landing points against the tracked landings to [M2.13][m2-13]. Its idea
+of the speed at the rail's end was promoted by the next review ([M2.14][m2-14],
+[ADR-352][adr-352]). The four below are SOON.
 
+- SOON: the landing on the forecast a flyer had. User: a flyer at the pad, who flies a forecast,
+  not the reanalysis [M2.13][m2-13] scores. The command line's page says of a forecast's winds
+  that "nothing has compared them with measured ones". Workflow: for each tracked flight whose
+  launch hour is known, a forecast issued before the launch is read from a public archive that
+  keeps past runs, cached and flown; the fixture report gives the landing miss on it beside the
+  miss on the reanalysis. Moves: `accuracy.landing`, a second figure on a forecast. *Done when:*
+  the archive and its lead time are named from its own documents; the report gives both misses
+  over the flights it covers and counts those it doesn't; and a test pins one cached profile by
+  its hash.
+- SOON: the delay's spread held to logged delays. User: a flyer choosing an ejection delay from a
+  scattered run. The spread fitted to bench firings is too narrow for flights: its 90% interval
+  held 21 or 22 of 30 logged delays, 70% to 73% ([the delay-spread note][delay-spread], section 7;
+  [#1474][i1474] asks the Monte Carlo page to say so). Workflow: `hpr mc` gets a named delay spread fitted
+  to logged delays, and the report scores its intervals on logged flights the fit didn't read.
+  Moves: a new row `uncertainty.delay-90`, nearer 90% better, beside the apogee ranges of
+  [M2.8][m2-8]. *Done when:* the report gives the share of logged delays inside the 50% and the
+  90% intervals with Clopper–Pearson bounds, on flights held out from the fit by their ids' hash,
+  and the Monte Carlo page states both.
 - SOON: a published apogee scored as a true height and as its altimeter read it. User: a flyer
   past Mach 1 comparing simulators on published apogees. Another simulator's write-up says 17 of
   the 23 apogees that RASAero II's example files publish were read by barometric altimeters, which
@@ -136,3 +155,9 @@ are in [the backlog](ideas.md).
 [prfl-aero]: https://github.com/dustintlee-blahblah/PocketRocketFlightLab/blob/main/AERODYNAMICS.md
 [prop-temp]: propellant-temperature.md
 [srm]: https://github.com/adamcw169/SRM-motor-to-flight
+[m2-13]: ../decisions-and-roadmap.md#m2-13
+[m2-14]: ../decisions-and-roadmap.md#m2-14
+[m2-8]: ../decisions-and-roadmap.md#m2-8
+[adr-352]: ../decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md
+[delay-spread]: motor-delay-spread.md
+[i1474]: https://github.com/nrdptel/fusionspace-eridanus/issues/1474
