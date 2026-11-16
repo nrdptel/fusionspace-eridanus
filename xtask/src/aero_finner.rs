@@ -84,12 +84,13 @@ fn row_name(row: &Value, index: usize) -> String {
 
 /// The airframe's bodies and its one fin set among `parts`, in [`AeroModel::components`]'
 /// order: the airframe's bodies, then the pods' bodies, then the lifting surfaces. The split is
-/// right only when exactly one part follows the airframe's bodies, so any other design (no fins,
-/// a second fin set, a pod with a body) is refused. Tube fins never reach here: HPR Sim refuses
-/// them from Mach 0.8, below every row.
+/// right only when the design has one fin set and it is the one part that follows the
+/// airframe's bodies, so any other design (no fins, a second fin set, a pod with a body, with or
+/// without fins) is refused. Tube fins never reach here: HPR Sim refuses them from Mach 0.8,
+/// below every row.
 fn bodies_and_fins<'a, T>(model: &AeroModel, parts: &'a [T]) -> Result<(&'a [T], &'a [T]), String> {
     let bodies = model.bodies().len();
-    if parts.len() != bodies + 1 {
+    if model.fin_sets().len() != 1 || parts.len() != bodies + 1 {
         return Err(format!(
             "the design must have one fin set and no pods: it has {} fin sets, {} pod sets and \
              {} parts beside its {bodies} bodies",
@@ -640,6 +641,21 @@ mod tests {
         finless["stages"][0]["components"][1]["children"] = json!([]);
         let error = compared(&reference, &design, &finless).unwrap_err();
         assert!(error.contains("it has 0 fin sets"), "{error}");
+        // A pod's body in the fins' place: one part after the airframe's bodies, but no fin set.
+        let pod = json!({
+            "id": "pod",
+            "name": "",
+            "part": {"pod_set": {"count": 1, "radial_offset_m": 0.03, "angle_rad": 0.0}},
+            "position": {"from": "absolute", "station_m": 0.2},
+            "children": [{
+                "id": "pod-nose",
+                "name": "",
+                "part": finless["stages"][0]["components"][0]["part"].clone(),
+            }],
+        });
+        finless["stages"][0]["components"][1]["children"] = json!([pod]);
+        let error = compared(&reference, &design, &finless).unwrap_err();
+        assert!(error.contains("it has 0 fin sets, 1 pod sets"), "{error}");
     }
 
     /// A row with a missing or unreadable field is named by its Mach number, or by its place in
@@ -659,6 +675,15 @@ mod tests {
         let error = compared(&no_mach, &design, &rocket).unwrap_err();
         assert!(
             error.contains("row 4 of the reference") && error.contains("mach"),
+            "{error}"
+        );
+        // A figure that comes out non-finite is refused by its field, not written as `null`.
+        let mut tiny = reference.clone();
+        tiny["rows"][1]["cn_alpha"] = json!(5e-324);
+        let error = compared(&tiny, &design, &rocket).unwrap_err();
+        assert!(
+            error.contains("Mach 1.293")
+                && error.contains("`cn_alpha_error` is not a finite number"),
             "{error}"
         );
     }
