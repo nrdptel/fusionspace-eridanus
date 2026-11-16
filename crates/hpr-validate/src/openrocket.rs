@@ -4403,9 +4403,11 @@ mod tests {
     ///
     /// - hpr's tangent ogive is its cone at every row, bit for bit: 0.16440 at Mach 1, 0.23428 at
     ///   Mach 1.1, the highest of the 31 rows, and 0.15571 at Mach 1.3.
-    /// - OpenRocket 24.12's cone, the control, is hpr's within 5e-6 at every even hundredth and
-    ///   within 0.00094 (0.53%) at the odd ones: so the column read is again the nose's
-    ///   pressure drag.
+    /// - OpenRocket 24.12's cone, the control, is hpr's within 5e-6 at every even hundredth, so
+    ///   the column read is again the nose's pressure drag. Each odd hundredth of OpenRocket's,
+    ///   for both noses, is the mean of its two neighbours within 1e-15: OpenRocket reads its
+    ///   curve every 0.02 and draws straight lines between. That leaves its cone at most 0.00094
+    ///   (0.53%) below hpr's, at Mach 1.01.
     /// - OpenRocket 24.12's tangent ogive is below hpr's at every row, by 0.155 to 0.163: 1.0%
     ///   of it at Mach 1, rising to 32.2% at Mach 1.1 (the hump OpenRocket's issue #3391
     ///   reports), and 0.6% at Mach 1.3.
@@ -4416,7 +4418,14 @@ mod tests {
         let record = nose_pressure_drag_transonic_record();
         let first = nose_pressure_drag_record();
         assert_eq!(record["openrocket"], "24.12");
-        for key in ["nose_id", "nose_length_m", "nose_base_area_m2", "cites"] {
+        for key in [
+            "nose_id",
+            "nose_length_m",
+            "nose_base_area_m2",
+            "cites",
+            "jar_sha256",
+            "java",
+        ] {
             assert_eq!(record[key], first[key], "{key}");
         }
         let number = |value: &Value| value.as_f64().expect("a number");
@@ -4463,18 +4472,30 @@ mod tests {
         let (mut least_gap, mut most_gap) = (f64::INFINITY, f64::NEG_INFINITY);
         let mut least_share = (f64::INFINITY, 0.0);
         let mut most_share = (f64::NEG_INFINITY, 0.0);
-        let (mut odd_gap, mut odd_share) = (0.0_f64, 0.0_f64);
+        let (mut odd_gap, mut odd_share, mut odd_at) = (0.0_f64, 0.0_f64, 0.0);
+        let mut highest = (f64::NEG_INFINITY, 0.0);
         for (step, (ogive_row, cone_row)) in ogive_rows.iter().zip(&cone_rows).enumerate() {
             let mach = number(&ogive_row["mach"]);
             let ours = probe_part_pressure_drag(ogive, nose, mach, base_area_m2);
             let ours_cone = probe_part_pressure_drag(cone, nose, mach, base_area_m2);
             assert_eq!(ours, ours_cone, "hpr's ogive is its cone at Mach {mach}");
-            // OpenRocket's cone: hpr's at the even hundredths, within 1e-3 at the odd ones.
+            if ours > highest.0 {
+                highest = (ours, mach);
+            }
+            // OpenRocket's cone: hpr's at the even hundredths. At the odd ones each of its
+            // columns is the mean of its two neighbours.
             let cone_gap = column(cone_row) - ours_cone;
-            let within = if step % 2 == 0 { 5e-6 } else { 1e-3 };
-            assert!(cone_gap.abs() < within, "Mach {mach}: {cone_gap:e}");
-            if step % 2 == 1 {
-                odd_gap = odd_gap.max(cone_gap.abs());
+            if step % 2 == 0 {
+                assert!(cone_gap.abs() < 5e-6, "Mach {mach}: {cone_gap:e}");
+            } else {
+                for rows in [&ogive_rows, &cone_rows] {
+                    let mean = 0.5 * (column(&rows[step - 1]) + column(&rows[step + 1]));
+                    let off = column(&rows[step]) - mean;
+                    assert!(off.abs() < 1e-15, "Mach {mach}: {off:e} from the mean");
+                }
+                if cone_gap.abs() > odd_gap {
+                    (odd_gap, odd_at) = (cone_gap.abs(), mach);
+                }
                 odd_share = odd_share.max(cone_gap.abs() / ours_cone);
             }
             // OpenRocket's tangent ogive: below hpr's at every row.
@@ -4491,6 +4512,8 @@ mod tests {
             }
         }
         assert!((odd_gap - 0.000_94).abs() < 5e-6, "{odd_gap}");
+        assert!((odd_at - 1.01_f64).abs() < 1e-12, "{odd_at}");
+        assert!((highest.1 - 1.1_f64).abs() < 1e-12, "{highest:?}");
         assert!((odd_share - 0.0053).abs() < 5e-5, "{odd_share}");
         let share_at_1 = column(&ogive_rows[0]) / at_1;
         assert!((share_at_1 - 0.0099).abs() < 5e-5, "{share_at_1}");

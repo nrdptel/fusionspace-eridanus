@@ -4508,8 +4508,8 @@ What is checked: the pressure drag HPR Sim gives a [tangent ogive](../glossary.m
 follows, with [OpenRocket](../glossary.md#openrocket) 24.12's beside it; and from Mach 1 to 1.3, every 0.01,
 beside OpenRocket 24.12's. Pressure drag is the drag from the air's
 pressure on the nose, mostly [wave drag](../glossary.md#wave-drag) past Mach 1. The result: HPR Sim gives the
-method's value. At Mach 1.3, 1.5 and 2 OpenRocket 24.12 gives under 1% of it, and from Mach 1 to
-1.3 0.6% to 32.2% of it. This is one code against another, not a
+method's value. OpenRocket 24.12 gives under 1% of it at Mach 1.3, 1.5 and 2, and
+between 0.6% and 32.2% of it from Mach 1 to 1.3. This is one code against another, not a
 measurement. It shows where the two differ. It doesn't show which matches a real nose.
 
 The probe is an invented rocket: a nose 150 mm (5.9 in) long on a tube 50 mm (2.0 in) across, with a
@@ -4568,12 +4568,14 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
 What follows: at Mach 1.3, 1.5 and 2, OpenRocket 24.12 gives this nose almost none of the pressure drag
 its own documented method gives.
 
-**From Mach 1 to 1.3.** A second record asks OpenRocket 24.12 the same two noses, the tangent ogive
-and its cone, every 0.01 from Mach 1 to 1.3. Below Mach 1.3 eq. B.4 doesn't apply. The method gives a
+**From Mach 1 to 1.3.** A second set of runs asks OpenRocket 24.12 the same two noses, the tangent
+ogive and its cone, at each of the 31 Mach numbers from 1 to 1.3, in steps of 0.01
+([its record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-nose-pressure-drag-transonic.json)). Below Mach 1.3 eq. B.4 doesn't apply. The method gives a
 cone $\sin\varepsilon$ at Mach 1, here $1/\sqrt{37} = 0.16440$, and joins it to eq. B.4's value at
-Mach 1.3 by the cubic that meets both ends' values and slopes ([N09] eq. B.3 to B.6). HPR Sim gives
-the tangent ogive its equivalent cone's value at every row, as above. So its coefficient rises from
-0.16440 at Mach 1 to 0.23428 at Mach 1.1 and falls to 0.15571 at Mach 1.3. The nose's pressure drag
+Mach 1.3 by the cubic that meets both ends' values and slopes ([N09] eq. B.3 to B.6). HPR Sim's number
+is its code's output, and it gives the tangent ogive exactly its equivalent cone's value at every
+row. So its coefficient rises from 0.16440 at Mach 1 to 0.23428 at Mach 1.1, the highest of the 31
+rows, and falls to 0.15571 at Mach 1.3. The nose's pressure drag
 coefficient on its base area, at zero angle of attack, at seven of the 31 rows:
 
 | Mach | HPR Sim, tangent ogive (coefficient) | OpenRocket 24.12, tangent ogive (coefficient) | OpenRocket 24.12, cone (coefficient) |
@@ -4587,16 +4589,24 @@ coefficient on its base area, at zero angle of attack, at seven of the 31 rows:
 | 1.3 | 0.15571 | 0.00098 | 0.15571 |
 
 - **Which way they differ.** OpenRocket 24.12's tangent ogive is below HPR Sim's at every row, by
-  0.155 to 0.163. It is 1.0% of HPR Sim's value at Mach 1, rises to 32.2% at Mach 1.1 and falls to
-  0.6% at Mach 1.3. That rise is the false hump of about 0.075 near Mach 1.1 that
-  [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) also reports.
+  0.155 to 0.163 in the coefficient. It is 1.0% of HPR Sim's value at Mach 1, rises to 32.2% at
+  Mach 1.1 and falls to 0.6% at Mach 1.3. Its curve has the shape of HPR Sim's, a rise to Mach 1.1
+  and a fall, but from a start near zero, so it peaks at 0.0755 where HPR Sim's peaks at 0.234.
+  [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) reports that
+  peak as a false hump of about 0.075 near Mach 1.1.
 - **The control.** OpenRocket 24.12's cone matches HPR Sim's cone within $5 \times 10^{-6}$ at
-  every even hundredth (Mach 1.00, 1.02 and so on). At the odd ones it differs by up to 0.00094,
-  0.53% of HPR Sim's. So the number read is again the nose's own pressure drag.
+  every even hundredth (Mach 1.00, 1.02 and so on). So the number read is again the nose's own
+  pressure drag. At each odd hundredth, OpenRocket's number for either nose is the mean of the two
+  beside it: it reads its curve every 0.02 and draws straight lines between. That puts its cone at
+  most 0.00094 below HPR Sim's, at Mach 1.01, 0.53% of HPR Sim's.
+
+So from Mach 1 to 1.3, too, OpenRocket 24.12 gives this tangent ogive a small part of the pressure
+drag its documented method gives: 0.6% to 32.2% of HPR Sim's. This is code against code, and it
+doesn't show which matches a real nose.
 
 What the two codes' noses do to an apogee is sized, code against code, on the designs of 5 logged
 flights that pass Mach 1 with a tangent-ogive nose. They reach Mach 1.06 on average and none passes
-Mach 1.3, so they sit in the band of the second record. Flown with
+Mach 1.3, so they sit in the band of the runs from Mach 1 to 1.3. Flown with
 OpenRocket's number for the nose above Mach 1 in place of its own, HPR Sim climbs higher by 1.28% of
 OpenRocket's apogee on average
 ([the tangent-ogive nose's line](../accuracy.md#the-tangent-ogive-noses-line),
