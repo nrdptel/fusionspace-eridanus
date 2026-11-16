@@ -4724,8 +4724,8 @@ fn the_validated_range_is_the_fastest_public_reference() {
     }
     assert_eq!(
         mach_keys(&read("fixture-flights.json")),
-        ["hpr_mean_top_mach"],
-        "fixture-flights.json: a mean over hpr's own flights of private designs, no reference; a reference's key belongs above"
+        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3"],
+        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference; a reference's key belongs above"
     );
     let (mach, flight) = fastest
         .iter()

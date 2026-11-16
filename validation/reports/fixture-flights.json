@@ -768,6 +768,7 @@
       "median_percent": 0.51,
       "mean_absolute_percent": 2.65
     },
-    "hpr_mean_top_mach": 1.06
+    "hpr_mean_top_mach": 1.06,
+    "hpr_top_mach_over_1_3": 0
   }
 }

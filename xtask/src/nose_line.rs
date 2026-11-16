@@ -78,9 +78,15 @@ pub(crate) const SKIPPED: [(&str, &str); 5] = [
     ),
     (
         "refused",
-        "HPR Sim fails the flight with the column swapped in",
+        "HPR Sim fails the flight with the column swapped in, or the flight leaves the Mach \
+         numbers the column covers",
     ),
 ];
+
+/// The lowest Mach number of M2.3c10's public probe, from which OpenRocket 24.12 is shown to give
+/// a tangent-ogive nose almost no pressure drag. The report counts the swapped flights that pass
+/// it.
+const PROBE_FROM_MACH: f64 = 1.3;
 
 /// The fewest flights swapped whose sizes are published (ADR-349 §3, ADR-151).
 pub(crate) const FLOOR: usize = 3;
@@ -232,24 +238,39 @@ pub(crate) fn in_line(max_mach: f64, layout: &Layout) -> bool {
     max_mach > ABOVE_MACH && tangent_ogive_nose(layout).is_some()
 }
 
-/// The largest Mach number at the end of a step.
-struct TopMach(f64);
+/// The largest Mach number at the end of a step, and whether every one was a number.
+struct TopMach {
+    top: f64,
+    finite: bool,
+}
 
 impl Observer for TopMach {
     fn step(&mut self, step: &dyn FlightStep) -> Result<(), SimError> {
         let end = step.sample(step.end_s())?;
-        self.0 = self.0.max(end.mach);
+        // `f64::max` drops a NaN, so it is kept apart.
+        self.finite &= end.mach.is_finite();
+        self.top = self.top.max(end.mach);
         Ok(())
     }
 }
 
 /// The top Mach number of `simulation`'s flight.
+///
+/// # Errors
+///
+/// A flight that fails, or one with a Mach number that isn't a number at the end of a step.
 pub(crate) fn max_mach(simulation: &Simulation) -> Result<f64, String> {
-    let mut top = TopMach(0.0);
+    let mut top = TopMach {
+        top: 0.0,
+        finite: true,
+    };
     simulation
         .run(&mut top)
         .map_err(|error| error.to_string())?;
-    Ok(top.0)
+    if !top.finite {
+        return Err("a Mach number along the flight is not a number".to_owned());
+    }
+    Ok(top.top)
 }
 
 /// One flight of the line.
@@ -268,13 +289,34 @@ pub(crate) enum NoseFlight {
 }
 
 /// Whether the design states the drag of the part `nose_id`, so that the buildup holds no
-/// pressure drag of its own for it.
+/// pressure drag of its own for it: the part's own stated drag, or one that covers it, its
+/// stage's or a parent's with its children included. It is the buildup's own rule for which
+/// parts a stated drag covers.
 fn stated(simulation: &Simulation, nose_id: &str) -> bool {
-    simulation
-        .assembly()
-        .layout
-        .find(nose_id)
-        .is_none_or(|(_, nose)| nose.drag_override.is_some())
+    let layout = &simulation.assembly().layout;
+    let Some((_, nose)) = layout.find(nose_id) else {
+        return true;
+    };
+    if nose.drag_override.is_some() {
+        return true;
+    }
+    let covers =
+        |stated: Option<hpr_design::DragOverride>| stated.is_some_and(|o| o.include_children);
+    if covers(layout.stages.get(nose.stage).and_then(|s| s.drag_override)) {
+        return true;
+    }
+    // At most one step up per part, so a layout whose parents loop ends the walk.
+    let mut parent = nose.parent;
+    for _ in 0..layout.components.len() {
+        let Some(up) = parent.and_then(|at| layout.components.get(at)) else {
+            break;
+        };
+        if covers(up.drag_override) {
+            return true;
+        }
+        parent = up.parent;
+    }
+    false
 }
 
 /// One flight both simulators fly, as the line counts it: `None` when it is not one of the
@@ -449,6 +491,9 @@ pub(crate) struct NoseLine {
     /// The mean, over the same flights, of the top Mach number of HPR Sim's own flight, to two
     /// decimals: how far past Mach 1 the line's flights go.
     pub hpr_mean_top_mach: Option<f64>,
+    /// How many of the same flights pass Mach 1.3 in HPR Sim's own flight, the lowest Mach number
+    /// of the public probe ([`PROBE_FROM_MACH`]).
+    pub hpr_top_mach_over_1_3: Option<usize>,
 }
 
 impl NoseLine {
@@ -492,12 +537,15 @@ impl NoseLine {
             rest: over(|s| s.1),
             drag: over(|s| s.2),
             hpr_mean_top_mach,
+            hpr_top_mach_over_1_3: published
+                .then(|| swapped.iter().filter(|s| s.3 > PROBE_FROM_MACH).count()),
         }
     }
 
     /// Holds the lines to themselves and to the `split` flights split: each flight of the line
     /// swapped or under a reason, no more swapped than split, the sizes and the mean top Mach
-    /// number there exactly from [`FLOOR`] flights swapped, that mean no lower than the Mach 1
+    /// number and the count past Mach 1.3 there exactly from [`FLOOR`] flights swapped, that count
+    /// no more than the flights swapped, that mean no lower than the Mach 1
     /// each of its flights passes, and the nose's mean and the rest's summing to the drag's to
     /// the rounding of each.
     pub(crate) fn check_consistent(
@@ -536,6 +584,7 @@ impl NoseLine {
         let published = self.swapped >= FLOOR;
         if sizes.iter().any(|(_, size)| size.is_some() != published)
             || self.hpr_mean_top_mach.is_some() != published
+            || self.hpr_top_mach_over_1_3.is_some() != published
         {
             return fail(format!(
                 "{} flights swapped, and sizes {}: they are given from {FLOOR} flights",
@@ -556,6 +605,15 @@ impl NoseLine {
             return fail(format!(
                 "a mean top Mach number of {:?} over flights that pass Mach {ABOVE_MACH}",
                 self.hpr_mean_top_mach
+            ));
+        }
+        if self
+            .hpr_top_mach_over_1_3
+            .is_some_and(|over| over > self.swapped)
+        {
+            return fail(format!(
+                "{:?} of {} flights swapped pass Mach {PROBE_FROM_MACH}",
+                self.hpr_top_mach_over_1_3, self.swapped
             ));
         }
         if let (Some(nose), Some(rest), Some(drag)) = (self.nose, self.rest, self.drag) {
@@ -582,7 +640,7 @@ impl NoseLine {
              no pressure drag, where HPR Sim gives it the drag of the cone of its length and \
              base; between Mach 1 and 1.3 each joins that to its own value at Mach 1 \
              (OpenRocket's issue #3391, fixed on its development line; no release carried the \
-             fix by 2026-11-15). On \
+             fix by 2026-11-14). On \
              OpenRocket's thrust and mass, HPR Sim flies once more with its own pressure drag of \
              the nose replaced, above Mach 1, by the pressure drag OpenRocket's public interface \
              reports for the nose; everything else in the drag stays HPR Sim's. The nose's line \
@@ -617,13 +675,15 @@ impl NoseLine {
                     size.mean_percent, size.median_percent, size.mean_absolute_percent
                 );
             }
-            if let Some(mach) = self.hpr_mean_top_mach {
+            if let (Some(mach), Some(over)) = (self.hpr_mean_top_mach, self.hpr_top_mach_over_1_3) {
                 let _ = writeln!(
                     page,
                     "\nEach is per cent of OpenRocket's apogee. The top Mach numbers of these \
-                     flights, by HPR Sim's own flights, average {mach:.2}: the line is measured \
-                     that far past Mach 1, and says nothing of a faster flight, whose nose spends \
-                     longer above Mach 1."
+                     flights, by HPR Sim's own flights, average {mach:.2}, and {over} of the {} \
+                     {} Mach {PROBE_FROM_MACH}, where the public probe of the nose starts. The \
+                     line is measured that far past Mach 1, and says nothing of a faster flight.",
+                    self.swapped,
+                    if over == 1 { "passes" } else { "pass" },
                 );
             }
         } else {

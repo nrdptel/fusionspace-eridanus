@@ -376,6 +376,66 @@ fn a_flight_of_the_line_is_swapped_or_skipped_under_its_reason() {
         skipped("stated")
     );
 
+    // A stated drag that covers the nose from its stage: the buildup gives the nose no pressure
+    // drag of its own, so there is nothing to swap. A stage's stated drag that leaves its parts
+    // their own is added to theirs, and the nose is swapped as before.
+    let covered = |include_children: bool| {
+        ogive_probe().edited(move |rocket| {
+            rocket.stages[0].drag_override = Some(hpr_design::DragOverride {
+                coefficient: 0.05,
+                include_children,
+            });
+        })
+    };
+    let (under, beside) = (covered(true), covered(false));
+    let build_under = |_air: Air| under.build();
+    assert_eq!(
+        flight(
+            &build_under,
+            &fly,
+            &probe.flight,
+            Some(&ogive),
+            &split,
+            openrocket_m
+        ),
+        skipped("stated")
+    );
+    let build_beside = |_air: Air| beside.build();
+    assert!(matches!(
+        flight(
+            &build_beside,
+            &fly,
+            &probe.flight,
+            Some(&ogive),
+            &split,
+            openrocket_m
+        ),
+        Ok(Some(NoseFlight::Swapped { .. }))
+    ));
+
+    // The swapped flight is flown in the day's air, as the split's flights before the air's
+    // swap are: a build that gives another flight in OpenRocket's air changes nothing.
+    let build_two_airs = |air: Air| match air {
+        Air::Day => probe.build(),
+        Air::OpenRocket => probe.build_at(1500.0),
+    };
+    assert_eq!(
+        flight(
+            &build_two_airs,
+            &fly,
+            &probe.flight,
+            Some(&ogive),
+            &split,
+            openrocket_m
+        ),
+        Ok(Some(NoseFlight::Swapped {
+            nose,
+            rest,
+            drag,
+            top_mach
+        }))
+    );
+
     // A nose on each of three pods beside the airframe: the flight still passes Mach 1, and it
     // is skipped before any column is read.
     let several = ogive_probe().edited(|rocket| {
@@ -496,18 +556,23 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     assert_eq!(line.drag.unwrap().mean_percent, -1.75);
     // (1.02 + 1.5 + 1.214) / 3 = 1.2447, to two decimals.
     assert_eq!(line.hpr_mean_top_mach, Some(1.24));
+    // Of 1.02, 1.5 and 1.214, one passes Mach 1.3.
+    assert_eq!(line.hpr_top_mach_over_1_3, Some(1));
     assert_eq!(line.check_consistent(10, 8), Ok(()));
     let page = line.to_markdown();
     assert!(page.contains("5 of the flights both simulators fly. Of those, 3 are swapped."));
     assert!(page.contains("| the nose's pressure drag above Mach 1 | -3.00% | -3.00% | 3.00% |"));
     assert!(page.contains("| OpenRocket's record holds no column for the nose | 1 |"));
-    assert!(page.contains("by HPR Sim's own flights, average 1.24:"));
+    assert!(
+        page.contains("by HPR Sim's own flights, average 1.24, and 1 of the 3 passes Mach 1.3,")
+    );
 
     // Two swapped: counted, and no sizes.
     let two = NoseLine::of(&three[..3]);
     assert_eq!((two.flights, two.swapped), (3, 2));
     assert_eq!((two.nose, two.rest, two.drag), (None, None, None));
     assert_eq!(two.hpr_mean_top_mach, None);
+    assert_eq!(two.hpr_top_mach_over_1_3, None);
     assert_eq!(two.check_consistent(10, 8), Ok(()));
     let page = two.to_markdown();
     assert!(page.contains("are not given"));
@@ -530,6 +595,11 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     refused(&|line| line.skipped.swap(0, 1), "the reasons are");
     refused(&|line| line.nose = None, "sizes missing");
     refused(&|line| line.hpr_mean_top_mach = None, "sizes missing");
+    refused(&|line| line.hpr_top_mach_over_1_3 = None, "sizes missing");
+    refused(
+        &|line| line.hpr_top_mach_over_1_3 = Some(4),
+        "pass Mach 1.3",
+    );
     refused(
         &|line| line.hpr_mean_top_mach = Some(0.99),
         "mean top Mach number",
@@ -553,6 +623,7 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     given.rest = line.rest;
     given.drag = line.drag;
     given.hpr_mean_top_mach = line.hpr_mean_top_mach;
+    given.hpr_top_mach_over_1_3 = line.hpr_top_mach_over_1_3;
     assert!(
         given
             .check_consistent(10, 8)

@@ -48,8 +48,9 @@ rest sum to the drag part. Only aggregates over three flights or more are publis
 3. **The line's flights** are those both simulators fly whose own HPR Sim flight passes Mach 1
    with a tangent-ogive nose at the front of the airframe. Each is swapped, or skipped under
    the first of five reasons that applies: more than one nose cone, not split by M2.3c12, no
-   column in OpenRocket's record, a nose whose drag the design states, or a flight HPR Sim
-   fails with the column in. The run that writes the report stops on a flight whose line and
+   column in OpenRocket's record, a nose whose drag the design states (itself, or through a
+   stage or a parent whose stated drag covers it), or a flight HPR Sim fails with the column
+   in or that leaves the column's Mach numbers. The run that writes the report stops on a flight whose line and
    rest don't sum to its drag part.
 4. **#222's flight is not in the line, and [#1497][i-1497] carries it.** #222 was found on
    `C06/1`, a flight of the [design-library report][library]. The line is defined over the
@@ -84,13 +85,13 @@ rest sum to the drag part. Only aggregates over three flights or more are publis
   OpenRocket's. The mean absolute value is the mean's
   size to the report's two decimals, so the line is negative on every flight swapped, to that
   rounding.
-- **The size.** The flights' top Mach numbers, by HPR Sim's own flights, average 1.06,
-  inside the band from Mach 1 to 1.3 that the probe doesn't cover. The line is 1.28% of
+- **The size.** The flights' top Mach numbers, by HPR Sim's own flights, average 1.06, and
+  none passes Mach 1.3: they sit in the band from Mach 1 to 1.3 that the probe doesn't cover. The line is 1.28% of
   OpenRocket's apogee on average. It sizes how the two codes' noses differ just past Mach 1,
   and says nothing of a flight that reaches Mach 1.3 and beyond.
-- **The rest of the drag** on the same flights is larger flight by flight and of either
-  sign: mean −0.68%, median +0.90%, mean absolute 2.27% against the nose's 1.28%. In the
-  means the nose is the larger share, −1.28% of −1.96%.
+- **The rest of the drag** on the same flights is larger in mean absolute value and of
+  either sign: mean −0.68%, median +0.90%, mean absolute 2.27% against the nose's 1.28%. In
+  the means the nose is the larger share, −1.28% of −1.96%.
 - **On a public design.** A test gives the public `mach-probe` rocket a tangent-ogive nose
   and a column of almost nothing. It holds the nose's line there below −1% and the line and
   the rest to the flight's drag part. With OpenRocket's own column for the design's cone,
@@ -102,7 +103,8 @@ rest sum to the drag part. Only aggregates over three flights or more are publis
   [#222][i-222] and [#616][i-616].
 - For [M1.14][m1-14]: on the 5 flights of the line, the two codes' noses differ by 1.28% of
   OpenRocket's apogee on average, and the rest of the drag by a mean absolute 2.27%. Those
-  flights reach Mach 1.06 on average, so they cannot size the line from Mach 1.3 up, where
+  flights reach Mach 1.06 on average and none passes Mach 1.3, so they cannot size the line
+  from Mach 1.3 up, where
   the probe's difference is. The library's `C06/1` may ([#1497][i-1497]).
 - When OpenRocket releases its fix, the oracle can be run on the new jar to show the column
   moved. The harness holds its records to 24.12, so the report's line stays 24.12's until
