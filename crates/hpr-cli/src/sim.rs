@@ -809,46 +809,147 @@ pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
 /// gives no coast rather than one cut short by a charge.
 fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
     let simulation = builder.simulation().ok()?;
-    let optimum = metrics::optimum_delays(&simulation).ok()??;
-    let last = optimum
-        .iter()
-        .copied()
-        .reduce(|a, b| if b.burnout_s > a.burnout_s { b } else { a })?;
-    let delay_band = match motors {
+    let band = match motors {
         [motor] if motor.ignition == "at launch" => match motor.delay {
             Some(crate::output::Delay::Seconds(delay_s)) if delay_s > 0.0 => {
-                let tolerance_s = delay_tolerance_s(delay_s);
-                let times_s = [
-                    last.burnout_s + (delay_s - tolerance_s).max(0.0),
-                    last.burnout_s + delay_s + tolerance_s,
-                ];
-                let mut at = SpeedsAt {
-                    times_s,
-                    speeds_m_s: [None, None],
-                };
-                // A second flight that fails costs the band its speeds, not the coast.
-                if metrics::optimum_delays_observed(&simulation, &mut at).is_err() {
-                    at.speeds_m_s = [None, None];
-                }
-                Some(SimDelayBand {
-                    delay_s,
-                    tolerance_s,
-                    shortest_s: times_s[0],
-                    longest_s: times_s[1],
-                    speeds_until_s: last.apogee_s + BRAKED_WITHIN_S,
-                    until_opens: None,
-                    shortest_vertical_speed_m_s: at.speeds_m_s[0],
-                    longest_vertical_speed_m_s: at.speeds_m_s[1],
-                })
+                Some((delay_s, delay_tolerance_s(delay_s)))
             }
             _ => None,
         },
         _ => None,
     };
+    let flown = fly_held(&simulation, band)?;
+    let last = flown.last;
+    let delay_band = band.map(|(delay_s, tolerance_s)| {
+        let [shortest_s, longest_s] = band_times_s(last.burnout_s, delay_s, tolerance_s);
+        SimDelayBand {
+            delay_s,
+            tolerance_s,
+            shortest_s,
+            longest_s,
+            speeds_until_s: last.apogee_s + BRAKED_WITHIN_S,
+            until_opens: None,
+            shortest_vertical_speed_m_s: flown.speeds_m_s[0],
+            longest_vertical_speed_m_s: flown.speeds_m_s[1],
+        }
+    });
     Some(SimHeld {
         apogee_s: last.apogee_s,
         coast_s: last.delay_s,
         delay_band,
+    })
+}
+
+/// The two ends of a delay's band on the flight's clock, s: the last burnout plus the delay less
+/// its tolerance (never before the burnout) and plus the delay and its tolerance.
+fn band_times_s(burnout_s: f64, delay_s: f64, tolerance_s: f64) -> [f64; 2] {
+    [
+        burnout_s + (delay_s - tolerance_s).max(0.0),
+        burnout_s + delay_s + tolerance_s,
+    ]
+}
+
+/// The last burnout the held flight should give, s, from what is known before it flies: the
+/// latest, over the motors whose ignition the design fixes beforehand
+/// ([`hpr_design::Assembly::ignition_times_s`] with no separation yet), of that ignition plus the
+/// motor's burn. `None` where no motor's ignition is known beforehand. It is only a guess, which
+/// [`fly_held_watching`] checks against the flight. It leaves out a motor lit by a separation,
+/// whose time only the flight gives; and it counts a motor that burns out after the held apogee
+/// and one in a body that drops away, which [`metrics::optimum_delays`] leaves out.
+fn expected_last_burnout_s(simulation: &hpr_sim::Simulation) -> Option<f64> {
+    let assembly = simulation.assembly();
+    assembly
+        .ignition_times_s(|_| None)
+        .into_iter()
+        .zip(&assembly.motors)
+        .filter_map(|(ignition_s, placed)| {
+            Some(ignition_s? + placed.mounted.motor.burnout_time_s())
+        })
+        .reduce(f64::max)
+}
+
+/// What [`fly_held`] reads from the held flight.
+struct HeldFlight {
+    /// The last motor to burn out before the held apogee.
+    last: metrics::OptimumDelay,
+    /// The vertical speed at each end of the band ([`band_times_s`]), m/s; `None` twice where no
+    /// band was asked for.
+    speeds_m_s: [Option<f64>; 2],
+    /// How many times the held flight was flown.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "read by the test that pins one flight")
+    )]
+    flights: u8,
+}
+
+/// Flies the held flight ([`metrics::optimum_delays`]) and reads its last burnout and, for
+/// `band` (a delay and its tolerance, s), the vertical speed at each end of the band.
+///
+/// The band's times count from the last burnout, which only the flight gives. So the flight is
+/// watched at the times [`expected_last_burnout_s`] puts them at, and [`fly_held_watching`]
+/// keeps those speeds only where the flight's own burnout puts the band at the very same times.
+fn fly_held(simulation: &hpr_sim::Simulation, band: Option<(f64, f64)>) -> Option<HeldFlight> {
+    let watch_s = band
+        .zip(expected_last_burnout_s(simulation))
+        .map(|((delay_s, tolerance_s), burnout_s)| band_times_s(burnout_s, delay_s, tolerance_s));
+    fly_held_watching(simulation, band, watch_s)
+}
+
+/// [`fly_held`], with the first held flight watched at `watch_s`, two times on the flight's
+/// clock, where there is a band and a guess of them.
+///
+/// Where the flight's own last burnout puts both ends of the band at those very times, to the
+/// bit, the watched speeds are the band's and the held flight has been flown once (#1343). With
+/// a band and any other `watch_s`, or none, the held flight is flown again and watched at the
+/// right times, as it was before, so the speeds never depend on the guess. With no band it is
+/// flown once and gives no speed.
+fn fly_held_watching(
+    simulation: &hpr_sim::Simulation,
+    band: Option<(f64, f64)>,
+    watch_s: Option<[f64; 2]>,
+) -> Option<HeldFlight> {
+    let mut watched = band.and(watch_s).map(|times_s| SpeedsAt {
+        times_s,
+        speeds_m_s: [None, None],
+    });
+    let optimum = match watched.as_mut() {
+        Some(at) => metrics::optimum_delays_observed(simulation, at),
+        None => metrics::optimum_delays(simulation),
+    }
+    .ok()??;
+    let last = optimum
+        .iter()
+        .copied()
+        .reduce(|a, b| if b.burnout_s > a.burnout_s { b } else { a })?;
+    let mut flights = 1;
+    let speeds_m_s = match band {
+        None => [None, None],
+        Some((delay_s, tolerance_s)) => {
+            let times_s = band_times_s(last.burnout_s, delay_s, tolerance_s);
+            match watched {
+                Some(at) if at.times_s.map(f64::to_bits) == times_s.map(f64::to_bits) => {
+                    at.speeds_m_s
+                }
+                _ => {
+                    flights += 1;
+                    let mut at = SpeedsAt {
+                        times_s,
+                        speeds_m_s: [None, None],
+                    };
+                    // A second flight that fails costs the band its speeds, not the coast.
+                    if metrics::optimum_delays_observed(simulation, &mut at).is_err() {
+                        at.speeds_m_s = [None, None];
+                    }
+                    at.speeds_m_s
+                }
+            }
+        }
+    };
+    Some(HeldFlight {
+        last,
+        speeds_m_s,
+        flights,
     })
 }
 
@@ -3485,6 +3586,61 @@ fn sim_event(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The held flight is flown once where the last burnout is known beforehand, a motor lit at
+    /// launch (#1343), and the band's two speeds are, to the bit, those of flying it twice: once
+    /// for the burnout, once watched at the band's times. A guess that is wrong at either end of
+    /// the band, or no guess, still flies it twice.
+    #[test]
+    fn the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice() {
+        use clap::Parser;
+        let design = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../validation/fixtures/ork/guides/level-1.ork"
+        );
+        let cli = crate::Cli::parse_from(["hpr", "sim", design]);
+        let crate::Command::Sim(args) = cli.command else {
+            unreachable!("a sim command line")
+        };
+        let setup = Setup::read(&args.flight).expect("the guide's design reads");
+        let simulation = setup
+            .builder(&args.flight)
+            .simulation()
+            .expect("the guide's design flies");
+        let expected_s = expected_last_burnout_s(&simulation).expect("a motor lit at launch");
+        let bits = |speeds: [Option<f64>; 2]| speeds.map(|speed| speed.map(f64::to_bits));
+        for delay_s in [2.0, 7.0, 14.0] {
+            let tolerance_s = delay_tolerance_s(delay_s);
+            let band = Some((delay_s, tolerance_s));
+            let once = fly_held(&simulation, band).expect("an apogee");
+            assert_eq!(once.flights, 1, "{delay_s} s");
+            assert_eq!(once.last.burnout_s.to_bits(), expected_s.to_bits());
+            assert!(
+                once.speeds_m_s.iter().all(Option::is_some),
+                "{delay_s} s: both ends of the band are flown: {:?}",
+                once.speeds_m_s
+            );
+            // No guess; a guess a quarter second late; one wrong at the short end alone; one
+            // wrong at the long end alone: each flies it twice, to the same speeds.
+            let [short_s, long_s] = band_times_s(expected_s, delay_s, tolerance_s);
+            for watch_s in [
+                None,
+                Some(band_times_s(expected_s + 0.25, delay_s, tolerance_s)),
+                Some([short_s + 0.25, long_s]),
+                Some([short_s, long_s + 0.25]),
+            ] {
+                let twice = fly_held_watching(&simulation, band, watch_s).expect("an apogee");
+                assert_eq!(twice.flights, 2, "{delay_s} s, {watch_s:?}");
+                assert_eq!(bits(twice.speeds_m_s), bits(once.speeds_m_s), "{delay_s} s");
+                assert_eq!(twice.last, once.last);
+            }
+        }
+        // With no band asked for, one flight and no speeds, whatever is watched.
+        for watch_s in [None, Some([1.0, 2.0])] {
+            let coast = fly_held_watching(&simulation, None, watch_s).expect("an apogee");
+            assert_eq!((coast.flights, coast.speeds_m_s), (1, [None, None]));
+        }
+    }
 
     /// NFPA 1125's delay tolerance: 1.5 s up to a 7.5 s delay, 20% of it from there, and never
     /// more than 3 s, reached at 15 s. A band too narrow would flatter the delay, so each regime
