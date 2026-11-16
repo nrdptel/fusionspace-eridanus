@@ -4505,7 +4505,8 @@ third of its size. This rocket has no boattail, so it says nothing about a boatt
 
 What is checked: the pressure drag HPR Sim gives a [tangent ogive](../glossary.md#tangent-ogive) nose of
 [fineness ratio](../glossary.md#fineness-ratio) 3 at Mach 1.3, 1.5 and 2, against the closed form of the method it
-follows, with [OpenRocket](../glossary.md#openrocket) 24.12's beside it. Pressure drag is the drag from the air's
+follows, with [OpenRocket](../glossary.md#openrocket) 24.12's beside it; and from Mach 1 to 1.3, every 0.01,
+beside OpenRocket 24.12's. Pressure drag is the drag from the air's
 pressure on the nose, mostly [wave drag](../glossary.md#wave-drag) past Mach 1. The result: HPR Sim gives the
 method's value, and OpenRocket 24.12 gives under 1% of it. This is one code against another, not a
 measurement. It shows where the two differ. It doesn't show which matches a real nose.
@@ -4564,11 +4565,37 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
   and so is the drag. By November 14, 2026 no release carried the fix.
 
 What follows: at Mach 1.3, 1.5 and 2, OpenRocket 24.12 gives this nose almost none of the pressure drag
-its own documented method gives. The probe says nothing between Mach 1 and 1.3.
+its own documented method gives.
+
+**From Mach 1 to 1.3.** A second record asks OpenRocket 24.12 the same two noses, the tangent ogive
+and its cone, every 0.01 from Mach 1 to 1.3. Below Mach 1.3 eq. B.4 doesn't apply. The method gives a
+cone $\sin\varepsilon$ at Mach 1, here $1/\sqrt{37} = 0.16440$, and joins it to eq. B.4's value at
+Mach 1.3 by the cubic that meets both ends' values and slopes ([N09] eq. B.3 to B.6). HPR Sim gives
+the tangent ogive its equivalent cone's value at every row, as above. So its coefficient rises from
+0.16440 at Mach 1 to 0.23428 at Mach 1.1 and falls to 0.15571 at Mach 1.3. The nose's pressure drag
+coefficient on its base area, at zero angle of attack, at seven of the 31 rows:
+
+| Mach | HPR Sim, tangent ogive (coefficient) | OpenRocket 24.12, tangent ogive (coefficient) | OpenRocket 24.12, cone (coefficient) |
+|--:|--:|--:|--:|
+| 1 | 0.16440 | 0.00162 | 0.16440 |
+| 1.05 | 0.21816 | 0.05858 | 0.21741 |
+| 1.1 | 0.23428 | 0.07551 | 0.23427 |
+| 1.15 | 0.22441 | 0.06354 | 0.22412 |
+| 1.2 | 0.20024 | 0.03824 | 0.20024 |
+| 1.25 | 0.17345 | 0.01294 | 0.17363 |
+| 1.3 | 0.15571 | 0.00098 | 0.15571 |
+
+- **Which way they differ.** OpenRocket 24.12's tangent ogive is below HPR Sim's at every row, by
+  0.155 to 0.163. It is 1.0% of HPR Sim's value at Mach 1, rises to 32.2% at Mach 1.1 and falls to
+  0.6% at Mach 1.3. That rise is the false hump of about 0.075 near Mach 1.1 that
+  [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) also reports.
+- **The control.** OpenRocket 24.12's cone matches HPR Sim's cone within $5 \times 10^{-6}$ at
+  every even hundredth (Mach 1.00, 1.02 and so on). At the odd ones it differs by up to 0.00094,
+  0.53% of HPR Sim's. So the number read is again the nose's own pressure drag.
 
 What the two codes' noses do to an apogee is sized, code against code, on the designs of 5 logged
 flights that pass Mach 1 with a tangent-ogive nose. They reach Mach 1.06 on average and none passes
-Mach 1.3, so they sit in the band this probe doesn't cover. Flown with
+Mach 1.3, so they sit in the band of the second record. Flown with
 OpenRocket's number for the nose above Mach 1 in place of its own, HPR Sim climbs higher by 1.28% of
 OpenRocket's apogee on average
 ([the tangent-ogive nose's line](../accuracy.md#the-tangent-ogive-noses-line),
@@ -4589,12 +4616,15 @@ sample calculation
 [above](#drag-against-mil-hdbk-762s-sample-calculation) works a 3-caliber tangent ogive by the
 handbook's methods.
 
-The record is
+The records are
 [`openrocket-nose-pressure-drag.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-nose-pressure-drag.json),
-written by `validation/oracles/openrocket/nose_pressure_drag.py`, which needs the OpenRocket 24.12 jar to
-run again. The test
-`openrocket::tests::a_tangent_ogive_s_pressure_drag_past_mach_1_beside_openrocket_24_12_s` in
-`hpr-validate` pins every number in the table
+written by `validation/oracles/openrocket/nose_pressure_drag.py`, and
+[`openrocket-nose-pressure-drag-transonic.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-nose-pressure-drag-transonic.json),
+written by `nose_pressure_drag_transonic.py` beside it; both need the OpenRocket 24.12 jar to run
+again. The tests
+`openrocket::tests::a_tangent_ogive_s_pressure_drag_past_mach_1_beside_openrocket_24_12_s` and
+`a_tangent_ogive_s_pressure_drag_from_mach_1_to_1_3_beside_openrocket_24_12_s` in
+`hpr-validate` pin every number in the two tables
 ([ADR-349, the decision that set this probe up][adr-349]).
 
 #### The Basic Finner's normal force against DREV's range
