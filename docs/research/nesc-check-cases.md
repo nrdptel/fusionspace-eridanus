@@ -163,7 +163,7 @@ Case 14, on "Mach effects in tables", was never finished [S1 p. 16]; case 17's M
 ## What the project can use
 
 - **For M1.14b's done-when.** Report the item as not a Mach 1.5–2.5 reference: cases 1, 2 and 6 to 10 adopted as
-  checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model (ADR-351: 3 flown, 4 and 5 refused); 11 to 17 refused (§6). The band
+  checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model (ADR-351: 3 to M1.14b4, 4 and 5 refused); 11 to 17 refused (§6). The band
   gains nothing.
 - **Pin and cache.** Add `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`), `Atmospheric_models.zip` (`10e2dc26…`)
   and both TM volumes to `validation/refs.lock.toml` as `fetched`, with a `THIRD-PARTY-NOTICES.md` row: reports a

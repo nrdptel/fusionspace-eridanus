@@ -4654,8 +4654,9 @@ DREV's, as a share of DREV's, worked from the unrounded figures, so a negative o
 | 2.718 | 9.01 (2%) | 3.33 | 4.84 | 8.17 | −9.3% |
 | 3.147 | 8.69 (1%) | 3.39 | 4.17 | 7.56 | −13.0% |
 
-**The center of pressure,** in calibers from the nose tip, DREV's with its probable error in
-parentheses. The error is HPR Sim's less DREV's, so a negative one is forward.
+**The center of pressure,** in calibers from the nose tip. DREV's is the one worked out above
+from its two slopes, with its probable error in parentheses. The error is HPR Sim's less DREV's,
+so a negative one is forward.
 
 | Mach | DREV's, calibers (probable error) | HPR Sim's, calibers | error, calibers |
 |--:|--:|--:|--:|
@@ -4692,8 +4693,8 @@ pressure 0.02 to 0.04 calibers further forward:
 This is nearer like for like, not like for like. A straight line fitted over a spread of angles
 leans toward the larger ones, so the root-mean-square yaw is a low reading of the angle a fit
 stands for. At a larger one HPR Sim's miss in the slope would be smaller again and, by the
-table's trend, its miss in the center of pressure larger. The table
-gives no other measure of the angles that the report defines, so the comparison stops here.
+trend of the table above, its miss in the center of pressure larger. DREV's table gives no other
+measure of the angles that the report defines, so the comparison stops here.
 
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
 center of pressure is forward on every row, and by more than the probable error on all but Mach
@@ -4707,8 +4708,8 @@ pressure aft of the measured one would fail it.
 
 The direction is this body's and does not carry to another rocket. Where a shape trips one of
 the four switches that fall back to slender-body theory faster than sound, HPR Sim's center of
-pressure moves aft instead, the side that overstates stability, and a lip longer than its
-boattail's drop moves it forward
+pressure moves aft instead, the side that overstates stability, though a lip longer than its
+boattail's drop moved it forward: which way it goes depends on the body
 ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
 
 The cause is not found

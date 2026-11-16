@@ -105,14 +105,15 @@ found where each stands.
      leaves no more than that spread unexplained; a check in the gate's `refs` step holds the
      report; and the accuracy page's
      rows for frames, gravity and rigid-body flight cite it.
-   - **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* the same free body, given
-     the report's constant roll, pitch and yaw damping coefficients, flies case 3, the
-     tumbling brick with damping, and the report gives HPR Sim's largest difference in each
-     inertial body rate from each code's file beside the codes' own; given a constant drag
-     coefficient that acts along its velocity through the air, it flies cases 6 to 10: the
-     sphere falling in still air, in a steady wind and in a wind that varies with height, and
-     the two shots from sea level, and the report gives its largest difference in position
-     the same way; both are held and traced by M1.14b3's rules; a test holds the drag to act
+   - **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* the same free body, with
+     the report's constant roll, pitch and yaw damping coefficients applied by the test as
+     moments, flies case 3, the tumbling brick with damping, and the report gives HPR Sim's
+     largest difference in each inertial body rate from each code's file beside the codes'
+     own spread; with a constant drag coefficient applied by the test along its velocity
+     through the air, it flies cases 6 to 10: the sphere falling in still air, in a steady
+     wind and in a wind that varies with height, and the two shots from sea level, and the
+     report gives its largest difference in position, as the distance between the two
+     positions, the same way; both are held and traced by M1.14b3's rules; a test holds the drag to act
      along the air-relative velocity at an angle of attack of 90°; and the accuracy page
      cites it.
    - **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* RocketPy at a pinned commit
@@ -169,20 +170,21 @@ found where each stands.
    - **ARL-TN-1128 and the Mach 2.45 drag point: refused,** as ADR-143's correction records
      ([the note][finner-note], §3 and §4).
    - **NASA's check cases 4, 5 and 11 to 17: refused.** One rule sorts the 17. A case is
-     flown when the equations HPR Sim ships can fly it with the case's body given as inputs:
-     its mass, its inertia and its coefficients. A case is refused when it needs a model of
-     the Earth or of the vehicle that HPR Sim does not ship, because flying it would check a
-     model built for the test. The note refused 11 to 17 and left 3, 4 and 5 waiting for a
-     model. Case 3 gives a finless brick constant roll, pitch and yaw damping coefficients.
-     They are inputs, as the constant drag coefficient of cases 6 to 10 is, and what the
-     case then checks is the rigid-body equations under moments that follow the rates, so
-     case 3 joins M1.14b4. Cases 4 and 5 are case 6's fall under another Earth: round, with
+     flown when what it checks is code HPR Sim ships: its frames, gravity, rotation,
+     rigid-body equations, atmosphere and wind. The test gives the body: its mass, its
+     inertia and its loads, which are constant damping coefficients in case 3 and a constant
+     drag along the airspeed in cases 6 to 10. A case is refused when it needs an Earth or a
+     vehicle that HPR Sim does not ship, or lies outside the envelope ([ADR-143][adr-143]).
+     The note refused 11 to 17 and left 3, 4 and 5 waiting for a model. Case 3's damping law
+     is the test's, and what it loads is the shipped rigid-body equations, so case 3 joins
+     M1.14b4. Cases 4 and 5 are case 6's fall under another Earth: round, with
      inverse-square gravitation, fixed in case 4 and turning in case 5. HPR Sim ships no
-     such Earth. Its gravity models are a constant and three WGS-84 forms, and cases 1 and
-     6 to 10 fly in the field it has. Cases 11 to 16 fly an aircraft under flight control.
-     Case 17 is a 314-tonne two-stage rocket to orbit, past Mach 9 in its files and so far
-     outside the envelope, and its codes end 16.790% apart by the report's measure, which is
-     no reference to hold a seventh code to ([the note][nesc-note], §2, §3 and §6).
+     such Earth, so they would check a gravity law built for the test and no shipped code
+     that cases 1 and 6 leave unchecked. Cases 1 and 6 to 10 fly on WGS-84, the Earth HPR
+     Sim has; where case 1's field differs from HPR Sim's normal gravity, M1.14b3's rule
+     has the difference traced. Cases 11 to 16 are an aircraft's, under flight control.
+     Case 17 is a 314-tonne two-stage rocket to orbit, past Mach 9 in its files: outside the
+     envelope ([the note][nesc-note], §2 and §6).
    - **References found since,** such as AGARD Model B ([#859][i-859]), are not §6b's items
      and stay issues.
 
