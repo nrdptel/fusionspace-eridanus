@@ -1369,7 +1369,8 @@ An open issue carries a swap of the nose alone on that flight
 > on average ([report][fixture-report]). It sizes what one difference between the two
 > simulators does to the apogee there. It doesn't say which nose drag is nearer a real
 > tangent ogive: that is unchecked against a measurement
-> ([#616, the nose scored against measured tangent ogives](https://github.com/nrdptel/fusionspace-eridanus/issues/616)).
+> ([evidence row G26, drag compared code to code](evidence.md#g26),
+> [#616, the nose scored against measured tangent ogives](https://github.com/nrdptel/fusionspace-eridanus/issues/616)).
 > The swap is OpenRocket's number for the nose at zero angle of attack, so it leaves out how
 > that drag changes with the angle of attack.
 

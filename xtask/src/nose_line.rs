@@ -447,7 +447,7 @@ pub(crate) struct NoseLine {
     pub drag: Option<Size>,
     /// The mean, over the same flights, of the top Mach number of HPR Sim's own flight, to two
     /// decimals: how far past Mach 1 the line's flights go.
-    pub mean_top_mach: Option<f64>,
+    pub hpr_mean_top_mach: Option<f64>,
 }
 
 impl NoseLine {
@@ -469,7 +469,7 @@ impl NoseLine {
         let over = |of: fn(&(f64, f64, f64, f64)) -> f64| {
             published.then(|| Size::of(swapped.iter().map(of)))
         };
-        let mean_top_mach = published.then(|| {
+        let hpr_mean_top_mach = published.then(|| {
             let mean = swapped.iter().fold(0.0, |sum, s| sum + s.3) / swapped.len() as f64;
             (mean * 100.0).round() / 100.0
         });
@@ -490,7 +490,7 @@ impl NoseLine {
             nose: over(|s| s.0),
             rest: over(|s| s.1),
             drag: over(|s| s.2),
-            mean_top_mach,
+            hpr_mean_top_mach,
         }
     }
 
@@ -534,7 +534,7 @@ impl NoseLine {
         ];
         let published = self.swapped >= FLOOR;
         if sizes.iter().any(|(_, size)| size.is_some() != published)
-            || self.mean_top_mach.is_some() != published
+            || self.hpr_mean_top_mach.is_some() != published
         {
             return fail(format!(
                 "{} flights swapped, and sizes {}: they are given from {FLOOR} flights",
@@ -549,12 +549,12 @@ impl NoseLine {
         }
         // Each flight's top Mach number is above 1, so their mean is; `>=` for its rounding.
         if self
-            .mean_top_mach
+            .hpr_mean_top_mach
             .is_some_and(|mach| !(mach.is_finite() && mach >= ABOVE_MACH))
         {
             return fail(format!(
                 "a mean top Mach number of {:?} over flights that pass Mach {ABOVE_MACH}",
-                self.mean_top_mach
+                self.hpr_mean_top_mach
             ));
         }
         if let (Some(nose), Some(rest), Some(drag)) = (self.nose, self.rest, self.drag) {
@@ -614,7 +614,7 @@ impl NoseLine {
                     size.mean_percent, size.median_percent, size.mean_absolute_percent
                 );
             }
-            if let Some(mach) = self.mean_top_mach {
+            if let Some(mach) = self.hpr_mean_top_mach {
                 let _ = writeln!(
                     page,
                     "\nEach is per cent of OpenRocket's apogee. The top Mach numbers of these \

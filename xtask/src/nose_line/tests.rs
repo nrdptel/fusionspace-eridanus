@@ -494,7 +494,7 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     assert_eq!(line.rest.unwrap().mean_percent, 1.25);
     assert_eq!(line.drag.unwrap().mean_percent, -1.75);
     // (1.02 + 1.5 + 1.214) / 3 = 1.2447, to two decimals.
-    assert_eq!(line.mean_top_mach, Some(1.24));
+    assert_eq!(line.hpr_mean_top_mach, Some(1.24));
     assert_eq!(line.check_consistent(10, 8), Ok(()));
     let page = line.to_markdown();
     assert!(page.contains("5 of the flights both simulators fly. Of those, 3 are swapped."));
@@ -506,7 +506,7 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     let two = NoseLine::of(&three[..3]);
     assert_eq!((two.flights, two.swapped), (3, 2));
     assert_eq!((two.nose, two.rest, two.drag), (None, None, None));
-    assert_eq!(two.mean_top_mach, None);
+    assert_eq!(two.hpr_mean_top_mach, None);
     assert_eq!(two.check_consistent(10, 8), Ok(()));
     let page = two.to_markdown();
     assert!(page.contains("are not given"));
@@ -528,13 +528,13 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     refused(&|line| line.skipped[0].flights = 1, "are not its 5 flights");
     refused(&|line| line.skipped.swap(0, 1), "the reasons are");
     refused(&|line| line.nose = None, "sizes missing");
-    refused(&|line| line.mean_top_mach = None, "sizes missing");
+    refused(&|line| line.hpr_mean_top_mach = None, "sizes missing");
     refused(
-        &|line| line.mean_top_mach = Some(0.99),
+        &|line| line.hpr_mean_top_mach = Some(0.99),
         "mean top Mach number",
     );
     refused(
-        &|line| line.mean_top_mach = Some(f64::NAN),
+        &|line| line.hpr_mean_top_mach = Some(f64::NAN),
         "mean top Mach number",
     );
     refused(
@@ -551,7 +551,7 @@ fn the_lines_count_each_flight_and_give_sizes_from_three_swapped() {
     given.nose = line.nose;
     given.rest = line.rest;
     given.drag = line.drag;
-    given.mean_top_mach = line.mean_top_mach;
+    given.hpr_mean_top_mach = line.hpr_mean_top_mach;
     assert!(
         given
             .check_consistent(10, 8)
