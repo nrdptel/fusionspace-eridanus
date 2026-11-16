@@ -1378,17 +1378,21 @@ and sizes one difference inside its drag part: the pressure drag of a
 drag is the drag from the air's pressure on the nose, mostly
 [wave drag](glossary.md#wave-drag) past Mach 1. It is for anyone comparing the two codes on a
 rocket that flies faster than sound. Like the split, it is code against code, and here over 5
-flights only. None of the 5 passes Mach 1.3, where the public probe shows OpenRocket's defect
-([report][fixture-report]). So the line sizes how the two noses differ between Mach 1 and
-1.3, not the defect itself.
+flights only. None of the 5 passes Mach 1.3, so the line sizes how the two noses differ between
+Mach 1 and 1.3 ([report][fixture-report]). The public probe covers that band too: there
+OpenRocket 24.12's nose coefficient is below HPR Sim's at each of the 31 Mach numbers from 1 to
+1.3, in steps of 0.01, by 0.155 to 0.163 on the nose's base area
+([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
 
 From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag. HPR Sim
 gives it the drag of the cone with its length and base. On an invented rocket at Mach 1.5 the
 nose's coefficient is 0.00073 in OpenRocket and 0.13028 in HPR Sim, both on the nose's base
 area ([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). Between
-Mach 1 and 1.3 the probe says nothing: there each code joins its value at Mach 1.3 to its value
-at Mach 1 in its own way. A maintainer of OpenRocket confirmed the defect and merged a fix,
-which no release carried by November 14, 2026
+Mach 1 and 1.3 each code joins its value at Mach 1 to its value at Mach 1.3. HPR Sim's rises to
+0.23428 at Mach 1.1, and OpenRocket's to a hump of 0.07551 there, falling to 0.00098 at Mach 1.3
+([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). A maintainer
+of OpenRocket confirmed the defect and merged a fix, which no release carried by November 14,
+2026
 ([the probe's section](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
 
 The line is taken inside the drag step. With thrust and mass already OpenRocket's, HPR Sim
@@ -1425,7 +1429,8 @@ What the rows say:
   ([report][fixture-report]).
 - **These flights only just pass Mach 1.** Their top Mach numbers, by HPR Sim's own flights,
   average 1.06, and none passes Mach 1.3 ([report][fixture-report]). That is the band from
-  Mach 1 to 1.3, which the probe doesn't cover. So the line sizes how the two codes' noses
+  Mach 1 to 1.3, where the probe's runs from Mach 1 to 1.3 set the two noses side by side
+  ([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). So the line sizes how the two codes' noses
   differ just past Mach 1, not the near-zero drag OpenRocket gives from Mach 1.3 up. It says
   nothing of a faster flight.
 - **The rest of the drag is larger in mean absolute value, and of either sign.** It is 2.27%

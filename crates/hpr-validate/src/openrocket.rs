@@ -4358,4 +4358,198 @@ mod tests {
             );
         }
     }
+
+    /// `openrocket-nose-pressure-drag-transonic.json`, held to the scripts that wrote it.
+    fn nose_pressure_drag_transonic_record() -> Value {
+        let text = include_str!(
+            "../../../validation/fixtures/ork/openrocket-nose-pressure-drag-transonic.json"
+        );
+        let record: Value = serde_json::from_str(text).expect("the committed record is JSON");
+        for (name, bytes) in [
+            (
+                "nose_pressure_drag_transonic.py",
+                include_bytes!(
+                    "../../../validation/oracles/openrocket/nose_pressure_drag_transonic.py"
+                )
+                .as_slice(),
+            ),
+            (
+                "nose_pressure_drag.py",
+                include_bytes!("../../../validation/oracles/openrocket/nose_pressure_drag.py")
+                    .as_slice(),
+            ),
+            (
+                "automatic_radius.py",
+                include_bytes!("../../../validation/oracles/openrocket/automatic_radius.py")
+                    .as_slice(),
+            ),
+        ] {
+            assert_eq!(
+                record["inputs_sha256"][name],
+                crate::real_flight::sha256_hex(bytes).as_str(),
+                "{name} changed since the record was written: rerun it"
+            );
+        }
+        record
+    }
+
+    /// #1500: the same fineness-3 tangent ogive and its conical control from Mach 1 to 1.3,
+    /// every 0.01, in hpr and in OpenRocket 24.12, on the nose's base area (the rocket's
+    /// reference area on these two designs).
+    ///
+    /// Niskanen's method gives a cone `sin ε` at Mach 1 and eq. B.4 from Mach 1.3, joined by the
+    /// cubic that meets both ends' values and slopes (2009, appendix B, eq. B.3 to B.6); a
+    /// tangent ogive takes its equivalent cone's value (eq. B.8).
+    ///
+    /// - hpr's tangent ogive is its cone at every row, bit for bit: 0.16440 at Mach 1, 0.23428 at
+    ///   Mach 1.1, the highest of the 31 rows, and 0.15571 at Mach 1.3.
+    /// - OpenRocket 24.12's cone, the control, is hpr's within 5e-6 at every even hundredth, so
+    ///   the column read is again the nose's pressure drag. Each odd hundredth of OpenRocket's,
+    ///   for both noses, is the mean of its two neighbors within 1e-15, as if OpenRocket read its
+    ///   curve every 0.02 and drew straight lines between. That leaves its cone within 0.00094
+    ///   (0.53%) of hpr's, the most at Mach 1.01.
+    /// - OpenRocket 24.12's tangent ogive is below hpr's at every row, by 0.155 to 0.163: 1.0%
+    ///   of it at Mach 1, rising to 32.2% at Mach 1.1 (the hump OpenRocket's issue #3391
+    ///   reports), and 0.6% at Mach 1.3.
+    ///
+    /// Neither number is a measurement (#222, #616).
+    #[test]
+    fn a_tangent_ogive_s_pressure_drag_from_mach_1_to_1_3_beside_openrocket_24_12_s() {
+        let record = nose_pressure_drag_transonic_record();
+        let first = nose_pressure_drag_record();
+        assert_eq!(record["openrocket"], "24.12");
+        for key in [
+            "nose_id",
+            "nose_length_m",
+            "nose_base_area_m2",
+            "cites",
+            "jar_sha256",
+            "java",
+        ] {
+            assert_eq!(record[key], first[key], "{key}");
+        }
+        let number = |value: &Value| value.as_f64().expect("a number");
+        let nose = record["nose_id"].as_str().expect("the nose's id");
+        let base_area_m2 = number(&record["nose_base_area_m2"]);
+        let designs = record["designs"].as_object().expect("designs");
+        assert_eq!(
+            designs.keys().map(String::as_str).collect::<Vec<_>>(),
+            ["cone", "tangent ogive"]
+        );
+        // The documents are the first probe's, whose test reads each with hpr and checks that it
+        // holds the nose its name says.
+        for name in ["cone", "tangent ogive"] {
+            assert_eq!(
+                designs[name]["document"],
+                first["designs"][name]["document"]
+            );
+        }
+        let rows = |name: &str| designs[name]["machs"].as_array().expect("machs").clone();
+        let (ogive_rows, cone_rows) = (rows("tangent ogive"), rows("cone"));
+        assert_eq!((ogive_rows.len(), cone_rows.len()), (31, 31));
+        let column = |row: &Value| number(&row["components"][nose]["pressure"]);
+        for (step, (ogive_row, cone_row)) in ogive_rows.iter().zip(&cone_rows).enumerate() {
+            for row in [ogive_row, cone_row] {
+                let mach = 1.0 + 0.01 * step as f64;
+                assert!((number(&row["mach"]) - mach).abs() < 1e-12);
+                assert!((number(&row["reference_area_m2"]) - base_area_m2).abs() < 1e-15);
+            }
+        }
+        // The nose's column at Mach 1.3 is the first probe's.
+        let first_at_1_3 = |name: &str| first["designs"][name]["machs"][0].clone();
+        assert_eq!(number(&first_at_1_3("cone")["mach"]), 1.3);
+        assert_eq!(
+            column(&ogive_rows[30]),
+            column(&first_at_1_3("tangent ogive"))
+        );
+        assert_eq!(column(&cone_rows[30]), column(&first_at_1_3("cone")));
+
+        let document = |name: &str| designs[name]["document"].as_str().expect("a document");
+        let (ogive, cone) = (document("tangent ogive"), document("cone"));
+        // At Mach 1 the method gives the cone sin ε = 1/√37.
+        let at_1 = probe_part_pressure_drag(cone, nose, 1.0, base_area_m2);
+        assert!((at_1 - 37_f64.sqrt().recip()).abs() < 1e-12, "{at_1}");
+        let (mut least_gap, mut most_gap) = (f64::INFINITY, f64::NEG_INFINITY);
+        let mut least_share = (f64::INFINITY, 0.0);
+        let mut most_share = (f64::NEG_INFINITY, 0.0);
+        let (mut odd_gap, mut odd_share, mut odd_at) = (0.0_f64, 0.0_f64, 0.0);
+        let mut highest = (f64::NEG_INFINITY, 0.0);
+        for (step, (ogive_row, cone_row)) in ogive_rows.iter().zip(&cone_rows).enumerate() {
+            let mach = number(&ogive_row["mach"]);
+            let ours = probe_part_pressure_drag(ogive, nose, mach, base_area_m2);
+            let ours_cone = probe_part_pressure_drag(cone, nose, mach, base_area_m2);
+            assert_eq!(ours, ours_cone, "hpr's ogive is its cone at Mach {mach}");
+            if ours > highest.0 {
+                highest = (ours, mach);
+            }
+            // OpenRocket's cone: hpr's at the even hundredths. At the odd ones each of its
+            // columns is the mean of its two neighbors.
+            let cone_gap = column(cone_row) - ours_cone;
+            if step % 2 == 0 {
+                assert!(cone_gap.abs() < 5e-6, "Mach {mach}: {cone_gap:e}");
+            } else {
+                for rows in [&ogive_rows, &cone_rows] {
+                    let mean = 0.5 * (column(&rows[step - 1]) + column(&rows[step + 1]));
+                    let off = column(&rows[step]) - mean;
+                    assert!(off.abs() < 1e-15, "Mach {mach}: {off:e} from the mean");
+                }
+                if cone_gap.abs() > odd_gap {
+                    (odd_gap, odd_at) = (cone_gap.abs(), mach);
+                }
+                odd_share = odd_share.max(cone_gap.abs() / ours_cone);
+            }
+            // OpenRocket's tangent ogive: below hpr's at every row.
+            let gap = ours - column(ogive_row);
+            assert!(gap > 0.0, "Mach {mach}");
+            least_gap = least_gap.min(gap);
+            most_gap = most_gap.max(gap);
+            let share = column(ogive_row) / ours;
+            if share < least_share.0 {
+                least_share = (share, mach);
+            }
+            if share > most_share.0 {
+                most_share = (share, mach);
+            }
+        }
+        assert!((odd_gap - 0.000_94).abs() < 5e-6, "{odd_gap}");
+        assert!((odd_at - 1.01_f64).abs() < 1e-12, "{odd_at}");
+        assert!((highest.1 - 1.1_f64).abs() < 1e-12, "{highest:?}");
+        assert!((odd_share - 0.0053).abs() < 5e-5, "{odd_share}");
+        let share_at_1 = column(&ogive_rows[0]) / at_1;
+        assert!((share_at_1 - 0.0099).abs() < 5e-5, "{share_at_1}");
+        assert!((least_gap - 0.1547).abs() < 1e-4, "{least_gap}");
+        assert!((most_gap - 0.1628).abs() < 1e-4, "{most_gap}");
+        assert!((least_share.0 - 0.0063).abs() < 1e-4, "{least_share:?}");
+        assert!((least_share.1 - 1.3_f64).abs() < 1e-12, "{least_share:?}");
+        assert!((most_share.0 - 0.3223).abs() < 1e-4, "{most_share:?}");
+        assert!((most_share.1 - 1.1_f64).abs() < 1e-12, "{most_share:?}");
+
+        // The rows the aerodynamics page shows: Mach, hpr's tangent ogive (and cone), then
+        // OpenRocket 24.12's tangent ogive and its cone, all on the nose's base area.
+        let shown = [
+            (1.0, 0.164_40, 0.001_62, 0.164_40),
+            (1.05, 0.218_16, 0.058_58, 0.217_41),
+            (1.1, 0.234_28, 0.075_51, 0.234_27),
+            (1.15, 0.224_41, 0.063_54, 0.224_12),
+            (1.2, 0.200_24, 0.038_24, 0.200_24),
+            (1.25, 0.173_45, 0.012_94, 0.173_63),
+            (1.3, 0.155_71, 0.000_98, 0.155_71),
+        ];
+        for (mach, ours_pin, ogive_pin, cone_pin) in shown {
+            let at = ((mach - 1.0) / 0.01_f64).round() as usize;
+            assert!((number(&ogive_rows[at]["mach"]) - mach).abs() < 1e-12);
+            let ours = probe_part_pressure_drag(ogive, nose, mach, base_area_m2);
+            assert!((ours - ours_pin).abs() < 5e-6, "hpr at Mach {mach}: {ours}");
+            let theirs = column(&ogive_rows[at]);
+            assert!(
+                (theirs - ogive_pin).abs() < 5e-6,
+                "OpenRocket at Mach {mach}: {theirs}"
+            );
+            let theirs_cone = column(&cone_rows[at]);
+            assert!(
+                (theirs_cone - cone_pin).abs() < 5e-6,
+                "OpenRocket's cone at Mach {mach}: {theirs_cone}"
+            );
+        }
+    }
 }
