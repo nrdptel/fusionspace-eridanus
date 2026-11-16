@@ -1048,14 +1048,14 @@ found = "no answer. Each notebook imports its log under the name COTS Altimeter 
 [[row]]
 id = "G40"
 surface = "Aerodynamics"
-claim = "A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1.3 to 2 and on the designs of 5 logged flights just past Mach 1"
+claim = "A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1 to 2 and on the designs of 5 logged flights just past Mach 1"
 pages = [
   "accuracy.md#the-tangent-ogive-noses-line",
   "physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412",
 ]
 kind = "code-to-code"
 wanted = "real"
-not_checked = "a measured pressure drag of a tangent ogive past Mach 1, committed as data with a test that scores HPR Sim's nose against it; and the nose between Mach 1 and 1.3, where the probe has no row"
+not_checked = "a measured pressure drag of a tangent ogive past Mach 1, including between Mach 1 and 1.3, committed as data with a test that scores HPR Sim's nose against it"
 issue = 616
 
 [[row.searched]]
