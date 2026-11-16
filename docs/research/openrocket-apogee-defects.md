@@ -35,25 +35,24 @@ defect's size on HPR Sim's comparisons is known only by flying OpenRocket with a
 - **Leads.** #3391 is §2. #2348 is §3. #2507 (effective rail length) is §4. #2442 asks for a vent-hole part that
   "does not need to affect the drag calculations": no defect.
 
-## 2. The defects that touch a comparison (open, signed, unsized)
+## 2. The defects that touch a comparison (open or unreleased, signed, unsized)
 
 ### #3391: tangent-ogive pressure drag above Mach 1
 
-- **What it says.** Above Mach 1, 24.12 gives about 0.0007 (the development line exactly 0); the technical
+- **What it says.** Above Mach 1, 24.12 gives about 0.0007 (the development line then exactly 0); the technical
   documentation's ogive method gives about 0.13 at Mach 1.5. The reporter traces it to the subsonic zero of #2999
   also feeding the supersonic curve, and reports a false hump of about 0.075 near Mach 1.1 [S2].
-- **State.** Closed 2026-11-02 by pull request #3431, on the development line only; 24.12's values: ADR-349's probe.
-- **Sign.** Drag low above Mach 1, so OpenRocket's apogee and top speed high. The hump, if 24.12 has it (the issue
-  doesn't say), pulls the other way near Mach 1.1.
+- **State.** Fixed 2026-11-02 on the development line by pull request #3431; in no release on 2026-11-16 [S2].
+- **Sign.** Drag low above Mach 1, so OpenRocket's apogee and top speed high. On the probe's fineness-3 nose, 24.12's
+  hump peaks at 0.0755 at Mach 1.1, 32.2% of the method's 0.234, below the method at every Mach read [S22].
 - **Size.** The issue sizes a drag coefficient, not an apogee. Measured references put a fineness-3 tangent ogive at
   0.110 to 0.119 near Mach 1.5 ([ogive wave drag](ogive-wave-drag.md)). The documentation's cone formula, which it
   states from about Mach 1.3, gives 0.130 at fineness 3 and 0.065 at fineness 5 [S11, eq. B.4].
 - **54 example configurations.** One flight passes Mach 1: *Dual parachute deployment* on a J570W-P, peak Mach
   1.147, HPR Sim's apogee 4.34% below OpenRocket's [S12]. Its nose is a tangent ogive of fineness 5.0, read from
   24.12's example file [S13]. It peaks under power; OpenRocket's power-off drag curve ends at Mach 1.052, total
-  0.97 there [S12]. **Inference:** the flight never reaches Mach 1.3, so mostly the hump and the transonic blend
-  bear on it; restoring the wave drag would lower OpenRocket's apogee and narrow the −4.34%, removing the hump would
-  widen it. Neither is sized; the report gives no time above Mach 1.
+  0.97 there [S12]. **Inference:** if its nose reads like the probe's, 24.12 is under the method below Mach 1.3, where
+  the flight stays [S22], so the fix would lower OpenRocket's apogee and narrow the −4.34% by an unsized amount.
 - **#222.** On the private collection's supersonic case `C06/1`, HPR Sim less OpenRocket is +13.60%; +1.11% on
   OpenRocket's drag; −10.71% with OpenRocket's base rule alone [S14, S21]. **Inference:** about 11.8 points sit in
   drag other than the base (nose, fins, and the pressure drag OpenRocket gives no part). #3391 is the nose's share;
@@ -152,8 +151,9 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 - **Terms.** OpenRocket is GPL-3.0; only issue, pull-request and forum text is cited, nothing copied. Its motor
   database states no terms, so cite impulses only. Its curves come from ThrustCurve.org, which grants no license.
 - **M2.9's OpenRocket cells.** No open defect has an own-report size above 0.5% of apogee, so the list ADR-246 asks
-  for holds only unsized rows: #3391 (supersonic flights, OpenRocket high), #3318 (pending fix, OpenRocket high on
-  stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
+  for holds only unsized rows: #3391 (fix unreleased; supersonic flights, OpenRocket high; unsized on 24.12's examples
+  until [#733](https://github.com/nrdptel/fusionspace-eridanus/issues/733) sizes it), #3318 (pending fix, OpenRocket
+  high on stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
 - **M2.3c6.** A fineness-0.58 ellipsoid beside ADR-273's fineness-3 nose probe would show a #3318 merge as its own
   row. 24.12's component drag on *Base drag hack (short-wide)* and *Dual parachute deployment* would turn this
   note's two upper bounds into measurements.
@@ -161,17 +161,16 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 
 ## Open questions
 
-- Whether #3391's hump is in 24.12, and how long the J570W-P flight stays above Mach 1; what 24.12 gives the
-  fineness-0.58 ellipsoid subsonically (its component drag would say).
+- J570W-P's time above Mach 1; if its nose reads like the probe's [S22]; 24.12's drag on the fineness-0.58 ellipsoid.
 - How many collection flights pass Mach 1 on a tangent ogive, or carry a stubby stored-table nose.
 - #2489's and #2892's numbers, which exist only in images; whether #1062 and #3399 hold in 24.12 itself.
 
 ## Sources
 
-All read 2026-10-17; issue texts are cached in the gitignored `refs/research/openrocket-apogee-defects/`.
+All read 2026-10-17 unless dated; issue texts are cached in the gitignored `refs/research/openrocket-apogee-defects/`.
 
 1. **S1.** Open issues and pull requests, GitHub API. <https://github.com/openrocket/openrocket/issues>
-2. **S2.** #3391. <https://github.com/openrocket/openrocket/issues/3391>
+2. **S2.** #3391 (state and releases read again 2026-11-16). <https://github.com/openrocket/openrocket/issues/3391>
 3. **S3.** #3318, description, comments and reviews. <https://github.com/openrocket/openrocket/pull/3318>
 4. **S4.** #2489 and its timeline. <https://github.com/openrocket/openrocket/issues/2489>
 5. **S5.** Rocketry Forum, "Weathercock simulations all over the place", from 2024-05-30.
@@ -198,3 +197,4 @@ All read 2026-10-17; issue texts are cached in the gitignored `refs/research/ope
     #1626, #3173, #1145, #818, #2895, #1864, #2028, #1496. <https://github.com/openrocket/openrocket/issues>
 20. **S20.** #3041, #2639 (fixed by #2667), #3342. <https://github.com/openrocket/openrocket/issues/2639>
 21. **S21.** [`openrocket-library-flights.md`](../../validation/reports/openrocket-library-flights.md).
+22. **S22.** [Nose probe tables, 2026-11-16](../physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412).
