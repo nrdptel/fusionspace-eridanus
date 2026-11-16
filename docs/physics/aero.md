@@ -4721,10 +4721,14 @@ pressure 0.02 to 0.04 calibers further forward:
 | 3.147 | 1.14 | 7.74 | −10.9% | −0.26 |
 
 This is nearer like for like, not like for like. A straight line fitted over a spread of angles
-leans toward the larger ones, so the root-mean-square yaw is a low reading of the angle a fit
-stands for. At a larger one HPR Sim's miss in the slope would be smaller again and, by the
-trend of the table above, its miss in the center of pressure larger. DREV's table gives no other
-measure of the angles that the report defines, so the comparison stops here.
+leans toward the larger ones: the fit weights them more, and the part of the lift that grows with
+the square of the angle is largest there. So the root-mean-square yaw is a low reading of the
+angle a fit stands for. At a larger one HPR Sim's miss in the slope would be smaller again and,
+by the trend of the table above, its miss in the center of pressure larger.
+
+Under each mean squared yaw, DREV's table prints a second figure, headed ABARM. The report
+defines no such symbol. It defines AMAX, the maximum angle of attack, but the table does not give
+it. So the comparison stops at the root-mean-square yaw.
 
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
 center of pressure is forward on every row, and by more than the probable error on all but Mach
@@ -4736,11 +4740,15 @@ measured margin at Mach 1.832 is 2.37 calibers and HPR Sim's is
 2.04. The test pins each row's sign and size, so a change to the model that moved the center of
 pressure aft of the measured one would fail it.
 
-The direction is this body's and does not carry to another rocket. Where a shape trips one of
-the four switches that fall back to slender-body theory faster than sound, HPR Sim's center of
-pressure moves aft instead, the side that overstates stability, though a lip longer than its
-boattail's drop moved it forward: which way it goes depends on the body
-([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
+The direction is this body's and does not carry to another rocket. Faster than sound, a small
+change of shape can take a body off the shock-expansion method and onto slender-body theory: the
+*switches* ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
+At four of them (a step in radius, a flare too long for its boattail's wake, a pointed tip
+steeper than 30°, and a vertical tip steeper than the cap's handover) HPR Sim's center of
+pressure then lies aft of where the shock-expansion method puts it, the side that overstates
+stability. At the fifth, a lip longer than its boattail's drop, it lies forward. Those are jumps
+between two of HPR Sim's own methods, not errors against a measurement, so which way the center
+of pressure moves on a given rocket depends on its body.
 
 The cause is not found
 ([#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)). The measurement can't say
