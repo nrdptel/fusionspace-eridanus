@@ -643,10 +643,7 @@ fn decide(
     separates: bool,
     column: Result<Value, String>,
     fails_from: usize,
-) -> (
-    Result<Option<Result<[Value; 2], &'static str>>, String>,
-    Vec<(String, bool)>,
-) {
+) -> (Result<LibraryDecision, String>, Vec<(String, bool)>) {
     let mut asked = Vec::new();
     let decided = library_flight(facts, separates, || column, &mut |swap, whole_base| {
         asked.push((swap.nose_id.clone(), whole_base));
@@ -672,9 +669,7 @@ fn a_library_flight_of_the_line_is_swapped_or_skipped_under_its_reason() {
     let one = |top: f64| facts(json!(top), 1, json!(false));
     let ogive = || Ok(column(&[(1.0, 0.1), (2.5, 0.001)], 0.002, "OGIVE"));
     let asked_for_nothing = || Err("the record was read".to_owned());
-    let reason = |name: &'static str| -> Result<Option<Result<[Value; 2], &'static str>>, String> {
-        Ok(Some(Err(name)))
-    };
+    let reason = |name: &'static str| -> Result<LibraryDecision, String> { Ok(Some(Err(name))) };
 
     // Swapped: both flights, in that order, on the airframe's nose.
     let (decided, asked) = decide(&one(1.01), false, ogive(), 2);

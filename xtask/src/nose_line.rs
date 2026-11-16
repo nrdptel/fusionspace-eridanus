@@ -590,6 +590,10 @@ impl LibraryColumns {
     }
 }
 
+/// What [`library_flight`] gives of a flight: `None` when it is not one of the line's; else
+/// its two flights with the column swapped in, or the reason it is skipped.
+pub(crate) type LibraryDecision = Option<Result<[Value; 2], &'static str>>;
+
 /// A flight of the design library's report, as the line counts it, from what [`own_facts`]
 /// read of HPR Sim's own flight: `None` when it is not one of the line's flights (its top Mach
 /// number not above 1, or no tangent-ogive nose at the front of its airframe, as [`in_line`]
@@ -610,7 +614,7 @@ pub(crate) fn library_flight(
     separates: bool,
     column: impl FnOnce() -> Result<Value, String>,
     fly: &mut dyn FnMut(NoseSwap, bool) -> Result<Value, String>,
-) -> Result<Option<Result<[Value; 2], &'static str>>, String> {
+) -> Result<LibraryDecision, String> {
     let top_mach = facts["top_mach"]
         .as_f64()
         .ok_or("a Mach number along HPR Sim's own flight is not a number")?;
