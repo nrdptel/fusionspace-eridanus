@@ -4508,7 +4508,8 @@ What is checked: the pressure drag HPR Sim gives a [tangent ogive](../glossary.m
 follows, with [OpenRocket](../glossary.md#openrocket) 24.12's beside it; and from Mach 1 to 1.3, every 0.01,
 beside OpenRocket 24.12's. Pressure drag is the drag from the air's
 pressure on the nose, mostly [wave drag](../glossary.md#wave-drag) past Mach 1. The result: HPR Sim gives the
-method's value, and OpenRocket 24.12 gives under 1% of it. This is one code against another, not a
+method's value. From Mach 1.3 up OpenRocket 24.12 gives under 1% of it, and from Mach 1 to 1.3
+0.6% to 32.2% of it. This is one code against another, not a
 measurement. It shows where the two differ. It doesn't show which matches a real nose.
 
 The probe is an invented rocket: a nose 150 mm (5.9 in) long on a tube 50 mm (2.0 in) across, with a
@@ -4556,7 +4557,7 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
   control shows that OpenRocket's number is on the reference area. With the body widened behind the nose to
   80 mm (3.1 in), the reference area is 2.56 times the nose's base, and OpenRocket's number for the nose
   falls to 1/2.56 of the first control's.
-- **OpenRocket 24.12's tangent ogive** is under 1% of the equivalent cone's at each Mach number. That is
+- **OpenRocket 24.12's tangent ogive** is under 1% of the equivalent cone's at each Mach number in this table. That is
   the defect [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) reported
   on this shape. A maintainer confirmed it on November 2, 2026, and a fix was merged to OpenRocket's
   development branch that day ([pull request #3431](https://github.com/openrocket/openrocket/pull/3431)).

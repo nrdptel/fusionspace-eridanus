@@ -1427,7 +1427,8 @@ What the rows say:
   ([report][fixture-report]).
 - **These flights only just pass Mach 1.** Their top Mach numbers, by HPR Sim's own flights,
   average 1.06, and none passes Mach 1.3 ([report][fixture-report]). That is the band from
-  Mach 1 to 1.3, which the probe doesn't cover. So the line sizes how the two codes' noses
+  Mach 1 to 1.3, where the probe's second record sets the two noses side by side
+  ([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). So the line sizes how the two codes' noses
   differ just past Mach 1, not the near-zero drag OpenRocket gives from Mach 1.3 up. It says
   nothing of a faster flight.
 - **The rest of the drag is larger in mean absolute value, and of either sign.** It is 2.27%

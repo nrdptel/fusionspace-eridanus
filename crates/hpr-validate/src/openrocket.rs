@@ -4402,7 +4402,7 @@ mod tests {
     /// tangent ogive takes its equivalent cone's value (eq. B.8).
     ///
     /// - hpr's tangent ogive is its cone at every row, bit for bit: 0.16440 at Mach 1, 0.23428 at
-    ///   the top of the join at Mach 1.1, 0.15571 at Mach 1.3.
+    ///   Mach 1.1, the highest of the 31 rows, and 0.15571 at Mach 1.3.
     /// - OpenRocket 24.12's cone, the control, is hpr's within 5e-6 at every even hundredth and
     ///   within 0.00094 (0.53%) at the odd ones: so the column read is again the nose's
     ///   pressure drag.
@@ -4446,7 +4446,7 @@ mod tests {
                 assert!((number(&row["reference_area_m2"]) - base_area_m2).abs() < 1e-15);
             }
         }
-        // The row at Mach 1.3 is the first probe's.
+        // The nose's column at Mach 1.3 is the first probe's.
         let first_at_1_3 = |name: &str| first["designs"][name]["machs"][0].clone();
         assert_eq!(number(&first_at_1_3("cone")["mach"]), 1.3);
         assert_eq!(
