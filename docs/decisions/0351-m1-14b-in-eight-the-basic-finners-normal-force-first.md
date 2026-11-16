@@ -97,10 +97,13 @@ found where each stands.
      flies case 1 (the dragless sphere) and case 2 (the tumbling brick) from the report's
      initial conditions and unit factors; a committed report gives, for each case, HPR Sim's
      largest difference over the 30 s from each code's file, in altitude for case 1 and in
-     each inertial body rate for case 2, beside the largest difference between the codes
-     themselves; any difference of HPR Sim's larger than the codes' own is traced, in a
-     decision record, to a named difference in the models whose size, computed apart from
-     the flight, accounts for it; a check in the gate's `refs` step holds the report; and the accuracy page's
+     each inertial body rate for case 2, beside the codes' own spread: the largest
+     difference among the codes, with any one code left out, and named, whose leaving cuts
+     that spread by more than half, its own difference given beside; any difference of HPR
+     Sim's from a code that is kept which is larger than that spread is traced, in a decision
+     record, to a named difference in the models whose size, computed apart from the flight,
+     leaves no more than that spread unexplained; a check in the gate's `refs` step holds the
+     report; and the accuracy page's
      rows for frames, gravity and rigid-body flight cite it.
    - **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* the same free body, given
      the report's constant roll, pitch and yaw damping coefficients, flies case 3, the
@@ -165,16 +168,21 @@ found where each stands.
      ([the note][database-note], §3 to §6).
    - **ARL-TN-1128 and the Mach 2.45 drag point: refused,** as ADR-143's correction records
      ([the note][finner-note], §3 and §4).
-   - **NASA's check cases 4, 5 and 11 to 17: refused.** The note refused 11 to 17 and left
-     3, 4 and 5 waiting for a model. Case 3 gives a finless brick constant roll, pitch and
-     yaw damping coefficients. A free body can carry them as given, as it carries the
-     constant drag coefficient of cases 6 to 10, and what the case then checks is the
-     rigid-body equations under moments that follow the rates, so case 3 joins M1.14b4. This
-     record refuses 4 and 5. They use inverse-square gravitation on a round Earth, which
-     none of HPR Sim's gravity models is; case 6 is the same fall on the WGS-84 ellipsoid.
-     Cases 11 to 16 fly an aircraft under flight control. Case 17 is a 314-tonne two-stage
-     rocket to orbit, whose aerodynamics don't vary with Mach number
-     ([the note][nesc-note], §2 and §6).
+   - **NASA's check cases 4, 5 and 11 to 17: refused.** One rule sorts the 17. A case is
+     flown when the equations HPR Sim ships can fly it with the case's body given as inputs:
+     its mass, its inertia and its coefficients. A case is refused when it needs a model of
+     the Earth or of the vehicle that HPR Sim does not ship, because flying it would check a
+     model built for the test. The note refused 11 to 17 and left 3, 4 and 5 waiting for a
+     model. Case 3 gives a finless brick constant roll, pitch and yaw damping coefficients.
+     They are inputs, as the constant drag coefficient of cases 6 to 10 is, and what the
+     case then checks is the rigid-body equations under moments that follow the rates, so
+     case 3 joins M1.14b4. Cases 4 and 5 are case 6's fall under another Earth: round, with
+     inverse-square gravitation, fixed in case 4 and turning in case 5. HPR Sim ships no
+     such Earth. Its gravity models are a constant and three WGS-84 forms, and cases 1 and
+     6 to 10 fly in the field it has. Cases 11 to 16 fly an aircraft under flight control.
+     Case 17 is a 314-tonne two-stage rocket to orbit, past Mach 9 in its files and so far
+     outside the envelope, and its codes end 16.790% apart by the report's measure, which is
+     no reference to hold a seventh code to ([the note][nesc-note], §2, §3 and §6).
    - **References found since,** such as AGARD Model B ([#859][i-859]), are not §6b's items
      and stay issues.
 
@@ -240,8 +248,8 @@ below Mach 1.5, and [#1502][i-1502] the four above. [The aerodynamics page][aero
 HPR Sim's slope split into its body's part and its fins'.
 
 **Consequences.** The roadmap's M1.14b entry gains its eight increments and M1.14b1 is checked.
-M1.14c and M1.14d name the Basic Finner's rows in their bands as inputs, and M1.14h's *done
-when* gains the two rows above Mach 2.5.
+The *done when* of M1.14c, of M1.14d and of M1.14h each gain the Basic Finner's rows in its
+band, to be re-measured.
 The accuracy page gains a row, the aerodynamics page a section, and the validation plan the
 list of §6b's nine. `cargo xtask aero` writes the report, `cargo xtask designs` the design, and
 `hpr_aero::tests::basic_finner_normal_force_against_drev` recomputes both sides in CI.

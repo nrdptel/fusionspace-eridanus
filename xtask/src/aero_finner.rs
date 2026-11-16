@@ -456,7 +456,7 @@ mod tests {
                 "at Mach {} the table gives $C_{{N\\alpha}} = {cn}$ and $C_{{m\\alpha}} = {}$, so \
                  the center of pressure is ${about:.2} + {}/{cn} = {measured:.2}$ from the nose tip",
                 f(&row["mach"]),
-                signed(cm.to_string()).replace('\u{2212}', "-"),
+                cm,
                 cm.abs(),
             ),
         );

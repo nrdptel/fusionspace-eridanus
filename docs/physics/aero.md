@@ -4654,10 +4654,10 @@ DREV's, as a share of DREV's, worked from the unrounded figures, so a negative o
 | 2.718 | 9.01 (2%) | 3.33 | 4.84 | 8.17 | −9.3% |
 | 3.147 | 8.69 (1%) | 3.39 | 4.17 | 7.56 | −13.0% |
 
-**The center of pressure,** in calibers from the nose tip. The error is HPR Sim's less DREV's, so a
-negative one is forward.
+**The center of pressure,** in calibers from the nose tip, DREV's with its probable error in
+parentheses. The error is HPR Sim's less DREV's, so a negative one is forward.
 
-| Mach | DREV's center of pressure, calibers (probable error) | HPR Sim's, calibers | error, calibers |
+| Mach | DREV's, calibers (probable error) | HPR Sim's, calibers | error, calibers |
 |--:|--:|--:|--:|
 | 1.077 | 8.35 (0.06) | 8.28 | −0.07 |
 | 1.293 | 8.29 (0.08) | 8.26 | −0.03 |
@@ -4672,8 +4672,8 @@ reads 24.9% low at both Mach numbers, with the center of pressure 0.07 and 0.03 
 From Mach 2.5 to 3.5 the slope reads 9.3% and 13.0% low, and the center of pressure 0.27 and 0.23
 calibers forward.
 
-**At each fit's root-mean-square yaw.** Yaw is the report's word for the whole angle of attack.
-On these six rows the fits hold at zero the terms that grow with the cube of that angle, so each
+**At each fit's root-mean-square yaw.** The table's mean squared yaw is read here as the mean
+square of the whole angle of attack. On these six rows the fits hold at zero the terms that grow with the cube of that angle, so each
 measured slope is a straight-line fit over the angles the models flew. The table gives each fit's
 mean squared yaw, 0.7 to 1.9 square degrees. HPR Sim's [body lift](../glossary.md#body-lift) grows
 with the angle, so at an angle its $C_N/\alpha$ is above its small-angle slope. At each fit's
@@ -4691,7 +4691,8 @@ pressure 0.02 to 0.04 calibers further forward:
 
 This is nearer like for like, not like for like. A straight line fitted over a spread of angles
 leans toward the larger ones, so the root-mean-square yaw is a low reading of the angle a fit
-stands for, and at a larger one HPR Sim's miss in the slope would be smaller again. The table
+stands for. At a larger one HPR Sim's miss in the slope would be smaller again and, by the
+table's trend, its miss in the center of pressure larger. The table
 gives no other measure of the angles that the report defines, so the comparison stops here.
 
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
@@ -4705,8 +4706,9 @@ measured margin at Mach 1.832 is 2.37 calibers and HPR Sim's is
 pressure aft of the measured one would fail it.
 
 The direction is this body's and does not carry to another rocket. Where a shape trips one of
-the body's fallbacks faster than sound, HPR Sim's center of pressure moves aft instead, the side
-that overstates stability
+the four switches that fall back to slender-body theory faster than sound, HPR Sim's center of
+pressure moves aft instead, the side that overstates stability, and a lip longer than its
+boattail's drop moves it forward
 ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
 
 The cause is not found
