@@ -4405,9 +4405,9 @@ mod tests {
     ///   Mach 1.1, the highest of the 31 rows, and 0.15571 at Mach 1.3.
     /// - OpenRocket 24.12's cone, the control, is hpr's within 5e-6 at every even hundredth, so
     ///   the column read is again the nose's pressure drag. Each odd hundredth of OpenRocket's,
-    ///   for both noses, is the mean of its two neighbors within 1e-15: OpenRocket reads its
-    ///   curve every 0.02 and draws straight lines between. That leaves its cone at most 0.00094
-    ///   (0.53%) below hpr's, at Mach 1.01.
+    ///   for both noses, is the mean of its two neighbors within 1e-15, as if OpenRocket read its
+    ///   curve every 0.02 and drew straight lines between. That leaves its cone within 0.00094
+    ///   (0.53%) of hpr's, the most at Mach 1.01.
     /// - OpenRocket 24.12's tangent ogive is below hpr's at every row, by 0.155 to 0.163: 1.0%
     ///   of it at Mach 1, rising to 32.2% at Mach 1.1 (the hump OpenRocket's issue #3391
     ///   reports), and 0.6% at Mach 1.3.

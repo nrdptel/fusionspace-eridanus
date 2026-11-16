@@ -4597,12 +4597,12 @@ coefficient on its base area, at zero angle of attack, at seven of the 31 rows:
 - **The control.** OpenRocket 24.12's cone matches HPR Sim's cone within $5 \times 10^{-6}$ at
   every even hundredth (Mach 1.00, 1.02 and so on). So the number read is again the nose's own
   pressure drag. At each odd hundredth, OpenRocket's number for either nose is the mean of the two
-  beside it: it reads its curve every 0.02 and draws straight lines between. That puts its cone at
-  most 0.00094 below HPR Sim's, at Mach 1.01, 0.53% of HPR Sim's.
+  beside it, as if it read its curve every 0.02 and drew straight lines between. That leaves its
+  cone within 0.00094 of HPR Sim's, 0.53%, the most at Mach 1.01.
 
-So from Mach 1 to 1.3, too, OpenRocket 24.12 gives this tangent ogive a small part of the pressure
-drag its documented method gives: 0.6% to 32.2% of HPR Sim's. This is code against code, and it
-doesn't show which matches a real nose.
+So from Mach 1 to 1.3, too, OpenRocket 24.12 gives this tangent ogive far less pressure drag than
+its documented method gives: 0.6% to 32.2% of HPR Sim's. This is code against code, and it doesn't
+show which matches a real nose.
 
 What the two codes' noses do to an apogee is sized, code against code, on the designs of 5 logged
 flights that pass Mach 1 with a tangent-ogive nose. They reach Mach 1.06 on average and none passes
