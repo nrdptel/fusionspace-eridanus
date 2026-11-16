@@ -158,12 +158,11 @@ the descent rates and the landing points.
        figure, and its cause if it is left out. A flight that is refused or left out keeps
        its record, with its cause. A record is never written over an older one.
      - Each record's SHA-256, a fingerprint of the record, is merged in a list of its own,
-       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]). A flight
-       whose record's hash is on that list is sealed: its record can't change unseen. A
-       digest of the sealed flights' ids is merged beside the list, and covers every flight
-       with a record. The list holds one hash for each
-       sealed id and no other: the run stops on a sealed id whose record's hash isn't on it,
-       and on a hash that no record matches.
+       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]). A digest
+       of the ids of every flight with a record is merged beside the list. A flight whose
+       id is in that digest is sealed: its record can't change or go unseen. The list holds
+       one hash for each sealed id and no other: the run stops on a sealed id whose record's
+       hash isn't on it, and on a hash that no record matches.
      - OpenRocket 24.12's speed is read from its own flight's history at the same travel, not
        from its launch-rod figure, whose travel may differ. The run that stores that history
        merges here.

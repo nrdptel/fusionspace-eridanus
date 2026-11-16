@@ -105,11 +105,11 @@ Placed with [ADR-352][adr-352], which promotes the first; the other three are SO
   report counts the flown designs with no rail guide and those at the smoothest finish, then
   flies each again with guides sized by a rule fixed beforehand and a named painted finish.
   Moves: `bias.collection`, as a shown diagnosis, never the scored cell: a changed default is
-  a correction of another form, which [ADR-346][adr-346] has judged on flights predicted
-  first. *Done when:* the guide rule and the finish's roughness are merged with their sources
-  before the second flights are flown; the report gives the two counts and the mean signed
-  and absolute errors both ways, on each half and on the public flights; and it gives the
-  share of the bias the two explain with a paired bootstrap 95% interval.
+  a correction of another form, which [ADR-346][adr-346] makes a new decision, judged on
+  flights predicted first. *Done when:* the guide rule and the finish's roughness are merged
+  with their sources before the second flights are flown; the report gives the two counts
+  and the mean signed and absolute errors both ways, on each half and on the public flights;
+  and it gives the share of the bias the two explain with a paired bootstrap 95% interval.
 - SOON: an accelerometer's climb against its own barometer. User: a flyer reading a top speed
   or an acceleration from a logger, and a reader weighing [M2.14][m2-14]'s readings. The
   analyzer takes an accelerometer's scale as known to 10%; the same notes say one logger
