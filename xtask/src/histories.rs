@@ -425,6 +425,22 @@ pub(crate) mod tests {
             self.build_at(self.site.height_m)
         }
 
+        /// The same flight of the design after `edit`, for a test that needs a part the public
+        /// designs don't have. OpenRocket's record stays the unedited design's.
+        pub(crate) fn edited(&self, edit: impl FnOnce(&mut hpr_design::Rocket)) -> Self {
+            let mut rocket = self.rocket.clone();
+            edit(&mut rocket);
+            Self {
+                file: self.file.clone(),
+                rocket,
+                configuration: self.configuration.clone(),
+                site: self.site,
+                rail: self.rail,
+                times_s: self.times_s.clone(),
+                flight: self.flight.clone(),
+            }
+        }
+
         /// The flight from the same place `height_m` above the ellipsoid, in the standard air
         /// there.
         pub(crate) fn build_at(&self, height_m: f64) -> Result<Simulation, String> {

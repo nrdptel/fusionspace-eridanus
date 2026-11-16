@@ -232,9 +232,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3c1 Logged apogees ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c4 One fixture repo ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c5 The corpus rechecked ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3c6 The gap to OpenRocket, by cause ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c10 The fineness-3 nose probe ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c12 The split in the fixture report ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3c13 The tangent-ogive nose's line ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.4 Accuracy census gate ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11 Ejected sections and payloads ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11a Pieces at any joint ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1342,12 +1344,25 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M2.3c5 The corpus rechecked.** (ADR-238) *Done when:* each corpus flight the collection's
       catalog flags (68 of 83) is settled against its log and evidence, the manifest fixed and
       the fixture report regenerated, saying what moved. Moves: accuracy.
-    - **M2.3c6** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+    - [x] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273; ADR-349: in four, below;
+      met when they are). *Done when:* the fixture
+      report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
+      parts, each input swapped for OpenRocket's in that order, the rest named as other, the parts
+      tested to sum to the whole. The drag part splits off the pressure drag of tangent-ogive noses
+      above Mach 1 (ADR-273: OpenRocket's #3391), by swapping in OpenRocket's per-component nose
+      pressure drag as its public interface reports it: its share of the gap, with its sign, over
+      the flights whose hpr flight passes Mach 1 with a tangent-ogive nose, each such flight counted
+      as swapped or skipped with its reason, #222's flight among those swapped or an ADR saying why
+      not; and a public fineness-3 probe sets OpenRocket 24.12's and hpr's nose pressure drag, on
+      the nose's base area, at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
+      test pinning hpr's at each. Moves: accuracy.
       - [x] **M2.3c10 The fineness-3 nose probe.** *Done when:* ADR-349 decision 2's for M2.3c10.
       - [x] **M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim.** *Done when:*
         ADR-349 decision 2's for M2.3c11.
       - [x] **M2.3c12 The split in the fixture report.** *Done when:* ADR-349 decision 2's for
         M2.3c12.
+      - [x] **M2.3c13 The tangent-ogive nose's line.** *Done when:* ADR-349 decision 2's for
+        M2.3c13.
 - [x] **M2.4 Accuracy census gate.** Generate a summary census (a README table and badge) from the
   report. CI fails on any per-case regression beyond tolerance.
   - Loft lessons: L84, L85, L86, L88.

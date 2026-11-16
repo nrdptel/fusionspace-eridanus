@@ -25,60 +25,59 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, ADR-322): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M2.3c6 The gap to OpenRocket, by cause
-2. M1.14 Accuracy inside the envelope
-3. M2.3c2 Logged traces
-4. M2.12 Descent rates against the logs
-5. M2.13 Landing points against the tracked landings
-6. M2.3d4 A stage's override that adds to its parts
-7. M2.3c9 Every flight OpenRocket flies
-8. M2.8 Honest uncertainty
-9. M7.3 A flight against its simulation
-10. M10.2 Release 0.2: the flight analyzer
-11. M0.13 Awareness and care on the sites
-12. M0.9g The figures' digits and the command line's words
-13. M2.3c3 OpenRocket's newest release
-14. M2.6 An open benchmark
-15. M7.4 Fault diagnosis
-16. M10.3 Release 0.3: accuracy and diagnosis
-17. M2.11 Fin flutter held to measurement
-18. M2.3c7 Faster than sound: published flights
-19. M6.3 Challenge specs and presets
-20. M6.4 Airbrakes
-21. M6.2e Robust mode
-22. M6.6 Submission packs
-23. M6.7 Ejection charges
-24. M3.5 RASAero `.CDX1` import/export
-25. M3.6 RocketPy interop
-26. M2.9 The other tools' cells
-27. M6.8 Field kit: checklists, the settings check and the ground-test log
-28. M0.7b Rocketry explained: recovery, wind and motors
-29. M10.4 Release 0.4: the competition kit
-30. M4.4 C ABI and WASM
-31. M9.0 UI architecture ADR plus a spike
-32. M9.2 3D flight replay with a ghost
-33. M10.5 Release 0.5: the app preview
-34. M0.7c Rocketry explained: live figures
-35. M5.6a A catalog of hpr's own: format, search and a parts list
-36. M8.2 Edit model for UIs
-37. M9.1 Desktop app shell
-38. M5.6b Parachutes and recovery hardware
-39. M8.1 Design assistant
-40. M5.6c Motor hardware and rail buttons
-41. M5.6d More makers and electronics
-42. M3.4 RockSim `.rkt` import/export
-43. M9.3 Web PWA
-44. M10.6 Release 1.0: the app
-45. M0.7d Rocketry explained: the rest of the hobby
-46. M11.1 A motor of your own
-47. M11.2 Experimental solids
-48. M12.1 Parachute gores
-49. M12.2 Opening loads
-50. M9.4 Mobile
-51. M9.6 The four web tools, rebuilt
-52. M6.5 Roll control: tail-fin tabs and canards
-53. M13.3 Flight computer logic
-54. M13.1 Ground station
+1. M1.14 Accuracy inside the envelope
+2. M2.3c2 Logged traces
+3. M2.12 Descent rates against the logs
+4. M2.13 Landing points against the tracked landings
+5. M2.3d4 A stage's override that adds to its parts
+6. M2.3c9 Every flight OpenRocket flies
+7. M2.8 Honest uncertainty
+8. M7.3 A flight against its simulation
+9. M10.2 Release 0.2: the flight analyzer
+10. M0.13 Awareness and care on the sites
+11. M0.9g The figures' digits and the command line's words
+12. M2.3c3 OpenRocket's newest release
+13. M2.6 An open benchmark
+14. M7.4 Fault diagnosis
+15. M10.3 Release 0.3: accuracy and diagnosis
+16. M2.11 Fin flutter held to measurement
+17. M2.3c7 Faster than sound: published flights
+18. M6.3 Challenge specs and presets
+19. M6.4 Airbrakes
+20. M6.2e Robust mode
+21. M6.6 Submission packs
+22. M6.7 Ejection charges
+23. M3.5 RASAero `.CDX1` import/export
+24. M3.6 RocketPy interop
+25. M2.9 The other tools' cells
+26. M6.8 Field kit: checklists, the settings check and the ground-test log
+27. M0.7b Rocketry explained: recovery, wind and motors
+28. M10.4 Release 0.4: the competition kit
+29. M4.4 C ABI and WASM
+30. M9.0 UI architecture ADR plus a spike
+31. M9.2 3D flight replay with a ghost
+32. M10.5 Release 0.5: the app preview
+33. M0.7c Rocketry explained: live figures
+34. M5.6a A catalog of hpr's own: format, search and a parts list
+35. M8.2 Edit model for UIs
+36. M9.1 Desktop app shell
+37. M5.6b Parachutes and recovery hardware
+38. M8.1 Design assistant
+39. M5.6c Motor hardware and rail buttons
+40. M5.6d More makers and electronics
+41. M3.4 RockSim `.rkt` import/export
+42. M9.3 Web PWA
+43. M10.6 Release 1.0: the app
+44. M0.7d Rocketry explained: the rest of the hobby
+45. M11.1 A motor of your own
+46. M11.2 Experimental solids
+47. M12.1 Parachute gores
+48. M12.2 Opening loads
+49. M9.4 Mobile
+50. M9.6 The four web tools, rebuilt
+51. M6.5 Roll control: tail-fin tabs and canards
+52. M13.3 Flight computer logic
+53. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -168,20 +167,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       first time has its mass and CG compared in the report with OpenRocket's own read-back for that
       configuration, counted, before it joins an average; #358,
       #359, #360, #361, #181 and #362 are closed or carry that ADR.
-    - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273; ADR-349: in four, below;
-      met when they are). *Done when:* the fixture
-      report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
-      parts, each input swapped for OpenRocket's in that order, the rest named as other, the parts
-      tested to sum to the whole. The drag part splits off the pressure drag of tangent-ogive noses
-      above Mach 1 (ADR-273: OpenRocket's #3391), by swapping in OpenRocket's per-component nose
-      pressure drag as its public interface reports it: its share of the gap, with its sign, over
-      the flights whose hpr flight passes Mach 1 with a tangent-ogive nose, each such flight counted
-      as swapped or skipped with its reason, #222's flight among those swapped or an ADR saying why
-      not; and a public fineness-3 probe sets OpenRocket 24.12's and hpr's nose pressure drag, on
-      the nose's base area, at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
-      test pinning hpr's at each. Moves: accuracy.
-      - [ ] **M2.3c13 The tangent-ogive nose's line.** *Done when:* ADR-349 decision 2's for
-        M2.3c13.
     - [ ] **M2.3c7 Faster than sound: published flights** (ADR-236). *Done when:* the
       real-flights report scores every COTS-motor flight on RASAero II's published comparison
       list whose design ships with RASAero II, read by hpr's own `.CDX1` importer, each not read

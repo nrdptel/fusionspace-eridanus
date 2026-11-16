@@ -727,5 +727,48 @@
     },
     "largest_own_history_percent": 0.018,
     "mass_opposed_by_rest": 1
+  },
+  "nose": {
+    "flights": 5,
+    "swapped": 5,
+    "skipped": [
+      {
+        "reason": "several_noses",
+        "flights": 0
+      },
+      {
+        "reason": "not_split",
+        "flights": 0
+      },
+      {
+        "reason": "no_column",
+        "flights": 0
+      },
+      {
+        "reason": "stated",
+        "flights": 0
+      },
+      {
+        "reason": "refused",
+        "flights": 0
+      }
+    ],
+    "nose": {
+      "mean_percent": -1.28,
+      "median_percent": -1.33,
+      "mean_absolute_percent": 1.28
+    },
+    "rest": {
+      "mean_percent": -0.68,
+      "median_percent": 0.9,
+      "mean_absolute_percent": 2.27
+    },
+    "drag": {
+      "mean_percent": -1.96,
+      "median_percent": 0.51,
+      "mean_absolute_percent": 2.65
+    },
+    "hpr_mean_top_mach": 1.06,
+    "hpr_top_mach_over_1_3": 0
   }
 }

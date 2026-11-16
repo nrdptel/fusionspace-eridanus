@@ -4719,13 +4719,14 @@ fn the_validated_range_is_the_fastest_public_reference() {
         ["top_mach"],
         "synthetic-flights.json: hpr's flights alone; a reference's key belongs above"
     );
-    for name in [
-        "openrocket-export-flights.json",
-        "ork-cli-flights.json",
-        "fixture-flights.json",
-    ] {
+    for name in ["openrocket-export-flights.json", "ork-cli-flights.json"] {
         assert_eq!(mach_keys(&read(name)), Vec::<String>::new(), "{name}");
     }
+    assert_eq!(
+        mach_keys(&read("fixture-flights.json")),
+        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3"],
+        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference; a reference's key belongs above"
+    );
     let (mach, flight) = fastest
         .iter()
         .max_by(|a, b| a.0.total_cmp(&b.0))

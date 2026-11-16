@@ -1044,3 +1044,26 @@ looked = [
   "each flight's folder under RocketPy's data/rockets",
 ]
 found = "no answer. Each notebook imports its log under the name COTS Altimeter Flight and names no make or sensor; Astra's also labels the series Telemetry. The folders hold the log, a drag curve and, for two, a thrust file. The logs are a time and a height (Astra's with a position, Andromeda's with a vertical speed), and none has a header naming a device"
+
+[[row]]
+id = "G40"
+surface = "Aerodynamics"
+claim = "A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1.3 to 2 and on the designs of 5 logged flights just past Mach 1"
+pages = [
+  "accuracy.md#the-tangent-ogive-noses-line",
+  "physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412",
+]
+kind = "code-to-code"
+wanted = "real"
+not_checked = "a measured pressure drag of a tangent ogive past Mach 1, committed as data with a test that scores HPR Sim's nose against it; and the nose between Mach 1 and 1.3, where the probe has no row"
+issue = 616
+
+[[row.searched]]
+on = "2026-10-16"
+looked = [
+  "NASA TR R-100 (Stoney, 1961), for a tangent ogive among its fineness-3 noses",
+  "NACA Report 1386 (Perkins, Jorgensen and Sommer) and NACA TN 3716 (Perkins and Jorgensen), for measured pressures on tangent ogives",
+  "AFATL-TR-77-8 (Butler, Sears and Pallas, 1977)",
+  "NACA Report 1306, NACA TN 2250 and NACA TN 2399",
+]
+found = "four NACA and Air Force reports that give a tangent ogive's pressure drag past Mach 1.3, one of them, NACA Report 1386, with a point at Mach 1.24 too; TR R-100 holds no ogive. They are read in docs/research/ogive-wave-drag.md, with the note's own arithmetic to take friction out, and none is committed as data yet"
