@@ -218,7 +218,8 @@ fn mach_probe_column() -> Value {
     design["flights"][0].clone()
 }
 
-/// The control. The public Mach probe's nose is a cone, where the two programs agree (M2.3c10):
+/// The control. The public Mach probe's nose is a cone, which the two programs give the same
+/// pressure drag at Mach 1.3, 1.5 and 2 (M2.3c10):
 /// flown past Mach 1.6 on OpenRocket's thrust and mass, with the cone's column from OpenRocket
 /// swapped in, HPR Sim's apogee moves by under 0.01% of itself. And a swap that never applies
 /// leaves the flight as it was, bit for bit.

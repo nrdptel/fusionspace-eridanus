@@ -1,8 +1,9 @@
 //! The tangent-ogive nose's line inside the drag part of the gap to OpenRocket (M2.3c13, ADR-349).
 //!
-//! OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag above Mach 1, where HPR Sim
-//! gives it the equivalent cone's (M2.3c10; OpenRocket's issue #3391). This line sizes what that
-//! one difference does to the apogee. On OpenRocket's thrust, mass and center of mass, HPR Sim
+//! From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag, where
+//! HPR Sim gives it the equivalent cone's (M2.3c10; OpenRocket's issue #3391). Between Mach 1 and
+//! 1.3 each joins that value to its own at Mach 1. This line sizes what the two noses' difference
+//! above Mach 1 does to the apogee. On OpenRocket's thrust, mass and center of mass, HPR Sim
 //! flies once more with its own pressure drag of the nose replaced, above Mach 1, by the column
 //! OpenRocket's public interface reports for the nose ([`NoseSwap`]):
 //!
@@ -577,9 +578,11 @@ impl NoseLine {
         let _ = writeln!(
             page,
             "\n### The tangent-ogive nose's line\n\nFor M2.3c13 (ADR-349, ADR-350), the drag part is \
-             split once more. Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose almost no \
-             pressure drag, where HPR Sim gives it the drag of the cone of its length and base \
-             (OpenRocket's issue #3391, fixed on its development line and in no release yet). On \
+             split once more. From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost \
+             no pressure drag, where HPR Sim gives it the drag of the cone of its length and \
+             base; between Mach 1 and 1.3 each joins that to its own value at Mach 1 \
+             (OpenRocket's issue #3391, fixed on its development line; no release carried the \
+             fix by 2026-11-15). On \
              OpenRocket's thrust and mass, HPR Sim flies once more with its own pressure drag of \
              the nose replaced, above Mach 1, by the pressure drag OpenRocket's public interface \
              reports for the nose; everything else in the drag stays HPR Sim's. The nose's line \

@@ -1305,11 +1305,14 @@ This part sizes one known difference inside the drag: the pressure drag of a
 comparing the two codes on a rocket that flies faster than sound. Like the split, it is code
 against code, and here over 5 flights only.
 
-Above Mach 1, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag. HPR Sim
+From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag. HPR Sim
 gives it the drag of the cone with its length and base. On an invented rocket at Mach 1.5 the
 nose's coefficients are 0.00073 and 0.13028
-([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). OpenRocket's
-developers have confirmed the defect and fixed it, in no release yet.
+([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). Between
+Mach 1 and 1.3 the probe says nothing: there each code joins its value at Mach 1.3 to its value
+at Mach 1 in its own way. A maintainer of OpenRocket confirmed the defect and merged a fix,
+which no release carried by November 14, 2026
+([the probe's section](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
 
 The line is taken inside the drag step. With thrust and mass already OpenRocket's, HPR Sim
 flies once more with one thing changed: above Mach 1, the nose's pressure drag is the one
@@ -1344,11 +1347,13 @@ What the rows say:
   two decimals, so the line is negative on every one of the 5, to that rounding
   ([report][fixture-report]).
 - **These flights only just pass Mach 1.** Their top Mach numbers, by HPR Sim's own flights,
-  average 1.06 ([report][fixture-report]). The nose is above Mach 1 for a short part of each
-  climb. A faster flight spends longer there, and the line says nothing of it.
-- **The rest of the drag is larger, and of either sign.** Its mean absolute value is 2.27%
-  against the nose's 1.28%, with a mean of −0.68% and a median of +0.90%
-  ([report][fixture-report]). So on these flights the nose is not most of the drag part.
+  average 1.06 ([report][fixture-report]). That is inside the band from Mach 1 to 1.3, which
+  the probe doesn't cover. So the line sizes how the two codes' noses differ just past Mach 1,
+  not the near-zero drag OpenRocket gives from Mach 1.3 up. It says nothing of a faster flight.
+- **The rest of the drag is larger flight by flight, and of either sign.** Its mean absolute
+  value is 2.27% against the nose's 1.28%, with a mean of −0.68% and a median of +0.90%
+  ([report][fixture-report]). In the means the nose is the larger share, −1.28% of the drag
+  part's −1.96%, since the rest takes either sign.
 
 A flight of the line that can't be swapped is counted under a reason: more than one nose
 cone, not split, no column in OpenRocket's record, a nose whose drag the design states, or a
