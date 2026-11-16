@@ -4610,15 +4610,18 @@ cylinder, 10 calibers long in all, with four fins at the base, each a square one
 and span ([DREV] Fig. 2, PDF p. 53). Each row is one six-degree-of-freedom fit of two to four
 flights of 30 mm (1.2 in) models at one Mach number.
 
-The table's six rows inside the envelope are typed into [the reference][finner-drev], and the model
-is [a committed design][finner-design]. `cargo xtask aero` writes the comparison to
+DREV's Table IX has eight rows. The six at or below Mach 3.5, the top of the envelope, are typed
+into [the reference][finner-drev], and the model is [a committed design][finner-design]. `cargo xtask aero` writes the comparison to
 [the report][finner-nf], and `hpr_aero::tests::basic_finner_normal_force_against_drev` recomputes
 every figure in it. [The increment that added it](../decisions-and-roadmap.md#m1-14b1) set no
 target.
 
 > **How far to trust it.** This is one measured set of one body. The probable errors below are the
-> fits' own, 1% to 4% on the slope, and the report does not say what they include. Nor does it
-> define *probable error*. In its usual sense it is 0.674 of a standard deviation.
+> fits' own, 1% to 4% on the slope, and DREV's report does not say what they include. Nor does it
+> define *probable error*. In its usual sense it is 0.674 of a standard deviation: an even chance
+> that the true value lies within it. The measured center of pressure also rests on a reading of
+> the report, which states no reference length for its moment: the body's diameter is taken, as
+> the next paragraph says.
 
 **The measured center of pressure** is worked out, not printed. The report gives the slope
 $C_{N\alpha}$ and the pitching-moment slope $C_{m\alpha}$, both per radian on the body's
@@ -4639,7 +4642,8 @@ slope and prints 0% for the moment, taken here as 0.5%. Together they are 4.03% 
 2.37-caliber arm, 0.10 calibers.
 
 **The slope.** HPR Sim's is the sum of its body's part and its fins', the fins' with their
-interference with the body. The report measured the whole model only.
+interference with the body. The report measured the whole model only. The error is HPR Sim's less
+DREV's, as a share of DREV's, worked from the unrounded figures, so a negative one is low.
 
 | Mach | DREV's $C_{N\alpha}$, per rad (probable error) | HPR Sim's body, per rad | HPR Sim's fins, per rad | HPR Sim's $C_{N\alpha}$, per rad | error |
 |--:|--:|--:|--:|--:|--:|
@@ -4668,7 +4672,8 @@ reads 24.9% low at both Mach numbers, with the center of pressure 0.07 and 0.03 
 From Mach 2.5 to 3.5 the slope reads 9.3% and 13.0% low, and the center of pressure 0.27 and 0.23
 calibers forward.
 
-**At each fit's root-mean-square yaw.** The fits hold their cubic terms at zero on these six rows, so each
+**At each fit's root-mean-square yaw.** Yaw is the report's word for the whole angle of attack.
+On these six rows the fits hold at zero the terms that grow with the cube of that angle, so each
 measured slope is a straight-line fit over the angles the models flew. The table gives each fit's
 mean squared yaw, 0.7 to 1.9 square degrees. HPR Sim's [body lift](../glossary.md#body-lift) grows
 with the angle, so at an angle its $C_N/\alpha$ is above its small-angle slope. At each fit's
@@ -4684,13 +4689,25 @@ pressure 0.02 to 0.04 calibers further forward:
 | 2.718 | 1.38 | 8.39 | −6.9% | −0.31 |
 | 3.147 | 1.14 | 7.74 | −10.9% | −0.26 |
 
+This is nearer like for like, not like for like. A straight line fitted over a spread of angles
+leans toward the larger ones, so the root-mean-square yaw is a low reading of the angle a fit
+stands for, and at a larger one HPR Sim's miss in the slope would be smaller again. The table
+gives no other measure of the angles that the report defines, so the comparison stops here.
+
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
 center of pressure is forward on every row, and by more than the probable error on all but Mach
-1.293. Both hold at a small angle and at each fit's root-mean-square yaw. On this body, then, HPR Sim
-understates the [stability margin](../glossary.md#stability-margin): with the models' center of
-gravity at 5.50 calibers, the measured margin at Mach 1.832 is 2.37 calibers and HPR Sim's is
+1.293: narrowly at Mach 1.077, 0.07 against 0.06 calibers, and by more than three times it from
+Mach 1.832 up. Both hold at a small angle and at each fit's root-mean-square yaw. On this body,
+then, HPR Sim understates the [stability margin](../glossary.md#stability-margin): with the models' center of
+gravity at 5.50 calibers, where the report's drawing puts it and the fits take their moments, the
+measured margin at Mach 1.832 is 2.37 calibers and HPR Sim's is
 2.04. The test pins each row's sign and size, so a change to the model that moved the center of
 pressure aft of the measured one would fail it.
+
+The direction is this body's and does not carry to another rocket. Where a shape trips one of
+the body's fallbacks faster than sound, HPR Sim's center of pressure moves aft instead, the side
+that overstates stability
+([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
 
 The cause is not found
 ([#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)). The measurement can't say
@@ -4699,7 +4716,9 @@ Mach 1.077 goes to [the transonic increment](../decisions-and-roadmap.md#m1-14c)
 Arcas Robin model's slope reads both ways, from 8.8% low to 27.1% high
 ([Normal force through Mach 1](#normal-force-through-mach-1)). The rows from Mach 1.293 to 2.375
 go to [the supersonic increment](../decisions-and-roadmap.md#m1-14d), and the two above Mach 2.5
-to [the extended band's](../decisions-and-roadmap.md#m1-14h).
+to [the extended band's](../decisions-and-roadmap.md#m1-14h). An earlier issue,
+[#619](https://github.com/nrdptel/fusionspace-eridanus/issues/619), tracks the two rows below
+Mach 1.5.
 
 **What it leaves out.**
 

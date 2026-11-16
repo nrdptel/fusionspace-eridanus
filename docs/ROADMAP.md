@@ -252,7 +252,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     - [ ] **M1.14b2 The Basic Finner's drag and pitch damping against DREV's range.** *Done
       when:* ADR-351 decision 2's for M1.14b2.
     - [ ] **M1.14b3 NASA's check cases 1 and 2.** *Done when:* ADR-351 decision 2's for M1.14b3.
-    - [ ] **M1.14b4 NASA's check cases 6 to 10.** *Done when:* ADR-351 decision 2's for M1.14b4.
+    - [ ] **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* ADR-351 decision 2's for
+      M1.14b4.
     - [ ] **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* ADR-351 decision 2's for
       M1.14b5.
     - [ ] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
@@ -262,16 +263,19 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     - [ ] **M1.14b8 MAPLEAF as a second open oracle.** *Done when:* ADR-351 decision 2's for
       M1.14b8.
   - [ ] **M1.14c Transonic, Mach 0.8–1.2.** *Done when:* the stop rule ends it, gaps re-measured.
+    Input: the Basic Finner's row at Mach 1.08 (#619).
   - [ ] **M1.14d Supersonic, Mach 1.2–2.5.** First the switches that fall back to slender-body
     theory and overstate stability (#87, #120, #121, the vertical tip), then drag (#222) and M1.8e's
-    body-alone misses. *Done when:* as M1.14c, with M1.8's Cd bullet met or re-measured.
+    body-alone misses. *Done when:* as M1.14c, with M1.8's Cd bullet met or re-measured. Inputs:
+    the Basic Finner's rows from Mach 1.29 to 2.38 (#619, #1502).
   - [ ] **M1.14e Large angle of attack.** *Done when:* its cost measured; past 1%, a model built.
   - [ ] **M1.14f Audit's physics gaps.** *Done when:* each cited and tested, or measured negligible.
   - [ ] **M1.14g Figures.** *Done when:* accuracy and aero pages show CI-checked plots with errors.
   - [ ] **M1.14h Extended band, Mach 2.5–3.5,** after the core-band increments (ADR-143 §6h).
     *Done when:* each fixed or re-measured in an ADR: the four switches' errors at Mach 3 (CP aft,
     flattering); #108's Mach 2.90–2.95 step (sign not yet measured); M1.8e's Mach 2.96 body-alone
-    row (+16.9% in the body-alone C_Nα; conservative on the finned rocket, CP forward).
+    row (+16.9% in the body-alone C_Nα; conservative on the finned rocket, CP forward); the Basic
+    Finner's two rows above Mach 2.5 (#1502; slope low, CP forward).
 ## Phase 2: Library surfaces and interop
 
 - [ ] **M5.6 A catalog of hpr's own** (ADR-197; VISION V52). Commercial parts

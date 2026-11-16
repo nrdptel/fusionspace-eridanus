@@ -1650,8 +1650,8 @@ mod tests {
             if got_cp_error.abs() <= cp_probable_error {
                 cp_inside_the_fit.push(mach);
             }
-            // Like for like: hpr at the fit's root-mean-square yaw, where its body lift adds
-            // to the slope. The slope is still low and the CP still forward, on every row.
+            // Nearer like for like: hpr at the fit's root-mean-square yaw, where its body lift
+            // adds to the slope. The slope is still low and the CP still forward, on every row.
             let rms_yaw_deg = f(&reading["mean_squared_yaw_deg2"]).sqrt();
             close(f(&row["rms_yaw_deg"]), rms_yaw_deg, 1e-12, &what);
             let yawed = model

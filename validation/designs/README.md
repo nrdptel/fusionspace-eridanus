@@ -84,4 +84,4 @@ These carry no motor and are used for their aerodynamics only; their mass plays 
   only: a cone of 10° half-angle on a cylinder, 10 calibers long and 30 mm across, with four square
   fins one caliber in chord and span flush with the base. The report's fins are single wedges, a
   section hpr doesn't have, so they take the square section and the design is not for drag
-  (decision record ADR-351 in `docs/DECISIONS.md`).
+  ([the decision that set the comparison up, ADR-351](../../docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md)).

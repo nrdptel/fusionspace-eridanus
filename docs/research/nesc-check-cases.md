@@ -137,7 +137,7 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
   starts from the Earth-relative rates and must report inertial ones. Leaving the Earth's rate out of the rotational
   equations drops terms of order ω·Ω ≈ 4.8e-5 rad/s² (**Inference**); against the 0.005 deg/s spread, unbounded.
 - **Case 3: needs** constant roll, pitch and yaw damping on a finless body; HPR Sim's roll damping comes from fins.
-  New: damping on three axes. Until then, refused.
+  New: damping on three axes. Until then, refused. [ADR-351](../decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md) later gave it to M1.14b4's free body.
 - **Cases 4 and 5: need** inverse-square gravitation on a sphere. HPR Sim's four gravity models are a constant and
   three WGS-84 forms; on its default it would sit about case 6's 8.1 ft from case 5, model not code (**Inference**).
 - **Case 6: fits** once drag acts along the air-relative velocity, as a sphere's does: body x points north and the

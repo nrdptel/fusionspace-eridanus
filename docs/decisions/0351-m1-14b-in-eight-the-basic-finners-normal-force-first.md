@@ -99,16 +99,19 @@ found where each stands.
      largest difference over the 30 s from each code's file, in altitude for case 1 and in
      each inertial body rate for case 2, beside the largest difference between the codes
      themselves; any difference of HPR Sim's larger than the codes' own is traced, in a
-     decision record, to a named difference in the models whose size is computed apart from
-     the flight; a check in the gate's `refs` step holds the report; and the accuracy page's
+     decision record, to a named difference in the models whose size, computed apart from
+     the flight, accounts for it; a check in the gate's `refs` step holds the report; and the accuracy page's
      rows for frames, gravity and rigid-body flight cite it.
-   - **M1.14b4 NASA's check cases 6 to 10.** *Done when:* the same free body, with a constant
-     drag coefficient that acts along its velocity through the air, flies cases 6 to 10: the
+   - **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* the same free body, given
+     the report's constant roll, pitch and yaw damping coefficients, flies case 3, the
+     tumbling brick with damping, and the report gives HPR Sim's largest difference in each
+     inertial body rate from each code's file beside the codes' own; given a constant drag
+     coefficient that acts along its velocity through the air, it flies cases 6 to 10: the
      sphere falling in still air, in a steady wind and in a wind that varies with height, and
-     the two shots from sea level; the report gives HPR Sim's largest difference in position
-     from each code's file beside the codes' own, held and traced by M1.14b3's rules; a test
-     holds the drag to act along the air-relative velocity at an angle of attack of 90°; and
-     the accuracy page cites it.
+     the two shots from sea level, and the report gives its largest difference in position
+     the same way; both are held and traced by M1.14b3's rules; a test holds the drag to act
+     along the air-relative velocity at an angle of attack of 90°; and the accuracy page
+     cites it.
    - **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* RocketPy at a pinned commit
      that carries its tip-off phase (its pull request #920) flies each public design built
      from RocketPy's examples twice, the phase on and off, in still air and in a 20 mph
@@ -126,8 +129,11 @@ found where each stands.
      ground velocity as the wind, fails that line at 25 m/s; the reconstruction runs on every
      public flight whose log holds a GPS track of the descent, and a committed report gives
      the reconstructed wind less ERA5's by height band: the root-mean-square and the mean
-     difference in speed, with each band's count of flights and samples; the page on wind
-     says what a canopy's glide and swing leave unbounded; and a check holds the report.
+     difference in speed, with each band's count of flights and samples, and lists each
+     public flight it could not run on with the reason; with fewer than three flights
+     compared, the validation plan's row says the reconstruction is a method, not yet a
+     comparison; the page on wind says what a canopy's glide and swing leave unbounded; and a
+     check holds the report.
    - **M1.14b7 A validation uncertainty for each real flight.** *Done when:* each public real
      flight's row in the real-flights report gives its apogee's comparison error beside a
      validation uncertainty, the root sum of squares of three stated parts: the numerical
@@ -142,7 +148,8 @@ found where each stands.
      inputs it can share with HPR Sim, and a committed report gives the differences in apogee
      and in rail-exit speed, each input the two could not share listed beside them; or a
      decision record refuses it with what was measured: the failure to install or run at the
-     pin, quoted, or the designs it could not fly, each with its reason.
+     pin, quoted, by its documented route and by one other, or the designs it could not fly,
+     each with its reason.
 
 3. **The verdicts that need no flight.** Each rests on a research note that read the source.
    - **The Rocket Flight Database: refused as a reference set.** Its admission rule keeps a
@@ -158,12 +165,12 @@ found where each stands.
      ([the note][database-note], §3 to §6).
    - **ARL-TN-1128 and the Mach 2.45 drag point: refused,** as ADR-143's correction records
      ([the note][finner-note], §3 and §4).
-   - **NASA's check cases 3, 4, 5 and 11 to 17: refused.** The note refused 11 to 17 and
-     left 3, 4 and 5 waiting for a model; this record refuses those three too. Case 3 gives a
-     finless brick
-     constant roll, pitch and yaw damping coefficients. HPR Sim's damping comes from a
-     design's fins and bodies, so a free body made to carry those coefficients would test the
-     test's own model. Cases 4 and 5 use inverse-square gravitation on a round Earth, which
+   - **NASA's check cases 4, 5 and 11 to 17: refused.** The note refused 11 to 17 and left
+     3, 4 and 5 waiting for a model. Case 3 gives a finless brick constant roll, pitch and
+     yaw damping coefficients. A free body can carry them as given, as it carries the
+     constant drag coefficient of cases 6 to 10, and what the case then checks is the
+     rigid-body equations under moments that follow the rates, so case 3 joins M1.14b4. This
+     record refuses 4 and 5. They use inverse-square gravitation on a round Earth, which
      none of HPR Sim's gravity models is; case 6 is the same fall on the WGS-84 ellipsoid.
      Cases 11 to 16 fly an aircraft under flight control. Case 17 is a 314-tonne two-stage
      rocket to orbit, whose aerodynamics don't vary with Mach number
@@ -228,10 +235,13 @@ the slope's miss is 0.8 to 2.4 percentage points smaller and the center of press
 0.04 calibers further forward, so both statements hold there too. The cause is not found
 ([#1502][i-1502]). The row at Mach 1.077 is an input to [the transonic increment][m1-14c],
 the rows from Mach 1.293 to 2.375 to [the supersonic increment][m1-14d], and the two above
-Mach 2.5 to [the extended band's][m1-14h]; [#619][i-619] covers the two below Mach 1.5. [The aerodynamics page][aero] gives the table with HPR
-Sim's slope split into its body's part and its fins'.
+Mach 2.5 to [the extended band's][m1-14h]. Two issues track them: [#619][i-619] the two rows
+below Mach 1.5, and [#1502][i-1502] the four above. [The aerodynamics page][aero] gives the table with
+HPR Sim's slope split into its body's part and its fins'.
 
 **Consequences.** The roadmap's M1.14b entry gains its eight increments and M1.14b1 is checked.
+M1.14c and M1.14d name the Basic Finner's rows in their bands as inputs, and M1.14h's *done
+when* gains the two rows above Mach 2.5.
 The accuracy page gains a row, the aerodynamics page a section, and the validation plan the
 list of §6b's nine. `cargo xtask aero` writes the report, `cargo xtask designs` the design, and
 `hpr_aero::tests::basic_finner_normal_force_against_drev` recomputes both sides in CI.

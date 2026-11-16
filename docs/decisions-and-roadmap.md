@@ -647,7 +647,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b1"></a>[M1.14b1][done-1] | The Basic Finner's normal force against DREV's range | done |
 | <a id="m1-14b2"></a>[M1.14b2][phase-1] | The Basic Finner's drag and pitch damping against DREV's range | not yet done |
 | <a id="m1-14b3"></a>[M1.14b3][phase-1] | NASA's check cases 1 and 2 | not yet done |
-| <a id="m1-14b4"></a>[M1.14b4][phase-1] | NASA's check cases 6 to 10 | not yet done |
+| <a id="m1-14b4"></a>[M1.14b4][phase-1] | NASA's check cases 3 and 6 to 10 | not yet done |
 | <a id="m1-14b5"></a>[M1.14b5][phase-1] | Tip-off, measured with RocketPy's | not yet done |
 | <a id="m1-14b6"></a>[M1.14b6][phase-1] | Wind from the GPS descent, against the reanalysis | not yet done |
 | <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty for each real flight | not yet done |

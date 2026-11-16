@@ -239,25 +239,41 @@ mod tests {
         assert!(measured_cp(5.0, 10.0, 20.0, 1.0, 1.0).0 < 5.0);
     }
 
-    /// The pages quote the committed report as it is: the aerodynamics page each row of its
-    /// three tables, the decision record the small-angle figures, and the accuracy page each
-    /// row's two small-angle errors.
+    /// The pages quote the committed report as it is. The aerodynamics page: each row of its
+    /// three tables, its *By band* paragraph, its ranges and its worked example. The accuracy
+    /// page: its row's sentences and its known gap's ranges. Each sentence is built from the
+    /// report, band by band, and looked for whole, so a figure that happens to stand elsewhere
+    /// on a page can't pass for it. The decision record is not held: it says what was found on
+    /// its date.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
         let report = read(&root, FIXTURE).unwrap();
         let reference = read(&root, REFERENCE).unwrap();
-        let page = |name: &str| std::fs::read_to_string(root.join(name)).unwrap();
+        // A page as running text: each run of spaces and line breaks one space, and a quoted
+        // note's `>` marks dropped.
+        let page = |name: &str| {
+            let text = std::fs::read_to_string(root.join(name)).unwrap();
+            let words = text.split_whitespace().filter(|word| *word != ">");
+            words.collect::<Vec<_>>().join(" ")
+        };
         let aero = page("docs/physics/aero.md");
         let accuracy = page("docs/accuracy.md");
-        let record =
-            page("docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md");
+        let has = |text: &str, name: &str, sentence: &str| {
+            assert!(text.contains(sentence), "{name} lacks: {sentence}");
+        };
         let f = |v: &Value| v.as_f64().unwrap();
         // A signed figure as the pages write it, with a true minus sign.
         let signed = |text: String| text.replace('-', "\u{2212}");
+        let unsigned = |text: &str| text.trim_start_matches('\u{2212}').to_string();
         let rows = report["rows"].as_array().unwrap();
+        let readings = reference["rows"].as_array().unwrap();
         assert_eq!(rows.len(), 6);
-        for (row, reading) in rows.iter().zip(reference["rows"].as_array().unwrap()) {
+        assert_eq!(readings.len(), 6);
+        // Each band's errors as the sentences give them, unsigned: "low" and "forward".
+        let mut slopes: Vec<(&str, Vec<String>)> = Vec::new();
+        let mut centers: Vec<(&str, Vec<String>)> = Vec::new();
+        for (row, reading) in rows.iter().zip(readings) {
             let mach = f(&row["mach"]);
             let fit = f(&reading["cn_alpha_probable_error_percent"]);
             let slope = format!("{:.2} ({fit}%)", f(&row["reference_cn_alpha_per_rad"]));
@@ -277,9 +293,12 @@ mod tests {
                 f(&row["hpr_body_cn_alpha_per_rad"]),
                 f(&row["hpr_fins_cn_alpha_per_rad"]),
             );
-            let cp_row = format!("| {mach} | {cp} | {hpr_cp} | {cp_error} |");
-            assert!(aero.contains(&slope_row), "the aero page lacks {slope_row}");
-            assert!(aero.contains(&cp_row), "the aero page lacks {cp_row}");
+            has(&aero, "the aero page", &slope_row);
+            has(
+                &aero,
+                "the aero page",
+                &format!("| {mach} | {cp} | {hpr_cp} | {cp_error} |"),
+            );
             let yaw_row = format!(
                 "| {mach} | {:.2} | {:.2} | {} | {} |",
                 f(&row["rms_yaw_deg"]),
@@ -290,22 +309,176 @@ mod tests {
                 )),
                 signed(format!("{:.2}", f(&row["cp_error_at_rms_yaw_calibers"]))),
             );
-            assert!(aero.contains(&yaw_row), "the aero page lacks {yaw_row}");
-            let record_row = format!(
-                "| {mach} | {slope} | {hpr} | {slope_error} | {cp} | {hpr_cp} | {cp_error} |"
-            );
-            assert!(record.contains(&record_row), "ADR-351 lacks {record_row}");
-            // The accuracy page gives each error unsigned, as "low" and "forward".
-            for figure in [
-                slope_error.trim_start_matches('\u{2212}'),
-                cp_error.trim_start_matches('\u{2212}'),
-            ] {
-                assert!(
-                    accuracy.contains(figure),
-                    "the accuracy page lacks {figure}"
-                );
+            has(&aero, "the aero page", &yaw_row);
+            // The sentences say "low" and "forward", so every error must be negative.
+            assert!(slope_error.starts_with('\u{2212}'), "Mach {mach}");
+            assert!(cp_error.starts_with('\u{2212}'), "Mach {mach}");
+            let band = row["band"].as_str().unwrap();
+            if slopes.last().is_none_or(|(last, _)| *last != band) {
+                slopes.push((band, Vec::new()));
+                centers.push((band, Vec::new()));
             }
+            slopes.last_mut().unwrap().1.push(unsigned(&slope_error));
+            centers.last_mut().unwrap().1.push(unsigned(&cp_error));
         }
+        // The sentences are written for two rows a band, in this order.
+        let names: Vec<&str> = slopes.iter().map(|(band, _)| *band).collect();
+        assert_eq!(names, [band(1.0), band(2.0), band(3.0)]);
+        assert!(slopes.iter().all(|(_, figures)| figures.len() == 2));
+        // Two slope errors: "a and b low", or the one figure when the two round alike.
+        let low = |figures: &[String]| {
+            if figures[0] == figures[1] {
+                format!("{} low at both Mach numbers", figures[0])
+            } else {
+                format!("{} and {} low", figures[0], figures[1])
+            }
+        };
+        let both = |figures: &[String]| format!("{} and {}", figures[0], figures[1]);
+        let (below, core, extended) = (&slopes[0].1, &slopes[1].1, &slopes[2].1);
+        let (below_cp, core_cp, extended_cp) = (&centers[0].1, &centers[1].1, &centers[2].1);
+
+        has(
+            &aero,
+            "the aero page's By band",
+            &format!(
+                "From Mach 1.5 to 2.5, the band this comparison was added for, the slope reads \
+                 {} and the center of pressure {} calibers forward. Below Mach 1.5 the slope \
+                 reads {}, with the center of pressure {} calibers forward. From Mach 2.5 to \
+                 3.5 the slope reads {}, and the center of pressure {} calibers forward.",
+                low(core),
+                both(core_cp),
+                low(below),
+                both(below_cp),
+                low(extended),
+                both(extended_cp),
+            ),
+        );
+
+        // The ranges: the least and the greatest of a column, at the pages' rounding.
+        let range = |values: Vec<f64>, digits: usize, unit: &str| {
+            let least = values.iter().copied().fold(f64::INFINITY, f64::min);
+            let most = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            format!("{least:.digits$}{unit} to {most:.digits$}{unit}")
+        };
+        let column = |rows: &[Value], key: &str| rows.iter().map(|r| f(&r[key])).collect();
+        let of = |g: &dyn Fn(&Value) -> f64| rows.iter().map(g).collect::<Vec<f64>>();
+        let fits = range(column(readings, "cn_alpha_probable_error_percent"), 0, "%");
+        let machs = range(column(rows, "mach"), 2, "");
+        let slope_range = range(of(&|r| -100.0 * f(&r["cn_alpha_error"])), 1, "%");
+        let cp_range = range(of(&|r| -f(&r["cp_error_calibers"])), 2, "");
+        let yaw_gain = range(
+            of(&|r| 100.0 * (f(&r["cn_alpha_error_at_rms_yaw"]) - f(&r["cn_alpha_error"]))),
+            1,
+            "",
+        );
+        let yaw_shift = range(
+            of(&|r| f(&r["cp_error_calibers"]) - f(&r["cp_error_at_rms_yaw_calibers"])),
+            2,
+            "",
+        );
+        let squared_yaw = range(column(readings, "mean_squared_yaw_deg2"), 1, "");
+
+        let row_start = accuracy
+            .find("| [Aerodynamics](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) |")
+            .expect("the accuracy page has the comparison's row");
+        let row_text = accuracy[row_start..].split(" | [").next().unwrap();
+        has(
+            row_text,
+            "the accuracy page's row",
+            &format!(
+                "the slope low on every row, where the fits' probable errors are {fits}: {} \
+                 from Mach 1.5 to 2.5, {} below 1.5, and {} from Mach 2.5 to 3.5. The center \
+                 of pressure forward of the measured one on every row, which understates \
+                 stability: {} calibers from Mach 1.5 to 2.5, {} below, {} above. At each \
+                 fit's root-mean-square yaw, about 1°, the slope's miss is {yaw_gain} \
+                 percentage points smaller.",
+                low(core),
+                low(below),
+                low(extended),
+                both(core_cp),
+                both(below_cp),
+                both(extended_cp),
+            ),
+        );
+        has(
+            row_text,
+            "the accuracy page's row",
+            &format!("Mach {machs}, six Mach numbers"),
+        );
+        // The known gap on the accuracy page and the summary at the aero page's top.
+        let gap = format!(
+            "from Mach {machs} show HPR Sim's slope {slope_range} low and its center of pressure \
+             {cp_range} calibers forward"
+        );
+        has(&accuracy, "the accuracy page's known gap", &gap);
+        has(&aero, "the aero page's summary", &gap);
+        has(
+            &aero,
+            "the aero page's In short",
+            &format!(
+                "HPR Sim's normal-force slope reads {slope_range} below the measured one from \
+                 Mach {machs}, and its center of pressure lies {cp_range} calibers forward of \
+                 the measured one."
+            ),
+        );
+        has(
+            &aero,
+            "the aero page's trust note",
+            &format!("the fits' own, {fits} on the slope"),
+        );
+        has(
+            &aero,
+            "the aero page at the root-mean-square yaw",
+            &format!("mean squared yaw, {squared_yaw} square degrees."),
+        );
+        has(
+            &aero,
+            "the aero page at the root-mean-square yaw",
+            &format!(
+                "the slope's miss is {yaw_gain} percentage points smaller, and the center of \
+                 pressure {yaw_shift} calibers further forward:"
+            ),
+        );
+
+        // The worked example and the margins, at the first row of the band the comparison was
+        // added for.
+        let at = rows.iter().position(|r| r["band"] == band(2.0)).unwrap();
+        let (row, reading) = (&rows[at], &readings[at]);
+        let (cn, cm) = (f(&reading["cn_alpha"]), f(&reading["cm_alpha"]));
+        let about = f(&report["moment_reference_calibers"]);
+        let measured = f(&row["reference_cp_calibers"]);
+        let percent = f(&reading["cn_alpha_probable_error_percent"])
+            .hypot(f(&reading["cm_alpha_probable_error_percent"]).max(PRINTED_ZERO_PERCENT));
+        has(
+            &aero,
+            "the aero page's worked example",
+            &format!(
+                "at Mach {} the table gives $C_{{N\\alpha}} = {cn}$ and $C_{{m\\alpha}} = {}$, so \
+                 the center of pressure is ${about:.2} + {}/{cn} = {measured:.2}$ from the nose tip",
+                f(&row["mach"]),
+                signed(cm.to_string()).replace('\u{2212}', "-"),
+                cm.abs(),
+            ),
+        );
+        has(
+            &aero,
+            "the aero page's worked example",
+            &format!(
+                "Together they are {percent:.2}% of the {:.2}-caliber arm, {:.2} calibers.",
+                measured - about,
+                f(&row["reference_cp_probable_error_calibers"]),
+            ),
+        );
+        has(
+            &aero,
+            "the aero page's margins",
+            &format!(
+                "the measured margin at Mach {} is {:.2} calibers and HPR Sim's is {:.2}.",
+                f(&row["mach"]),
+                measured - about,
+                f(&row["hpr_cp_calibers"]) - about,
+            ),
+        );
     }
 
     /// The bands' edges: Mach 1.5 opens the core band, Mach 2.5 closes it.
