@@ -1493,7 +1493,10 @@ mod tests {
     ///
     /// It also pins which way hpr errs, and by how much, on each row. Its center of pressure
     /// lies forward of the measured one at all six Mach numbers, which understates stability:
-    /// the side that doesn't flatter. Its slope reads low at all six.
+    /// the side that doesn't flatter. Its slope reads low at all six. Both hold as the angle
+    /// of attack goes to zero and at each fit's root-mean-square yaw, where hpr's body lift adds
+    /// to its slope: the fits hold their cubic terms at zero, so the measured slopes are linear
+    /// fits over the angles flown.
     #[expect(
         clippy::approx_constant,
         reason = "the table's fifth Mach number is 2.718: a Mach number, not e"
@@ -1524,25 +1527,35 @@ mod tests {
         close(model.length_m() / d, 10.0, 1e-12, "length in calibers");
         let x_ref = f(&reference["moment_reference_calibers"]);
         assert_eq!(x_ref, 5.5);
+        assert_eq!(f(&report["moment_reference_calibers"]), x_ref);
+        close(f(&report["reference_diameter_m"]), d, 1e-15, "diameter");
         let measured = reference["rows"].as_array().unwrap();
         let rows = report["rows"].as_array().unwrap();
         assert_eq!(rows.len(), measured.len());
-        // Mach, hpr's slope error and hpr's CP error in calibers (positive aft), as the accuracy
-        // and aerodynamics pages quote them.
+        // Mach, the row's band, hpr's slope error and hpr's CP error in calibers (positive aft)
+        // as the angle goes to zero, as the accuracy and aerodynamics pages quote them; then the
+        // same two at the fit's root-mean-square yaw.
+        let (below, core, extended) = (
+            "below Mach 1.5",
+            "core, Mach 1.5 to 2.5",
+            "extended, Mach 2.5 to 3.5",
+        );
         let pinned = [
-            (1.077, -0.249, -0.07),
-            (1.293, -0.249, -0.03),
-            (1.832, -0.112, -0.34),
-            (2.375, -0.161, -0.18),
-            (2.718, -0.093, -0.27),
-            (3.147, -0.130, -0.23),
+            (1.077, below, (-0.249, -0.07), (-0.241, -0.10)),
+            (1.293, below, (-0.249, -0.03), (-0.239, -0.07)),
+            (1.832, core, (-0.112, -0.34), (-0.101, -0.36)),
+            (2.375, core, (-0.161, -0.18), (-0.146, -0.21)),
+            (2.718, extended, (-0.093, -0.27), (-0.069, -0.31)),
+            (3.147, extended, (-0.130, -0.23), (-0.109, -0.26)),
         ];
         assert_eq!(rows.len(), pinned.len());
-        let mut cp_inside_the_fit = Vec::new();
-        for ((row, reading), (mach, slope_error, cp_error)) in rows.iter().zip(measured).zip(pinned)
+        let (mut cp_inside_the_fit, mut cp_inside_the_fit_at_yaw) = (Vec::new(), Vec::new());
+        for ((row, reading), (mach, band, (slope_error, cp_error), at_yaw)) in
+            rows.iter().zip(measured).zip(pinned)
         {
             let what = format!("the Basic Finner at Mach {mach}");
             assert_eq!(f(&row["mach"]), mach, "{what}");
+            assert_eq!(row["band"], band, "{what}");
             assert_eq!(f(&reading["mach"]), mach, "{what}");
             let (cn_alpha, cm_alpha) = (f(&reading["cn_alpha"]), f(&reading["cm_alpha"]));
             assert_eq!(f(&row["reference_cn_alpha_per_rad"]), cn_alpha, "{what}");
@@ -1637,7 +1650,59 @@ mod tests {
             if got_cp_error.abs() <= cp_probable_error {
                 cp_inside_the_fit.push(mach);
             }
+            // Like for like: hpr at the fit's root-mean-square yaw, where its body lift adds
+            // to the slope. The slope is still low and the CP still forward, on every row.
+            let rms_yaw_deg = f(&reading["mean_squared_yaw_deg2"]).sqrt();
+            close(f(&row["rms_yaw_deg"]), rms_yaw_deg, 1e-12, &what);
+            let yawed = model
+                .normal_force(&Flow::new(mach, rms_yaw_deg.to_radians(), 0.0))
+                .unwrap();
+            assert!(yawed.slope_per_rad > force.slope_per_rad, "{what}");
+            let yawed_cp = yawed.cp_station_m.unwrap() / d;
+            close(
+                f(&row["hpr_cn_over_alpha_at_rms_yaw_per_rad"]),
+                yawed.slope_per_rad,
+                1e-12,
+                &what,
+            );
+            close(
+                f(&row["hpr_cp_at_rms_yaw_calibers"]),
+                yawed_cp,
+                1e-12,
+                &what,
+            );
+            let (yawed_slope_error, yawed_cp_error) =
+                (yawed.slope_per_rad / cn_alpha - 1.0, yawed_cp - cp);
+            close(
+                f(&row["cn_alpha_error_at_rms_yaw"]),
+                yawed_slope_error,
+                1e-9,
+                &what,
+            );
+            close(
+                f(&row["cp_error_at_rms_yaw_calibers"]),
+                yawed_cp_error,
+                1e-9,
+                &what,
+            );
+            assert!(
+                yawed_slope_error < -e_n,
+                "{what}: slope at yaw {yawed_slope_error}"
+            );
+            assert!(yawed_cp_error < 0.0, "{what}: CP at yaw {yawed_cp_error}");
+            assert!(
+                (yawed_slope_error - at_yaw.0).abs() < 5e-4,
+                "{what}: slope error at yaw {yawed_slope_error}"
+            );
+            assert!(
+                (yawed_cp_error - at_yaw.1).abs() < 5e-3,
+                "{what}: CP error at yaw {yawed_cp_error}"
+            );
+            if yawed_cp_error.abs() <= cp_probable_error {
+                cp_inside_the_fit_at_yaw.push(mach);
+            }
         }
+        assert_eq!(cp_inside_the_fit_at_yaw, [1.293]);
         // So is the CP's, on every row but one: at Mach 1.293 it is inside the fit's.
         assert_eq!(cp_inside_the_fit, [1.293]);
     }

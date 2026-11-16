@@ -9,7 +9,9 @@
 //! - **The center of pressure** is not printed: it is the moment reference less `C_mα / C_Nα`
 //!   calibers (`C_mα` is negative for a stable body, so the CP lies aft of the reference).
 //! - **hpr** is its small-angle slope and CP straight into the wind, on the committed design
-//!   `validation/designs/range-basic-finner.json`.
+//!   `validation/designs/range-basic-finner.json`. The fits hold their cubic terms at zero on
+//!   these rows, so each measured slope is a linear fit over the angles flown; beside the
+//!   small-angle figures the report gives hpr's `C_N/α` and CP at each fit's root-mean-square yaw.
 //!
 //! No target is set: each error is reported as it is, beside the measurement's own probable error.
 
@@ -53,7 +55,8 @@ pub fn band(mach: f64) -> &'static str {
 /// The measured center of pressure, in calibers aft of the nose tip, and its probable error.
 ///
 /// `x_cp = x_ref − C_mα / C_Nα`, both slopes the fit's linear terms on the body's diameter. The
-/// probable error is the ratio's, to first order: the arm `|C_mα / C_Nα|` times the root sum of
+/// probable error is the ratio's, to first order, the two slopes' errors taken as independent
+/// (the report gives no correlation): the arm `|C_mα / C_Nα|` times the root sum of
 /// squares of the two relative probable errors. A probable error printed as 0% is taken at the
 /// print's resolution, [`PRINTED_ZERO_PERCENT`], so the result never understates the table.
 pub fn measured_cp(
@@ -138,6 +141,21 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         };
         let (hpr_body, hpr_body_cp) = part(bodies);
         let (hpr_fins, hpr_fins_cp) = part(fins);
+        // hpr at the fit's root-mean-square yaw, where its body lift adds to the slope.
+        let mean_squared_yaw_deg2 = number(&row["mean_squared_yaw_deg2"], "mean_squared_yaw_deg2")?;
+        if !(mean_squared_yaw_deg2 > 0.0) {
+            return Err(format!(
+                "the row at Mach {mach} has no positive mean squared yaw"
+            ));
+        }
+        let rms_yaw_deg = mean_squared_yaw_deg2.sqrt();
+        let at_yaw = model
+            .normal_force(&Flow::new(mach, rms_yaw_deg.to_radians(), 0.0))
+            .map_err(|e| format!("Mach {mach}: {e}"))?;
+        let hpr_cp_at_yaw = at_yaw
+            .cp_station_m
+            .ok_or(format!("Mach {mach}: no CP at {rms_yaw_deg} deg"))?
+            / d;
         let cn_alpha_error = hpr_cn_alpha / cn_alpha - 1.0;
         let cp_error_calibers = hpr_cp - cp;
         println!(
@@ -161,6 +179,11 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             "hpr_fins_cp_calibers": hpr_fins_cp,
             "cn_alpha_error": cn_alpha_error,
             "cp_error_calibers": cp_error_calibers,
+            "rms_yaw_deg": rms_yaw_deg,
+            "hpr_cn_over_alpha_at_rms_yaw_per_rad": at_yaw.slope_per_rad,
+            "hpr_cp_at_rms_yaw_calibers": hpr_cp_at_yaw,
+            "cn_alpha_error_at_rms_yaw": at_yaw.slope_per_rad / cn_alpha - 1.0,
+            "cp_error_at_rms_yaw_calibers": hpr_cp_at_yaw - cp,
         }));
     }
     if rows.is_empty() {
@@ -174,12 +197,19 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  Hathaway 1997, PDF pp. 48-49; validation/fixtures/aero/basic-finner-drev.json). \
                  The measured center of pressure is the moment reference less C_m_alpha over \
                  C_N_alpha; its probable error is the ratio's, to first order, from the fits' \
-                 printed probable errors, one printed as 0% taken as 0.5%. cn_alpha_error is \
+                 printed probable errors taken as independent, one printed as 0% taken as 0.5%. \
+                 cn_alpha_error is \
                  hpr's over DREV's, minus 1; cp_error_calibers is hpr's center of pressure less \
                  DREV's, positive aft: a center of pressure too far aft overstates stability. \
                  hpr_body_* is the nose and cylinder's part of hpr's slope and where it acts, \
                  hpr_fins_* the four fins' with their interference with the body; the report \
-                 measured no such parts. \
+                 measured no such parts. The fits hold their cubic terms at zero on these \
+                 rows, so each measured slope is a linear fit over the angles flown: \
+                 rms_yaw_deg is the square root of the fit's mean squared yaw, \
+                 hpr_cn_over_alpha_at_rms_yaw_per_rad and hpr_cp_at_rms_yaw_calibers are hpr's \
+                 C_N over alpha and center of pressure at that angle of attack, where its body \
+                 lift adds to the slope, and the two *_at_rms_yaw errors are those against \
+                 DREV's. \
                  No target is set (M1.14b1). Bands: ADR-143's, with the rows below Mach 1.5 \
                  apart.",
         "id": reference["id"],
@@ -209,8 +239,9 @@ mod tests {
         assert!(measured_cp(5.0, 10.0, 20.0, 1.0, 1.0).0 < 5.0);
     }
 
-    /// The pages quote the committed report as it is: the aerodynamics page each row of both
-    /// tables, the decision record the same figures, and the accuracy page each row's two errors.
+    /// The pages quote the committed report as it is: the aerodynamics page each row of its
+    /// three tables, the decision record the small-angle figures, and the accuracy page each
+    /// row's two small-angle errors.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
@@ -249,6 +280,17 @@ mod tests {
             let cp_row = format!("| {mach} | {cp} | {hpr_cp} | {cp_error} |");
             assert!(aero.contains(&slope_row), "the aero page lacks {slope_row}");
             assert!(aero.contains(&cp_row), "the aero page lacks {cp_row}");
+            let yaw_row = format!(
+                "| {mach} | {:.2} | {:.2} | {} | {} |",
+                f(&row["rms_yaw_deg"]),
+                f(&row["hpr_cn_over_alpha_at_rms_yaw_per_rad"]),
+                signed(format!(
+                    "{:.1}%",
+                    100.0 * f(&row["cn_alpha_error_at_rms_yaw"])
+                )),
+                signed(format!("{:.2}", f(&row["cp_error_at_rms_yaw_calibers"]))),
+            );
+            assert!(aero.contains(&yaw_row), "the aero page lacks {yaw_row}");
             let record_row = format!(
                 "| {mach} | {slope} | {hpr} | {slope_error} | {cp} | {hpr_cp} | {cp_error} |"
             );

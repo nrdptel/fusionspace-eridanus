@@ -14,10 +14,11 @@
 [m1-14b8]: ../decisions-and-roadmap.md#m1-14b8
 [m1-14c]: ../decisions-and-roadmap.md#m1-14c
 [m1-14d]: ../decisions-and-roadmap.md#m1-14d
-[m1-14e]: ../decisions-and-roadmap.md#m1-14e
+[m1-14h]: ../decisions-and-roadmap.md#m1-14h
 [m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
 [adr-143]: 0143-the-operating-envelope-and-a-stop-rule-for.md
 [adr-162]: 0162-the-suite-and-its-releases.md
+[adr-236]: 0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
 [finner-note]: ../research/finner-reference-data.md
 [database-note]: ../research/duke-flight-database.md
 [nesc-note]: ../research/nesc-check-cases.md
@@ -37,7 +38,8 @@ reported or refused. That section names nine. A survey of the tree on `main` at 
 found where each stands.
 
 - **The Rocket Flight Database.** [Its note][database-note] read the release and its history.
-  It has no verdict outside that note.
+  [ADR-236][adr-236] already says its admission rule can't serve as a selection. Nothing
+  records M1.14b's verdict on it.
 - **The Basic Finner's free-flight data (DREV-TM-9703).** Its roll damping is scored, from
   readings cached outside the repository. Its normal force, center of pressure, drag and pitch
   damping are not compared with anything. The report is approved for public release, so its
@@ -54,15 +56,16 @@ found where each stands.
   RocketPy here is 1.13.0, which does not carry it.
 - **Wind from the GPS descent.** [Its note][wind-note] gives the method and what bounds it.
   No code reconstructs a wind from a log.
-- **MAPLEAF.** It has not been fetched or run.
+- **MAPLEAF.** The program has not been installed or run.
 
 **Decision.**
 
-1. **Eight increments, in this order.** The Basic Finner goes first. It is the one item that
-   holds measured coefficients inside Mach 1.5 to 2.5, the band M1.14b is named for, and
-   [the supersonic increment][m1-14d] needs them. Its drag and pitch damping follow, from the
-   same table. The check cases, tip-off, the wind, the validation uncertainty and MAPLEAF come
-   after: none of them is a reference in that band. They are M1.14b1 to M1.14b8.
+1. **Eight increments, in this order.** The Basic Finner goes first. Of the items not
+   refused, it is the only one that holds measured coefficients inside Mach 1.5 to 2.5, the
+   band M1.14b is named for, and [the supersonic increment][m1-14d] needs them. Its drag and
+   pitch damping follow, from the same table. The check cases, tip-off, the wind, the
+   validation uncertainty and MAPLEAF come after: none of them holds a measured coefficient
+   in that band. They are M1.14b1 to M1.14b8.
 
 2. **The increments.**
    - **M1.14b1 The Basic Finner's normal force against DREV's range.** *Done when:*
@@ -145,8 +148,8 @@ found where each stands.
    - **The Rocket Flight Database: refused as a reference set.** Its admission rule keeps a
      flight only when an OpenRocket fork lands within ±10% of the measured apogee. On its
      historical flights that rule kept 3 and removed 10, and one more run failed. Its 25 rows
-     from RASAero II's comparison page repeat that page's measured apogees to the foot, so it
-     adds no apogee the page lacks. Its 4 flights from Mach 1.5 to 2.5 fly team or unlisted
+     from RASAero II's comparison page repeat that page's measured apogees to the foot, so on
+     those flights it adds no apogee the page lacks. Its 4 flights from Mach 1.5 to 2.5 fly team or unlisted
      motors, outside the commercial-motor scope ([ADR-162][adr-162]). Its 3 historical
      flights fly sounding-rocket motors past Mach 4.9. Its 17 flights on commercial motors
      are the set that [the published supersonic flights][m2-3c7] take from the comparison
@@ -155,7 +158,9 @@ found where each stands.
      ([the note][database-note], §3 to §6).
    - **ARL-TN-1128 and the Mach 2.45 drag point: refused,** as ADR-143's correction records
      ([the note][finner-note], §3 and §4).
-   - **NASA's check cases 3, 4, 5 and 11 to 17: refused.** Case 3 gives a finless brick
+   - **NASA's check cases 3, 4, 5 and 11 to 17: refused.** The note refused 11 to 17 and
+     left 3, 4 and 5 waiting for a model; this record refuses those three too. Case 3 gives a
+     finless brick
      constant roll, pitch and yaw damping coefficients. HPR Sim's damping comes from a
      design's fins and bodies, so a free body made to carry those coefficients would test the
      test's own model. Cases 4 and 5 use inverse-square gravitation on a round Earth, which
@@ -171,11 +176,17 @@ found where each stands.
      to 2.5. Table IX has eight rows. Six lie at or below Mach 3.5, from Mach 1.077 to 3.147;
      the other two, at Mach 3.734 and 4.300, are outside the envelope. The pages give the six
      in three groups: below Mach 1.5, Mach 1.5 to 2.5, and Mach 2.5 to 3.5. Leaving out the
-     rows below Mach 1.5 would have hidden the largest misses.
+     rows below Mach 1.5 would have hidden the slope's largest misses.
    - **The measured center of pressure is derived, not printed.** It is the moment reference,
      5.50 calibers from the nose tip, less `C_mα / C_Nα`. Its probable error is the ratio's,
-     to first order, from the two printed probable errors. The table prints them in whole
-     percent, so one printed as 0% is taken as 0.5%.
+     to first order, from the two printed probable errors, taken as independent: the report
+     gives no correlation. The table prints them in whole percent, so one printed as 0% is
+     taken as 0.5%.
+   - **The measured slopes are straight-line fits.** The table holds both cubic terms,
+     `C_Nα3` and `C_mα3`, at zero on the six rows, so each slope is fitted over the angles
+     the models flew: a mean squared yaw of 0.7 to 1.9 square degrees. The report therefore
+     gives HPR Sim twice: as the angle of attack goes to zero, the headline, and at each
+     fit's root-mean-square yaw, where its body lift adds to the slope.
    - **The reference length is the body's diameter.** The report's nomenclature gives the
      reference area, the body's cross-section, and does not state the length. Taken as the
      diameter, the center of pressure comes out at 6.93 to 8.35 calibers on a body 10 calibers
@@ -183,7 +194,7 @@ found where each stands.
      that reading's error ([the note][finner-note], §2).
    - **No target.** Each error is reported beside the fit's probable error. The report does
      not define that term. In its usual sense it is 0.674 of a standard deviation.
-   - **The fins take HPR Sim's square section.** The report's fins are single wedges, a
+   - **The fins take HPR Sim's square section.** The report draws its fins as single wedges, a
      section HPR Sim does not have. Its fin lift uses the planform alone, so the normal force
      and center of pressure compare. The drag does not, which is why M1.14b2 must model or
      bound the wedge.
@@ -212,9 +223,12 @@ of pressure is HPR Sim's less DREV's, positive aft.
 HPR Sim's slope reads low on every row, by more than the fit's probable error. Its center of
 pressure lies forward of the measured one on every row, by more than the probable error on all
 but Mach 1.293. A center of pressure too far forward understates the static margin, so the
-error is on the side that does not flatter. The cause is not found. The two rows below Mach 1.5
-are inputs to [the transonic increment][m1-14c] and to [#619][i-619], and the rows above to
-[the supersonic increment][m1-14d] ([#1502][i-1502]). [The aerodynamics page][aero] gives the table with HPR
+error is on the side that does not flatter. At each fit's root-mean-square yaw, 0.84° to 1.38°,
+the slope's miss is 0.8 to 2.4 percentage points smaller and the center of pressure 0.02 to
+0.04 calibers further forward, so both statements hold there too. The cause is not found
+([#1502][i-1502]). The row at Mach 1.077 is an input to [the transonic increment][m1-14c],
+the rows from Mach 1.293 to 2.375 to [the supersonic increment][m1-14d], and the two above
+Mach 2.5 to [the extended band's][m1-14h]; [#619][i-619] covers the two below Mach 1.5. [The aerodynamics page][aero] gives the table with HPR
 Sim's slope split into its body's part and its fins'.
 
 **Consequences.** The roadmap's M1.14b entry gains its eight increments and M1.14b1 is checked.
