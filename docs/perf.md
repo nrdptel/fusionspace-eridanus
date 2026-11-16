@@ -3,6 +3,40 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## The delay line's held flight flown once (2026-11-16, #1343)
+
+- **What this is.** `hpr sim`'s `delay` line reads a second flight: the same rocket with every
+  recovery charge held, so that no charge fires. It gives that flight's apogee and the coast to
+  it from the last burnout. For one motor lit at launch with a delay in seconds, it also gives
+  how fast the rocket climbs or falls at the earliest and at the latest time the delay may fire.
+  Those are the delay less and plus NFPA 1125's allowance: 20% of the delay, at least 1.5 s and
+  at most 3 s. The earliest is never before the burnout. The two times count from the last
+  burnout, which the command took from the held flight itself. So it flew that flight twice:
+  once for the burnout, then again watched at the two times
+  ([#1343](https://github.com/nrdptel/fusionspace-eridanus/issues/1343)).
+- **The change.** That motor's burnout is known before the flight: it is the motor's burn time.
+  The command now watches the first held flight at the two times that burn time gives. After the
+  flight it works the two times out again from the flight's own last burnout. Where both are the
+  same bit for bit, the watched speeds are the ones the line gives. Where either differs, it
+  flies the held flight again, as before. So no speed depends on the early estimate.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 4ef8140c against the change, release
+  builds (`cargo build --release`), by `/usr/bin/time -l target/release/hpr sim
+  validation/fixtures/ork/guides/level-1.ork`. The figure is the "instructions retired" line
+  that macOS's `time -l` prints, the middle of five runs. The design has one motor, lit at
+  launch:
+
+  | measurement | before | after |
+  |---|---|---|
+  | instructions retired | 169.2 million | 128.6 million (−24.0%) |
+
+  A design that isn't one motor lit at launch with a delay in seconds flew the held flight
+  once before the change, and still does.
+- **What moves.** No output bit. `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice`
+  (in `crates/hpr-cli/src/sim.rs`) holds both halves on that design, at delays of 2, 7 and 14 s.
+  With the burn time's estimate, the held flight is flown once. With a wrong estimate (none,
+  one 0.25 s late, or one off at either time alone), it is flown twice, and its two speeds are
+  the same to the bit as the one flight's.
+
 ## A supersonic table built once a process (2026-11-12, #1427)
 
 - **What the table is.** Faster than Mach 1.2, the body's normal force comes from the
