@@ -7,7 +7,9 @@
 //! NASA's Arcas Robin wind tunnel and MIL-HDBK-762's sample calculation ([`crate::aero_drag`]),
 //! written to `validation/fixtures/aero/drag-vs-mach.json`; and compares its roll forcing and
 //! damping with the Arcas Robin's and the Basic Finner's ([`crate::aero_roll`]), written to
-//! `validation/fixtures/aero/roll-vs-mach.json`.
+//! `validation/fixtures/aero/roll-vs-mach.json`; and compares the Basic Finner's normal force and
+//! center of pressure with DREV-TM-9703's range fits ([`crate::aero_finner`]), written to
+//! `validation/fixtures/aero/basic-finner-normal-force.json`.
 //!
 //! RocketPy's data files carry their own terms (`THIRD-PARTY-NOTICES.md`), so the curves are read
 //! from the `refs/rocketpy` checkout (`cargo xtask refs fetch`) and never committed. The fixture
@@ -43,7 +45,10 @@ pub const USAGE: &str = "\
                            shock-expansion) with NACA TN 3527's tables and the Arcas Robin
                            and write validation/fixtures/aero/shock-expansion.json;
                            size the Arcas Robin body's remaining supersonic gap by source
-                           and write validation/fixtures/aero/arcas-robin-gap.json.
+                           and write validation/fixtures/aero/arcas-robin-gap.json;
+                           compare the Basic Finner's normal force and center of pressure
+                           with DREV-TM-9703's range fits and write
+                           validation/fixtures/aero/basic-finner-normal-force.json.
                            --check fails if a committed fixture differs instead of writing.";
 
 const FIXTURE: &str = "validation/fixtures/aero/rocketpy-drag-curves.json";
@@ -207,6 +212,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
         (
             crate::aero_bullet::FIXTURE,
             crate::aero_bullet::generate(&root)?,
+        ),
+        (
+            crate::aero_finner::FIXTURE,
+            crate::aero_finner::generate(&root)?,
         ),
     ] {
         let path = root.join(name);

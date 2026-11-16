@@ -248,6 +248,19 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   apogee error is below OpenRocket 24.12's and its newest release's (ADR-212), its mean bias
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
+    Met when its eight increments are (ADR-351, whose decision 2 gives each *done when*).
+    - [ ] **M1.14b2 The Basic Finner's drag and pitch damping against DREV's range.** *Done
+      when:* ADR-351 decision 2's for M1.14b2.
+    - [ ] **M1.14b3 NASA's check cases 1 and 2.** *Done when:* ADR-351 decision 2's for M1.14b3.
+    - [ ] **M1.14b4 NASA's check cases 6 to 10.** *Done when:* ADR-351 decision 2's for M1.14b4.
+    - [ ] **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* ADR-351 decision 2's for
+      M1.14b5.
+    - [ ] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
+      decision 2's for M1.14b6.
+    - [ ] **M1.14b7 A validation uncertainty for each real flight.** *Done when:* ADR-351
+      decision 2's for M1.14b7.
+    - [ ] **M1.14b8 MAPLEAF as a second open oracle.** *Done when:* ADR-351 decision 2's for
+      M1.14b8.
   - [ ] **M1.14c Transonic, Mach 0.8–1.2.** *Done when:* the stop rule ends it, gaps re-measured.
   - [ ] **M1.14d Supersonic, Mach 1.2–2.5.** First the switches that fall back to slender-body
     theory and overstate stability (#87, #120, #121, the vertical tip), then drag (#222) and M1.8e's

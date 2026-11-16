@@ -1,0 +1,68 @@
+{
+  "id": "basic-finner-drev",
+  "design": "range-basic-finner.json",
+  "source": "A. D. Dupuis and W. Hathaway, Aeroballistic Range Tests of the Basic Finner Reference Projectile at Supersonic Velocities, DREV-TM-9703, Defence Research Establishment Valcartier, August 1997 (DTIC ADA636861): Table IX, 'Six-degree-of freedom aerodynamic coefficients - Multiple fits' (PDF pp. 48-49), Fig. 2, 'Model configuration' (PDF p. 53), and sections 3.1 (the model, PDF p. 16) and 5.2 (the fits and the moment reference, PDF pp. 22-23). Crown copyright (Canada); approved for public release, distribution unlimited (THIRD-PARTY-NOTICES.md). The values are typed here in the project's own layout; no text, figure or scan is copied.",
+  "reading": "Typed from the printed table, each cell checked against a 110-dpi render of the page. Each row is one multiple fit: several free flights at one nominal Mach number reduced together by a six-degree-of-freedom fit, given at their average mid-range Mach number. cn_alpha is the table's CNa and cm_alpha its Cma, the linear terms of the normal-force and pitching-moment coefficients, per radian, on the body's cross-section pi d^2/4 and its diameter d, the moment about the reference point 5.50 calibers aft of the nose tip (section 5.2). cn_alpha_probable_error_percent and cm_alpha_probable_error_percent are the fit's probable errors as the table prints them, in whole percent (the table prints '0.%' for the moment's). The fits' cubic terms (CNa3 held at 0, Cma3 solved for) are not typed: they vanish at a small angle. The two rows above Mach 3.5 (3.734 and 4.300) are outside the project's envelope and are not typed.",
+  "moment_reference_calibers": 5.5,
+  "geometry": {
+    "note": "Fig. 2, in calibers of the body's diameter, 30.0 mm: a cone of 10 degrees half-angle 2.84 calibers long on a cylinder, 10.0 calibers overall; four rectangular fins 1.0 caliber in chord and 1.0 in span, flush with the base; each fin a single wedge, sharp at the leading edge (radius 0.004) and 0.08 calibers thick at its base; the nose tip's radius 0.004; the center of gravity 5.50 calibers from the nose tip.",
+    "diameter_m": 0.03,
+    "length_calibers": 10.0,
+    "nose_half_angle_deg": 10.0,
+    "nose_length_calibers": 2.84,
+    "fin_count": 4,
+    "fin_chord_calibers": 1.0,
+    "fin_span_calibers": 1.0,
+    "fin_base_thickness_calibers": 0.08
+  },
+  "rows": [
+    {
+      "mach": 1.077,
+      "cn_alpha": 18.47,
+      "cn_alpha_probable_error_percent": 2,
+      "cm_alpha": -52.648,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 48
+    },
+    {
+      "mach": 1.293,
+      "cn_alpha": 18.27,
+      "cn_alpha_probable_error_percent": 3,
+      "cm_alpha": -50.968,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 48
+    },
+    {
+      "mach": 1.832,
+      "cn_alpha": 11.78,
+      "cn_alpha_probable_error_percent": 4,
+      "cm_alpha": -27.976,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 48
+    },
+    {
+      "mach": 2.375,
+      "cn_alpha": 10.52,
+      "cn_alpha_probable_error_percent": 2,
+      "cm_alpha": -18.904,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 48
+    },
+    {
+      "mach": 2.718,
+      "cn_alpha": 9.01,
+      "cn_alpha_probable_error_percent": 2,
+      "cm_alpha": -15.199,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 48
+    },
+    {
+      "mach": 3.147,
+      "cn_alpha": 8.69,
+      "cn_alpha_probable_error_percent": 1,
+      "cm_alpha": -12.456,
+      "cm_alpha_probable_error_percent": 0,
+      "pdf_page": 49
+    }
+  ]
+}

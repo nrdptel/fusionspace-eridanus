@@ -151,6 +151,9 @@ pub(crate) fn committed_design(name: &str) -> Rocket {
         "mil-hdbk-762-sample-rocket.json" => {
             include_str!("../../../validation/designs/mil-hdbk-762-sample-rocket.json")
         }
+        "range-basic-finner.json" => {
+            include_str!("../../../validation/designs/range-basic-finner.json")
+        }
         other => panic!("no committed design {other}"),
     };
     serde_json::from_str(text).unwrap()

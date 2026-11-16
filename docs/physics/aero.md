@@ -49,6 +49,10 @@ and, less certainly, supersonic.
     Against the same wind tunnel, Mach 0.6 to 4.63, from Mach 1.5: slope within +9.4% to −3.3% and
     center of pressure within 0.53 [calibers](../glossary.md#caliber). The long model misses the
     half-caliber target at Mach 1.8 and 2.3, where its body reads high. From Mach 0.8 to 1.2 the short model misses a target at four of five rows. The long one misses at all three from 0.9 ([Normal force through Mach 1](#normal-force-through-mach-1)).
+  - *On a second measured body, the Basic Finner,* free flights in a Canadian range from Mach
+    1.08 to 3.15 show HPR Sim's slope 9.3% to 24.9% low and its center of pressure 0.03 to 0.34
+    calibers forward, the side that understates stability. The cause is not found
+    ([The Basic Finner's normal force against DREV's range](#the-basic-finners-normal-force-against-drevs-range)).
   - *The body faster than sound*, by the method a flight blends in over 0.3 in Mach from Mach 1.2 at
     the earliest. On the bodies it covers, against its report's wind-tunnel measurements of 120
     cone- and ogive-cylinders from Mach 3 to 6.28. There, 117 slopes are within ±0.2 per radian and
@@ -4593,6 +4597,102 @@ run again. The test
 `hpr-validate` pins every number in the table
 ([ADR-349, the decision that set this probe up][adr-349]).
 
+#### The Basic Finner's normal force against DREV's range
+
+**In short: on the Basic Finner, HPR Sim's normal-force slope reads 9.3% to 24.9% below the
+measured one from Mach 1.08 to 3.15, and its center of pressure lies 0.03 to 0.34 calibers forward
+of the measured one.** Forward is the side that understates stability. The cause is not found.
+
+What is checked: HPR Sim's slope $C_{N\alpha}$ and center of pressure at a small angle of attack,
+against fits of free flights in the aeroballistic range of Canada's DREV ([DREV] Table IX, PDF
+pp. 48–49). The model is the Basic Finner, a standard test body: a cone of 10° half-angle on a
+cylinder, 10 calibers long in all, with four square fins one caliber in chord and span at the base
+([DREV] Fig. 2, PDF p. 53). The 30 mm (1.2 in) models were fired several to a Mach number, and each
+row is one six-degree-of-freedom fit of those flights together.
+
+The table's six rows inside the envelope are typed into [the reference][finner-drev], and the model
+is [a committed design][finner-design]. `cargo xtask aero` writes the comparison to
+[the report][finner-nf], and `hpr_aero::tests::basic_finner_normal_force_against_drev` recomputes
+every figure in it. [The increment that added it](../decisions-and-roadmap.md#m1-14b1) set no
+target.
+
+> **How far to trust it.** This is one measured set of one body. The probable errors below are the
+> fits' own, 1% to 4% on the slope: they don't count the models' build or the range's Mach number.
+> The report doesn't define *probable error*. In its usual sense it is 0.674 of a standard
+> deviation.
+
+**The measured center of pressure** is worked out, not printed. The report gives the slope
+$C_{N\alpha}$ and the pitching-moment slope $C_{m\alpha}$, both per radian on the body's
+cross-section, the moment on the body's diameter about a point 5.50 calibers from the nose tip. A
+force that acts aft of that point turns the nose down, a negative moment, so the center of
+pressure, in calibers from the nose tip, is
+
+$$
+x_{cp} = 5.50 - \frac{C_{m\alpha}}{C_{N\alpha}}
+$$
+
+For example, at Mach 1.832 the table gives $C_{N\alpha} = 11.78$ and $C_{m\alpha} = -27.976$, so
+$x_{cp} = 5.50 + 27.976/11.78 = 7.87$ calibers. Its probable error is the ratio's. The table
+gives 4% for the slope and prints 0% for the moment, taken here as 0.5%. Together they are 4.03%
+of the 2.37-caliber arm, 0.10 calibers.
+
+**The slope.** HPR Sim's is the sum of its body's part and its fins', the fins' with their
+interference with the body. The report measured the whole model only.
+
+| Mach | DREV's $C_{N\alpha}$, per rad (probable error) | HPR Sim's body, per rad | HPR Sim's fins, per rad | HPR Sim's $C_{N\alpha}$, per rad | error |
+|--:|--:|--:|--:|--:|--:|
+| 1.077 | 18.47 (2%) | 2.00 | 11.86 | 13.86 | −24.9% |
+| 1.293 | 18.27 (3%) | 2.20 | 11.52 | 13.71 | −24.9% |
+| 1.832 | 11.78 (4%) | 3.05 | 7.41 | 10.46 | −11.2% |
+| 2.375 | 10.52 (2%) | 3.25 | 5.57 | 8.83 | −16.1% |
+| 2.718 | 9.01 (2%) | 3.33 | 4.84 | 8.17 | −9.3% |
+| 3.147 | 8.69 (1%) | 3.39 | 4.17 | 7.56 | −13.0% |
+
+**The center of pressure,** in calibers from the nose tip. The error is HPR Sim's less DREV's, so a
+negative one is forward.
+
+| Mach | DREV's center of pressure, calibers (probable error) | HPR Sim's, calibers | error, calibers |
+|--:|--:|--:|--:|
+| 1.077 | 8.35 (0.06) | 8.28 | −0.07 |
+| 1.293 | 8.29 (0.08) | 8.26 | −0.03 |
+| 1.832 | 7.87 (0.10) | 7.54 | −0.34 |
+| 2.375 | 7.30 (0.04) | 7.12 | −0.18 |
+| 2.718 | 7.19 (0.03) | 6.91 | −0.27 |
+| 3.147 | 6.93 (0.02) | 6.70 | −0.23 |
+
+**By band.** From Mach 1.5 to 2.5, the band this comparison was added for, the slope reads 11.2%
+and 16.1% low and the center of pressure 0.34 and 0.18 calibers forward. Below Mach 1.5 the slope
+reads 24.9% low at both Mach numbers, with the center of pressure 0.07 and 0.03 calibers forward.
+From Mach 2.5 to 3.5 the slope reads 9.3% and 13.0% low, and the center of pressure 0.27 and 0.23
+calibers forward.
+
+**What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
+center of pressure is forward on every row, and by more than the probable error on all but Mach
+1.293. On this body, then, HPR Sim understates the [stability margin](../glossary.md#stability-margin):
+with the models' center of gravity at 5.50 calibers, the measured margin at Mach 1.832 is 2.37
+calibers and HPR Sim's is 2.04. The test pins each row's sign and size, so a change to the model
+that moved the center of pressure aft of the measured one would fail it.
+
+The cause is not found. The measurement can't say whether the missing lift is the fins' or the
+body's, since it has no fins-off flights. The rows below Mach 1.5 go to
+[the transonic increment](../decisions-and-roadmap.md#m1-14c), where the Arcas Robin's slope reads
+high, not low ([Normal force through Mach 1](#normal-force-through-mach-1)). The rows above go to
+[the supersonic increment](../decisions-and-roadmap.md#m1-14d)
+([#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)).
+
+**What it leaves out.**
+
+- **The fins' section.** The report's fins are single wedges, sharp at the leading edge and 0.08
+  calibers thick at a blunt base. HPR Sim has no such section, and its fin lift uses the planform
+  alone, so the design gives them a square section of that thickness. The lift a wedge's thickness
+  adds is not modeled.
+- **Larger angles.** The fits' cubic terms are not compared: both sides are the slope as the angle
+  of attack goes to zero.
+- **Drag and pitch damping.** The same table gives both.
+  [The next increment](../decisions-and-roadmap.md#m1-14b2) compares them.
+- **The rows past Mach 3.5.** The table's last two, at Mach 3.734 and 4.300, are outside the
+  [envelope](../VALIDATION.md#operating-envelope) and are not typed.
+
 #### Roll against the Arcas Robin and the Basic Finner
 
 What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured in NOL's wind tunnel from Mach 1.53 to 2.76 ([N6652] Table 2; Mach 2.76 from Table 1, where Table 2 prints 2.70), and against DREV's free-flight range fits from Mach 1.83 to 3.15 ([DREV] Table IX). It is also checked against Barrowman's own computed value at Mach 0.07
@@ -4691,6 +4791,9 @@ ellipse's integrals ([N09] eq. 3.70–3.71). Supersonic forcing and damping with
 [boattail-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/measured-boattails.json
 [roll-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/roll-vs-mach.json
 [finner-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping.json
+[finner-drev]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-drev.json
+[finner-nf]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-normal-force.json
+[finner-design]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/range-basic-finner.json
 [drev-stats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping-drev.json
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-031]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0031-roll-from-canted-fins-and-roll-damping-by.md

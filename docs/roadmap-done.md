@@ -256,6 +256,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14a1 Envelope flags ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a2 Drag issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a3 Stability issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14b1 The Basic Finner's normal force against DREV's range ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1429,6 +1430,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M1.14a3 Stability issue warnings** (ADR-180, ADR-181). *Done when:* #87, #120, #121 and #172
       each warn, by number, when a flight or design meets its Mach or geometry condition (#172's
       chosen in an ADR, as it states none), tested at its edge.
+  - **M1.14b** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+    - [x] **M1.14b1 The Basic Finner's normal force against DREV's range.** *Done when:* ADR-351
+      decision 2's for M1.14b1.
 - [x] **M2.10 Evidence register** (ADR-278). Each claim the site makes about what backs a reader,
   model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register

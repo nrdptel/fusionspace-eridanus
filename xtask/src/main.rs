@@ -21,6 +21,7 @@ mod aero_body;
 mod aero_bullet;
 mod aero_crossflow;
 mod aero_drag;
+mod aero_finner;
 mod aero_flare;
 mod aero_gap;
 mod aero_lip;

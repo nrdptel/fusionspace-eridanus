@@ -292,6 +292,26 @@ independent reference, or adds a reference that will. Either counts as progress.
 row that do neither end the milestone, gaps written down. Each step names the band it serves, and
 work outside the core band needs a stated reason.
 
+### The references named for Mach 1.5 to 2.5
+
+The envelope's decision named nine references to add or check for Mach 1.5 to 2.5
+([the reference increment](decisions-and-roadmap.md#m1-14b)). Each ends up reported, with a
+number on a page, or refused, with the reason
+([the decision that split the work](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md)).
+One is reported in part, three are refused, and five are open.
+
+| reference | where it stands | why, or where |
+|---|---|---|
+| The Basic Finner's free-flight data (DREV-TM-9703) | reported in part | Its normal-force slope and center of pressure are compared at six Mach numbers, 1.08 to 3.15 ([Aerodynamics](physics/aero.md#the-basic-finners-normal-force-against-drevs-range)). Its roll damping was compared earlier ([Aerodynamics](physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner)). Its drag and pitch damping are [the next increment](decisions-and-roadmap.md#m1-14b2). |
+| The Rocket Flight Database | refused as a reference set | It admits a flight only when an OpenRocket fork lands within ±10% of the measured apogee. Its rows from RASAero II's comparison page repeat that page's apogees, and its flights from Mach 1.5 to 2.5 fly motors that aren't commercial. Its flights on commercial motors come from that page, for [the published supersonic flights](decisions-and-roadmap.md#m2-3c7) ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/duke-flight-database.md)). |
+| ARL-TN-1128 | refused | The report defines a shape, the High-Speed Army Reference Vehicle, and gives no coefficient, test or Mach number ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#3-arl-tn-1128-a-shape-no-data)). |
+| A wind-tunnel drag point at Mach 2.45 | refused | Its authors doubt their own force measurement, and its license bars committing a value ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#4-the-mach-245-drag-point)). |
+| NASA's six-degree-of-freedom check cases | open | Cases 1 and 2 are [one increment](decisions-and-roadmap.md#m1-14b3) and cases 6 to 10 [the next](decisions-and-roadmap.md#m1-14b4). Cases 3, 4, 5 and 11 to 17 are refused: they need damping coefficients on a finless body, gravitation on a round Earth, an aircraft under control or a rocket to orbit. None of the cases is a reference for Mach 1.5 to 2.5: they check frames, gravity and rigid-body motion ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/nesc-check-cases.md)). |
+| Tip-off, against RocketPy's | open | HPR Sim has no tip-off. [Its increment](decisions-and-roadmap.md#m1-14b5) measures what that costs with RocketPy's tip-off phase. |
+| Wind reconstructed from the GPS descent | open | [Its increment](decisions-and-roadmap.md#m1-14b6) ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/wind-from-descent.md)). |
+| A validation uncertainty for each real flight (ASME V&V 20) | open | [Its increment](decisions-and-roadmap.md#m1-14b7). |
+| MAPLEAF, as another simulator to compare with | open | [Its increment](decisions-and-roadmap.md#m1-14b8). |
+
 ## The validation harness
 
 `cargo xtask validate [--fast|--check]` runs every case in `validation/cases/lock.toml` and writes

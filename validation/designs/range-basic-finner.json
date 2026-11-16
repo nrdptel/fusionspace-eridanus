@@ -1,0 +1,100 @@
+{
+  "name": "Basic Finner, DREV-TM-9703's range model (Fig. 2)",
+  "stages": [
+    {
+      "id": "model",
+      "name": "",
+      "components": [
+        {
+          "id": "nose",
+          "name": "",
+          "part": {
+            "nose_cone": {
+              "shape": {
+                "kind": "conical"
+              },
+              "length_m": 0.0852,
+              "base_radius_m": 0.015,
+              "wall": {
+                "kind": "filled"
+              },
+              "shoulder": null,
+              "material": {
+                "name": "Steel (plain carbon)",
+                "density": {
+                  "kind": "bulk",
+                  "kg_m3": 7850.0
+                }
+              }
+            }
+          },
+          "finish": {
+            "kind": "polished"
+          }
+        },
+        {
+          "id": "body",
+          "name": "",
+          "part": {
+            "body_tube": {
+              "length_m": 0.2148,
+              "outer_radius_m": 0.015,
+              "thickness_m": 0.015,
+              "material": {
+                "name": "Steel (plain carbon)",
+                "density": {
+                  "kind": "bulk",
+                  "kg_m3": 7850.0
+                }
+              }
+            }
+          },
+          "finish": {
+            "kind": "polished"
+          },
+          "children": [
+            {
+              "id": "fins",
+              "name": "",
+              "part": {
+                "fin_set": {
+                  "count": 4,
+                  "planform": {
+                    "kind": "trapezoidal",
+                    "root_chord_m": 0.03,
+                    "tip_chord_m": 0.03,
+                    "span_m": 0.03,
+                    "sweep_m": 0.0
+                  },
+                  "thickness_m": 0.0024,
+                  "cross_section": "square",
+                  "tab": null,
+                  "cant_rad": 0.0,
+                  "base_angle_rad": 0.0,
+                  "material": {
+                    "name": "Steel (plain carbon)",
+                    "density": {
+                      "kind": "bulk",
+                      "kg_m3": 7850.0
+                    }
+                  }
+                }
+              },
+              "position": {
+                "from": "absolute",
+                "station_m": 0.27
+              },
+              "finish": {
+                "kind": "polished"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "reference_diameter": {
+    "kind": "maximum"
+  },
+  "configurations": []
+}
