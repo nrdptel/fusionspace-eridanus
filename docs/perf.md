@@ -3,6 +3,36 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## The delay line's held flight flown once (2026-11-16, #1343)
+
+- **What this is.** `hpr sim`'s `delay` line reads a second flight: the same rocket with every
+  recovery charge held. It gives that flight's apogee, the coast to it from the last burnout and,
+  for one motor lit at launch with a delay in seconds, how fast the rocket climbs or falls at each
+  end of the delay's tolerance. Those two times count from the burnout, which the command took
+  from the held flight itself. So it flew that flight twice: once for the burnout, then again
+  watched at the two times ([#1343](https://github.com/nrdptel/fusionspace-eridanus/issues/1343)).
+- **The change.** A motor's burnout is its ignition plus its burn time. For a motor lit at launch
+  or at a set time, both are known before the flight. The command now watches the first held
+  flight at the times that guess gives. After the flight it works the two times out again from the
+  flight's own last burnout. Where they are the same bit for bit, the watched speeds are the
+  band's. Where they aren't, as with a motor lit by a separation or by another motor's burnout,
+  it flies the held flight again, as before. No speed depends on the guess.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 4ef8140c against the change, release
+  builds, alternating, six rounds of 15 runs each, with the machine's load between 1.7 and 2.3:
+
+  | measurement | before | after |
+  |---|---|---|
+  | `hpr sim validation/fixtures/ork/guides/level-1.ork`, wall time | 11.16 ms | 9.06 ms (−19%) |
+  | the same, instructions retired (`/usr/bin/time -l`) | 169.0 million | 128.6 million (−24%) |
+
+- **What moves.** No output bit. The command's text and its JSON are byte-identical, before
+  against after, on the 20 public `.ork` fixtures as saved (40 outputs), and on the same 20 with
+  each of six motors at each of six delays (1,440 outputs; 204 of those flights print a band, 99
+  with both speeds). `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice` (in
+  `crates/hpr-cli/src/sim.rs`) holds both halves: one flight where the burnout is known
+  beforehand, and the same speeds to the bit as two flights give, which is what a wrong guess
+  still flies.
+
 ## A supersonic table built once a process (2026-11-12, #1427)
 
 - **What the table is.** Faster than Mach 1.2, the body's normal force comes from the
