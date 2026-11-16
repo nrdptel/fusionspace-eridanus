@@ -656,6 +656,14 @@ mod tests {
         finless["stages"][0]["components"][1]["children"] = json!([pod]);
         let error = compared(&reference, &design, &finless).unwrap_err();
         assert!(error.contains("it has 0 fin sets, 1 pod sets"), "{error}");
+        // The same pod beside the airframe's fins: one fin set, but two parts after the bodies.
+        let (_, _, mut podded) = committed();
+        let children = podded["stages"][0]["components"][1]["children"]
+            .as_array_mut()
+            .unwrap();
+        children.push(finless["stages"][0]["components"][1]["children"][0].clone());
+        let error = compared(&reference, &design, &podded).unwrap_err();
+        assert!(error.contains("it has 1 fin sets, 1 pod sets"), "{error}");
     }
 
     /// A row with a missing or unreadable field is named by its Mach number, or by its place in

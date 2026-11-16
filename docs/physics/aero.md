@@ -4694,9 +4694,9 @@ This is nearer like for like, not like for like. A straight line fitted over a s
 leans toward the larger ones, since the fit weights them more, and lift that grows with the
 square of the angle is largest there. So the root-mean-square yaw is a low reading of the angle a
 fit stands for. At a larger one HPR Sim's miss in the slope would be smaller again and, by the
-trend of the table above, its miss in the center of pressure larger. Beside the mean squared yaw,
-DREV's table has a column headed ABARM that the report does not define, and the maximum angle of
-attack the report defines is not in the table. So the comparison stops at the root-mean-square
+trend of the table above, its miss in the center of pressure larger. Under each mean squared yaw,
+DREV's table prints a second figure, headed ABARM, that the report does not define, and the
+maximum angle of attack the report defines is not in the table. So the comparison stops at the root-mean-square
 yaw.
 
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
