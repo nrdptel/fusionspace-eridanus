@@ -3561,7 +3561,7 @@ refs/venv/bin/python validation/oracles/openrocket/drag_curves.py \
     corpus-out/openrocket-drag-curves.json refs
 refs/venv/bin/python validation/oracles/openrocket/nose_columns.py --public \
     corpus-out/openrocket-library-nose-columns.json \
-    refs/hpr-sim-fixtures/imported/loft-fixtures/openrocket/*.ork
+    refs/*/imported/loft-fixtures/openrocket/*.ork
 cargo xtask ork-flights --library           # writes the report
 cargo xtask ork-flights --library --check   # compares with the committed one
 ```
