@@ -765,11 +765,6 @@ impl Observer for Peaks {
                 start + (end - start) * f64::from(k) / 4.0
             };
             let sample = step.sample(t)?;
-            self.running_speed_m_s = self
-                .running_speed_m_s
-                .max(sample.cg_velocity_enu_m_s.length());
-            self.mach_not_finite |= !sample.mach.is_finite();
-            self.running_mach = self.running_mach.max(sample.mach);
             if step.phase() == Phase::Free
                 && let Some(cal) = step.stability(t)?.static_margin.margin_cal
             {
@@ -781,18 +776,31 @@ impl Observer for Peaks {
             {
                 self.running_turn_s = Some(t);
             }
-            if self
-                .highest_m
-                .is_none_or(|highest| sample.height_above_ground_m > highest)
-            {
-                self.highest_m = Some(sample.height_above_ground_m);
-                self.max_speed_m_s = Some(self.running_speed_m_s);
-                self.top_mach = self.running_mach;
-                self.least_margin_cal = self.running_margin_cal;
-                self.turns_over_s = self.running_turn_s;
-            }
+            self.sampled(
+                sample.height_above_ground_m,
+                sample.cg_velocity_enu_m_s.length(),
+                sample.mach,
+            );
         }
         Ok(())
+    }
+}
+
+impl Peaks {
+    /// Takes a sample's height above the ground, speed and Mach number, after its margin and
+    /// angle of attack: the running largest speed and Mach number, and every peak committed at a
+    /// new highest sample, so that each is read up to the apogee.
+    fn sampled(&mut self, height_m: f64, speed_m_s: f64, mach: f64) {
+        self.running_speed_m_s = self.running_speed_m_s.max(speed_m_s);
+        self.mach_not_finite |= !mach.is_finite();
+        self.running_mach = self.running_mach.max(mach);
+        if self.highest_m.is_none_or(|highest| height_m > highest) {
+            self.highest_m = Some(height_m);
+            self.max_speed_m_s = Some(self.running_speed_m_s);
+            self.top_mach = self.running_mach;
+            self.least_margin_cal = self.running_margin_cal;
+            self.turns_over_s = self.running_turn_s;
+        }
     }
 }
 
@@ -3407,7 +3415,7 @@ mod tests {
     /// The nose's line reads HPR Sim's top Mach number from `Peaks`: on the public Mach probe,
     /// which passes Mach 1.6, it is above 1.6 and within 1e-4 of the largest at the end of a step
     /// over the whole flight, since the top is reached before the apogee; `Peaks` also samples
-    /// inside each step (#1497).
+    /// inside each step. On a fall faster than the climb, the top stays the climb's (#1497).
     #[test]
     fn the_peaks_hold_the_top_mach_number_read_for_the_rule() {
         let probe = crate::histories::tests::public_flights().remove(1);
@@ -3426,6 +3434,27 @@ mod tests {
         // `running_mach` is the largest over every sample, `top_mach` its value at the highest
         // one: never less.
         assert!(peaks.running_mach >= peaks.top_mach);
+        // A fall faster than the climb, as a flight with no recovery can have: the top Mach
+        // number and the largest speed stay the climb's, and a Mach number that isn't one is
+        // marked wherever it comes.
+        let mut fell = Peaks::default();
+        for (height_m, speed_m_s, mach) in [
+            (10.0, 100.0, 0.3),
+            (500.0, 300.0, 0.9),
+            (900.0, 50.0, 0.15),
+            (600.0, 350.0, 1.1),
+            (100.0, 400.0, 1.2),
+        ] {
+            fell.sampled(height_m, speed_m_s, mach);
+        }
+        assert_eq!(
+            (fell.top_mach, fell.running_mach, fell.max_speed_m_s),
+            (0.9, 1.2, Some(300.0))
+        );
+        assert!(!fell.mach_not_finite);
+        fell.sampled(50.0, 400.0, f64::NAN);
+        assert!(fell.mach_not_finite);
+        assert_eq!(fell.top_mach, 0.9);
         let facts = crate::nose_line::own_facts(&simulation, Some(peaks.top_mach));
         assert_eq!(facts["top_mach"], peaks.top_mach);
     }
