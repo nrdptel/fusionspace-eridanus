@@ -184,8 +184,8 @@ found where each stands.
      taken as 0.5%.
    - **The measured slopes are straight-line fits.** The table holds both cubic terms,
      `C_Nα3` and `C_mα3`, at zero on the six rows, so each slope is fitted over the angles
-     the models flew: a mean squared yaw of 0.7 to 1.9 square degrees. The report therefore
-     gives HPR Sim twice: as the angle of attack goes to zero, the headline, and at each
+     the models flew: a mean squared yaw of 0.7 to 1.9 square degrees. The comparison
+     therefore gives HPR Sim twice: as the angle of attack goes to zero, the headline, and at each
      fit's root-mean-square yaw, where its body lift adds to the slope.
    - **The reference length is the body's diameter.** The report's nomenclature gives the
      reference area, the body's cross-section, and does not state the length. Taken as the

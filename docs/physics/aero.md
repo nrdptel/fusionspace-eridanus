@@ -4633,9 +4633,10 @@ x_{cp} = 5.50 - \frac{C_{m\alpha}}{C_{N\alpha}}
 $$
 
 For example, at Mach 1.832 the table gives $C_{N\alpha} = 11.78$ and $C_{m\alpha} = -27.976$, so
-$x_{cp} = 5.50 + 27.976/11.78 = 7.87$ calibers. Its probable error is the ratio's, with the two
-slopes' errors taken as independent. The table gives 4% for the slope and prints 0% for the
-moment, taken here as 0.5%. Together they are 4.03% of the 2.37-caliber arm, 0.10 calibers.
+the center of pressure is $5.50 + 27.976/11.78 = 7.87$ from the nose tip, in calibers. Its probable
+error is the ratio's, with the two slopes' errors taken as independent. The table gives 4% for the
+slope and prints 0% for the moment, taken here as 0.5%. Together they are 4.03% of the
+2.37-caliber arm, 0.10 calibers.
 
 **The slope.** HPR Sim's is the sum of its body's part and its fins', the fins' with their
 interference with the body. The report measured the whole model only.
@@ -4667,7 +4668,7 @@ reads 24.9% low at both Mach numbers, with the center of pressure 0.07 and 0.03 
 From Mach 2.5 to 3.5 the slope reads 9.3% and 13.0% low, and the center of pressure 0.27 and 0.23
 calibers forward.
 
-**At the flights' angles.** The fits hold their cubic terms at zero on these six rows, so each
+**At each fit's root-mean-square yaw.** The fits hold their cubic terms at zero on these six rows, so each
 measured slope is a straight-line fit over the angles the models flew. The table gives each fit's
 mean squared yaw, 0.7 to 1.9 square degrees. HPR Sim's [body lift](../glossary.md#body-lift) grows
 with the angle, so at an angle its $C_N/\alpha$ is above its small-angle slope. At each fit's
@@ -4685,7 +4686,7 @@ pressure 0.02 to 0.04 calibers further forward:
 
 **What it means.** HPR Sim's slope is low on every row, by more than the fit's probable error. Its
 center of pressure is forward on every row, and by more than the probable error on all but Mach
-1.293. Both hold at a small angle and at the flights' angles. On this body, then, HPR Sim
+1.293. Both hold at a small angle and at each fit's root-mean-square yaw. On this body, then, HPR Sim
 understates the [stability margin](../glossary.md#stability-margin): with the models' center of
 gravity at 5.50 calibers, the measured margin at Mach 1.832 is 2.37 calibers and HPR Sim's is
 2.04. The test pins each row's sign and size, so a change to the model that moved the center of
@@ -4695,7 +4696,7 @@ The cause is not found
 ([#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)). The measurement can't say
 whether the missing lift is the fins' or the body's, since it has no fins-off flights. The row at
 Mach 1.077 goes to [the transonic increment](../decisions-and-roadmap.md#m1-14c), where the long
-Arcas Robin model misses both ways, from 8.8% low to 27.1% high
+Arcas Robin model's slope reads both ways, from 8.8% low to 27.1% high
 ([Normal force through Mach 1](#normal-force-through-mach-1)). The rows from Mach 1.293 to 2.375
 go to [the supersonic increment](../decisions-and-roadmap.md#m1-14d), and the two above Mach 2.5
 to [the extended band's](../decisions-and-roadmap.md#m1-14h).
@@ -4704,7 +4705,7 @@ to [the extended band's](../decisions-and-roadmap.md#m1-14h).
 
 - **The fins' section.** The report draws each fin as a single wedge, sharp at the leading edge
   and 0.08 calibers thick at the trailing edge. HPR Sim has no such section, and its fin lift uses
-  the planform alone, so the design gives them a flat section of that thickness. The lift a
+  the planform alone, so the design gives them a square section of that thickness. The lift a
   wedge's thickness adds is not modeled.
 - **Spin.** The models' fins were canted 0°, 2° or 4°, and the fits pool flights of all three
   where they could, so some models rolled. The design's fins are not canted.
