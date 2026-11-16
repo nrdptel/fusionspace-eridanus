@@ -636,6 +636,9 @@ mod tests {
         );
         // Two terms that cancel are the same case, and so are terms that cancel to rounding.
         assert!(part(2.0, "fin set", &[(1.0, 0.2), (-1.0, 0.1)], 0.03).is_err());
+        // A slope with a moment that isn't finite has no center of pressure either.
+        assert!(part(2.0, "body", &[(1.0, f64::NAN)], 0.03).is_err());
+        assert!(part(2.0, "body", &[(f64::INFINITY, 0.1)], 0.03).is_err());
         assert!(
             part(
                 2.0,
@@ -772,7 +775,7 @@ mod tests {
             pin["sha256"].as_str(),
             "the reference's source_sha256 is the lock's pin"
         );
-        // A date, no earlier than the report's first fetch (THIRD-PARTY-NOTICES.md).
+        // A YYYY-MM-DD string, no earlier than the report's first fetch (THIRD-PARTY-NOTICES.md).
         let typed_on = reference["typed_on"].as_str().unwrap();
         let fields: Vec<&str> = typed_on.split('-').collect();
         let digits =
