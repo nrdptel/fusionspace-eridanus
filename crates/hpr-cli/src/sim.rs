@@ -3589,9 +3589,7 @@ mod tests {
         let crate::Command::Sim(args) = cli.command else {
             unreachable!("a sim command line")
         };
-        let setup = Setup::read(&args.flight)
-            .ok()
-            .expect("the guide's design reads");
+        let setup = Setup::read(&args.flight).expect("the guide's design reads");
         let simulation = setup
             .builder(&args.flight)
             .simulation()
