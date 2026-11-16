@@ -18,20 +18,17 @@ the command, so a later run can be compared like for like.
   band's. Where they aren't, as with a motor lit by a separation or by another motor's burnout,
   it flies the held flight again, as before. No speed depends on the guess.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 4ef8140c against the change, release
-  builds, alternating, six rounds of 15 runs each, with the machine's load between 1.7 and 2.3:
+  builds, by `/usr/bin/time -l target/release/hpr sim
+  validation/fixtures/ork/guides/level-1.ork`, a count the machine's load doesn't move:
 
   | measurement | before | after |
   |---|---|---|
-  | `hpr sim validation/fixtures/ork/guides/level-1.ork`, wall time | 11.16 ms | 9.06 ms (−19%) |
-  | the same, instructions retired (`/usr/bin/time -l`) | 169.0 million | 128.6 million (−24%) |
+  | instructions retired | 169.0 million | 128.6 million (−24%) |
 
-- **What moves.** No output bit. The command's text and its JSON are byte-identical, before
-  against after, on the 20 public `.ork` fixtures as saved (40 outputs), and on the same 20 with
-  each of six motors at each of six delays (1,440 outputs; 204 of those flights print a band, 99
-  with both speeds). `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice` (in
-  `crates/hpr-cli/src/sim.rs`) holds both halves: one flight where the burnout is known
-  beforehand, and the same speeds to the bit as two flights give, which is what a wrong guess
-  still flies.
+- **What moves.** No output bit. `the_held_flight_is_flown_once_and_gives_the_speeds_of_flying_it_twice`
+  (in `crates/hpr-cli/src/sim.rs`) holds both halves on that design, at delays of 2, 7 and 14 s:
+  one flight where the burnout is known beforehand, and the same two speeds to the bit as two
+  flights give, which is what a wrong guess still flies.
 
 ## A supersonic table built once a process (2026-11-12, #1427)
 
