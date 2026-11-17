@@ -1,11 +1,10 @@
 # ADR-354: The search index is held to mdBook's own bar, not to its weight on 2026-11-10 (2026-11-17)
 
-- **Status:** accepted; withdrawn by [ADR-355][adr-355] until the work lands again; changes the size limit that `cargo xtask site` holds the search index to ([the writing guide's section][guide]); written with [M1.14b3][m1-14b3], whose pages did not fit under the old limit
-- **Summary:** Withdrawn by [ADR-355][adr-355] until the work lands again. The site's search index was held to its weight on 2026-11-10, 1,675,059 bytes compressed. The file stores every section's text, so that limit held the guide to the words it had that week: a week later main had 2,684 bytes of room, about 920 words. The limit is now 10,000,000 bytes of the file, the size past which mdBook itself calls an index very large. That is room for about 139,000 more words; [#1522](https://github.com/nrdptel/fusionspace-eridanus/issues/1522) decides what follows.
+- **Status:** accepted; changes the size limit that `cargo xtask site` holds the search index to ([the writing guide's section][guide]); written with [M1.14b3][m1-14b3], whose pages did not fit under the old limit
+- **Summary:** The site's search index was held to its weight on 2026-11-10, 1,675,059 bytes compressed. The file stores every section's text, so that limit held the guide to the words it had that week: a week later main had 2,684 bytes of room, about 920 words. The limit is now 10,000,000 bytes of the file, the size past which mdBook itself calls an index very large. That is room for about 139,000 more words; [#1522](https://github.com/nrdptel/fusionspace-eridanus/issues/1522) decides what follows.
 
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
 [guide]: ../writing.md#the-search-index
-[adr-355]: 0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md
 [adr-353]: 0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
 [voice]: ../../validation/reports/voice.md
 [i-414]: https://github.com/nrdptel/fusionspace-eridanus/issues/414
@@ -76,4 +75,4 @@ branch's figures are rounded: each later line of prose moves them a little:
 stand. The rule beside the limit stands: shorten the words a page added first, and change
 the limit only with a decision record that measures the new one.
 
-**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) until the work lands again. Until then `cargo xtask site` holds the index to the earlier limit.
+**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) and landed again unchanged.

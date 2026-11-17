@@ -4639,6 +4639,10 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // The private collection's logs counted up to the boost's cut: counts only, no Mach
         // number in it.
         "collection-boost.json",
+        // NASA's check cases 1 and 2 (M1.14b3): a body with no aerodynamics against other
+        // codes, differences in altitude and body rate only: no whole flight of a rocket and no
+        // Mach number in it.
+        "check-cases.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
