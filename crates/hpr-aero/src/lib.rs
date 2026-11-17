@@ -1718,7 +1718,8 @@ mod tests {
     /// reference, 5.5 calibers, with its fins' part.
     ///
     /// It pins which way hpr errs, and by how much, on each row. The drag reads high at Mach
-    /// 1.077; low at 1.293, inside the shots' spread; and low from Mach 1.832 up, below every
+    /// 1.077 in the middle of its band, which reaches below every shot there, the faces' value
+    /// being an upper bound; low at 1.293, inside the shots' spread; and low from Mach 1.832 up, below every
     /// shot at both ends of the wedge's band and even with the trailing edges at vacuum. The pitch
     /// damping reads low in size by more than the fit's probable error on every row but Mach
     /// 1.077, where it reads high: there HPR Sim overstates the damping, the side that flatters.
@@ -1846,6 +1847,8 @@ mod tests {
             } else {
                 // Vincenti and Wagoner's front wedge at ξ₀ = 0.763: t/c = 0.04 on the double
                 // wedge's chord, twice c_d on the fin's own, 16/π fins' planform per reference.
+                // Their two-dimensional value is an approximate upper bound for a finite wing,
+                // with nothing below it: the low end takes the faces at zero.
                 let detached = &wedge_figures["detached_faces"];
                 let xi = (mach * mach - 1.0) / (2.4 * 0.04_f64).powf(2.0 / 3.0);
                 assert!(
@@ -1857,10 +1860,15 @@ mod tests {
                     f(&detached["front_wedge_generalized_drag"]),
                     f(&detached["reading_error"]),
                 );
-                (on(c), on(c - e), on(c + e))
+                (on(c), 0.0, on(c + e))
             };
             close(f(&row["wedge_faces"]), faces, 1e-12, &what);
-            close(f(&row["wedge_faces_low"]), faces_low, 1e-12, &what);
+            // Relative, but exact where the low end is zero.
+            let written_low = f(&row["wedge_faces_low"]);
+            assert!(
+                (written_low - faces_low).abs() <= 1e-12 * faces_low.abs(),
+                "{what}: faces' low end {written_low}, want {faces_low}"
+            );
             close(f(&row["wedge_faces_high"]), faces_high, 1e-12, &what);
             let (edge_low, edge_high) = (frontal * f(&base["low"]), frontal * f(&base["high"]));
             close(f(&row["wedge_trailing_edge_low"]), edge_low, 1e-12, &what);
@@ -1910,14 +1918,16 @@ mod tests {
             assert!((got - drag_error).abs() < 5e-4, "{what}: drag error {got}");
             // As drawn, the square leading edge's stagnation pressure puts it far above DREV's.
             assert!(drawn > 1.3 * cx0, "{what}");
-            // Which way. High at Mach 1.077, above every shot at both ends of the bands. Low
-            // at 1.293, at both ends, the middle inside the shots' spread. From 1.832 up, low at
-            // both ends, below every shot, and still below DREV's with the trailing edges at
-            // vacuum.
+            // Which way. At Mach 1.077 the middle is high, above every shot, and so is the
+            // high end, but with the faces at zero the low end is below every shot: the sign
+            // there is not settled. Low at 1.293, at both ends, the middle inside the shots'
+            // spread. From 1.832 up, low at both ends, below every shot, and still below DREV's
+            // with the trailing edges at vacuum.
             if mach < 1.1 {
+                assert!(hpr > high, "{what}: {hpr} not above the shots' {high}");
                 assert!(
-                    hpr_low > high,
-                    "{what}: {hpr_low} not above the shots' {high}"
+                    hpr_low < low,
+                    "{what}: {hpr_low} not below the shots' {low}"
                 );
             } else if mach < 1.5 {
                 assert!(hpr_high < cx0 && low < hpr && hpr < high, "{what}");
@@ -1931,17 +1941,14 @@ mod tests {
             // The pitch damping about the fits' reference, and its parts.
             let hpr_cmq = model.pitch_damping(mach, x_ref * d).unwrap();
             close(f(&row["hpr_cmq"]), hpr_cmq, 1e-12, &what);
-            // The fins' part: the same sum over the fin sets' components alone.
-            let flow = Flow::axial(mach);
-            let x_r = x_ref * d;
-            let fins_cmq = -2.0 / (d * d)
-                * (model.fin_set_start()..model.component_count())
-                    .map(|index| {
-                        let force = model.component_normal_force(index, &flow).unwrap();
-                        let station = model.component_station_m(index, mach).unwrap();
-                        (station - x_r) * (force.moment_slope_m - force.slope_per_rad * x_r)
-                    })
-                    .sum::<f64>();
+            // The fins' part: the same sum over the fin sets' components alone, and the rest's
+            // over the others, adding up to the whole.
+            let (fins, count) = (model.fin_set_start(), model.component_count());
+            let fins_cmq = model
+                .pitch_damping_of(mach, x_ref * d, fins..count)
+                .unwrap();
+            let rest_cmq = model.pitch_damping_of(mach, x_ref * d, 0..fins).unwrap();
+            close(fins_cmq + rest_cmq, hpr_cmq, 1e-12, &what);
             close(f(&row["hpr_cmq_fins"]), fins_cmq, 1e-12, &what);
             close(f(&row["hpr_cmq_body"]), hpr_cmq - fins_cmq, 1e-12, &what);
             // Most of it is the fins'.
@@ -1960,6 +1967,33 @@ mod tests {
                 assert!(got < -cmq_probable_error, "{what}: C_mq {got}");
             }
         }
+    }
+
+    /// The pitch-damping read-out refuses a reference station that isn't finite and a component
+    /// index past the last, and its parts over a split of the components add up to the whole.
+    #[test]
+    fn pitch_damping_refuses_what_it_cant_read() {
+        let model = AeroModel::new(
+            &committed_design("range-basic-finner.json")
+                .layout()
+                .unwrap(),
+        )
+        .unwrap();
+        let x_r = 5.5 * model.reference_diameter_m();
+        for bad in [f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                model.pitch_damping(2.0, bad),
+                Err(AeroError::Domain { .. })
+            ));
+        }
+        let count = model.component_count();
+        assert!(model.pitch_damping_of(2.0, x_r, 0..count + 1).is_err());
+        let whole = model.pitch_damping(2.0, x_r).unwrap();
+        let split = model.fin_set_start();
+        let parts = model.pitch_damping_of(2.0, x_r, 0..split).unwrap()
+            + model.pitch_damping_of(2.0, x_r, split..count).unwrap();
+        close(parts, whole, 1e-12, "the parts");
+        assert!(whole < 0.0, "{whole}");
     }
 
     /// M1.8c: hpr's roll forcing against the Arcas Robin's measured roll effectiveness (TN D-4014

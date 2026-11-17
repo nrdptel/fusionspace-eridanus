@@ -2593,13 +2593,35 @@ impl AeroModel {
     /// downwash or of the body's flow), so it stands for the sum `C_mq + C_mα̇` that a free
     /// flight measures, as the engine's damping does. Components with no slope at zero angle of
     /// attack (a cylinder below Mach 1) add nothing. `hpr_sim`'s tests hold the engine's moment
-    /// at a small pitch rate to this coefficient.
+    /// at a small pitch rate to this coefficient. A normal-force override table is ignored, as
+    /// the engine's damping ignores it.
     ///
     /// # Errors
     ///
     /// As [`Self::component_station_m`] and [`Self::component_normal_force`], and
     /// [`AeroError::Domain`] for a non-finite reference station.
     pub fn pitch_damping(&self, mach: f64, reference_station_m: f64) -> Result<f64, AeroError> {
+        self.pitch_damping_of(mach, reference_station_m, 0..self.component_count())
+    }
+
+    /// The part of [`Self::pitch_damping`] that the components `components` (indices as
+    /// [`Self::component_normal_force`] takes them) give: the same sum over those components
+    /// alone, so the parts over a split of `0..component_count()` add up to the whole. The fin
+    /// sets' part is `fin_set_start()..component_count()`.
+    ///
+    /// Like the flight engine's damping, it is the components' and ignores a normal-force
+    /// override table ([`AeroModel::with_normal_force_table`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::pitch_damping`], and as [`Self::component_normal_force`] for an index past the
+    /// last component.
+    pub fn pitch_damping_of(
+        &self,
+        mach: f64,
+        reference_station_m: f64,
+        components: std::ops::Range<usize>,
+    ) -> Result<f64, AeroError> {
         if !reference_station_m.is_finite() {
             return Err(AeroError::Domain {
                 what: "pitch damping reference station",
@@ -2609,7 +2631,7 @@ impl AeroModel {
         let flow = Flow::axial(mach);
         let x_r = reference_station_m;
         let mut sum = 0.0;
-        for index in 0..self.component_count() {
+        for index in components {
             let force = self.component_normal_force(index, &flow)?;
             let station = self.component_station_m(index, mach)?;
             sum += (station - x_r) * (force.moment_slope_m - force.slope_per_rad * x_r);

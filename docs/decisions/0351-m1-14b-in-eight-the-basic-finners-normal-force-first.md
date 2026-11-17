@@ -269,7 +269,8 @@ were made without a source that settles them, each stated in the report and on
   high, which says nothing about the rest of the body. So the square edges' two terms come out,
   and the wedge's go in from cited sources ([the wedge note][wedge-note], [its figures][wedge]):
   the faces by the oblique shock (NACA Report 1135) where it stands attached, and by Vincenti
-  and Wagoner's transonic value at Mach 1.077, where it stands off; the trailing edges by
+  and Wagoner's transonic value at Mach 1.077, where it stands off, an upper bound for a
+  finite wing with nothing below it, so the band's low end takes the faces at zero; the trailing edges by
   two-dimensional turbulent base drag read from Hoerner's and Love's figures, a band. At Mach
   1.077 the two figures disagree, and the band spans both.
 - **`C_mq` is per `q d/(2V)`.** The report states no denominator. Its eq. [1], with no spin,
@@ -283,7 +284,7 @@ were made without a source that settles them, each stated in the report and on
 
 | Mach | DREV `C_X0` (shots) | HPR Sim `C_D0` (wedge band) | error | DREV `C_mq` (probable error) | HPR Sim | error |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1.077 | 0.863 (0.854 to 0.868) | 0.950 (0.889 to 1.011) | +10.1% | −322.4 (5%) | −404.3 | +25.4% |
+| 1.077 | 0.863 (0.854 to 0.868) | 0.950 (0.781 to 1.011) | +10.1% | −322.4 (5%) | −404.3 | +25.4% |
 | 1.293 | 0.731 (0.701 to 0.760) | 0.706 (0.681 to 0.730) | −3.5% | −487.4 (6%) | −405.6 | −16.8% |
 | 1.832 | 0.585 (0.567 to 0.598) | 0.488 (0.482 to 0.494) | −16.5% | −377.7 (4%) | −284.3 | −24.7% |
 | 2.375 | 0.484 (0.473 to 0.500) | 0.384 (0.380 to 0.388) | −20.6% | −306.5 (4%) | −226.2 | −26.2% |
@@ -296,7 +297,8 @@ found ([#1513][i-1513]). The trailing edges' two-dimensional band lies 1.3 to 3.
 HPR Sim's own rule for a square fin's trailing edge, which may matter on real rockets
 ([#1514][i-1514]). The damping is less than measured on every row but Mach 1.077, by 2.8 to
 13.2 times the fit's probable error: the side that does not flatter. At Mach 1.077 it is
-25.4% more, five times the probable error, the side that does. The test pins each row's sign.
+25.4% more, five times the probable error, the side that does. The test pins each row's sign;
+at Mach 1.077 the drag's band straddles DREV's, so there it pins the middle's.
 The rows go to the same increments as M1.14b1's: Mach 1.077 to [the transonic][m1-14c], 1.293
 to 2.375 to [the supersonic][m1-14d], and the two above 2.5 to [the extended band's][m1-14h],
 whose *done when* re-measure the Basic Finner's rows in their bands: these rows are among them.

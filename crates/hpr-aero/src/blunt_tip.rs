@@ -191,9 +191,10 @@ pub fn wedge_detachment_angle_rad(mach: f64) -> Result<f64, AeroError> {
 /// `deflection_rad` at Mach `mach` behind an attached shock: the weak shock's angle `θ` from
 /// NACA Report 1135 eq. 138 (p. 621), solved by bisection between the Mach angle and the
 /// detachment shock angle of eq. 168, then the pressure across it by eq. 128,
-/// `p₂/p₁ = (2γM² sin²θ − (γ − 1))/(γ + 1)`, as `C_p = (p₂/p₁ − 1)/(γM²/2)`. Only the weak shock
-/// "can occur attached to an isolated convex body" (p. 624). For a thin wedge it tends to linear
-/// theory's `2δ/√(M² − 1)`.
+/// `p₂/p₁ = (2γM² sin²θ − (γ − 1))/(γ + 1)`, as `C_p = (p₂/p₁ − 1)/(γM²/2)`, which is
+/// `4(sin²θ − 1/M²)/(γ + 1)`, the form used so that nothing overflows at a large Mach number.
+/// The report believes only the weak shock "can occur attached to an isolated convex body"
+/// (p. 624). For a thin wedge it tends to linear theory's `2δ/√(M² − 1)`.
 ///
 /// # Errors
 ///
@@ -229,6 +230,10 @@ pub fn wedge_pressure_coefficient(mach: f64, deflection_rad: f64) -> Result<f64,
     let (mut lo, mut hi) = (i2, ((0.25 * (g + 1.0) - i2 + root) / g).min(1.0));
     for _ in 0..200 {
         let mid = 0.5 * (lo + hi);
+        // Once the bracket is two adjacent numbers, halving it changes nothing.
+        if mid <= lo || mid >= hi {
+            break;
+        }
         if deflection(mid) < deflection_rad {
             lo = mid;
         } else {
@@ -236,8 +241,7 @@ pub fn wedge_pressure_coefficient(mach: f64, deflection_rad: f64) -> Result<f64,
         }
     }
     let sin2 = 0.5 * (lo + hi);
-    let ratio = (2.0 * g * sin2 / i2 - (g - 1.0)) / (g + 1.0);
-    Ok((ratio - 1.0) * 2.0 * i2 / g)
+    Ok(4.0 * (sin2 - i2) / (g + 1.0))
 }
 
 /// The slope at which the cap hands over to the shock-expansion method at Mach `mach`, rad: the
@@ -459,6 +463,20 @@ mod tests {
             Err(AeroError::Domain { .. })
         ));
         assert!(wedge_pressure_coefficient(1.0, 0.01).is_err());
+        // The largest deflection itself is attached; a NaN, a negative or a right angle is not
+        // a deflection, nor a NaN a Mach number.
+        assert!(wedge_pressure_coefficient(1.5, past - 1e-6).is_ok());
+        for bad in [f64::NAN, -0.01, std::f64::consts::FRAC_PI_2] {
+            assert!(wedge_pressure_coefficient(2.0, bad).is_err(), "{bad}");
+        }
+        assert!(wedge_pressure_coefficient(f64::NAN, 0.01).is_err());
+        // Where M² overflows the coefficient still converges on its hypersonic limit.
+        let far = wedge_pressure_coefficient(1e200, 0.1).unwrap();
+        let near = wedge_pressure_coefficient(1e10, 0.1).unwrap();
+        assert!(
+            far.is_finite() && (far - near).abs() < 1e-12,
+            "{far} {near}"
+        );
     }
 
     /// Below the cap the handover is the wedge's own detachment angle, above it the cap. The

@@ -96,7 +96,8 @@ estimates [S4] p. 34 (PDF p. 36). Both read by pixels, checked on their vacuum c
 - **Terms.** S1, S2, S4–S6 are NACA works, public domain in the US, cached in `refs/papers/`; Hoerner: cite only.
 - **The wedge in the comparison (M1.14b2, done).** 5.093 c_d (§2–3) plus 0.4074 C_DB (§4) replace the drawn fins'
   edge terms; the readings are in `validation/fixtures/aero/basic-finner-wedge.json`, with Mach 1.077's base band
-  widened to 0.43–0.72 to hold Love's estimate too. The aerodynamics page gives the result.
+  widened to 0.43–0.72 to hold Love's estimate too. At Mach 1.077 the faces' band runs from zero, since §3's value is
+  bounded only from above, to its reading error above it. The aerodynamics page gives the result.
 - **The rule itself.** If 0.25/M is as low on other thin blunt fin edges, square-finned rockets get too little drag
   above Mach 1 and apogees read high; not sized here. The C_pb of −0.1 to −0.2 that
   [finner-reference-data](finner-reference-data.md) gave before M1.14b2 holds only above about Mach 2 (outside at 1.832,

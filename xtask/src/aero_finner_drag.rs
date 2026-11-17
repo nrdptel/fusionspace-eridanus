@@ -86,33 +86,30 @@ fn fins_pitch_damping(
     mach: f64,
     reference_station_m: f64,
 ) -> Result<f64, hpr_aero::AeroError> {
-    let flow = Flow::axial(mach);
-    let x_r = reference_station_m;
-    let mut sum = 0.0;
-    for index in model.fin_set_start()..model.component_count() {
-        let force = model.component_normal_force(index, &flow)?;
-        let station = model.component_station_m(index, mach)?;
-        sum += (station - x_r) * (force.moment_slope_m - force.slope_per_rad * x_r);
-    }
-    let d = model.reference_diameter_m();
-    Ok(-2.0 * sum / (d * d))
+    model.pitch_damping_of(
+        mach,
+        reference_station_m,
+        model.fin_set_start()..model.component_count(),
+    )
 }
 
-/// The wedge faces' drag on the reference area at `mach`, as `(value, low, high)`: behind an
-/// attached shock, the exact face pressure on the frontal area, no band; where the bow wave
-/// stands off, Vincenti and Wagoner's front-wedge value read at the row's similarity parameter,
-/// with its reading error. `deflection_rad` is a face's angle to the chord, so the wedge's
-/// thickness ratio on its double wedge's chord is `tan δ`.
+/// The wedge faces' drag on the reference area at `mach`, as `(value, low, high, attached)`:
+/// behind an attached shock, the exact face pressure on the frontal area, no band; where the bow
+/// wave stands off, Vincenti and Wagoner's front-wedge value read at the row's similarity
+/// parameter, high by its reading error. Their two-dimensional value is "an approximate upper
+/// bound" for a wing of finite span (NACA Report 1095 p. 11) and nothing bounds it from below,
+/// so there the low end takes the faces at zero. `deflection_rad` is a face's angle to the
+/// chord, so the wedge's thickness ratio on its double wedge's chord is `tan δ`.
 fn wedge_faces(
     wedge: &Value,
     mach: f64,
     deflection_rad: f64,
     frontal: f64,
-) -> Result<(f64, f64, f64), String> {
+) -> Result<(f64, f64, f64, bool), String> {
     let at = |e: hpr_aero::AeroError| format!("Mach {mach}: {e}");
     if deflection_rad <= wedge_detachment_angle_rad(mach).map_err(at)? {
         let faces = frontal * wedge_pressure_coefficient(mach, deflection_rad).map_err(at)?;
-        return Ok((faces, faces, faces));
+        return Ok((faces, faces, faces, true));
     }
     let detached = &wedge["detached_faces"];
     let field = |key: &str| number(&detached[key], key).map_err(|e| format!("detached_faces: {e}"));
@@ -143,11 +140,7 @@ fn wedge_faces(
         field("front_wedge_generalized_drag")?,
         field("reading_error")?,
     );
-    Ok((
-        to_reference(read),
-        to_reference(read - error),
-        to_reference(read + error),
-    ))
+    Ok((to_reference(read), 0.0, to_reference(read + error), false))
 }
 
 /// The trailing edges' two-dimensional base-drag band at `mach`, on their own area.
@@ -249,7 +242,8 @@ fn compare(
             .map_err(at)?;
         let leading_edge = frontal * stagnation_drag_coefficient(mach).map_err(at)?;
         let trailing_edge = frontal * base_drag_coefficient(mach).map_err(at)?;
-        let (faces, faces_low, faces_high) = wedge_faces(wedge, mach, deflection, frontal)?;
+        let (faces, faces_low, faces_high, attached) =
+            wedge_faces(wedge, mach, deflection, frontal)?;
         let (base_low, base_high) = trailing_edge_band(wedge, mach)?;
         let (edge_low, edge_high) = (frontal * base_low, frontal * base_high);
         let hpr_as_drawn = drag.zero_lift_coefficient;
@@ -289,7 +283,7 @@ fn compare(
             "hpr_base": drag.base,
             "hpr_fins_leading_edge": leading_edge,
             "hpr_fins_trailing_edge": trailing_edge,
-            "wedge_shock_attached": faces_low == faces_high,
+            "wedge_shock_attached": attached,
             "wedge_faces": faces,
             "wedge_faces_low": faces_low,
             "wedge_faces_high": faces_high,
@@ -338,7 +332,9 @@ fn compare(
                  single wedge's put in (validation/fixtures/aero/basic-finner-wedge.json): \
                  wedge_faces, the faces' pressure behind an attached oblique shock (NACA Report \
                  1135) or, where wedge_shock_attached is false, Vincenti and Wagoner's transonic \
-                 value with its reading error as wedge_faces_low and _high; and the middle of the \
+                 two-dimensional value, an approximate upper bound for a finite wing, with \
+                 wedge_faces_high its reading error above and wedge_faces_low zero, nothing \
+                 bounding it below; and the middle of the \
                  trailing edges' two-dimensional turbulent base-drag band, wedge_trailing_edge_low \
                  to _high. hpr_cd0_low and _high take both bands' ends; \
                  wedge_trailing_edge_at_vacuum is the most a base can add, at zero pressure. \
@@ -456,14 +452,17 @@ mod tests {
         let accuracy_row = format!(
             "the drag {} and {} low from Mach 1.5 to 2.5, {} and {} low from Mach 2.5 to 3.5, \
              below every shot of its row and below DREV's even with the fins' bases at a vacuum; \
-             below Mach 1.5, {} high at Mach 1.077, above every shot, and {} low at 1.293, inside \
-             the shots' spread. The cause is not found. The pitch damping {} and {} low from Mach \
+             below Mach 1.5, {} high at Mach 1.077 in the middle of a band from {} low to {} \
+             high, the wedge faces' figure there being an upper bound, and {} low at 1.293, \
+             inside the shots' spread. The cause is not found. The pitch damping {} and {} low from Mach \
              1.5 to 2.5, {} and {} low from 2.5 to 3.5, and {} low at Mach 1.293",
             unsigned(at(2, "cd0_error")),
             unsigned(at(3, "cd0_error")),
             unsigned(at(4, "cd0_error")),
             unsigned(at(5, "cd0_error")),
             unsigned(at(0, "cd0_error")),
+            unsigned(at(0, "cd0_error_low")),
+            unsigned(at(0, "cd0_error_high")),
             unsigned(at(1, "cd0_error")),
             unsigned(at(2, "cmq_error")),
             unsigned(at(3, "cmq_error")),
@@ -531,8 +530,9 @@ mod tests {
             "the aero page",
             &format!("It lies {low:.1} to {high:.1} times above HPR Sim's own trailing-edge rule"),
         );
-        let misses = rows[1..]
+        let misses = rows
             .iter()
+            .filter(|row| row["wedge_shock_attached"] == true)
             .map(|row| f(&row["cmq_error"]).abs() / f(&row["reference_cmq_probable_error"]));
         let (low, high) = misses.fold((f64::INFINITY, 0.0_f64), |(low, high), x| {
             (low.min(x), high.max(x))

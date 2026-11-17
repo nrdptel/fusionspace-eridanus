@@ -878,6 +878,10 @@ mod tests {
     /// its axis there, feels `q̄ A d C_mq (q d/(2V))` about the center of mass, below and above
     /// Mach 1. The read-out is what the comparison with DREV's range fits uses, so it must be the
     /// engine's damping and not a model beside it.
+    #[expect(
+        clippy::approx_constant,
+        reason = "the range table's fifth Mach number is 2.718: a Mach number, not e"
+    )]
     #[test]
     fn the_engine_s_pitch_damping_is_the_model_s_read_out() {
         let mut rocket = serde_json::to_value(design("range-basic-finner")).unwrap();
@@ -893,7 +897,7 @@ mod tests {
         // the two part by a share that falls with the rate; at this one it is inside the 1e-4
         // held below.
         let rate = 1e-5;
-        for mach in [0.5, 1.293, 1.832, 2.375, 3.147] {
+        for mach in [0.5, 1.077, 1.293, 1.832, 2.375, 2.718, 3.147] {
             let speed = mach * air.speed_of_sound_m_s;
             let omega = DVec3::new(2.0 * rate * speed / d, 0.0, 0.0);
             let along = DVec3::new(0.0, 0.0, speed);

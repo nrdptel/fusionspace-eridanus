@@ -4794,11 +4794,14 @@ Mach 1.5.
 
 #### The Basic Finner's drag and pitch damping against DREV's range
 
-**In short: on the Basic Finner, HPR Sim's zero-lift drag reads 16.5% to 21.3% below the measured
-one from Mach 1.83 to 3.15, and its pitch damping 24.7% to 39.6% below it.** Below Mach 1.5 the
-drag reads 10.1% high at Mach 1.077 and 3.5% low at 1.293, and the damping 25.4% high and 16.8%
-low. Less damping than measured is the side that does not flatter; more, at Mach 1.077, is the
-side that does. The cause of the drag's miss is not found.
+**In short: on the Basic Finner, with the drag of its wedge fins, which HPR Sim can't draw, added
+from published figures, HPR Sim's zero-lift drag reads 16.5% to 21.3% below the measured one from
+Mach 1.83 to 3.15, and its pitch damping 24.7% to 39.6% below it.** Below Mach 1.5 the drag reads
+10.1% high at Mach 1.077, in a band that reaches below the measured one, and 3.5% low at 1.293;
+the damping reads 25.4% high and 16.8% low. Less damping than measured lets a swing in pitch die
+away more slowly than it does, so the rocket looks less steady than it is: the side that does
+not flatter. More, at Mach 1.077, is the side that does. The cause of the drag's miss is not
+found.
 
 What is checked: HPR Sim's drag coefficient at zero angle of attack, $C_{D0}$, against the
 axial-force coefficient $C_{X0}$ of the same range fits as
@@ -4828,10 +4831,13 @@ HPR Sim's trailing-edge rule, and puts in the wedge's two, from cited sources
 ([the wedge note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-wedge-drag.md),
 [its figures][finner-wedge]):
 
-- **The faces.** Each face turns the flow by $\arctan 0.04 = 2.29°$. From Mach 1.293 up the shock
+- **The faces.** Each face turns the flow by $\arctan 0.04 = 2.29°$, half the 0.08-caliber thickness
+  over the one-caliber chord. From Mach 1.293 up the shock
   stands attached at the sharp edge, and the face pressure is the oblique shock's (NACA Report
   1135 eqs. 128 and 138). At Mach 1.077 the shock stands off; there the faces take Vincenti and
-  Wagoner's transonic value (NACA Report 1095 Fig. 7), with its reading error.
+  Wagoner's transonic value (NACA Report 1095 Fig. 7). That two-dimensional value is "an
+  approximate upper bound" for a wing of finite span (p. 11), and nothing bounds it from below,
+  so the band's high end adds its reading error and its low end takes the faces at zero.
 - **The trailing edges.** Their base drag is a two-dimensional base's with a turbulent boundary
   layer, a band read from Hoerner's measurements and Love's compilation (NACA TN 3819 Fig. 5). It
   lies 1.3 to 3.1 times above HPR Sim's own trailing-edge rule, which is a rocket base's
@@ -4845,7 +4851,7 @@ low.
 
 | Mach | DREV's $C_{X0}$ (coefficient) | its shots' drag coefficient | HPR Sim's drag coefficient, square edges out (coefficient) | the wedge faces' drag coefficient | the wedge trailing edges' drag coefficient | HPR Sim's $C_{D0}$ (coefficient; band) | error (band) |
 |--:|--:|--:|--:|--:|--:|--:|--:|
-| 1.077 | 0.863 | 0.854 to 0.868 | 0.606 | 0.110 | 0.175 to 0.293 | 0.950 (0.889 to 1.011) | +10.1% (+3.0% to +17.1%) |
+| 1.077 | 0.863 | 0.854 to 0.868 | 0.606 | 0.110 | 0.175 to 0.293 | 0.950 (0.781 to 1.011) | +10.1% (−9.5% to +17.1%) |
 | 1.293 | 0.731 | 0.701 to 0.760 | 0.487 | 0.043 | 0.151 to 0.200 | 0.706 (0.681 to 0.730) | −3.5% (−6.8% to −0.1%) |
 | 1.832 | 0.585 | 0.567 to 0.598 | 0.362 | 0.022 | 0.098 to 0.110 | 0.488 (0.482 to 0.494) | −16.5% (−17.6% to −15.5%) |
 | 2.375 | 0.484 | 0.473 to 0.500 | 0.299 | 0.016 | 0.065 to 0.073 | 0.384 (0.380 to 0.388) | −20.6% (−21.4% to −19.7%) |
@@ -4853,14 +4859,15 @@ low.
 | 3.147 | 0.373 | 0.350 to 0.385 | 0.244 | 0.012 | 0.041 to 0.049 | 0.301 (0.297 to 0.305) | −19.3% (−20.4% to −18.2%) |
 
 The table's $C_{X0}$ has a printed probable error only at the first two rows, under 0.5%. At the
-other four, each shot was fitted its own $C_{X0}$ (section 5.2), and every shot's fit prints
+other four, each shot was fitted its own $C_{X0}$ (DREV's section 5.2), and every shot's fit prints
 under 0.5% too; the shots column gives their spread. The error is HPR Sim's over DREV's, less 1,
-and the band takes both ends of the wedge's figures.
+from unrounded values, and the band takes both ends of the wedge's figures.
 
 **The pitch damping.** A free flight measures how fast the model's swing in pitch dies away.
 HPR Sim's damping is not a coefficient it adds: the flight engine takes each part's force in its
 own local flow, which the rotation changes. Pitching at a rate $q$ about the reference point
-tilts the flow at a part $\ell$ behind it by $q\ell/V$. That part's slope times that angle is a
+tilts the flow at a part $\ell$ behind it by $q\ell/V$, with $V$ the airspeed and $d$ the body's
+diameter. That part's slope times that angle is a
 force, and the force times $\ell$ again is the damping moment. As a coefficient per radian of
 $qd/2V$, summed over the parts,
 
@@ -4903,13 +4910,18 @@ base can add: so the miss is not the wedge's base. Its cause is not found
 ([#1513](https://github.com/nrdptel/fusionspace-eridanus/issues/1513)). The candidates are the
 body's base, the friction and how the fins' bases share the body's wake, and none is measured
 here. On this body a drag that low would, other things equal, put a simulated apogee too high. At Mach 1.293 the
-drag is inside the shots' spread. At Mach 1.077 it reads high, but there the wedge's trailing
-edges carry most of the band and rest on one steep figure.
+drag is inside the shots' spread. At Mach 1.077 the band's middle reads 10.1% high, above every
+shot, but its low end reads 9.5% low: the faces' figure is an upper bound with nothing below it,
+the trailing edges rest on one steep figure, and the row's three shots flew from Mach 1.056 to
+1.116, where that figure moves fast. So the sign there is not settled. A drag that reads high
+puts a simulated apogee too low, the side that flatters when it is held against a waiver's
+ceiling.
 
 The damping is low in size wherever the shock stands attached, by 2.8 to 13.2 times the fit's
 probable error: HPR Sim lets this body's swing in pitch last longer than it did, the side that
-does not flatter. Part of that is the lift: from Mach 1.83 up HPR Sim's slope reads 9.3% to 16.1% low, above
-([#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)). Part may be the
+does not flatter. Part of that is the lift: from Mach 1.83 up HPR Sim's slope reads 9.3% to 16.1% low
+([above](#the-basic-finners-normal-force-against-drevs-range);
+[#1502](https://github.com/nrdptel/fusionspace-eridanus/issues/1502)). Part may be the
 $C_{m\dot\alpha}$ that HPR Sim leaves out; nothing here parts the two. At Mach 1.077 HPR Sim
 overstates the damping by 25.4%, five times the fit's probable error. The test pins each row's
 sign and size, for the drag and the damping.
