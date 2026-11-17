@@ -29,7 +29,7 @@ word count:
 | Build | Words on the site's pages | The file, bytes | Compressed with gzip, bytes |
 |---|--:|--:|--:|
 | main at fdb60fc2 ([its CI run][main-run], the first site job) | 574,042 | 8,029,039 | 1,672,375 |
-| this increment, with its pages | 576,388 | 8,058,955 | 1,678,711 |
+| this branch, with the increment's pages and this record's own lines | 576,446 | 8,059,777 | 1,678,938 |
 
 - **Main had 2,684 bytes of room.** Its file weighs 2.9 compressed bytes for each word on the
   site, so the room was about 920 words.
@@ -37,8 +37,8 @@ word count:
   search shows excerpts from, beside the list of words. So a limit on the file is a limit on
   how long the guide may be. The old limit fixed that length at what the guide held on
   2026-11-10 plus 75 KB, and one week of writing used the 75 KB up.
-- **This increment's pages add 2,346 words and 6,336 compressed bytes,** 3,652 past the old
-  limit. They are [M1.14b3][m1-14b3]'s account of two check cases ([ADR-353][adr-353]): a
+- **This branch adds 2,404 words and 6,563 compressed bytes,** 3,879 past the old
+  limit. Nearly all are [M1.14b3][m1-14b3]'s account of two check cases ([ADR-353][adr-353]): a
   table, two causes and what the comparison does not see, on the pages the milestone's *done
   when* names. The room held about two fifths of those words, and the next increment's
   pages would meet the same limit with no room at all.
@@ -54,11 +54,11 @@ word count:
    reader. mdBook's warning is the one bar the tool has, and #414 was opened against it. A
    limit raised by some margin over today's file would be this record's guess.
 3. **What it costs a reader.** The file is fetched once, compressed, when a reader first
-   opens the search. Today that is 1,678,711 bytes. At today's ratio of compressed to written
+   opens the search. On this branch that is 1,678,938 bytes. At today's ratio of compressed to written
    bytes, a file at the limit would be about 2.08 MB, 24% more than the old limit allowed.
    That figure is an estimate: the ratio moves with what the pages say. The build's summary
    line prints the compressed size on every run, so the cost stays in view.
-4. **How long it lasts.** The file is at 8,058,955 bytes, so 1,941,045 are left: about
+4. **How long it lasts.** The file is at 8,059,777 bytes, so 1,940,223 are left: about
    139,000 words at today's 14 bytes a word. From 2026-11-10 to main at fdb60fc2 the
    compressed file grew by about 72 KB, some 25,000 words in a week. At that rate the room
    lasts five to six weeks. The rate is one week's.
