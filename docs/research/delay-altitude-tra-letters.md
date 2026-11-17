@@ -5,25 +5,21 @@ ones, size how much longer a composite ejection delay runs in thinner air, and b
 It serves the settings check's late side (M6.8 in the [roadmap](../ROADMAP.md)), the "delay mismatch" fault (M7.4)
 and [motor delay spread](motor-delay-spread.md) §7, which leaves altitude out. It builds on that note's §3, §4 and §6,
 [TMT test sites](tmt-test-sites.md) §1 and §3, and [NAR delay reports](nar-delay-reports.md). Read 2026-11-04:
-ThrustCurve's TRA letters and API, Tripoli's TMT page, five forum posts, two abstracts; no source code. **Inference**
-marks this note's arithmetic. Trust the letter count fully; the size only to about a factor of two, since it rests on
-one remembered bench test of three split AeroTech delay grains.
+ThrustCurve's TRA letters and API, Tripoli's TMT page, five forum posts, two abstracts; TMT's 2018 study [13] read
+2026-11-16. **Inference** marks this note's arithmetic. Trust the letter count fully; the grains' stretch to about a
+factor of two. Whole motors stretched up to three times as much (§2): read the grains' range as the low end.
 
 **In short.**
 - **The letters can't answer it.** ThrustCurve holds 4 TRA letters dated 2025 or later, all dated 2025-10-16; Tripoli
   lists none for 2026. They print delay labels only: 28 motors fired, no measured delay. The pairing fails, and so
   does any indirect comparison with the low-site distribution (§1).
-- **One paired test sizes it: +8% over a mile up (Butte, Montana).** TMT's late chair and a Butte flyer split three
-  full-length AeroTech delay grains and burned the halves at their two sites. The high halves ran 8% longer, "very
-  consistent", per the flyer's account [5, 6]. An AeroTech forum account gives the sign: delays run longer up high [5].
-- **That bounds the exponent to about 0.27 to 0.51.** With burn rate ∝ pⁿ, 8% at the two sites' pressures gives
-  n = 0.41; rounding and site spread give 0.31 to 0.46, and an unknown temperature difference widens it to 0.27 to
-  0.51 (**Inference**, §3). Motor delay spread §6 assumed 0.3 to 0.8.
-- **Size at a Windsor or Denver pad: +5% to +10% before the flight climbs.** Over a 1,500 m coast from there the
-  delay lasts 9% to 18% longer than on a sea-level stand (**Inference**, drag-free, §4). The high-power early bias of
-  −10% nearly cancels on the pad and turns late in flight.
-- **Certification letters could resolve n only with many lots.** One lot per site leaves n ±0.28 to ±1.26 at 90%
-  (§5). TMT's 2018 study (*Tripoli Report* 29(3)) is behind Tripoli's member login and was not read (§6).
+- **Whole motors: +7.5% to +22% at about 5,500 ft; split grains: +7.5% a mile up,** against North Carolina, in TMT's
+  2018 study [13, pp. 16–17] (§2). As a burn-rate exponent, the grains give 0.23 to 0.52 and whole motors up to 1.06
+  (**Inference**, §3); motor delay spread §6 assumed 0.3 to 0.8.
+- **Size at a Denver pad: up to +22.7% from whole motors, +4.5% to +10.5% from the grains;** over a 1,500 m coast,
+  up to +42.1%, or +7.7% to +18.5% (**Inference**, drag-free, §4). The high-power early bias of −10% turns late on
+  the pad at whole motors' stretch, and in flight at the grains'.
+- **Letters could resolve n only with many lots** (§5). The study's main series: 12 of 40 firings off the band (§6).
 
 ## 1. The post-2025 TRA letters print no delay times
 
@@ -48,20 +44,16 @@ holds. Tripoli's TMT table, read the same day, has 9 entries for 2025 and none f
 - **"Complies with NFPA 1125" bounds nothing.** TMT certified the J520W-13A with two firings outside the band
   (motor delay spread §4), so a pass does not prove every firing was inside it.
 
-## 2. A paired bench test: delay halves burned near 1,690 m ran 8% long
+## 2. Paired tests: grains 7.5% longer a mile up, whole motors 7.5% to 22%
 
-- **The test.** A Rocketry Forum member in Butte, Montana wrote in 2021 and 2022 that they and TMT's chair, Alan
-  Whitmore (died 2024, TMT test sites T3), cut full-length AeroTech delay grains in half, three per the 2022 post
-  [5, 6]. One set of halves burned at "about 400' MSL", the other at "over a mile MSL", timed from one end lighting
-  to sparks leaving the other (the member by frame-marking video) [5, post #10]. One grain has no lot or drilling
-  scatter. **Inference:** burning outside a motor matches a delay after burnout, when the case has vented.
-- **The result.** The high halves burned 8% longer, a difference the member calls very consistent; in 2021 it was
-  the low-site rate being 8% faster [5, 6]. The member says the numbers are in Whitmore's *Tripoli Report* study.
-- **The sites (Inference).** Butte's town-center point is 1,687 m (5,536 ft); Carrboro and Chapel Hill, NC, where
-  Whitmore lived, are 141 and 149 m [9; TMT test sites §2]. The Tripoli study's two sites, 5,500 ft and 11 ft per a
-  forum summary [7], fit Butte; the 11 ft site is not the 400 ft one, so may be another stand.
-- **Its limits.** Three pairs, recalled years later, rounded to a whole percent; no temperatures or day pressures.
-  A 10 K gap moves the 8% by about 1.5 points ([motor temperature firings](hobby-motor-temperature-firings.md)).
+TMT's 2018 study ran three ([TMT's 2018 delay study](tmt-delay-study-2018.md) §2); none records a temperature.
+- **Split grains.** AeroTech delay sections split between Montana and North Carolina, winter 2017–18: the North
+  Carolina burns took 93% as long, a time ratio of 1.075 [13, p. 17]. The study gives no heights; its Montana burner,
+  then Tripoli's president, posting from Butte, put his site "over a mile MSL" and Whitmore's "about 400' MSL" [5, post
+  #10; 6]. **Inference:** burning outside a motor matches a delay after burnout, when the case has vented.
+- **Oregon grains.** Alone, at Beaverton (197 ft) they took 94% of their time near Brothers (5,680 ft) [13, p. 17].
+- **Whole motors.** AeroTech sets of 5 or 6, one run each, full-length delays: North Carolina (11 or 427 ft) times
+  were 88% (H219T), 82% (H283ST) and 93% (I161W) of those at Cedar City, UT (about 5,500 ft) [13, pp. 16–17].
 - **The sign has two more sources.** The forum account named AeroTech: delays are certified at sea level and burn
   longer higher up, "sometimes significantly longer" [5, post #8]. NAR's combined list agrees, unsized (motor delay
   spread §6). The member adds that a grain burns about five times faster while the motor runs [5].
@@ -69,15 +61,21 @@ holds. Tripoli's TMT table, read the same day, has 9 entries for 2025 and none f
 ## 3. What exponent that implies
 
 With burn rate r ∝ pⁿ, a delay of fixed length lasts t ∝ p⁻ⁿ, so n = ln(t_high/t_low) / ln(p_low/p_high). Pressures
-are ISA at USGS heights [9]: 101.28 kPa at 3 m, 99.55 kPa at 149 m, 83.43 kPa at 1,609 m, 82.63 kPa at 1,687 m.
-The 1,900 m edge below is this note's allowance above Butte's center, not a sourced height.
+are ISA at the study's heights [13] or USGS ones [9; TMT test sites §2] (Butte's center 1,687 m; Whitmore's Carrboro
+and Chapel Hill, NC, 141 and 149 m): 101.28 kPa at 3 m, 99.55 kPa at 149 m, 83.43 kPa at 1,609 m, 82.63 kPa at
+1,687 m. The split grains' high site is from 1,609 m ("over a mile") to 1,900 m, this note's allowance above Butte.
 
 | Case (Inference) | Time ratio | Low site | High site | n |
 |---|---:|---:|---:|---:|
-| As reported, named sites | 1.080 | 149 m | 1,687 m | 0.41 |
-| Rounding of "8%", site spread | 1.075 to 1.085 | 3 to 149 m | 1,609 to 1,900 m | 0.31 to 0.46 |
-| Plus a 10 K temperature gap, either way | 1.065 to 1.095 | 3 to 149 m | 1,609 to 1,900 m | 0.27 to 0.51 |
+| Split grains, named sites | 1.075 | 149 m | 1,687 m | 0.39 |
+| Rounding of "93%", site spread | 1.070 to 1.081 | 3 to 149 m | 1,609 to 1,900 m | 0.29 to 0.44 |
+| Plus a 10 K gap ([1.5 points](hobby-motor-temperature-firings.md)), either way | 1.055 to 1.096 | 3 to 149 m | 1,609 to 1,900 m | 0.23 to 0.52 |
+| Oregon grains | 1.064 | 60 m | 1,731 m | 0.31 |
+| Whole motors, I161W to H283ST | 1.075 to 1.220 | 3 or 130 m | 1,676 m | 0.36 to 1.06 |
 
+- **Whole motors run higher (Inference).** Chamber-pressure burning only shrinks a ratio, and 10 K moves one 1.5
+  points; Table 1's spread (SD 3.4% to 6.3% of the mean [13, p. 17]) leaves two 5- or 6-motor sets 2% to 4% apart at
+  random. An n near 1 may mix in causes besides pressure: read that row as a measured stretch, not a law.
 - **A rough cross-check (Inference).** If the "five times faster" rate is chamber against outside pressure, and an
   AeroTech chamber runs 2.5 to 7 MPa (assumed, not sourced), then n = ln 5 / ln(p_c/p_a) is 0.38 to 0.50.
 - **The literature gives only the trend.** No measured n for a delay grain or slow AP propellant near 1 atm was found.
@@ -87,37 +85,40 @@ The 1,900 m edge below is this note's allowance above Butte's center, not a sour
 
 ## 4. What it means for a delay at a site and in flight (Inference)
 
-Stretch against a sea-level stand, (101.325/p)ⁿ − 1, for the three exponents above:
+Stretch against a sea-level stand, (101.325/p)ⁿ − 1, for the split grains' exponents (§3) and whole motors' top,
+1.06, which carries one set's 22% at 1,676 m to other heights. At Cedar City's 82.7 kPa the grain columns give +4.4%
+to +11.1% over the NC sites; whole motors ran +7.5% to +22% [13, p. 17].
 
-| Where the delay burns | ISA p, kPa | n = 0.27 | n = 0.41 | n = 0.51 |
-|---|---:|---:|---:|---:|
-| 1,000 m | 89.87 | +3.3% | +5.0% | +6.3% |
-| Windsor, CO (1,462 m) | 84.95 | +4.9% | +7.5% | +9.4% |
-| Denver (1,596 m) | 83.56 | +5.3% | +8.2% | +10.3% |
-| Denver-area bound (85.3 to 80.5 kPa) | 80.5–85.3 | +4.8% to +6.4% | +7.3% to +9.9% | +9.2% to +12.5% |
-| 3,000 m | 70.11 | +10.5% | +16.3% | +20.7% |
-| 5,000 m | 54.02 | +18.5% | +29.4% | +37.8% |
+| Where the delay burns | ISA p, kPa | n = 0.23 | n = 0.39 | n = 0.52 | n = 1.06 |
+|---|---:|---:|---:|---:|---:|
+| 1,000 m | 89.87 | +2.8% | +4.8% | +6.4% | +13.6% |
+| Windsor, CO (1,462 m) | 84.95 | +4.1% | +7.1% | +9.6% | +20.5% |
+| Denver (1,596 m) | 83.56 | +4.5% | +7.8% | +10.5% | +22.7% |
+| Denver-area bound (85.3 to 80.5 kPa) | 80.5–85.3 | +4.0% to +5.4% | +6.9% to +9.4% | +9.4% to +12.7% | +20.0% to +27.6% |
+| 3,000 m | 70.11 | +8.8% | +15.4% | +21.1% | +47.8% |
+| 5,000 m | 54.02 | +15.6% | +27.8% | +38.7% | +94.8% |
 
 **In flight the delay burns at the rocket's altitude, not the pad's.** A drag-free coast, apogee timed at the delay's
 sea-level length, burning by the law above (script cached, `flight_stretch.py`):
 
-| Pad | Coast height gain | Coast time | n = 0.27 | n = 0.41 | n = 0.51 |
-|---|---:|---:|---:|---:|---:|
-| Sea level | 1,500 m | 17.5 s | +3.3% | +5.2% | +6.5% |
-| Sea level | 3,000 m | 24.7 s | +7.0% | +11.0% | +13.9% |
-| Denver (1,596 m) | 300 m | 7.8 s | +6.1% | +9.4% | +11.8% |
-| Denver (1,596 m) | 1,500 m | 17.5 s | +9.1% | +14.2% | +18.1% |
-| Denver (1,596 m) | 3,000 m | 24.7 s | +13.2% | +21.0% | +27.0% |
+| Pad | Coast height gain | Coast time | n = 0.23 | n = 0.39 | n = 0.52 | n = 1.06 |
+|---|---:|---:|---:|---:|---:|---:|
+| Sea level | 1,500 m | 17.5 s | +2.8% | +4.9% | +6.6% | +14.3% |
+| Sea level | 3,000 m | 24.7 s | +5.9% | +10.4% | +14.2% | +32.4% |
+| Denver (1,596 m) | 300 m | 7.8 s | +5.2% | +8.9% | +12.0% | +26.2% |
+| Denver (1,596 m) | 1,500 m | 17.5 s | +7.7% | +13.5% | +18.5% | +42.1% |
+| Denver (1,596 m) | 3,000 m | 24.7 s | +11.1% | +19.8% | +27.6% | +64.5% |
 
 Drag makes a real coast shorter and front-loads the climb, so the rocket spends more of the delay high: these rows
 likely understate. The grain burned under chamber pressure barely changes, so delays timed from burnout carry the
-whole stretch. At 5,000 ft (84.3 kPa) the ground figure is +5.1% to +9.8%; motor delay spread §6 assumed +6% to +16%.
+whole stretch. At 5,000 ft (84.3 kPa) the grains give +4.3% to +10.0%, whole motors' top +21.5%; motor delay spread
+§6 assumed +6% to +16%.
 
 - **Against motor delay spread §7.** An undrilled high-power 14 s delay centers near 12.6 s at sea level (−10%). At a
-  Denver pad it centers near 13.6 s on the ground (×1.082), and near 14.4 s over a 1,500 m coast (×1.142): the early
-  bias turns late. Drilled delays, already +0.8 s late, run later still.
-- **Against NFPA 1125's band.** If TMT times delays at Windsor–Denver without correction, a 14 s delay reads +0.7 to
-  +1.75 s long (+4.8% to +12.5%), 24% to 63% of its ±2.8 s band.
+  Denver pad it centers near 13.6 s on the ground (×1.078), and near 14.3 s over a 1,500 m coast (×1.135): the early
+  bias turns late (whole motors' +22%: 15.4 s on the ground). Drilled delays, already +0.8 s late, run later still.
+- **Against NFPA 1125's band.** If TMT times delays at Windsor–Denver without correction, a 14 s delay reads +0.57
+  to +1.78 s long (+4.0% to +12.7%), 20% to 64% of its ±2.8 s band; whole motors' +22% on 14 s, +3.1 s, is outside.
 
 ## 5. Why letters can't size it, and how many firings would
 
@@ -139,13 +140,10 @@ With one lot at each site, the 90% half-width on n is ±0.28, ±0.91 or ±1.26 f
 whatever the firing count. TMT fired 2 to 11 motors per type in 2025 (§1): a letter pair, even with timings, bounds
 n only if its lots match. Split grains avoid both noises; a jar pumped to a set pressure would also remove weather.
 
-## 6. The Whitmore study: not reached
+## 6. The study's main series
 
-*Tripoli Report* Vol. 29 No. 3 (Summer 2018) carries Whitmore's study of delay timing in high-power motors, per a
-forum poster who read it on Tripoli's downloads page in 2021: about 40 certified motors, about 30% outside NFPA 1125,
-tests at 5,500 ft and 11 ft with no site per result, no temperatures [7]. A 2023 post dates it to spring 2020, hedged
-[8]. Tripoli's reports page needed a member login in 2020 [12] and is gone now; the Internet Archive holds one 2016
-issue, not this one. Without a Tripoli login, its split-grain numbers stay unread.
+12 of 40 firings of certified AeroTech, Cesaroni and Loki motors missed NFPA 1125's band, 11 early [13, p. 16]; no
+site per firing or temperature is given. More, with the forum's [7, 8]: [TMT's 2018 study](tmt-delay-study-2018.md).
 
 ## What the project can use
 
@@ -153,8 +151,9 @@ issue, not this one. Without a Tripoli login, its split-grain numbers stay unrea
   site "all rights reserved", [TMT test sites](tmt-test-sites.md)). Forum posts carry no license: cite, quote under
   25 words. USGS heights are public domain. The two abstracts: cite; Kumar et al. is CC BY-NC-ND 4.0 [11].
 - **A pressure term for §7 (suggestion).** Multiply the post-burnout delay by (p₀/p)ⁿ, burned along the trajectory,
-  with n = 0.41 and 0.27 to 0.51 as its range, p₀ the stand's pressure (near 100 kPa for NAR and North Carolina
-  TRA data). Expected effect: +5% to +10% at a Denver-area pad, +9% to +18% over a 1,500 m coast from there.
+  with n from 0.23 (the grains' low end) to 1.06 (whole motors' top) and the late side set by the top, p₀ the stand's
+  pressure (near 100 kPa for NAR and North Carolina TRA data). Expected effect at a Denver pad: +4.5% to +22.7% on
+  the ground, +7.7% to +42.1% over a 1,500 m coast.
 - **M6.8's late-side check and M7.4's prior (suggestion).** Compare the optimum delay with the stretched interval,
   and let the "delay mismatch" side depend on pad height and apogee: undrilled high-power delays err early at sea
   level; above about 1,400 m the pad cancels most of that, and a long coast turns it late.
@@ -163,7 +162,6 @@ issue, not this one. Without a Tripoli login, its split-grain numbers stay unrea
 
 ## Open questions
 
-- The Whitmore study's numbers: the 8% split-grain pairs, and the 40 or so motors by site; a member can read it.
 - Whether TMT's Denver-area firings time delays at all now, and whether they correct to sea level.
 - A measured n for an AeroTech or Cesaroni delay composition between 50 and 100 kPa, and at chamber pressure.
 - Between-lot scatter for one composite type, which decides whether letters could ever size n; and whether the
@@ -198,3 +196,5 @@ copied. `tc:` is `https://www.thrustcurve.org/`; `trf:` is `https://www.rocketry
     abstract: `doi:10.1016/j.jppr.2019.09.001`
 12. Tripoli Rocketry Association, "Tripoli Reports" page, Internet Archive 2020-06-02 (member login):
     <https://web.archive.org/web/20200601113708/http://www.tripoli.org/TripoliReports>
+13. A. Whitmore, "Tripoli Motor Testing investigation: pyrotechnic delay element timing in commercial high power
+    rocket motors", *Tripoli Report* 29(3), Summer 2018, pp. 15–17 ([TMT's 2018 delay study](tmt-delay-study-2018.md)).
