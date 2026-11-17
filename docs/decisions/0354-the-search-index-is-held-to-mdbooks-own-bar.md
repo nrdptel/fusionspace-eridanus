@@ -24,23 +24,24 @@ added, and raise the limit only with a decision record that measures the new one
 that record.
 
 The measurements, each from a build's `site search:` line and [the voice report][voice]'s
-word count:
+word count. That report counts the site's pages and the repository's other pages (the
+README, the crates' own), which are not in search, so a figure in words below is rough:
 
-| Build | Words on the site's pages | The file, bytes | Compressed with gzip, bytes |
+| Build | Words the voice report counts | The file, bytes | Compressed with gzip, bytes |
 |---|--:|--:|--:|
 | main at fdb60fc2 ([its CI run][main-run], the first site job) | 574,042 | 8,029,039 | 1,672,375 |
 | this branch, with the increment's pages and this record's own lines | 576,446 | 8,059,777 | 1,678,938 |
 
-- **Main had 2,684 bytes of room.** Its file weighs 2.9 compressed bytes for each word on the
-  site, so the room was about 920 words.
+- **Main had 2,684 bytes of room.** Its file weighs 2.9 compressed bytes for each word the
+  voice report counts, so the room was about 920 words.
 - **The file's weight is the guide's words.** The index keeps every section's text, which the
   search shows excerpts from, beside the list of words. So a limit on the file is a limit on
   how long the guide may be. The old limit fixed that length at what the guide held on
   2026-11-10 plus 75 KB, and one week of writing used the 75 KB up.
 - **This branch adds 2,404 words and 6,563 compressed bytes,** 3,879 past the old
   limit. Nearly all are [M1.14b3][m1-14b3]'s account of two check cases ([ADR-353][adr-353]): a
-  table, two causes and what the comparison does not see, on the pages the milestone's *done
-  when* names. The room held about two fifths of those words, and the next increment's
+  table, two causes and what the comparison does not see, on the rigid-body flight,
+  accuracy, gravity, frames, time-integration and start pages. The room held about two fifths of those words, and the next increment's
   pages would meet the same limit with no room at all.
 
 **Decision.**
@@ -59,7 +60,7 @@ word count:
    That figure is an estimate: the ratio moves with what the pages say. The build's summary
    line prints the compressed size on every run, so the cost stays in view.
 4. **How long it lasts.** The file is at 8,059,777 bytes, so 1,940,223 are left: about
-   139,000 words at today's 14 bytes a word. From 2026-11-10 to main at fdb60fc2 the
+   139,000 words at today's 14 bytes a counted word. From 2026-11-10 to main at fdb60fc2 the
    compressed file grew by about 72 KB, some 25,000 words in a week. At that rate the room
    lasts five to six weeks. The rate is one week's.
 5. **What follows is [#1522][i-1522].** mdBook's bar is the last one to move to. Before the
