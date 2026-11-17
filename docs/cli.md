@@ -1173,7 +1173,7 @@ Two of the 100 flights failed. Counting them moves the apogee's 5% from 769.9 m 
 to 734.1 m (2,408 ft), and its 95% from 851.1 m (2,792 ft) up to 851.4 m (2,793 ft). Plan with the
 rows that count them.
 
-A row reads `unbounded` when so many flights failed that the percentile's position falls on a
+A row reads `unbounded` when so many flights failed that the percentile's interpolation reaches a
 failed flight: at 100 flights, from 5 failed. The run then can't put a limit on that end. Read the
 reasons the `warning:` lines give (the `--export` file's `reason` column has each flight's), fix
 what makes the flights fail, and run it again. In the JSON these are each spread's

@@ -7249,6 +7249,7 @@ fn mc_places_its_failed_flights_past_each_tail() {
         .skip(1)
         .take(4)
         .collect();
+    assert_eq!(worst.len(), 4, "{}", text.out);
     for (row, (label, spread, per_m, decimals)) in worst.iter().zip([
         ("apogee (m AGL)", "apogee_m", 1.0, 1),
         ("apogee (ft AGL)", "apogee_m", 1.0 / 0.3048, 0),

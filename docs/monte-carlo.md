@@ -331,7 +331,7 @@ with $n$ values sorted, the $p$ percentile sits at position $h = (n - 1)p$, coun
 Say 100 flights are tried and 2 fail. The 95th percentile of all 100 sits at position $h = 99
 \times 0.95 = 94.05$. With the 2 failures placed last, positions 94 and 95 are the 95th and 96th
 smallest flown values, so it lies 0.05 of the way from one to the other. Over the 98 flown flights
-alone it sits at $97 \times 0.95 = 92.15$, two places lower. With 5 or more of the 100 failed,
+alone it sits at $97 \times 0.95 = 92.15$, 1.9 places lower. With 5 or more of the 100 failed,
 position 95 is a failed flight, and the answer can't be bounded.
 
 `hpr mc` prints both ends whenever a flight has no value ([its output](cli.md#hpr-mc)), and
