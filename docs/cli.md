@@ -1122,9 +1122,10 @@ from its devices, in m/s² and then in g: the [opening load](glossary.md#opening
 mass, without gravity. (A motor still burning when a device opens adds its thrust.) A canopy in
 steady fall carries 1 g, so the figure never reads below about 1 g; a median of 1.0 g means the
 openings were gentler than the steady fall. The opening airspeed is the fastest a device on the
-stack, or on the part that keeps the nose, opened through the air, the speed that load follows. After a split with no motor left, the table gives
-the opening airspeed, the nose part's openings included, but no opening shock, because the
-simulator doesn't follow the nose part's load under its canopy.
+stack, or on the part that keeps the nose, opened through the air, the speed that load follows.
+After a split with no motor left, the table gives the opening airspeed, the nose part's openings
+included, but no opening shock, because the simulator doesn't follow the nose part's load under
+its canopy.
 
 `--delay-sd` and `--deployment-lag-sd` spread both: a charge late after apogee opens the device
 faster, because the rocket has had longer to fall. The simulator opens a canopy at once by

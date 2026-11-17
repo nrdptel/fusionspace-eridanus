@@ -9,7 +9,7 @@
       "$ref": "#/$defs/McSpread"
     },
     "deployment_airspeed_m_s": {
-      "description": "The spread of the top airspeed at which each flight opened a recovery device, m/s.",
+      "description": "The spread of the top airspeed at which each flight opened a recovery device on its stack,\nor on the part that keeps the nose, m/s.",
       "$ref": "#/$defs/McSpread"
     },
     "design": {
@@ -839,7 +839,7 @@
           "format": "double"
         },
         "deployment_airspeed_m_s": {
-          "description": "The top airspeed at which it opened a recovery device, m/s.",
+          "description": "The top airspeed at which it opened a recovery device on its stack, or on the part that\nkeeps the nose, m/s.",
           "type": [
             "number",
             "null"

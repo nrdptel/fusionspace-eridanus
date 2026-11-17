@@ -645,7 +645,8 @@ pub struct McRun {
     /// recovery devices, the opening load over the mass. A flight that opened none, or a stack
     /// that came apart with nothing left to burn, has no value.
     pub opening_shock_m_s2: McSpread,
-    /// The spread of the top airspeed at which each flight opened a recovery device, m/s.
+    /// The spread of the top airspeed at which each flight opened a recovery device on its stack,
+    /// or on the part that keeps the nose, m/s.
     pub deployment_airspeed_m_s: McSpread,
     /// Where the flights landed, as ellipses.
     pub landing: McLanding,
@@ -734,7 +735,8 @@ pub struct McNominal {
     /// Its opening shock, m/s², if its stack flew under a recovery device (a stack that comes
     /// apart with nothing left to burn has none).
     pub opening_shock_m_s2: Option<f64>,
-    /// The top airspeed at which it opened a recovery device, m/s.
+    /// The top airspeed at which it opened a recovery device on its stack, or on the part that
+    /// keeps the nose, m/s.
     pub deployment_airspeed_m_s: Option<f64>,
 }
 
