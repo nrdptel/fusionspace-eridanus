@@ -14,29 +14,32 @@
 [i-1525]: https://github.com/nrdptel/fusionspace-eridanus/issues/1525
 
 **Context.** [ADR-282][adr-282] makes a milestone that changes what a user sees done on its own
-acceptance pass in its pull request: each changed page captured at its real size and looked at
-for clipping, after the site's automated clipping check, before the merge. A change of words
-alone is captured at 320 and 1280 px. #1523 changed the words of eight pages: rigid-body
-flight, gravity, frames, time integration, the accuracy page, the start page, the validation
-plan and the writing guide. Its physics, validation, code and docs reviews ran before the
+acceptance pass in its pull request: each changed page is captured at its real size, passes
+the site's automated clipping check and is looked at, and the pull request merges on that
+pass. A change of words alone is captured at 320 and 1280 px. #1523 changed the words of eight
+pages of the guide: rigid-body flight, gravity, frames, time integration, the accuracy page,
+the start page, the validation plan and the writing guide. The records page changed with
+them. Its physics, validation, code and docs reviews ran before the
 merge, and their blocking findings were fixed and reviewed again. The look at the captures did
 not run until after it. Done then, after the clipping check passed on main, it found nothing
 cut at an edge at either width. It did find a figure that breaks at its exponent's hyphen on a
 narrow page, in a line #1523 did not touch ([#1525][i-1525]).
 
-**Decision.** Revert #1523, so the tree equals main before it (fdb60fc2) but for this record
-and the two it withdraws, and land the same work again in one pull request whose claims pass,
+**Decision.** Revert #1523, so the tree equals main before it (fdb60fc2) but for this record,
+the two it withdraws and their rows on the records pages, and land the same work again in one pull request whose claims pass,
 full gate, reviews, clipping check and captures all run before its merge. M1.14b3 reopens
 with its *done when* unchanged.
 
-**What doesn't change.** No model, tolerance or reference changes. The report's numbers come
-back as they were: the tool regenerates them from the same cached files, and its check holds
+**What doesn't change.** No model or tolerance changes, and no reference's data is edited: the
+revert takes out the three pins #1523 added, and they come back with the work. The report's
+numbers come back as they were: the tool regenerates them from the same cached files, and its check holds
 them.
 
 **Consequences.** Between the two merges main has no free body, no `cargo xtask check-cases`
 and no check-cases report, and the pages say nothing of the comparison. The three references'
 pins and their notices rows are gone until then. [ADR-353][adr-353]'s links to the report and
 to the page's section point at the commit that held them. The search index is held to its
-earlier limit, since [ADR-354][adr-354]'s limit is withdrawn with the rest. The issues filed
-from #1523 stay open: [#1521][i-1521] and [#1524][i-1524] speak of code that comes back with
-the work, and [#1522][i-1522] of the limit that does.
+earlier limit, since [ADR-354][adr-354]'s limit is withdrawn with the rest. The issues that
+came of this work stay open: [#1524][i-1524] speaks of code that comes back with it,
+[#1521][i-1521] cites its report, [#1522][i-1522] is about the limit, and [#1525][i-1525]
+came of the look at the captures.
