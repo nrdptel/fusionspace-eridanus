@@ -5,10 +5,11 @@ oblique-shock theory gives the four wedges' faces 0.012–0.043 of C_X (on π d�
 theory reads 5–8% low. At Mach 1.077 the shock is detached: transonic theory gives 0.110, linear theory 26% less.
 Turbulent two-dimensional tests put the trailing edges' base drag at 0.10–0.12 (Mach 3.15) to 0.37–0.49 (1.29) on the
 base area; HPR Sim's 0.25/M is 21–68% low, most at low Mach. The bases add 0.04–0.20 to C_X (0.24–0.29 at 1.077), above
-the 0.04–0.08 "rough bound" in [finner-reference-data](finner-reference-data.md) at Mach 1.832 and below. The wave drag
-is closed-form theory, sure to a few percent; base values are read off figures (±0.01; ±0.05 at 1.077). How a fin base
-flush with the body's base behaves is unbounded. "Inference" marks this note's own reasoning. Readings not in
-`basic-finner-wedge.json` (neighboring points, checks, §4–5's other figures) were read by eye and are not committed.
+the 0.04–0.08 "rough bound" (0.4074 × a C_pb of −0.1 to −0.2) that [finner-reference-data](finner-reference-data.md)
+gave before M1.14b2, at Mach 1.832 and below. The wave drag is closed-form theory, sure to a few percent; base values
+are read off figures (±0.01; ±0.05 at 1.077). How a fin base flush with the body's base behaves is unbounded.
+"Inference" marks this note's own reasoning. Readings not in `basic-finner-wedge.json` (neighboring points, checks,
+§4–5's other figures) were read from the figures and are not committed.
 
 ## 1. Geometry and conversions
 
@@ -97,8 +98,9 @@ estimates [S4] p. 34 (PDF p. 36). Both read by pixels, checked on their vacuum c
   edge terms; the readings are in `validation/fixtures/aero/basic-finner-wedge.json`, with Mach 1.077's base band
   widened to 0.43–0.72 to hold Love's estimate too. The aerodynamics page gives the result.
 - **The rule itself.** If 0.25/M is as low on other thin blunt fin edges, square-finned rockets get too little drag
-  above Mach 1 and apogees read high; not sized here. [finner-reference-data](finner-reference-data.md)'s C_pb of
-  −0.1 to −0.2 holds only above about Mach 2 (outside at 1.832, inside at 2.375).
+  above Mach 1 and apogees read high; not sized here. The C_pb of −0.1 to −0.2 that
+  [finner-reference-data](finner-reference-data.md) gave before M1.14b2 holds only above about Mach 2 (outside at 1.832,
+  inside at 2.375).
 
 ## Open questions
 

@@ -364,9 +364,12 @@ fn compare(
 mod tests {
     use super::*;
 
-    /// The aerodynamics page's two tables and the figures its sentences and the accuracy page
-    /// quote come from the committed report, so a figure that drifts from it on a page can't pass
-    /// for it. The decision record is not held: it says what was found on its date.
+    /// The aerodynamics page's two tables, its by-band paragraph, and the ranges its sentences
+    /// quote (the drag's and damping's errors faster than sound, the drag as drawn, the Reynolds
+    /// numbers, the trailing-edge band over HPR Sim's rule, the damping's miss in probable
+    /// errors), and the accuracy page's row, come from the committed report, so a figure that
+    /// drifts from it there can't pass for it. The worked examples and the guide's summary are
+    /// not held. The decision record is not held: it says what was found on its date.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
