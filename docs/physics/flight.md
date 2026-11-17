@@ -600,7 +600,7 @@ difference to inside the spread ([the decision that traces them][adr-353],
   of the model Earth's field. The codes fall in a field cut off after its second term, $J_2$.
   On the equator the next term, $J_4$, pulls harder by about 4.4 parts in a million of the
   attraction, 4.3e-5 m/s². Over 30 s that is
-  $\tfrac{1}{2} \times \tfrac{15}{8} \times 2.3709\times10^{-6} \times 9.770 \times 30^2$ m,
+  $\tfrac{1}{2} \times \tfrac{15}{8} \times 2.3709\times10^{-6} \times 9.770 \times 30^2\,\mathrm{m}$,
   19.5 mm (0.77 in), which a test of the tool works by hand. The tool integrates the exact gap
   along the fall and gets 19.50 mm (0.77 in).
 - **Case 2 is the Earth's rate.** The codes turn the brick by Euler's equations in its rate
