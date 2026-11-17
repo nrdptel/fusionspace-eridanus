@@ -1169,8 +1169,9 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-Two of the 100 flights failed. Counting them moves the apogee's 5% from 769.9 m down to 734.1 m,
-and its 95% from 851.1 m up to 851.4 m. Plan with the rows that count them.
+Two of the 100 flights failed. Counting them moves the apogee's 5% from 769.9 m (2,526 ft) down
+to 734.1 m (2,408 ft), and its 95% from 851.1 m (2,792 ft) up to 851.4 m (2,793 ft). Plan with the
+rows that count them.
 
 A row reads `unbounded` when so many flights failed that the percentile's position falls on a
 failed flight: at 100 flights, from 5 failed. The run then can't put a limit on that end. Read the
