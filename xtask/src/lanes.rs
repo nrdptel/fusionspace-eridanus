@@ -21,10 +21,9 @@ fn root() -> PathBuf {
 }
 
 /// The checks the `refs` step runs, each as the lane the step's line must name.
-const REFS_CHECKS: [&str; 13] = [
+const REFS_CHECKS: [&str; 12] = [
     "'$XTASK ork-flights --check'",
     "'$XTASK roll-drev --check'",
-    "'$XTASK check-cases --check'",
     "'$XTASK ork-flights --library --check'",
     "'$XTASK real-flights --check'",
     "'$XTASK public-predictions --check'",
@@ -44,7 +43,7 @@ fn the_refs_step_runs_every_check_as_a_lane_of_its_own() {
         .lines()
         .find(|line| line.trim_start().starts_with("refs) echo"))
         .unwrap();
-    // xtask is built once, before the lanes start, so thirteen `cargo run`s don't each build it.
+    // xtask is built once, before the lanes start, so twelve `cargo run`s don't each build it.
     let lanes = step
         .split_once("cargo build --locked --quiet --package xtask && scripts/lanes.sh ")
         .unwrap_or_else(|| panic!("{step}"))

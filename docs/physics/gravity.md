@@ -13,11 +13,7 @@ Coriolis push the spinning Earth gives it.
   their last digit. At 11 points, both poles and heights up to 200 km (124 mi) included, gravity's
   strength matches the published formulas within 2e-14 relative. A reference script evaluates the
   formulas in 40-digit arithmetic. HPR Sim's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
-  relative. On NASA's check case 1, a sphere falling 30 s with no drag, HPR Sim ends 19.51 mm (0.77 in)
-  below the codes NASA published, whose field stops at its second term: normal gravity's
-  further terms account for 19.50 mm (0.77 in) of that
-  ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
-  No real-flight check.
+  relative. No real-flight check.
 - **What it leaves out:** the real Earth's gravity anomalies, typically within ±1e-4 relative.
   RocketPy's formula, an option for like-for-like comparisons, differs from the exact field by
   1.4e-5 relative at 100 km (62 mi).
@@ -203,13 +199,4 @@ Recorded by `validation/oracles/rocketpy/gravity.py` into
   hands over to the closed form.
 - `earth::tests`: the models agree at the pad; the ellipsoidal model follows the vertical
   downrange; the Coriolis direction and magnitude.
-- `cargo xtask check-cases`, held by the gate where the codes' files are fetched: NASA's check
-  case 1 against five codes' published histories of a 4.4 km (2.7 mi) fall, a sixth left out. HPR Sim's altitude
-  ends 19.51 mm (0.77 in) lower, 137 times the codes' spread of 0.1424 mm (0.0056 in). The codes' gravitation stops
-  at $J_2$, the term for the Earth's bulge at the equator, and the terms normal gravity holds past it account for 19.50 mm (0.77 in), which leaves
-  at most 0.1364 mm (0.0054 in) of a kept code's largest difference, inside the spread
-  ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
-- `hpr_sim::free_body::tests::the_coriolis_force_lifts_a_long_fall`: a body dropped over the
-  equator is carried east at $\Omega g t^2$ and so ends $\Omega^2 g t^4/6$ higher than with the
-  Earth's rotation off, 7.0 mm (0.28 in) after 30 s; the flown fall matches both within 1%.
 
