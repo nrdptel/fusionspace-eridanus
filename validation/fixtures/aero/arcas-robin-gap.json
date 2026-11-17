@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "body_lift_per_rad2": 22.87309087270059,
+      "body_lift_per_rad2": 22.873090872700594,
       "fineness": 18.2,
       "id": "arcas-robin-short",
       "jorgensen_k": 0.888,
@@ -9,10 +9,10 @@
       "rows": [
         {
           "at_jorgensen_k": {
-            "hpr_above_zero_alpha": 1.332941193715949,
+            "hpr_above_zero_alpha": 1.3329411937159492,
             "hpr_fitted_c_n_alpha": 3.5215043502412526,
             "hpr_fitted_c_n_alpha_error": 0.6065258996718179,
-            "measured_zero_alpha_c_n_alpha": 1.0417969570377132
+            "measured_zero_alpha_c_n_alpha": 1.041796957037713
           },
           "gap": -0.1827384133322938,
           "hpr": {
@@ -37,8 +37,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 2.1919997374213684,
             "fitted_standard_error": 0.08633958680315722,
-            "implied_k": 0.31903186912336023,
-            "implied_k_standard_error": 0.24079435534583485,
+            "implied_k": 0.3190318691233602,
+            "implied_k_standard_error": 0.24079435534583482,
             "inner_c_n_alpha": 2.043035630690012,
             "inner_points": 5,
             "inner_standard_error": 0.17830732714965766,
@@ -72,10 +72,10 @@
         },
         {
           "at_jorgensen_k": {
-            "hpr_above_zero_alpha": 1.098729548995008,
+            "hpr_above_zero_alpha": 1.0987295489950082,
             "hpr_fitted_c_n_alpha": 3.7082331692130155,
             "hpr_fitted_c_n_alpha_error": 0.41918212051535786,
-            "measured_zero_alpha_c_n_alpha": 1.4817683340746257
+            "measured_zero_alpha_c_n_alpha": 1.4817683340746255
           },
           "gap": 0.032438903272078434,
           "hpr": {
@@ -100,8 +100,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 2.612936786341712,
             "fitted_standard_error": 0.08693321122538593,
-            "implied_k": 0.07379964424054496,
-            "implied_k_standard_error": 0.24716681835620025,
+            "implied_k": 0.07379964424054494,
+            "implied_k_standard_error": 0.2471668183562002,
             "inner_c_n_alpha": 2.5476484944127913,
             "inner_points": 5,
             "inner_standard_error": 0.1750461190253438,
@@ -135,10 +135,10 @@
         },
         {
           "at_jorgensen_k": {
-            "hpr_above_zero_alpha": 0.9351956087224869,
+            "hpr_above_zero_alpha": 0.9351956087224873,
             "hpr_fitted_c_n_alpha": 4.008682174070233,
             "hpr_fitted_c_n_alpha_error": 0.30256628186353085,
-            "measured_zero_alpha_c_n_alpha": 1.8931412550967281
+            "measured_zero_alpha_c_n_alpha": 1.8931412550967277
           },
           "gap": 0.24918957754940996,
           "hpr": {
@@ -148,8 +148,8 @@
             "fitted_c_n_alpha": 4.290975121423319,
             "fitted_c_n_alpha_error": 0.39429350264657814,
             "k_within_15_percent": [
-              -0.1579714241424011,
-              0.5353887306411639
+              -0.15797142414240073,
+              0.5353887306411641
             ],
             "zero_alpha_c_n_alpha": 2.828336863819215
           },
@@ -163,8 +163,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 3.077526441368625,
             "fitted_standard_error": 0.08474374581178505,
-            "implied_k": 0.6607191846393601,
-            "implied_k_standard_error": 0.2279001702476168,
+            "implied_k": 0.66071918463936,
+            "implied_k_standard_error": 0.22790017024761677,
             "inner_c_n_alpha": 2.6143821879958504,
             "inner_points": 5,
             "inner_standard_error": 0.1788478712536507,
@@ -173,7 +173,7 @@
             "zero_alpha_cubic_c_n_alpha": 2.492658104855341,
             "zero_alpha_standard_error": 0.3155577274393202
           },
-          "remaining": -1.393329979471319,
+          "remaining": -1.3933299794713194,
           "sources": {
             "blunt_tip": [
               -0.002290752664656297,
@@ -182,10 +182,10 @@
             "blunt_tip_extrapolated": false,
             "boattail_footnote_8": -0.1027653383873588,
             "boattail_slender_body": -1.3241031111111112,
-            "crossflow": 1.464727557020729,
+            "crossflow": 1.4647275570207294,
             "crossflow_galejs_range": [
-              1.3315705063824808,
-              1.9973557595737212
+              1.3315705063824812,
+              1.9973557595737217
             ],
             "fig2_below_mach_3": [
               -0.031049333574859103,
@@ -211,8 +211,8 @@
             "fitted_c_n_alpha": 4.536268410040175,
             "fitted_c_n_alpha_error": 0.38129496574459254,
             "k_within_15_percent": [
-              -0.19447978754036013,
-              0.536458695412996
+              -0.1944797875403594,
+              0.5364586954129964
             ],
             "zero_alpha_c_n_alpha": 3.055926673063219
           },
@@ -226,8 +226,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 3.284069313605933,
             "fitted_standard_error": 0.084611320252071,
-            "implied_k": 0.8149944863426131,
-            "implied_k_standard_error": 0.20968123290921556,
+            "implied_k": 0.814994486342613,
+            "implied_k_standard_error": 0.20968123290921553,
             "inner_c_n_alpha": 2.6925625630032672,
             "inner_points": 5,
             "inner_standard_error": 0.17554987729354019,
@@ -236,7 +236,7 @@
             "zero_alpha_cubic_c_n_alpha": 2.6270204172799083,
             "zero_alpha_standard_error": 0.2954889876576275
           },
-          "remaining": -1.4323225238405533,
+          "remaining": -1.432322523840554,
           "sources": {
             "blunt_tip": [
               -0.0024750843009064137,
@@ -245,10 +245,10 @@
             "blunt_tip_extrapolated": false,
             "boattail_footnote_8": -0.0681445632398896,
             "boattail_slender_body": -1.3241031111111112,
-            "crossflow": 1.4826731643832674,
+            "crossflow": 1.482673164383268,
             "crossflow_galejs_range": [
-              1.3478846948938794,
-              2.021827042340819
+              1.3478846948938799,
+              2.02182704234082
             ],
             "fig2_below_mach_3": [
               -0.019429432191338362,
@@ -261,10 +261,10 @@
         },
         {
           "at_jorgensen_k": {
-            "hpr_above_zero_alpha": 0.5508729531705745,
+            "hpr_above_zero_alpha": 0.5508729531705749,
             "hpr_fitted_c_n_alpha": 4.431094473218789,
             "hpr_fitted_c_n_alpha_error": 0.14071834812313755,
-            "measured_zero_alpha_c_n_alpha": 2.711380099662567
+            "measured_zero_alpha_c_n_alpha": 2.7113800996625668
           },
           "gap": 0.622224198286224,
           "hpr": {
@@ -274,8 +274,8 @@
             "fitted_c_n_alpha": 4.710706320194573,
             "fitted_c_n_alpha_error": 0.21270019507441273,
             "k_within_15_percent": [
-              0.031780099949027606,
-              0.9153362004621359
+              0.03178009994902794,
+              0.915336200462136
             ],
             "zero_alpha_c_n_alpha": 3.2622530528331417
           },
@@ -289,8 +289,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 3.8844772511193657,
             "fitted_standard_error": 0.0853846200639755,
-            "implied_k": 0.9013543724691927,
-            "implied_k_standard_error": 0.23259495501557392,
+            "implied_k": 0.9013543724691926,
+            "implied_k_standard_error": 0.23259495501557387,
             "inner_c_n_alpha": 3.2988424455470833,
             "inner_points": 5,
             "inner_standard_error": 0.17970934029255406,
@@ -299,7 +299,7 @@
             "zero_alpha_cubic_c_n_alpha": 3.099704011940876,
             "zero_alpha_standard_error": 0.31891359950114767
           },
-          "remaining": -1.006383988852278,
+          "remaining": -1.0063839888522783,
           "sources": {
             "blunt_tip": [
               -0.015098251796276038,
@@ -308,9 +308,9 @@
             "blunt_tip_extrapolated": false,
             "boattail_footnote_8": -0.03788331833894887,
             "boattail_slender_body": -1.3241031111111112,
-            "crossflow": 1.4508161871385021,
+            "crossflow": 1.4508161871385024,
             "crossflow_galejs_range": [
-              1.3189238064895472,
+              1.3189238064895474,
               1.9783857097343212
             ],
             "fig2_below_mach_3": [
@@ -352,8 +352,8 @@
             "degrees_of_freedom": 4,
             "fitted_c_n_alpha": 4.148728473047325,
             "fitted_standard_error": 0.08561018833069069,
-            "implied_k": 1.054408819663511,
-            "implied_k_standard_error": 0.2316143723312726,
+            "implied_k": 1.0544088196635109,
+            "implied_k_standard_error": 0.23161437233127258,
             "inner_c_n_alpha": 3.376722499397766,
             "inner_points": 5,
             "inner_standard_error": 0.1788457801301138,
