@@ -20,8 +20,8 @@
 //!   the same definition over every run tried, `h = (N − 1) p` with `N` the runs tried, each run
 //!   with no value placed past one end of the values (as `+∞` above the largest, or `−∞` below
 //!   the smallest). That is the worst case the missing runs allow: if they all lie beyond that
-//!   end, the quantile of every run tried is this one. Where `h` falls on or next to a missing
-//!   run the quantile is [`Bound::Unbounded`]: the runs that gave a value can't bound it.
+//!   end, the quantile of every run tried is this one. Where the interpolation puts weight on a
+//!   missing run the quantile is [`Bound::Unbounded`]: the runs that gave a value can't bound it.
 //!
 //! Every sum runs over the sorted values in order, so a summary is bit-for-bit the same however
 //! the values were computed, in parallel or not.
@@ -102,8 +102,8 @@ pub enum MissingEnd {
 pub enum Bound {
     /// The quantile, a value the runs gave or one between two of them.
     Value(f64),
-    /// Too many runs gave no value for the rest to bound the quantile: it falls on or next to a
-    /// missing run.
+    /// Too many runs gave no value for the rest to bound the quantile: its interpolation puts
+    /// weight on a missing run.
     Unbounded,
 }
 

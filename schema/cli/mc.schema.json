@@ -552,7 +552,7 @@
           ]
         },
         {
-          "description": "`\"unbounded\"`: so many flights have no value that the percentile falls on or next to one\nof them, and the flights with a value can't bound it.",
+          "description": "`\"unbounded\"`: so many flights have no value that the percentile's interpolation puts\nweight on one of them, and the flights with a value can't bound it.",
           "type": "string",
           "const": "unbounded"
         }

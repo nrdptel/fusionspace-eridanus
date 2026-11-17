@@ -538,12 +538,13 @@ dropped. `run.failed` counts them. `run.failures` groups them by why, a dictiona
 A failed flight's figures are NaN. `run.spread(name)` gives a column's spread as `hpr mc
 --json` gives the apogee's: `attempted`, `count`, `mean`, `standard_deviation`, `min`, `p05`,
 `p50`, `p95` and `max`, over the flights with a value. NumPy's `nanmean` and `nanpercentile`
-give the same, and so does picking the flown ones with `run["outcome"] == "flown"`. All three
+give the same, and so does picking the flown ones with `run["outcome"] == "flown"` for a column
+every flown flight has, such as the apogee. All three
 leave the failed flights out, so if those are the ones that would have flown highest, the 95%
 reads short. `spread` also gives `p05_counting_missing` and `p95_counting_missing`: the 5% and
 95% with each failed flight placed past that end, the worst case they allow
 ([Failed flights are counted](monte-carlo.md#failed-flights-are-counted)). They're `-inf` and
-`inf` when too many failed to bound them, and `None` when none did. `run.nominal` is the flight
+`inf` when too many failed to bound them, and `None` when every flight has a value. `run.nominal` is the flight
 with nothing scattered, as `Flight.summary` gives it, and `run.dispersion` the standard
 deviations given, by name.
 

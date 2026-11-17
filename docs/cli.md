@@ -1114,10 +1114,10 @@ with no value.
 The columns are taken over the flights that have a value, so a failed flight is left out of
 them. If the failed flights are the ones that would have flown highest or landed farthest, the
 95% column then reads short: with 5% failed, it is about the 90th percentile of the flights
-tried. So when any flight has no apogee or no landing, two more lines say how many have one, and
-give the 5% and 95% as they'd be with each of the others placed past that end: the lowest the
-5% and the highest the 95% can be, whatever the missing flights would have given. Where so many
-are missing that the 95% falls on one of them, it reads `unbounded`: the run can't bound it, so
+tried. So when any flight has no apogee or no landing, two more lines say how many have one. Then
+rows give the 5% and 95% as they'd be with each of the others placed past that end: the lowest
+the 5% and the highest the 95% can be, whatever the missing flights would have given. Where so
+many are missing that the 95% leans on one of them, it reads `unbounded`: the run can't bound it, so
 find out why the flights failed first. In the JSON these are each spread's
 `p05_counting_missing` and `p95_counting_missing`, `{"value": ...}` or `"unbounded"`, and `null`
 when every flight has a value. [Failed flights are counted](monte-carlo.md#failed-flights-are-counted)

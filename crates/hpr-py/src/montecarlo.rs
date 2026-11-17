@@ -320,7 +320,7 @@ impl MonteCarlo {
     /// every flight tried, each flight with no value placed past that end: the worst case the
     /// missing flights allow. They are `-inf` and `inf` when too many have no value for the rest
     /// to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
-    /// missing flights instead, so it reads each tail short.
+    /// missing flights instead, so it reads each tail short if they would have fallen beyond it.
     fn spread<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyDict>> {
         let column = self.table.column(name).ok_or_else(|| {
             pyo3::exceptions::PyKeyError::new_err(format!(

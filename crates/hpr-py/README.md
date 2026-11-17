@@ -30,7 +30,7 @@ work from Python yet:
 
 - staging: a design that drops a stage under power is refused
 - swapping a motor into a design read from a file
-- Monte Carlo's landing ellipses and spread summaries
+- Monte Carlo's landing ellipses
 - the built-in winds that change with height, and weather files (write any of them as a wind
   function)
 - parts from a parts catalog

@@ -765,8 +765,8 @@ pub struct McSpread {
 pub enum McBound {
     /// The percentile, `{"value": 1134.0}`.
     Value(f64),
-    /// `"unbounded"`: so many flights have no value that the percentile falls on or next to one
-    /// of them, and the flights with a value can't bound it.
+    /// `"unbounded"`: so many flights have no value that the percentile's interpolation puts
+    /// weight on one of them, and the flights with a value can't bound it.
     Unbounded,
 }
 

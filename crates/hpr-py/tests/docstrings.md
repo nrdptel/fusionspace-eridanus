@@ -452,7 +452,7 @@ A failed flight, or one without the figure, is left out of those but not forgott
 every flight tried, each flight with no value placed past that end: the worst case the
 missing flights allow. They are `-inf` and `inf` when too many have no value for the rest
 to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
-missing flights instead, so it reads each tail short.
+missing flights instead, so it reads each tail short if they would have fallen beyond it.
 
 ### `MonteCarlo.to_csv`
 
