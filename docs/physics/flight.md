@@ -16,7 +16,7 @@ as its motor burns.
   codes NASA published by more than they differ from each other: 19.51 mm (0.77 in) of altitude after a
   4.4 km (2.7 mi) fall, and up to 0.01633 deg/s of body rate. A named difference between the
   models accounts for each to inside the codes' spread at each code's largest difference. Read
-  at every moment, the tumbling brick's rates are left just past it
+  at every sample, the tumbling brick's rates are left just past it
   ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
   RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
   declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
@@ -625,8 +625,8 @@ exactly on those two would differ from SIM 2 by the spread and no less. HPR Sim,
 model difference, sits 0.0000005866, 0.0000009229 and 0.0000002790 deg/s from the code nearest
 it. That distance is the integrator's step error at the default tolerances: at tolerances of
 1e-12 it falls to 0.000000002126, 0.000000003051 and 0.000000001089 deg/s. By this reading
-case 2 is not inside the spread, and it is not counted as inside: the excess is small, named
-and left open.
+case 2 is not inside the spread: the excess is small, named and left open. The report's
+"traced" is the first reading's.
 
 **What the comparison does not see.**
 

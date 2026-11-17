@@ -212,7 +212,7 @@ $$
   ellipsoid's shape hardly enters. The Earth's rate is turned from the launch frame
   into the body's axes to give inertial rates. With the two named model differences taken off
   each kept code's largest difference, at most 0.1364 mm (0.0054 in) of altitude and 0.001005
-  deg/s of body rate are left, both inside the codes' spread; read at every moment, the rates
+  deg/s of body rate are left, both inside the codes' spread; read at every sample, the rates
   are left just past it. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
