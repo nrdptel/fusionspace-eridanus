@@ -13,9 +13,9 @@ as its motor burns.
 - **How well it is validated:** by analytic and unit tests, against RocketPy, and on eight of
   NASA's check cases. In a vacuum, a tumbling rocket's center of mass stays on the exact parabola
   to 1.7e-6 m over 22 s. On six of the check cases, a free body on the same equations differs
-  from the codes NASA published by more than they differ from each other: 19.51 mm (0.77 in) of
-  altitude after a 4.4 km (2.7 mi) fall, up to 0.01633 deg/s of body rate, and 105.0 mm (4.1 in)
-  of a dragged sphere's position. A named difference between the models accounts for each to
+  from the codes NASA published by more than they differ from each other. It ends 19.51 mm
+  (0.77 in) lower after a 4.4 km (2.7 mi) fall, turns up to 0.01633 deg/s apart, and puts a
+  dragged sphere up to 105.0 mm (4.1 in) away. A named difference between the models accounts for each to
   inside the codes' spread at each code's largest difference. Read at every sample, the
   tumbling brick's rates are left just past it. Two shots from sea level come out inside the
   spread ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
@@ -569,8 +569,8 @@ with no design, no motor and no aerodynamics. It is not a second model. Its grav
 Coriolis force come from the flight's Earth model, its air and wind from the flight's
 environment at the height a rocket's flight reads them, its accelerations from the equations
 above, and its steps from the integrator at the default tolerances. A case's damping or drag
-is a load the test adds: a force and a moment it forms from the state, the air and the velocity
-through the air, each at every step. A test
+is a load the test adds. At every step it forms a force and a moment from the state, the air
+and the velocity through the air. A test
 (`the_derivative_is_a_coasting_rockets`) evaluates a coasting rocket by the equations a flight
 integrates, and the free body of that rocket's mass and inertia at the same state: the two
 agree to rounding.
@@ -600,9 +600,9 @@ agree to rounding.
 
 **How to read the table.** A difference is HPR Sim's value less a code's, the largest over the
 30 s; for a position, the distance. The spread is the largest difference between any two codes.
-One code is left out when leaving it out cuts the spread by more than half: SIM 1 in cases 1
-and 3, SIM 6 in case 2, SIM 3 in cases 6 to 8 and SIM 2 in case 10, as the report numbers the
-codes. The model difference is a named difference between HPR Sim's model
+One code is left out when leaving it out cuts the spread by more than half. As the report
+numbers the codes, that is SIM 1 in cases 1 and 3, SIM 6 in case 2, SIM 3 in cases 6 to 8 and
+SIM 2 in case 10. The model difference is a named difference between HPR Sim's model
 and the codes', worked out apart from the flight. The last column is what that leaves of the
 largest difference from any kept code.
 
@@ -647,27 +647,26 @@ Cases 9 and 10 come out inside it.
   30 s, 3.9 times the Earth's rate. Integrating both sets of equations apart from the flight
   gives the differences in the table. What the missing term costs a rocket's flight is not measured: that, and whether
   to carry the Earth's rate in the rotational equations, is [#1521][i-1521].
-- **Case 3 is the Earth's rate again.** The same two sets of equations, each with the same
-  damping on the rate relative to the stars, along the same fall, leave at most 0.003176,
-  0.001123 and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside
-  too.
+- **Case 3 is the Earth's rate again.** The same two sets of equations are damped alike, on
+  the rate relative to the stars, along the same fall. They leave at most 0.003176, 0.001123
+  and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside too.
 - **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
   (0.8 in) of three codes and 102.6 to 105.0 mm (4.0 to 4.1 in) from SIM 1. The codes don't fly
-  the same air. Against HPR Sim's 1976 standard atmosphere at the code's own altitude, SIM 4's
-  density is within 4.1e-7 of it, while SIM 1's is up to 1.35e-3 denser: more drag, so its
-  sphere falls less. The model difference flies a point mass twice, once in the codes'
-  gravity through the code's own density, read from its file, and once in HPR Sim's gravity
-  and atmosphere. Less that, HPR Sim sits 0.004812 to 0.01569 mm from the nearest code, and 77.57 to
-  77.68 mm (3.1 in) from SIM 1, inside the spread. SIM 1 is brought inside, not explained:
-  its own air, flown, would put its sphere 180.2 mm (7.1 in) above HPR Sim's, where its file is
-  102.6 mm (4.0 in) above. With the gravity alone, cases 6 and 7 were left 0.01 mm past the
-  spread, so the air is part of the trace ([the decision][adr-356]).
+  the same air. Set against HPR Sim's 1976 standard atmosphere, SIM 4's density is within
+  4.1e-7 of it. SIM 1's is up to 1.35e-3 denser: more drag, so its sphere falls less. The model
+  difference flies a point mass twice. Once it falls in the codes' gravity through the code's
+  own density, read from its file; once in HPR Sim's gravity and atmosphere. Less that, HPR Sim
+  sits 0.004812 to 0.01569 mm from the nearest code. It sits 77.57 to 77.68 mm (3.1 in) from
+  SIM 1, inside the spread. SIM 1 is brought inside, not explained. Its own air, flown, would
+  put its sphere 180.2 mm (7.1 in) above HPR Sim's; its file is 102.6 mm (4.0 in) above. With
+  the gravity alone, cases 6 and 7 were left 0.01 mm past the spread, so the air is part of the
+  trace ([the decision][adr-356]).
 - **Cases 9 and 10 are inside the spread.** Shot 6.9 km (4.3 mi) downrange, HPR Sim ends
   1980 and 1977 mm (78 in) from the farthest kept code, inside spreads of 1989 and 1986 mm
   (78 in). Less the same model difference it sits
   0.03830 and 0.04217 mm from the nearest code. Here the launch frame's flat axes carry the
-  body far from the pad, so the conversion that gives apogee and landing points is in what the
-  cases hold.
+  body far from the pad. So the cases also hold the conversion that gives apogee and landing
+  points.
 
 **A stricter reading.** The last column takes the model difference at the moment of each
 code's largest difference. Taken at every sample of the 30 s instead, what is left is
@@ -689,7 +688,7 @@ case 2 is not inside the spread: the excess is small, named and left open. The r
   test pins on the free body against its closed form. It does not hold the sign. Cases 6 to 10
   compare whole positions, the eastward drift with them, so they do.
 - **What SIM 1 does in cases 6 to 8.** 77.6 mm (3.1 in) of its difference is not accounted
-  for, only inside the spread; SIM 3, left out there, is about 171 mm (6.7 in) off.
+  for, only inside the spread. SIM 3, left out there, is about 171 mm (6.7 in) off.
 - **The attitude.** The codes' files also hold the body's Euler angles, which are not
   compared ([#759][i-759]). An error in the attitude reaches the inertial rates only through
   the Earth's rate turned into the body.
