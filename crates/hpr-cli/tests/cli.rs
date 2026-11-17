@@ -7121,6 +7121,174 @@ fn mc_counts_and_prints_its_failed_flights() {
     // The failed flights' reasons, on standard error.
     assert!(text.err.contains("warning: "), "{}", text.err);
     assert!(text.err.contains("mass"), "{}", text.err);
+    // One failure in 20 is already too many to bound the tails: the 95th percentile of 20
+    // (h = 18.05) leans on the 20th flight, and the 5th on the first (#1200).
+    for spread in ["apogee_m", "landing_distance_m"] {
+        for tail in ["p05_counting_missing", "p95_counting_missing"] {
+            assert_eq!(document[spread][tail], "unbounded", "{spread} {tail}");
+        }
+    }
+    assert!(
+        text.out
+            .contains("the columns count only the flights with a value"),
+        "{}",
+        text.out
+    );
+    assert!(
+        text.out
+            .lines()
+            .any(|line| line.starts_with("apogee (m AGL)")
+                && line
+                    .split_whitespace()
+                    .filter(|w| *w == "unbounded")
+                    .count()
+                    == 2),
+        "{}",
+        text.out
+    );
+}
+
+/// #1200: with a few flights failed, the 5% and 95% of every flight tried place each failed
+/// flight past that end. The JSON's values are recomputed here from the exported apogees and
+/// landing distances, the failed flights as infinities, and each lies outside the column taken
+/// over the flown flights alone: the 95% higher, the 5% lower.
+#[test]
+fn mc_places_its_failed_flights_past_each_tail() {
+    let folder = tempfile::tempdir().unwrap();
+    let csv = folder.path().join("runs.csv");
+    let csv_arg = csv.to_string_lossy().into_owned();
+    let design = repo_file(PROBE);
+    // A 45% scatter in the mass fails about one flight in a hundred, too few to unbound the
+    // tails of 100 (that takes 5).
+    let args = [
+        "mc",
+        &design,
+        "--motor",
+        "H54",
+        "--runs",
+        "100",
+        "--mass-sd",
+        "0.45",
+        "--export",
+        &csv_arg,
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    let failed = document["failed"]["count"].as_u64().unwrap();
+    assert!((1..=4).contains(&failed), "{failed}");
+    let rows = std::fs::read_to_string(&csv).unwrap();
+    let header: Vec<&str> = rows.lines().next().unwrap().split(',').collect();
+    // Definition 7 over all 100 flights, a failed one as +∞ above or −∞ below.
+    let worst = |column: &str, p: f64, above: bool| -> Option<f64> {
+        let at = header.iter().position(|name| *name == column).unwrap();
+        let mut values: Vec<f64> = rows
+            .lines()
+            .skip(1)
+            .filter(|row| row.contains(",flown,"))
+            .map(|row| row.split(',').nth(at).unwrap().parse::<f64>().unwrap())
+            .collect();
+        let missing = 100 - values.len();
+        let pad = if above {
+            f64::INFINITY
+        } else {
+            f64::NEG_INFINITY
+        };
+        values.extend(std::iter::repeat_n(pad, missing));
+        values.sort_by(f64::total_cmp);
+        let h = 99.0 * p;
+        let i = h.floor() as usize;
+        let f = h - h.floor();
+        let q = if f == 0.0 {
+            values[i]
+        } else {
+            values[i] + f * (values[i + 1] - values[i])
+        };
+        q.is_finite().then_some(q)
+    };
+    for (spread, column) in [
+        ("apogee_m", "apogee [m]"),
+        ("landing_distance_m", "landing distance [m]"),
+    ] {
+        let figure = &document[spread];
+        let high = figure["p95_counting_missing"]["value"].as_f64().unwrap();
+        let low = figure["p05_counting_missing"]["value"].as_f64().unwrap();
+        let expected_high = worst(column, 0.95, true).unwrap();
+        let expected_low = worst(column, 0.05, false).unwrap();
+        assert!(
+            (high - expected_high).abs() <= 1e-9 * expected_high.abs(),
+            "{spread}"
+        );
+        assert!(
+            (low - expected_low).abs() <= 1e-9 * expected_low.abs(),
+            "{spread}"
+        );
+        // The direction: each failed flight can only push its tail outward.
+        assert!(high > figure["p95"].as_f64().unwrap(), "{spread}: {figure}");
+        assert!(low < figure["p05"].as_f64().unwrap(), "{spread}: {figure}");
+    }
+    let text = streams(&args[..args.len() - 2]);
+    assert!(
+        text.out.contains(&format!(
+            "the columns count only the flights with a value: {} of 100 with an apogee",
+            100 - failed
+        )),
+        "{}",
+        text.out
+    );
+    // The rows under the two lines: the low tail under 5%, the high under 95%, each in meters
+    // to a tenth and in whole feet, where the table's columns put them.
+    let header = text
+        .out
+        .lines()
+        .find(|line| line.trim_start().starts_with("nominal"))
+        .unwrap();
+    let column_end = |name: &str| header.find(name).unwrap() + name.len();
+    let worst: Vec<&str> = text
+        .out
+        .lines()
+        .skip_while(|line| !line.ends_with("the 5% and 95% are at worst"))
+        .skip(1)
+        .take(4)
+        .collect();
+    assert_eq!(worst.len(), 4, "{}", text.out);
+    for (row, (label, spread, per_m, decimals)) in worst.iter().zip([
+        ("apogee (m AGL)", "apogee_m", 1.0, 1),
+        ("apogee (ft AGL)", "apogee_m", 1.0 / 0.3048, 0),
+        ("landing distance (m)", "landing_distance_m", 1.0, 1),
+        (
+            "landing distance (ft)",
+            "landing_distance_m",
+            1.0 / 0.3048,
+            0,
+        ),
+    ]) {
+        assert!(row.starts_with(label), "{row}\n{}", text.out);
+        for (column, tail) in [
+            ("5%", "p05_counting_missing"),
+            ("95%", "p95_counting_missing"),
+        ] {
+            let value = document[spread][tail]["value"].as_f64().unwrap() * per_m;
+            let cell = format!("{value:.decimals$}");
+            let end = column_end(column);
+            assert_eq!(
+                row[..end].split_whitespace().last(),
+                Some(cell.as_str()),
+                "{label} {column}: {row}"
+            );
+        }
+    }
+    // With nothing failed, nothing is added.
+    let calm = streams(&[
+        "mc",
+        &design,
+        "--motor",
+        "H54",
+        "--runs",
+        "20",
+        "--mass-sd",
+        "0.02",
+    ]);
+    assert!(calm.out.contains("seed 0: 0 failed"), "{}", calm.out);
+    assert!(!calm.out.contains("columns count only"), "{}", calm.out);
 }
 
 /// What `hpr mc` refuses before it flies, each by its option: a run of no flights or too many, a

@@ -440,6 +440,20 @@ How many flights the run flew, failed ones included.
 
 The run's seed.
 
+### `MonteCarlo.spread`
+
+How a number column spreads over the run, as `hpr mc --json` gives the apogee's and the
+landing distance's: a dictionary of `attempted` (the flights tried), `count` (those with
+a value), `mean`, `standard_deviation` (`n - 1`), `min`, `p05`, `p50`, `p95` and `max`,
+over the flights with a value; each `None` when too few flights have one.
+
+A failed flight, or one without the figure, is left out of those but not forgotten.
+`p05_counting_missing` and `p95_counting_missing` are the 5th and 95th percentiles of
+every flight tried, each flight with no value placed past that end: the worst case the
+missing flights allow. They are `-inf` and `inf` when too many have no value for the rest
+to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
+missing flights instead, so it reads each tail short if they would have fallen beyond it.
+
 ### `MonteCarlo.to_csv`
 
 The table as CSV text, the bytes `hpr mc --export` writes for the same run. A header gives

@@ -506,10 +506,10 @@ run = hpr.MonteCarlo(
     mass_sd_fraction=0.02, drag_sd_fraction=0.05, impulse_sd_fraction=0.03,
     wind_sd_fraction=0.25, wind_from_sd_deg=15.0,
 )
-apogee = run["apogee_m"]
+apogee = run.spread("apogee_m")
 print(f"{run.flown} of {run.runs} flights flown, {run.failed} failed")
-print(f"apogee: mean {numpy.nanmean(apogee):.0f} m, 5% to 95% "
-      f"{numpy.nanpercentile(apogee, 5):.0f} to {numpy.nanpercentile(apogee, 95):.0f} m")
+print(f"apogee: mean {apogee['mean']:.0f} m, 5% to 95% "
+      f"{apogee['p05']:.0f} to {apogee['p95']:.0f} m")
 print(f"mean landing: {numpy.nanmean(run['landing_east_m']):.0f} m east of the pad")
 ```
 
@@ -535,9 +535,20 @@ dropped. `run.failed` counts them. `run.failures` groups them by why, a dictiona
 `"inputs"` or `"flight"`; `reason`; `count`; and `first_index`, the first one's row. The
 `outcome`, `failed_at` and `reason` columns say which they were.
 
-A failed flight's figures are NaN, so use NumPy's `nanmean`, `nanpercentile` and the like, as
-above, or pick the flown ones with `run["outcome"] == "flown"`. `run.nominal` is the flight with nothing scattered, as
-`Flight.summary` gives it, and `run.dispersion` the standard deviations given, by name.
+A failed flight's figures are NaN. `run.spread(name)` takes a column of numbers, such as
+`"apogee_m"` or `"landing_distance_m"`, and returns a dictionary of its spread over the flights
+that have a value: `attempted`, `count`, `mean`, `standard_deviation`, `min`, `p05`, `p50`, `p95`
+and `max`. NumPy's `nanmean` and `nanpercentile` give the same figures to rounding. Both leave
+the failed flights out, so if those would have flown highest, the 95% reads low.
+
+The dictionary also has `p05_counting_missing` and `p95_counting_missing`: the 5% and 95% with
+each failed flight placed past that end, the worst case they allow
+([Failed flights are counted](monte-carlo.md#failed-flights-are-counted)). Each is `None` when
+every flight has a value, and `-inf` (the 5%) or `inf` (the 95%) when too many failed for the
+run to bound it. So check for `None` before formatting one.
+
+`run.nominal` is the flight with nothing scattered, as `Flight.summary` gives it, and
+`run.dispersion` the standard deviations given, by name.
 
 The eleven inputs, each named for its unit:
 
@@ -618,7 +629,7 @@ parachute's drag coefficient times its area in m², as RocketPy's `cd_s` is.
 | `set_motor(motor)`, `add_parachute(name, ..., released_by=)` | the motor, and a parachute, cut away once parachute `released_by` is fully open |
 | `mass_properties(time_s=)`, `static_margin_cal(time_s=, mach=)`, `margin(time_s=, mach=)`, `design_json()` | the mass, center of gravity and inertia; the margin; the design as JSON |
 | `Flight(rocket, environment, rail_length_m, inclination_deg=, heading_deg=, interval_s=, drag_table=, drag=)` | the flight, `drag=` a drag function, `drag(mach, thrusting) -> C_D0` ([Drag and wind of your own](#drag-and-wind-of-your-own)); its `apogee_m`, `apogee_time_s`, `max_speed_m_s`, `max_mach`, `rail_exit_speed_m_s`, `landing`, `envelope_flags`, `issue_warnings`, `summary`, `events`, `columns`, `series`, `flight[name]` and `to_json()` |
-| `MonteCarlo(rocket, environment, rail_length_m, runs=, seed=, inclination_deg=, heading_deg=, drag_table=, drag=, mass_sd_fraction=, ...)` | a Monte Carlo run, the eleven standard deviations as [Monte Carlo](#monte-carlo) lists them; its `runs`, `seed`, `flown`, `failed`, `failures`, `nominal`, `dispersion`, `columns`, `run[name]` and `to_csv()` |
+| `MonteCarlo(rocket, environment, rail_length_m, runs=, seed=, inclination_deg=, heading_deg=, drag_table=, drag=, mass_sd_fraction=, ...)` | a Monte Carlo run, the eleven standard deviations as [Monte Carlo](#monte-carlo) lists them; its `runs`, `seed`, `flown`, `failed`, `failures`, `nominal`, `dispersion`, `columns`, `run[name]`, `spread(name)` and `to_csv()` |
 | `FlightLog.read(path, mapping=, layout=, sheet=, recording=, fip_header=)`, `FlightLog.header_mapping(path, sheet=)` | a flight log, read by its format's own reader, by a column mapping, by a record layout or, for a Raven FIP export below no header, by a FIP header, each a dict or a JSON file's path ([Reading your own logger](your-own-logger.md#from-python)); `sheet=` picks a workbook's sheet, `recording=` a raw dump's recording, each from 0 ([A file of several records](cli.md#a-file-of-several-records)); its `format`, `logger`, `serial_number`, `firmware`, `flight_number`, `time_s`, `altitude_m`, `channels`, `events`, `stated`, `notes`, `to_dict()`, `smoothed()`, [the smoother](physics/smoother.md)'s track and health card, and `readings()`, a dict of the `liftoff`, `apogee`, `max_speed`, `max_acceleration` and `landing` readings `hpr analyze` takes, each within its bound, some with a 90% interval, or withheld ([Flight-log readings](physics/log-readings.md#the-90-intervals)); and what a table's header states, as a mapping to edit |
 
 
@@ -639,8 +650,8 @@ The package covers the Rust builder, not the whole library. Not yet:
   so.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.
 - Separations stored in a design file, as above.
-- Monte Carlo's landing ellipses and spread summaries, which `hpr mc` prints and Rust programs
-  get from `hpr_analysis`. From Python, NumPy finds them from the run's arrays.
+- Monte Carlo's landing ellipses, which `hpr mc` prints and Rust programs get from
+  `hpr_analysis`. From Python, NumPy finds them from the run's landing arrays.
 - The library's built-in winds that change with height (power law, log law, layers) and weather
   files fly only from Rust. From Python you can write any of them as a wind function
   ([Drag and wind of your own](#drag-and-wind-of-your-own)).

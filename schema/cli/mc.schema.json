@@ -534,6 +534,30 @@
         "atmosphere"
       ]
     },
+    "McCountedQuantile": {
+      "description": "A percentile that counts the flights with no value as past one end\n(`hpr_analysis::statistics::Distribution::quantile_counting_missing`).",
+      "oneOf": [
+        {
+          "description": "The percentile, `{\"value\": 1134.0}`.",
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "description": "`\"unbounded\"`: so many flights have no value that the percentile's interpolation puts\nweight on one of them, and the flights with a value can't bound it.",
+          "type": "string",
+          "const": "unbounded"
+        }
+      ]
+    },
     "McDispersion": {
       "description": "One standard deviation of each input `hpr mc` scatters, in the units of its option.",
       "type": "object",
@@ -878,6 +902,17 @@
           ],
           "format": "double"
         },
+        "p05_counting_missing": {
+          "description": "The 5th percentile of every flight tried, each flight with no value placed below the\nsmallest: the lowest the 5th percentile can be, whatever the missing flights would have\ngiven. `null` when every flight tried has a value, as it is then `p05`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/McCountedQuantile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "p50": {
           "description": "The median.",
           "type": [
@@ -893,6 +928,17 @@
             "null"
           ],
           "format": "double"
+        },
+        "p95_counting_missing": {
+          "description": "The 95th percentile of every flight tried, each flight with no value placed above the\nlargest: the highest it can be. `null` when every flight tried has a value.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/McCountedQuantile"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "standard_deviation": {
           "description": "The sample standard deviation (`n − 1`), `null` with fewer than two values.",

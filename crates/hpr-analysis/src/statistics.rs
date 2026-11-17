@@ -16,6 +16,12 @@
 //!   `Q(p) = x⌊h⌋ + (h − ⌊h⌋)(x⌊h⌋₊₁ − x⌊h⌋)` (R. J. Hyndman and Y. Fan, "Sample quantiles in
 //!   statistical packages", *The American Statistician* 50(4), 361–365, 1996,
 //!   <https://doi.org/10.2307/2684934>).
+//! - **Quantiles counting the missing runs** ([`Distribution::quantile_counting_missing`]) take
+//!   the same definition over every run tried, `h = (N − 1) p` with `N` the runs tried, each run
+//!   with no value placed past one end of the values (as `+∞` above the largest, or `−∞` below
+//!   the smallest). That is the worst case the missing runs allow: if they all lie beyond that
+//!   end, the quantile of every run tried is this one. Where the interpolation puts weight on a
+//!   missing run the quantile is [`CountedQuantile::Unbounded`]: the runs that gave a value can't bound it.
 //!
 //! Every sum runs over the sorted values in order, so a summary is bit-for-bit the same however
 //! the values were computed, in parallel or not.
@@ -70,6 +76,35 @@ pub struct Summary {
     pub p95: Option<f64>,
     /// The largest value.
     pub max: Option<f64>,
+    /// The 5th percentile with every run that gave no value placed below the smallest value
+    /// ([`Distribution::quantile_counting_missing`]); `None` when every run gave a value, as the
+    /// 5th percentile is then `p05`.
+    pub p05_counting_missing: Option<CountedQuantile>,
+    /// The 95th percentile with every run that gave no value placed above the largest value;
+    /// `None` when every run gave a value.
+    pub p95_counting_missing: Option<CountedQuantile>,
+}
+
+/// Which end of the values [`Distribution::quantile_counting_missing`] places the runs that gave
+/// no value past.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MissingEnd {
+    /// Below the smallest value: the worst case for a low quantile, such as the 5th percentile.
+    Below,
+    /// Above the largest value: the worst case for a high quantile, such as the 95th percentile.
+    Above,
+}
+
+/// A quantile that counts the runs that gave no value ([`Distribution::quantile_counting_missing`]).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CountedQuantile {
+    /// The quantile, a value the runs gave or one between two of them.
+    Value(f64),
+    /// Too many runs gave no value for the rest to bound the quantile: its interpolation puts
+    /// weight on a missing run.
+    Unbounded,
 }
 
 /// Bounds on the share of all the runs tried whose value passed a test: `low` counts a run with
@@ -199,6 +234,59 @@ impl Distribution {
         Ok(Some(low + (h - below) * (above - low)))
     }
 
+    /// The `p` quantile of every run tried, each run that gave no value placed past `end` of the
+    /// values (the module's docs); `None` with no runs tried. With no missing run it is
+    /// [`Distribution::quantile`]'s value, bit for bit.
+    ///
+    /// The missing runs' worst case: a 95% value read over the runs that gave one alone sits
+    /// below the 95% of every run tried if the missing runs lie above it, so the high quantile
+    /// counts them [`MissingEnd::Above`] and the low one [`MissingEnd::Below`].
+    ///
+    /// # Errors
+    ///
+    /// [`AnalysisError::Domain`] for `p` outside `[0, 1]`.
+    pub fn quantile_counting_missing(
+        &self,
+        p: f64,
+        end: MissingEnd,
+    ) -> Result<Option<CountedQuantile>, AnalysisError> {
+        if !(0.0..=1.0).contains(&p) {
+            return Err(AnalysisError::Domain {
+                what: "quantile probability",
+                value: p,
+            });
+        }
+        if self.attempted == 0 {
+            return Ok(None);
+        }
+        let missing = self.missing();
+        // The `j`th of every run tried, smallest first: `None` for a missing run.
+        let value = |j: usize| match end {
+            MissingEnd::Above => self.sorted.get(j).copied(),
+            MissingEnd::Below => j
+                .checked_sub(missing)
+                .and_then(|i| self.sorted.get(i).copied()),
+        };
+        // Cast: a count of runs is far below 2⁵³, and `h` lies in `[0, N − 1]`.
+        let h = (self.attempted - 1) as f64 * p;
+        let below = h.floor();
+        let index = below as usize;
+        let Some(low) = value(index) else {
+            return Ok(Some(CountedQuantile::Unbounded));
+        };
+        if index + 1 == self.attempted {
+            return Ok(Some(CountedQuantile::Value(low)));
+        }
+        match value(index + 1) {
+            Some(above) => Ok(Some(CountedQuantile::Value(
+                low + (h - below) * (above - low),
+            ))),
+            // `h` on a value: the missing run next to it carries no weight.
+            None if h == below => Ok(Some(CountedQuantile::Value(low))),
+            None => Ok(Some(CountedQuantile::Unbounded)),
+        }
+    }
+
     /// Bounds on the share of the runs tried whose value is at least `threshold` ([`Share`]);
     /// `None` with no runs tried, when there is no share to bound. An infinite threshold is
     /// allowed.
@@ -229,6 +317,13 @@ impl Distribution {
     pub fn summary(&self) -> Summary {
         // The probabilities are in [0, 1].
         let quantile = |p: f64| self.quantile(p).ok().flatten();
+        let counting_missing = |p: f64, end: MissingEnd| {
+            if self.missing() == 0 {
+                None
+            } else {
+                self.quantile_counting_missing(p, end).ok().flatten()
+            }
+        };
         Summary {
             attempted: self.attempted,
             count: self.count(),
@@ -239,6 +334,8 @@ impl Distribution {
             p50: quantile(0.5),
             p95: quantile(0.95),
             max: self.max(),
+            p05_counting_missing: counting_missing(0.05, MissingEnd::Below),
+            p95_counting_missing: counting_missing(0.95, MissingEnd::Above),
         }
     }
 }
@@ -299,6 +396,113 @@ mod tests {
                 ..
             })
         ));
+    }
+
+    #[test]
+    fn a_quantile_counting_the_missing_runs_by_hand() {
+        // Four values of six runs. Above: the runs are 1, 2, 3, 4, +∞, +∞, and `h = 5p`.
+        let d = Distribution::new(vec![4.0, 1.0, 3.0, 2.0], 6).unwrap();
+        let above = |p| d.quantile_counting_missing(p, MissingEnd::Above).unwrap();
+        let below = |p| d.quantile_counting_missing(p, MissingEnd::Below).unwrap();
+        assert_eq!(above(0.0), Some(CountedQuantile::Value(1.0)));
+        assert_eq!(above(0.5), Some(CountedQuantile::Value(3.5)));
+        // h = 3.0 sits on the 4, the last value: the missing run after it has no weight.
+        assert_eq!(above(0.6), Some(CountedQuantile::Value(4.0)));
+        assert_eq!(above(0.65), Some(CountedQuantile::Unbounded));
+        assert_eq!(above(0.95), Some(CountedQuantile::Unbounded));
+        // Below: −∞, −∞, 1, 2, 3, 4.
+        assert_eq!(below(0.5), Some(CountedQuantile::Value(1.5)));
+        assert_eq!(below(0.4), Some(CountedQuantile::Value(1.0)));
+        assert_eq!(below(0.35), Some(CountedQuantile::Unbounded));
+        assert_eq!(below(0.05), Some(CountedQuantile::Unbounded));
+        assert_eq!(below(1.0), Some(CountedQuantile::Value(4.0)));
+        // Nothing tried, nothing to bound; every run missing, nothing bounded.
+        let none = Distribution::new(vec![], 0).unwrap();
+        assert_eq!(
+            none.quantile_counting_missing(0.5, MissingEnd::Above)
+                .unwrap(),
+            None
+        );
+        let empty = Distribution::new(vec![], 3).unwrap();
+        for end in [MissingEnd::Above, MissingEnd::Below] {
+            assert_eq!(
+                empty.quantile_counting_missing(0.0, end).unwrap(),
+                Some(CountedQuantile::Unbounded)
+            );
+        }
+        for p in [-0.1, 1.1, f64::NAN] {
+            assert!(matches!(
+                d.quantile_counting_missing(p, MissingEnd::Above),
+                Err(AnalysisError::Domain { what: "quantile probability", value })
+                    if value.to_bits() == p.to_bits()
+            ));
+        }
+    }
+
+    #[test]
+    fn with_no_missing_run_it_is_the_quantile_bit_for_bit() {
+        let values: Vec<f64> = (0..37)
+            .map(|i| f64::from(i).mul_add(0.37, 1.0).sin())
+            .collect();
+        let d = Distribution::new(values, 37).unwrap();
+        for step in 0..=200 {
+            let p = f64::from(step) / 200.0;
+            let plain = d.quantile(p).unwrap().unwrap();
+            for end in [MissingEnd::Above, MissingEnd::Below] {
+                assert_eq!(
+                    d.quantile_counting_missing(p, end).unwrap(),
+                    Some(CountedQuantile::Value(plain)),
+                    "p = {p}"
+                );
+            }
+        }
+        // The summary leaves the counting quantiles out when nothing is missing.
+        let summary = d.summary();
+        assert_eq!(summary.p05_counting_missing, None);
+        assert_eq!(summary.p95_counting_missing, None);
+    }
+
+    #[test]
+    fn the_missing_runs_widen_each_tail_toward_its_own_end() {
+        // 1 to 20 from 21 runs. Over the 20 values the 95th percentile is 19.05 and the 5th
+        // 1.95. Counting the missing run past each end gives the worst case: higher at the top
+        // (h = 20 × 0.95 = 19, the 20), lower at the bottom (h = 1, the 1).
+        let d = Distribution::new((1..=20).map(f64::from).collect(), 21).unwrap();
+        let summary = d.summary();
+        assert!((summary.p95.unwrap() - 19.05).abs() < 1e-12);
+        assert!((summary.p05.unwrap() - 1.95).abs() < 1e-12);
+        assert_eq!(
+            summary.p95_counting_missing,
+            Some(CountedQuantile::Value(20.0))
+        );
+        assert_eq!(
+            summary.p05_counting_missing,
+            Some(CountedQuantile::Value(1.0))
+        );
+        // Two missing of 21: the top's interpolation reaches a missing run, and so does the
+        // bottom's.
+        let d = Distribution::new((1..=19).map(f64::from).collect(), 21).unwrap();
+        let summary = d.summary();
+        assert_eq!(
+            summary.p95_counting_missing,
+            Some(CountedQuantile::Unbounded)
+        );
+        assert_eq!(
+            summary.p05_counting_missing,
+            Some(CountedQuantile::Unbounded)
+        );
+    }
+
+    #[test]
+    fn a_bound_serializes_as_a_value_or_unbounded() {
+        assert_eq!(
+            serde_json::to_string(&CountedQuantile::Value(2.5)).unwrap(),
+            r#"{"value":2.5}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&CountedQuantile::Unbounded).unwrap(),
+            r#""unbounded""#
+        );
     }
 
     #[test]
