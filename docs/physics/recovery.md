@@ -576,7 +576,7 @@ This section describes the unpowered case, and the booster's descent after a pow
   have held it near 60 to 70. So its deployment speed, and any opening load taken from it, read
   high there. A part split off climbing whose device opens near the top of its drag-free climb
   is the other way round. A part ejected climbing at 30 m/s (98 ft/s), its device 3 s later, opens
-  drag-free at $30 - 9.81 \times 3 = 0.6$ m/s (2 ft/s), just short of its top. With its airframe's
+  drag-free at $30 - 9.81 \times 3 = 0.6\,\mathrm{m/s}$ (2 ft/s), just short of its top. With its airframe's
   drag it would have topped out sooner and be falling by then, faster, so its opening speed and
   load read low. Give a body a device that
   opens at once (`DeviceDrag::tumbling_stages` over its own stages is the cited way) if the coast
