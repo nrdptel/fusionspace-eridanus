@@ -6,7 +6,7 @@ optimum-delay output. It builds on [early deployment bias](early-deployment-bias
 [fault base rates](fault-base-rates.md) §3. Read 2026-10-17: NFPA revision reports, three certifiers' manuals, 167
 NAR sheets, 50 Tripoli (TRA) letters, makers' sheets, one bench study; no source code. **Inference** marks this
 note's arithmetic. Trust it for model motors on the bench at 20 °C (about 400 firings); thinly for high power (about 60
-firings, mostly AeroTech-built, none above J); not for cold composite delays (one set, §6) or high sites (sign only).
+firings, mostly AeroTech-built, none above J); not for cold composite delays (one set, §6) or high sites (one study).
 
 **In short.**
 - **The rule is wide.** NFPA 1125 lets each firing's delay differ from its label by 1.5 s or 20%, whichever is
@@ -17,8 +17,8 @@ firings, mostly AeroTech-built, none above J); not for cold composite delays (on
 - **High-power delays run 10% short undrilled and 0.8 s long drilled.** 36 firings of 10 undrilled high-power motors
   (NAR and TRA) ran about 1.0 to 1.5 s (9% to 11%) early; 21 TRA firings drilled shorter ran +0.83 s late, because
   each labeled second drilled away removed a median 0.65 s of measured delay [8, 9].
-- **Temperature: one unnamed composite set, altitude by sign only.** Per 10 K warmer, that set's delays ran −1.5% and
-  black powder's −3.0% (§6); NAR and Tripoli found composite delays can burn more slowly at high sites [14].
+- **Temperature: one unnamed composite set; altitude: one study.** Per 10 K warmer, that set's delays ran −1.5% and
+  black powder's −3.0% (§6); about a mile up, composite delays took 6.4% to 22% longer in TMT's 2018 study [23].
 
 ## 1. What the standards allow
 
@@ -119,11 +119,11 @@ J520W-13A letter repeats from the J435WS-13A letter were dropped.
   delay. The authors blame hot propellant eroding the delay layer, not a faster-burning delay [16, pp. 3–4], so the
   slope may not carry to composite grains. One unnamed F-class set (a 2008 science-fair test, read off a forum chart)
   ran −1.5% per 10 K warmer, cold longer ([hobby firings](hobby-motor-temperature-firings.md) §2).
-- **Pressure (sign only).** NAR S&T's certified-motor list says NAR and Tripoli tests found composite delays can burn
+- **Pressure (one study).** NAR S&T's certified-motor list says NAR and Tripoli tests found composite delays can burn
   more slowly as the site rises by thousands of feet, so a delay in band at sea level may run long at 5,000 ft [14,
-  p. 2]: **later ejection**, size not given. **Inference:** after burnout the case vents, so the grain burns near
-  outside pressure; with burn rate ∝ pⁿ and an assumed n of 0.3 to 0.8, a delay runs 6% to 16% long at 5,000 ft
-  (ISA 84.3 kPa) and 12% to 35% at 10,000 ft. The exponent is assumed, not sourced.
+  p. 2]: **later ejection**. In TMT's 2018 study low sites took 82% to 94% of the time about a mile up [23, pp. 16–17],
+  that is, high ran 6.4% to 22% longer. **Inference:** with burn rate ∝ pⁿ at outside pressure (the case has vented)
+  and an assumed n of 0.3 to 0.8, delays run 6% to 16% long at 5,000 ft, below the study's 22%; 12% to 35% at 10,000 ft.
 
 ## 7. A delay distribution a Monte Carlo could fly (Inference)
 
@@ -153,13 +153,13 @@ flights](delay-offset-in-flight-logs.md), its 90% interval held 21 or 22 (70% to
 - **Long and undrilled delays err early, drilled ones late:** M6.8's check by side and M7.4's prior should use the
   class bias, not a symmetric band. An undrilled 14 s high-power delay centers near 12.6 s.
 - **Warn on the drill.** Take the drilled setting as input; warn below 4 s and past a reload's longest cut.
-- **Size the altitude term from public letters:** TMT has fired near Denver since 2025 ([TMT test
-  sites](tmt-test-sites.md)), so its letters against the same motors' sea-level ones could bound it.
+- **Size the altitude term from TMT's 2018 study,** not letters: [delay altitude](delay-altitude-tra-letters.md) §2–§4.
 
 ## Open questions
 
-- **Altitude.** TMT's 2018 study (*Tripoli Report* 29(3): about 40 motors at 5,500 ft and 11 ft, about 30% out of
-  band, per a forum summary [23]) has no open copy; no burn-rate exponent for delay grains near 1 atm was found.
+- **Altitude.** In TMT's 2018 study 12 of 40 firings missed the band, 11 early [23, p. 16]; AeroTech motors ran 7.5%
+  to 22% longer at about 5,500 ft (Cedar City, UT) than at 11 or 427 ft (NC), lone grains 6.4% to 7.5% in two other
+  pairs; no temperatures [23, pp. 16–17]. Why motors stretch more is open ([TMT 2018](tmt-delay-study-2018.md)).
 
 ## Sources
 
@@ -196,5 +196,5 @@ Read 2026-10-17; cached under `refs/`, cited, not copied. NFPA: `https://docinfo
     <https://cdn.shopify.com/s/files/1/0615/7592/1878/files/AeroTech_Master_Motor_Matrix_4-2-23.pdf>
 21. Cesaroni Pro24, Pro29, Pro38, Pro54 instructions v4.00, e.g. `p38:CTI-AERO-MAN-103-v4.00-Pro29-Instructions_EN.pdf`
 22. Loki Research 38 mm Blue instructions, rev. C, 2013: <https://www.lokiresearch.com/images/Documents/38mm%20Blue.pdf>
-23. "BP motor consistency", posts #31 to #32, 2021-05: `trf:threads/bp-motor-consistency.166006/page-2`
+23. A. Whitmore, "Pyrotechnic delay element timing in commercial high power rocket motors", *Tripoli Report* 29(3).
 24. NAR R&D report index: <https://www.nar.org/content.aspx?page_id=22&club_id=114127&module_id=674799>
