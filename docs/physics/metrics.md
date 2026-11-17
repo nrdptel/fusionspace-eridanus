@@ -186,9 +186,10 @@ opening shock is the [specific force](../glossary.md#specific-force) instead, th
 mass (with a motor still burning, the drag and the thrust together). That is what an accelerometer
 reads, and with no motor burning it is the opening force over the mass (Knacke, NWC TP 6575,
 p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In a canopy's steady fall it is
-1 g, so it reads at least about that once the canopy reaches its steady fall; a flight that
-lands first, from a low opening at a high descent rate, reads less. In the example above the canopy opens while the rocket still
-climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
+1 g, so it reads at least about that once the canopy reaches its steady fall. A canopy opened
+slower than its steady fall reads less if the stack's flight ends before it gets there, at the
+ground or at a split with nothing left to burn. In the example above the canopy opens while the
+rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
 plot's spike) is close to g above the opening shock of 144.0 m/s².
 A test opens a canopy 5 s after apogee, falling, and finds the shock equal to $q C_D S / m$ at the
 opening to 1e-9. At the ground, in the canopy's steady fall, the specific force is g and the

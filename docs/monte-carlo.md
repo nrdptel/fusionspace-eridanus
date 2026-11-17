@@ -140,9 +140,8 @@ and the wind's speed is the most uncertain input here.
 included. Each dispersion is an option in the units the command line uses elsewhere: degrees for
 angles, a fraction for a percentage (`--impulse-sd 0.03` is 3%). It prints the apogee's and the
 landing distance's spreads, and when a device opens the opening shock's and opening airspeed's
-(a stack whose devices open only at a split with nothing left to burn has no opening shock), the landing ellipses
-below and the failed flights. `--export runs.csv`
-writes every flight's draw and outcome, one row a flight. The command's runs are the library's for
+(a stack whose devices open only at a split with nothing left to burn has no opening shock),
+the landing ellipses below and the failed flights. `--export runs.csv` writes every flight's draw and outcome, one row a flight. The command's runs are the library's for
 the same seed, bit for bit: a test compares them (`mc_flies_a_public_ork_as_the_library_does`).
 
 ```text

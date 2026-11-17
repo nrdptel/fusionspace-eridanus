@@ -366,7 +366,8 @@ pub struct FlightSummary {
     /// opening load over the mass, `(drag + thrust)/m` ([`Sample::specific_force_enu_m_s2`]),
     /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
     /// no motor burning, the mass times this is the opening force. Once a canopy reaches its
-    /// steady fall it reads about 1 g, so it is at least that unless the flight lands first.
+    /// steady fall it reads about 1 g, so it is at least that unless the stack's flight ends
+    /// first, at the ground or at a split with nothing left to burn.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
