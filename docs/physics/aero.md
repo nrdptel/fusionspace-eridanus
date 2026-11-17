@@ -4824,7 +4824,7 @@ square, 0.08 calibers thick. A square fin's blunt leading edge meets the air at 
 pressure, so as drawn HPR Sim's drag reads 34.5% to 138.1% above DREV's, which says nothing about
 the rest of the body. So the report takes out the square edges' two terms, the leading edge's and
 HPR Sim's trailing-edge rule, and puts in the wedge's two, from cited sources
-([the wedge note](../research/basic-finner-wedge-drag.md),
+([the wedge note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-wedge-drag.md),
 [its figures][finner-wedge]):
 
 - **The faces.** Each face turns the flow by $\arctan 0.04 = 2.29°$. From Mach 1.293 up the shock
@@ -4842,7 +4842,7 @@ and the body's base. The wedge's faces add 0.016 and its trailing edges 0.065 to
 Sim's $C_{D0}$ is 0.384, from 0.380 to 0.388. DREV's $C_{X0}$ is 0.484, so HPR Sim reads 20.6%
 low.
 
-| Mach | DREV's $C_{X0}$ | its shots | HPR Sim, square edges out | wedge faces | wedge trailing edges | HPR Sim's $C_{D0}$ (band) | error (band) |
+| Mach | DREV's $C_{X0}$ (coefficient) | its shots' drag coefficient | HPR Sim's drag coefficient, square edges out (coefficient) | the wedge faces' drag coefficient | the wedge trailing edges' drag coefficient | HPR Sim's $C_{D0}$ (coefficient; band) | error (band) |
 |--:|--:|--:|--:|--:|--:|--:|--:|
 | 1.077 | 0.863 | 0.854 to 0.868 | 0.606 | 0.110 | 0.175 to 0.293 | 0.950 (0.889 to 1.011) | +10.1% (+3.0% to +17.1%) |
 | 1.293 | 0.731 | 0.701 to 0.760 | 0.487 | 0.043 | 0.151 to 0.200 | 0.706 (0.681 to 0.730) | −3.5% (−6.8% to −0.1%) |
@@ -4879,7 +4879,7 @@ For example, at Mach 2.375 HPR Sim's fins lift 5.57 per radian at 3.98 calibers 
 reference point, which gives $-2 \times 5.57 \times 3.98^2 = -176.4$. With the body's −49.9 it is
 −226.2, against DREV's −306.5: 26.2% less damping.
 
-| Mach | DREV's $C_{mq}$ (probable error) | HPR Sim's body | HPR Sim's fins | HPR Sim's $C_{mq}$ | error |
+| Mach | DREV's $C_{mq}$, per rad (probable error) | HPR Sim's body, per rad | HPR Sim's fins, per rad | HPR Sim's $C_{mq}$, per rad | error |
 |--:|--:|--:|--:|--:|--:|
 | 1.077 | −322.4 (5%) | −52.0 | −352.3 | −404.3 | +25.4% |
 | 1.293 | −487.4 (6%) | −50.5 | −355.1 | −405.6 | −16.8% |
