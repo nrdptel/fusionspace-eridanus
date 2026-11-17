@@ -452,8 +452,7 @@ mod tests {
         let accuracy_row = format!(
             "the drag {} and {} low from Mach 1.5 to 2.5, {} and {} low from Mach 2.5 to 3.5, \
              below every shot of its row and below DREV's even with the fins' bases at a vacuum; \
-             below Mach 1.5, {} high at Mach 1.077 in the middle of a band from {} low to {} \
-             high, the wedge faces' figure there being an upper bound, and {} low at 1.293, \
+             below Mach 1.5, {} high at Mach 1.077 (band {} low to {} high) and {} low at 1.293, \
              inside the shots' spread. The cause is not found. The pitch damping {} and {} low from Mach \
              1.5 to 2.5, {} and {} low from 2.5 to 3.5, and {} low at Mach 1.293",
             unsigned(at(2, "cd0_error")),
