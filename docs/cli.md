@@ -887,7 +887,8 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
   up positive). The nose tip is the point the simulator's equations of motion track. The `--json`
   summary's peak acceleration is taken there too. For a rocket that isn't turning, every point of
   it accelerates alike. A recovery device opens fully at once ([the landing](#the-landing)), so
-  its opening shows as a sharp spike.
+  its opening shows as a sharp spike. The spike is the motion's acceleration, about g from the
+  opening shock the `--json` summary gives, which leaves gravity out.
 - **Not what an accelerometer reads.** The panel shows how the motion changes: zero on the pad,
   and in a coast about −10 m/s² vertically, gravity plus drag. An accelerometer reads about zero
   in that coast, and 9.8 m/s² on the pad.
@@ -1107,15 +1108,17 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 The table gives the nominal flight's figure: the flight `hpr sim` flies with the same options.
 Then come the run's mean, [standard deviation](glossary.md#standard-deviation), 5th percentile,
-median and 95th percentile. Each quantity is in meters, then in feet on the row under it. The
+median and 95th percentile. Each length is in meters, then in feet on the row under it. The
 landing's center and the ellipses' axes give feet in parentheses. A failed flight counts as tried
 with no value.
 
-When the design has a recovery device, two more figures follow. The opening shock is each
-flight's largest drag over the mass under its devices, in m/s² and then in g: the
-[opening load](glossary.md#opening-load) over the mass, without gravity, so the mass times it is
-the force a shock cord carries. The opening airspeed is the fastest a device opened through the
-air, the speed that load follows. `--delay-sd` and `--deployment-lag-sd` spread both: a charge
+When a flight opened a recovery device, two more figures follow, each when any flight has a
+value for it. The opening shock is each flight's largest drag, and any thrust, over the mass
+under its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
+mass, without gravity, so the mass times it is the force a shock cord carries. The opening
+airspeed is the fastest a device opened through the air, the speed that load follows. A stack
+that comes apart with nothing left to burn has the airspeed its devices opened at, but no opening
+shock: the part that keeps the nose isn't watched under its canopy. `--delay-sd` and `--deployment-lag-sd` spread both: a charge
 late after apogee opens the device faster. The simulator opens a canopy at once by default, and
 leaves out a canopy's drag overshoot, so the shock is no bound either way
 ([The opening load](physics/recovery.md#the-opening-load)); its spread shows how the timing moves

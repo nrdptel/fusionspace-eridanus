@@ -138,8 +138,9 @@ struct Figure<'a> {
     has: &'static str,
 }
 
-/// The figures the table gives: the apogee and the landing distance, then, when any flight opened
-/// a device, the opening shock and the airspeed it opened at (#1258).
+/// The figures the table gives: the apogee and the landing distance, then the opening shock and the
+/// airspeed a device opened at, each when any flight, or the nominal one, has a value for it
+/// (#1258).
 fn figures(run: &McRun) -> Vec<Figure<'_>> {
     let length = |datum| [(datum, 1.0, 1), (feet_datum(datum), 1.0 / FOOT_M, 0)];
     let mut figures = vec![

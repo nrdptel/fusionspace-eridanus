@@ -367,8 +367,8 @@ pub struct FlightSummary {
     /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: the
     /// load a shock cord carries is the mass times this.
     pub max_descent_acceleration_m_s2: Option<Peak>,
-    /// The largest airspeed at which a recovery device of the flight (the part that keeps the
-    /// nose) opened, m/s, with when and where: the speed the opening load follows, as
+    /// The largest airspeed at which a recovery device opened on the flight's own stack (not one
+    /// the part that keeps the nose opens later in its own flight), m/s, with when and where: the speed the opening load follows, as
     /// `q = ½ρv²`. Over the ground the speed can be more or less by the wind's.
     pub max_deployment_airspeed_m_s: Option<Peak>,
     /// The smallest static margin from the rail exit to apogee or the first deployment,
@@ -1648,7 +1648,8 @@ mod tests {
         let shock = metrics.max_descent_acceleration.unwrap();
         close(shock.value, drag_per_kg, 1e-9, "opening shock");
         assert_eq!(shock.time_s, deployed.time_s);
-        // The motion's acceleration there is about g less: what was reported before.
+        // What |a| reads there by the hand relation |a| = D/m − g cos θ, θ from the vertical: about
+        // g less, what was reported before.
         let motion = drag_per_kg - G * velocity.z.abs() / velocity.length();
         assert!(
             shock.value - motion > 0.99 * G,

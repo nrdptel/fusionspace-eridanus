@@ -642,7 +642,8 @@ pub struct McRun {
     /// The spread of the landing's distance from the pad, m.
     pub landing_distance_m: McSpread,
     /// The spread of the opening shock, m/s²: each flight's top specific force under its
-    /// recovery devices, the opening load over the mass. A flight that opened none has no value.
+    /// recovery devices, the opening load over the mass. A flight that opened none, or a stack
+    /// that came apart with nothing left to burn, has no value.
     pub opening_shock_m_s2: McSpread,
     /// The spread of the top airspeed at which each flight opened a recovery device, m/s.
     pub deployment_airspeed_m_s: McSpread,
@@ -730,7 +731,8 @@ pub struct McNominal {
     pub landing_east_m: Option<f64>,
     /// Its landing, m north of the pad.
     pub landing_north_m: Option<f64>,
-    /// Its opening shock, m/s², if a recovery device opened.
+    /// Its opening shock, m/s², if its stack flew under a recovery device (a stack that comes
+    /// apart with nothing left to burn has none).
     pub opening_shock_m_s2: Option<f64>,
     /// The top airspeed at which it opened a recovery device, m/s.
     pub deployment_airspeed_m_s: Option<f64>,

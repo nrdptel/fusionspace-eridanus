@@ -707,8 +707,8 @@ impl IssueWarning {
                  where a real one has its airframe's. Falling, it likely lands early and the wind \
                  carries it less far than it would, so its drift likely reads short. Climbing, \
                  its peak reads high. Its speed when a device opens can read either way: high \
-                 after a long fall, low for a part split off climbing that opens near its \
-                 drag-free top"
+                 after a long fall, low for a light part split off climbing that opens near \
+                 its drag-free top"
                 .to_owned(),
             KnownIssue::OffAxisCenterOfGravity => {
                 let offset = match &self.detail {

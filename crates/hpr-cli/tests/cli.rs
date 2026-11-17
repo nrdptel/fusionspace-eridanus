@@ -7291,6 +7291,7 @@ fn mc_places_its_failed_flights_past_each_tail() {
     assert!(!calm.out.contains("columns count only"), "{}", calm.out);
     // No device opens on this design, so the table has no opening rows.
     assert!(!text.out.contains("opening shock"), "{}", text.out);
+    assert!(!text.out.contains("opening airspeed"), "{}", text.out);
 }
 
 /// #1258: `hpr mc` gives the spread of the opening shock and of the airspeed a device opened at,
@@ -7388,8 +7389,8 @@ fn sim_gives_each_deployment_its_airspeed() {
         flight["summary"]["max_deployment_airspeed_m_s"]["value"].as_f64(),
         Some(top)
     );
-    // In a 6 m/s wind the device opens drifting with the air, so its airspeed and its speed over
-    // the ground differ.
+    // In a 6 m/s wind the air blows across a rocket that has barely drifted at apogee, so its
+    // airspeed and its speed over the ground differ.
     let first = deployments[0];
     let ground = first["speed_m_s"].as_f64().unwrap();
     let air = first["airspeed_m_s"].as_f64().unwrap();
