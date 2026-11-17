@@ -75,7 +75,7 @@ Sources:
   Six Degree-of-Freedom Rocket Trajectory Simulator", *J. Aerosp. Eng.* 34(6), 2021,
   doi:10.1061/(ASCE)AS.1943-5525.0001331. Cited, not fetched.
 - **[N15]** D. G. Murri, E. B. Jackson and R. O. Shelton, *Check-Cases for Verification of
-  6-Degree-of-Freedom Flight Vehicle Simulations*, NASA/TM-2015-218675, Volumes I and II, 2015,
+  6-Degree-of-Freedom Flight Vehicle Simulations*, NASA/TM-2015-218675, both volumes, 2015,
   with the errata of September 8, 2025, and the codes' time histories posted with it
   (<https://nescacademy.nasa.gov/flightsim/2015>). Cases 1 and 2 are flown
   ([below](#a-free-body-against-nasas-check-cases)).
