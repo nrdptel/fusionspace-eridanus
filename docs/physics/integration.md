@@ -11,10 +11,16 @@ events such as apogee and landing.
 - **Sources:** Dormand and Prince (1980); Hairer, Nørsett and Wanner's *Solving Ordinary
   Differential Equations I* (1993), whose `DOPRI5` code the port follows. Brent (1973) gives
   the root finding that locates events.
-- **How well it is validated:** by analytic and unit tests only, not yet on its own against another
-  simulator or a real flight. Its step counts match an independent transcription of `DOPRI5`, and
+- **How well it is validated:** by analytic and unit tests, and in part, together with the
+  rigid-body equations, against the codes of one of NASA's check cases; not yet against a real
+  flight. Its
+  step counts match an independent transcription of `DOPRI5`, and
   its error shrinks as theory predicts. In an exactly solvable flight with drag, apogee, deployment
-  and landing times are right to 1.5e-8 s at default tolerances.
+  and landing times are right to 1.5e-8 s at default tolerances. On NASA's tumbling brick, with
+  the one named model difference taken off, the default tolerances leave the body rates within
+  0.0000009229 deg/s of the code nearest them over the 30 s. That is one of two codes that
+  agree with each other; the other two kept codes are further off
+  ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
 - **What it leaves out:** it can't detect a stiff problem, where very fast, heavily damped motion
   forces tiny steps. The run then stops with an error. Fixed 10 ms RK4 steps can diverge for a
   light body under a big canopy. An event that crosses zero and back within one step goes unseen.
@@ -209,6 +215,16 @@ measured on September 17, 2026.
   The coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi) with Dormand-Prince (20
   steps). RK4 (0.01 s) comes within 4e-11 s and 1.6e-8 m. Integrated straight through the
   jump, RK4 misses the velocity by 0.56 m/s (1.8 ft/s). With the stop time the miss is 1e-12 m/s.
+- `cargo xtask check-cases`, held by the gate where the codes' files are fetched: NASA's check
+  case 2, a brick of three unequal moments tumbling for 30 s
+  ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
+  With the named model difference taken off, the flight at the default tolerances (1e-8) sits
+  0.0000005866, 0.0000009229 and 0.0000002790 deg/s from the code nearest it in roll, pitch and
+  yaw rate. That code is SIM 1 or SIM 4, which agree with each other; the other two kept codes
+  are up to 0.00004975 and 0.001242 deg/s away. At tolerances of 1e-12 the first three fall to
+  0.000000002126, 0.000000003051 and 0.000000001089 deg/s. So they are the default tolerances'
+  step error, read from HPR Sim's own two flights and not from the codes. The steps are not
+  checked on their own here: the gravity and rigid-body equations are in the same flight.
 - Events are located within 1e-6 s ([Loft lesson L22](../decisions-and-roadmap.md#l22)):
   - For the quadratic-drag flight, the apogee, a 300 m (984 ft) descending deploy and landing are all
     located against the closed forms. Errors: 1.2e-8, 1.5e-8 and 1.4e-8 s at the default

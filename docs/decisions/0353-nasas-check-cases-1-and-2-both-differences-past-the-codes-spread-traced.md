@@ -1,18 +1,17 @@
 # ADR-353: NASA's check cases 1 and 2: both differences past the codes' spread, traced (2026-11-17)
 
-- **Status:** accepted; withdrawn by [ADR-355][adr-355] until the work lands again; the decision record that [M1.14b3][m1-14b3]'s *done when* asks for ([ADR-351][adr-351], decision 2); no *done when* changed
-- **Summary:** Withdrawn by [ADR-355][adr-355] until the work lands again. A free body of the report's mass and inertia flies NASA/TM-2015-218675's check cases 1 and 2 on HPR Sim's gravity, Coriolis force, rigid-body equations and default integrator. In case 1 its altitude ends 19.51 mm (0.77 in) below the codes', 137 times their spread: WGS 84's normal gravity holds the terms past J2 that the codes' gravitation drops, and that accounts for all but 0.1364 mm (0.0054 in). In case 2 its inertial body rates differ by up to 0.01633 deg/s, 12 to 16 times the spread: the rotational equations leave the Earth's rate out, and that accounts for all but 0.001005 deg/s. Both remainders are inside the spread.
+- **Status:** accepted; the decision record that [M1.14b3][m1-14b3]'s *done when* asks for ([ADR-351][adr-351], decision 2); no *done when* changed
+- **Summary:** A free body of the report's mass and inertia flies NASA/TM-2015-218675's check cases 1 and 2 on HPR Sim's gravity, Coriolis force, rigid-body equations and default integrator. In case 1 its altitude ends 19.51 mm (0.77 in) below the codes', 137 times their spread: WGS 84's normal gravity holds the terms past J2 that the codes' gravitation drops, and that accounts for all but 0.1364 mm (0.0054 in). In case 2 its inertial body rates differ by up to 0.01633 deg/s, 12 to 16 times the spread: the rotational equations leave the Earth's rate out, and that accounts for all but 0.001005 deg/s. Both remainders are inside the spread.
 
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
 [m1-14b4]: ../decisions-and-roadmap.md#m1-14b4
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
-[adr-355]: 0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md
 [adr-351]: 0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [adr-011]: 0011-rigid-body-flight-equations-of-motion.md
 [nesc-note]: ../research/nesc-check-cases.md
-[report]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/validation/reports/check-cases.md
-[report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/validation/reports/check-cases.json
-[flight]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/docs/physics/flight.md#a-free-body-against-nasas-check-cases
+[report]: ../../validation/reports/check-cases.md
+[report-json]: ../../validation/reports/check-cases.json
+[flight]: ../physics/flight.md#a-free-body-against-nasas-check-cases
 [i-759]: https://github.com/nrdptel/fusionspace-eridanus/issues/759
 [i-1521]: https://github.com/nrdptel/fusionspace-eridanus/issues/1521
 
@@ -122,4 +121,4 @@ were: the increment adds a reference and two measured differences. ADR-011's cho
 until [#1521][i-1521] is worked. [The page on rigid-body flight][flight] gives the comparison
 to a reader.
 
-**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) until the work lands again. Until then the links to the report and to the page point at the commit that held them.
+**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) and landed again unchanged.
