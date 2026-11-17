@@ -538,8 +538,8 @@ dropped. `run.failed` counts them. `run.failures` groups them by why, a dictiona
 A failed flight's figures are NaN. `run.spread(name)` takes a column of numbers, such as
 `"apogee_m"` or `"landing_distance_m"`, and returns a dictionary of its spread over the flights
 that have a value: `attempted`, `count`, `mean`, `standard_deviation`, `min`, `p05`, `p50`, `p95`
-and `max`. NumPy's `nanmean` and `nanpercentile` give the same numbers. Both leave the failed
-flights out, so if those would have flown highest, the 95% reads low.
+and `max`. NumPy's `nanmean` and `nanpercentile` give the same figures to rounding. Both leave
+the failed flights out, so if those would have flown highest, the 95% reads low.
 
 The dictionary also has `p05_counting_missing` and `p95_counting_missing`: the 5% and 95% with
 each failed flight placed past that end, the worst case they allow
