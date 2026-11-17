@@ -439,6 +439,15 @@ license = "US government work"
 mode = "fetched"
 
 [[file]]
+name = "naca-tr-1095-vincenti-wagoner-1952"
+title = "W. G. Vincenti and C. B. Wagoner, Transonic flow past a wedge profile with detached bow wave, NACA Report 1095, 1952"
+url = "https://ntrs.nasa.gov/api/citations/19930091088/downloads/19930091088.pdf"
+sha256 = "91b9f14bd969ca4a8161d6d59d732d6216dfef25ab0519fa52ff0bf2a9e336e2"
+dest = "refs/papers/naca-tr-1095-vincenti-wagoner-1952-wedge-detached.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
 name = "naca-report-1135"
 title = "Ames Research Staff, Equations, tables, and charts for compressible flow, NACA Report 1135, 1953"
 url = "https://ntrs.nasa.gov/api/citations/19930091059/downloads/19930091059.pdf"

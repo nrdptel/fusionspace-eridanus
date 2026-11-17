@@ -295,6 +295,7 @@ pub(crate) fn design(name: &str) -> Rocket {
             include_str!("../../../validation/designs/mil-hdbk-762-sample-rocket.json")
         }
         "rocketpy-bella-lui" => include_str!("../../../validation/designs/rocketpy-bella-lui.json"),
+        "range-basic-finner" => include_str!("../../../validation/designs/range-basic-finner.json"),
         "rocketpy-calisto-getting-started-motor-at-minus-1.255" => include_str!(
             "../../../validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json"
         ),

@@ -1707,6 +1707,296 @@ mod tests {
         assert_eq!(cp_inside_the_fit, [1.293]);
     }
 
+    /// M1.14b2: hpr's zero-lift drag and pitch damping for the Basic Finner against DREV-TM-9703
+    /// Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48–49), as `cargo xtask aero`
+    /// writes them to `basic-finner-drag-damping.json`. Every figure is recomputed here from the
+    /// committed design, the committed reference and the wedge's cited figures
+    /// (`basic-finner-wedge.json`): the shots' Reynolds number; the buildup as drawn; the square
+    /// fins' two edge terms swapped for the single wedge's faces (the attached oblique shock, or
+    /// Vincenti and Wagoner's transonic value at Mach 1.077) and its trailing edges'
+    /// two-dimensional base drag; and the pitch-damping read-out about the fits' moment
+    /// reference, 5.5 calibers, with its fins' part.
+    ///
+    /// It pins which way hpr errs, and by how much, on each row. At Mach 1.077 the drag's nominal
+    /// value (the faces at their upper bound, the trailing edges at their band's middle) reads
+    /// high, but its band reaches below every shot there; it reads low at 1.293, inside the
+    /// shots' spread; and low from Mach 1.832 up, below every shot at both ends of the wedge's
+    /// band and even with the trailing edges at vacuum. The pitch
+    /// damping reads low in size by more than the fit's probable error on every row but Mach
+    /// 1.077, where it reads high: there HPR Sim overstates the damping, the side that flatters.
+    #[expect(
+        clippy::approx_constant,
+        reason = "the table's fifth Mach number is 2.718: a Mach number, not e"
+    )]
+    #[test]
+    fn basic_finner_drag_and_damping_against_drev() {
+        use crate::blunt_tip::{wedge_detachment_angle_rad, wedge_pressure_coefficient};
+        use crate::drag::{base_drag_coefficient, stagnation_drag_coefficient};
+        use serde_json::Value;
+        let report: Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/aero/basic-finner-drag-damping.json"
+        ))
+        .unwrap();
+        let reference: Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/aero/basic-finner-drev.json"
+        ))
+        .unwrap();
+        let wedge_figures: Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/aero/basic-finner-wedge.json"
+        ))
+        .unwrap();
+        let f = |v: &Value| v.as_f64().unwrap();
+        let design = reference["design"].as_str().unwrap();
+        assert_eq!(report["design"], design);
+        let model = AeroModel::new(&committed_design(design).layout().unwrap()).unwrap();
+        let d = model.reference_diameter_m();
+        close(f(&report["reference_diameter_m"]), d, 1e-15, "diameter");
+        let x_ref = f(&reference["moment_reference_calibers"]);
+        assert_eq!(f(&report["moment_reference_calibers"]), x_ref);
+        // The wedge: each face turns the flow by half the trailing edge's 0.08 calibers over the
+        // 1-caliber chord, 2.29°.
+        let wedge = (0.5 * 0.08_f64).atan();
+        close(f(&report["wedge_deflection_rad"]), wedge, 1e-15, "wedge");
+        // The fins' frontal area, four 0.08 by 1 caliber edges on π/4 square calibers.
+        let frontal = 4.0 * 0.08 / (0.25 * PI);
+        close(
+            f(&report["fins_frontal_area_ratio"]),
+            frontal,
+            1e-12,
+            "frontal",
+        );
+        let measured = reference["rows"].as_array().unwrap();
+        let rows = report["rows"].as_array().unwrap();
+        let bases = wedge_figures["trailing_edge_base"].as_array().unwrap();
+        // Mach, band, the drag's error with the wedge modeled, and the pitch damping's.
+        let (below, core, extended) = (
+            "below Mach 1.5",
+            "core, Mach 1.5 to 2.5",
+            "extended, Mach 2.5 to 3.5",
+        );
+        let pinned = [
+            (1.077, below, 0.101, 0.254),
+            (1.293, below, -0.035, -0.168),
+            (1.832, core, -0.165, -0.247),
+            (2.375, core, -0.206, -0.262),
+            (2.718, extended, -0.213, -0.396),
+            (3.147, extended, -0.193, -0.304),
+        ];
+        assert_eq!(rows.len(), pinned.len());
+        assert_eq!(measured.len(), pinned.len());
+        assert_eq!(bases.len(), pinned.len());
+        for (((row, reading), base), (mach, band, drag_error, cmq_error)) in
+            rows.iter().zip(measured).zip(bases).zip(pinned)
+        {
+            let what = format!("the Basic Finner at Mach {mach}");
+            assert_eq!(f(&row["mach"]), mach, "{what}");
+            assert_eq!(f(&reading["mach"]), mach, "{what}");
+            assert_eq!(f(&base["mach"]), mach, "{what}");
+            assert_eq!(row["band"], band, "{what}");
+            let (cx0, cmq) = (f(&reading["cx0"]), f(&reading["cmq"]));
+            assert_eq!(f(&row["reference_cx0"]), cx0, "{what}");
+            assert_eq!(f(&row["reference_cmq"]), cmq, "{what}");
+            let cmq_probable_error = 0.01 * f(&reading["cmq_probable_error_percent"]).max(0.5);
+            close(
+                f(&row["reference_cmq_probable_error"]),
+                cmq_probable_error,
+                1e-12,
+                &what,
+            );
+            let cx0_probable_error = 0.01 * f(&reading["cx0_probable_error_percent"]).max(0.5);
+            close(
+                f(&row["reference_cx0_probable_error"]),
+                cx0_probable_error,
+                1e-12,
+                &what,
+            );
+            assert_eq!(
+                row["reference_cx0_fitted_in_the_row"], reading["cx0_fitted_in_the_row"],
+                "{what}"
+            );
+            // The shots: their C_X0's spread and their mean Reynolds number on the 10-caliber
+            // length.
+            let shots = reading["shots"].as_array().unwrap();
+            let shot = |key: &str| shots.iter().map(|s| f(&s[key])).collect::<Vec<_>>();
+            let (cx0s, reynolds) = (shot("cx0"), shot("reynolds_on_length"));
+            assert_eq!(row["shots"].as_u64(), Some(shots.len() as u64), "{what}");
+            let low = cx0s.iter().copied().fold(f64::INFINITY, f64::min);
+            let high = cx0s.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            assert_eq!(f(&row["shots_cx0_low"]), low, "{what}");
+            assert_eq!(f(&row["shots_cx0_high"]), high, "{what}");
+            let re = reynolds.iter().sum::<f64>() / reynolds.len() as f64 / (10.0 * d);
+            close(f(&row["reynolds_per_m"]), re, 1e-12, &what);
+            // The buildup as drawn, then the square edges' two terms swapped for the wedge's.
+            let drag = model
+                .drag(&Flow::axial(mach), &DragConditions::coasting(re))
+                .unwrap();
+            let drawn = drag.zero_lift_coefficient;
+            close(f(&row["hpr_cd0_as_drawn"]), drawn, 1e-12, &what);
+            close(f(&row["hpr_friction"]), drag.friction, 1e-12, &what);
+            close(f(&row["hpr_pressure"]), drag.pressure, 1e-12, &what);
+            close(f(&row["hpr_base"]), drag.base, 1e-12, &what);
+            let leading = frontal * stagnation_drag_coefficient(mach).unwrap();
+            let trailing = frontal * base_drag_coefficient(mach).unwrap();
+            close(f(&row["hpr_fins_leading_edge"]), leading, 1e-12, &what);
+            close(f(&row["hpr_fins_trailing_edge"]), trailing, 1e-12, &what);
+            let attached = wedge <= wedge_detachment_angle_rad(mach).unwrap();
+            assert_eq!(attached, mach > 1.2, "{what}");
+            assert_eq!(row["wedge_shock_attached"], attached, "{what}");
+            let (faces, faces_low, faces_high) = if attached {
+                let faces = frontal * wedge_pressure_coefficient(mach, wedge).unwrap();
+                (faces, faces, faces)
+            } else {
+                // Vincenti and Wagoner's front wedge at ξ₀ = 0.763: t/c = 0.04 on the double
+                // wedge's chord, twice c_d on the fin's own, 16/π fins' planform per reference.
+                // Their two-dimensional value is an approximate upper bound for a finite wing,
+                // with nothing below it: the low end takes the faces at zero.
+                let detached = &wedge_figures["detached_faces"];
+                let xi = (mach * mach - 1.0) / (2.4 * 0.04_f64).powf(2.0 / 3.0);
+                assert!(
+                    (xi - f(&detached["similarity_parameter"])).abs() < 5e-4,
+                    "{what}"
+                );
+                let on = |c: f64| 2.0 * c * 0.04_f64.powf(5.0 / 3.0) / 2.4_f64.cbrt() * 16.0 / PI;
+                let (c, e) = (
+                    f(&detached["front_wedge_generalized_drag"]),
+                    f(&detached["reading_error"]),
+                );
+                (on(c), 0.0, on(c + e))
+            };
+            close(f(&row["wedge_faces"]), faces, 1e-12, &what);
+            // Relative, but exact where the low end is zero.
+            let written_low = f(&row["wedge_faces_low"]);
+            assert!(
+                (written_low - faces_low).abs() <= 1e-12 * faces_low.abs(),
+                "{what}: faces' low end {written_low}, want {faces_low}"
+            );
+            close(f(&row["wedge_faces_high"]), faces_high, 1e-12, &what);
+            let (edge_low, edge_high) = (frontal * f(&base["low"]), frontal * f(&base["high"]));
+            close(f(&row["wedge_trailing_edge_low"]), edge_low, 1e-12, &what);
+            close(f(&row["wedge_trailing_edge_high"]), edge_high, 1e-12, &what);
+            let vacuum = frontal * 2.0 / (1.4 * mach * mach);
+            close(
+                f(&row["wedge_trailing_edge_at_vacuum"]),
+                vacuum,
+                1e-12,
+                &what,
+            );
+            // The two-dimensional band lies above HPR Sim's own trailing-edge rule and below
+            // vacuum, on every row.
+            assert!(trailing < edge_low && edge_high < vacuum, "{what}");
+            let unedged = drawn - leading - trailing;
+            let hpr = unedged + faces + 0.5 * (edge_low + edge_high);
+            let (hpr_low, hpr_high) = (
+                unedged + faces_low + edge_low,
+                unedged + faces_high + edge_high,
+            );
+            close(f(&row["hpr_cd0"]), hpr, 1e-12, &what);
+            close(f(&row["hpr_cd0_low"]), hpr_low, 1e-12, &what);
+            close(f(&row["hpr_cd0_high"]), hpr_high, 1e-12, &what);
+            let rule = unedged + faces + trailing;
+            close(
+                f(&row["hpr_cd0_with_its_trailing_edge_rule"]),
+                rule,
+                1e-12,
+                &what,
+            );
+            close(
+                f(&row["cd0_error_with_its_trailing_edge_rule"]),
+                rule / cx0 - 1.0,
+                1e-9,
+                &what,
+            );
+            let got = hpr / cx0 - 1.0;
+            close(f(&row["cd0_error"]), got, 1e-9, &what);
+            close(f(&row["cd0_error_low"]), hpr_low / cx0 - 1.0, 1e-9, &what);
+            close(f(&row["cd0_error_high"]), hpr_high / cx0 - 1.0, 1e-9, &what);
+            close(
+                f(&row["cd0_error_as_drawn"]),
+                drawn / cx0 - 1.0,
+                1e-9,
+                &what,
+            );
+            assert!((got - drag_error).abs() < 5e-4, "{what}: drag error {got}");
+            // As drawn, the square leading edge's stagnation pressure puts it far above DREV's.
+            assert!(drawn > 1.3 * cx0, "{what}");
+            // Which way. At Mach 1.077 the nominal value is high, above every shot, and so is
+            // the high end, but with the faces at zero the low end is below every shot: the sign
+            // there is not settled. Low at 1.293, at both ends, the nominal value inside the
+            // shots' spread. From 1.832 up, low at both ends, below every shot, and still below DREV's
+            // with the trailing edges at vacuum.
+            if mach < 1.1 {
+                assert!(hpr > high, "{what}: {hpr} not above the shots' {high}");
+                assert!(
+                    hpr_low < low,
+                    "{what}: {hpr_low} not below the shots' {low}"
+                );
+            } else if mach < 1.5 {
+                assert!(hpr_high < cx0 && low < hpr && hpr < high, "{what}");
+            } else {
+                assert!(
+                    hpr_high < low,
+                    "{what}: {hpr_high} not below the shots' {low}"
+                );
+                assert!(unedged + faces_high + vacuum < cx0, "{what}: at vacuum");
+            }
+            // The pitch damping about the fits' reference, and its parts.
+            let hpr_cmq = model.pitch_damping(mach, x_ref * d).unwrap();
+            close(f(&row["hpr_cmq"]), hpr_cmq, 1e-12, &what);
+            // The fins' part: the same sum over the fin sets' components alone, and the rest's
+            // over the others, adding up to the whole.
+            let (fins, count) = (model.fin_set_start(), model.component_count());
+            let fins_cmq = model
+                .pitch_damping_of(mach, x_ref * d, fins..count)
+                .unwrap();
+            let rest_cmq = model.pitch_damping_of(mach, x_ref * d, 0..fins).unwrap();
+            close(fins_cmq + rest_cmq, hpr_cmq, 1e-12, &what);
+            close(f(&row["hpr_cmq_fins"]), fins_cmq, 1e-12, &what);
+            close(f(&row["hpr_cmq_body"]), hpr_cmq - fins_cmq, 1e-12, &what);
+            // Most of it is the fins'.
+            assert!(
+                f(&row["hpr_cmq_fins"]) < 2.0 * f(&row["hpr_cmq_body"]),
+                "{what}"
+            );
+            let got = hpr_cmq / cmq - 1.0;
+            close(f(&row["cmq_error"]), got, 1e-9, &what);
+            assert!((got - cmq_error).abs() < 5e-4, "{what}: C_mq error {got}");
+            // Which way: less damping than measured, by more than the fit's probable error, on
+            // every row but Mach 1.077, where it is more, the side that flatters.
+            if mach < 1.1 {
+                assert!(got > cmq_probable_error, "{what}: C_mq {got}");
+            } else {
+                assert!(got < -cmq_probable_error, "{what}: C_mq {got}");
+            }
+        }
+    }
+
+    /// The pitch-damping read-out refuses a reference station that isn't finite and a component
+    /// index past the last, and its parts over a split of the components add up to the whole.
+    #[test]
+    fn pitch_damping_refuses_what_it_cant_read() {
+        let model = AeroModel::new(
+            &committed_design("range-basic-finner.json")
+                .layout()
+                .unwrap(),
+        )
+        .unwrap();
+        let x_r = 5.5 * model.reference_diameter_m();
+        for bad in [f64::NAN, f64::INFINITY] {
+            assert!(matches!(
+                model.pitch_damping(2.0, bad),
+                Err(AeroError::Domain { .. })
+            ));
+        }
+        let count = model.component_count();
+        assert!(model.pitch_damping_of(2.0, x_r, 0..count + 1).is_err());
+        let whole = model.pitch_damping(2.0, x_r).unwrap();
+        let split = model.fin_set_start();
+        let parts = model.pitch_damping_of(2.0, x_r, 0..split).unwrap()
+            + model.pitch_damping_of(2.0, x_r, split..count).unwrap();
+        close(parts, whole, 1e-12, "the parts");
+        assert!(whole < 0.0, "{whole}");
+    }
+
     /// M1.8c: hpr's roll forcing against the Arcas Robin's measured roll effectiveness (TN D-4014
     /// Fig. 14) and its roll damping against the Basic Finner's (Barrowman 1967 Fig. 5-7), as
     /// `cargo xtask aero` writes them: every row recomputed from the committed designs and

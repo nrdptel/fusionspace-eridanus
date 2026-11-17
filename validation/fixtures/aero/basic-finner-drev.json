@@ -25,7 +25,38 @@
       "cm_alpha": -52.648,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 0.9,
-      "pdf_page": 48
+      "pdf_page": 48,
+      "cx0": 0.863,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": true,
+      "cmq": -322.4,
+      "cmq_probable_error_percent": 5,
+      "shots": [
+        {
+          "shot": "DA95022230",
+          "mach": 1.116,
+          "cx0": 0.854,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 7420000.0,
+          "pdf_page": 44
+        },
+        {
+          "shot": "DA95022010",
+          "mach": 1.056,
+          "cx0": 0.868,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 6990000.0,
+          "pdf_page": 44
+        },
+        {
+          "shot": "DA95022219",
+          "mach": 1.058,
+          "cx0": 0.868,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 7040000.0,
+          "pdf_page": 44
+        }
+      ]
     },
     {
       "mach": 1.293,
@@ -34,7 +65,30 @@
       "cm_alpha": -50.968,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 1.5,
-      "pdf_page": 48
+      "pdf_page": 48,
+      "cx0": 0.731,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": true,
+      "cmq": -487.4,
+      "cmq_probable_error_percent": 6,
+      "shots": [
+        {
+          "shot": "DA95022009",
+          "mach": 1.332,
+          "cx0": 0.701,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 8890000.0,
+          "pdf_page": 44
+        },
+        {
+          "shot": "DA95030613",
+          "mach": 1.254,
+          "cx0": 0.76,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 8360000.0,
+          "pdf_page": 44
+        }
+      ]
     },
     {
       "mach": 1.832,
@@ -43,7 +97,38 @@
       "cm_alpha": -27.976,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 0.7,
-      "pdf_page": 48
+      "pdf_page": 48,
+      "cx0": 0.585,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": false,
+      "cmq": -377.7,
+      "cmq_probable_error_percent": 4,
+      "shots": [
+        {
+          "shot": "DA95021318",
+          "mach": 1.799,
+          "cx0": 0.594,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 11900000.0,
+          "pdf_page": 44
+        },
+        {
+          "shot": "DA95021529",
+          "mach": 1.846,
+          "cx0": 0.598,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 12400000.0,
+          "pdf_page": 45
+        },
+        {
+          "shot": "DA95021308",
+          "mach": 1.85,
+          "cx0": 0.567,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 12300000.0,
+          "pdf_page": 45
+        }
+      ]
     },
     {
       "mach": 2.375,
@@ -52,7 +137,38 @@
       "cm_alpha": -18.904,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 1.0,
-      "pdf_page": 48
+      "pdf_page": 48,
+      "cx0": 0.484,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": false,
+      "cmq": -306.5,
+      "cmq_probable_error_percent": 4,
+      "shots": [
+        {
+          "shot": "DA95021328",
+          "mach": 2.348,
+          "cx0": 0.5,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 15600000.0,
+          "pdf_page": 45
+        },
+        {
+          "shot": "DA95020907",
+          "mach": 2.364,
+          "cx0": 0.478,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 15500000.0,
+          "pdf_page": 45
+        },
+        {
+          "shot": "DA95021317",
+          "mach": 2.414,
+          "cx0": 0.473,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 16100000.0,
+          "pdf_page": 45
+        }
+      ]
     },
     {
       "mach": 2.718,
@@ -61,7 +177,38 @@
       "cm_alpha": -15.199,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 1.9,
-      "pdf_page": 48
+      "pdf_page": 48,
+      "cx0": 0.435,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": false,
+      "cmq": -335.5,
+      "cmq_probable_error_percent": 3,
+      "shots": [
+        {
+          "shot": "DA95020916",
+          "mach": 2.749,
+          "cx0": 0.452,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 18000000.0,
+          "pdf_page": 46
+        },
+        {
+          "shot": "DA95020906",
+          "mach": 2.741,
+          "cx0": 0.4,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 18000000.0,
+          "pdf_page": 45
+        },
+        {
+          "shot": "DA95020927",
+          "mach": 2.663,
+          "cx0": 0.446,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 17400000.0,
+          "pdf_page": 45
+        }
+      ]
     },
     {
       "mach": 3.147,
@@ -70,7 +217,48 @@
       "cm_alpha": -12.456,
       "cm_alpha_probable_error_percent": 0,
       "mean_squared_yaw_deg2": 1.3,
-      "pdf_page": 49
+      "pdf_page": 49,
+      "cx0": 0.373,
+      "cx0_probable_error_percent": 0,
+      "cx0_fitted_in_the_row": false,
+      "cmq": -260.1,
+      "cmq_probable_error_percent": 3,
+      "shots": [
+        {
+          "shot": "DA95030603",
+          "mach": 2.969,
+          "cx0": 0.385,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 19800000.0,
+          "pdf_page": 46
+        },
+        {
+          "shot": "DA95022726",
+          "mach": 3.338,
+          "cx0": 0.376,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 22700000.0,
+          "pdf_page": 46
+        },
+        {
+          "shot": "DA95022205",
+          "mach": 2.97,
+          "cx0": 0.376,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 19700000.0,
+          "pdf_page": 46
+        },
+        {
+          "shot": "DA95022215",
+          "mach": 3.312,
+          "cx0": 0.35,
+          "cx0_probable_error_percent": 0,
+          "reynolds_on_length": 22000000.0,
+          "pdf_page": 46
+        }
+      ]
     }
-  ]
+  ],
+  "drag_and_damping_source": "The same report's Table IX (PDF pp. 48-49) for each row's C_X0 and C_mq, Table VIII, 'Six-degree-of freedom aerodynamic coefficients - Single fit' (PDF pp. 44-46), for each of the row's shots, and Table V, 'Range conditions' (PDF p. 41), for each shot's Reynolds number; section 5.2 (PDF pp. 22-23) and eq. [1] of section 7.0 (PDF p. 28).",
+  "drag_and_damping_reading": "Typed on 2026-11-16 from the same PDF, each cell checked against a 130-dpi render of its page. cx0 is the table's CX, the axial-force coefficient at zero angle of attack, on pi d^2/4. Table IX prints a probable error under it only at Mach 1.077 and 1.293 ('0.%'); at the other four rows it prints '(*)', a coefficient held in the multiple fit, because each shot of those groups was given its own C_X0 (section 5.2): cx0_fitted_in_the_row is false there, and each shot's single-fit C_X0 and its probable error (all printed '0.%') are typed under shots. cmq is the table's Cmq, the pitch-damping coefficient about the same reference point, with its printed probable error in whole percent. Eq. [1] gives the yaw damping rate as rho A/(4m) times (-C_N_alpha (1 - 1/sigma) + (k2^-2/2)(1 + 1/sigma) C_Mq + ...); with no spin the two arms' rates are each rho A/(4m) (-C_N_alpha + k2^-2 C_Mq/2), which is the linear motion's damping with the rate made dimensionless by q d/(2V), so cmq is per radian of q d/(2V) (an inference: the report states no denominator). A free flight's fit cannot part C_mq from C_m_alpha_dot, so cmq stands for their sum. reynolds_on_length is Table V's, on the model's length, 10 d."
 }

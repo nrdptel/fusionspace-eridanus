@@ -28,12 +28,12 @@ const ENVELOPE_TOP_MACH: f64 = 3.5;
 /// The table prints each probable error in whole percent, so one printed as 0 is below this.
 const PRINTED_ZERO_PERCENT: f64 = 0.5;
 
-fn read(root: &Path, name: &str) -> Result<Value, String> {
+pub(crate) fn read(root: &Path, name: &str) -> Result<Value, String> {
     let text = std::fs::read_to_string(root.join(name)).map_err(|e| format!("{name}: {e}"))?;
     serde_json::from_str(&text).map_err(|e| format!("{name}: {e}"))
 }
 
-fn number(value: &Value, what: &str) -> Result<f64, String> {
+pub(crate) fn number(value: &Value, what: &str) -> Result<f64, String> {
     value
         .as_f64()
         .filter(|v| v.is_finite())
@@ -75,7 +75,7 @@ pub fn measured_cp(
 
 /// A row's name in an error: its Mach number, or its place in the reference (counting from 1)
 /// when its `mach` can't be read.
-fn row_name(row: &Value, index: usize) -> String {
+pub(crate) fn row_name(row: &Value, index: usize) -> String {
     match number(&row["mach"], "mach") {
         Ok(mach) => format!("the row at Mach {mach}"),
         Err(_) => format!("row {} of the reference", index + 1),
