@@ -415,7 +415,8 @@ mod tests {
         // Nothing tried, nothing to bound; every run missing, nothing bounded.
         let none = Distribution::new(vec![], 0).unwrap();
         assert_eq!(
-            none.quantile_counting_missing(0.5, MissingEnd::Above).unwrap(),
+            none.quantile_counting_missing(0.5, MissingEnd::Above)
+                .unwrap(),
             None
         );
         let empty = Distribution::new(vec![], 3).unwrap();
@@ -436,7 +437,9 @@ mod tests {
 
     #[test]
     fn with_no_missing_run_it_is_the_quantile_bit_for_bit() {
-        let values: Vec<f64> = (0..37).map(|i| f64::from(i).mul_add(0.37, 1.0).sin()).collect();
+        let values: Vec<f64> = (0..37)
+            .map(|i| f64::from(i).mul_add(0.37, 1.0).sin())
+            .collect();
         let d = Distribution::new(values, 37).unwrap();
         for step in 0..=200 {
             let p = f64::from(step) / 200.0;

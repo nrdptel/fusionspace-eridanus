@@ -21,8 +21,8 @@ use hpr::hpr_analysis::table::RunTable;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::output::{
-    EllipseKind, Export, ExportFormat, McDispersion, McEllipse, McExportMeta, McFailed, McFailedAt,
-    McBound, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
+    EllipseKind, Export, ExportFormat, McBound, McDispersion, McEllipse, McExportMeta, McFailed,
+    McFailedAt, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
 };
 use crate::sim::{self, FlightArgs, Setup};
 use crate::{Failure, Out};

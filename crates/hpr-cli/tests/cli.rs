@@ -7135,8 +7135,14 @@ fn mc_counts_and_prints_its_failed_flights() {
         text.out
     );
     assert!(
-        text.out.lines().any(|line| line.starts_with("apogee (m AGL)")
-            && line.split_whitespace().filter(|w| *w == "unbounded").count() == 2),
+        text.out
+            .lines()
+            .any(|line| line.starts_with("apogee (m AGL)")
+                && line
+                    .split_whitespace()
+                    .filter(|w| *w == "unbounded")
+                    .count()
+                    == 2),
         "{}",
         text.out
     );
@@ -7181,7 +7187,11 @@ fn mc_places_its_failed_flights_past_each_tail() {
             .map(|row| row.split(',').nth(at).unwrap().parse::<f64>().unwrap())
             .collect();
         let missing = 100 - values.len();
-        let pad = if above { f64::INFINITY } else { f64::NEG_INFINITY };
+        let pad = if above {
+            f64::INFINITY
+        } else {
+            f64::NEG_INFINITY
+        };
         values.extend(std::iter::repeat_n(pad, missing));
         values.sort_by(f64::total_cmp);
         let h = 99.0 * p;
@@ -7203,8 +7213,14 @@ fn mc_places_its_failed_flights_past_each_tail() {
         let low = figure["p05_counting_missing"]["value"].as_f64().unwrap();
         let expected_high = worst(column, 0.95, true).unwrap();
         let expected_low = worst(column, 0.05, false).unwrap();
-        assert!((high - expected_high).abs() <= 1e-9 * expected_high.abs(), "{spread}");
-        assert!((low - expected_low).abs() <= 1e-9 * expected_low.abs(), "{spread}");
+        assert!(
+            (high - expected_high).abs() <= 1e-9 * expected_high.abs(),
+            "{spread}"
+        );
+        assert!(
+            (low - expected_low).abs() <= 1e-9 * expected_low.abs(),
+            "{spread}"
+        );
         // The direction: each failed flight can only push its tail outward.
         assert!(high > figure["p95"].as_f64().unwrap(), "{spread}: {figure}");
         assert!(low < figure["p05"].as_f64().unwrap(), "{spread}: {figure}");
@@ -7219,7 +7235,16 @@ fn mc_places_its_failed_flights_past_each_tail() {
         text.out
     );
     // With nothing failed, nothing is added.
-    let calm = streams(&["mc", &design, "--motor", "H54", "--runs", "20", "--mass-sd", "0.02"]);
+    let calm = streams(&[
+        "mc",
+        &design,
+        "--motor",
+        "H54",
+        "--runs",
+        "20",
+        "--mass-sd",
+        "0.02",
+    ]);
     assert!(calm.out.contains("seed 0: 0 failed"), "{}", calm.out);
     assert!(!calm.out.contains("columns count only"), "{}", calm.out);
 }
