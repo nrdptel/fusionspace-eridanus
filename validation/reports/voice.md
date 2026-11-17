@@ -4,14 +4,14 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 573098 words, 0 stock phrases. 139 pages are within every limit.
+143 pages, 574042 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
 | Bold-label items | 0.50 | 4 | 1.76, `docs/perf.md` |
 | Labels | 0.50 | 3 | 3.62, `docs/VISION.md` |
 | Sentences over 25 words | 0.50 | 3 | 1.13, `docs/perf.md` |
-| Hedges | 1.00 | 0 | 0.54, `crates/hpr-sim/src/` |
+| Hedges | 1.00 | 0 | 0.53, `crates/hpr-sim/src/` |
 | Stacked hedges | 0.10 | 0 | 0.03, `crates/hpr-sim/src/` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
 | Signposts | 0.10 | 0 | 0.01, `docs/format/flight-logs.md` |
@@ -52,12 +52,12 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-py/tests/docstrings.md` (`ref`, `held`) | 4329 | 13.8 | 3% | 0.00 | 0.00 | 0.19 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.07 | 0.70 |
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
-| `docs/VALIDATION.md` (`held`) | 13610 | 16.6 | 10% | 0.20 | 0.08 | 0.44 | 0.09 | 0.02 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.05 | 0.50 |
+| `docs/VALIDATION.md` (`held`) | 13633 | 16.6 | 10% | 0.20 | 0.08 | 0.44 | 0.09 | 0.02 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.05 | 0.50 |
 | `docs/VISION.md` | 3927 | 15.5 | 15% | **1.13** | **3.62** | **0.59** | 0.18 | 0.00 | 0.08 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
-| `docs/accuracy.md` (`held`) | 21126 | 14.8 | 7% | 0.24 | 0.01 | 0.29 | 0.07 | 0.01 | 0.01 | 0.00 | | 0.00 | 0.00 | 0.01 | 0.42 |
+| `docs/accuracy.md` (`held`) | 21128 | 14.8 | 7% | 0.24 | 0.01 | 0.29 | 0.07 | 0.01 | 0.01 | 0.00 | | 0.00 | 0.00 | 0.01 | 0.42 |
 | `docs/api.md` (`held`) | 2515 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1575 | 14.8 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
-| `docs/cli.md` (`ref`, `held`) | 19203 | 14.1 | 3% | 0.21 | 0.02 | 0.16 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.62 |
+| `docs/cli.md` (`ref`, `held`) | 19573 | 14.2 | 3% | 0.20 | 0.02 | 0.18 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.62 |
 | `docs/comparing-a-flight.md` (`held`) | 1092 | 15.1 | 8% | 0.28 | 0.10 | 0.46 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.65 | 0.92 |
 | `docs/custom-models.md` (`held`) | 1800 | 13.6 | 0% | 0.00 | 0.00 | 0.00 | 0.23 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.95 | 0.95 |
 | `docs/drag-through-mach-1.md` (`held`) | 1957 | 15.0 | 3% | 0.36 | 0.00 | 0.16 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.82 |
@@ -76,9 +76,9 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/pf2.md` (`ref`, `held`) | 815 | 13.9 | 0% | 0.00 | 0.13 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.23 |
 | `docs/format/rse.md` (`ref`, `held`) | 2256 | 14.0 | 0% | 0.27 | 0.09 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4152 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
-| `docs/glossary.md` (`ref`, `held`) | 13288 | 13.3 | 1% | 0.00 | 0.10 | 0.03 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
+| `docs/glossary.md` (`ref`, `held`) | 13296 | 13.3 | 1% | 0.00 | 0.10 | 0.04 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
 | `docs/how-a-flight-is-simulated.md` (`held`) | 2127 | 14.2 | 0% | 0.33 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.15 | 0.33 |
-| `docs/monte-carlo.md` (`held`) | 3777 | 14.0 | 1% | 0.22 | 0.00 | 0.06 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.72 |
+| `docs/monte-carlo.md` (`held`) | 3806 | 14.2 | 2% | 0.22 | 0.00 | 0.08 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.43 | 0.71 |
 | `docs/motor-stock.md` (`held`) | 3606 | 14.2 | 3% | 0.00 | 0.00 | 0.17 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.37 | 1.06 |
 | `docs/nomads.md` (`held`) | 4483 | 13.6 | 1% | 0.00 | 0.00 | 0.05 | 0.03 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.23 | 0.79 |
 | `docs/online-data.md` (`held`) | 2165 | 14.6 | 0% | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.14 | 1.02 |
@@ -98,11 +98,11 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/log-readings.md` (`ref`, `held`) | 22648 | 16.4 | 9% | 0.24 | 0.11 | 0.44 | 0.18 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
 | `docs/physics/magnetic.md` (`ref`, `held`) | 2231 | 13.9 | 1% | 0.14 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.00 |
 | `docs/physics/mass.md` (`ref`, `held`) | 10022 | 13.1 | 2% | 0.20 | 0.03 | 0.08 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 | 0.36 |
-| `docs/physics/metrics.md` (`ref`, `held`) | 5629 | 14.3 | 1% | 0.04 | 0.22 | 0.04 | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.13 |
+| `docs/physics/metrics.md` (`ref`, `held`) | 5930 | 14.6 | 2% | 0.04 | 0.21 | 0.11 | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.12 |
 | `docs/physics/motor.md` (`ref`, `held`) | 7264 | 15.0 | 7% | 0.28 | 0.18 | 0.42 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.27 |
 | `docs/physics/moving-mass.md` (`ref`, `held`) | 2488 | 13.4 | 0% | 0.09 | 0.05 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 | 0.65 |
 | `docs/physics/quadrature.md` (`ref`, `held`) | 494 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `docs/physics/recovery.md` (`ref`, `held`) | 12675 | 14.0 | 1% | 0.20 | 0.23 | 0.02 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
+| `docs/physics/recovery.md` (`ref`, `held`) | 12844 | 14.2 | 1% | 0.20 | 0.22 | 0.04 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
 | `docs/physics/released-mass.md` (`ref`, `held`) | 2798 | 13.8 | 0% | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.15 | 0.43 |
 | `docs/physics/shapes.md` (`ref`, `held`) | 2014 | 13.0 | 0% | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 |
 | `docs/physics/smoother.md` (`ref`, `held`) | 1673 | 16.2 | 8% | 0.24 | 0.18 | 0.42 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.60 |
@@ -131,9 +131,9 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/writing.md` (`held`) | 12540 | 15.5 | 7% | 0.46 | 0.21 | 0.40 | 0.14 | 0.00 | 0.02 | 0.00 | | 0.02 | 0.01 | 0.09 | 0.90 |
 | `docs/your-own-logger.md` (`held`) | 2410 | 14.6 | 1% | 0.00 | 0.00 | 0.05 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4518 | 14.7 | 1% | 0.36 | 0.00 | 0.05 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.69 |
-| `crates/hpr-cli/src/` (`ref`, `held`) | 9674 | 9.9 | 1% | 0.00 | 0.00 | 0.07 | 0.21 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 | 0.51 |
+| `crates/hpr-cli/src/` (`ref`, `held`) | 9687 | 9.8 | 1% | 0.00 | 0.00 | 0.08 | 0.21 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 | 0.51 |
 | `crates/hpr/src/` (`ref`, `held`) | 615 | 7.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.98 |
-| `crates/hpr-sim/src/` (`ref`, `held`) | 3754 | 13.0 | 3% | 0.00 | 0.00 | 0.16 | 0.54 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.83 |
+| `crates/hpr-sim/src/` (`ref`, `held`) | 3783 | 13.0 | 3% | 0.00 | 0.00 | 0.19 | 0.53 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.82 |
 | `crates/hpr-io/src/` (`ref`, `held`) | 6016 | 9.6 | 1% | 0.00 | 0.00 | 0.04 | 0.17 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.24 |
 | `crates/hpr-motor/src/` (`ref`, `held`) | 1396 | 8.8 | 2% | 0.00 | 0.00 | 0.15 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.58 |
 | `crates/hpr-design/src/` (`ref`, `held`) | 2610 | 9.9 | 1% | 0.00 | 0.00 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.43 |
@@ -171,7 +171,7 @@ Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisio
 
 | Crate | Files | Literals read | `#[error]` texts | Forwarded | With a placeholder |
 |---|---:|---:|---:|---:|---:|
-| `crates/hpr-cli/src/` | 28 | 886 | 0 | 0 | 456 |
+| `crates/hpr-cli/src/` | 28 | 889 | 0 | 0 | 458 |
 | `crates/hpr/src/` | 9 | 84 | 30 | 8 | 19 |
 | `crates/hpr-sim/src/` | 22 | 248 | 17 | 9 | 53 |
 | `crates/hpr-io/src/` | 31 | 582 | 45 | 2 | 333 |

@@ -18,9 +18,9 @@ use crate::sim_text::{
     design_lines, flag_help, flag_prefix, issue_help, issue_text, launch_lines, motor_lines,
     note_lines,
 };
-use crate::units::{FOOT_M, bearing, fixed, meters};
+use crate::units::{FOOT_M, STANDARD_GRAVITY_M_S2, bearing, fixed, meters};
 
-/// The width of a figure's name in the tables.
+/// The width of a landing ellipse's label in its table.
 const NAME: usize = 22;
 /// The width of an ellipse's semi-axis, `10000.0 m (32808 ft)` with two spaces before it.
 const AXIS: usize = 22;
@@ -44,18 +44,14 @@ pub(crate) fn print(
         run.runs, run.seed
     )?;
     out.heading(&format!(
-        "{:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
+        "{:<SPREAD$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
         "", "nominal", "mean", "std dev", "5%", "median", "95%"
     ))?;
-    row(out, "apogee", " AGL", run.nominal.apogee_m, &run.apogee_m)?;
-    row(
-        out,
-        "landing distance",
-        "",
-        run.nominal.landing_distance_m,
-        &run.landing_distance_m,
-    )?;
-    counting_missing(run, out)?;
+    let figures = figures(run);
+    for figure in &figures {
+        row(out, figure)?;
+    }
+    counting_missing(run, &figures, out)?;
     writeln!(out)?;
     landing(run, out)?;
     writeln!(out)?;
@@ -128,29 +124,88 @@ pub(crate) fn print(
     crate::sim_text::trust_lines(&run.trust, out)
 }
 
-/// Two rows of the spreads' table for a height or a distance `name`: the nominal value, then the
-/// spread's, in meters to a tenth, then in feet, whole. `datum` follows the unit in the label,
-/// ` AGL` for a height above the site (`apogee (m AGL)`, as `data.md` names a height's datum).
-fn row(
-    out: &mut dyn Write,
-    name: &str,
-    datum: &str,
+/// The width of a figure's name in the spreads' table: `opening airspeed (ft/s)` and a space.
+const SPREAD: usize = 24;
+
+/// A figure of the spreads' table: its name, its two units (SI first, then the US or the
+/// gravities in which a flier reads it), each with the factor from SI and its decimals, its
+/// nominal value and its spread, and what a flight with a value has, for the count of them.
+struct Figure<'a> {
+    name: &'static str,
+    units: [(&'static str, f64, usize); 2],
     nominal: Option<f64>,
-    spread: &McSpread,
-) -> io::Result<()> {
+    spread: &'a McSpread,
+    has: &'static str,
+}
+
+/// The figures the table gives: the apogee and the landing distance, then the opening shock and the
+/// airspeed a device opened at, each when any flight, or the nominal one, has a value for it
+/// (#1258).
+fn figures(run: &McRun) -> Vec<Figure<'_>> {
+    let length = |datum| [(datum, 1.0, 1), (feet_datum(datum), 1.0 / FOOT_M, 0)];
+    let mut figures = vec![
+        Figure {
+            name: "apogee",
+            units: length("m AGL"),
+            nominal: run.nominal.apogee_m,
+            spread: &run.apogee_m,
+            has: "an apogee",
+        },
+        Figure {
+            name: "landing distance",
+            units: length("m"),
+            nominal: run.nominal.landing_distance_m,
+            spread: &run.landing_distance_m,
+            has: "a landing",
+        },
+    ];
+    if run.opening_shock_m_s2.count > 0 || run.nominal.opening_shock_m_s2.is_some() {
+        figures.push(Figure {
+            name: "opening shock",
+            units: [("m/s²", 1.0, 1), ("g", 1.0 / STANDARD_GRAVITY_M_S2, 1)],
+            nominal: run.nominal.opening_shock_m_s2,
+            spread: &run.opening_shock_m_s2,
+            has: "an opening shock",
+        });
+    }
+    if run.deployment_airspeed_m_s.count > 0 || run.nominal.deployment_airspeed_m_s.is_some() {
+        figures.push(Figure {
+            name: "opening airspeed",
+            units: [("m/s", 1.0, 1), ("ft/s", 1.0 / FOOT_M, 0)],
+            nominal: run.nominal.deployment_airspeed_m_s,
+            spread: &run.deployment_airspeed_m_s,
+            has: "a device opened",
+        });
+    }
+    figures
+}
+
+/// The US unit beside an SI length's: feet, with the datum kept (`m AGL` is `ft AGL`).
+fn feet_datum(unit: &'static str) -> &'static str {
+    match unit {
+        "m AGL" => "ft AGL",
+        _ => "ft",
+    }
+}
+
+/// Two rows of the spreads' table for `figure`: the nominal value, then the spread's, in its
+/// first unit, then in its second on the row under it. `apogee (m AGL)` names the height's
+/// datum, as `data.md` does.
+fn row(out: &mut dyn Write, figure: &Figure<'_>) -> io::Result<()> {
+    let spread = figure.spread;
     let cells = [
-        nominal,
+        figure.nominal,
         spread.mean,
         spread.standard_deviation,
         spread.p05,
         spread.p50,
         spread.p95,
     ];
-    for (unit, per_m, decimals) in [("m", 1.0, 1), ("ft", 1.0 / FOOT_M, 0)] {
-        let label = format!("{name} ({unit}{datum})");
-        write!(out, "{label:<NAME$}")?;
+    for (unit, per_si, decimals) in figure.units {
+        let label = format!("{} ({unit})", figure.name);
+        write!(out, "{label:<SPREAD$}")?;
         for cell in cells {
-            let text = cell.map_or_else(|| "-".to_owned(), |v| fixed(v * per_m, decimals));
+            let text = cell.map_or_else(|| "-".to_owned(), |v| fixed(v * per_si, decimals));
             write!(out, "{text:>9}")?;
         }
         writeln!(out)?;
@@ -160,38 +215,39 @@ fn row(
 
 /// When a flight failed or gave no value, what the spreads' columns are taken over, and the 5%
 /// and 95% with each such flight placed past that end: the worst case the missing flights allow
-/// (#1200). Nothing when every flight gave both values.
-fn counting_missing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
-    let spreads = [
-        ("apogee", " AGL", &run.apogee_m),
-        ("landing distance", "", &run.landing_distance_m),
-    ];
-    if spreads
+/// (#1200). Nothing when every flight gave every value.
+fn counting_missing(run: &McRun, figures: &[Figure<'_>], out: &mut dyn Write) -> io::Result<()> {
+    if figures
         .iter()
-        .all(|(_, _, spread)| spread.count == spread.attempted)
+        .all(|figure| figure.spread.count == figure.spread.attempted)
     {
         return Ok(());
     }
-    writeln!(
-        out,
-        "the columns count only the flights with a value: {} of {} with an apogee, {} with a landing;",
-        run.apogee_m.count, run.runs, run.landing_distance_m.count
-    )?;
-    writeln!(
-        out,
-        "with each of the others placed past that end, the 5% and 95% are at worst"
-    )?;
-    for (name, datum, spread) in spreads {
+    let counts: Vec<String> = figures
+        .iter()
+        .map(|figure| format!("{} with {}", figure.spread.count, figure.has))
+        .collect();
+    let said = format!(
+        "the columns count only the flights with a value, of {}: {}; with each of the others \
+         placed past that end, the 5% and 95% are at worst",
+        run.runs,
+        counts.join(", ")
+    );
+    for line in crate::trust::wrap(&said, 96) {
+        writeln!(out, "{line}")?;
+    }
+    for figure in figures {
+        let spread = figure.spread;
         if spread.count == spread.attempted {
             continue;
         }
         let cells = [spread.p05_counting_missing, spread.p95_counting_missing];
-        for (unit, per_m, decimals) in [("m", 1.0, 1), ("ft", 1.0 / FOOT_M, 0)] {
-            let label = format!("{name} ({unit}{datum})");
-            write!(out, "{label:<NAME$}{:27}", "")?;
+        for (unit, per_si, decimals) in figure.units {
+            let label = format!("{} ({unit})", figure.name);
+            write!(out, "{label:<SPREAD$}{:27}", "")?;
             for (i, cell) in cells.iter().enumerate() {
                 let text = match cell {
-                    Some(McCountedQuantile::Value(v)) => fixed(v * per_m, decimals),
+                    Some(McCountedQuantile::Value(v)) => fixed(v * per_si, decimals),
                     Some(McCountedQuantile::Unbounded) => "unbounded".to_owned(),
                     None => "-".to_owned(),
                 };

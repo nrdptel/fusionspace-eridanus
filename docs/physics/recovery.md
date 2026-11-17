@@ -45,8 +45,13 @@ part drifts and lands.
     canopy opens at once (the default). So the simulator's peak opening load is no safe bound either way. Don't size recovery
     hardware from it: use a dedicated opening-load method and the hardware's own ratings.
   - Airframe drag: a separated body falls with no drag until its device opens, so its
-    [deployment](../glossary.md#deployment) speed can read high. The airframe's own drag under
-    a canopy is left out too. The same holds for an ejected piece.
+    [deployment](../glossary.md#deployment) speed can read high after a long fall. It can also
+    read low: a part split off while climbing, whose device opens later by a timer or the motor's
+    delay, coasts higher with no drag, so it is still near its top when a real part, slowed by its
+    airframe's drag, has already turned and is falling. If its device opens then, it opens slower
+    than a real part's would. That takes a part whose drag is large for its mass, a light nose cone
+    rather than a heavy payload. The airframe's own drag under a canopy is left out too. The same
+    holds for an ejected piece.
   - The push of a separation's charge on the two stages (an ejection's is modeled, a
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at
@@ -571,7 +576,12 @@ This section describes the unpowered case, and the booster's descent after a pow
   as the descent phase's, and it hurts more here. A 0.55 kg forward body separates at 2 km (1.2 mi)
   and waits for a 300 m (984 ft) main. It arrives at **168 m/s (551 ft/s)** where an airframe would
   have held it near 60 to 70. So its deployment speed, and any opening load taken from it, read
-  high. Give a body a device that
+  high there. A part split off climbing whose device opens near the top of its drag-free climb
+  is the other way round. A part ejected climbing at 30 m/s (98 ft/s), its device 3 s later, opens
+  drag-free at $30 - 9.81 \times 3 = 0.6\,\mathrm{m/s}$ (2 ft/s), just short of its top. If its
+  airframe's drag is large for its mass (a light nose cone, not a heavy payload), it would have
+  topped out sooner and be falling by then, faster, so its opening speed and load read low. Give a
+  body a device that
   opens at once (`DeviceDrag::tumbling_stages` over its own stages is the cited way) if the coast
   matters. After a powered separation the simulator requires it
   ([Staging](staging.md#powered-separation)). A spent booster's device is usually

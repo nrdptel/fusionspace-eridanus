@@ -30,6 +30,7 @@ fn event(kind: EventKind, time_s: f64) -> FlightEvent {
         height_above_ground_m: 0.0,
         vertical_speed_m_s: 0.0,
         acceleration_enu_m_s2: hpr::hpr_core::DVec3::ZERO,
+        specific_force_enu_m_s2: hpr::hpr_core::DVec3::ZERO,
         airspeed_m_s: 0.0,
         mach: 0.0,
         angle_of_attack_rad: 0.0,
@@ -1188,16 +1189,25 @@ fn the_trace_samples_the_recorders_rows_and_each_step() {
     }
     let greatest = |value: fn(&Point) -> f64| points.iter().map(value).fold(0.0, f64::max);
     let summary = flight.summary();
-    for (plotted, peak) in [
-        (greatest(|p| p.speed_m_s), summary.max_speed_m_s),
-        (
-            greatest(|p| p.acceleration_m_s2),
-            summary.max_descent_acceleration_m_s2,
-        ),
-    ] {
-        let peak = peak.unwrap().value;
-        assert!(plotted <= peak && plotted > peak * 0.99, "{plotted} {peak}");
-    }
+    let peak = summary.max_speed_m_s.unwrap().value;
+    let plotted = greatest(|p| p.speed_m_s);
+    assert!(plotted <= peak && plotted > peak * 0.99, "{plotted} {peak}");
+    // The plot draws the motion's acceleration; the opening shock is the specific force, the
+    // motion's less gravity (#1258). With gravity straight down at about standard gravity, the
+    // specific force's size is √(|a|² + 2 a_z g + g²): its greatest over the plotted points
+    // reaches the shock, so the jump is drawn at its full height.
+    let g = 9.806_65;
+    let specific = points
+        .iter()
+        .map(|p| {
+            (p.acceleration_m_s2.powi(2) + 2.0 * p.vertical_acceleration_m_s2 * g + g * g).sqrt()
+        })
+        .fold(0.0, f64::max);
+    let shock = summary.max_descent_acceleration_m_s2.unwrap().value;
+    assert!(
+        (specific - shock).abs() < 0.01 * shock,
+        "{specific} {shock}"
+    );
 }
 
 /// The product system's spacing steps, px (`product/foundations.md`, *Space and layout*: a 4 px

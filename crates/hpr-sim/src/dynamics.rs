@@ -144,6 +144,9 @@ pub(crate) struct Evaluation {
     pub(crate) rail_force_n: f64,
     /// The body origin's acceleration relative to `L`, in `L`, m/s².
     pub(crate) acceleration_enu_m_s2: DVec3,
+    /// The specific force there: the acceleration less gravity and the Coriolis term, in `L`,
+    /// m/s². It is the push of everything but gravity per unit mass, what an accelerometer reads.
+    pub(crate) specific_force_enu_m_s2: DVec3,
     /// The drag area of the open recovery devices, m².
     pub(crate) recovery_drag_area_m2: f64,
 }
@@ -575,6 +578,7 @@ impl Vehicle {
             thrust_n: thrust.z,
             rail_force_n,
             acceleration_enu_m_s2,
+            specific_force_enu_m_s2: acceleration_enu_m_s2 - (gravity_enu + coriolis_enu),
             recovery_drag_area_m2: if phase == Phase::Descent {
                 recovery_drag_area_m2
             } else {

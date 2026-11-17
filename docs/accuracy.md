@@ -1572,7 +1572,7 @@ rest.
 - **Opening loads,** the force on the rocket as a canopy opens, are no safe bound either way. With
   a [filling time](glossary.md#inflation-and-filling-time), HPR Sim leaves out the brief rise of
   drag above its steady value while the canopy fills. Opening at once, it ignores how a light rocket
-  slows while the canopy fills. The deployment speed can itself read high: a
+  slows while the canopy fills. The deployment speed can itself read high or low: a
   [separated](glossary.md#separation) body falls with no drag until its device opens
   ([Recovery](physics/recovery.md#inflation)).
 - **No added mass under a canopy.** It's the likely cause of the 2.86% drift difference above

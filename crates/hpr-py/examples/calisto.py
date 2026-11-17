@@ -222,7 +222,8 @@ apogee = events["apogee"]["sample"]
 burnout = events["burnout"]["sample"]
 summary = flight.summary
 boost = summary["max_acceleration_m_s2"]  # liftoff until the drogue opens
-# The largest acceleration is the boost's, on the rail, so it is also the power-on one.
+# The boost's largest acceleration, on the rail, tops the opening shock too, so it is the
+# flight's largest load and the power-on one.
 if not (
     boost["time_s"] <= events["rail_exit"]["time_s"] <= burnout["time_s"]
     and boost["value"] >= summary["max_descent_acceleration_m_s2"]["value"]

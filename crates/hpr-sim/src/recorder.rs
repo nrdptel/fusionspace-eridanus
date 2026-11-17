@@ -30,6 +30,13 @@ pub struct Sample {
     pub vertical_speed_m_s: f64,
     /// The nose tip's acceleration relative to the launch frame, m/s².
     pub acceleration_enu_m_s2: DVec3,
+    /// The specific force at the nose tip, m/s²: its acceleration less gravity and the Coriolis
+    /// term (both taken at the center of mass), which is the thrust, aerodynamic and rail forces
+    /// over the mass, what an accelerometer there reads. Under the recovery devices, a point mass,
+    /// it is `(drag + thrust)/m`: the opening load over the mass (Knacke, *Parachute Recovery
+    /// Systems Design Manual*, NWC TP 6575, 1991, p. 5-50, gives the opening force as
+    /// `F = (C_D S) q C_x X₁`). On the pad, held still, it is gravity's opposite.
+    pub specific_force_enu_m_s2: DVec3,
     /// The airspeed of the center of mass, m/s.
     pub airspeed_m_s: f64,
     /// Its Mach number.

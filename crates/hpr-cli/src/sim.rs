@@ -3410,6 +3410,7 @@ fn summary(summary: &FlightSummary) -> Summary {
         max_dynamic_pressure_pa: summary.max_dynamic_pressure_pa.map(mark),
         max_acceleration_m_s2: summary.max_acceleration_m_s2.map(mark),
         max_descent_acceleration_m_s2: summary.max_descent_acceleration_m_s2.map(mark),
+        max_deployment_airspeed_m_s: summary.max_deployment_airspeed_m_s.map(mark),
         min_static_margin_cal: summary.min_static_margin_cal.map(mark),
         min_flight_margin_cal: summary.min_flight_margin_cal.map(mark),
         min_powered_static_margin_cal: summary.min_powered_static_margin_cal.map(mark),
@@ -3524,6 +3525,7 @@ fn events(result: &hpr_sim::FlightResult) -> Vec<SimEvent> {
                     event.sample.height_above_ground_m,
                     velocity.length(),
                     velocity.z,
+                    event.sample.airspeed_m_s,
                 ],
             )
         }));
@@ -3540,12 +3542,13 @@ fn event(event: &hpr_sim::FlightEvent) -> SimEvent {
             event.sample.height_above_ground_m,
             velocity.length(),
             velocity.z,
+            event.sample.airspeed_m_s,
         ],
     )
 }
 
 /// An event of `kind` at a time, s, a height above the site, m, a speed over the ground, m/s,
-/// and a vertical velocity, m/s, up.
+/// a vertical velocity, m/s, up, and an airspeed, m/s.
 fn sim_event(
     kind: hpr_sim::EventKind,
     [
@@ -3553,7 +3556,8 @@ fn sim_event(
         height_above_ground_m,
         speed_m_s,
         vertical_velocity_m_s,
-    ]: [f64; 4],
+        airspeed_m_s,
+    ]: [f64; 5],
 ) -> SimEvent {
     use hpr_sim::EventKind as Kind;
     let (kind, index) = match kind {
@@ -3580,6 +3584,7 @@ fn sim_event(
         height_above_ground_m,
         speed_m_s,
         vertical_velocity_m_s,
+        airspeed_m_s,
     }
 }
 

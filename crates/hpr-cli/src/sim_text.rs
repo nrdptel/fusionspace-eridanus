@@ -670,7 +670,7 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
         };
         // The flight ends a hair below the ground: its height is drawn as zero.
         let height_m = event.height_above_ground_m.max(0.0);
-        writeln!(
+        write!(
             out,
             // The feet fit `(100000 ft)` with a space before it, the height of a flight past 30 km.
             "{name:<18} {:>7.2} s {:>8} m {:>11} {:>7} m/s {:>12}",
@@ -680,11 +680,24 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
             fixed(event.speed_m_s, 1),
             format!("({})", feet_per_second(event.speed_m_s)),
         )?;
+        // A device opens at its airspeed, which sets its load; over the ground the wind adds or
+        // takes away (#1258).
+        if event.kind == EventKind::Deployment {
+            write!(
+                out,
+                ", airspeed {} m/s ({})",
+                fixed(event.airspeed_m_s, 1),
+                feet_per_second(event.airspeed_m_s)
+            )?;
+        }
+        writeln!(out)?;
     }
-    writeln!(
-        out,
-        "(heights are the center of gravity's above the site; speeds are over the ground)"
-    )
+    let footnote = "(heights are the center of gravity's above the site; speeds are over the ground, \
+                    and a deployment's airspeed through the air)";
+    for line in crate::trust::wrap(footnote, NOTE) {
+        writeln!(out, "{line}")?;
+    }
+    Ok(())
 }
 
 /// The figures after the events: top speed and Mach number, the landing, how the flight ended

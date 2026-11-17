@@ -93,7 +93,7 @@ Top speed:             112.3 m/s at 3.00 s, 188 m up
 Top Mach number:       0.337 at 3.02 s, 190 m up
 Max q:                  6667 Pa at 2.99 s, 186 m up
 Boost acceleration:     47.2 m/s² at 0.03 s, 1 m up
-Opening shock:         153.4 m/s² at 9.76 s, 698 m up
+Opening shock:         144.0 m/s² at 9.76 s, 698 m up
 
 Rail exit:            16.2 m/s at 0.37 s, 17.2° off the oncoming air
 At rail exit (0.37 s): static margin 3.09 cal, flight margin 3.09 cal at Mach 0.051
@@ -111,9 +111,9 @@ The 6 s delay is too short:
 - The rocket still rises 1.4 s more, to an apogee of 714.0 m (2,343 ft).
 - With the charge held, it would have coasted to 778.7 m (2,555 ft) at 13.83 s. That is the apogee of the
   [Getting started](../getting-started.md) flight, whose drogue fires at apogee.
-- So the optimum delay is 10.6 s. The opening shock, 153.4 m/s², is three times the boost's
+- So the optimum delay is 10.6 s. The opening shock, 144.0 m/s², is three times the boost's
   47.2 m/s², and it is not counted as the boost's peak.
-- Don't size a shock cord from the 153.4 m/s²; it is no bound either way. The canopy reaches
+- Don't size a shock cord from the 144.0 m/s²; it is no bound either way. The canopy reaches
   full drag at line stretch, 0.5 s after the charge. It has no filling time (the simulator's default),
   so the rocket doesn't slow while it fills. The shock reads high. The simulator also leaves out a
   canopy's drag overshoot near the end of filling: that reads low
@@ -171,14 +171,30 @@ much. The watcher's peak matches the hand value from the motor and the masses wi
 | Top Mach number | The airspeed over the local speed of sound |
 | Max q | The largest dynamic pressure, $\tfrac12 \rho v^2$ on the airspeed |
 | Boost acceleration | The largest acceleration of the nose tip, from liftoff until a recovery device opens |
-| Opening shock | The largest acceleration while a device is open, the [opening load](../glossary.md#opening-load) over the mass. It follows the simulator's inflation model ([Recovery](recovery.md)) |
+| Opening shock | The largest specific force while a device is open: the drag and any thrust over the mass, the [opening load](../glossary.md#opening-load) over the mass, without gravity. It follows the simulator's inflation model ([Recovery](recovery.md)) |
 
-The accelerations are of the nose tip, which is the body's origin in the simulator's
+The boost acceleration is of the nose tip, which is the body's origin in the simulator's
 [frames](frames.md). It differs from the center of mass's only by the rocket's turning and by the
-center of mass's slow drift forward as propellant burns. The turning is small in a straight boost. The accelerations are relative to the
-[launch frame](../glossary.md#launch-frame-enu) and straight from the equations of motion, so they
-include gravity's pull, as a trajectory's acceleration does. An accelerometer reads something
-else: it does not feel gravity.
+center of mass's slow drift forward as propellant burns. The turning is small in a straight
+boost. It is relative to the [launch frame](../glossary.md#launch-frame-enu) and straight from
+the equations of motion, so it includes gravity's pull, as a trajectory's acceleration does.
+
+The opening shock leaves gravity out. Under a canopy the motion's acceleration is the drag and the
+weight over the mass. Falling, the drag points up and the weight down, so the motion's
+acceleration is the drag over the mass less g, and it would read the load low by up to g. The
+opening shock is the [specific force](../glossary.md#specific-force) instead, the drag over the
+mass (with a motor still burning, the drag and the thrust together). That is what an accelerometer
+reads, and with no motor burning it is the opening force over the mass (Knacke, NWC TP 6575,
+p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In a canopy's steady fall it is
+1 g, so it reads at least about that once the canopy reaches its steady fall. A canopy opened
+slower than its steady fall reads less if the stack's flight ends before it gets there, at the
+ground or at a split with nothing left to burn. In the example above the canopy opens while the
+rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
+plot's spike) is close to g above the opening shock of 144.0 m/s².
+A test opens a canopy 5 s after apogee, falling, and finds the shock equal to $q C_D S / m$ at the
+opening to 1e-9. At the ground, in the canopy's steady fall, the specific force is g and the
+motion's acceleration nearly nothing
+(`the_opening_shock_is_the_drag_over_the_mass_without_gravity`).
 
 Nothing is kept while the rocket sits on the pad. A rocket that never lifts off has no peaks at
 all: `None`, not zero.
@@ -563,6 +579,7 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `a_normal_force_table_gives_its_own_margin` | A table's margin and $C_{m\alpha}$ against its own numbers |
 | `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibers of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
 | `peak_acceleration_is_analytic_and_excludes_opening_shock` | The boost's peak in a vacuum against the hand value, to 1e-6; a 100 Hz finite difference reads it more than 1% low; an opening shock over three times the boost's is kept apart ([L34](../decisions-and-roadmap.md#l34)) |
+| `the_opening_shock_is_the_drag_over_the_mass_without_gravity` | A canopy opened falling, 5 s after apogee: the opening shock is $q C_D S / m$ at the opening to 1e-9, about g above what the motion's acceleration reads there by the hand relation $\lvert a \rvert \approx D/m - g \cos\theta$; at the ground, in its steady fall, the specific force is g up to 1e-3 and the motion's acceleration under 1e-3 g ([#1258](https://github.com/nrdptel/fusionspace-eridanus/issues/1258)) |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |

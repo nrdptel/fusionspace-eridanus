@@ -7,7 +7,7 @@ Top speed:             112.3 m/s at 3.00 s, 188 m up
 Top Mach number:       0.337 at 3.02 s, 190 m up
 Max q:                  6667 Pa at 2.99 s, 186 m up
 Boost acceleration:     47.2 m/s² at 0.03 s, 1 m up
-Opening shock:         153.4 m/s² at 9.76 s, 698 m up
+Opening shock:         144.0 m/s² at 9.76 s, 698 m up
 
 Rail exit:            16.2 m/s at 0.37 s, 17.2° off the oncoming air
 At rail exit (0.37 s): static margin 3.09 cal, flight margin 3.09 cal at Mach 0.051

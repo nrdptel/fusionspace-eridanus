@@ -362,9 +362,18 @@ pub struct FlightSummary {
     /// from liftoff until a recovery device opens, m/s²: the boost and the coast, from the
     /// equations of motion.
     pub max_acceleration_m_s2: Option<Peak>,
-    /// The largest acceleration under the recovery devices, m/s²: the opening shock, which
-    /// follows the inflation model, kept apart from the boost's.
+    /// The largest specific force under the recovery devices, m/s²: the opening shock, the
+    /// opening load over the mass, `(drag + thrust)/m` ([`Sample::specific_force_enu_m_s2`]),
+    /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
+    /// no motor burning, the mass times this is the opening force. Once a canopy reaches its
+    /// steady fall it reads about 1 g, so it is at least that unless the stack's flight ends
+    /// first, at the ground or at a split with nothing left to burn.
     pub max_descent_acceleration_m_s2: Option<Peak>,
+    /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
+    /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
+    /// left to burn, the devices the part that keeps the nose opens in its own flight count too.
+    /// Over the ground the speed can be more or less by the wind's.
+    pub max_deployment_airspeed_m_s: Option<Peak>,
     /// The smallest static margin from the rail exit to apogee or the first deployment,
     /// calibers, where it is defined, found inside steps as a peak is. After a powered separation
     /// the sustainer's margins count its own diameter.
@@ -470,6 +479,7 @@ pub struct FlightMetrics {
     max_q: Option<Peak>,
     max_acceleration: Option<Peak>,
     max_descent_acceleration: Option<Peak>,
+    max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
     last_end_s: Option<f64>,
     /// How many steps it saw: a flight's accepted steps, one each.
@@ -512,11 +522,18 @@ impl Quantity {
         Quantity::Acceleration,
     ];
 
+    /// The quantity at `sample`. Under the recovery devices the acceleration is the specific
+    /// force, `(drag + thrust)/m`, the opening load over the mass: the motion's acceleration there
+    /// has gravity in it, and after apogee, with the drag up and gravity down, would read the
+    /// shock low by up to g (#1258).
     fn of(self, sample: &Sample) -> f64 {
         match self {
             Quantity::Speed => sample.cg_velocity_enu_m_s.length(),
             Quantity::Mach => sample.mach,
             Quantity::DynamicPressure => sample.dynamic_pressure_pa,
+            Quantity::Acceleration if sample.phase == Phase::Descent => {
+                sample.specific_force_enu_m_s2.length()
+            }
             Quantity::Acceleration => sample.acceleration_enu_m_s2.length(),
         }
     }
@@ -612,6 +629,25 @@ impl FlightMetrics {
                 gain_m: self.launch_height_m.map(|start| height - start),
             });
         let rail_exit = result.event(EventKind::RailExit).map(|event| event.sample);
+        // When the stack came apart with nothing left to burn, the part that keeps the nose, part
+        // 0, flies on as a point and opens its own devices; the top airspeed counts those too, as
+        // the event list does, so a main that opens later and faster is not left out.
+        let mut max_deployment_airspeed = self.max_deployment_airspeed;
+        if result.termination == Termination::Separated {
+            let nose = result.bodies.iter().filter(|body| body.body == 0);
+            for event in nose.flat_map(|body| &body.events) {
+                let sample = &event.sample;
+                if matches!(event.kind, EventKind::Deployment(_))
+                    && max_deployment_airspeed.is_none_or(|peak| sample.airspeed_m_s > peak.value)
+                {
+                    max_deployment_airspeed = Some(Peak {
+                        value: sample.airspeed_m_s,
+                        time_s: sample.time_s,
+                        height_above_ground_m: sample.height_above_ground_m,
+                    });
+                }
+            }
+        }
         let landing = if result.termination == Termination::GroundHit {
             let s = &result.final_sample;
             Some(Landing::at(
@@ -651,6 +687,7 @@ impl FlightMetrics {
             max_dynamic_pressure_pa: self.max_q,
             max_acceleration_m_s2: self.max_acceleration,
             max_descent_acceleration_m_s2: self.max_descent_acceleration,
+            max_deployment_airspeed_m_s: max_deployment_airspeed,
             min_static_margin_cal: self.min_static_margin,
             min_flight_margin_cal: self.min_flight_margin,
             min_powered_static_margin_cal: self.min_powered_static_margin,
@@ -787,6 +824,19 @@ impl Observer for FlightMetrics {
     fn event(&mut self, event: &FlightEvent) {
         match event.kind {
             EventKind::Apogee => self.past_apogee = true,
+            EventKind::Deployment(_) => {
+                let sample = &event.sample;
+                if self
+                    .max_deployment_airspeed
+                    .is_none_or(|peak| sample.airspeed_m_s > peak.value)
+                {
+                    self.max_deployment_airspeed = Some(Peak {
+                        value: sample.airspeed_m_s,
+                        time_s: sample.time_s,
+                        height_above_ground_m: sample.height_above_ground_m,
+                    });
+                }
+            }
             EventKind::Separation => {
                 self.separated = true;
                 // The vehicle that flies on starts its own peak; the stack's is the first.
@@ -1588,6 +1638,68 @@ mod tests {
         );
         assert_eq!(shock.time_s, deployed.time_s);
         assert_eq!(plain.max_descent_acceleration, None);
+    }
+
+    #[test]
+    fn the_opening_shock_is_the_drag_over_the_mass_without_gravity() {
+        // #1258: under a canopy the motion's acceleration is (D + W)/m. Falling straight down,
+        // the drag points up and the weight down, so |a| = D/m − g, low by g. The opening load
+        // over the mass is D/m (Knacke, NWC TP 6575, p. 5-50: F = (C_D S) q C_x X₁; the canopy
+        // opens at once here, so C_x X₁ = 1).
+        let air = || analytic_environment(UniformAir::sea_level(), G);
+        let (plain, _) = fly(&valetudo(air(), capped(600.0)));
+        let apogee_s = plain.event(EventKind::Apogee).unwrap().sample.time_s;
+        let cd_s_m2 = 0.5;
+        let drogue = Device::new(
+            "drogue",
+            DeviceDrag::DragArea { cd_s_m2 },
+            Trigger::Time {
+                time_s: apogee_s + 5.0,
+            },
+        );
+        let sim = valetudo(air(), capped(600.0))
+            .with_recovery(vec![drogue])
+            .unwrap();
+        let (result, metrics) = fly(&sim);
+        let deployed = result.event(EventKind::Deployment(0)).unwrap().sample;
+        // Falling, nearly straight down (the vertical flight's arc leans a little), in still air.
+        let velocity = deployed.cg_velocity_enu_m_s;
+        assert!(velocity.z < -40.0, "{velocity}");
+        assert!(velocity.z.abs() > 0.99 * velocity.length(), "{velocity}");
+        let drag_per_kg = deployed.dynamic_pressure_pa * cd_s_m2 / deployed.mass_kg;
+        let shock = metrics.max_descent_acceleration.unwrap();
+        close(shock.value, drag_per_kg, 1e-9, "opening shock");
+        assert_eq!(shock.time_s, deployed.time_s);
+        // What the motion's |a| reads there, what was reported before: about g less, as the hand
+        // relation |a| ≈ D/m − g cos θ (θ from the vertical) has it.
+        let motion = deployed.acceleration_enu_m_s2.length();
+        let hand = drag_per_kg - G * velocity.z.abs() / velocity.length();
+        assert!((motion - hand).abs() < 0.05, "{motion} vs {hand}");
+        assert!(
+            shock.value - motion > 0.99 * G,
+            "{} vs {motion}",
+            shock.value
+        );
+        // The deployment's airspeed, kept for the opening load: still air, so the speed's.
+        let airspeed = metrics.max_deployment_airspeed.unwrap();
+        close(
+            airspeed.value,
+            velocity.length(),
+            1e-9,
+            "deployment airspeed",
+        );
+        assert_eq!(airspeed.time_s, deployed.time_s);
+        // At the ground the drogue has long reached its steady fall: the drag holds the weight,
+        // so the specific force is g, up, and the motion's acceleration nearly nothing.
+        let landed = result.event(EventKind::GroundHit).unwrap().sample;
+        let force = landed.specific_force_enu_m_s2;
+        close(force.length(), G, 1e-3, "steady specific force");
+        assert!(force.z > 0.999 * force.length(), "{force}");
+        assert!(
+            landed.acceleration_enu_m_s2.length() < 1e-3 * G,
+            "{}",
+            landed.acceleration_enu_m_s2
+        );
     }
 
     #[test]

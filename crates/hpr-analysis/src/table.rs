@@ -15,7 +15,8 @@
 //! - What a flown sample's flight came to ([`FlightSummary`]), empty for a failed sample or a
 //!   number its flight doesn't have: `termination`; `apogee_m` (height above the ground) and
 //!   `apogee_time_s`; the peaks' values `rail_exit_speed_m_s`, `max_speed_m_s`, `max_mach`,
-//!   `max_dynamic_pressure_pa`, `max_acceleration_m_s2`, `min_static_margin_cal`,
+//!   `max_dynamic_pressure_pa`, `max_acceleration_m_s2`, `max_descent_acceleration_m_s2` (the
+//!   opening shock), `max_deployment_airspeed_m_s`, `min_static_margin_cal`,
 //!   `min_flight_margin_cal` and `max_angle_of_attack_rad`; the landing of the part that keeps
 //!   the nose ([`FlightSummary::nose_landing`]), `landing_time_s`,
 //!   `landing_east_m`, `landing_north_m`, `landing_distance_m`, `landing_latitude_deg`,
@@ -189,6 +190,12 @@ impl RunTable {
         });
         flown("max_acceleration_m_s2", |s| {
             s.max_acceleration_m_s2.as_ref().map(|p| p.value)
+        });
+        flown("max_descent_acceleration_m_s2", |s| {
+            s.max_descent_acceleration_m_s2.as_ref().map(|p| p.value)
+        });
+        flown("max_deployment_airspeed_m_s", |s| {
+            s.max_deployment_airspeed_m_s.as_ref().map(|p| p.value)
         });
         flown("min_static_margin_cal", |s| {
             s.min_static_margin_cal.as_ref().map(|p| p.value)
@@ -441,7 +448,8 @@ mod tests {
              stage 1 cg shift [m],motor 1 impulse scale,motor 1 burn time scale,\
              motor 1 ejection delay offset [s],device 1 deployment lag offset [s],termination,\
              apogee [m],apogee time [s],rail exit speed [m/s],max speed [m/s],max mach,\
-             max dynamic pressure [Pa],max acceleration [m/s^2],min static margin [cal],\
+             max dynamic pressure [Pa],max acceleration [m/s^2],\
+             max descent acceleration [m/s^2],max deployment airspeed [m/s],min static margin [cal],\
              min flight margin [cal],max angle of attack [rad],landing time [s],landing east [m],\
              landing north [m],landing distance [m],landing latitude [deg],\
              landing longitude [deg],ground hit speed [m/s],flags"
@@ -638,6 +646,14 @@ mod tests {
         row.push((
             "max_acceleration_m_s2".to_owned(),
             peak(|s| s.max_acceleration_m_s2.as_ref().map(|p| p.value)),
+        ));
+        row.push((
+            "max_descent_acceleration_m_s2".to_owned(),
+            peak(|s| s.max_descent_acceleration_m_s2.as_ref().map(|p| p.value)),
+        ));
+        row.push((
+            "max_deployment_airspeed_m_s".to_owned(),
+            peak(|s| s.max_deployment_airspeed_m_s.as_ref().map(|p| p.value)),
         ));
         row.push((
             "min_static_margin_cal".to_owned(),

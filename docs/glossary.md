@@ -1126,7 +1126,8 @@ Standing on the pad it reads +1 g, the pad's push against gravity. In the climb 
 less the drag over the mass; coasting, the drag's pull back, below zero; falling in vacuum, 0. Less 1 g,
 the specific force along the axis of a rocket climbing straight up is its own acceleration.
 `hpr analyze`'s top acceleration is a specific force, with the 1 g in; `hpr sim`'s
-`max_acceleration_m_s2` is the rocket's own acceleration. See
+`max_acceleration_m_s2` is the rocket's own acceleration, and its opening shock,
+`max_descent_acceleration_m_s2`, a specific force. See
 [Flight-log readings](physics/log-readings.md#the-accelerometer).
 
 ### Specific impulse

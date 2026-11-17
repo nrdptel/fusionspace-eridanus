@@ -226,7 +226,7 @@ direction, not a size:
 | issue | what reads wrong | when it warns |
 |---|---|---|
 | [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179) | a [booster](glossary.md#booster) [tumbles](glossary.md#tumble-recovery) side-on from the split, where the issue expects a real one first to coast nose-first on its airframe's drag, so its peak and drift likely read short | a booster or a [parallel stage](glossary.md#parallel-stage), any part aft of a stage's joint, flies on its own |
-| [#354](https://github.com/nrdptel/fusionspace-eridanus/issues/354) | a part with no device open has no drag at all until its first one opens: falling, it likely lands early and its drift likely reads short; climbing, its peak reads high | a part starts its own flight with no device open, and none opens at that instant |
+| [#354](https://github.com/nrdptel/fusionspace-eridanus/issues/354) | a part with no device open has no drag at all until its first one opens: falling, it likely lands early and its drift likely reads short; climbing, its peak reads high; its opening speed reads high after a long fall, low for a light part split off climbing that opens near its drag-free top | a part starts its own flight with no device open, and none opens at that instant |
 
 A booster with no device open at the split prints both: #179 for the missing airframe, #354 for
 the gap before its device opens. With no drag at all, its peak reads high, not short. Treat a
