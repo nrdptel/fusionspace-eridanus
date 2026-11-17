@@ -217,6 +217,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
             crate::aero_finner::FIXTURE,
             crate::aero_finner::generate(&root)?,
         ),
+        (
+            crate::aero_finner_drag::FIXTURE,
+            crate::aero_finner_drag::generate(&root)?,
+        ),
     ] {
         let path = root.join(name);
         if check {

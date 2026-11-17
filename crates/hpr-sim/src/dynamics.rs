@@ -873,6 +873,54 @@ mod tests {
         Vehicle::new(assembly, aero).unwrap()
     }
 
+    /// The engine's pitch damping is [`AeroModel::pitch_damping`]'s `C_mq` (M1.14b2): the Basic
+    /// Finner with no motor, pitching slowly about its center of mass with the air straight along
+    /// its axis there, feels `q̄ A d C_mq (q d/(2V))` about the center of mass, below and above
+    /// Mach 1. The read-out is what the comparison with DREV's range fits uses, so it must be the
+    /// engine's damping and not a model beside it.
+    #[test]
+    fn the_engine_s_pitch_damping_is_the_model_s_read_out() {
+        let mut rocket = serde_json::to_value(design("range-basic-finner")).unwrap();
+        rocket["configurations"] = serde_json::json!([{ "id": "coast", "motors": [] }]);
+        let rocket: hpr_design::Rocket = serde_json::from_value(rocket).unwrap();
+        let assembly = rocket.assemble("coast").unwrap();
+        let aero = AeroModel::new(&assembly.layout).unwrap();
+        let vehicle = Vehicle::new(assembly, aero).unwrap();
+        let air = UniformAir::sea_level().0;
+        let cg = vehicle.assembly.mass_properties(0.0).cg_m;
+        let d = vehicle.aero.reference_diameter_m();
+        // A pitch rate of `q d/(2V)` = 1e-5. The body lift grows as the angle times its size, so
+        // the two part by a share that falls with the rate: 1.7e-4 at 1e-4, 1.7e-6 at 1e-6.
+        let rate = 1e-5;
+        for mach in [0.5, 1.293, 1.832, 2.375, 3.147] {
+            let speed = mach * air.speed_of_sound_m_s;
+            let omega = DVec3::new(2.0 * rate * speed / d, 0.0, 0.0);
+            let along = DVec3::new(0.0, 0.0, speed);
+            let out = vehicle
+                .aerodynamics(
+                    &air,
+                    along - omega.cross(cg),
+                    omega,
+                    cg,
+                    BurningAreas::default(),
+                )
+                .unwrap();
+            assert_eq!(out.angle_of_attack_rad, 0.0, "Mach {mach}");
+            let about_cg = out.moment - cg.cross(out.force);
+            let q_area_d = 0.5 * air.density_kg_m3 * speed * speed * vehicle.reference_area_m2 * d;
+            let engine = about_cg.x / (q_area_d * rate);
+            let read_out = vehicle.aero.pitch_damping(mach, -cg.z).unwrap();
+            assert!(read_out < 0.0, "Mach {mach}: {read_out}");
+            assert!(
+                (engine / read_out - 1.0).abs() < 1e-4,
+                "Mach {mach}: the engine's {engine}, the read-out's {read_out}"
+            );
+            // Nothing in yaw or roll from a pure pitch rate.
+            assert!(about_cg.y.abs() < 1e-9 * about_cg.x.abs(), "Mach {mach}");
+            assert!(about_cg.z.abs() < 1e-9 * about_cg.x.abs(), "Mach {mach}");
+        }
+    }
+
     /// A motor in a pod burns into its pod's base, not the airframe's (ADR-092): Valetudo with
     /// two pods, each its own motor tube, takes the pods' two motors apart from its own.
     #[test]

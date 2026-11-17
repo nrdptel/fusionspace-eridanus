@@ -187,6 +187,59 @@ pub fn wedge_detachment_angle_rad(mach: f64) -> Result<f64, AeroError> {
     Ok(tan.atan())
 }
 
+/// The pressure coefficient on a face of a two-dimensional wedge turning the flow by
+/// `deflection_rad` at Mach `mach` behind an attached shock: the weak shock's angle `θ` from
+/// NACA Report 1135 eq. 138 (p. 621), solved by bisection between the Mach angle and the
+/// detachment shock angle of eq. 168, then the pressure across it by eq. 128,
+/// `p₂/p₁ = (2γM² sin²θ − (γ − 1))/(γ + 1)`, as `C_p = (p₂/p₁ − 1)/(γM²/2)`. Only the weak shock
+/// "can occur attached to an isolated convex body" (p. 624). For a thin wedge it tends to linear
+/// theory's `2δ/√(M² − 1)`.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for a Mach number that isn't finite and above 1, a deflection outside
+/// `[0, π/2)`, or one past the wedge's largest at that Mach number
+/// ([`wedge_detachment_angle_rad`]), where the shock stands off and no attached solution exists.
+pub fn wedge_pressure_coefficient(mach: f64, deflection_rad: f64) -> Result<f64, AeroError> {
+    check_mach(mach)?;
+    if !(deflection_rad.is_finite() && (0.0..std::f64::consts::FRAC_PI_2).contains(&deflection_rad))
+    {
+        return Err(AeroError::Domain {
+            what: "wedge deflection",
+            value: deflection_rad,
+        });
+    }
+    let largest = wedge_detachment_angle_rad(mach)?;
+    if deflection_rad > largest {
+        return Err(AeroError::Domain {
+            what: "wedge deflection past the attached shock's largest",
+            value: deflection_rad,
+        });
+    }
+    let g = GAMMA;
+    let i2 = 1.0 / (mach * mach);
+    // Eq. 138 divided through by M², as in `wedge_detachment_angle_rad`.
+    let deflection = |sin2: f64| {
+        let cot = ((1.0 - sin2) / sin2).sqrt();
+        (2.0 * cot * (sin2 - i2) / (2.0 * i2 + g + 1.0 - 2.0 * sin2)).atan()
+    };
+    let root = ((g + 1.0) * ((g + 1.0) / 16.0 + 0.5 * (g - 1.0) * i2 + i2 * i2)).sqrt();
+    // The deflection rises from 0 at the Mach angle (sin²θ = 1/M²) to its largest at eq. 168's
+    // shock angle: the weak branch, where the bisection stays.
+    let (mut lo, mut hi) = (i2, ((0.25 * (g + 1.0) - i2 + root) / g).min(1.0));
+    for _ in 0..200 {
+        let mid = 0.5 * (lo + hi);
+        if deflection(mid) < deflection_rad {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    let sin2 = 0.5 * (lo + hi);
+    let ratio = (2.0 * g * sin2 / i2 - (g - 1.0)) / (g + 1.0);
+    Ok((ratio - 1.0) * 2.0 * i2 / g)
+}
+
 /// The slope at which the cap hands over to the shock-expansion method at Mach `mach`, rad: the
 /// lesser of the wedge's largest deflection ([`wedge_detachment_angle_rad`], TN D-4865 p. 5) and
 /// [`MAX_HANDOVER_RAD`], the cap HPR Sim flies.
@@ -368,6 +421,44 @@ mod tests {
             assert!(d > last);
             last = d;
         }
+    }
+
+    /// An attached wedge's face pressure by the weak oblique shock. At Mach 2 and 10° the shock
+    /// stands at 39.31°, its normal Mach number `M sin θ` is 1.2671, and Report 1135's Table II
+    /// (the normal shock, read at `M sin θ` as its p. 624 allows), interpolated there, gives
+    /// `p₂/p₁` 1.7066, so `C_p`
+    /// 0.2524; at Mach 3 and 5°, 23.13°, 1.1786 and 1.4540, so `C_p` 0.0721. For a thin wedge it
+    /// is linear theory's `2δ/√(M² − 1)`, and past detachment it is refused.
+    #[test]
+    fn a_wedge_s_face_pressure_is_the_weak_shock_s() {
+        close(
+            wedge_pressure_coefficient(2.0, 10f64.to_radians()).unwrap(),
+            (1.7066 - 1.0) / (0.7 * 4.0),
+            1e-4,
+            "M 2, 10°",
+        );
+        close(
+            wedge_pressure_coefficient(3.0, 5f64.to_radians()).unwrap(),
+            (1.4540 - 1.0) / (0.7 * 9.0),
+            1e-4,
+            "M 3, 5°",
+        );
+        for mach in [1.3, 1.832, 2.375, 3.147] {
+            let d = 1e-4;
+            let linear = 2.0 * d / (mach * mach - 1.0_f64).sqrt();
+            let got = wedge_pressure_coefficient(mach, d).unwrap();
+            assert!(
+                (got / linear - 1.0).abs() < 1e-3,
+                "Mach {mach}: {got} {linear}"
+            );
+        }
+        assert!(wedge_pressure_coefficient(2.0, 0.0).unwrap().abs() < 1e-12);
+        let past = wedge_detachment_angle_rad(1.5).unwrap() + 1e-6;
+        assert!(matches!(
+            wedge_pressure_coefficient(1.5, past),
+            Err(AeroError::Domain { .. })
+        ));
+        assert!(wedge_pressure_coefficient(1.0, 0.01).is_err());
     }
 
     /// Below the cap the handover is the wedge's own detachment angle, above it the cap. The

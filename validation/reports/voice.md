@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 570285 words, 0 stock phrases. 139 pages are within every limit.
+143 pages, 570296 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -137,7 +137,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-io/src/` (`ref`, `held`) | 6016 | 9.6 | 1% | 0.00 | 0.00 | 0.04 | 0.17 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.24 |
 | `crates/hpr-motor/src/` (`ref`, `held`) | 1396 | 8.8 | 2% | 0.00 | 0.00 | 0.15 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.58 |
 | `crates/hpr-design/src/` (`ref`, `held`) | 2610 | 9.9 | 1% | 0.00 | 0.00 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.43 |
-| `crates/hpr-aero/src/` (`ref`, `held`) | 1604 | 7.7 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.44 |
+| `crates/hpr-aero/src/` (`ref`, `held`) | 1615 | 7.7 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.44 |
 | `crates/hpr-core/src/` (`ref`, `held`) | 241 | 6.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-format/src/` (`ref`, `held`) | 538 | 9.8 | 0% | 0.00 | 0.00 | 0.00 | 0.19 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 2.42 |
 | `crates/hpr-atmos/src/` (`ref`, `held`) | 244 | 4.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
@@ -177,7 +177,7 @@ Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisio
 | `crates/hpr-io/src/` | 31 | 582 | 45 | 2 | 333 |
 | `crates/hpr-motor/src/` | 15 | 147 | 7 | 0 | 81 |
 | `crates/hpr-design/src/` | 13 | 248 | 6 | 3 | 63 |
-| `crates/hpr-aero/src/` | 15 | 187 | 6 | 3 | 48 |
+| `crates/hpr-aero/src/` | 15 | 189 | 6 | 3 | 48 |
 | `crates/hpr-core/src/` | 14 | 40 | 12 | 0 | 11 |
 | `crates/hpr-format/src/` | 3 | 53 | 7 | 0 | 41 |
 | `crates/hpr-atmos/src/` | 9 | 57 | 7 | 0 | 4 |

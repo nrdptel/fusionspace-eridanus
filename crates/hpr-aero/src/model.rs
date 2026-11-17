@@ -2574,6 +2574,50 @@ impl AeroModel {
         }
     }
 
+    /// The pitch-damping coefficient `C_mq` about a point `reference_station_m` aft of the nose
+    /// tip, at `mach`, per radian of `q d/(2V)`: the damping a flight engine gets when it
+    /// evaluates each component in its own local flow, as `hpr_sim` does. It is a read-out of
+    /// that damping, not a term to add to it.
+    ///
+    /// A pitch rate `q` about the reference point adds `q (s_i − x_r)/V` to the angle of attack
+    /// at component `i`'s station `s_i` ([`Self::component_station_m`]). The component's normal
+    /// force grows by its slope `C_Nα,i` times that angle and acts at its own center of pressure
+    /// `c_i`, so the moment about the reference point is, per `q d/(2V)`,
+    ///
+    /// `C_mq = −(2/d²) Σ_i C_Nα,i (s_i − x_r)(c_i − x_r)`,
+    ///
+    /// with `C_Nα,i c_i` the component's moment slope about the nose tip, taken at zero angle of
+    /// attack; `d` is the reference diameter. Where the station and the center of pressure
+    /// coincide each term is the component's slope times the square of its arm, the fins'
+    /// `−2 C_Nα,fins ℓ²/d²` of the guide's pods section. It has no `C_mα̇` part (no lag of the
+    /// downwash or of the body's flow), so it stands for the sum `C_mq + C_mα̇` that a free
+    /// flight measures, as the engine's damping does. Components with no slope at zero angle of
+    /// attack (a cylinder below Mach 1) add nothing. `hpr_sim`'s tests hold the engine's moment
+    /// at a small pitch rate to this coefficient.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::component_station_m`] and [`Self::component_normal_force`], and
+    /// [`AeroError::Domain`] for a non-finite reference station.
+    pub fn pitch_damping(&self, mach: f64, reference_station_m: f64) -> Result<f64, AeroError> {
+        if !reference_station_m.is_finite() {
+            return Err(AeroError::Domain {
+                what: "pitch damping reference station",
+                value: reference_station_m,
+            });
+        }
+        let flow = Flow::axial(mach);
+        let x_r = reference_station_m;
+        let mut sum = 0.0;
+        for index in 0..self.component_count() {
+            let force = self.component_normal_force(index, &flow)?;
+            let station = self.component_station_m(index, mach)?;
+            sum += (station - x_r) * (force.moment_slope_m - force.slope_per_rad * x_r);
+        }
+        let d = self.reference_diameter_m();
+        Ok(-2.0 * sum / (d * d))
+    }
+
     /// The whole rocket's normal force at `flow`: the sum of its components, or the override
     /// table's when there is one ([`AeroModel::with_normal_force_table`]).
     ///
