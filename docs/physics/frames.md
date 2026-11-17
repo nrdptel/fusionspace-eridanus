@@ -22,7 +22,7 @@ rocket's body, attitude and launch angles.
   to about 100 m (328 ft) apart. The attitude equations leave out the Earth's rotation rate,
   7.3e-5 rad/s, which is tiny next to a rocket's pitch rates
   ([the rigid-body flight decision][adr-011]). On a tumbling brick, NASA's check case 2, what
-  that leaves out grows to 0.01633 deg/s in 30 s
+  that leaves out grows to 0.01633 deg/s within 30 s
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases),
   [#1521](https://github.com/nrdptel/fusionspace-eridanus/issues/1521)).
 
@@ -209,9 +209,9 @@ $$
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   Two things of this page are in them. The height above the ellipsoid is read back from the
   launch frame along a 4.4 km (2.7 mi) fall. The Earth's rate is turned from the launch frame
-  into the body's axes to give inertial rates. With the two named model differences taken off,
-  the altitude is within 0.1364 mm (0.0054 in) of each kept code and the rates within 0.001005 deg/s, both
-  inside the codes' spread. The attitude itself is not compared.
+  into the body's axes to give inertial rates. With the two named model differences taken off
+  each kept code's largest difference, at most 0.1364 mm (0.0054 in) of altitude and 0.001005
+  deg/s of body rate are left, both inside the codes' spread. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

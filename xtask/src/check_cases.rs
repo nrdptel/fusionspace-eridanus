@@ -795,7 +795,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          plus HPR Sim's own distance from the other codes, so the table gives its part over the \
          spread, and HPR Sim's largest unexplained part from the kept code nearest it: at the \
          default tolerances (1e-8), and at {tight:e}, where the integrator's step error is \
-         gone.\n",
+         negligible.\n",
     );
     let text = |value: &Value, key: &str| -> Result<String, String> {
         value[key]
@@ -1119,7 +1119,7 @@ mod tests {
 
     /// Case 1's model difference by hand. Past `J₂` the level ellipsoid's field holds `J₄`,
     /// −2.3709e-6 for WGS 84, which on the equator adds `(15/8)|J₄|(a/r)⁴`, 4.42e-6, to the
-    /// attraction (`J₆` takes about 1e-8 back): 4.3e-5 m/s² of 9.77. Over 30 s that is
+    /// attraction (`J₆` adds about 1e-8 more): 4.3e-5 m/s² of 9.77. Over 30 s that is
     /// `½ · 4.3e-5 · 30²`, 19.5 mm lower, growing as `t²`.
     #[test]
     fn the_gravity_gap_is_j4s_over_the_fall() {

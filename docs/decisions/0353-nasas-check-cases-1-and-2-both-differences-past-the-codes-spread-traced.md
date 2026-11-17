@@ -24,7 +24,7 @@ from each code beside the codes' own spread, and asks that any difference from a
 larger than that spread be traced, in a decision record, to a named difference between the
 models. The size of that difference must be computed apart from the flight and must leave no
 more than the spread unexplained. Both cases came out past the spread, so this is that record.
-Every figure below is in [the committed report][report] ([as data][report-json]), which
+Every measured figure below is in [the committed report][report] ([as data][report-json]), which
 `cargo xtask check-cases --check` holds in the gate's `refs` step.
 
 **Decision.**
@@ -78,8 +78,8 @@ Every figure below is in [the committed report][report] ([as data][report-json])
      0.0003532 deg/s.
    - **The size of what is left out was understated.** ADR-011 gives the Earth's rate, 7.3e-5
      rad/s (0.0042 deg/s), as the most the rotational equations miss. That is the size of the
-     term. On a tumbling body of three unequal moments its effect grows: 0.01633 deg/s in
-     pitch is 3.9 times the Earth's rate after 30 s. [#1521][i-1521] carries the choice
+     term. On a tumbling body of three unequal moments its effect grows: up to 0.01633 deg/s
+     in pitch within the 30 s, 3.9 times the Earth's rate. [#1521][i-1521] carries the choice
      between putting the Earth's rate into the rotational equations and measuring what its
      absence costs a flight inside the envelope, for [the audit's physics gaps][m1-14f].
 

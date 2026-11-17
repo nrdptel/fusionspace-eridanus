@@ -125,7 +125,7 @@ sphere east at 2.10 ft/s by 30 s, and case 10's northbound shot west at 1.06 ft/
 **What HPR Sim checks today** ([accuracy](../accuracy.md)): a vacuum parabola and a terminal velocity in uniform air;
 torque-free precession of an axisymmetric body; coning attitude over 1e6 steps; WGS-84 gravity against 40-digit
 formulas; the 1976 atmosphere's tables at 32 heights; Coriolis direction and size in unit tests; RocketPy and
-OpenRocket flights. The Frames, Rigid-body flight and Time integration rows have no published-source check.
+OpenRocket flights. Since M1.14b3 the Frames, Gravity, Rigid-body flight and Time integration rows cite cases 1 and 2.
 
 **How HPR Sim differs from the cases.** It integrates in an Earth-fixed east-north-up frame at the pad, with WGS-84
 normal gravity (centrifugal included) plus Coriolis ([Gravity](../physics/gravity.md), [ADR-003][adr-003]). Its

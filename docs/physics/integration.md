@@ -17,7 +17,7 @@ events such as apogee and landing.
   its error shrinks as theory predicts. In an exactly solvable flight with drag, apogee, deployment
   and landing times are right to 1.5e-8 s at default tolerances. On NASA's tumbling brick, with
   the one named model difference taken off, the default tolerances leave the body rates within
-  0.0000009229 deg/s of the code nearest them after 30 s
+  0.0000009229 deg/s of the code nearest them over the 30 s
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
 - **What it leaves out:** it can't detect a stiff problem, where very fast, heavily damped motion
   forces tiny steps. The run then stops with an error. Fixed 10 ms RK4 steps can diverge for a

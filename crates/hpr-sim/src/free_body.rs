@@ -428,7 +428,7 @@ mod tests {
 
     /// With no torque, a body of three unequal moments keeps its angular momentum, seen from the
     /// launch frame, and its rotational energy: Euler's equations' two integrals. The brick
-    /// turns about 18 times in 30 s on the default method.
+    /// tumbles for 30 s on the default method.
     #[test]
     fn a_tumbling_brick_keeps_its_angular_momentum_and_energy() {
         let body = brick();

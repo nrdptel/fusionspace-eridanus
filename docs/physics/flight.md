@@ -41,8 +41,9 @@ as its motor burns.
   pivot as the rocket leaves the rail), turbulence and thrust misalignment. Its
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
-  aerodynamic models, stops with an error. The rotational equations leave out the Earth's rate,
-  which on NASA's tumbling brick comes to 0.01633 deg/s after 30 s ([#1521][i-1521]).
+  aerodynamic models, stops with an error. The rotational equations leave out the Earth's rate;
+  on NASA's tumbling brick that moves a body rate by up to 0.01633 deg/s within 30 s
+  ([#1521][i-1521]).
 
 ## About the model
 
@@ -556,8 +557,9 @@ default settings. The numbers were measured on September 17, 2026.
 
 NASA's Engineering and Safety Center published check cases for flight simulations that move a
 body in all six degrees of freedom **[N15]**. Each case is a simple body flown from a stated
-start. Five or six codes flew each of the two cases here: NASA's own and JSBSim, an open-source
-simulator. Each code's time history is posted beside the report. The report names no code as
+start. Six codes flew the cases in the air, labeled SIM 1 to SIM 6 without their names: five
+of NASA's own and JSBSim, an open-source simulator. All six posted a time history for case 1
+and five for case 2, beside the report. The report names no code as
 right: the codes' agreement with each other is the measure.
 
 HPR Sim flies two of the cases with a free body, `hpr_sim::FreeBody`: a mass and an inertia,
@@ -596,19 +598,21 @@ difference to inside the spread ([the decision that traces them][adr-353],
 - **Case 1 is the gravity model.** HPR Sim's sphere ends 19.51 mm (0.77 in) lower after a fall of 4.4 km
   (2.7 mi). It falls in WGS 84's normal gravity ([Gravity](gravity.md)), which holds every term
   of the model Earth's field. The codes fall in a field cut off after its second term, $J_2$.
-  On the equator the terms past $J_2$ pull harder by about 4.43 parts in a million of the
-  9.777 m/s² attraction there, 4.33e-5 m/s². Over 30 s that is
-  $\tfrac{1}{2} \times 4.33\times10^{-5} \times 30^2$ m, 19.5 mm (0.77 in). The report's tool integrates
-  the exact gap along the fall and gets 19.50 mm (0.77 in).
+  On the equator the next term, $J_4$, pulls harder by about 4.4 parts in a million of the
+  attraction, 4.3e-5 m/s². Over 30 s that is
+  $\tfrac{1}{2} \times \tfrac{15}{8} \times 2.3709\times10^{-6} \times 9.770 \times 30^2$ m,
+  19.5 mm (0.77 in), which a test of the tool works by hand. The tool integrates the exact gap
+  along the fall and gets 19.50 mm (0.77 in).
 - **Case 2 is the Earth's rate.** The codes turn the brick by Euler's equations in its rate
   relative to the stars. HPR Sim's rotational equations use the rate relative to the launch
   frame, which turns with the Earth, and add the Earth's rate back only when an inertial rate
-  is read out. The two start one Earth's rate apart, 0.0042 deg/s, and on a tumbling body of
-  three unequal moments the gap grows: 0.01633 deg/s in pitch after 30 s, 3.9 times the
-  Earth's rate. Integrating both sets of equations apart from the flight gives the differences
-  in the table. A rocket in the air is turned by its fins far faster than this, and no apogee
-  or landing point is known to move. Whether to carry the Earth's rate in the rotational
-  equations is [#1521][i-1521].
+  is read out. The rates the two sets of equations turn start one Earth's rate apart, 0.0042
+  deg/s, and the inertial rates read out start the same. On a tumbling body of three unequal
+  moments the inertial rates then drift apart, by up to 0.01633 deg/s in pitch within the
+  30 s, 3.9 times the Earth's rate. Integrating both sets of equations apart from the flight
+  gives the differences in the table. A rocket in the air is turned by its fins far faster
+  than this. What the missing term costs a rocket's flight is not measured: that, and whether
+  to carry the Earth's rate in the rotational equations, is [#1521][i-1521].
 
 **A stricter reading.** The last column takes the model difference at the moment of each
 code's largest difference. Taken at every sample of the 30 s instead, what is left is

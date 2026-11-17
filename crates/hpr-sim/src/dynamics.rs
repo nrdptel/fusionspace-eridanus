@@ -23,8 +23,10 @@
 //! `O`, and `S_k = (r_e²/4) diag(1, 1, 2) + |n_k|² 1 − n_k n_kᵀ` the gyration tensor of motor
 //! `k`'s exit disc of radius `r_e` about `O`. `a_O` is `O`'s acceleration relative to the launch
 //! frame, whose rotation enters only through the Coriolis force (normal gravity already holds the
-//! centrifugal term) and not through the rotational equations (at most 7.3e-5 rad/s; the decision
-//! record on rigid-body flight, [ADR-011][adr-011]). `h = Σ_j m_j ρ_j × ρ_j′` is the angular
+//! centrifugal term) and not through the rotational equations (the Earth's rate, 7.3e-5 rad/s,
+//! left out: the decision record on rigid-body flight, [ADR-011][adr-011]; on a tumbling body
+//! of three unequal moments that moves a body rate by more than the Earth's rate, as NASA's
+//! check case 2 shows in `docs/physics/flight.md`). `h = Σ_j m_j ρ_j × ρ_j′` is the angular
 //! momentum about `O`, relative to the airframe, of the parts moving along it ([`crate::shifts`]),
 //! at their centers `ρ_j`: zero for a part on the axis, and zero with no part moving.
 //!

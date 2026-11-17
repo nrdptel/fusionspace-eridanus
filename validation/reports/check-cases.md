@@ -8,7 +8,7 @@ How to read it:
 - **The spread** is the largest difference between any two codes at a time every one of them has. One code is left out, and named, when leaving it out cuts the spread by more than half; the spread of the rest is then the measure.
 - **The model difference** is a named difference between HPR Sim's model and the codes', sized apart from the flight.
 - **Left of the largest difference** is a code's largest difference less the model difference at the same sample. A quantity is traced when that is no more than the spread for every kept code.
-- **The largest unexplained part** is that subtraction's largest at any sample, a stricter figure. Against a kept code that itself sets the spread, it is the spread plus HPR Sim's own distance from the other codes, so the table gives its part over the spread, and HPR Sim's largest unexplained part from the kept code nearest it: at the default tolerances (1e-8), and at 1e-12, where the integrator's step error is gone.
+- **The largest unexplained part** is that subtraction's largest at any sample, a stricter figure. Against a kept code that itself sets the spread, it is the spread plus HPR Sim's own distance from the other codes, so the table gives its part over the spread, and HPR Sim's largest unexplained part from the kept code nearest it: at the default tolerances (1e-8), and at 1e-12, where the integrator's step error is negligible.
 
 ## Case 1: the dragless sphere
 
