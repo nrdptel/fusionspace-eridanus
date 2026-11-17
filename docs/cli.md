@@ -395,7 +395,8 @@ rail exit             0.15 s      1.8 m      (6 ft)    21.3 m/s    (70 ft/s)
 burnout               3.50 s    466.0 m   (1529 ft)   136.3 m/s   (447 ft/s)
 apogee               11.21 s    846.1 m   (2776 ft)     0.1 m/s     (0 ft/s)
 ground hit           29.71 s      0.0 m      (0 ft)    65.9 m/s   (216 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's
+airspeed through the air)
 
 top speed             178.3 m/s (585 ft/s) at 2.31 s
 top Mach number       0.525
@@ -539,7 +540,8 @@ deployment            9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s), ai
 charge               22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
 deployment           22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s), airspeed 14.1 m/s (46 ft/s)
 ground hit           53.94 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's
+airspeed through the air)
 
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
@@ -763,7 +765,8 @@ rail exit             0.21 s      3.3 m     (11 ft)    30.2 m/s    (99 ft/s)
 burnout               3.50 s    468.6 m   (1537 ft)   144.4 m/s   (474 ft/s)
 apogee               11.48 s    877.4 m   (2879 ft)    11.3 m/s    (37 ft/s)
 ground hit           28.71 s      0.0 m      (0 ft)    70.3 m/s   (230 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's
+airspeed through the air)
 
 top speed             184.3 m/s (605 ft/s) at 2.35 s
 top Mach number       0.556
@@ -887,8 +890,10 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
   up positive). The nose tip is the point the simulator's equations of motion track. The `--json`
   summary's peak acceleration is taken there too. For a rocket that isn't turning, every point of
   it accelerates alike. A recovery device opens fully at once ([the landing](#the-landing)), so
-  its opening shows as a sharp spike. The spike is the motion's acceleration, about g from the
-  opening shock the `--json` summary gives, which leaves gravity out.
+  its opening shows as a sharp spike. The spike is the motion's acceleration, which includes
+  gravity, so it differs by up to g from the opening shock the `--json` summary gives
+  (`max_descent_acceleration_m_s2`), which leaves gravity out: above it when the device opens on
+  the way up, below it when the rocket is falling.
 - **Not what an accelerometer reads.** The panel shows how the motion changes: zero on the pad,
   and in a coast about −10 m/s² vertically, gravity plus drag. An accelerometer reads about zero
   in that coast, and 9.8 m/s² on the pad.
@@ -1113,16 +1118,21 @@ landing's center and the ellipses' axes give feet in parentheses. A failed fligh
 with no value.
 
 When a flight opened a recovery device, two more figures follow, each when any flight has a
-value for it. The opening shock is each flight's largest drag, and any thrust, over the mass
-under its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
-mass, without gravity, so the mass times it is the force a shock cord carries. The opening
-airspeed is the fastest a device opened through the air, the speed that load follows. A stack
-that comes apart with nothing left to burn has the airspeed its devices opened at, but no opening
-shock: the part that keeps the nose isn't watched under its canopy. `--delay-sd` and `--deployment-lag-sd` spread both: a charge
-late after apogee opens the device faster. The simulator opens a canopy at once by default, and
-leaves out a canopy's drag overshoot, so the shock is no bound either way
-([The opening load](physics/recovery.md#the-opening-load)); its spread shows how the timing moves
-it. A flight that opened no device has no value, as a failed one has none.
+value for it. The opening shock is each flight's largest drag over the mass of the part hanging
+from its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
+mass, without gravity. (A motor still burning when a device opens adds its thrust.) A canopy in
+steady fall carries 1 g, so the figure never reads below 1.0 g; a median of 1.0 g means the
+openings were gentler than the steady fall. The opening airspeed is the fastest a device opened
+through the air, the speed that load follows. After a split with no motor left, the table gives
+the opening airspeed, the nose part's openings included, but no opening shock, because the
+simulator doesn't follow the nose part's load under its canopy.
+
+`--delay-sd` and `--deployment-lag-sd` spread both: a charge late after apogee opens the device
+faster, because the rocket has had longer to fall. The simulator opens a canopy at once by
+default, and leaves out a canopy's drag overshoot, so the shock is no bound either way, and not a
+number to size a shock cord from ([The opening load](physics/recovery.md#the-opening-load)). Use
+it to compare designs and delays: its spread shows how the timing moves the load. A flight that
+opened no device has no value, as a failed one has none.
 
 The columns cover only the flights that have a value, so a failed flight is left out of them.
 If the failed flights are the ones that would have flown highest or landed farthest, the 95%

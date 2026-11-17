@@ -182,12 +182,13 @@ the equations of motion, so it includes gravity's pull, as a trajectory's accele
 The opening shock leaves gravity out. Under a canopy the motion's acceleration is the drag and the
 weight over the mass. Falling, the drag points up and the weight down, so the motion's
 acceleration is the drag over the mass less g, and it would read the load low by up to g. The
-opening shock is the specific force instead, the drag (and any thrust) over the mass. That is what
-an accelerometer reads, and the mass times it is the force a shock cord carries (Knacke, NWC TP
-6575, p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In the example above the
-canopy opens while the rocket still climbs, with the drag and the weight both pointing down: the
-motion's acceleration there, which the example printed as its opening shock before #1258, was
-153.4 m/s², high by about g, where the opening shock is 144.0.
+opening shock is the [specific force](../glossary.md#specific-force) instead, the drag over the
+mass (with a motor still burning, the drag and the thrust together). That is what an accelerometer
+reads, and with no motor burning it is the opening force over the mass (Knacke, NWC TP 6575,
+p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In a canopy's steady fall it is
+1 g, so it never reads below that. In the example above the canopy opens while the rocket still
+climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
+plot's spike) is close to g above the opening shock of 144.0 m/s².
 A test opens a canopy 5 s after apogee, falling, and finds the shock equal to $q C_D S / m$ at the
 opening to 1e-9. At the ground, in the canopy's steady fall, the specific force is g and the
 motion's acceleration nearly nothing
@@ -576,7 +577,7 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `a_normal_force_table_gives_its_own_margin` | A table's margin and $C_{m\alpha}$ against its own numbers |
 | `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibers of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
 | `peak_acceleration_is_analytic_and_excludes_opening_shock` | The boost's peak in a vacuum against the hand value, to 1e-6; a 100 Hz finite difference reads it more than 1% low; an opening shock over three times the boost's is kept apart ([L34](../decisions-and-roadmap.md#l34)) |
-| `the_opening_shock_is_the_drag_over_the_mass_without_gravity` | A canopy opened falling, 5 s after apogee: the opening shock is $q C_D S / m$ at the opening to 1e-9, about g above what the motion's acceleration reads there by the hand relation $\lvert a \rvert = D/m - g \cos\theta$; at the ground, in its steady fall, the specific force is g up to 1e-3 and the motion's acceleration under 1e-3 g ([#1258](https://github.com/nrdptel/fusionspace-eridanus/issues/1258)) |
+| `the_opening_shock_is_the_drag_over_the_mass_without_gravity` | A canopy opened falling, 5 s after apogee: the opening shock is $q C_D S / m$ at the opening to 1e-9, about g above what the motion's acceleration reads there by the hand relation $\lvert a \rvert \approx D/m - g \cos\theta$; at the ground, in its steady fall, the specific force is g up to 1e-3 and the motion's acceleration under 1e-3 g ([#1258](https://github.com/nrdptel/fusionspace-eridanus/issues/1258)) |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |

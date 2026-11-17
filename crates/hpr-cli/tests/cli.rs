@@ -7413,6 +7413,67 @@ fn sim_gives_each_deployment_its_airspeed() {
     );
 }
 
+/// #1258: the summary's top deployment airspeed is the largest of the flight's openings, not the
+/// first: a small drogue opening slowly at the ejection and the main opening later and faster at
+/// 150 m, on the stack; and, when the stack comes apart with nothing left to burn, the part that
+/// keeps the nose opening its main later and faster in its own flight.
+#[test]
+fn the_top_deployment_airspeed_is_the_fastest_opening() {
+    let folder = tempfile::tempdir().unwrap();
+    let level_1 =
+        std::fs::read_to_string(repo_file("validation/fixtures/ork/guides/level-1.ork")).unwrap();
+    let main = "<deployevent>altitude</deployevent><deployaltitude>150</deployaltitude>";
+    let dual = level_1
+        .replacen("<deployevent>ejection</deployevent>", main, 1)
+        .replacen(
+            "<subcomponents>\n              <parachute>",
+            &format!(
+                "<subcomponents>{}\n              <parachute>",
+                apogee_parachute("Drogue", 0.3).replace(
+                    "<deployevent>apogee</deployevent>",
+                    "<deployevent>ejection</deployevent>"
+                )
+            ),
+            1,
+        );
+    assert_eq!(dual.matches("<parachute>").count(), 2);
+    let payload = payload_ork(7.0, "lowerstageseparation").replacen(
+        "<parachute><name>Payload chute</name>",
+        &format!(
+            "{}<parachute><name>Payload chute</name>",
+            apogee_parachute("Payload main", 1.2)
+                .replace("<deployevent>apogee</deployevent>", main)
+        ),
+        1,
+    );
+    assert_eq!(payload.matches("<parachute>").count(), 3);
+    for (name, ork, separated) in [("dual.ork", dual, false), ("payload.ork", payload, true)] {
+        let path = folder.path().join(name);
+        std::fs::write(&path, ork).unwrap();
+        let flight = json(&["sim", &path.to_string_lossy()], 0, "sim.schema.json");
+        assert_eq!(
+            flight["summary"]["termination"] == "separated",
+            separated,
+            "{name}"
+        );
+        let airspeeds: Vec<f64> = flight["events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|event| event["kind"] == "deployment")
+            .map(|event| event["airspeed_m_s"].as_f64().unwrap())
+            .collect();
+        assert_eq!(airspeeds.len(), 2, "{name}: {airspeeds:?}");
+        // The later opening is the faster, so a top that kept the first would read low.
+        assert!(airspeeds[1] > 2.0 * airspeeds[0], "{name}: {airspeeds:?}");
+        assert_eq!(
+            flight["summary"]["max_deployment_airspeed_m_s"]["value"].as_f64(),
+            Some(airspeeds[1]),
+            "{name}"
+        );
+    }
+}
+
 /// What `hpr mc` refuses before it flies, each by its option: a run of no flights or too many, a
 /// negative or non-finite standard deviation, an export that isn't a CSV, in a missing folder or
 /// over the design; and a run with nothing scattered says so.

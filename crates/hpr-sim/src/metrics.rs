@@ -364,12 +364,14 @@ pub struct FlightSummary {
     pub max_acceleration_m_s2: Option<Peak>,
     /// The largest specific force under the recovery devices, m/s²: the opening shock, the
     /// opening load over the mass, `(drag + thrust)/m` ([`Sample::specific_force_enu_m_s2`]),
-    /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: the
-    /// load a shock cord carries is the mass times this.
+    /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
+    /// no motor burning, the mass times this is the opening force. It never reads below about
+    /// 1 g, a canopy's steady fall.
     pub max_descent_acceleration_m_s2: Option<Peak>,
-    /// The largest airspeed at which a recovery device opened on the flight's own stack (not one
-    /// the part that keeps the nose opens later in its own flight), m/s, with when and where: the speed the opening load follows, as
-    /// `q = ½ρv²`. Over the ground the speed can be more or less by the wind's.
+    /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
+    /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
+    /// left to burn, the devices the part that keeps the nose opens in its own flight count too.
+    /// Over the ground the speed can be more or less by the wind's.
     pub max_deployment_airspeed_m_s: Option<Peak>,
     /// The smallest static margin from the rail exit to apogee or the first deployment,
     /// calibers, where it is defined, found inside steps as a peak is. After a powered separation
@@ -626,6 +628,25 @@ impl FlightMetrics {
                 gain_m: self.launch_height_m.map(|start| height - start),
             });
         let rail_exit = result.event(EventKind::RailExit).map(|event| event.sample);
+        // When the stack came apart with nothing left to burn, the part that keeps the nose, part
+        // 0, flies on as a point and opens its own devices; the top airspeed counts those too, as
+        // the event list does, so a main that opens later and faster is not left out.
+        let mut max_deployment_airspeed = self.max_deployment_airspeed;
+        if result.termination == Termination::Separated {
+            let nose = result.bodies.iter().filter(|body| body.body == 0);
+            for event in nose.flat_map(|body| &body.events) {
+                let sample = &event.sample;
+                if matches!(event.kind, EventKind::Deployment(_))
+                    && max_deployment_airspeed.is_none_or(|peak| sample.airspeed_m_s > peak.value)
+                {
+                    max_deployment_airspeed = Some(Peak {
+                        value: sample.airspeed_m_s,
+                        time_s: sample.time_s,
+                        height_above_ground_m: sample.height_above_ground_m,
+                    });
+                }
+            }
+        }
         let landing = if result.termination == Termination::GroundHit {
             let s = &result.final_sample;
             Some(Landing::at(
@@ -665,7 +686,7 @@ impl FlightMetrics {
             max_dynamic_pressure_pa: self.max_q,
             max_acceleration_m_s2: self.max_acceleration,
             max_descent_acceleration_m_s2: self.max_descent_acceleration,
-            max_deployment_airspeed_m_s: self.max_deployment_airspeed,
+            max_deployment_airspeed_m_s: max_deployment_airspeed,
             min_static_margin_cal: self.min_static_margin,
             min_flight_margin_cal: self.min_flight_margin,
             min_powered_static_margin_cal: self.min_powered_static_margin,
@@ -1648,9 +1669,11 @@ mod tests {
         let shock = metrics.max_descent_acceleration.unwrap();
         close(shock.value, drag_per_kg, 1e-9, "opening shock");
         assert_eq!(shock.time_s, deployed.time_s);
-        // What |a| reads there by the hand relation |a| = D/m − g cos θ, θ from the vertical: about
-        // g less, what was reported before.
-        let motion = drag_per_kg - G * velocity.z.abs() / velocity.length();
+        // What the motion's |a| reads there, what was reported before: about g less, as the hand
+        // relation |a| ≈ D/m − g cos θ (θ from the vertical) has it.
+        let motion = deployed.acceleration_enu_m_s2.length();
+        let hand = drag_per_kg - G * velocity.z.abs() / velocity.length();
+        assert!((motion - hand).abs() < 0.05, "{motion} vs {hand}");
         assert!(
             shock.value - motion > 0.99 * G,
             "{} vs {motion}",

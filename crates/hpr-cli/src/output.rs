@@ -1147,8 +1147,8 @@ pub struct Summary {
     /// until a recovery device opens, m/s²: the motion's, not what an accelerometer reads.
     pub max_acceleration_m_s2: Option<Peak>,
     /// The opening shock, m/s²: the top specific force under the recovery devices, `(drag +
-    /// thrust)/m`, the opening load over the mass. Gravity is not in it, so the mass times it is
-    /// the load a shock cord carries.
+    /// thrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning
+    /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The top airspeed at which a recovery device opened, m/s: the speed the opening load
     /// follows. `null` when none opened.

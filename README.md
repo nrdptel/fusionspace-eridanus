@@ -176,7 +176,8 @@ apogee               11.62 s   1065.1 m   (3494 ft)     0.1 m/s     (0 ft/s)
 charge               12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)
 deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s), airspeed 5.1 m/s (17 ft/s)
 ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's
+airspeed through the air)
 
 top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842

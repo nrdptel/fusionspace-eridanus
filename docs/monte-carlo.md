@@ -139,8 +139,9 @@ and the wind's speed is the most uncertain input here.
 [`hpr mc`](cli.md#hpr-mc) flies any design [`hpr sim`](cli.md#hpr-sim) flies, a staged `.ork`
 included. Each dispersion is an option in the units the command line uses elsewhere: degrees for
 angles, a fraction for a percentage (`--impulse-sd 0.03` is 3%). It prints the apogee's and the
-landing distance's spreads, and when a device opens the opening shock's and opening airspeed's,
-the landing ellipses below and the failed flights. `--export runs.csv`
+landing distance's spreads, and when a device opens the opening shock's and opening airspeed's
+(a stack that comes apart with nothing left to burn has no opening shock), the landing ellipses
+below and the failed flights. `--export runs.csv`
 writes every flight's draw and outcome, one row a flight. The command's runs are the library's for
 the same seed, bit for bit: a test compares them (`mc_flies_a_public_ork_as_the_library_does`).
 

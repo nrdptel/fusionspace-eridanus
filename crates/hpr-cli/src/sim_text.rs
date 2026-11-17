@@ -692,11 +692,12 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
         }
         writeln!(out)?;
     }
-    writeln!(
-        out,
-        "(heights are the center of gravity's above the site; speeds are over the ground, and a \
-         deployment's airspeed through the air)"
-    )
+    let footnote = "(heights are the center of gravity's above the site; speeds are over the ground, \
+                    and a deployment's airspeed through the air)";
+    for line in crate::trust::wrap(footnote, NOTE) {
+        writeln!(out, "{line}")?;
+    }
+    Ok(())
 }
 
 /// The figures after the events: top speed and Mach number, the landing, how the flight ended
