@@ -29,6 +29,8 @@
 //! - [`envelope`]: the operating envelope's four flags: past the validated range, at high angle of
 //!   attack, outside the core band and beyond the envelope.
 //! - [`flutter`]: a fin's flutter speed and margin by NACA TN 4197's criterion.
+//! - [`free_body`]: a rigid body of a given mass and inertia, with no design or motor, flown on
+//!   the flight's gravity, rotation and integrator: the body published check cases fly.
 //! - [`export`]: a recording as CSV or JSON, and the flight path and landings as GeoJSON or KML.
 //!
 //! The crate flies a rocket from the pad to the ground under parachutes, streamers or tumbling. A
@@ -47,6 +49,7 @@ pub mod events;
 pub mod export;
 pub mod flight;
 pub mod flutter;
+pub mod free_body;
 pub mod histories;
 pub mod integrator;
 pub mod issues;
@@ -70,6 +73,7 @@ pub use flight::{
     EventKind, FlightEvent, FlightResult, FlightSettings, Simulation, Termination, UserEvent,
 };
 pub use flutter::{FlutterMargin, FlutterPanel};
+pub use free_body::FreeBody;
 pub use histories::{MassHistory, ThrustHistory};
 pub use integrator::{
     Adaptive, Advance, DEFAULT_STEP_LIMIT, IntegrationError, Integrator, Method, OdeSystem,

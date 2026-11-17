@@ -1124,20 +1124,26 @@ word only cut to a different root (its stem), with the same count, would pass. O
 release ships elasticlunr-rs 3.1.0, the rebuild should change nothing, and
 `xtask/src/site/search.rs` can go.
 
-The build then holds the file to a limit, `LIMIT_GZIP_BYTES` in that file:
+The build then holds the file to a limit, `LIMIT_BYTES` in `xtask/src/site/search.rs`:
 
-- **The limit** is what main's file weighed at
+- **The limit** is 10,000,000 bytes of the file as written, the size past which mdBook itself
+  warns that an index is very large
+  ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0354-the-search-index-is-held-to-mdbooks-own-bar.md)).
+  mdBook counts a little less than the file holds, so this check trips first.
+- **Before November 17, 2026** the limit was what main's file weighed at
   [b7313b32](https://github.com/nrdptel/fusionspace-eridanus/commit/b7313b32), before the rebuild: 1,675,059 bytes
-  compressed by the check's gzip (flate2 at its default level).
-  That build left fifteen pages out to stay under mdBook's 10 MB warning.
-- **The rebuilt file,** every page in, came to about 1.60 MB, measured the same way, so about
-  75 KB of room is left. GitHub Pages compresses a little less well (it sent 1,754,850 bytes for
-  the old file), but the limit and the file are measured alike.
+  compressed with gzip. That build left fifteen pages out to stay under mdBook's warning. The
+  file stores every section's text, so that limit held the guide to the words it had, and a
+  week of writing used its room up.
+- **What a reader downloads** when they first open the search is the file compressed with
+  gzip: about 1.68 MB when the limit changed, and about 2.08 MB if the file reaches the limit (the decision's estimate).
+  GitHub Pages compresses a little less well than the build's own gzip.
 - **The line** that starts `site search:` prints the postings and bytes, mdBook's and the
-  rebuild's, the rebuild's compressed size and the limit, on every build that passes.
+  rebuild's, the limit and the rebuild's compressed size, on every build that passes.
 - **When a page's words push the file past the limit,** the build fails. Shorten the words the
-  page added. Raise the limit only with a decision record that measures the new one. How the
-  limit was measured is written beside it, in `xtask/src/site/search.rs`.
+  page added. Change the limit only with a decision record that measures the new one.
+  [#1522](https://github.com/nrdptel/fusionspace-eridanus/issues/1522) decides how the index
+  gets lighter before then.
 
 ## Where this comes from
 

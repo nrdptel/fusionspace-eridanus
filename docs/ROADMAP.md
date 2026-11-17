@@ -256,7 +256,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
     Met when its eight increments are (ADR-351, whose decision 2 gives each *done when*).
-    - [ ] **M1.14b3 NASA's check cases 1 and 2.** *Done when:* ADR-351 decision 2's for M1.14b3.
     - [ ] **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* ADR-351 decision 2's for
       M1.14b4.
     - [ ] **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* ADR-351 decision 2's for

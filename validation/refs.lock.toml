@@ -337,6 +337,37 @@ dest = "refs/papers/dupuis-hathaway-1997-drev-tm-9703.pdf"
 license = "Crown copyright (Canada); approved for public release, distribution unlimited"
 mode = "fetched"
 
+# NASA's six-degree-of-freedom check cases (M1.14b3): the report, with its errata of 2025-09-08,
+# and each code's time history of every atmospheric case. The report is a US government work. The
+# histories are the outputs of six unnamed codes, one of them not NASA's, and carry no stated
+# terms: they are read from the archive as fetched and never committed.
+[[file]]
+name = "nasa-tm-2015-218675-vol-1"
+title = "D. G. Murri, E. B. Jackson and R. O. Shelton, Check-Cases for Verification of 6-Degree-of-Freedom Flight Vehicle Simulations, NASA/TM-2015-218675/Volume I, NESC-RP-12-00770, 2015, with the errata of 2025-09-08 (NTRS 20150001263)"
+url = "https://ntrs.nasa.gov/api/citations/20150001263/downloads/9-10-25%2020150001263.pdf"
+sha256 = "75c59047e5349318e3f4e3012b62926beb542c86865b2f18d67f9ea389a44457"
+dest = "refs/papers/nasa-tm-2015-218675-vol-1.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tm-2015-218675-vol-2"
+title = "D. G. Murri, E. B. Jackson and R. O. Shelton, Check-Cases for Verification of 6-Degree-of-Freedom Flight Vehicle Simulations, NASA/TM-2015-218675/Volume II: Appendices, NESC-RP-12-00770, 2015, with the errata of 2025-09-08 (NTRS 20150001264)"
+url = "https://ntrs.nasa.gov/api/citations/20150001264/downloads/9-10-25%2020150001264.pdf"
+sha256 = "2786f37fa02dba67e776de294038f7d8734b3de2cdd14d70b70a0db4b52f41f0"
+dest = "refs/papers/nasa-tm-2015-218675-vol-2.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nesc-check-cases-atmospheric"
+title = "NESC Academy, Atmospheric_checkcases.zip: each code's time history of the 17 atmospheric check cases of NASA/TM-2015-218675, as posted 2015-02-20"
+url = "https://nescacademy.nasa.gov/src/flightsim/Datasets/Atmospheric_checkcases.zip"
+sha256 = "1a83df6d00fa186973e8fb7bb8aefa5f7ed580d2ce8aa1327f50ac0c7bd5c869"
+dest = "refs/sources/nesc-check-cases/Atmospheric_checkcases.zip"
+license = "no stated terms; cached, never committed"
+mode = "fetched"
+
 [[file]]
 name = "nswc-tr-81-156-mason-1981-aero-design-manual"
 title = "L. A. Mason, L. Devan, F. G. Moore and D. McMillan, Aerodynamic design manual for tactical weapons, NSWC TR 81-156 (DTIC AD-A109180), 1981"

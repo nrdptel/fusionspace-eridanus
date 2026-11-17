@@ -32,6 +32,8 @@
 # EuRoC 2022 weather file `validation/oracles/netcdf/euroc_2022.py` writes under refs/; M2.3d5,
 # ADR-337: the two Macie XL flights too, from the pinned checkout under refs/public-flights/),
 # `roll-drev --check` (#763: the Basic Finner's roll damping against DREV-TM-9703's cached range fits),
+# `check-cases --check` (M1.14b3: NASA's check cases 1 and 2 against each code's history, read from
+# the pinned archive; it writes nothing),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)
@@ -372,7 +374,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount'" ;;
+    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount'" ;;
     *) return 1 ;;
   esac
 }

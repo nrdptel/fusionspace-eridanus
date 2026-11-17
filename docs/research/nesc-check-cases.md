@@ -14,11 +14,13 @@ Rigid-body flight and Time integration rows of the [accuracy table](../accuracy.
 **What this covers.** NASA/TM-2015-218675 Volumes I and II [S1, S2], the AIAA papers [S3, S4], the NESC Academy page
 [S5] and its 81 time-history files, read or counted 2026-10-18. **How far to trust it.** Case data come from the TM.
 Spreads in feet and degrees per second are this note's reading of the cached CSV files, marked **Inference**.
-Page numbers are the reports' own headers ("N of 26", "N of 609"). HPR Sim flew no case. For [ADR-143][adr-143] §6b,
+Page numbers are the reports' own headers ("N of 26", "N of 609"). When this was written HPR Sim had flown no case; it has
+since flown cases 1 and 2 ([ADR-353][adr-353], [report](../../validation/reports/check-cases.md)). For [ADR-143][adr-143] §6b,
 [M1.14b, references from Mach 1.5 to 2.5](../decisions-and-roadmap.md#m1-14b) ("each … reported or refused").
 
 [adr-143]: ../decisions/0143-the-operating-envelope-and-a-stop-rule-for.md
 [adr-011]: ../decisions/0011-rigid-body-flight-equations-of-motion.md
+[adr-353]: ../decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
 [adr-003]: ../decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 
 ## 1. What NESC published
@@ -123,7 +125,7 @@ sphere east at 2.10 ft/s by 30 s, and case 10's northbound shot west at 1.06 ft/
 **What HPR Sim checks today** ([accuracy](../accuracy.md)): a vacuum parabola and a terminal velocity in uniform air;
 torque-free precession of an axisymmetric body; coning attitude over 1e6 steps; WGS-84 gravity against 40-digit
 formulas; the 1976 atmosphere's tables at 32 heights; Coriolis direction and size in unit tests; RocketPy and
-OpenRocket flights. The Frames, Rigid-body flight and Time integration rows have no published-source check.
+OpenRocket flights. Since M1.14b3 the Frames, Gravity, Rigid-body flight and Time integration rows cite cases 1 and 2.
 
 **How HPR Sim differs from the cases.** It integrates in an Earth-fixed east-north-up frame at the pad, with WGS-84
 normal gravity (centrifugal included) plus Coriolis ([Gravity](../physics/gravity.md), [ADR-003][adr-003]). Its
@@ -132,10 +134,12 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
 
 - **Case 1: fits.** New: a 30 s, 14,400 ft fall in a rotating Earth's field against six codes. HPR Sim's normal
   gravity is 4.4e-6 stronger than J2 less the centrifugal term at 30,000 ft (**Inference**), which should leave it
-  about 0.06 ft low, 30 times the 0.0021 ft spread: a known model gap, to state, not fix.
+  about 0.06 ft low, 30 times the 0.0021 ft spread: a known model gap, to state, not fix. Flown: 19.51 mm (0.064 ft) low,
+  of which the gravity model accounts for 19.50 mm ([ADR-353][adr-353]).
 - **Case 2: fits.** New: torque-free tumbling with three unequal moments (today's test needs two equal). HPR Sim
   starts from the Earth-relative rates and must report inertial ones. Leaving the Earth's rate out of the rotational
-  equations drops terms of order ω·Ω ≈ 4.8e-5 rad/s² (**Inference**); against the 0.005 deg/s spread, unbounded.
+  equations drops terms of order ω·Ω ≈ 4.8e-5 rad/s² (**Inference**); against the 0.005 deg/s spread, unbounded. Flown: up
+  to 0.01633 deg/s from the kept codes, which the dropped terms account for to inside their spread ([ADR-353][adr-353]).
 - **Case 3: needs** constant roll, pitch and yaw damping on a finless body; HPR Sim's roll damping comes from fins.
   New: damping on three axes. Until then, refused. [ADR-351](../decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md) later gave it to M1.14b4's free body.
 - **Cases 4 and 5: need** inverse-square gravitation on a sphere. HPR Sim's four gravity models are a constant and
@@ -165,18 +169,14 @@ Case 14, on "Mach effects in tables", was never finished [S1 p. 16]; case 17's M
 - **For M1.14b's done-when.** Report the item as not a Mach 1.5–2.5 reference: cases 1, 2 and 6 to 10 adopted as
   checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model (ADR-351: 3 to M1.14b4, 4 and 5 refused); 11 to 17 refused (§6). The band
   gains nothing.
-- **Pin and cache.** Add `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`), `Atmospheric_models.zip` (`10e2dc26…`)
-  and both TM volumes to `validation/refs.lock.toml` as `fetched`, with a `THIRD-PARTY-NOTICES.md` row: reports a
-  US-government work; data of unstated terms, cached, not committed.
-- **A check-case runner (suggestion).** A test that flies cases 1 and 2 against each code's file and prints the
-  difference over time would give Frames, Gravity, Rigid-body flight and Time integration a row against six
-  independent codes. Expected: within each spread, except case 1's 0.06 ft, which the gravity model explains
-  (**Inference**). Cases 6 to 10 follow once a sphere's drag can be flown. Apogee does not move.
+- **Pin and cache.** Done for `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`) and both TM volumes, in
+  `validation/refs.lock.toml` as `fetched`; `Atmospheric_models.zip` (`10e2dc26…`) is not pinned, since nothing reads it.
+- **A check-case runner.** Done for cases 1 and 2: `cargo xtask check-cases` ([ADR-353][adr-353]). Neither came out
+  within the spread, as expected of case 1 and not of case 2. Cases 6 to 10 follow once a sphere's drag can be flown.
 
 ## Open questions
 
-- Does leaving the Earth's rate out of the rotational equations ([ADR-011][adr-011]) show in case 2's rates beyond
-  the 0.005 deg/s spread? Only flying it will say.
+- Answered ([ADR-353][adr-353]): the Earth's rate left out ([ADR-011][adr-011]) shows in case 2, 0.01633 deg/s against a 0.001242 deg/s spread.
 - Case 17's text gives a 0.1 ft/s start [S2 p. 33]; its table gives 0.32808399 ft/s, which is 0.1 m/s [S2 p. 68].
 
 ## Sources
