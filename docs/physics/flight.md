@@ -15,7 +15,8 @@ as its motor burns.
   to 1.7e-6 m over 22 s. On the check cases, a free body on the same equations differs from the
   codes NASA published by more than they differ from each other: 19.51 mm (0.77 in) of altitude after a
   4.4 km (2.7 mi) fall, and up to 0.01633 deg/s of body rate. A named difference between the
-  models accounts for each to inside the codes' spread
+  models accounts for each to inside the codes' spread at each code's largest difference. Read
+  at every moment, the tumbling brick's rates are left just past it
   ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
   RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
   declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
@@ -565,9 +566,10 @@ right: the codes' agreement with each other is the measure.
 HPR Sim flies two of the cases with a free body, `hpr_sim::FreeBody`: a mass and an inertia,
 with no design, no motor and no aerodynamics. It is not a second model. Its gravity and
 Coriolis force come from the flight's Earth model, its accelerations from the equations above,
-and its steps from the integrator at the default tolerances. A test evaluates a coasting rocket
-by the equations a flight integrates, and the free body of that rocket's mass and inertia at
-the same state: the two agree to rounding.
+and its steps from the integrator at the default tolerances. A test
+(`the_derivative_is_a_coasting_rockets`) evaluates a coasting rocket by the equations a flight
+integrates, and the free body of that rocket's mass and inertia at the same state: the two
+agree to rounding.
 
 - **Case 1, the dragless sphere.** A sphere of 1 slug (14.59 kg) is dropped from 30,000 ft
   (9,144 m) over 0° N, 0° E, at rest relative to the Earth, and falls for 30 s with no drag.
@@ -584,23 +586,25 @@ report numbers the codes. The model difference is a named difference between HPR
 and the codes', worked out apart from the flight. The last column is what that leaves of the
 largest difference from any kept code.
 
-| Quantity | Codes kept | The codes' spread | HPR Sim's largest difference | Model difference | Left of the difference |
+| Quantity | Codes kept | The codes' spread | HPR Sim's largest difference from a kept code (size) | Model difference | Most left after the model difference |
 |---|---|--:|--:|--:|--:|
 | Case 1, altitude | 5 of 6 | 0.1424 mm (0.0056 in) | 19.51 mm (0.77 in) | −19.50 mm (−0.77 in) | 0.1364 mm (0.0054 in) |
 | Case 2, inertial roll rate | 4 of 5 | 0.0008991 deg/s | 0.01077 deg/s | +0.01077 deg/s | 0.0008818 deg/s |
 | Case 2, inertial pitch rate | 4 of 5 | 0.001242 deg/s | 0.01633 deg/s | −0.01633 deg/s | 0.001005 deg/s |
 | Case 2, inertial yaw rate | 4 of 5 | 0.0003532 deg/s | 0.005500 deg/s | +0.005500 deg/s | 0.0001268 deg/s |
 
-Both cases come out past the codes' spread, and each has a named cause that accounts for the
-difference to inside the spread ([the decision that traces them][adr-353],
-[the report][check-cases]).
+Both cases come out past the codes' spread. Each has a named cause that accounts for the
+difference to inside the spread, taken at each code's largest difference
+([the decision that traces them][adr-353], [the report][check-cases]). A stricter reading,
+below, leaves case 2 just past the spread.
 
 - **Case 1 is the gravity model.** HPR Sim's sphere ends 19.51 mm (0.77 in) lower after a fall of 4.4 km
-  (2.7 mi). It falls in WGS 84's normal gravity ([Gravity](gravity.md)), which holds every term
-  of the model Earth's field. The codes fall in a field cut off after its second term, $J_2$.
+  (2.7 mi). It falls in WGS 84's [normal gravity](../glossary.md#normal-gravity)
+  ([Gravity](gravity.md)), which holds every term of the model Earth's field. The codes fall
+  in a field cut off after its second term, $J_2$, the one for the Earth's bulge at the equator.
   On the equator the next term, $J_4$, pulls harder by about 4.4 parts in a million of the
   attraction, 4.34e-5 m/s². Held for 30 s, that acceleration moves a body 19.5 mm (0.77 in),
-  which a test of the tool works by hand. The tool integrates the exact gap along the fall
+  which a test of the tool works by hand (`the_gravity_gap_is_j4s_over_the_fall`). The tool integrates the exact gap along the fall
   and gets 19.50 mm (0.77 in).
 - **Case 2 is the Earth's rate.** The codes turn the brick by Euler's equations in its rate
   relative to the stars. HPR Sim's rotational equations use the rate relative to the launch
@@ -609,8 +613,7 @@ difference to inside the spread ([the decision that traces them][adr-353],
   deg/s, and the inertial rates read out start the same. On a tumbling body of three unequal
   moments the inertial rates then drift apart, by up to 0.01633 deg/s in pitch within the
   30 s, 3.9 times the Earth's rate. Integrating both sets of equations apart from the flight
-  gives the differences in the table. A rocket in the air is turned by its fins far faster
-  than this. What the missing term costs a rocket's flight is not measured: that, and whether
+  gives the differences in the table. What the missing term costs a rocket's flight is not measured: that, and whether
   to carry the Earth's rate in the rotational equations, is [#1521][i-1521].
 
 **A stricter reading.** The last column takes the model difference at the moment of each
@@ -621,7 +624,9 @@ is set by one kept code, SIM 2, against two that agree with each other, so a fli
 exactly on those two would differ from SIM 2 by the spread and no less. HPR Sim, less the
 model difference, sits 0.0000005866, 0.0000009229 and 0.0000002790 deg/s from the code nearest
 it. That distance is the integrator's step error at the default tolerances: at tolerances of
-1e-12 it falls to 0.000000002126, 0.000000003051 and 0.000000001089 deg/s.
+1e-12 it falls to 0.000000002126, 0.000000003051 and 0.000000001089 deg/s. By this reading
+case 2 is not inside the spread, and it is not counted as inside: the excess is small, named
+and left open.
 
 **What the comparison does not see.**
 

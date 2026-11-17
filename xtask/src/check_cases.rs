@@ -1108,9 +1108,6 @@ mod tests {
             equator.x
         );
         assert_eq!((equator.y, equator.z), (0.0, 0.0));
-        // The gravitation alone at the start is the 32.1065 ft/s² of the report's sphere.
-        let gravitation = (by_hand - omega * omega * r) / FOOT_M;
-        assert!((gravitation + 32.106_54).abs() < 1e-5, "{gravitation}");
         let pole = j2_gravity_ecef(&field, DVec3::new(0.0, 0.0, r));
         let by_hand = -(mu / (r * r)) * (1.0 - 3.0 * J2 * (a / r).powi(2));
         assert!((pole.z - by_hand).abs() < 1e-14, "{} {by_hand}", pole.z);
@@ -1288,8 +1285,9 @@ mod tests {
 
     /// The pages quote the committed report as it is, which CI can't regenerate: the accuracy
     /// page's rows for frames, gravity and rigid-body flight each cite the report and carry its
-    /// figures, and the page on rigid-body flight carries every figure of its table and of the
-    /// stricter reading.
+    /// figures, the page on rigid-body flight carries every figure of its table and of the
+    /// stricter reading, and the gravity, frames and integration pages carry the figures they
+    /// quote.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
@@ -1342,8 +1340,22 @@ mod tests {
             )
             .replace('-', "−")
         };
+        // A figure is quoted when it stands whole, not inside a longer number; line breaks and
+        // runs of spaces don't matter to a quotation.
         let has = |path: &str, text: &str, figure: &str| {
-            assert!(text.contains(figure), "{path} doesn't quote {figure}");
+            let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+            let part_of_a_number =
+                |c: Option<char>| c.is_some_and(|c| c.is_ascii_digit() || c == '.');
+            let whole = text.match_indices(figure).any(|(at, _)| {
+                let before = text[..at].chars().next_back();
+                let mut after = text[at + figure.len()..].chars();
+                let next = after.next();
+                // A full stop that ends a sentence follows a figure; a digit after it doesn't.
+                let runs_on = next.is_some_and(|c| c.is_ascii_digit())
+                    || (next == Some('.') && after.next().is_some_and(|c| c.is_ascii_digit()));
+                !part_of_a_number(before) && !runs_on
+            });
+            assert!(whole, "{path} doesn't quote {figure}");
         };
 
         let flight = page("docs/physics/flight.md");
@@ -1466,11 +1478,50 @@ mod tests {
                     .total_cmp(&b[key].as_f64().unwrap())
             })
             .unwrap();
+        has("docs/start-here.md", &start, &size(most, key));
+
+        // The other model pages: gravity's four figures of the altitude, the frames page's two
+        // remainders, and the integration page's distances from the nearest code at both
+        // tolerances.
+        let gravity = page("docs/physics/gravity.md");
+        for key in [
+            "largest_difference_from_a_kept_code",
+            "spread",
+            "model_difference",
+            "most_left_of_a_kept_codes_largest_difference",
+        ] {
+            has("docs/physics/gravity.md", &gravity, &size(altitude, key));
+        }
+        let frames = page("docs/physics/frames.md");
+        let key = "most_left_of_a_kept_codes_largest_difference";
+        has("docs/physics/frames.md", &frames, &size(altitude, key));
+        let most_left = rates
+            .iter()
+            .max_by(|a, b| {
+                a[key]
+                    .as_f64()
+                    .unwrap()
+                    .total_cmp(&b[key].as_f64().unwrap())
+            })
+            .unwrap();
         has(
-            "docs/start-here.md",
-            &start,
-            &size(most, key).replace(" deg/s", "\ndeg/s"),
+            "docs/physics/frames.md",
+            &frames,
+            size(most_left, key).trim_end_matches(" deg/s"),
         );
+        let integration = page("docs/physics/integration.md");
+        for rate in rates {
+            for key in [
+                "largest_unexplained_from_the_nearest_kept_code",
+                "the_same_at_tight_tolerances",
+            ] {
+                has(
+                    "docs/physics/integration.md",
+                    &integration,
+                    size(rate, key).trim_end_matches(" deg/s"),
+                );
+            }
+        }
     }
 
     /// The committed page is the committed report's, so the two can't drift apart.

@@ -206,7 +206,7 @@ Recorded by `validation/oracles/rocketpy/gravity.py` into
 - `cargo xtask check-cases`, held by the gate where the codes' files are fetched: NASA's check
   case 1 against five codes' published histories of a 4.4 km (2.7 mi) fall, a sixth left out. HPR Sim's altitude
   ends 19.51 mm (0.77 in) lower, 137 times the codes' spread of 0.1424 mm (0.0056 in). The codes' gravitation stops
-  at $J_2$, and the terms normal gravity holds past it account for 19.50 mm (0.77 in), which leaves
+  at $J_2$, the term for the Earth's bulge at the equator, and the terms normal gravity holds past it account for 19.50 mm (0.77 in), which leaves
   at most 0.1364 mm (0.0054 in) of a kept code's largest difference, inside the spread
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
 - `hpr_sim::free_body::tests::the_coriolis_force_lifts_a_long_fall`: a body dropped over the

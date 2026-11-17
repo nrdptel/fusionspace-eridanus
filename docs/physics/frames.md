@@ -208,10 +208,12 @@ $$
   cases 1 and 2 flown in the launch frame
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   Two things of this page are in them. The height above the ellipsoid is read back from the
-  launch frame along a 4.4 km (2.7 mi) fall. The Earth's rate is turned from the launch frame
+  launch frame along a 4.4 km (2.7 mi) fall, down the site's vertical on the equator, where the
+  ellipsoid's shape hardly enters. The Earth's rate is turned from the launch frame
   into the body's axes to give inertial rates. With the two named model differences taken off
   each kept code's largest difference, at most 0.1364 mm (0.0054 in) of altitude and 0.001005
-  deg/s of body rate are left, both inside the codes' spread. The attitude itself is not compared.
+  deg/s of body rate are left, both inside the codes' spread; read at every moment, the rates
+  are left just past it. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

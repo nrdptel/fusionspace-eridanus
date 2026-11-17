@@ -177,7 +177,8 @@ against the histories other flight codes published: a sphere dropped with no dra
 brick. HPR Sim differs from those codes by more than they differ from each other: by 19.51 mm (0.77 in) of
 altitude after 30 s, because its gravity model holds terms theirs drops, and by up to 0.01633
 deg/s of turn rate, because its rotational equations leave the Earth's rotation out. Each cause,
-sized on its own, accounts for its difference to inside the codes' spread
+sized on its own, accounts for its difference to inside the codes' spread at each code's
+largest difference
 ([A free body against NASA's check cases](physics/flight.md#a-free-body-against-nasas-check-cases)).
 
 ### Recovery
