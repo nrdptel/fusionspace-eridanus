@@ -8,7 +8,7 @@ base area; HPR Sim's 0.25/M is 21–68% low, most at low Mach. The bases add 0.0
 the 0.04–0.08 "rough bound" in [finner-reference-data](finner-reference-data.md) at Mach 1.832 and below. The wave drag
 is closed-form theory, sure to a few percent; base values are read off figures (±0.01; ±0.05 at 1.077). How a fin base
 flush with the body's base behaves is unbounded. "Inference" marks this note's own reasoning. Readings not in
-`basic-finner-wedge.json` (neighbouring points, checks, §4–5's other figures) were read by eye and are not committed.
+`basic-finner-wedge.json` (neighboring points, checks, §4–5's other figures) were read by eye and are not committed.
 
 ## 1. Geometry and conversions
 
