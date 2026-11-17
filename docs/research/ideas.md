@@ -66,7 +66,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-11)
+## Earlier planning reviews (2026-10-08 to 2026-11-14)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -84,51 +84,50 @@ review's four ([ADR-319][adr-319]) went to avionics and clubs. The 2026-11-08 re
 ([ADR-328][adr-328]) went to [accuracy against real flights](ideas-accuracy.md); the milestone it
 promoted, twelve public flights with predictions first, is [M2.3d][m2-3d]. The 2026-11-11 review's
 four ([ADR-338][adr-338]) went there too; the milestone it promoted, descent rates against the
-logs, is [M2.12][m2-12].
+logs, is [M2.12][m2-12]. The 2026-11-14 review's four ([ADR-347][adr-347]) went there too; the
+milestone it promoted, landing points against the tracked landings, is [M2.13][m2-13].
 
-## The 2026-11-14 planning review
+## The 2026-11-16 planning review
 
-Placed with [ADR-347][adr-347], which promotes the first; the other five are SOON, two of them
-in [accuracy against real flights](ideas-accuracy.md):
+Placed with [ADR-352][adr-352], which promotes the first; the other three are SOON.
 
-- PROMOTED ([M2.13][m2-13]): landing points against the tracked landings, predictions first.
-  User: a flyer judging whether the rocket comes down inside the field. `hpr sim` prints the
-  landing's distance from the pad, held today to another simulator's and to no flight. 41 of the
-  private collection's 83 flights are cataloged with a position log (counted 2026-11-14 from the
-  collection's catalog; no track read yet). Workflow: each track's pad and landing points and
-  each flight's predicted landing point are merged before any miss. Moves: new
-  rows `accuracy.landing` and `bias.landing`, nearer the pad than tracked the flattering side.
-  *Done when:* [M2.13][m2-13]'s.
-- SOON: the landing on the forecast a flyer had. User: a flyer at the pad, who flies a forecast,
-  not the reanalysis [M2.13][m2-13] scores. The command line's page says of a forecast's winds
-  that "nothing has compared them with measured ones". Workflow: for each tracked flight whose
-  launch hour is known, a forecast issued before the launch is read from a public archive that
-  keeps past runs, cached and flown; the fixture report gives the landing miss on it beside the
-  miss on the reanalysis. Moves: `accuracy.landing`, a second figure on a forecast. *Done when:*
-  the archive and its lead time are named from its own documents; the report gives both misses
-  over the flights it covers and counts those it doesn't; and a test pins one cached profile by
-  its hash.
-- SOON: speed at the rail's end, against accelerometer logs. User: a flyer or a range safety
-  officer checking that the rocket leaves the rail fast enough to fly straight. `hpr sim` prints
-  that speed, and no report sets it against a flight; a speed read too high is the flattering side.
-  48 of the collection's 83 flights have a log with an acceleration channel, 43 of them sampled at
-  100 Hz or faster (counted 2026-11-14 from the collection's catalog).
-  Workflow: the analyzer integrates the logged acceleration from first motion over the rail length
-  the flight's record states, with an interval from the sensor's offset and the first-motion time;
-  each flight's predicted speed at that length is merged first, as [ADR-333][adr-333] holds the
-  apogees'. Moves:
-  new rows `accuracy.rail-exit` and `bias.rail-exit`. *Done when:* the reading is checked on
-  synthetic boosts with a known answer; the hashes are merged before any error; the report gives
-  the mean absolute and signed errors with their count; and a test pins which sign is too fast.
-- SOON: the delay's spread held to logged delays. User: a flyer choosing an ejection delay from a
-  scattered run. The spread fitted to bench firings is too narrow for flights: its 90% interval
-  held 21 or 22 of 30 logged delays, 70% to 73% ([the delay-spread note][delay-spread], section 7;
-  [#1474][i1474] asks the Monte Carlo page to say so). Workflow: `hpr mc` gets a named delay spread fitted
-  to logged delays, and the report scores its intervals on logged flights the fit didn't read.
-  Moves: a new row `uncertainty.delay-90`, nearer 90% better, beside the apogee ranges of
-  [M2.8][m2-8]. *Done when:* the report gives the share of logged delays inside the 50% and the
-  90% intervals with Clopper–Pearson bounds, on flights held out from the fit by their ids' hash,
-  and the Monte Carlo page states both.
+- PROMOTED ([M2.14][m2-14]): speed off the rail against the accelerometer logs, predictions
+  first. User: a flyer or a range safety officer judging whether a rocket leaves its rail fast
+  enough. Workflow: the analyzer reads each log's speed after the rail's travel; the report
+  sets the prediction merged beforehand against it. Moves: new rows `accuracy.rail-exit`
+  and `bias.rail-exit`, too fast the flattering side. *Done when:* [M2.14][m2-14]'s.
+- SOON: the collection flown as built. User: a flyer whose design file has no rail buttons and
+  the smoothest finish. Another simulator's notes give its apogees on seven weighed, logged
+  kit flights as 13.8% high "as their design files are set up (polished, no rail buttons)"
+  and 3.5% off with regular paint and rail buttons, and say what the rockets really had isn't
+  recorded ([its validation page][prfl-val], read 2026-11-16). HPR Sim's apogees on the
+  private collection run +7.72% high on average ([scoreboard][score]). Workflow: the fixture
+  report counts the flown designs with no rail guide and those at the smoothest finish, then
+  flies each again with guides sized by a rule fixed beforehand and a named painted finish.
+  Moves: `bias.collection`, as a shown diagnosis, never the scored cell: a changed default is
+  a correction of another form, which [ADR-346][adr-346] makes a new decision, judged on
+  flights predicted first. *Done when:* the guide rule and the finish's roughness are merged
+  with their sources before the second flights are flown; the report gives the two counts
+  and the mean signed and absolute errors both ways, on each half and on the public flights;
+  and it gives the share of the bias the two explain with a paired bootstrap 95% interval.
+- SOON: an accelerometer's climb against its own barometer. User: a flyer reading a top speed
+  or an acceleration from a logger, and a reader weighing [M2.14][m2-14]'s readings. The
+  analyzer takes an accelerometer's scale as known to 10%; the same notes say one logger
+  family's "read 12–21% low against a second recorder on the same flights". Workflow: for
+  each log of the collection with both channels, the analyzer sets the height its summed
+  acceleration gives at burnout against the barometer's, and the report gives that ratio by
+  logger family. Moves: `accuracy.rail-exit`, through the width of its readings: the scale
+  measured, not assumed. *Done when:* a test pins the ratio on a synthetic log with a known
+  scale error; the report gives each family's median ratio and 90% range with its count, for
+  families with five flights or more, and all together; and the analyzer's 10% is kept or
+  changed by a decision record that cites the measured spread.
+- SOON: how fast the thrust comes up. User: a flyer of a heavy rocket on a slow-lighting
+  motor. Workflow: the analyzer reads, from a log sampled at 400 Hz or faster, the time from
+  first motion to half the acceleration's first peak, and the fixture report sets it against
+  the same time in the simulated flight. Moves: `accuracy.rail-exit`, as a diagnosis.
+  *Done when:* the reading is checked on synthetic boosts with a known rise; the report gives
+  the median difference in seconds with its count, overall and for each propellant with five
+  flights or more, and its rank correlation with the rail-exit error with a 95% interval.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -191,10 +190,11 @@ in [accuracy against real flights](ideas-accuracy.md):
 [adr-328]: ../decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [m2-3d]: ../decisions-and-roadmap.md#m2-3d
 [adr-338]: ../decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md
-[adr-333]: ../decisions/0333-m2-7b-new-flights-predicted-first.md
 [m2-12]: ../decisions-and-roadmap.md#m2-12
 [adr-347]: ../decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md
 [m2-13]: ../decisions-and-roadmap.md#m2-13
-[m2-8]: ../decisions-and-roadmap.md#m2-8
-[delay-spread]: motor-delay-spread.md
-[i1474]: https://github.com/nrdptel/fusionspace-eridanus/issues/1474
+[adr-352]: ../decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md
+[m2-14]: ../decisions-and-roadmap.md#m2-14
+[adr-346]: ../decisions/0346-m7-5-in-three-the-rule-before-the-fit.md
+[prfl-val]: https://github.com/dustintlee-blahblah/PocketRocketFlightLab/blob/main/VALIDATION.md
+[score]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md

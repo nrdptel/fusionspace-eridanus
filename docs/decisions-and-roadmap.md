@@ -380,6 +380,7 @@ until someone rewrites it in plainer words.
 | [ADR-349: M2.3c6 in four: the public nose probe first][adr-349] | The gap to OpenRocket by cause needs four things the tree lacks: a public probe of the tangent-ogive nose's pressure drag, OpenRocket's thrust, mass and drag along its own flights with a way for HPR Sim to fly them, the split in the fixture report, and the nose's own line. Each becomes an increment. The probe ships first: on an invented fineness-3 tangent ogive, OpenRocket 24.12 gives the nose a pressure drag coefficient of 0.00098, 0.00073 and 0.00047 at Mach 1.3, 1.5 and 2, where HPR Sim and the equivalent cone give 0.1557, 0.1303 and 0.1042. |  |
 | [ADR-350: M2.3c13's result: the tangent-ogive nose's line, and why #222's flight is not in it][adr-350] | Five of the 68 flights both simulators fly pass Mach 1 with a tangent-ogive nose, and all five are swapped. With HPR Sim's pressure drag of the nose replaced above Mach 1 by OpenRocket 24.12's, the nose's line is −1.28% of OpenRocket's apogee on average, inside a drag part of −1.96%. Those flights reach Mach 1.06 on average, so the line is measured just past Mach 1. #222's flight is not among them: it is in the design-library report, which holds no thrust and mass histories, and the line is defined on those. An open issue, #1497, carries its nose-only swap. No flight of the line has a repeated nose, so none was probed. |  |
 | [ADR-351: M1.14b in eight: the Basic Finner's normal force first][adr-351] | [ADR-143][adr-143] §6b names nine references for Mach 1.5 to 2.5. Three are refused on what the research notes found; the other six need work the tree lacks, in eight increments. The first ships here: against DREV-TM-9703's free-flight range fits of the Basic Finner, HPR Sim's normal-force slope reads 11.2% and 16.1% low at Mach 1.832 and 2.375, and its center of pressure 0.34 and 0.18 calibers forward, the side that understates stability. |  |
+| [ADR-352: The 2026-11-16 review: speed off the rail held to accelerometer logs, predictions first][adr-352] | `hpr sim` prints how fast a rocket leaves its rail, and no report sets that speed against a real flight: it is held to another simulator flown on the same inputs. 48 of the private collection's 83 flights are cataloged with an acceleration column. The milestone reads, from each such log, the rocket's speed after the same travel along the rail, by summing the logged acceleration from rest on the pad. It merges those readings and each flight's predicted speed before any error is computed, then scores the error. The scoreboard gains a row for the error and a row for whether the predictions run fast. A speed predicted higher than the flight's is the flattering side. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -742,6 +743,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-13"></a>[M2.13][phase-1] | Landing points against the tracked landings | not yet done |
 | <a id="m2-13a"></a>[M2.13a][phase-1] | The rule, the readings and the predictions | not yet done |
 | <a id="m2-13b"></a>[M2.13b][phase-1] | The errors | not yet done |
+| <a id="m2-14"></a>[M2.14][phase-1] | Speed off the rail against the accelerometer logs | not yet done |
+| <a id="m2-14a"></a>[M2.14a][phase-1] | The rule, the readings and the predictions | not yet done |
+| <a id="m2-14b"></a>[M2.14b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1426,6 +1430,7 @@ is the milestone that added or will add that test.
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [adr-350]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md
 [adr-351]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
+[adr-352]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
