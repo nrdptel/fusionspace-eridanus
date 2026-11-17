@@ -1120,12 +1120,13 @@ When a flight opened a recovery device, two more figures follow, each when any f
 value for it. The opening shock is each flight's largest drag over the mass of the part hanging
 from its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
 mass, without gravity. (A motor still burning when a device opens adds its thrust.) A canopy in
-steady fall carries 1 g, so the figure never reads below about 1 g; a median of 1.0 g means the
-openings were gentler than the steady fall. The opening airspeed is the fastest a device on the
+steady fall carries 1 g, so the figure reads at least about 1 g unless the flight lands before
+its canopy reaches steady fall; a median near 1.0 g means the openings were no harder than the
+steady fall. The opening airspeed is the fastest a device on the
 stack, or on the part that keeps the nose, opened through the air, the speed that load follows.
-After a split with no motor left, the table gives the opening airspeed, the nose part's openings
-included, but no opening shock, because the simulator doesn't follow the nose part's load under
-its canopy.
+After a split with no motor left, the opening airspeed counts the nose part's openings, but the
+opening shock only the stack's own, before the split: a stack whose devices open only at the
+split has none, because the simulator doesn't follow the nose part's load under its canopy.
 
 `--delay-sd` and `--deployment-lag-sd` spread both: a charge late after apogee opens the device
 faster, because the rocket has had longer to fall. The simulator opens a canopy at once by

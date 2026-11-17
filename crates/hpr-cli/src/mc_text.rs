@@ -20,7 +20,7 @@ use crate::sim_text::{
 };
 use crate::units::{FOOT_M, STANDARD_GRAVITY_M_S2, bearing, fixed, meters};
 
-/// The width of a figure's name in the tables.
+/// The width of a landing ellipse's label in its table.
 const NAME: usize = 22;
 /// The width of an ellipse's semi-axis, `10000.0 m (32808 ft)` with two spaces before it.
 const AXIS: usize = 22;
