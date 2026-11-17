@@ -273,7 +273,8 @@ were made without a source that settles them, each stated in the report and on
   two-dimensional turbulent base drag read from Hoerner's and Love's figures, a band. At Mach
   1.077 the two figures disagree, and the band spans both.
 - **`C_mq` is per `q d/(2V)`.** The report states no denominator. Its eq. [1], with no spin,
-  reduces to the damping rate of a swing with the rate made dimensionless by `q d/(2V)`.
+  reduces to the damping rate of a swing with the rate made dimensionless by `q d/(2V)`, an
+  inference.
   A free flight measures `C_mq + C_mα̇` together; HPR Sim has no `C_mα̇`, so its read-out
   ([`AeroModel::pitch_damping`][aero-b2], held to the flight engine's moment by a test in
   `hpr_sim`) is its whole damping.

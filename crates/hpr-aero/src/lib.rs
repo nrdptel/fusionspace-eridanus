@@ -1748,6 +1748,7 @@ mod tests {
         assert_eq!(report["design"], design);
         let model = AeroModel::new(&committed_design(design).layout().unwrap()).unwrap();
         let d = model.reference_diameter_m();
+        close(f(&report["reference_diameter_m"]), d, 1e-15, "diameter");
         let x_ref = f(&reference["moment_reference_calibers"]);
         assert_eq!(f(&report["moment_reference_calibers"]), x_ref);
         // The wedge: each face turns the flow by half the trailing edge's 0.08 calibers over the
@@ -1800,11 +1801,23 @@ mod tests {
                 1e-12,
                 &what,
             );
+            let cx0_probable_error = 0.01 * f(&reading["cx0_probable_error_percent"]).max(0.5);
+            close(
+                f(&row["reference_cx0_probable_error"]),
+                cx0_probable_error,
+                1e-12,
+                &what,
+            );
+            assert_eq!(
+                row["reference_cx0_fitted_in_the_row"], reading["cx0_fitted_in_the_row"],
+                "{what}"
+            );
             // The shots: their C_X0's spread and their mean Reynolds number on the 10-caliber
             // length.
             let shots = reading["shots"].as_array().unwrap();
             let shot = |key: &str| shots.iter().map(|s| f(&s[key])).collect::<Vec<_>>();
             let (cx0s, reynolds) = (shot("cx0"), shot("reynolds_on_length"));
+            assert_eq!(row["shots"].as_u64(), Some(shots.len() as u64), "{what}");
             let low = cx0s.iter().copied().fold(f64::INFINITY, f64::min);
             let high = cx0s.iter().copied().fold(f64::NEG_INFINITY, f64::max);
             assert_eq!(f(&row["shots_cx0_low"]), low, "{what}");
@@ -1817,6 +1830,9 @@ mod tests {
                 .unwrap();
             let drawn = drag.zero_lift_coefficient;
             close(f(&row["hpr_cd0_as_drawn"]), drawn, 1e-12, &what);
+            close(f(&row["hpr_friction"]), drag.friction, 1e-12, &what);
+            close(f(&row["hpr_pressure"]), drag.pressure, 1e-12, &what);
+            close(f(&row["hpr_base"]), drag.base, 1e-12, &what);
             let leading = frontal * stagnation_drag_coefficient(mach).unwrap();
             let trailing = frontal * base_drag_coefficient(mach).unwrap();
             close(f(&row["hpr_fins_leading_edge"]), leading, 1e-12, &what);
@@ -1875,6 +1891,12 @@ mod tests {
                 1e-12,
                 &what,
             );
+            close(
+                f(&row["cd0_error_with_its_trailing_edge_rule"]),
+                rule / cx0 - 1.0,
+                1e-9,
+                &what,
+            );
             let got = hpr / cx0 - 1.0;
             close(f(&row["cd0_error"]), got, 1e-9, &what);
             close(f(&row["cd0_error_low"]), hpr_low / cx0 - 1.0, 1e-9, &what);
@@ -1909,12 +1931,19 @@ mod tests {
             // The pitch damping about the fits' reference, and its parts.
             let hpr_cmq = model.pitch_damping(mach, x_ref * d).unwrap();
             close(f(&row["hpr_cmq"]), hpr_cmq, 1e-12, &what);
-            close(
-                f(&row["hpr_cmq_fins"]) + f(&row["hpr_cmq_body"]),
-                hpr_cmq,
-                1e-12,
-                &what,
-            );
+            // The fins' part: the same sum over the fin sets' components alone.
+            let flow = Flow::axial(mach);
+            let x_r = x_ref * d;
+            let fins_cmq = -2.0 / (d * d)
+                * (model.fin_set_start()..model.component_count())
+                    .map(|index| {
+                        let force = model.component_normal_force(index, &flow).unwrap();
+                        let station = model.component_station_m(index, mach).unwrap();
+                        (station - x_r) * (force.moment_slope_m - force.slope_per_rad * x_r)
+                    })
+                    .sum::<f64>();
+            close(f(&row["hpr_cmq_fins"]), fins_cmq, 1e-12, &what);
+            close(f(&row["hpr_cmq_body"]), hpr_cmq - fins_cmq, 1e-12, &what);
             // Most of it is the fins'.
             assert!(
                 f(&row["hpr_cmq_fins"]) < 2.0 * f(&row["hpr_cmq_body"]),

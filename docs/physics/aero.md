@@ -4807,14 +4807,15 @@ PDF pp. 48–49), and its pitch damping, the moment that resists a rate of pitch
 $C_{mq}$.
 Both are on the body's cross-section, the damping about the same point, 5.50 calibers from the
 nose tip. The six rows, each shot's own drag from the single fits (Table VIII, PDF pp. 44–46) and
-its Reynolds number (Table V, PDF p. 41) are in [the reference][finner-drev]. `cargo xtask aero`
+its Reynolds number (Table V, PDF p. 41) are in [the reference][finner-drev]. HPR Sim's drag on each row is taken at the mean of its shots'
+Reynolds numbers, 23.8 to 70.2 million per meter. `cargo xtask aero`
 writes [the report][finner-dd], and `hpr_aero::tests::basic_finner_drag_and_damping_against_drev`
 recomputes every figure in it. [The increment that added it](../decisions-and-roadmap.md#m1-14b2)
 set no target.
 
 > **How far to trust it.** This is one measured set of one body, and HPR Sim can't draw its fins.
 > The fits' probable errors are under 0.5% on the drag and 3% to 6% on the damping, but the shots
-> of one row scatter more than that in drag: up to 12%, at Mach 2.718. The wedge fins' own drag is
+> of one row scatter more than that in drag: up to 12% of the fit's value, at Mach 2.718. The wedge fins' own drag is
 > modeled from published figures, not by HPR Sim, and its band is given with each row. The
 > damping's convention is read from the report's equations, which state no denominator.
 
@@ -4836,8 +4837,8 @@ HPR Sim's trailing-edge rule, and puts in the wedge's two, from cited sources
   lies 1.3 to 3.1 times above HPR Sim's own trailing-edge rule, which is a rocket base's
   ([#1514](https://github.com/nrdptel/fusionspace-eridanus/issues/1514)).
 
-For example, at Mach 2.375 the buildup as drawn is 0.934. Its square leading edge is 0.592 of
-that and its trailing-edge rule 0.043, which leaves 0.299 for the body, the nose, the friction
+For example, at Mach 2.375 the buildup as drawn is 0.934. Of that, its square leading edge is
+0.592 and its trailing-edge rule 0.043, which leaves 0.299 for the body, the nose, the friction
 and the body's base. The wedge's faces add 0.016 and its trailing edges 0.065 to 0.073, so HPR
 Sim's $C_{D0}$ is 0.384, from 0.380 to 0.388. DREV's $C_{X0}$ is 0.484, so HPR Sim reads 20.6%
 low.
@@ -4869,15 +4870,15 @@ $$
 
 where, strictly, $\ell_i^{\,2}$ is a part's arm to where the engine takes its flow times its arm to
 its own center of pressure (`hpr_aero::AeroModel::pitch_damping`; a test in `hpr_sim` holds the engine's moment to it within
-0.01%). DREV's equation for the damping rate, eq. [1] (PDF p. 28), gives the same convention:
+0.01%). DREV's equation for the damping rate, eq. [1] (PDF p. 28), implies the same convention:
 with no spin it reduces to the rate of a swing damped by $C_{N\alpha}$ and by $C_{mq}$ per
 $qd/2V$. A free flight can't part $C_{mq}$ from $C_{m\dot\alpha}$, the moment from the rate of
 change of the angle of attack, so DREV's figure is their sum. HPR Sim has no $C_{m\dot\alpha}$, so
 its $C_{mq}$ is the whole of its damping.
 
-For example, at Mach 2.375 HPR Sim's fins lift 5.57 per radian at 3.98 calibers behind the
-reference point, which gives $-2 \times 5.57 \times 3.98^2 = -176.4$. With the body's −49.9 it is
-−226.2, against DREV's −306.5: 26.2% less damping.
+For example, at Mach 2.375 HPR Sim's fins lift 5.573 per radian at 3.978 calibers behind the
+reference point, which gives $-2 \times 5.573 \times 3.978^2 = -176.4$. With the body's −49.85 it
+is −226.2, against DREV's −306.5: 26.2% less damping.
 
 | Mach | DREV's $C_{mq}$, per rad (probable error) | HPR Sim's body, per rad | HPR Sim's fins, per rad | HPR Sim's $C_{mq}$, per rad | error |
 |--:|--:|--:|--:|--:|--:|
@@ -4901,7 +4902,7 @@ of the wedge's band. It stays below DREV's even with the trailing edges at a vac
 base can add: so the miss is not the wedge's base. Its cause is not found
 ([#1513](https://github.com/nrdptel/fusionspace-eridanus/issues/1513)). The candidates are the
 body's base, the friction and how the fins' bases share the body's wake, and none is measured
-here. On this body a drag that low would put a simulated apogee too high. At Mach 1.293 the
+here. On this body a drag that low would, other things equal, put a simulated apogee too high. At Mach 1.293 the
 drag is inside the shots' spread. At Mach 1.077 it reads high, but there the wedge's trailing
 edges carry most of the band and rest on one steep figure.
 
@@ -4916,7 +4917,7 @@ sign and size, for the drag and the damping.
 **What it leaves out.**
 
 - **The wedge's base beside the body's.** The fins end flush with the body's base. No source
-  measures a fin's base pressure there, so the band is a free two-dimensional base's.
+  read here measures a fin's base pressure there, so the band is a free two-dimensional base's.
 - **Spin.** The fits pool models with fins canted 0°, 2° and 4°. The design's fins are not
   canted, and the drag of rolling is not modeled.
 - **The drag's growth with angle.** The table's $C_{X2}$ is not compared; HPR Sim's $C_{D0}$ is

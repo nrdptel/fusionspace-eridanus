@@ -5,9 +5,10 @@ oblique-shock theory gives the four wedges' faces 0.012–0.043 of C_X (on π d�
 theory reads 5–8% low. At Mach 1.077 the shock is detached: transonic theory gives 0.110, linear theory 26% less.
 Turbulent two-dimensional tests put the trailing edges' base drag at 0.10–0.12 (Mach 3.15) to 0.37–0.49 (1.29) on the
 base area; HPR Sim's 0.25/M is 21–68% low, most at low Mach. The bases add 0.04–0.20 to C_X (0.24–0.29 at 1.077), above
-the 0.04–0.08 "rough bound" in [finner-reference-data](finner-reference-data.md) below Mach 2.4. The wave drag is
-closed-form theory, sure to a few percent; base values are read off figures (±0.01; ±0.05 at 1.077). How a fin base
-flush with the body's base behaves is unbounded. "Inference" marks this note's own reasoning.
+the 0.04–0.08 "rough bound" in [finner-reference-data](finner-reference-data.md) at Mach 1.832 and below. The wave drag
+is closed-form theory, sure to a few percent; base values are read off figures (±0.01; ±0.05 at 1.077). How a fin base
+flush with the body's base behaves is unbounded. "Inference" marks this note's own reasoning. Readings not in
+`basic-finner-wedge.json` (neighbouring points, checks, §4–5's other figures) were read by eye and are not committed.
 
 ## 1. Geometry and conversions
 
@@ -17,7 +18,7 @@ on the chord, and four fins of planform d × d give C_X = (16/π) c_d = 5.093 c_
 
 ## 2. Face wave drag, shock attached (Mach 1.293 to 3.147)
 
-**The exact faces carry 5–8% more pressure than linear theory.** θ is the weak root of NACA 1135 eq. 139a [S1] p. 621
+**The exact faces carry 5–9% more pressure than linear theory.** θ is the weak root of NACA 1135 eq. 139a [S1] p. 621
 (PDF p. 10); C_p = 4(M² sin²θ − 1)/[(γ+1)M²] is eq. 145, second order the first two terms of eq. 152 [S1] p. 622 (PDF
 p. 11), and linear C_p = 2δ/√(M² − 1). All computed with γ = 1.4 (Inference: evaluated, not read off a chart).
 
@@ -63,10 +64,11 @@ estimates [S4] p. 34 (PDF p. 36). Both read by pixels, checked on their vacuum c
 | 2.718 | 0.193 | 0.15 | 0.13–0.14 | 0.13–0.15 | 0.092 | 29–39% | 0.053–0.061 | 0.037 |
 | 3.147 | 0.144 | 0.11–0.12 | 0.10–0.12 | 0.10–0.12 | 0.079 | 21–34% | 0.041–0.049 | 0.032 |
 
-- **Direct check.** Tripped blunt wings, Fig. 8 of [S5] p. 8 (PDF p. 11), at this fin's c/[h Re^(1/5)] = 0.69–0.85
-  (c/h = 12.5, chord Reynolds number 0.7–1.9 × 10⁶): p_b/p∞ = 0.50, 0.36, 0.20, so C_DB = 0.32 at Mach 1.5, 0.23 at
-  2.0, 0.12 at 3.1 (Inference: × 2/(γM²)). Hoerner's Mach 2 example, 0.65 of vacuum at C_fB = 0.12 [S3] pp. 16-12 to
-  16-13, gives 0.23 too; this fin's C_fB is 0.10–0.13 (Inference: 2 × 0.074 Re^(−1/5) × c/h).
+- **Direct check.** Tripped blunt wings, Fig. 8 of [S5] p. 8 (PDF p. 11), at this fin's c/[h Re^(1/5)] = 0.68–0.84 (c/h
+  = 12.5, chord Reynolds number 0.7–2.1 × 10⁶): p_b/p∞ = 0.50, 0.36, 0.20, so C_DB = 0.32 at Mach 1.5, 0.23 at 2.0, 0.12
+  at 3.1 (Inference: × 2/(γM²)). Hoerner's example, 0.65 of vacuum at C_fB = 0.12, is at Mach 1.5 (0.39) [S3] pp. 16-12
+  to 16-13; at Mach 2 it gives 0.23 too (Inference); this fin's C_fB is 0.10–0.13 (Inference: 2 × 0.074 Re^(−1/5) ×
+  c/h).
 - **Robust to shape.** With turbulent flow, Reynolds number, profile, boattail angle and angle of attack mattered
   little; Mach number dominated [S5] p. 1 (PDF p. 4). So the wedge's 2.3° flare should not matter (Inference).
 - **Mach 1.077 is the weak point.** Love's data start near Mach 1.16. Hoerner's peak near 0.8 at Mach 1.0 and fall
@@ -96,7 +98,7 @@ estimates [S4] p. 34 (PDF p. 36). Both read by pixels, checked on their vacuum c
   widened to 0.43–0.72 to hold Love's estimate too. The aerodynamics page gives the result.
 - **The rule itself.** If 0.25/M is as low on other thin blunt fin edges, square-finned rockets get too little drag
   above Mach 1 and apogees read high; not sized here. [finner-reference-data](finner-reference-data.md)'s C_pb of
-  −0.1 to −0.2 holds only above about Mach 2.4.
+  −0.1 to −0.2 holds only above about Mach 2 (outside at 1.832, inside at 2.375).
 
 ## Open questions
 

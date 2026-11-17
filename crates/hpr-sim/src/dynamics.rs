@@ -890,7 +890,8 @@ mod tests {
         let cg = vehicle.assembly.mass_properties(0.0).cg_m;
         let d = vehicle.aero.reference_diameter_m();
         // A pitch rate of `q d/(2V)` = 1e-5. The body lift grows as the angle times its size, so
-        // the two part by a share that falls with the rate: 1.7e-4 at 1e-4, 1.7e-6 at 1e-6.
+        // the two part by a share that falls with the rate; at this one it is inside the 1e-4
+        // held below.
         let rate = 1e-5;
         for mach in [0.5, 1.293, 1.832, 2.375, 3.147] {
             let speed = mach * air.speed_of_sound_m_s;

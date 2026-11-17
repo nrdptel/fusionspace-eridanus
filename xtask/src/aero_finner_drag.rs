@@ -359,3 +359,185 @@ fn compare(
         "rows": rows,
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The aerodynamics page's two tables and the figures its sentences and the accuracy page
+    /// quote come from the committed report, so a figure that drifts from it on a page can't pass
+    /// for it. The decision record is not held: it says what was found on its date.
+    #[test]
+    fn the_pages_quote_the_committed_report() {
+        let root = crate::designs::root().unwrap();
+        let report = read(&root, FIXTURE).unwrap();
+        let reference = read(&root, REFERENCE).unwrap();
+        // A page as running text: each run of spaces and line breaks one space, and a quoted
+        // note's `>` marks dropped.
+        let page = |name: &str| {
+            let text = std::fs::read_to_string(root.join(name)).unwrap();
+            let words = text.split_whitespace().filter(|word| *word != ">");
+            words.collect::<Vec<_>>().join(" ")
+        };
+        let aero = page("docs/physics/aero.md");
+        let accuracy = page("docs/accuracy.md");
+        let has = |text: &str, name: &str, sentence: &str| {
+            assert!(text.contains(sentence), "{name} lacks: {sentence}");
+        };
+        let f = |v: &Value| v.as_f64().unwrap();
+        // A figure as the pages write it, with a true minus sign.
+        let minus = |text: String| text.replace('-', "\u{2212}");
+        let percent = |x: f64| minus(format!("{:+.1}%", 100.0 * x));
+        let unsigned = |x: f64| format!("{:.1}%", 100.0 * x.abs());
+        let rows = report["rows"].as_array().unwrap();
+        let readings = reference["rows"].as_array().unwrap();
+        assert_eq!(rows.len(), 6);
+        assert_eq!(readings.len(), 6);
+        for (row, reading) in rows.iter().zip(readings) {
+            let mach = f(&row["mach"]);
+            let unedged = f(&row["hpr_cd0_as_drawn"])
+                - f(&row["hpr_fins_leading_edge"])
+                - f(&row["hpr_fins_trailing_edge"]);
+            let drag_row = format!(
+                "| {mach} | {:.3} | {:.3} to {:.3} | {unedged:.3} | {:.3} | {:.3} to {:.3} | {:.3} \
+                 ({:.3} to {:.3}) | {} ({} to {}) |",
+                f(&row["reference_cx0"]),
+                f(&row["shots_cx0_low"]),
+                f(&row["shots_cx0_high"]),
+                f(&row["wedge_faces"]),
+                f(&row["wedge_trailing_edge_low"]),
+                f(&row["wedge_trailing_edge_high"]),
+                f(&row["hpr_cd0"]),
+                f(&row["hpr_cd0_low"]),
+                f(&row["hpr_cd0_high"]),
+                percent(f(&row["cd0_error"])),
+                percent(f(&row["cd0_error_low"])),
+                percent(f(&row["cd0_error_high"])),
+            );
+            has(&aero, "the aero page", &drag_row);
+            let damping_row = minus(format!(
+                "| {mach} | {:.1} ({}%) | {:.1} | {:.1} | {:.1} |",
+                f(&row["reference_cmq"]),
+                f(&reading["cmq_probable_error_percent"]),
+                f(&row["hpr_cmq_body"]),
+                f(&row["hpr_cmq_fins"]),
+                f(&row["hpr_cmq"]),
+            ));
+            has(
+                &aero,
+                "the aero page",
+                &format!("{damping_row} {} |", percent(f(&row["cmq_error"]))),
+            );
+        }
+        let at = |i: usize, key: &str| f(&rows[i][key]);
+        // The bands, as both pages give them, unsigned: "high" and "low" say which way.
+        let by_band = format!(
+            "From Mach 1.5 to 2.5, the band this comparison was added for, the drag reads {} and {} \
+             low and the damping {} and {} low. Below Mach 1.5 the drag reads {} high and {} low, \
+             and the damping {} high and {} low. From Mach 2.5 to 3.5 the drag reads {} and {} low \
+             and the damping {} and {} low.",
+            unsigned(at(2, "cd0_error")),
+            unsigned(at(3, "cd0_error")),
+            unsigned(at(2, "cmq_error")),
+            unsigned(at(3, "cmq_error")),
+            unsigned(at(0, "cd0_error")),
+            unsigned(at(1, "cd0_error")),
+            unsigned(at(0, "cmq_error")),
+            unsigned(at(1, "cmq_error")),
+            unsigned(at(4, "cd0_error")),
+            unsigned(at(5, "cd0_error")),
+            unsigned(at(4, "cmq_error")),
+            unsigned(at(5, "cmq_error")),
+        );
+        has(&aero, "the aero page", &by_band);
+        let accuracy_row = format!(
+            "the drag {} and {} low from Mach 1.5 to 2.5, {} and {} low from Mach 2.5 to 3.5, \
+             below every shot of its row and below DREV's even with the fins' bases at a vacuum; \
+             below Mach 1.5, {} high at Mach 1.077, above every shot, and {} low at 1.293, inside \
+             the shots' spread. The cause is not found. The pitch damping {} and {} low from Mach \
+             1.5 to 2.5, {} and {} low from 2.5 to 3.5, and {} low at Mach 1.293",
+            unsigned(at(2, "cd0_error")),
+            unsigned(at(3, "cd0_error")),
+            unsigned(at(4, "cd0_error")),
+            unsigned(at(5, "cd0_error")),
+            unsigned(at(0, "cd0_error")),
+            unsigned(at(1, "cd0_error")),
+            unsigned(at(2, "cmq_error")),
+            unsigned(at(3, "cmq_error")),
+            unsigned(at(4, "cmq_error")),
+            unsigned(at(5, "cmq_error")),
+            unsigned(at(1, "cmq_error")),
+        );
+        has(&accuracy, "the accuracy page", &accuracy_row);
+        has(
+            &accuracy,
+            "the accuracy page",
+            &format!("At Mach 1.077 it is {} high", unsigned(at(0, "cmq_error"))),
+        );
+        // The ranges the sentences quote, each over the rows it names.
+        let range = |key: &str, from: usize| {
+            let values = rows[from..].iter().map(|row| f(&row[key]).abs());
+            let (low, high) = values.fold((f64::INFINITY, 0.0_f64), |(low, high), x| {
+                (low.min(x), high.max(x))
+            });
+            (unsigned(low), unsigned(high))
+        };
+        let (low, high) = range("cd0_error", 2);
+        has(
+            &aero,
+            "the aero page",
+            &format!(
+                "zero-lift drag reads {low} to {high} below the measured one from Mach 1.83 to 3.15"
+            ),
+        );
+        let (low, high) = range("cmq_error", 2);
+        has(
+            &aero,
+            "the aero page",
+            &format!("its pitch damping {low} to {high} below it."),
+        );
+        let (low, high) = range("cd0_error_as_drawn", 0);
+        has(
+            &aero,
+            "the aero page",
+            &format!("as drawn HPR Sim's drag reads {low} to {high} above DREV's"),
+        );
+        let reynolds = rows.iter().map(|row| f(&row["reynolds_per_m"]) / 1e6);
+        let (low, high) = reynolds.fold((f64::INFINITY, 0.0_f64), |(low, high), x| {
+            (low.min(x), high.max(x))
+        });
+        has(
+            &aero,
+            "the aero page",
+            &format!("Reynolds numbers, {low:.1} to {high:.1} million per meter."),
+        );
+        // How far the two-dimensional trailing-edge band lies above HPR Sim's rule, and how many
+        // of the fit's probable errors the damping misses by where the shock stands attached.
+        let ratios = rows.iter().flat_map(|row| {
+            let rule = f(&row["hpr_fins_trailing_edge"]);
+            [
+                f(&row["wedge_trailing_edge_low"]) / rule,
+                f(&row["wedge_trailing_edge_high"]) / rule,
+            ]
+        });
+        let (low, high) = ratios.fold((f64::INFINITY, 0.0_f64), |(low, high), x| {
+            (low.min(x), high.max(x))
+        });
+        has(
+            &aero,
+            "the aero page",
+            &format!("It lies {low:.1} to {high:.1} times above HPR Sim's own trailing-edge rule"),
+        );
+        let misses = rows[1..]
+            .iter()
+            .map(|row| f(&row["cmq_error"]).abs() / f(&row["reference_cmq_probable_error"]));
+        let (low, high) = misses.fold((f64::INFINITY, 0.0_f64), |(low, high), x| {
+            (low.min(x), high.max(x))
+        });
+        has(
+            &aero,
+            "the aero page",
+            &format!("by {low:.1} to {high:.1} times the fit's probable error"),
+        );
+    }
+}
