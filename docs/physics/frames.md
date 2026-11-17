@@ -14,8 +14,9 @@ rocket's body, attitude and launch angles.
   launch-angle convention.
 - **How well it is validated:** unit tests, and one check against another simulator. For 8 rail
   setups, launch angles give RocketPy's starting attitude to 1e-12 rad. Over 1e6 integration
-  steps, attitude stays within 1e-9 rad of the exact answer. Two of NASA's check cases fly
-  through the launch frame against the codes NASA published
+  steps, attitude stays within 1e-9 rad of the exact answer. Eight of NASA's check cases fly
+  through the launch frame against the codes NASA published, two of them shots that carry a
+  body 6.9 km (4.3 mi) from the pad, which come out inside the codes' spread
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   No real-flight check.
 - **What it leaves out:** heights are above the WGS 84 ellipsoid, not sea level. The two are up
@@ -205,7 +206,8 @@ $$
 - In `hpr_core::attitude::tests`: the kinematic equation checked against a closed-form coning
   motion, and norm drift ≤ 1e-12 over 1e6 RK4 steps with attitude error < 1e-9 rad.
 - `cargo xtask check-cases`, held by the gate where the codes' files are fetched: NASA's check
-  cases 1 and 2 flown in the launch frame
+  cases 1 to 3 and 6 to 10 flown in the launch frame, the positions of cases 6 to 10 turned into
+  Earth-fixed axes and compared as distances
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   Two things of this page are in them. The height above the ellipsoid is read back from the
   launch frame along a 4.4 km (2.7 mi) fall, down the site's vertical on the equator, where the

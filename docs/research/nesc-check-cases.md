@@ -15,12 +15,13 @@ Rigid-body flight and Time integration rows of the [accuracy table](../accuracy.
 [S5] and its 81 time-history files, read or counted 2026-10-18. **How far to trust it.** Case data come from the TM.
 Spreads in feet and degrees per second are this note's reading of the cached CSV files, marked **Inference**.
 Page numbers are the reports' own headers ("N of 26", "N of 609"). When this was written HPR Sim had flown no case; it has
-since flown cases 1 and 2 ([ADR-353][adr-353], [report](../../validation/reports/check-cases.md)). For [ADR-143][adr-143] §6b,
+since flown cases 1 to 3 and 6 to 10 ([ADR-353][adr-353], [ADR-356][adr-356], [report](../../validation/reports/check-cases.md)). For [ADR-143][adr-143] §6b,
 [M1.14b, references from Mach 1.5 to 2.5](../decisions-and-roadmap.md#m1-14b) ("each … reported or refused").
 
 [adr-143]: ../decisions/0143-the-operating-envelope-and-a-stop-rule-for.md
 [adr-011]: ../decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-353]: ../decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
+[adr-356]: ../decisions/0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md
 [adr-003]: ../decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 
 ## 1. What NESC published
@@ -142,11 +143,14 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
   to 0.01633 deg/s from the kept codes, which the dropped terms account for to inside their spread ([ADR-353][adr-353]).
 - **Case 3: needs** constant roll, pitch and yaw damping on a finless body; HPR Sim's roll damping comes from fins.
   New: damping on three axes. Until then, refused. [ADR-351](../decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md) later gave it to M1.14b4's free body.
+  Flown: past the spread by up to 0.005633 deg/s, the Earth's rate again ([ADR-356][adr-356]).
 - **Cases 4 and 5: need** inverse-square gravitation on a sphere. HPR Sim's four gravity models are a constant and
   three WGS-84 forms; on its default it would sit about case 6's 8.1 ft from case 5, model not code (**Inference**).
 - **Case 6: fits** once drag acts along the air-relative velocity, as a sphere's does: body x points north and the
   sphere falls along body z, at 90° angle of attack, where axial-only drag gives no force (SIM 5's drag is all on
   body z [S5 data]). New: a drag fall through the layered 1976 atmosphere against six codes, within 0.90 ft.
+  Flown, with 6 to 10: past the spread in 6 to 8 by up to 105.0 mm, traced to gravity and the codes' own air
+  density; 9 and 10 inside it ([ADR-356][adr-356]).
 - **Cases 7 and 8: fit** with the same drag. New: steady and sheared wind on a free body.
 - **Cases 9 and 10: fit,** with the same drag (45°). New: a 6.9 km shot, where the pad's tangent plane sits 3.7 m
   (12 ft) above the ellipsoid (**Inference**): a test, inside a 4.3 ft spread, of the conversion HPR Sim uses for
@@ -172,7 +176,7 @@ Case 14, on "Mach effects in tables", was never finished [S1 p. 16]; case 17's M
 - **Pin and cache.** Done for `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`) and both TM volumes, in
   `validation/refs.lock.toml` as `fetched`; `Atmospheric_models.zip` (`10e2dc26…`) is not pinned, since nothing reads it.
 - **A check-case runner.** Done for cases 1 and 2: `cargo xtask check-cases` ([ADR-353][adr-353]). Neither came out
-  within the spread, as expected of case 1 and not of case 2. Cases 6 to 10 follow once a sphere's drag can be flown.
+  within the spread, as expected of case 1 and not of case 2. Cases 3 and 6 to 10 followed ([ADR-356][adr-356]).
 
 ## Open questions
 

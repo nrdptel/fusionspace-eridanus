@@ -1,5 +1,5 @@
-//! NASA's check cases 1 and 2 flown by a free body (M1.14b3), written by `cargo xtask
-//! check-cases` to `validation/reports/check-cases.json` and `.md`.
+//! NASA's check cases 1 to 3 and 6 to 10 flown by a free body (M1.14b3 and M1.14b4), written by
+//! `cargo xtask check-cases` to `validation/reports/check-cases.json` and `.md`.
 //!
 //! - **The reference** is NASA/TM-2015-218675 (Murri, Jackson and Shelton 2015; errata of
 //!   2025-09-08): six-degree-of-freedom check cases that several NASA codes and JSBSim each flew,
@@ -12,12 +12,21 @@
 //! - **Case 2, the tumbling brick** (Tables 4 and 26, with the errata's 30,000 ft): three unequal
 //!   moments of inertia, started at inertial rates of 10, 20 and 30 deg/s about its roll, pitch
 //!   and yaw axes, no aerodynamics. Compared: each inertial body rate.
-//! - **HPR Sim's side** is [`hpr_sim::FreeBody`]: the flight's gravity, Coriolis force, rigid-body
-//!   equations and integrator at their defaults, on a body of the report's mass and inertia, from
-//!   the report's initial conditions through its unit factors (Table 73).
+//! - **Case 3, the tumbling brick with damping** (Tables 4, 5 and 27, the errata's 30,000 ft):
+//!   case 2 with Table 5's constant roll, pitch and yaw damping coefficients, applied here as
+//!   moments ([`Load::Damping`] states the law). Compared: each inertial body rate.
+//! - **Cases 6 to 10, the sphere with drag** (Tables 1, 2 and 30 to 34): case 1's sphere with
+//!   Table 2's constant drag coefficient, applied here along its velocity through the air
+//!   ([`Load::Drag`]): dropped from 30,000 ft in still air (6), in a steady wind (7) and in a wind
+//!   that grows with height (8), and shot from sea level at 1,000 ft/s up and 1,000 ft/s east (9)
+//!   or north (10). Compared: the position, as the distance between HPR Sim's and the code's.
+//! - **HPR Sim's side** is [`hpr_sim::FreeBody`]: the flight's gravity, Coriolis force, air,
+//!   wind, rigid-body equations and integrator at their defaults, on a body of the report's mass
+//!   and inertia, from the report's initial conditions through its unit factors (Table 73).
 //! - **The codes' spread** is the largest difference between any two codes at a time every
-//!   code's file has. One code is left out, and named, when leaving it out cuts that spread by
-//!   more than half; the spread of the rest is then the measure.
+//!   code's file has; for a position, the largest distance. One code is left out, and named,
+//!   when leaving it out cuts that spread by more than half; the spread of the rest is then the
+//!   measure.
 //! - **A trace.** Where HPR Sim differs from a kept code by more than the spread, the difference
 //!   is set beside the size of a named difference between the two models, computed here apart
 //!   from the flight; what that leaves is the unexplained part.
@@ -28,10 +37,13 @@ use std::fs;
 use std::io::Read as _;
 use std::path::Path;
 
-use hpr_core::geodesy::Geodetic;
+use hpr_atmos::{ConstantWind, LayeredWind, WindInterpolation, WindLevel};
+use hpr_core::geodesy::{Ellipsoid, Geodetic};
 use hpr_core::gravity::NormalGravity;
 use hpr_core::{DMat3, DQuat, DVec3};
-use hpr_sim::{Adaptive, Environment, FreeBody, Method, State};
+use hpr_sim::{
+    Adaptive, Environment, FreeBody, FreeBodyLoads, LoadInputs, Loads, Method, SimError, State,
+};
 use serde_json::{Value, json};
 
 /// The committed report.
@@ -43,11 +55,11 @@ const ARCHIVE: &str = "refs/sources/nesc-check-cases/Atmospheric_checkcases.zip"
 
 /// `cargo xtask check-cases`'s lines in the command list.
 pub const USAGE: &str = "\
-  check-cases [--check]    Fly NASA/TM-2015-218675's check cases 1 and 2 with a free body against
-                           each code's time history, read from the pinned archive under refs/, and
-                           write only differences and spreads to validation/reports/check-cases.json
-                           and .md. --check fails if the committed report differs instead of
-                           writing.";
+  check-cases [--check]    Fly NASA/TM-2015-218675's check cases 1 to 3 and 6 to 10 with a free
+                           body against each code's time history, read from the pinned archive
+                           under refs/, and write only differences and spreads to
+                           validation/reports/check-cases.json and .md. --check fails if the
+                           committed report differs instead of writing.";
 
 /// Table 73's unit factors, exact: the foot in meters and the pound-force in newtons.
 const FOOT_M: f64 = 0.3048;
@@ -57,37 +69,193 @@ const SLUG_KG: f64 = POUND_FORCE_N / FOOT_M;
 const SLUG_FT2_KG_M2: f64 = POUND_FORCE_N * FOOT_M;
 /// Table 73's second zonal harmonic, the one the codes' gravitation carries.
 const J2: f64 = 0.001_082_629_82;
-/// Both cases start 30,000 ft above the ellipsoid and run 30 s (Tables 25 and 26, errata).
+/// The dropped cases start 30,000 ft above the ellipsoid (Tables 25 to 32, errata); every case
+/// runs 30 s.
 const START_HEIGHT_M: f64 = 30_000.0 * FOOT_M;
 const DURATION_S: f64 = 30.0;
 
+/// What a case compares, which decides how HPR Sim's state and the codes' files are read.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Measure {
+    /// The altitude above the ellipsoid, m (case 1).
+    Altitude,
+    /// The inertial body rates about the roll, pitch and yaw axes, deg/s (cases 2 and 3).
+    InertialRates,
+    /// The position in Earth-fixed axes, m, compared as the distance between two positions
+    /// (cases 6 to 10).
+    Position,
+}
+
+/// How a quantity is read from a code's file.
+#[derive(Clone, Copy, Debug)]
+enum Reading {
+    /// One column, times a factor to the report's unit.
+    Column { column: &'static str, factor: f64 },
+    /// The latitude and longitude in degrees and the altitude in feet, turned into an
+    /// Earth-fixed position on WGS 84. Every code's file holds those three; two hold no
+    /// Earth-fixed position of their own.
+    Position,
+}
+
 /// One compared quantity of a case.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Quantity {
     /// Its key in the report.
     key: &'static str,
     /// What it is, in words.
     name: &'static str,
-    /// Its column in the codes' files.
-    column: &'static str,
-    /// The factor from the column's unit to the report's.
-    factor: f64,
+    /// How it is read from the codes' files.
+    reading: Reading,
     /// The report's unit.
     unit: &'static str,
 }
 
-/// A case: its body, its start and what is compared.
+impl Quantity {
+    /// Whether it is compared as a distance between two points, not as a signed difference.
+    fn is_distance(&self) -> bool {
+        matches!(self.reading, Reading::Position)
+    }
+}
+
+/// The loads the test puts on the body; the free body has no aerodynamics of its own.
+#[derive(Clone, Copy, Debug)]
+enum Load {
+    /// None but gravity and the Coriolis force (cases 1 and 2).
+    None,
+    /// Table 5's damping (case 3). The report gives the coefficients `C_lp`, `C_mq` and `C_nr`,
+    /// a reference area `S`, a span `b` and a chord `c̄`, but no formula. The test takes the
+    /// usual one: the moment about each axis is `q̄ S l C (ω l / 2V)`, with `q̄ = ½ρV²` the
+    /// dynamic pressure, `V` the speed through the air, `ω` the inertial body rate about that
+    /// axis and `l` its length, the span `b` for roll and yaw and the chord `c̄` for pitch;
+    /// `ω l / 2V` is the rate made dimensionless. Written as `¼ ρ V S l² C ω`, it needs no
+    /// division and is zero at rest. The rate is the inertial one, relative to the stars, as the
+    /// codes' files show: SIM 1's roll and yaw moments follow this law in that rate to 1.4e-4
+    /// and 5e-7 of their size over the first 8 s, and to 8.8e-3 and 9.9e-5 in the rate relative
+    /// to the Earth.
+    Damping {
+        area_m2: f64,
+        span_m: f64,
+        chord_m: f64,
+        /// `C_lp`, `C_mq` and `C_nr`.
+        coefficients: [f64; 3],
+    },
+    /// A constant drag coefficient (cases 6 to 10): `F = −q̄ S C_D v / |v|`, along the velocity
+    /// through the air `v`, whatever way the body points. A sphere's drag acts so; HPR Sim's
+    /// rocket drag acts along the body's axis instead.
+    Drag { area_m2: f64, coefficient: f64 },
+}
+
+/// The test's loads on a body, as the free body asks for them.
+struct TestLoads {
+    load: Load,
+    /// The Earth's rate in the launch frame's axes, rad/s, for the inertial body rate.
+    earth_rate_enu_rad_s: DVec3,
+}
+
+impl FreeBodyLoads for TestLoads {
+    fn loads(&self, inputs: &LoadInputs) -> Result<Loads, SimError> {
+        let density = inputs.air.density_kg_m3;
+        let through_air = inputs.air_velocity_body_m_s;
+        let speed = through_air.length();
+        Ok(match self.load {
+            Load::None => Loads::default(),
+            Load::Damping {
+                area_m2,
+                span_m,
+                chord_m,
+                coefficients,
+            } => {
+                let state = &inputs.state;
+                let inertial = state.body_rate_rad_s
+                    + state
+                        .attitude
+                        .conjugate()
+                        .mul_vec3(self.earth_rate_enu_rad_s);
+                let lengths = DVec3::new(span_m, chord_m, span_m);
+                Loads {
+                    force_body_n: DVec3::ZERO,
+                    moment_body_n_m: lengths
+                        * lengths
+                        * DVec3::from_array(coefficients)
+                        * inertial
+                        * (0.25 * density * speed * area_m2),
+                }
+            }
+            Load::Drag {
+                area_m2,
+                coefficient,
+            } => Loads {
+                force_body_n: through_air * (-0.5 * density * speed * area_m2 * coefficient),
+                moment_body_n_m: DVec3::ZERO,
+            },
+        })
+    }
+}
+
+/// The air's motion in a case.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Air {
+    /// Still air.
+    Still,
+    /// Case 7: a steady 20 ft/s from due west.
+    Steady,
+    /// Case 8: from the west at `(0.003 h − 20)` ft/s, `h` the height above mean sea level in
+    /// feet (Table 32).
+    Shear,
+}
+
+/// Case 8's wind, ft/s from the west, at `height_ft` above mean sea level.
+fn shear_ft_s(height_ft: f64) -> f64 {
+    0.003 * height_ft - 20.0
+}
+
+/// A case's start: its height above the ellipsoid, its velocity relative to the Earth, its
+/// attitude and its body rates relative to the local frame (the errata's reading).
+#[derive(Clone, Copy, Debug)]
+struct Start {
+    height_m: f64,
+    /// North, east and down, ft/s, as the tables give it.
+    velocity_ned_ft_s: [f64; 3],
+    /// The body's axes in the launch frame's East-North-Up axes.
+    attitude: DQuat,
+    /// Roll, pitch and yaw rates relative to the local frame, deg/s.
+    rates_deg_s: [f64; 3],
+}
+
+/// The named difference between the models that a case's trace sizes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Trace {
+    /// WGS 84's normal gravity against gravitation cut off after `J₂` (case 1).
+    Gravity,
+    /// The Earth's rate left out of HPR Sim's rotational equations (cases 2 and 3).
+    EarthRate,
+    /// Case 1's gravity and each code's own air density, along a point mass's flight with the
+    /// case's drag and wind (cases 6 to 10).
+    GravityOnTheFlight,
+}
+
+/// A case: its body, its loads, its air, its start and what is compared.
 struct Case {
     number: u32,
     name: &'static str,
     folder: &'static str,
     tables: &'static str,
     body: FreeBody,
-    /// Roll, pitch and yaw rates relative to the local frame at the start, deg/s.
-    rates_deg_s: [f64; 3],
+    load: Load,
+    air: Air,
+    start: Start,
+    measure: Measure,
+    trace: Trace,
     /// The named difference between HPR Sim's model and the codes' that the trace sizes.
-    model_difference: &'static str,
+    model_difference: Option<&'static str>,
     quantities: Vec<Quantity>,
+}
+
+/// The report's body axes at the start of every case but 9, in the launch frame's
+/// East-North-Up axes: x north, y east, z down (every Euler angle from the local North-East-Down
+/// frame is zero).
+fn start_attitude() -> DQuat {
+    DQuat::from_mat3(&DMat3::from_cols(DVec3::Y, DVec3::X, -DVec3::Z))
 }
 
 fn cases() -> Result<Vec<Case>, String> {
@@ -101,9 +269,87 @@ fn cases() -> Result<Vec<Case>, String> {
     let rate = |key, name, column| Quantity {
         key,
         name,
-        column,
-        factor: 1.0,
+        reading: Reading::Column {
+            column,
+            factor: 1.0,
+        },
         unit: "deg/s",
+    };
+    let rates = || {
+        vec![
+            rate(
+                "roll_rate",
+                "inertial roll rate",
+                "bodyAngularRateWrtEi_deg_s_Roll",
+            ),
+            rate(
+                "pitch_rate",
+                "inertial pitch rate",
+                "bodyAngularRateWrtEi_deg_s_Pitch",
+            ),
+            rate(
+                "yaw_rate",
+                "inertial yaw rate",
+                "bodyAngularRateWrtEi_deg_s_Yaw",
+            ),
+        ]
+    };
+    let position = || {
+        vec![Quantity {
+            key: "position",
+            name: "position",
+            reading: Reading::Position,
+            unit: "m",
+        }]
+    };
+    // Tables 1 and 4: the sphere and the brick.
+    let sphere = || body(1.0, [3.6, 3.6, 3.6]);
+    let brick = || body(0.155_404_754, [0.001_894_220, 0.006_211_019, 0.007_194_665]);
+    // Table 2: the sphere's constant drag coefficient on its reference area.
+    let drag = Load::Drag {
+        area_m2: 0.196_349_5 * FOOT_M * FOOT_M,
+        coefficient: 0.1,
+    };
+    // Dropped at rest relative to the Earth: the roll rate relative to the local frame is the
+    // Earth's, taken away, so the inertial rate is zero.
+    let dropped = Start {
+        height_m: START_HEIGHT_M,
+        velocity_ned_ft_s: [0.0; 3],
+        attitude: start_attitude(),
+        rates_deg_s: [-0.004_178_073, 0.0, 0.0],
+    };
+    let tumbling = Start {
+        rates_deg_s: [9.995_821_927, 20.0, 30.0],
+        ..dropped
+    };
+    // Cases 9 and 10: from sea level, 1,000 ft/s up and 1,000 ft/s along the ground, the body
+    // level and heading that way, not turning relative to the Earth.
+    let shot = Start {
+        height_m: 0.0,
+        velocity_ned_ft_s: [1000.0, 0.0, -1000.0],
+        attitude: start_attitude(),
+        rates_deg_s: [0.0; 3],
+    };
+    let sphere_case = |number, name, folder, tables, air, start| -> Result<Case, String> {
+        Ok(Case {
+            number,
+            name,
+            folder,
+            tables,
+            body: sphere()?,
+            load: drag,
+            air,
+            start,
+            measure: Measure::Position,
+            trace: Trace::GravityOnTheFlight,
+            model_difference: Some(
+                "WGS 84's normal gravity and the 1976 atmosphere, which HPR Sim flies in, less \
+                 gravitation cut off after J2 with the centrifugal term and the code's own air \
+                 density as its file gives it, which the code flies in: a point mass flown in \
+                 each, with the same drag and wind, one position less the other",
+            ),
+            quantities: position(),
+        })
     };
     Ok(vec![
         Case {
@@ -111,16 +357,24 @@ fn cases() -> Result<Vec<Case>, String> {
             name: "the dragless sphere",
             folder: "Atmos_01_DroppedSphere",
             tables: "Volume II, Tables 1 and 25",
-            body: body(1.0, [3.6, 3.6, 3.6])?,
-            rates_deg_s: [-0.004_178_073, 0.0, 0.0],
-            model_difference: "WGS 84's normal gravity, which HPR Sim falls in, less gravitation \
-                               cut off after J2 with the centrifugal term, which the codes fall \
-                               in, integrated twice along the fall",
+            body: sphere()?,
+            load: Load::None,
+            air: Air::Still,
+            start: dropped,
+            measure: Measure::Altitude,
+            trace: Trace::Gravity,
+            model_difference: Some(
+                "WGS 84's normal gravity, which HPR Sim falls in, less gravitation cut off \
+                 after J2 with the centrifugal term, which the codes fall in, integrated twice \
+                 along the fall",
+            ),
             quantities: vec![Quantity {
                 key: "altitude",
                 name: "altitude",
-                column: "altitudeMsl_ft",
-                factor: FOOT_M,
+                reading: Reading::Column {
+                    column: "altitudeMsl_ft",
+                    factor: FOOT_M,
+                },
                 unit: "m",
             }],
         },
@@ -129,57 +383,140 @@ fn cases() -> Result<Vec<Case>, String> {
             name: "the tumbling brick",
             folder: "Atmos_02_TumblingBrickNoDamping",
             tables: "Volume II, Tables 4 and 26, with the errata's 30,000 ft",
-            body: body(0.155_404_754, [0.001_894_220, 0.006_211_019, 0.007_194_665])?,
-            rates_deg_s: [9.995_821_927, 20.0, 30.0],
-            model_difference: "the Earth's rate left out of HPR Sim's rotational equations: \
-                               Euler's equations in the rate relative to the Earth-fixed launch \
-                               frame, less the same equations in the rate relative to the stars",
-            quantities: vec![
-                rate(
-                    "roll_rate",
-                    "inertial roll rate",
-                    "bodyAngularRateWrtEi_deg_s_Roll",
-                ),
-                rate(
-                    "pitch_rate",
-                    "inertial pitch rate",
-                    "bodyAngularRateWrtEi_deg_s_Pitch",
-                ),
-                rate(
-                    "yaw_rate",
-                    "inertial yaw rate",
-                    "bodyAngularRateWrtEi_deg_s_Yaw",
-                ),
-            ],
+            body: brick()?,
+            load: Load::None,
+            air: Air::Still,
+            start: tumbling,
+            measure: Measure::InertialRates,
+            trace: Trace::EarthRate,
+            model_difference: Some(
+                "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
+                 equations in the rate relative to the Earth-fixed launch frame, less the same \
+                 equations in the rate relative to the stars",
+            ),
+            quantities: rates(),
         },
+        Case {
+            number: 3,
+            name: "the tumbling brick with damping",
+            folder: "Atmos_03_TumblingBrickDamping",
+            tables: "Volume II, Tables 4, 5 and 27, with the errata's 30,000 ft",
+            body: brick()?,
+            // Table 5.
+            load: Load::Damping {
+                area_m2: 0.222_22 * FOOT_M * FOOT_M,
+                span_m: 0.333_33 * FOOT_M,
+                chord_m: 0.666_67 * FOOT_M,
+                coefficients: [-1.0, -1.0, -1.0],
+            },
+            air: Air::Still,
+            start: tumbling,
+            measure: Measure::InertialRates,
+            trace: Trace::EarthRate,
+            model_difference: Some(
+                "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
+                 equations with the damping moment in the rate relative to the Earth-fixed \
+                 launch frame, less the same equations in the rate relative to the stars, both \
+                 damped by the inertial rate along the same fall",
+            ),
+            quantities: rates(),
+        },
+        sphere_case(
+            6,
+            "the sphere with drag",
+            "Atmos_06_DroppedSphereEllipsoidalNoWind",
+            "Volume II, Tables 1, 2 and 30",
+            Air::Still,
+            dropped,
+        )?,
+        sphere_case(
+            7,
+            "the sphere in a steady wind",
+            "Atmos_07_DroppedSphereSteadyWind",
+            "Volume II, Tables 1, 2 and 31",
+            Air::Steady,
+            dropped,
+        )?,
+        sphere_case(
+            8,
+            "the sphere in a wind that varies with height",
+            "Atmos_08_DroppedSphere2DWindShear",
+            "Volume II, Tables 1, 2 and 32",
+            Air::Shear,
+            dropped,
+        )?,
+        sphere_case(
+            9,
+            "the sphere shot east",
+            "Atmos_09_EastwardCannonball",
+            "Volume II, Tables 1, 2 and 33",
+            Air::Still,
+            // Table 33: east, the body's x axis east (yaw 90°): y south, z down.
+            Start {
+                velocity_ned_ft_s: [0.0, 1000.0, -1000.0],
+                attitude: DQuat::from_mat3(&DMat3::from_cols(DVec3::X, -DVec3::Y, -DVec3::Z)),
+                ..shot
+            },
+        )?,
+        sphere_case(
+            10,
+            "the sphere shot north",
+            "Atmos_10_NorthwardCannonball",
+            "Volume II, Tables 1, 2 and 34",
+            Air::Still,
+            shot,
+        )?,
     ])
 }
 
-/// The cases' site: 0° N, 0° E on the ellipsoid, WGS 84, the 1976 atmosphere, no wind.
-fn environment() -> Result<Environment, String> {
+/// The cases' site, 0° N, 0° E on the ellipsoid, on WGS 84 and the 1976 atmosphere, with the
+/// case's wind.
+fn environment(air: Air) -> Result<Environment, String> {
     let site = Geodetic::from_degrees(0.0, 0.0, 0.0).map_err(|e| e.to_string())?;
-    Environment::standard(site).map_err(|e| e.to_string())
-}
-
-/// The report's body axes at the start, in the launch frame's East-North-Up axes: x north, y
-/// east, z down (every Euler angle from the local North-East-Down frame is zero).
-fn start_attitude() -> DQuat {
-    DQuat::from_mat3(&DMat3::from_cols(DVec3::Y, DVec3::X, -DVec3::Z))
+    let still = Environment::standard(site).map_err(|e| e.to_string())?;
+    let from_west = 270.0_f64.to_radians();
+    Ok(match air {
+        Air::Still => still,
+        Air::Steady => {
+            still.with_wind(ConstantWind::new(20.0 * FOOT_M, from_west).map_err(|e| e.to_string())?)
+        }
+        Air::Shear => {
+            // Linear in its east component between levels, so exact between the calm level,
+            // where Table 32's formula crosses zero, and one above the case's start: the sphere
+            // stays between the two (it falls from 30,000 ft to about 16,300 ft).
+            let level = |height_ft: f64| WindLevel {
+                height_msl_m: height_ft * FOOT_M,
+                speed_m_s: shear_ft_s(height_ft) * FOOT_M,
+                direction_from_rad: from_west,
+            };
+            let wind = LayeredWind::new(
+                vec![level(20.0 / 0.003), level(30_000.0), level(40_000.0)],
+                WindInterpolation::Components,
+            )
+            .map_err(|e| e.to_string())?;
+            still.with_wind(wind)
+        }
+    })
 }
 
 fn start_state(case: &Case) -> State {
+    let [north, east, down] = case.start.velocity_ned_ft_s;
     State {
-        position_enu_m: DVec3::new(0.0, 0.0, START_HEIGHT_M),
-        velocity_enu_m_s: DVec3::ZERO,
-        attitude: start_attitude(),
-        body_rate_rad_s: DVec3::from_array(case.rates_deg_s.map(f64::to_radians)),
+        position_enu_m: DVec3::new(0.0, 0.0, case.start.height_m),
+        velocity_enu_m_s: DVec3::new(east, north, -down) * FOOT_M,
+        attitude: case.start.attitude,
+        body_rate_rad_s: DVec3::from_array(case.start.rates_deg_s.map(f64::to_radians)),
     }
 }
 
-/// One code's file: its name and its samples of each compared quantity, by time in milliseconds.
+/// One code's file: its name and, by time in milliseconds, its value of each compared quantity
+/// (one number, or a position's three).
 struct History {
     code: String,
-    samples: BTreeMap<i64, Vec<f64>>,
+    samples: BTreeMap<i64, Vec<Vec<f64>>>,
+    /// For a position's case, the code's own air by time: its altitude, m, and its air density
+    /// there, kg/m³.
+    air: BTreeMap<i64, [f64; 2]>,
 }
 
 impl History {
@@ -193,12 +530,20 @@ fn key(time_s: f64) -> i64 {
     (time_s * 1000.0).round() as i64
 }
 
-/// Reads a code's file: the time and each quantity's column, by name, over the case's duration.
-fn history(code: &str, text: &str, quantities: &[Quantity]) -> Result<History, String> {
-    let mut lines = text.lines().filter(|line| !line.trim().is_empty());
+/// Reads a code's file: the time and each quantity, by its columns' names, over the case's
+/// duration. Rows are numbered as the file numbers its lines, blank ones included.
+fn history(
+    code: &str,
+    text: &str,
+    quantities: &[Quantity],
+    ellipsoid: &Ellipsoid,
+) -> Result<History, String> {
+    let mut lines = text.lines().enumerate();
     let header: Vec<&str> = lines
         .next()
+        .filter(|(_, line)| !line.trim().is_empty())
         .ok_or_else(|| format!("{code}: empty file"))?
+        .1
         .split(',')
         .map(str::trim)
         .collect();
@@ -209,38 +554,75 @@ fn history(code: &str, text: &str, quantities: &[Quantity]) -> Result<History, S
             .ok_or_else(|| format!("{code}: no column `{name}`"))
     };
     let time = column("time")?;
+    // A position's case sizes its trace on the code's own air density.
+    let air_columns = if quantities.iter().any(Quantity::is_distance) {
+        Some([column("altitudeMsl_ft")?, column("airDensity_slug_ft3")?])
+    } else {
+        None
+    };
     let columns = quantities
         .iter()
-        .map(|q| column(q.column))
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|q| match q.reading {
+            Reading::Column { column: name, .. } => Ok(vec![column(name)?]),
+            Reading::Position => Ok(vec![
+                column("latitude_deg")?,
+                column("longitude_deg")?,
+                column("altitudeMsl_ft")?,
+            ]),
+        })
+        .collect::<Result<Vec<_>, String>>()?;
     let mut samples = BTreeMap::new();
-    for (row, line) in lines.enumerate() {
+    let mut air = BTreeMap::new();
+    for (index, line) in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let row = index + 1;
         let cells: Vec<&str> = line.split(',').collect();
         let number = |index: usize| -> Result<f64, String> {
             let cell = cells
                 .get(index)
-                .ok_or_else(|| format!("{code}: row {} is short", row + 2))?;
+                .ok_or_else(|| format!("{code}: row {row} is short"))?;
             let value: f64 = cell
                 .trim()
                 .parse()
-                .map_err(|_| format!("{code}: row {}: `{cell}` is no number", row + 2))?;
+                .map_err(|_| format!("{code}: row {row}: `{cell}` is no number"))?;
             if value.is_finite() {
                 Ok(value)
             } else {
-                Err(format!("{code}: row {}: `{cell}` is not finite", row + 2))
+                Err(format!("{code}: row {row}: `{cell}` is not finite"))
             }
         };
         let time_s = number(time)?;
         if !(0.0..=DURATION_S + 0.0005).contains(&time_s) {
             continue;
         }
-        let values = columns
-            .iter()
-            .zip(quantities)
-            .map(|(&index, q)| number(index).map(|value| value * q.factor))
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut values = Vec::with_capacity(quantities.len());
+        for (indices, quantity) in columns.iter().zip(quantities) {
+            let read = indices
+                .iter()
+                .map(|&index| number(index))
+                .collect::<Result<Vec<_>, _>>()?;
+            values.push(match quantity.reading {
+                Reading::Column { factor, .. } => vec![read[0] * factor],
+                Reading::Position => {
+                    let place = Geodetic::from_degrees(read[0], read[1], read[2] * FOOT_M)
+                        .map_err(|e| format!("{code}: row {row}: {e}"))?;
+                    ellipsoid.ecef_from_geodetic(place).to_array().to_vec()
+                }
+            });
+        }
         if samples.insert(key(time_s), values).is_some() {
             return Err(format!("{code}: the time {time_s} s comes twice"));
+        }
+        if let Some([height, density]) = air_columns {
+            air.insert(
+                key(time_s),
+                [
+                    number(height)? * FOOT_M,
+                    number(density)? * SLUG_KG / FOOT_M.powi(3),
+                ],
+            );
         }
     }
     let (Some((&first, _)), Some((&last, _))) =
@@ -257,15 +639,17 @@ fn history(code: &str, text: &str, quantities: &[Quantity]) -> Result<History, S
     Ok(History {
         code: code.to_owned(),
         samples,
+        air,
     })
 }
 
-/// Every code's file of a case, from the archive, in the codes' order.
-fn histories(archive: &[u8], case: &Case) -> Result<Vec<History>, String> {
+/// Every code's file of a case, from the archive, in the codes' order. Two files that name the
+/// same code are refused, as is a case with fewer than three.
+fn histories(archive: &[u8], case: &Case, ellipsoid: &Ellipsoid) -> Result<Vec<History>, String> {
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(archive))
         .map_err(|e| format!("{ARCHIVE}: {e}"))?;
     let prefix = format!("Atmospheric_checkcases/{}/", case.folder);
-    let mut files = Vec::new();
+    let mut files: BTreeMap<u32, (String, String)> = BTreeMap::new();
     for index in 0..zip.len() {
         let mut entry = zip
             .by_index(index)
@@ -287,12 +671,18 @@ fn histories(archive: &[u8], case: &Case) -> Result<Vec<History>, String> {
         entry
             .read_to_string(&mut text)
             .map_err(|e| format!("{name}: {e}"))?;
-        files.push((code, text));
+        if let Some((other, _)) = files.insert(code, (name.clone(), text)) {
+            return Err(format!("{name} and {other} are both SIM {code}'s"));
+        }
     }
-    files.sort_by_key(|(code, _)| *code);
     let mut out = Vec::new();
-    for (code, text) in files {
-        out.push(history(&format!("SIM {code}"), &text, &case.quantities)?);
+    for (code, (_, text)) in files {
+        out.push(history(
+            &format!("SIM {code}"),
+            &text,
+            &case.quantities,
+            ellipsoid,
+        )?);
     }
     if out.len() < 3 {
         return Err(format!(
@@ -310,57 +700,92 @@ fn flown(
     environment: &Environment,
     method: Method,
     times_s: &[f64],
-) -> Result<Vec<Vec<f64>>, String> {
+) -> Result<Vec<Vec<Vec<f64>>>, String> {
+    let earth_rate = environment.earth.angular_velocity_enu_rad_s();
+    let loads = TestLoads {
+        load: case.load,
+        earth_rate_enu_rad_s: earth_rate,
+    };
     let states = case
         .body
-        .fly(environment, method, 0.0, start_state(case), times_s)
+        .fly(environment, &loads, method, 0.0, start_state(case), times_s)
         .map_err(|e| format!("case {}: {e}", case.number))?;
     let frame = environment.earth.frame();
-    let earth_rate = environment.earth.angular_velocity_enu_rad_s();
     states
         .iter()
         .map(|state| {
-            Ok(match case.number {
-                1 => vec![
+            Ok(match case.measure {
+                Measure::Altitude => vec![vec![
                     frame
                         .geodetic_from_enu(state.position_enu_m)
                         .map_err(|e| e.to_string())?
                         .height_m,
-                ],
-                _ => {
+                ]],
+                Measure::InertialRates => {
                     // The rate relative to the stars, in body axes: the state's rate relative to
                     // the Earth-fixed launch frame plus the Earth's own, turned into the body.
                     let inertial = state.body_rate_rad_s
                         + state.unit_attitude().conjugate().mul_vec3(earth_rate);
-                    inertial.to_array().map(f64::to_degrees).to_vec()
+                    inertial
+                        .to_array()
+                        .map(|rate| vec![rate.to_degrees()])
+                        .to_vec()
+                }
+                Measure::Position => {
+                    vec![
+                        frame
+                            .ecef_from_enu(state.position_enu_m)
+                            .to_array()
+                            .to_vec(),
+                    ]
                 }
             })
         })
         .collect()
 }
 
+/// `a` less `b`: signed for one number, and for a position the distance between the two.
+fn less(a: &[f64], b: &[f64]) -> f64 {
+    match (a, b) {
+        ([a], [b]) => a - b,
+        _ => a
+            .iter()
+            .zip(b)
+            .map(|(a, b)| (a - b) * (a - b))
+            .sum::<f64>()
+            .sqrt(),
+    }
+}
+
+/// `a` less `b` less `c`, the same way.
+fn less_both(a: &[f64], b: &[f64], c: &[f64]) -> f64 {
+    let ab: Vec<f64> = a.iter().zip(b).map(|(a, b)| a - b).collect();
+    less(&ab, c)
+}
+
 /// The largest difference between any two of `histories` in quantity `index`, over the times
-/// every one of them has.
+/// every one of them has: for one number the highest less the lowest, for a position the
+/// largest distance between two.
 fn spread(histories: &[&History], index: usize) -> f64 {
     let Some((first, rest)) = histories.split_first() else {
         return 0.0;
     };
     let mut worst: f64 = 0.0;
     for (time, values) in &first.samples {
-        let mut low = values[index];
-        let mut high = low;
-        let mut shared = true;
+        let mut at = vec![&values[index]];
         for other in rest {
             match other.samples.get(time) {
-                Some(values) => {
-                    low = low.min(values[index]);
-                    high = high.max(values[index]);
-                }
-                None => shared = false,
+                Some(values) => at.push(&values[index]),
+                None => break,
             }
         }
-        if shared {
-            worst = worst.max(high - low);
+        if at.len() < histories.len() {
+            continue;
+        }
+        for (i, a) in at.iter().enumerate() {
+            for b in &at[i + 1..] {
+                worst = worst.max(less(a, b).abs());
+            }
         }
     }
     worst
@@ -375,13 +800,13 @@ struct Spread {
 }
 
 /// The rule of the report: the code left out is the one whose leaving cuts the spread most, and
-/// only if that cuts it by more than half. With three codes or fewer none is left out: two codes
-/// always agree with each other better than three do.
+/// only if that cuts it by more than half. Two codes must remain for a spread, so with two none
+/// is left out.
 fn spread_rule(histories: &[History], index: usize) -> Spread {
     let all: Vec<&History> = histories.iter().collect();
     let whole = spread(&all, index);
     let mut best: Option<(usize, f64)> = None;
-    if histories.len() > 3 {
+    if histories.len() > 2 {
         for out in 0..histories.len() {
             let rest: Vec<&History> = histories
                 .iter()
@@ -437,6 +862,18 @@ fn j2_gravity_ecef(field: &NormalGravity, p: DVec3) -> DVec3 {
         + DVec3::new(p.x, p.y, 0.0) * (omega * omega)
 }
 
+/// The codes' fall and HPR Sim's gap from it, down the site's vertical: the upward acceleration
+/// in the codes' field at `height_m`, and HPR Sim's normal gravity's less that.
+fn fall_and_gap(environment: &Environment, height_m: f64) -> Result<[f64; 2], String> {
+    let field = environment.earth.field();
+    let frame = environment.earth.frame();
+    let up_ecef = frame.ecef_from_enu_rotation() * DVec3::Z;
+    let p = frame.ecef_from_enu(DVec3::new(0.0, 0.0, height_m));
+    let codes = j2_gravity_ecef(field, p).dot(up_ecef);
+    let normal = field.ecef_mps2(p).map_err(|e| e.to_string())?.dot(up_ecef);
+    Ok([codes, normal - codes])
+}
+
 /// Case 1's named difference between the models, computed apart from the flight: HPR Sim falls in
 /// WGS 84's normal gravity, whose closed form holds every even zonal harmonic of the level
 /// ellipsoid, and the codes in gravitation cut off after `J₂`. The gap in the downward
@@ -444,18 +881,9 @@ fn j2_gravity_ecef(field: &NormalGravity, p: DVec3) -> DVec3 {
 /// their field, by RK4 at 1 ms) and integrated twice. Returns HPR Sim's altitude less the
 /// codes', m, at each of `times_s`.
 fn gravity_gap_m(environment: &Environment, times_s: &[f64]) -> Result<Vec<f64>, String> {
-    let field = environment.earth.field();
-    let frame = environment.earth.frame();
-    let up_ecef = frame.ecef_from_enu_rotation() * DVec3::Z;
-    let down_gap = |height_m: f64| -> Result<[f64; 2], String> {
-        let p = frame.ecef_from_enu(DVec3::new(0.0, 0.0, height_m));
-        let codes = j2_gravity_ecef(field, p).dot(up_ecef);
-        let normal = field.ecef_mps2(p).map_err(|e| e.to_string())?.dot(up_ecef);
-        Ok([codes, normal - codes])
-    };
     // State: the codes' height and climb rate, and the altitude gap and its rate.
     let derivative = |y: [f64; 4]| -> Result<[f64; 4], String> {
-        let [fall, gap] = down_gap(y[0])?;
+        let [fall, gap] = fall_and_gap(environment, y[0])?;
         Ok([y[1], fall, y[3], gap])
     };
     let step = 0.001;
@@ -479,64 +907,298 @@ fn gravity_gap_m(environment: &Environment, times_s: &[f64]) -> Result<Vec<f64>,
     Ok(out)
 }
 
-/// Euler's equations for a body with no torque on it: `ω̇ = I⁻¹(−ω × Iω)`, `I` diagonal.
-fn euler_rate(moments: DVec3, omega: DVec3) -> DVec3 {
-    -omega.cross(moments * omega) / moments
+/// One step of the classic fourth-order method on `y` by `step`.
+fn rk4<const N: usize>(
+    t: f64,
+    y: [f64; N],
+    step: f64,
+    derivative: impl Fn(f64, [f64; N]) -> Result<[f64; N], String>,
+) -> Result<[f64; N], String> {
+    let add = |k: [f64; N], h: f64| std::array::from_fn(|i| y[i] + h * k[i]);
+    let k1 = derivative(t, y)?;
+    let k2 = derivative(t + 0.5 * step, add(k1, 0.5 * step))?;
+    let k3 = derivative(t + 0.5 * step, add(k2, 0.5 * step))?;
+    let k4 = derivative(t + step, add(k3, step))?;
+    Ok(std::array::from_fn(|i| {
+        y[i] + step / 6.0 * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i])
+    }))
 }
 
-/// Case 2's named difference between the models, computed apart from the flight. The codes turn
-/// the brick by Euler's equations in its rate relative to the stars. HPR Sim's rotational
-/// equations leave the Earth's rate out (ADR-011): they turn it by the same equations in its rate
-/// relative to the Earth-fixed launch frame, and the inertial rate is that plus the Earth's,
-/// turned into the body. Both are integrated here by RK4 at 1 ms from the report's start.
-/// Returns, at each of `times_s`, the codes' model's inertial rates and HPR Sim's model's less
-/// those, deg/s.
-fn earth_rate_gap_deg_s(
+/// The code's air density over HPR Sim's at the code's own altitude, at one of its samples.
+fn sample_ratio(environment: &Environment, [height, density]: [f64; 2]) -> Result<f64, String> {
+    let ours = environment
+        .atmosphere
+        .air(height - environment.geoid_undulation_m)
+        .map_err(|e| e.to_string())?
+        .air
+        .density_kg_m3;
+    Ok(density / ours)
+}
+
+/// The code's air density over HPR Sim's at the code's own altitude, at `time_s`: linear
+/// between the file's samples, held past its ends.
+fn density_ratio(environment: &Environment, history: &History, time_s: f64) -> Result<f64, String> {
+    let ratio = |sample: [f64; 2]| sample_ratio(environment, sample);
+    let at = (time_s * 1000.0).round() as i64;
+    let below = history.air.range(..=at).next_back();
+    let above = history.air.range(at..).next();
+    match (below, above) {
+        (Some((&t0, &a)), Some((&t1, &b))) if t1 > t0 => {
+            let w = (time_s * 1000.0 - t0 as f64) / (t1 - t0) as f64;
+            let (r0, r1) = (ratio(a)?, ratio(b)?);
+            Ok(r0 + w * (r1 - r0))
+        }
+        (Some((_, &a)), _) | (None, Some((_, &a))) => ratio(a),
+        (None, None) => Err(format!("{}: no air density", history.code)),
+    }
+}
+
+/// The named difference of cases 6 to 10 between the models, computed apart from the flight:
+/// the gravity and the air. A point mass of the case's mass is flown twice in the Earth-fixed
+/// launch frame, from the case's start, by RK4 at 1 ms, each with the Coriolis force and the
+/// case's drag and wind ([`Load::Drag`]): once as the code flies, in gravitation cut off after
+/// `J₂` with the centrifugal term and through the code's own air density, as its file gives it
+/// (HPR Sim's density at the height flown, times the code's density over HPR Sim's at the
+/// code's own altitude and time); once as HPR Sim flies, in WGS 84's normal gravity and the
+/// 1976 atmosphere. Returns the second's position less the first's, in Earth-fixed axes, m, at
+/// each of `times_s`. It flies no rigid body and none of HPR Sim's flight code.
+fn point_mass_gap_m(
     case: &Case,
     environment: &Environment,
+    history: &History,
     times_s: &[f64],
-) -> Vec<([f64; 3], [f64; 3])> {
-    let inertia = case.body.inertia_kg_m2();
-    let moments = DVec3::new(inertia.x_axis.x, inertia.y_axis.y, inertia.z_axis.z);
+) -> Result<Vec<Vec<f64>>, String> {
+    let Load::Drag {
+        area_m2,
+        coefficient,
+    } = case.load
+    else {
+        return Err(format!(
+            "case {}: the gravity gap along a flight is sized for a drag",
+            case.number
+        ));
+    };
+    let mass = case.body.mass_kg();
+    let field = environment.earth.field();
+    let frame = environment.earth.frame();
+    let to_ecef = frame.ecef_from_enu_rotation();
+    let to_enu = to_ecef.transpose();
     let earth_rate = environment.earth.angular_velocity_enu_rad_s();
+    // State: the position and velocity in the launch frame, as the code flies (0 to 5) and as
+    // HPR Sim flies (6 to 11).
+    let accelerate = |t: f64, p: DVec3, v: DVec3, ours: bool| -> Result<DVec3, String> {
+        let ecef = frame.ecef_from_enu(p);
+        let gravity = if ours {
+            field.ecef_mps2(ecef).map_err(|e| e.to_string())?
+        } else {
+            j2_gravity_ecef(field, ecef)
+        };
+        let height = frame
+            .geodetic_from_enu(p)
+            .map_err(|e| e.to_string())?
+            .height_m
+            - environment.geoid_undulation_m;
+        let mut density = environment
+            .atmosphere
+            .air(height)
+            .map_err(|e| e.to_string())?
+            .air
+            .density_kg_m3;
+        if !ours {
+            density *= density_ratio(environment, history, t)?;
+        }
+        let wind = environment
+            .wind
+            .wind(height)
+            .map_err(|e| e.to_string())?
+            .velocity_enu_m_s;
+        let through_air = v - wind;
+        let drag = through_air * (-0.5 * density * through_air.length() * area_m2 * coefficient);
+        Ok(to_enu * gravity - 2.0 * earth_rate.cross(v) + drag / mass)
+    };
+    let derivative = |t: f64, y: [f64; 12]| -> Result<[f64; 12], String> {
+        let mut out = [0.0; 12];
+        for (at, ours) in [(0, false), (6, true)] {
+            let p = DVec3::new(y[at], y[at + 1], y[at + 2]);
+            let v = DVec3::new(y[at + 3], y[at + 4], y[at + 5]);
+            let a = accelerate(t, p, v, ours)?;
+            out[at..at + 6].copy_from_slice(&[v.x, v.y, v.z, a.x, a.y, a.z]);
+        }
+        Ok(out)
+    };
     let start = start_state(case);
-    let inertial_of = |q: DQuat, relative: DVec3| relative + q.conjugate().mul_vec3(earth_rate);
-    // The codes' model: the inertial rate alone.
-    let mut inertial = inertial_of(start.attitude, start.body_rate_rad_s);
-    // HPR Sim's model: the rate relative to the launch frame, and the attitude in it.
-    let mut relative = start.body_rate_rad_s;
-    let mut q = start.attitude;
-    let q_dot = |q: DQuat, omega: DVec3| q * DQuat::from_xyzw(omega.x, omega.y, omega.z, 0.0) * 0.5;
+    let (p, v) = (start.position_enu_m, start.velocity_enu_m_s);
+    let one = [p.x, p.y, p.z, v.x, v.y, v.z];
+    let mut y = [0.0; 12];
+    y[..6].copy_from_slice(&one);
+    y[6..].copy_from_slice(&one);
     let step = 0.001;
     let mut out = Vec::with_capacity(times_s.len());
     let mut done: i64 = 0;
     for &time in times_s {
         let target = key(time);
         while done < target {
-            let k1 = euler_rate(moments, inertial);
-            let k2 = euler_rate(moments, inertial + k1 * (0.5 * step));
-            let k3 = euler_rate(moments, inertial + k2 * (0.5 * step));
-            let k4 = euler_rate(moments, inertial + k3 * step);
-            inertial += (k1 + k2 * 2.0 + k3 * 2.0 + k4) * (step / 6.0);
-
-            let (w1, p1) = (euler_rate(moments, relative), q_dot(q, relative));
-            let (wa, qa) = (relative + w1 * (0.5 * step), q + p1 * (0.5 * step));
-            let (w2, p2) = (euler_rate(moments, wa), q_dot(qa, wa));
-            let (wb, qb) = (relative + w2 * (0.5 * step), q + p2 * (0.5 * step));
-            let (w3, p3) = (euler_rate(moments, wb), q_dot(qb, wb));
-            let (wc, qc) = (relative + w3 * step, q + p3 * step);
-            let (w4, p4) = (euler_rate(moments, wc), q_dot(qc, wc));
-            relative += (w1 + w2 * 2.0 + w3 * 2.0 + w4) * (step / 6.0);
-            q = (q + (p1 + p2 * 2.0 + p3 * 2.0 + p4) * (step / 6.0)).normalize();
+            y = rk4(done as f64 * step, y, step, derivative)?;
             done += 1;
         }
-        let hpr = inertial_of(q, relative);
+        let gap = DVec3::new(y[6] - y[0], y[7] - y[1], y[8] - y[2]);
+        out.push((to_ecef * gap).to_array().to_vec());
+    }
+    Ok(out)
+}
+
+/// Euler's equations for a body of principal moments `moments` under a moment `moment`:
+/// `ω̇ = I⁻¹(M − ω × Iω)`.
+fn euler_rate(moments: DVec3, omega: DVec3, moment: DVec3) -> DVec3 {
+    (moment - omega.cross(moments * omega)) / moments
+}
+
+/// At one sample, the codes' model's inertial rates and HPR Sim's model's less those, deg/s.
+type RatesAndGap = ([f64; 3], [f64; 3]);
+
+/// The two rotational models of cases 2 and 3, and the fall that sets case 3's damping.
+#[derive(Clone, Copy)]
+struct Rotations {
+    /// The codes' height above the ellipsoid and climb rate, m and m/s, down the site's
+    /// vertical in their field.
+    fall: [f64; 2],
+    /// The codes' model: the rate relative to the stars, rad/s.
+    inertial: DVec3,
+    /// HPR Sim's model: the rate relative to the launch frame, rad/s, and the attitude in it.
+    relative: DVec3,
+    attitude: DQuat,
+}
+
+impl Rotations {
+    fn plus(&self, rate: &Self, step: f64) -> Self {
+        Self {
+            fall: [
+                self.fall[0] + step * rate.fall[0],
+                self.fall[1] + step * rate.fall[1],
+            ],
+            inertial: self.inertial + rate.inertial * step,
+            relative: self.relative + rate.relative * step,
+            attitude: self.attitude + rate.attitude * step,
+        }
+    }
+
+    /// The classic fourth-order step from the four slopes, `y + (k₁ + 2k₂ + 2k₃ + k₄) h/6`,
+    /// the attitude normalized after.
+    fn rk4(y: &Self, [k1, k2, k3, k4]: [&Self; 4], step: f64) -> Self {
+        let fall = [0, 1].map(|i| {
+            y.fall[i] + step / 6.0 * (k1.fall[i] + 2.0 * k2.fall[i] + 2.0 * k3.fall[i] + k4.fall[i])
+        });
+        Self {
+            fall,
+            inertial: y.inertial
+                + (k1.inertial + k2.inertial * 2.0 + k3.inertial * 2.0 + k4.inertial)
+                    * (step / 6.0),
+            relative: y.relative
+                + (k1.relative + k2.relative * 2.0 + k3.relative * 2.0 + k4.relative)
+                    * (step / 6.0),
+            attitude: (y.attitude
+                + (k1.attitude + k2.attitude * 2.0 + k3.attitude * 2.0 + k4.attitude)
+                    * (step / 6.0))
+                .normalize(),
+        }
+    }
+}
+
+/// The named difference of cases 2 and 3 between the models, computed apart from the flight.
+/// The codes turn the brick by Euler's equations in its rate relative to the stars. HPR Sim's
+/// rotational equations leave the Earth's rate out (ADR-011): they turn it by the same equations
+/// in its rate relative to the Earth-fixed launch frame, and the inertial rate is that plus the
+/// Earth's, turned into the body. In case 3 both are damped by the same law in the inertial rate
+/// ([`Load::Damping`]), along the codes' own fall with no drag (as in [`gravity_gap_m`]) through
+/// the case's atmosphere. All of it is integrated here by RK4 at 1 ms from the report's start.
+/// Returns, at each of `times_s`, the codes' model's inertial rates and HPR Sim's model's less
+/// those, deg/s.
+fn earth_rate_gap_deg_s(
+    case: &Case,
+    environment: &Environment,
+    times_s: &[f64],
+) -> Result<Vec<RatesAndGap>, String> {
+    let inertia = case.body.inertia_kg_m2();
+    let moments = DVec3::new(inertia.x_axis.x, inertia.y_axis.y, inertia.z_axis.z);
+    let earth_rate = environment.earth.angular_velocity_enu_rad_s();
+    let start = start_state(case);
+    let inertial_of = |q: DQuat, relative: DVec3| relative + q.conjugate().mul_vec3(earth_rate);
+    // The damping moment per unit inertial rate, `¼ ρ V S l² C` on each axis, at a point of the
+    // fall; zero with no damping.
+    let damping = |fall: [f64; 2]| -> Result<DVec3, String> {
+        match case.load {
+            Load::Damping {
+                area_m2,
+                span_m,
+                chord_m,
+                coefficients,
+            } => {
+                let density = environment
+                    .atmosphere
+                    .air(fall[0] - environment.geoid_undulation_m)
+                    .map_err(|e| e.to_string())?
+                    .air
+                    .density_kg_m3;
+                let lengths = DVec3::new(span_m, chord_m, span_m);
+                Ok(lengths
+                    * lengths
+                    * DVec3::from_array(coefficients)
+                    * (0.25 * density * fall[1].abs() * area_m2))
+            }
+            Load::None => Ok(DVec3::ZERO),
+            Load::Drag { .. } => Err(format!(
+                "case {}: the Earth's rate gap is not sized for a drag",
+                case.number
+            )),
+        }
+    };
+    let q_dot = |q: DQuat, omega: DVec3| q * DQuat::from_xyzw(omega.x, omega.y, omega.z, 0.0) * 0.5;
+    let derivative = |y: &Rotations| -> Result<Rotations, String> {
+        let [fall, _] = fall_and_gap(environment, y.fall[0])?;
+        let per_rate = damping(y.fall)?;
+        let hpr_inertial = inertial_of(y.attitude, y.relative);
+        Ok(Rotations {
+            fall: [y.fall[1], fall],
+            inertial: euler_rate(moments, y.inertial, per_rate * y.inertial),
+            relative: euler_rate(moments, y.relative, per_rate * hpr_inertial),
+            attitude: q_dot(y.attitude, y.relative),
+        })
+    };
+    let mut y = Rotations {
+        fall: [start.position_enu_m.z, 0.0],
+        inertial: inertial_of(start.attitude, start.body_rate_rad_s),
+        relative: start.body_rate_rad_s,
+        attitude: start.attitude,
+    };
+    let step = 0.001;
+    let mut out = Vec::with_capacity(times_s.len());
+    let mut done: i64 = 0;
+    for &time in times_s {
+        let target = key(time);
+        while done < target {
+            let k1 = derivative(&y)?;
+            let k2 = derivative(&y.plus(&k1, 0.5 * step))?;
+            let k3 = derivative(&y.plus(&k2, 0.5 * step))?;
+            let k4 = derivative(&y.plus(&k3, step))?;
+            y = Rotations::rk4(&y, [&k1, &k2, &k3, &k4], step);
+            done += 1;
+        }
+        let hpr = inertial_of(y.attitude, y.relative);
         out.push((
-            inertial.to_array().map(f64::to_degrees),
-            (hpr - inertial).to_array().map(f64::to_degrees),
+            y.inertial.to_array().map(f64::to_degrees),
+            (hpr - y.inertial).to_array().map(f64::to_degrees),
         ));
     }
-    out
+    Ok(out)
+}
+
+/// The exponent of `value` in scientific notation, from its printed form rather than a
+/// logarithm, so that every platform counts the same digits.
+fn exponent(value: f64) -> i32 {
+    format!("{value:e}")
+        .split_once('e')
+        .and_then(|(_, power)| power.parse().ok())
+        .unwrap_or(0)
 }
 
 /// A figure as the report keeps it: four significant digits, so that a rounding in the last
@@ -545,8 +1207,7 @@ fn kept(value: f64) -> f64 {
     if value == 0.0 || !value.is_finite() {
         return value;
     }
-    let digits = 3 - value.abs().log10().floor() as i32;
-    let scale = 10f64.powi(digits);
+    let scale = 10f64.powi(3 - exponent(value));
     (value * scale).round() / scale
 }
 
@@ -562,33 +1223,42 @@ fn tight() -> Method {
     })
 }
 
-/// HPR Sim against one code's file, in every compared quantity.
+/// HPR Sim against one code's file, in every compared quantity: at each sample, each
+/// quantity's value.
 struct Against {
     times_s: Vec<f64>,
     /// HPR Sim's flight at the default method, and at the tight tolerances.
-    flown: Vec<Vec<f64>>,
-    tight: Vec<Vec<f64>>,
-    /// The codes' model as this file integrates it (case 2 only).
-    model: Option<Vec<[f64; 3]>>,
+    flown: Vec<Vec<Vec<f64>>>,
+    tight: Vec<Vec<Vec<f64>>>,
+    /// The codes' model as this file integrates it (cases 2 and 3).
+    model: Option<Vec<Vec<Vec<f64>>>>,
     /// The named model difference, HPR Sim's less the codes'.
-    gap: Vec<Vec<f64>>,
+    gap: Vec<Vec<Vec<f64>>>,
 }
 
 fn against(case: &Case, environment: &Environment, history: &History) -> Result<Against, String> {
     let times_s = history.times_s();
-    let (model, gap) = match case.number {
-        1 => (
+    let (model, gap) = match case.trace {
+        Trace::Gravity => (
             None,
             gravity_gap_m(environment, &times_s)?
+                .into_iter()
+                .map(|gap| vec![vec![gap]])
+                .collect(),
+        ),
+        Trace::GravityOnTheFlight => (
+            None,
+            point_mass_gap_m(case, environment, history, &times_s)?
                 .into_iter()
                 .map(|gap| vec![gap])
                 .collect(),
         ),
-        _ => {
-            let both = earth_rate_gap_deg_s(case, environment, &times_s);
+        Trace::EarthRate => {
+            let both = earth_rate_gap_deg_s(case, environment, &times_s)?;
+            let split = |rates: [f64; 3]| rates.map(|rate| vec![rate]).to_vec();
             (
-                Some(both.iter().map(|(model, _)| *model).collect()),
-                both.iter().map(|(_, gap)| gap.to_vec()).collect(),
+                Some(both.iter().map(|(model, _)| split(*model)).collect()),
+                both.iter().map(|(_, gap)| split(*gap)).collect(),
             )
         }
     };
@@ -621,18 +1291,23 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
         let mut nearest = f64::INFINITY;
         let mut nearest_tight = f64::INFINITY;
         let mut model_gap = (0.0_f64, 0.0);
+        let zero = vec![0.0; if quantity.is_distance() { 3 } else { 1 }];
         for (at, (history, flight)) in histories.iter().zip(&flights).enumerate() {
-            let code: Vec<f64> = history.samples.values().map(|v| v[index]).collect();
-            let residual = |hpr: &[Vec<f64>]| -> Vec<f64> {
+            let code: Vec<&Vec<f64>> = history.samples.values().map(|v| &v[index]).collect();
+            let residual = |hpr: &[Vec<Vec<f64>>]| -> Vec<f64> {
                 hpr.iter()
                     .zip(&code)
                     .zip(&flight.gap)
-                    .map(|((h, c), g)| h[index] - c - g[index])
+                    .map(|((h, c), g)| less_both(&h[index], c, &g[index]))
                     .collect()
             };
             let difference = largest(
                 &flight.times_s,
-                flight.flown.iter().zip(&code).map(|(h, c)| h[index] - c),
+                flight
+                    .flown
+                    .iter()
+                    .zip(&code)
+                    .map(|(h, c)| less(&h[index], c)),
             );
             let unexplained = residual(&flight.flown);
             // What the model difference leaves of the largest difference: the residual at the
@@ -645,7 +1320,10 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
             let left = unexplained[there];
             let worst = largest(&flight.times_s, unexplained.iter().copied());
             let worst_tight = largest(&flight.times_s, residual(&flight.tight).into_iter());
-            let gap = largest(&flight.times_s, flight.gap.iter().map(|g| g[index]));
+            let gap = largest(
+                &flight.times_s,
+                flight.gap.iter().map(|g| less(&g[index], &zero)),
+            );
             if gap.0.abs() > model_gap.0.abs() {
                 model_gap = gap;
             }
@@ -663,7 +1341,7 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
                 "left_out": left_out,
                 "largest_difference": kept(difference.0),
                 "largest_difference_at_s": difference.1,
-                "model_difference_there": kept(flight.gap[there][index]),
+                "model_difference_there": kept(less(&flight.gap[there][index], &zero)),
                 "left_of_the_largest_difference": kept(left),
                 "largest_unexplained": kept(worst.0),
                 "largest_unexplained_at_s": worst.1,
@@ -674,9 +1352,21 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
                 // check that the report's start was read as the codes flew it.
                 let from_model = largest(
                     &flight.times_s,
-                    model.iter().zip(&code).map(|(m, c)| m[index] - c),
+                    model.iter().zip(&code).map(|(m, c)| less(&m[index], c)),
                 );
                 row["largest_difference_of_the_codes_model"] = json!(kept(from_model.0));
+            }
+            if quantity.is_distance() {
+                // The code's own air: its density's largest relative difference from HPR Sim's
+                // 1976 atmosphere at the code's altitude, over its samples.
+                let mut most = 0.0_f64;
+                for sample in history.air.values() {
+                    let off = sample_ratio(environment, *sample)? - 1.0;
+                    if off.abs() > most.abs() {
+                        most = off;
+                    }
+                }
+                row["largest_air_density_difference"] = json!(kept(most));
             }
             codes.push(row);
         }
@@ -684,6 +1374,7 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
             "key": quantity.key,
             "name": quantity.name,
             "unit": quantity.unit,
+            "distance": quantity.is_distance(),
             "spread_of_all_codes": kept(rule.all),
             "code_left_out": rule.left_out.map(|out| histories[out].code.clone()),
             "spread": kept(rule.kept),
@@ -715,10 +1406,11 @@ pub fn generate(root: &Path) -> Result<Value, String> {
     let archive = fs::read(root.join(ARCHIVE)).map_err(|e| {
         format!("{ARCHIVE}: {e} (the codes' files live only under refs/: `cargo xtask refs fetch`)")
     })?;
-    let environment = environment()?;
     let mut out = Vec::new();
     for case in cases()? {
-        let histories = histories(&archive, &case)?;
+        let environment = environment(case.air)?;
+        let ellipsoid = environment.earth.field().ellipsoid();
+        let histories = histories(&archive, &case, &ellipsoid)?;
         out.push(compare(&case, &environment, &histories)?);
     }
     Ok(json!({
@@ -727,15 +1419,19 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                       errata of 2025-09-08, and the codes' time histories published with it",
         "tight_tolerance": TIGHT_TOLERANCE,
         "note": "HPR Sim's free body (hpr_sim::FreeBody: the flight's gravity, Coriolis force, \
-                 rigid-body equations and default integrator) against each code's file over 30 s. \
-                 A difference is HPR Sim's value less the code's; a largest one is the largest in \
-                 size over the file's samples, with its sign. spread is the largest difference \
-                 between any two kept codes at a time every one of them has; a code is left out \
-                 when leaving it cuts the spread of all by more than half. model_difference is \
-                 the case's named difference between the two models, computed apart from the \
-                 flight. left_of_the_largest_difference is a code's largest difference less the \
-                 model difference at the same sample, and a quantity is traced when that is no \
-                 more than the spread for every kept code. largest_unexplained is the same \
+                 air, wind, rigid-body equations and default integrator, under the test's \
+                 damping or drag) against each code's file over 30 s. A difference is HPR Sim's \
+                 value less the code's; a largest one is the largest in size over the file's \
+                 samples, with its sign. A position is compared as the distance between HPR \
+                 Sim's and the code's, each in Earth-fixed axes, the code's from its latitude, \
+                 longitude and altitude on WGS 84. spread is the largest difference (or \
+                 distance) between any two kept codes at a time every one of them has; a code is \
+                 left out when leaving it cuts the spread of all by more than half. \
+                 model_difference is the case's named difference between the two models, \
+                 computed apart from the flight, or 0 where none is named. \
+                 left_of_the_largest_difference is a code's largest difference less the model \
+                 difference at the same sample, and a quantity is traced when that is no more \
+                 than the spread for every kept code. largest_unexplained is the same \
                  subtraction's largest at any sample, a stricter figure: against a kept code \
                  that itself sets the spread it comes to the spread plus HPR Sim's own distance \
                  from the other codes, so its part over the spread is given, with HPR Sim's \
@@ -747,7 +1443,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
 }
 
 /// A figure as the page shows it, to four significant digits in plain decimals, with its sign:
-/// altitudes in millimeters, rates in deg/s.
+/// altitudes and positions in millimeters, rates in deg/s.
 fn shown(value: f64, unit: &str) -> String {
     let (value, unit) = match unit {
         "m" => (1000.0 * value, "mm"),
@@ -756,7 +1452,7 @@ fn shown(value: f64, unit: &str) -> String {
     if value == 0.0 {
         return format!("0 {unit}");
     }
-    let decimals = (3 - value.abs().log10().floor() as i32).max(0) as usize;
+    let decimals = (3 - exponent(value)).max(0) as usize;
     format!("{value:+.decimals$} {unit}")
 }
 
@@ -771,22 +1467,26 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         .as_f64()
         .ok_or_else(|| format!("{REPORT}: no `tight_tolerance`"))?;
     let mut out = format!(
-        "# NASA's check cases 1 and 2\n\n\
+        "# NASA's check cases 1 to 3 and 6 to 10\n\n\
          Written by `cargo xtask check-cases`; don't edit it by hand. What it checks and how far \
          to trust it: [the accuracy page](../../docs/accuracy.md) and \
          [rigid-body flight](../../docs/physics/flight.md). A free body of the report's mass and \
-         inertia flies each case on HPR Sim's gravity, Coriolis force, rigid-body equations and \
-         default integrator, and is set beside each code's published time history \
-         (NASA/TM-2015-218675). The codes' files are not committed; only differences and spreads \
-         are.\n\n\
+         inertia flies each case on HPR Sim's gravity, Coriolis force, air, wind, rigid-body \
+         equations and default integrator, under the case's damping or drag applied by the \
+         test, and is set beside each code's published time history (NASA/TM-2015-218675). The \
+         codes' files are not committed; only differences and spreads are.\n\n\
          How to read it:\n\n\
          - **A difference** is HPR Sim's value less the code's. A largest difference is the \
-         largest in size over the file's samples of the 30 s, with its sign.\n\
+         largest in size over the file's samples of the 30 s, with its sign. A position's is the \
+         distance between HPR Sim's and the code's, each in Earth-fixed axes, the code's from \
+         the latitude, longitude and altitude in its file.\n\
          - **The spread** is the largest difference between any two codes at a time every one \
          of them has. One code is left out, and named, when leaving it out cuts the spread by \
          more than half; the spread of the rest is then the measure.\n\
          - **The model difference** is a named difference between HPR Sim's model and the \
-         codes', sized apart from the flight.\n\
+         codes', sized apart from the flight. For a position it is a distance too, and the \
+         codes' side of it flies each code's own air density, so it differs from code to \
+         code; the table gives the largest.\n\
          - **Left of the largest difference** is a code's largest difference less the model \
          difference at the same sample. A quantity is traced when that is no more than the \
          spread for every kept code.\n\
@@ -819,7 +1519,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             text(case, "name")?,
             text(case, "source")?,
             case["codes"],
-            text(case, "model_difference")?,
+            case["model_difference"]
+                .as_str()
+                .unwrap_or("none named, so it is 0 throughout"),
         );
         out.push_str(
             "| Quantity | Spread of all codes | Code left out | Spread of the rest | \
@@ -850,7 +1552,11 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                     number(quantity, "largest_difference_from_a_kept_code")?,
                     &unit
                 ),
-                shown(number(quantity, "model_difference")?, &unit),
+                if quantity["distance"] == json!(true) {
+                    shown_size(number(quantity, "model_difference")?, &unit)
+                } else {
+                    shown(number(quantity, "model_difference")?, &unit)
+                },
                 shown_size(
                     number(quantity, "most_left_of_a_kept_codes_largest_difference")?,
                     &unit
@@ -897,6 +1603,17 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             let model = codes
                 .iter()
                 .all(|code| code["largest_difference_of_the_codes_model"].is_number());
+            let air = codes
+                .iter()
+                .all(|code| code["largest_air_density_difference"].is_number());
+            let distance = quantity["distance"] == json!(true);
+            let figure = |value: f64| {
+                if distance {
+                    shown_size(value, &unit)
+                } else {
+                    shown(value, &unit)
+                }
+            };
             let _ = write!(
                 out,
                 "\n### Case {}, {}: each code\n\n\
@@ -907,10 +1624,12 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                 text(quantity, "name")?,
                 if model {
                     " The codes' model, integrated here, less the code |"
+                } else if air {
+                    " Its air density less the 1976 atmosphere's, largest, relative |"
                 } else {
                     ""
                 },
-                if model { "--:|" } else { "" },
+                if model || air { "--:|" } else { "" },
             );
             for code in codes {
                 let _ = write!(
@@ -923,15 +1642,12 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                     } else {
                         "kept"
                     },
-                    shown(number(code, "largest_difference")?, &unit),
+                    figure(number(code, "largest_difference")?),
                     number(code, "largest_difference_at_s")?,
-                    shown(number(code, "model_difference_there")?, &unit),
-                    shown(number(code, "left_of_the_largest_difference")?, &unit),
-                    shown(number(code, "largest_unexplained")?, &unit),
-                    shown(
-                        number(code, "largest_unexplained_at_tight_tolerances")?,
-                        &unit
-                    ),
+                    figure(number(code, "model_difference_there")?),
+                    figure(number(code, "left_of_the_largest_difference")?),
+                    figure(number(code, "largest_unexplained")?),
+                    figure(number(code, "largest_unexplained_at_tight_tolerances")?),
                 );
                 if model {
                     let _ = write!(
@@ -941,6 +1657,12 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                             number(code, "largest_difference_of_the_codes_model")?,
                             &unit
                         )
+                    );
+                } else if air {
+                    let _ = write!(
+                        out,
+                        " {:+.3e} |",
+                        number(code, "largest_air_density_difference")?
                     );
                 }
                 out.push('\n');
@@ -998,8 +1720,21 @@ mod tests {
             code: code.to_owned(),
             samples: samples
                 .iter()
-                .map(|(time, value)| (key(*time), vec![*value]))
+                .map(|(time, value)| (key(*time), vec![vec![*value]]))
                 .collect(),
+            air: BTreeMap::new(),
+        }
+    }
+
+    /// A code's history of one position from `(time, [x, y, z])` pairs.
+    fn track(code: &str, samples: &[(f64, [f64; 3])]) -> History {
+        History {
+            code: code.to_owned(),
+            samples: samples
+                .iter()
+                .map(|(time, p)| (key(*time), vec![p.to_vec()]))
+                .collect(),
+            air: BTreeMap::new(),
         }
     }
 
@@ -1029,13 +1764,40 @@ mod tests {
         assert_eq!((rule.all, rule.left_out, rule.kept), (4.0, Some(3), 1.0));
     }
 
-    /// With three codes none is left out: any two always agree better than the three.
+    /// With three codes the rule is the same: two remain, enough for a spread. With two none
+    /// is left out, since one alone has no spread.
     #[test]
-    fn three_codes_are_all_kept() {
+    fn three_codes_may_leave_one_out_and_two_may_not() {
         let mut codes = four(50.0);
         codes.remove(1);
         let rule = spread_rule(&codes, 0);
-        assert_eq!((rule.all, rule.left_out, rule.kept), (50.0, None, 50.0));
+        assert_eq!((rule.all, rule.left_out, rule.kept), (50.0, Some(2), 1.0));
+        // Three evenly spaced keep every code: leaving an end out halves the spread, no more.
+        let mut codes = four(0.0);
+        codes.truncate(3);
+        let rule = spread_rule(&codes, 0);
+        assert_eq!((rule.all, rule.left_out, rule.kept), (1.0, None, 1.0));
+        codes.truncate(2);
+        let rule = spread_rule(&codes, 0);
+        assert_eq!((rule.all, rule.left_out, rule.kept), (0.5, None, 0.5));
+    }
+
+    /// A position's spread is the largest distance between two codes, not the largest
+    /// difference in one axis; a scalar's is the highest less the lowest, with its sign kept
+    /// in a difference.
+    #[test]
+    fn a_position_is_compared_as_a_distance() {
+        assert_eq!(less(&[3.0], &[5.0]), -2.0);
+        assert_eq!(less(&[1.0, 2.0, 2.0], &[0.0; 3]), 3.0);
+        assert_eq!(
+            less_both(&[4.0, 6.0, 0.0], &[1.0, 2.0, 0.0], &[0.0; 3]),
+            5.0
+        );
+        let a = track("SIM 1", &[(0.0, [0.0; 3]), (0.1, [3.0, 0.0, 0.0])]);
+        let b = track("SIM 2", &[(0.0, [0.0; 3]), (0.1, [0.0, 4.0, 0.0])]);
+        let c = track("SIM 3", &[(0.0, [0.0; 3]), (0.1, [0.0, 0.0, 0.0])]);
+        // SIM 1 and SIM 2 are 5 apart, though no axis differs by more than 4.
+        assert_eq!(spread(&[&a, &b, &c], 0), 5.0);
     }
 
     /// The spread is taken only where every code has a sample: a finer file's extra times, where
@@ -1052,22 +1814,29 @@ mod tests {
     /// read is refused, naming the code.
     #[test]
     fn a_history_is_read_by_column_name() {
+        let wgs84 = NormalGravity::wgs84().ellipsoid();
         let altitude = [Quantity {
             key: "altitude",
             name: "altitude",
-            column: "altitudeMsl_ft",
-            factor: FOOT_M,
+            reading: Reading::Column {
+                column: "altitudeMsl_ft",
+                factor: FOOT_M,
+            },
             unit: "m",
         }];
+        let history = |code: &str, text: &str, quantities: &[Quantity]| {
+            super::history(code, text, quantities, &wgs84)
+        };
         let rows: String = (1..=300)
             .map(|i| format!("{},7,{}\n", 0.1 * f64::from(i), 30_000 - i))
             .collect();
         let text = format!("time,other,altitudeMsl_ft\n0.0,7,30000.0\n{rows}30.1,7,1.0\n");
         let read = history("SIM 9", &text, &altitude).unwrap();
         assert_eq!(read.samples.len(), 301);
-        assert_eq!(read.samples[&0], vec![9144.0]);
-        assert_eq!(read.samples[&30_000], vec![29_700.0 * FOOT_M]);
+        assert_eq!(read.samples[&0], vec![vec![9144.0]]);
+        assert_eq!(read.samples[&30_000], vec![vec![29_700.0 * FOOT_M]]);
         assert_eq!(read.times_s()[3], 0.3);
+        assert!(read.air.is_empty());
 
         let refused = |text: &str| history("SIM 9", text, &altitude).err().unwrap();
         assert_eq!(refused(""), "SIM 9: empty file");
@@ -1090,6 +1859,109 @@ mod tests {
         );
         // A file that stops early is not a 30 s history.
         assert!(refused("time,altitudeMsl_ft\n0,1\n29.9,2\n").contains("not 0 to 30 s"));
+        // Blank lines are skipped but keep their numbers: the bad cell is on the file's line 4.
+        assert_eq!(
+            refused("time,altitudeMsl_ft\n0,1\n\n0.1,x\n"),
+            "SIM 9: row 4: `x` is no number"
+        );
+        assert_eq!(refused("\ntime,altitudeMsl_ft\n0,1\n"), "SIM 9: empty file");
+
+        // A position is read from the latitude, longitude and altitude onto WGS 84, with the
+        // code's air beside it.
+        let position = [Quantity {
+            key: "position",
+            name: "position",
+            reading: Reading::Position,
+            unit: "m",
+        }];
+        let header = "time,latitude_deg,longitude_deg,altitudeMsl_ft,airDensity_slug_ft3";
+        let rows: String = (0..=300)
+            .map(|i| format!("{},0,90,1000,0.002\n", 0.1 * f64::from(i)))
+            .collect();
+        let read = history("SIM 9", &format!("{header}\n{rows}"), &position).unwrap();
+        let p = &read.samples[&0][0];
+        let a = wgs84.semi_major_axis_m() + 1000.0 * FOOT_M;
+        assert!(
+            p[0].abs() < 1e-6 && (p[1] - a).abs() < 1e-6 && p[2] == 0.0,
+            "{p:?}"
+        );
+        let [height, density] = read.air[&30_000];
+        assert_eq!(height, 1000.0 * FOOT_M);
+        assert!(
+            (density - 0.002 * SLUG_KG / FOOT_M.powi(3)).abs() < 1e-15,
+            "{density}"
+        );
+        assert_eq!(
+            history(
+                "SIM 9",
+                "time,latitude_deg,longitude_deg,altitudeMsl_ft\n0,0,0,1\n",
+                &position
+            )
+            .err()
+            .unwrap(),
+            "SIM 9: no column `airDensity_slug_ft3`"
+        );
+    }
+
+    /// An archive in memory: the case's folder only, each file named by its code and read in
+    /// the codes' order; two files of one code, a file whose name names no code, and fewer than
+    /// three codes are refused.
+    #[test]
+    fn the_archive_is_read_by_folder_and_code() {
+        use std::io::Write as _;
+        let wgs84 = NormalGravity::wgs84().ellipsoid();
+        let zipped = |files: &[(&str, &str)]| -> Vec<u8> {
+            let mut writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            for (name, text) in files {
+                writer.start_file(*name, options).unwrap();
+                writer.write_all(text.as_bytes()).unwrap();
+            }
+            writer.finish().unwrap().into_inner()
+        };
+        let file = |altitude: f64| {
+            let rows: String = (0..=300)
+                .map(|i| format!("{},{altitude}\n", 0.1 * f64::from(i)))
+                .collect();
+            format!("time,altitudeMsl_ft\n{rows}")
+        };
+        let case = cases().unwrap().remove(0);
+        let folder = "Atmospheric_checkcases/Atmos_01_DroppedSphere";
+        let (one, two, three) = (file(1.0), file(2.0), file(3.0));
+        let read = |files: &[(&str, &str)]| histories(&zipped(files), &case, &wgs84);
+        let codes = read(&[
+            (&format!("{folder}/Atmos_01_sim_06.csv"), &three),
+            (&format!("{folder}/Atmos_01_sim_02.csv"), &one),
+            (&format!("{folder}/notes.txt"), "not a file of a code"),
+            (
+                "Atmospheric_checkcases/Atmos_02_TumblingBrickNoDamping/Atmos_02_sim_04.csv",
+                &one,
+            ),
+            (&format!("{folder}/Atmos_01_sim_10.csv"), &two),
+        ])
+        .unwrap();
+        let names: Vec<&str> = codes.iter().map(|h| h.code.as_str()).collect();
+        assert_eq!(names, ["SIM 2", "SIM 6", "SIM 10"]);
+        assert_eq!(codes[1].samples[&0], vec![vec![3.0 * FOOT_M]]);
+
+        let refused = |files: &[(&str, &str)]| read(files).err().unwrap();
+        let twice = refused(&[
+            (&format!("{folder}/Atmos_01_sim_02.csv"), &one),
+            (&format!("{folder}/old/Atmos_01_sim_2.csv"), &two),
+            (&format!("{folder}/Atmos_01_sim_03.csv"), &three),
+        ]);
+        assert!(twice.contains("are both SIM 2's"), "{twice}");
+        let unnamed = refused(&[(&format!("{folder}/Atmos_01_extra.csv"), &one)]);
+        assert!(
+            unnamed.contains("not a code's file by its name"),
+            "{unnamed}"
+        );
+        let few = refused(&[
+            (&format!("{folder}/Atmos_01_sim_02.csv"), &one),
+            (&format!("{folder}/Atmos_01_sim_03.csv"), &two),
+        ]);
+        assert!(few.contains("2 files in the archive"), "{few}");
     }
 
     /// The codes' gravitation against eq. 24's gradient worked by hand on the equator and at the
@@ -1120,7 +1992,7 @@ mod tests {
     /// `½ · 4.3e-5 · 30²`, 19.5 mm lower, growing as `t²`.
     #[test]
     fn the_gravity_gap_is_j4s_over_the_fall() {
-        let environment = environment().unwrap();
+        let environment = environment(Air::Still).unwrap();
         let gap = gravity_gap_m(&environment, &[0.0, 15.0, 30.0]).unwrap();
         assert_eq!(gap[0], 0.0);
         let by_hand = -0.5 * (15.0 / 8.0) * 2.3709e-6 * 9.770 * 30.0_f64.powi(2);
@@ -1140,9 +2012,9 @@ mod tests {
     #[test]
     fn the_earth_rate_gap_starts_at_zero_and_keeps_eulers_integrals() {
         let case = cases().unwrap().remove(1);
-        let environment = environment().unwrap();
+        let environment = environment(Air::Still).unwrap();
         let times: Vec<f64> = (0..=300).map(|i| 0.1 * f64::from(i)).collect();
-        let both = earth_rate_gap_deg_s(&case, &environment, &times);
+        let both = earth_rate_gap_deg_s(&case, &environment, &times).unwrap();
         // The start is the report's inertial rates, 10, 20 and 30 deg/s: the table's roll rate
         // relative to the Earth, printed to nine decimals, plus the Earth's rate comes to 10
         // within 1.2e-9 deg/s.
@@ -1176,6 +2048,197 @@ mod tests {
     }
 
     #[test]
+    /// The test's drag acts along the velocity through the air whichever way the body points.
+    /// At an angle of attack of 90° (the body's x axis level and north, the sphere falling
+    /// along its z axis) it is the whole `½ρV²SC_D`, straight up, where a drag along the body's
+    /// axis would be none; in case 7's wind it acts against the velocity through the air, so it
+    /// also pushes east.
+    #[test]
+    fn the_drag_acts_along_the_velocity_through_the_air_at_90_degrees() {
+        let case = cases()
+            .unwrap()
+            .into_iter()
+            .find(|c| c.number == 7)
+            .unwrap();
+        let Load::Drag {
+            area_m2,
+            coefficient,
+        } = case.load
+        else {
+            panic!("case 7 flies a drag");
+        };
+        for air in [Air::Still, Air::Steady] {
+            let environment = environment(air).unwrap();
+            let loads = TestLoads {
+                load: case.load,
+                earth_rate_enu_rad_s: environment.earth.angular_velocity_enu_rad_s(),
+            };
+            let falling = State {
+                velocity_enu_m_s: DVec3::new(0.0, 0.0, -150.0),
+                ..start_state(&case)
+            };
+            let in_body = falling
+                .attitude
+                .conjugate()
+                .mul_vec3(falling.velocity_enu_m_s);
+            assert!(in_body.x.abs() < 1e-12 && (in_body.z - 150.0).abs() < 1e-12);
+            let y = falling.to_array();
+            let dragged = case.body.derivative(&environment, &loads, &y).unwrap();
+            let free = case
+                .body
+                .derivative(&environment, &hpr_sim::NoLoads, &y)
+                .unwrap();
+            let drag = (DVec3::from_slice(&dragged[3..6]) - DVec3::from_slice(&free[3..6]))
+                * case.body.mass_kg();
+            let wind = environment
+                .wind
+                .wind(START_HEIGHT_M)
+                .unwrap()
+                .velocity_enu_m_s;
+            let through_air = falling.velocity_enu_m_s - wind;
+            let density = environment
+                .atmosphere
+                .air(START_HEIGHT_M)
+                .unwrap()
+                .air
+                .density_kg_m3;
+            let expected =
+                through_air * (-0.5 * density * through_air.length() * area_m2 * coefficient);
+            assert!(
+                (drag - expected).length() < 1e-9 * expected.length(),
+                "{air:?}: {drag:?} against {expected:?}"
+            );
+            // A real force: 2.0 N up on the 14.6 kg sphere at 150 m/s.
+            assert!(drag.z > 1.9, "{drag:?}");
+            match air {
+                Air::Steady => assert!(drag.x > 0.05 && drag.y.abs() < 1e-9, "{drag:?}"),
+                _ => assert!(drag.x.abs() < 1e-9 && drag.y.abs() < 1e-9, "{drag:?}"),
+            }
+        }
+    }
+
+    /// Case 3's damping, as the test states it: about each axis `¼ ρ V S l² C ω`, the span `b`
+    /// for roll and yaw and the chord `c̄` for pitch, on the inertial rate. Pitch's moment per
+    /// unit rate is `(c̄/b)²`, 4.0002, times roll's and yaw's, and each acts against its rate.
+    #[test]
+    fn the_damping_is_on_the_inertial_rate_with_the_span_and_the_chord() {
+        let case = cases()
+            .unwrap()
+            .into_iter()
+            .find(|c| c.number == 3)
+            .unwrap();
+        let environment = environment(Air::Still).unwrap();
+        let earth_rate = environment.earth.angular_velocity_enu_rad_s();
+        let loads = TestLoads {
+            load: case.load,
+            earth_rate_enu_rad_s: earth_rate,
+        };
+        let falling = State {
+            velocity_enu_m_s: DVec3::new(0.0, 0.0, -100.0),
+            ..start_state(&case)
+        };
+        let y = falling.to_array();
+        let damped = case.body.derivative(&environment, &loads, &y).unwrap();
+        let free = case
+            .body
+            .derivative(&environment, &hpr_sim::NoLoads, &y)
+            .unwrap();
+        let moment = case.body.inertia_kg_m2()
+            * (DVec3::from_slice(&damped[10..13]) - DVec3::from_slice(&free[10..13]));
+        let inertial =
+            falling.body_rate_rad_s + falling.unit_attitude().conjugate().mul_vec3(earth_rate);
+        let density = environment
+            .atmosphere
+            .air(START_HEIGHT_M)
+            .unwrap()
+            .air
+            .density_kg_m3;
+        let (s, b, c) = (
+            0.222_22 * FOOT_M * FOOT_M,
+            0.333_33 * FOOT_M,
+            0.666_67 * FOOT_M,
+        );
+        let expected = DVec3::new(b * b, c * c, b * b) * inertial * (-0.25 * density * 100.0 * s);
+        assert!(
+            (moment - expected).length() < 1e-9 * expected.length(),
+            "{moment:?} against {expected:?}"
+        );
+        let per_rate = moment / inertial;
+        assert!((per_rate.y / per_rate.x - 4.000_2).abs() < 1e-4);
+        assert!((per_rate.z / per_rate.x - 1.0).abs() < 1e-12);
+        assert!(per_rate.max_element() < 0.0);
+    }
+
+    /// Case 7's wind is 20 ft/s toward the east at every height, and case 8's Table 32's
+    /// `(0.003 h − 20)` ft/s toward the east, to rounding, over the heights the sphere falls
+    /// through.
+    #[test]
+    fn the_winds_are_the_tables() {
+        let steady = environment(Air::Steady).unwrap();
+        let shear = environment(Air::Shear).unwrap();
+        for height_ft in (16_000..=30_000).step_by(250).map(f64::from) {
+            let at = |environment: &Environment| {
+                environment
+                    .wind
+                    .wind(height_ft * FOOT_M)
+                    .unwrap()
+                    .velocity_enu_m_s
+            };
+            let w = at(&steady);
+            assert!(
+                (w.x - 20.0 * FOOT_M).abs() < 1e-12 && w.y.abs() < 1e-12,
+                "{w:?}"
+            );
+            let w = at(&shear);
+            let expected = shear_ft_s(height_ft) * FOOT_M;
+            assert!(
+                (w.x - expected).abs() < 1e-12 && w.y.abs() < 1e-12,
+                "{height_ft} ft: {w:?} against {expected}"
+            );
+        }
+        assert_eq!(shear_ft_s(30_000.0), 70.0);
+    }
+
+    /// The gap of cases 6 to 10 starts at zero. With a code whose air is HPR Sim's own it is
+    /// the gravity's alone: HPR Sim lower, by less than case 1's 19.5 mm, as the drag slows the
+    /// fall. With a code whose air is 0.1% denser, its sphere is held back more and falls less,
+    /// so HPR Sim's sits lower still, by more than 0.1 m.
+    #[test]
+    fn the_gap_of_the_sphere_is_its_gravity_and_its_air() {
+        let case = cases()
+            .unwrap()
+            .into_iter()
+            .find(|c| c.number == 6)
+            .unwrap();
+        let environment = environment(Air::Still).unwrap();
+        let ours = |height: f64| {
+            environment
+                .atmosphere
+                .air(height)
+                .unwrap()
+                .air
+                .density_kg_m3
+        };
+        let code = |ratio: f64| History {
+            code: "SIM 9".to_owned(),
+            samples: BTreeMap::new(),
+            air: [(0, START_HEIGHT_M), (30_000, 5_000.0)]
+                .into_iter()
+                .map(|(time, height)| (time, [height, ratio * ours(height)]))
+                .collect(),
+        };
+        let times = [0.0, 30.0];
+        // At 0° N, 0° E the local up is the Earth-fixed x axis.
+        let same = point_mass_gap_m(&case, &environment, &code(1.0), &times).unwrap();
+        assert_eq!(same[0], vec![0.0; 3]);
+        let up = same[1][0];
+        assert!(up < -0.015 && up > -0.0195, "{up}");
+        assert!(same[1][1].abs() < 0.1 * up.abs() && same[1][2].abs() < 1e-9);
+        let denser = point_mass_gap_m(&case, &environment, &code(1.001), &times).unwrap();
+        assert!(denser[1][0] < up - 0.1, "{:?}", denser[1]);
+    }
+
+    #[test]
     fn figures_keep_four_significant_digits() {
         assert_eq!(kept(0.019_509_3), 0.019_51);
         assert_eq!(kept(-0.000_899_308), -0.000_899_3);
@@ -1186,6 +2249,14 @@ mod tests {
         assert_eq!(shown(0.010_77, "deg/s"), "+0.01077 deg/s");
         assert_eq!(shown_size(-5.866e-7, "deg/s"), "0.0000005866 deg/s");
         assert_eq!(shown(0.0, "m"), "0 mm");
+        // The exponent is the printed one, so powers of ten count their digits exactly.
+        assert_eq!(
+            (exponent(1e-3), exponent(0.000_999_9), exponent(1000.0)),
+            (-3, -4, 3)
+        );
+        assert_eq!(kept(0.001), 0.001);
+        assert_eq!(shown(1.0, "deg/s"), "+1.000 deg/s");
+        assert_eq!(shown(0.1, "m"), "+100.0 mm");
     }
 
     fn committed() -> Value {
@@ -1209,7 +2280,7 @@ mod tests {
                 .iter()
                 .map(|c| c["case"].as_u64().unwrap())
                 .collect::<Vec<_>>(),
-            [1, 2]
+            [1, 2, 3, 6, 7, 8, 9, 10]
         );
         let mut quantities = 0;
         for case in cases {
@@ -1248,19 +2319,30 @@ mod tests {
                     })
                     .fold(0.0, f64::max);
                 assert_eq!(left, number("most_left_of_a_kept_codes_largest_difference"));
+                let distance = quantity["distance"] == json!(true);
                 for code in codes {
                     // What is left is the difference less the model difference at that sample,
-                    // to the four digits each is kept at.
+                    // to the four digits each is kept at. For a position the three are lengths
+                    // of vectors, so the triangle's sides bound what is left.
                     let (difference, model, left) = (
                         code["largest_difference"].as_f64().unwrap(),
                         code["model_difference_there"].as_f64().unwrap(),
                         code["left_of_the_largest_difference"].as_f64().unwrap(),
                     );
                     let rounding = 1e-3 * difference.abs().max(model.abs());
-                    assert!(
-                        (difference - model - left).abs() <= rounding,
-                        "{difference} {model} {left}"
-                    );
+                    if distance {
+                        assert!(difference >= 0.0 && model >= 0.0 && left >= 0.0);
+                        assert!(
+                            left + rounding >= (difference - model).abs()
+                                && left <= difference + model + rounding,
+                            "{difference} {model} {left}"
+                        );
+                    } else {
+                        assert!(
+                            (difference - model - left).abs() <= rounding,
+                            "{difference} {model} {left}"
+                        );
+                    }
                 }
                 let within = quantity["within_the_spread"] == json!(true);
                 let traced = quantity["traced_to_within_the_spread"] == json!(true);
@@ -1280,7 +2362,7 @@ mod tests {
                 assert!((over - (unexplained - spread).max(0.0)).abs() <= 1e-3 * spread);
             }
         }
-        assert_eq!(quantities, 4);
+        assert_eq!(quantities, 12);
     }
 
     /// The pages quote the committed report as it is, which CI can't regenerate: the accuracy
@@ -1326,7 +2408,18 @@ mod tests {
             .iter()
             .flat_map(|case| case["quantities"].as_array().unwrap())
             .collect();
-        // A size as a page prints it, and a signed figure with the pages' minus sign.
+        // A case's quantities.
+        let of = |number: u64| -> Vec<&Value> {
+            report["cases"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|case| case["case"] == json!(number))
+                .flat_map(|case| case["quantities"].as_array().unwrap())
+                .collect()
+        };
+        // A size as a page prints it, and a signed figure with the pages' minus sign; a
+        // distance has no sign.
         let size = |quantity: &Value, key: &str| {
             shown_size(
                 quantity[key].as_f64().unwrap(),
@@ -1334,6 +2427,9 @@ mod tests {
             )
         };
         let signed = |quantity: &Value, key: &str| {
+            if quantity["distance"] == json!(true) {
+                return size(quantity, key);
+            }
             shown(
                 quantity[key].as_f64().unwrap(),
                 quantity["unit"].as_str().unwrap(),
@@ -1377,6 +2473,9 @@ mod tests {
                 size(quantity, "most_left_of_a_kept_codes_largest_difference"),
             );
             has("docs/physics/flight.md", section, &row);
+        }
+        // The stricter reading gives cases 1 and 2's figures.
+        for quantity in of(1).into_iter().chain(of(2)) {
             for key in [
                 "largest_unexplained_from_a_kept_code",
                 "largest_unexplained_from_the_nearest_kept_code",
@@ -1413,7 +2512,16 @@ mod tests {
                 .find(|line| line.starts_with(model) && line.contains("[report][check-cases]"))
                 .unwrap_or_else(|| panic!("docs/accuracy.md: no row of {model} cites the report"))
         };
-        let (altitude, rates) = (quantities[0], &quantities[1..]);
+        let (altitude, rates) = (of(1)[0], &of(2)[..]);
+        let damped = &of(3)[..];
+        let positions: Vec<&Value> = (6..=10).map(|case| of(case)[0]).collect();
+        // A row of a model that names the case it holds.
+        let row_of = |model: &str, case: &str| {
+            accuracy
+                .lines()
+                .find(|line| line.starts_with(model) && line.contains(case))
+                .unwrap_or_else(|| panic!("docs/accuracy.md: no row of {model} for {case}"))
+        };
         let gravity = row("| [Gravity](physics/gravity.md) |");
         for key in [
             "largest_difference_from_a_kept_code",
@@ -1441,6 +2549,127 @@ mod tests {
                 );
             }
         }
+        // Case 3's row: the largest differences, the spreads and what the Earth's rate leaves.
+        let rigid = row_of(
+            "| [Rigid-body flight](physics/flight.md) |",
+            "NASA's check case 3,",
+        );
+        for rate in damped {
+            for key in [
+                "largest_difference_from_a_kept_code",
+                "spread",
+                "most_left_of_a_kept_codes_largest_difference",
+            ] {
+                let figure = size(rate, key);
+                has(
+                    "docs/accuracy.md's case 3 row",
+                    rigid,
+                    figure.trim_end_matches(" deg/s"),
+                );
+            }
+            assert_eq!(rate["largest_unexplained_over_the_spread"], json!(0.0));
+        }
+        // The sphere's rows: case 6 on the atmosphere's, 7 and 8 on the wind's, 9 and 10 on the
+        // frames'.
+        let millimeters =
+            |quantity: &Value, key: &str| size(quantity, key).trim_end_matches(" mm").to_owned();
+        let atmosphere = row_of(
+            "| [Atmosphere](physics/atmosphere.md) |",
+            "NASA's check case 6,",
+        );
+        let wind = row_of("| [Wind](physics/wind.md) |", "NASA's check cases 7 and 8,");
+        let shots = row_of(
+            "| [Frames](physics/frames.md) |",
+            "NASA's check cases 9 and 10,",
+        );
+        for (at, row, keys) in [
+            (
+                0,
+                atmosphere,
+                &[
+                    "largest_difference_from_a_kept_code",
+                    "spread",
+                    "most_left_of_a_kept_codes_largest_difference",
+                ][..],
+            ),
+            (
+                1,
+                wind,
+                &[
+                    "largest_difference_from_a_kept_code",
+                    "spread",
+                    "most_left_of_a_kept_codes_largest_difference",
+                ][..],
+            ),
+            (
+                2,
+                wind,
+                &[
+                    "largest_difference_from_a_kept_code",
+                    "spread",
+                    "most_left_of_a_kept_codes_largest_difference",
+                ][..],
+            ),
+            (
+                3,
+                shots,
+                &[
+                    "largest_difference_from_a_kept_code",
+                    "spread",
+                    "largest_unexplained_from_the_nearest_kept_code",
+                ][..],
+            ),
+            (
+                4,
+                shots,
+                &[
+                    "largest_difference_from_a_kept_code",
+                    "spread",
+                    "largest_unexplained_from_the_nearest_kept_code",
+                ][..],
+            ),
+        ] {
+            for key in keys {
+                has(
+                    "docs/accuracy.md's sphere rows",
+                    row,
+                    &millimeters(positions[at], key),
+                );
+            }
+        }
+        // Cases 6 to 8 are past the spread and traced; 9 and 10 inside it.
+        for (at, position) in positions.iter().enumerate() {
+            let within = position["within_the_spread"] == json!(true);
+            let traced = position["traced_to_within_the_spread"] == json!(true);
+            assert_eq!((within, traced || within), (at >= 3, true), "{position}");
+        }
+        // The flight page gives the nearest kept code's distance once the model difference is
+        // taken off: the least and the most of cases 6 to 8, and cases 9 and 10's.
+        let nearest = |at: usize| {
+            millimeters(
+                positions[at],
+                "largest_unexplained_from_the_nearest_kept_code",
+            )
+        };
+        let mut dropped: Vec<f64> = (0..3)
+            .map(|at| {
+                positions[at]["largest_unexplained_from_the_nearest_kept_code"]
+                    .as_f64()
+                    .unwrap()
+            })
+            .collect();
+        dropped.sort_by(f64::total_cmp);
+        for figure in [shown_size(dropped[0], "m"), shown_size(dropped[2], "m")] {
+            has(
+                "docs/physics/flight.md",
+                section,
+                figure.trim_end_matches(" mm"),
+            );
+        }
+        for at in [3, 4] {
+            has("docs/physics/flight.md", section, &nearest(at));
+        }
+
         // The frames row gives the most the model differences leave: of the altitude, and of
         // any rate.
         let frames = row("| [Frames](physics/frames.md) |");
@@ -1464,8 +2693,8 @@ mod tests {
             "[check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md"
         ));
 
-        // The start page's paragraph gives the altitude's largest difference and the largest
-        // of the rates'.
+        // The start page's paragraph gives the altitude's largest difference, the largest of
+        // the rates' and the largest of the dragged sphere's past the spread.
         let start = page("docs/start-here.md");
         let key = "largest_difference_from_a_kept_code";
         has("docs/start-here.md", &start, &size(altitude, key));
@@ -1479,6 +2708,16 @@ mod tests {
             })
             .unwrap();
         has("docs/start-here.md", &start, &size(most, key));
+        let farthest = positions[..3]
+            .iter()
+            .max_by(|a, b| {
+                a[key]
+                    .as_f64()
+                    .unwrap()
+                    .total_cmp(&b[key].as_f64().unwrap())
+            })
+            .unwrap();
+        has("docs/start-here.md", &start, &size(farthest, key));
 
         // The other model pages: gravity's four figures of the altitude, the frames page's two
         // remainders, and the integration page's distances from the nearest code at both

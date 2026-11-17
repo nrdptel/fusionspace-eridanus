@@ -10,14 +10,15 @@ as its motor burns.
   as its motor burns.
 - **Sources:** the equations of motion in RocketPy's technical documentation (RocketPy 1.13.0).
   The RocketPy paper (Ceotto et al., 2021) is cited but was not fetched.
-- **How well it is validated:** by analytic and unit tests, against RocketPy, and on two of
+- **How well it is validated:** by analytic and unit tests, against RocketPy, and on eight of
   NASA's check cases. In a vacuum, a tumbling rocket's center of mass stays on the exact parabola
-  to 1.7e-6 m over 22 s. On the check cases, a free body on the same equations differs from the
-  codes NASA published by more than they differ from each other: 19.51 mm (0.77 in) of altitude after a
-  4.4 km (2.7 mi) fall, and up to 0.01633 deg/s of body rate. A named difference between the
-  models accounts for each to inside the codes' spread at each code's largest difference. Read
-  at every sample, the tumbling brick's rates are left just past it
-  ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
+  to 1.7e-6 m over 22 s. On six of the check cases, a free body on the same equations differs
+  from the codes NASA published by more than they differ from each other: 19.51 mm (0.77 in) of
+  altitude after a 4.4 km (2.7 mi) fall, up to 0.01633 deg/s of body rate, and 105.0 mm (4.1 in)
+  of a dragged sphere's position. A named difference between the models accounts for each to
+  inside the codes' spread at each code's largest difference. Read at every sample, the
+  tumbling brick's rates are left just past it. Two shots from sea level come out inside the
+  spread ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
   RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
   declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
   difference is +1.783%, a peak acceleration on the rail ([validation report][report],
@@ -65,7 +66,7 @@ out under *Equations of motion*.
 
 Code: `hpr_sim::{dynamics, flight, free_body, histories, rail, recorder, state}`. Decisions:
 [ADR-011][adr-011] (equations of motion, aerodynamic coupling, rail, phases and termination) and
-[ADR-353][adr-353] (the two differences from NASA's check cases, traced). The integrator and
+[ADR-353][adr-353] and [ADR-356][adr-356] (the differences from NASA's check cases, traced). The integrator and
 events are in [Time integration](integration.md), and the frames in [Frames](frames.md).
 
 Sources:
@@ -224,7 +225,7 @@ $$
   $\boldsymbol{\omega}$ relative to $L$, which differs from the inertial rate by at most 7.3e-5 rad/s
   ([Frames](frames.md) and [the flight decision][adr-011]). On a tumbling body of three unequal
   moments the effect of leaving it out grows past that:
-  [NASA's check case 2](#a-free-body-against-nasas-check-cases) measures it.
+  [NASA's check cases 2 and 3](#a-free-body-against-nasas-check-cases) measure it.
 
 ### Aerodynamics in flight
 
@@ -559,14 +560,17 @@ default settings. The numbers were measured on September 17, 2026.
 NASA's Engineering and Safety Center published check cases for flight simulations that move a
 body in all six degrees of freedom **[N15]**. Each case is a simple body flown from a stated
 start. Six codes flew the cases in the air, labeled SIM 1 to SIM 6 without their names: five
-of NASA's own and JSBSim, an open-source simulator. All six posted a time history for case 1
-and five for case 2, beside the report. The report names no code as
+of NASA's own and JSBSim, an open-source simulator. Five or six posted a time history for each
+case, beside the report. The report names no code as
 right: the codes' agreement with each other is the measure.
 
-HPR Sim flies two of the cases with a free body, `hpr_sim::FreeBody`: a mass and an inertia,
+HPR Sim flies eight of the cases with a free body, `hpr_sim::FreeBody`: a mass and an inertia,
 with no design, no motor and no aerodynamics. It is not a second model. Its gravity and
-Coriolis force come from the flight's Earth model, its accelerations from the equations above,
-and its steps from the integrator at the default tolerances. A test
+Coriolis force come from the flight's Earth model, its air and wind from the flight's
+environment at the height a rocket's flight reads them, its accelerations from the equations
+above, and its steps from the integrator at the default tolerances. A case's damping or drag
+is a load the test adds: a force and a moment it forms from the state, the air and the velocity
+through the air, each at every step. A test
 (`the_derivative_is_a_coasting_rockets`) evaluates a coasting rocket by the equations a flight
 integrates, and the free body of that rocket's mass and inertia at the same state: the two
 agree to rounding.
@@ -578,11 +582,27 @@ agree to rounding.
   same place, turning at 10, 20 and 30 deg/s about its three axes relative to the stars, with
   no aerodynamics. Its three body rates relative to the stars (inertial rates) are compared
   over 30 s.
+- **Case 3, the tumbling brick with damping.** Case 2 with a damping moment about each axis.
+  The report gives three coefficients of −1, a reference area, a span and a chord, but no
+  formula. The test takes the usual one: about each axis $\tfrac14 \rho V S l^2 C \omega$,
+  which is the dynamic pressure $\tfrac12\rho V^2$ times $S l C$ times the rate made
+  dimensionless, $\omega l / 2V$. Here $V$ is the speed through the air, $\omega$ the rate
+  relative to the stars about that axis, and $l$ the span for roll and yaw and the chord for
+  pitch. The codes' files follow that law in that rate. The inertial rates are compared.
+- **Cases 6 to 10, the sphere with drag.** Case 1's sphere with a drag coefficient of 0.1,
+  acting along its velocity through the air whichever way it points. It is dropped from
+  30,000 ft in still air (case 6), in a steady 20 ft/s (6.1 m/s) wind from the west (7), and in
+  a wind from the west that grows by 3 ft/s every 1,000 ft of height, 70 ft/s (21 m/s) at the
+  start (8). In cases 9 and 10 it is shot from sea level at 1,000 ft/s (305 m/s) up and
+  1,000 ft/s east or north. Its position is compared: the distance between HPR Sim's and the
+  code's. Each code's position is read from the latitude, longitude and altitude in its file,
+  since two of the codes write no other.
 
 **How to read the table.** A difference is HPR Sim's value less a code's, the largest over the
-30 s. The spread is the largest difference between any two codes. One code is left out when
-leaving it out cuts the spread by more than half: SIM 1 in case 1 and SIM 6 in case 2, as the
-report numbers the codes. The model difference is a named difference between HPR Sim's model
+30 s; for a position, the distance. The spread is the largest difference between any two codes.
+One code is left out when leaving it out cuts the spread by more than half: SIM 1 in cases 1
+and 3, SIM 6 in case 2, SIM 3 in cases 6 to 8 and SIM 2 in case 10, as the report numbers the
+codes. The model difference is a named difference between HPR Sim's model
 and the codes', worked out apart from the flight. The last column is what that leaves of the
 largest difference from any kept code.
 
@@ -592,11 +612,23 @@ largest difference from any kept code.
 | Case 2, inertial roll rate | 4 of 5 | 0.0008991 deg/s | 0.01077 deg/s | +0.01077 deg/s | 0.0008818 deg/s |
 | Case 2, inertial pitch rate | 4 of 5 | 0.001242 deg/s | 0.01633 deg/s | −0.01633 deg/s | 0.001005 deg/s |
 | Case 2, inertial yaw rate | 4 of 5 | 0.0003532 deg/s | 0.005500 deg/s | +0.005500 deg/s | 0.0001268 deg/s |
+| Case 3, inertial roll rate | 4 of 5 | 0.003609 deg/s | 0.004873 deg/s | −0.003755 deg/s | 0.003176 deg/s |
+| Case 3, inertial pitch rate | 4 of 5 | 0.003792 deg/s | 0.005633 deg/s | −0.005609 deg/s | 0.001123 deg/s |
+| Case 3, inertial yaw rate | 4 of 5 | 0.003503 deg/s | 0.005102 deg/s | +0.004433 deg/s | 0.0007793 deg/s |
+| Case 6, position | 5 of 6 | 85.03 mm (3.3 in) | 102.6 mm (4.0 in) | 180.2 mm (7.1 in) | 77.57 mm (3.1 in) |
+| Case 7, position | 5 of 6 | 85.24 mm (3.4 in) | 102.8 mm (4.0 in) | 180.4 mm (7.1 in) | 77.63 mm (3.1 in) |
+| Case 8, position | 5 of 6 | 87.74 mm (3.5 in) | 105.0 mm (4.1 in) | 182.3 mm (7.2 in) | 77.68 mm (3.1 in) |
+| Case 9, position | 6 of 6 | 1989 mm (78 in) | 1980 mm (78 in) | 1253 mm (49 in) | 1991 mm (78 in) |
+| Case 10, position | 5 of 6 | 1986 mm (78 in) | 1977 mm (78 in) | 1251 mm (49 in) | 1988 mm (78 in) |
 
-Both cases come out past the codes' spread. Each has a named cause that accounts for the
-difference to inside the spread, taken at each code's largest difference
-([the decision that traces them][adr-353], [the report][check-cases]). A stricter reading,
-below, leaves case 2 just past the spread.
+For a position the model difference is a distance, and it differs from code to code; the table
+gives the largest.
+
+Cases 1 to 3 and 6 to 8 come out past the codes' spread. Each has a named cause that accounts
+for the difference to inside the spread, taken at each code's largest difference
+([the decisions that trace them][adr-353], [and the later cases][adr-356],
+[the report][check-cases]). A stricter reading, below, leaves case 2 just past the spread.
+Cases 9 and 10 come out inside it.
 
 - **Case 1 is the gravity model.** HPR Sim's sphere ends 19.51 mm (0.77 in) lower after a fall of 4.4 km
   (2.7 mi). It falls in WGS 84's [normal gravity](../glossary.md#normal-gravity)
@@ -615,6 +647,27 @@ below, leaves case 2 just past the spread.
   30 s, 3.9 times the Earth's rate. Integrating both sets of equations apart from the flight
   gives the differences in the table. What the missing term costs a rocket's flight is not measured: that, and whether
   to carry the Earth's rate in the rotational equations, is [#1521][i-1521].
+- **Case 3 is the Earth's rate again.** The same two sets of equations, each with the same
+  damping on the rate relative to the stars, along the same fall, leave at most 0.003176,
+  0.001123 and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside
+  too.
+- **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
+  (0.8 in) of three codes and 102.6 to 105.0 mm (4.0 to 4.1 in) from SIM 1. The codes don't fly
+  the same air. Against HPR Sim's 1976 standard atmosphere at the code's own altitude, SIM 4's
+  density is within 4.1e-7 of it, while SIM 1's is up to 1.35e-3 denser: more drag, so its
+  sphere falls less. The model difference flies a point mass twice, once in the codes'
+  gravity through the code's own density, read from its file, and once in HPR Sim's gravity
+  and atmosphere. Less that, HPR Sim sits 0.004812 to 0.01569 mm from the nearest code, and 77.57 to
+  77.68 mm (3.1 in) from SIM 1, inside the spread. SIM 1 is brought inside, not explained:
+  its own air, flown, would put its sphere 180.2 mm (7.1 in) above HPR Sim's, where its file is
+  102.6 mm (4.0 in) above. With the gravity alone, cases 6 and 7 were left 0.01 mm past the
+  spread, so the air is part of the trace ([the decision][adr-356]).
+- **Cases 9 and 10 are inside the spread.** Shot 6.9 km (4.3 mi) downrange, HPR Sim ends
+  1980 and 1977 mm (78 in) from the farthest kept code, inside spreads of 1989 and 1986 mm
+  (78 in). Less the same model difference it sits
+  0.03830 and 0.04217 mm from the nearest code. Here the launch frame's flat axes carry the
+  body far from the pad, so the conversion that gives apogee and landing points is in what the
+  cases hold.
 
 **A stricter reading.** The last column takes the model difference at the moment of each
 code's largest difference. Taken at every sample of the 30 s instead, what is left is
@@ -630,12 +683,14 @@ case 2 is not inside the spread: the excess is small, named and left open. The r
 
 **What the comparison does not see.**
 
-- **The Coriolis force's sign.** The force carries the falling sphere east, and that eastward
-  speed is in turn pushed up, so the fall ends higher whichever way the Earth is taken to
-  turn. Case 1's altitude holds the size of the term, 7.0 mm (0.28 in) of the fall, which a test pins on
-  the free body against its closed form. It does not hold the sign. The eastward drift would,
-  and it is not compared here.
-- **The attitude.** The codes' files also hold the brick's Euler angles, which are not
+- **The Coriolis force's sign, in case 1.** The force carries the falling sphere east, and that
+  eastward speed is in turn pushed up, so the fall ends higher whichever way the Earth is taken
+  to turn. Case 1's altitude holds the size of the term, 7.0 mm (0.28 in) of the fall, which a
+  test pins on the free body against its closed form. It does not hold the sign. Cases 6 to 10
+  compare whole positions, the eastward drift with them, so they do.
+- **What SIM 1 does in cases 6 to 8.** 77.6 mm (3.1 in) of its difference is not accounted
+  for, only inside the spread; SIM 3, left out there, is about 171 mm (6.7 in) off.
+- **The attitude.** The codes' files also hold the body's Euler angles, which are not
   compared ([#759][i-759]). An error in the attitude reaches the inertial rates only through
   the Earth's rate turned into the body.
 - **An error the kept codes share.** The codes are the reference, so it would pass unseen.
@@ -705,6 +760,7 @@ its tolerances. [Accuracy][accuracy] gives every result.
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-353]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
+[adr-356]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [i-759]: https://github.com/nrdptel/fusionspace-eridanus/issues/759
 [i-1521]: https://github.com/nrdptel/fusionspace-eridanus/issues/1521
