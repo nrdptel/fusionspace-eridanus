@@ -16,13 +16,13 @@ use std::time::{Duration, Instant};
 
 use hpr::hpr_analysis::ellipse::{Ellipse, Scatter};
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo, Outcome, Run, Sample};
-use hpr::hpr_analysis::statistics::{Bound, Distribution};
+use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution};
 use hpr::hpr_analysis::table::RunTable;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::output::{
-    EllipseKind, Export, ExportFormat, McBound, McDispersion, McEllipse, McExportMeta, McFailed,
-    McFailedAt, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
+    EllipseKind, Export, ExportFormat, McCountedQuantile, McDispersion, McEllipse, McExportMeta,
+    McFailed, McFailedAt, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
 };
 use crate::sim::{self, FlightArgs, Setup};
 use crate::{Failure, Out};
@@ -430,10 +430,10 @@ fn spread(distribution: &Distribution) -> McSpread {
 }
 
 /// A percentile counting the flights with no value, in the output's terms.
-fn bound(bound: Bound) -> McBound {
+fn bound(bound: CountedQuantile) -> McCountedQuantile {
     match bound {
-        Bound::Value(value) => McBound::Value(value),
-        Bound::Unbounded => McBound::Unbounded,
+        CountedQuantile::Value(value) => McCountedQuantile::Value(value),
+        CountedQuantile::Unbounded => McCountedQuantile::Unbounded,
     }
 }
 

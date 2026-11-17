@@ -2,7 +2,7 @@
 //! at random about the nominal flight's. The run's table reads as NumPy arrays.
 
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo as Runner, Outcome, Run};
-use hpr::hpr_analysis::statistics::{Bound as StatBound, Distribution};
+use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution};
 use hpr::hpr_analysis::table::{RunTable, Values};
 use hpr::hpr_sim::FlightSummary;
 use numpy::{PyArray1, PyArrayMethods};
@@ -336,9 +336,9 @@ impl MonteCarlo {
             Distribution::new(values.iter().flatten().copied().collect(), values.len())
                 .map_err(error)?;
         let summary = distribution.summary();
-        let tail = |bound: Option<StatBound>, end: f64| match bound {
-            Some(StatBound::Value(value)) => Some(value),
-            Some(StatBound::Unbounded) => Some(end),
+        let tail = |bound: Option<CountedQuantile>, end: f64| match bound {
+            Some(CountedQuantile::Value(value)) => Some(value),
+            Some(CountedQuantile::Unbounded) => Some(end),
             None => None,
         };
         let dict = PyDict::new(py);

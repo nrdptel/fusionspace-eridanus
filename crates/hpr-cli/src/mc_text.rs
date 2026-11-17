@@ -11,7 +11,9 @@
 use std::io::{self, Write};
 
 use crate::console::{Diagnostics, Level, Text};
-use crate::output::{EllipseKind, FlagKind, IssueKind, McBound, McDispersion, McRun, McSpread};
+use crate::output::{
+    EllipseKind, FlagKind, IssueKind, McCountedQuantile, McDispersion, McRun, McSpread,
+};
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, issue_help, issue_text, launch_lines, motor_lines,
     note_lines,
@@ -189,8 +191,8 @@ fn counting_missing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
             write!(out, "{label:<NAME$}{:27}", "")?;
             for (i, cell) in cells.iter().enumerate() {
                 let text = match cell {
-                    Some(McBound::Value(v)) => fixed(v * per_m, decimals),
-                    Some(McBound::Unbounded) => "unbounded".to_owned(),
+                    Some(McCountedQuantile::Value(v)) => fixed(v * per_m, decimals),
+                    Some(McCountedQuantile::Unbounded) => "unbounded".to_owned(),
                     None => "-".to_owned(),
                 };
                 if i == 0 {

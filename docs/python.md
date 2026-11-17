@@ -535,18 +535,20 @@ dropped. `run.failed` counts them. `run.failures` groups them by why, a dictiona
 `"inputs"` or `"flight"`; `reason`; `count`; and `first_index`, the first one's row. The
 `outcome`, `failed_at` and `reason` columns say which they were.
 
-A failed flight's figures are NaN. `run.spread(name)` gives a column's spread as `hpr mc
---json` gives the apogee's: `attempted`, `count`, `mean`, `standard_deviation`, `min`, `p05`,
-`p50`, `p95` and `max`, over the flights with a value. NumPy's `nanmean` and `nanpercentile`
-give the same, and so does picking the flown ones with `run["outcome"] == "flown"`, when every
-flown flight has the figure (one that never landed has no landing). All three
-leave the failed flights out, so if those are the ones that would have flown highest, the 95%
-reads short. `spread` also gives `p05_counting_missing` and `p95_counting_missing`: the 5% and
-95% with each failed flight placed past that end, the worst case they allow
-([Failed flights are counted](monte-carlo.md#failed-flights-are-counted)). They're `-inf` and
-`inf` when too many failed to bound them, and `None` when every flight has a value. `run.nominal` is the flight
-with nothing scattered, as `Flight.summary` gives it, and `run.dispersion` the standard
-deviations given, by name.
+A failed flight's figures are NaN. `run.spread(name)` takes a column of numbers, such as
+`"apogee_m"` or `"landing_distance_m"`, and returns a dictionary of its spread over the flights
+that have a value: `attempted`, `count`, `mean`, `standard_deviation`, `min`, `p05`, `p50`, `p95`
+and `max`. NumPy's `nanmean` and `nanpercentile` give the same numbers. Both leave the failed
+flights out, so if those would have flown highest, the 95% reads low.
+
+The dictionary also has `p05_counting_missing` and `p95_counting_missing`: the 5% and 95% with
+each failed flight placed past that end, the worst case they allow
+([Failed flights are counted](monte-carlo.md#failed-flights-are-counted)). Each is `None` when
+every flight has a value, and `-inf` (the 5%) or `inf` (the 95%) when too many failed for the
+run to bound it. So check for `None` before formatting one.
+
+`run.nominal` is the flight with nothing scattered, as `Flight.summary` gives it, and
+`run.dispersion` the standard deviations given, by name.
 
 The eleven inputs, each named for its unit:
 

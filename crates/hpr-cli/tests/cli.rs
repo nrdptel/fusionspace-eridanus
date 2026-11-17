@@ -7234,6 +7234,47 @@ fn mc_places_its_failed_flights_past_each_tail() {
         "{}",
         text.out
     );
+    // The rows under the two lines: the low tail under 5%, the high under 95%, each in meters
+    // to a tenth and in whole feet, where the table's columns put them.
+    let header = text
+        .out
+        .lines()
+        .find(|line| line.trim_start().starts_with("nominal"))
+        .unwrap();
+    let column_end = |name: &str| header.find(name).unwrap() + name.len();
+    let worst: Vec<&str> = text
+        .out
+        .lines()
+        .skip_while(|line| !line.ends_with("the 5% and 95% are at worst"))
+        .skip(1)
+        .take(4)
+        .collect();
+    for (row, (label, spread, per_m, decimals)) in worst.iter().zip([
+        ("apogee (m AGL)", "apogee_m", 1.0, 1),
+        ("apogee (ft AGL)", "apogee_m", 1.0 / 0.3048, 0),
+        ("landing distance (m)", "landing_distance_m", 1.0, 1),
+        (
+            "landing distance (ft)",
+            "landing_distance_m",
+            1.0 / 0.3048,
+            0,
+        ),
+    ]) {
+        assert!(row.starts_with(label), "{row}\n{}", text.out);
+        for (column, tail) in [
+            ("5%", "p05_counting_missing"),
+            ("95%", "p95_counting_missing"),
+        ] {
+            let value = document[spread][tail]["value"].as_f64().unwrap() * per_m;
+            let cell = format!("{value:.decimals$}");
+            let end = column_end(column);
+            assert_eq!(
+                row[..end].split_whitespace().last(),
+                Some(cell.as_str()),
+                "{label} {column}: {row}"
+            );
+        }
+    }
     // With nothing failed, nothing is added.
     let calm = streams(&[
         "mc",

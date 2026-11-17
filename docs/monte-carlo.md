@@ -159,7 +159,8 @@ A test runs both on 40 flights with every input scattered and finds every number
 bit. That holds on one platform, with both built in release mode
 ([`test_a_run_is_hpr_mcs_bit_for_bit`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_montecarlo.py)).
 Landing ellipses aren't in Python yet; NumPy finds them from the landing arrays.
-`run.spread(name)` gives a column's spread, and its 5% and 95% with the failed flights counted. A
+`run.spread(name)` gives a column's spread, and its 5% and 95% with each failed flight placed past
+that end ([Failed flights are counted](#failed-flights-are-counted)). A
 configuration that drops a stage can't be read from Python yet, so it runs only from Rust and
 `hpr mc`.
 
@@ -324,14 +325,19 @@ bias them: check `missing()` first.
 
 How much a failure can move a percentile has a bound. If every failed flight had gone past one end,
 the 95th percentile of all the flights tried is the percentile of the flown ones with the failed
-ones counted as infinitely high. `quantile_counting_missing(0.95, MissingEnd::Above)` gives it,
-and `MissingEnd::Below` gives the 5th percentile's worst case. Say 100 flights are tried and 2
-fail. The 95th percentile of all 100 sits at position $h = 99 \times 0.95 = 94.05$ of them, counted
-from 0, smallest first. With the 2 failures placed last, that's 0.05 of the way from the 95th
-smallest flown value to the 96th. Over the 98 flown flights alone it sits at $97 \times 0.95 =
-92.15$, lower. With 5 or more of the 100 failed, the position reaches a failed flight, and the
-answer is [`Bound::Unbounded`]. `hpr mc` prints both ends whenever a flight has no value
-([`hpr mc`](cli.md#hpr-mc)).
+ones counted as infinitely high. The percentile is the straight-line rule NumPy uses by default:
+with $n$ values sorted, the $p$ percentile sits at position $h = (n - 1)p$, counted from 0.
+
+Say 100 flights are tried and 2 fail. The 95th percentile of all 100 sits at position $h = 99
+\times 0.95 = 94.05$. With the 2 failures placed last, positions 94 and 95 are the 95th and 96th
+smallest flown values, so it lies 0.05 of the way from one to the other. Over the 98 flown flights
+alone it sits at $97 \times 0.95 = 92.15$, two places lower. With 5 or more of the 100 failed,
+position 95 is a failed flight, and the answer can't be bounded.
+
+`hpr mc` prints both ends whenever a flight has no value ([its output](cli.md#hpr-mc)), and
+Python's `MonteCarlo.spread` gives the same numbers. From Rust,
+`quantile_counting_missing(0.95, MissingEnd::Above)` gives the 95th percentile's worst case, and
+`MissingEnd::Below` the 5th's; too many failures give [`CountedQuantile::Unbounded`].
 
 A share such as "reached 1,100 m (3,609 ft)" is given as two bounds, `share_at_least(1100.0)`:
 
@@ -472,7 +478,7 @@ The API reference is [`hpr_analysis::montecarlo`](api/hpr_analysis/montecarlo/in
 [`hpr_analysis::ellipse`](api/hpr_analysis/ellipse/index.html).
 
 [`Run::failed`]: api/hpr_analysis/montecarlo/struct.Run.html#method.failed
-[`Bound::Unbounded`]: api/hpr_analysis/statistics/enum.Bound.html#variant.Unbounded
+[`CountedQuantile::Unbounded`]: api/hpr_analysis/statistics/enum.CountedQuantile.html#variant.Unbounded
 [`Run::apogee`]: api/hpr_analysis/montecarlo/struct.Run.html#method.apogee
 [`run_parallel`]: api/hpr_analysis/montecarlo/struct.MonteCarlo.html#method.run_parallel
 [`Run::landing`]: api/hpr_analysis/montecarlo/struct.Run.html#method.landing

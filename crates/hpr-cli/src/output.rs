@@ -752,17 +752,17 @@ pub struct McSpread {
     /// The 5th percentile of every flight tried, each flight with no value placed below the
     /// smallest: the lowest the 5th percentile can be, whatever the missing flights would have
     /// given. `null` when every flight tried has a value, as it is then `p05`.
-    pub p05_counting_missing: Option<McBound>,
+    pub p05_counting_missing: Option<McCountedQuantile>,
     /// The 95th percentile of every flight tried, each flight with no value placed above the
     /// largest: the highest it can be. `null` when every flight tried has a value.
-    pub p95_counting_missing: Option<McBound>,
+    pub p95_counting_missing: Option<McCountedQuantile>,
 }
 
 /// A percentile that counts the flights with no value as past one end
 /// (`hpr_analysis::statistics::Distribution::quantile_counting_missing`).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum McBound {
+pub enum McCountedQuantile {
     /// The percentile, `{"value": 1134.0}`.
     Value(f64),
     /// `"unbounded"`: so many flights have no value that the percentile's interpolation puts

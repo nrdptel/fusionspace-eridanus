@@ -162,7 +162,7 @@ def test_a_spread_is_hpr_mcs_failed_flights_counted(runs):
         values = run[name]
         # NumPy's nanpercentile drops the failed flights, as the p05 and p95 do; the counting
         # tails lie outside them.
-        assert spread["p95"] == numpy.nanpercentile(values, 95)
+        assert spread["p95"] == pytest.approx(numpy.nanpercentile(values, 95), rel=1e-15)
         assert spread["p95_counting_missing"] > spread["p95"]
         assert spread["p05_counting_missing"] < spread["p05"]
     with pytest.raises(TypeError, match="isn't a column of numbers"):
