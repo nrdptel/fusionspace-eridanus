@@ -41,10 +41,10 @@ speed off the rail isn't on that list either.
 
 It is a number a flyer and a range safety officer act on. `hpr sim` prints a `rail exit speed`
 line ([the command line's page][cli]): the speed of the center of mass over the ground when the
-aft-most rail button or lug passes the rail's top ([flight metrics][metrics]). A rocket that
-leaves the rail too slowly isn't yet held straight by its fins ([rail exit][rail-exit], in
-the glossary). A speed predicted higher than the real one is the flattering side, the worst
-class of error for a safety number ([ADR-144][adr-144]).
+aft-most rail button or lug passes the rail's top ([flight metrics][metrics]). The slower a
+rocket leaves the rail in a crosswind, the larger its angle of attack just after
+([rail exit][rail-exit], in the glossary). A speed predicted higher than the real one is the
+flattering side, the worst class of error for a safety number ([ADR-144][adr-144]).
 
 What that line rests on today is another simulator. The comparisons with RocketPy flown on the
 same inputs hold the rail-exit speeds within 0.05% ([accuracy][accuracy],
@@ -158,16 +158,19 @@ the descent rates and the landing points.
        figure, and its cause if it is left out. A flight that is refused or left out keeps
        its record, with its cause. A record is never written over an older one.
      - Each record's SHA-256, a fingerprint of the record, is merged in a list of its own,
-       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]). A digest
-       of the ids of every flight with a record is merged beside the list. A flight whose
-       id is in that digest is sealed: its record can't change or go unseen. The list holds
-       one hash for each sealed id and no other: the run stops on a sealed id whose record's
-       hash isn't on it, and on a hash that no record matches.
+       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]): at the
+       merge base, where the branch last took main. A digest of the ids of every flight
+       with a record is merged beside the list and read the same way, as one of the
+       manifest's ids is for the apogees. The flights whose ids hash to that digest are
+       sealed. A later run stops when the ids of the records present don't hash to the
+       digest, when a sealed flight's record's hash isn't on the list, and when a hash on
+       the list matches no record. So no record is dropped, added or rewritten unseen, and
+       the sealed set changes only by a decision record.
      - OpenRocket 24.12's speed is read from its own flight's history at the same travel, not
        from its launch-rod figure, whose travel may differ. The run that stores that history
        merges here.
      - Each public flight is listed as having a log with an acceleration channel the reading
-       can use, or none. Those with one are sealed the same way.
+       can use, or none. Those with one get a record and are sealed the same way.
    - **M2.14b, the errors.** *Done when:*
      - The fixture report computes each error from the record [M2.14a][m2-14a] merged. The
        run stops, comparing nothing, when a sealed flight's record is missing, isn't on the
