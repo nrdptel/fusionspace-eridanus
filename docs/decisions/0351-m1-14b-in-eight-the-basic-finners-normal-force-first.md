@@ -298,7 +298,7 @@ HPR Sim's own rule for a square fin's trailing edge, which may matter on real ro
 ([#1514][i-1514]). The damping is less than measured on every row but Mach 1.077, by 2.8 to
 13.2 times the fit's probable error: the side that does not flatter. At Mach 1.077 it is
 25.4% more, five times the probable error, the side that does. The test pins each row's sign;
-at Mach 1.077 the drag's band straddles DREV's, so there it pins the middle's.
+at Mach 1.077 the drag's band straddles DREV's, so there it pins the nominal value's.
 The rows go to the same increments as M1.14b1's: Mach 1.077 to [the transonic][m1-14c], 1.293
 to 2.375 to [the supersonic][m1-14d], and the two above 2.5 to [the extended band's][m1-14h],
 whose *done when* re-measure the Basic Finner's rows in their bands: these rows are among them.

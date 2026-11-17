@@ -1717,10 +1717,11 @@ mod tests {
     /// two-dimensional base drag; and the pitch-damping read-out about the fits' moment
     /// reference, 5.5 calibers, with its fins' part.
     ///
-    /// It pins which way hpr errs, and by how much, on each row. The drag reads high at Mach
-    /// 1.077 in the middle of its band, which reaches below every shot there, the faces' value
-    /// being an upper bound; low at 1.293, inside the shots' spread; and low from Mach 1.832 up, below every
-    /// shot at both ends of the wedge's band and even with the trailing edges at vacuum. The pitch
+    /// It pins which way hpr errs, and by how much, on each row. At Mach 1.077 the drag's nominal
+    /// value (the faces at their upper bound, the trailing edges at their band's middle) reads
+    /// high, but its band reaches below every shot there; it reads low at 1.293, inside the
+    /// shots' spread; and low from Mach 1.832 up, below every shot at both ends of the wedge's
+    /// band and even with the trailing edges at vacuum. The pitch
     /// damping reads low in size by more than the fit's probable error on every row but Mach
     /// 1.077, where it reads high: there HPR Sim overstates the damping, the side that flatters.
     #[expect(
@@ -1918,10 +1919,10 @@ mod tests {
             assert!((got - drag_error).abs() < 5e-4, "{what}: drag error {got}");
             // As drawn, the square leading edge's stagnation pressure puts it far above DREV's.
             assert!(drawn > 1.3 * cx0, "{what}");
-            // Which way. At Mach 1.077 the middle is high, above every shot, and so is the
-            // high end, but with the faces at zero the low end is below every shot: the sign
-            // there is not settled. Low at 1.293, at both ends, the middle inside the shots'
-            // spread. From 1.832 up, low at both ends, below every shot, and still below DREV's
+            // Which way. At Mach 1.077 the nominal value is high, above every shot, and so is
+            // the high end, but with the faces at zero the low end is below every shot: the sign
+            // there is not settled. Low at 1.293, at both ends, the nominal value inside the
+            // shots' spread. From 1.832 up, low at both ends, below every shot, and still below DREV's
             // with the trailing edges at vacuum.
             if mach < 1.1 {
                 assert!(hpr > high, "{what}: {hpr} not above the shots' {high}");

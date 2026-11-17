@@ -4910,12 +4910,12 @@ base can add: so the miss is not the wedge's base. Its cause is not found
 ([#1513](https://github.com/nrdptel/fusionspace-eridanus/issues/1513)). The candidates are the
 body's base, the friction and how the fins' bases share the body's wake, and none is measured
 here. On this body a drag that low would, other things equal, put a simulated apogee too high. At Mach 1.293 the
-drag is inside the shots' spread. At Mach 1.077 the band's middle reads 10.1% high, above every
-shot, but its low end reads 9.5% low: the faces' figure is an upper bound with nothing below it,
+drag is inside the shots' spread. At Mach 1.077 the value with the faces at that upper bound and the
+trailing edges at their band's middle reads 10.1% high, above every shot, but its low end reads 9.5% low: the faces' figure is an upper bound with nothing below it,
 the trailing edges rest on one steep figure, and the row's three shots flew from Mach 1.056 to
 1.116, where that figure moves fast. So the sign there is not settled. A drag that reads high
-puts a simulated apogee too low, the side that flatters when it is held against a waiver's
-ceiling.
+puts a simulated apogee too low, the side that flatters when it is held against an altitude
+waiver's ceiling.
 
 The damping is low in size wherever the shock stands attached, by 2.8 to 13.2 times the fit's
 probable error: HPR Sim lets this body's swing in pitch last longer than it did, the side that

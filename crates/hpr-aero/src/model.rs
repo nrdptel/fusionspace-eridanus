@@ -2606,8 +2606,8 @@ impl AeroModel {
 
     /// The part of [`Self::pitch_damping`] that the components `components` (indices as
     /// [`Self::component_normal_force`] takes them) give: the same sum over those components
-    /// alone, so the parts over a split of `0..component_count()` add up to the whole. The fin
-    /// sets' part is `fin_set_start()..component_count()`.
+    /// alone, so the parts over a split of `0..component_count()` add up to the whole. The fins'
+    /// part, fin sets' and tube fins', is `fin_set_start()..component_count()`.
     ///
     /// Like the flight engine's damping, it is the components' and ignores a normal-force
     /// override table ([`AeroModel::with_normal_force_table`]).
