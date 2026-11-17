@@ -43,7 +43,8 @@ to 4.47, small yaw. Table IX (PDF pp. 48–49) gives multiple fits of C_X0, C_N�
 from Mach 1.077 to 4.300; this note uses its rows at Mach 1.832, 2.375, 2.718 and 3.147 (C_Nα's probable errors 1%
 to 4% where printed). The readings are cached under `refs/`; as a public release it may be committed (#1119, #763).
 
-- The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
+- The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%. C_X0's prints (0%) only at Mach 1.077 and 1.293;
+  elsewhere Table IX holds it and each shot has its own, all 0% in Table VIII (PDF p. 23).
 - **Gap:** no round flew between Mach 1.377 and 1.799 (Table VIII, PDF pp. 44–47): Mach 1.5 has no DREV point.
 - **Convention (Inference).** DREV doesn't state the rate's denominator (PDF pp. 12–13); its C_lp interpolated to
   Mach 2.5 lies close to AEDC's, defined per p·d/(2V). Re 7 to 30 × 10⁶ on the length (PDF p. 19).
@@ -96,8 +97,8 @@ NOL's static tunnel [F4 Figs. 29–30], by eye, gives C_Nα about 13.3 at Mach 1
 1 d, span 1 d and no sweep, flush with the base. What it can't draw is the single wedge: `FinCrossSection` offers only
 `Square`, `Rounded` and `Airfoil`. **Inference:** C_lp, C_Nα and CP still compare fairly to first order, since
 thin-airfoil lift ignores thickness, though BRL 711 measured its thicker wedges' C_lp 21% above its linear
-theory (PDF p. 33). C_X0 does not compare. The trailing edges' base area is 0.32 d², 41% of the reference
-area, so a base pressure coefficient of −0.1 to −0.2 adds 0.04 to 0.08, a rough bound.
+theory (PDF p. 33). C_X0 does not compare as drawn. The trailing edges' base area is 0.32 d², 41% of the reference
+area; M1.14b2 models both wedge terms ([wedge note](basic-finner-wedge-drag.md)), whose bases add 0.04–0.29.
 
 ## 3. ARL-TN-1128: a shape, no data
 
@@ -163,8 +164,8 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
    release now allows (#1119, #763). Expected: the row turns from −5.9…−16.2% to about +2…+13%
    at Mach 1.82–3.00 and +26 to +30% near Mach 1.5. Keep Nicolaides' points as a disputed set until TN-100A is found.
 2. **Fly the Basic Finner against DREV Table IX** for M1.14b, its values committable (#763): C_Nα and CP at
-   Mach 1.83, 2.38 and 2.72, and C_X0 with Table VIII's per-shot errors. Expect C_X0 to read low by up to 0.04–0.08,
-   from the missing wedge base.
+   Mach 1.83, 2.38 and 2.72, and C_X0 with Table VIII's per-shot errors. Done (M1.14b1, M1.14b2): with the wedge
+   modeled C_X0 still reads 16.5–21.3% low from Mach 1.83 up (#1513).
 3. **Record ARL-TN-1128 as refused** under M1.14b, giving the reason: no coefficients. Correct "HSARV" to HARV.
 4. **Record the Mach 2.45 point as refused:** the authors doubt it, and its license bars a fixture.
 5. **AGARD Model B** as a C_Nα and CP check across the Mach 2.0 leading-edge switch (NACA TN 3300).

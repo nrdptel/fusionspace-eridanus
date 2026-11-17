@@ -646,7 +646,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14a3"></a>[M1.14a3][done-1] | Stability issue warnings: issues #87, #120, #121 and #172, where stability reads high, warn by number | done |
 | <a id="m1-14b"></a>[M1.14b][phase-1] | New references from Mach 1.5 to 2.5: a public database of flights with simulator predictions, the free-flight coefficients of a standard finned test body (the Basic Finner), NASA's six-degree-of-freedom check cases, and the validation uncertainty of each real flight. Two listed sources are refused ([the reference note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md), §3 and §4): the Army Research Laboratory report ARL-TN-1128, which defines a shape, the High-Speed Army Reference Vehicle (HARV), and holds no coefficients; and a Mach 2.45 wind-tunnel drag point, whose authors measured a drag coefficient about a quarter of their own simulation's and say their force setup should be reconsidered | not yet done |
 | <a id="m1-14b1"></a>[M1.14b1][done-1] | The Basic Finner's normal force against DREV's range | done |
-| <a id="m1-14b2"></a>[M1.14b2][phase-1] | The Basic Finner's drag and pitch damping against DREV's range | not yet done |
+| <a id="m1-14b2"></a>[M1.14b2][done-1] | The Basic Finner's drag and pitch damping against DREV's range | done |
 | <a id="m1-14b3"></a>[M1.14b3][phase-1] | NASA's check cases 1 and 2 | not yet done |
 | <a id="m1-14b4"></a>[M1.14b4][phase-1] | NASA's check cases 3 and 6 to 10 | not yet done |
 | <a id="m1-14b5"></a>[M1.14b5][phase-1] | Tip-off, measured with RocketPy's | not yet done |

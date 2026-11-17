@@ -64,7 +64,9 @@ What has been checked so far:
   standard finned test body, in a Canadian aeroballistic range
   ([Aerodynamics](physics/aero.md#the-basic-finners-normal-force-against-drevs-range)).
 - Drag from Mach 0.6 to 4.63 against the same wind-tunnel tests, the forebody only
-  ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
+  ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). And the drag and
+  pitch damping from Mach 1.08 to 3.15 against the Basic Finner's free flights
+  ([Aerodynamics](physics/aero.md#the-basic-finners-drag-and-pitch-damping-against-drevs-range)).
 - A boattail's own drag and its base pressure, from Mach 0.3 to 3.24, against measured boattails
   in six NACA and NASA reports ([drag fixture][drag-fixture]).
 - The roll that [canted](glossary.md#cant) fins give, from Mach 1.5 to 4.63, against NASA's
@@ -347,6 +349,7 @@ its reference and still pass.
 | [Aerodynamics](physics/aero.md) | NASA's wind-tunnel tests of the same two models, Mach 0.6 to 4.63: drag on the forebody (the models' bases sat on a sting), fins on and off, 44 readings ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)) | 2 of 44 within 10%, and every reading high. With the fins off, +13.5% to +24.1% from Mach 1.5 and +12.0% to +54.1% below, most of it the models' 15° boattail, which HPR Sim over-predicts in a thick boundary layer. With the fins on, from Mach 1.5, +39.4% to +154.0%, where HPR Sim's fins' drag stays near 0.30 and the measured falls to 0.046. HPR Sim's base drag behind a plain cylinder is not measured by the tunnel and has been checked at no speed faster than Mach 0.3 |
 | [Aerodynamics](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | the Basic Finner's normal-force slope and center of pressure at a small angle of attack, from fits of free flights in the range of Canada's DREV, Mach 1.08 to 3.15, six Mach numbers; no target. It leaves out the fins' wedge section, the spin of the models whose fins were canted, and the table's two rows past Mach 3.5 ([report][finner-nf]) | the slope low on every row, where the fits' probable errors are 1% to 4%: 11.2% and 16.1% low from Mach 1.5 to 2.5, 24.9% low at both Mach numbers below 1.5, and 9.3% and 13.0% low from Mach 2.5 to 3.5. The center of pressure forward of the measured one on every row, which understates stability: 0.34 and 0.18 calibers from Mach 1.5 to 2.5, 0.07 and 0.03 below, 0.27 and 0.23 above. At each fit's root-mean-square yaw, about 1°, the slope's miss is 0.8 to 2.4 percentage points smaller. The cause is not found |
 | [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | NASA's wind-tunnel tests of the two Arcas Robin models, Mach 1.5 to 4.63: [roll forcing](glossary.md#roll-damping-and-roll-forcing), the rolling moment per degree of cant, 11 readings ([roll fixture][roll-fixture]) | from Mach 2.3, all 8 within 5.3%; at Mach 1.5 and 1.8, +14.3% to +47.8% |
+| [Aerodynamics](physics/aero.md#the-basic-finners-drag-and-pitch-damping-against-drevs-range) | the Basic Finner's zero-lift drag and pitch damping, against the same fits of DREV's free flights, Mach 1.08 to 3.15, six Mach numbers; no target. The fins' wedge section, which the design can't draw, is modeled from published figures, a band. It leaves out the fins' bases beside the body's, the canted models' roll, and the drag's growth with angle ([report][finner-dd]) | the drag 16.5% and 20.6% low from Mach 1.5 to 2.5, 21.3% and 19.3% low from Mach 2.5 to 3.5, below every shot of its row and below DREV's even with the fins' bases at a vacuum; below Mach 1.5, 10.1% high at Mach 1.077 and 3.5% low at 1.293, inside the shots' spread. The cause is not found. The pitch damping 24.7% and 26.2% low from Mach 1.5 to 2.5, 39.6% and 30.4% low from 2.5 to 3.5, and 16.8% low at Mach 1.293: less damping than measured, the side that does not flatter. At Mach 1.077 it is 25.4% high, the side that does |
 | [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | The Basic Finner's roll damping measured in the US Naval Ordnance Laboratory's (NOL's) wind tunnel, Mach 1.53 to 2.76 ([roll fixture][roll-fixture]); in the free-flight range of Canada's DREV, Mach 1.83 to 3.15, from cached readings ([DREV statistics][drev-stats]); and Barrowman's computed value at Mach 0.07 | +11.7% to +27.5% against NOL's tunnel, most at Mach 1.53: HPR Sim overstates the damping. Against DREV, 8.8% high on average and 12.4% at most in the core band (Mach 1.83 and 2.38); 5.0% on average and 8.7% at most in the extended band (2.72 and 3.15). −2.0% against Barrowman's computed value (a theory curve, not a measurement; it confirmed how HPR Sim reads his method). Barrowman's Fig. 5-7 points, once scored here (HPR Sim 5.9% to 16.2% below them), sit 1.27 times BRL 799's range data ([Aerodynamics](physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner)) and are no longer scored |
 | [Aerodynamics](physics/aero.md#boattails-faster-than-sound) | conical boattails measured in six NACA and NASA reports, jet off, Mach 0.3 to 3.24: the boattail's own pressure drag and the base pressure behind it ([drag fixture][drag-fixture]) | attached boattails of 3° to 10° from Mach 1.2: −21.9% to +28.3%, within 0.0123 (58 readings); from Mach 1.0 to 1.1, −18.2% to −5.4% (4), and −46.2% to +60.0% at points near Mach 1 their report calls questionable (27); through the rise from Mach 0.85 to 0.95, −77.5% to +7.6% (28); under Niskanen's rule to Mach 0.8, −100% to −83.5% (58). 16° in a boundary layer a fifth of the diameter thick, +26.4% to +54.2% (9). Separated 30° and 45°, −2.8% to +6.6% (3, which set the separation angles). |
 | [Aerodynamics](physics/aero.md) | the base drag behind them | within 0.0102 of the measured on the cylinder's area, though behind small bases that is up to about 40% of the base's own drag (8 of the 12 set the ratio below Mach 2.5) |
@@ -1494,6 +1497,13 @@ rest.
   it is HPR Sim's body, which reads 6% to 10% low faster than sound against MIL-HDBK-762's worked
   example as well
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)).
+- **Drag and pitch damping read low on the Basic Finner faster than sound.** Against its free
+  flights from Mach 1.83 to 3.15, with its wedge fins' drag modeled from published figures, HPR
+  Sim's drag reads 16.5% to 21.3% low and its pitch damping 24.7% to 39.6% low. The drag's cause
+  is not found ([#1513](https://github.com/nrdptel/fusionspace-eridanus/issues/1513)). A square
+  fin's trailing edge may also take too little drag faster than sound
+  ([#1514](https://github.com/nrdptel/fusionspace-eridanus/issues/1514);
+  [Aerodynamics](physics/aero.md#the-basic-finners-drag-and-pitch-damping-against-drevs-range)).
 - **Roll: the forcing high near Mach 1.5, the damping high, nothing committed below Mach 1.5.**
   The roll forcing from canted fins reads +47.8% at Mach 1.5
   and +14.3% to +17.8% at 1.8 against NASA's wind tunnel. There, linear theory's load climbs toward
@@ -1644,4 +1654,5 @@ rest.
 [drag-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/drag-vs-mach.json
 [roll-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/roll-vs-mach.json
 [finner-nf]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-normal-force.json
+[finner-dd]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-drag-damping.json
 [drev-stats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping-drev.json
