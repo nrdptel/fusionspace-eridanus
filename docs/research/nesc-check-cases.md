@@ -149,8 +149,7 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
 - **Case 6: fits** once drag acts along the air-relative velocity, as a sphere's does: body x points north and the
   sphere falls along body z, at 90° angle of attack, where axial-only drag gives no force (SIM 5's drag is all on
   body z [S5 data]). New: a drag fall through the layered 1976 atmosphere against six codes, within 0.90 ft.
-  Flown, with 6 to 10: past the spread in 6 to 8 by up to 105.0 mm, traced to gravity and the codes' own air
-  density; 9 and 10 inside it ([ADR-356][adr-356]).
+  Flown: past the spread in 6 to 8, traced to gravity and each code's own air; 9 and 10 inside ([ADR-356][adr-356]).
 - **Cases 7 and 8: fit** with the same drag. New: steady and sheared wind on a free body.
 - **Cases 9 and 10: fit,** with the same drag (45°). New: a 6.9 km shot, where the pad's tangent plane sits 3.7 m
   (12 ft) above the ellipsoid (**Inference**): a test, inside a 4.3 ft spread, of the conversion HPR Sim uses for
@@ -158,8 +157,7 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
 - **Cases 11 to 17: refused.** 11 to 16 fly an aircraft under flight control. Case 17 is orbital, past Mach 9 in the
   files, 314 tonnes, aerodynamics without Mach, its codes 16.790% apart; staging is checked against OpenRocket.
 
-**What all need.** A test-only free body of given mass and inertia, no motor or design tree, started at a set state as
-`vacuum_ballistic_flight_follows_the_parabola` does; no geoid offset; the TM's exact unit factors [S2 Table 73].
+**What all need.** A free body of given mass and inertia at a set state; no geoid offset; the TM's unit factors [S2 Table 73].
 
 ## 7. Mach band
 
@@ -170,17 +168,15 @@ Case 14, on "Mach effects in tables", was never finished [S1 p. 16]; case 17's M
 
 ## What the project can use
 
-- **For M1.14b's done-when.** Report the item as not a Mach 1.5–2.5 reference: cases 1, 2 and 6 to 10 adopted as
-  checks (6 to 10 once a sphere's drag exists); 3, 4 and 5 deferred for a model (ADR-351: 3 to M1.14b4, 4 and 5 refused); 11 to 17 refused (§6). The band
-  gains nothing.
+- **For M1.14b's done-when.** Not a Mach 1.5–2.5 reference: cases 1 to 3 and 6 to 10 are flown as checks; 4 and 5
+  are refused (ADR-351), and 11 to 17 (§6). The band gains nothing.
 - **Pin and cache.** Done for `Atmospheric_checkcases.zip` (sha256 `1a83df6d…`) and both TM volumes, in
   `validation/refs.lock.toml` as `fetched`; `Atmospheric_models.zip` (`10e2dc26…`) is not pinned, since nothing reads it.
-- **A check-case runner.** Done for cases 1 and 2: `cargo xtask check-cases` ([ADR-353][adr-353]). Neither came out
-  within the spread, as expected of case 1 and not of case 2. Cases 3 and 6 to 10 followed ([ADR-356][adr-356]).
+- **A check-case runner.** Done: `cargo xtask check-cases` flies cases 1 to 3 and 6 to 10 ([ADR-353][adr-353],
+  [ADR-356][adr-356]); case 2 showed the Earth's rate left out ([ADR-011][adr-011]): 0.01633 against 0.001242 deg/s.
 
 ## Open questions
 
-- Answered ([ADR-353][adr-353]): the Earth's rate left out ([ADR-011][adr-011]) shows in case 2, 0.01633 deg/s against a 0.001242 deg/s spread.
 - Case 17's text gives a 0.1 ft/s start [S2 p. 33]; its table gives 0.32808399 ft/s, which is 0.1 m/s [S2 p. 68].
 
 ## Sources

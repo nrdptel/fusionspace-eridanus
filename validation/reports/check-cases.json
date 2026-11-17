@@ -91,6 +91,7 @@
           "model_difference": -0.0195,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 0.0001364,
+          "most_left_with_the_gravity_alone": null,
           "name": "altitude",
           "spread": 0.0001424,
           "spread_of_all_codes": 0.0006351,
@@ -186,6 +187,7 @@
           "model_difference": 0.01077,
           "model_difference_at_s": 29.26,
           "most_left_of_a_kept_codes_largest_difference": 0.0008818,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial roll rate",
           "spread": 0.0008991,
           "spread_of_all_codes": 0.003015,
@@ -272,6 +274,7 @@
           "model_difference": -0.01633,
           "model_difference_at_s": 22.9,
           "most_left_of_a_kept_codes_largest_difference": 0.001005,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial pitch rate",
           "spread": 0.001242,
           "spread_of_all_codes": 0.004742,
@@ -358,6 +361,7 @@
           "model_difference": 0.0055,
           "model_difference_at_s": 21.3,
           "most_left_of_a_kept_codes_largest_difference": 0.0001268,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial yaw rate",
           "spread": 0.0003532,
           "spread_of_all_codes": 0.001152,
@@ -380,6 +384,16 @@
           "codes": [
             {
               "code": "SIM 1",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0001348,
+                0.01015,
+                3.508e-6
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.008824,
+                0.04066,
+                0.0001009
+              ],
               "largest_difference": -0.0343,
               "largest_difference_at_s": 4.6,
               "largest_difference_of_the_codes_model": -0.03083,
@@ -393,6 +407,16 @@
             },
             {
               "code": "SIM 2",
+              "damping_law_off_on_the_inertial_rate": [
+                0.2264,
+                0.1333,
+                0.1103
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.235,
+                0.1899,
+                0.1103
+              ],
               "largest_difference": -0.004873,
               "largest_difference_at_s": 4.2,
               "largest_difference_of_the_codes_model": -0.001261,
@@ -406,6 +430,16 @@
             },
             {
               "code": "SIM 4",
+              "damping_law_off_on_the_inertial_rate": [
+                0.00003,
+                8.115e-11,
+                0.00003
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.009162,
+                0.04967,
+                0.0001283
+              ],
               "largest_difference": -0.003792,
               "largest_difference_at_s": 3.9,
               "largest_difference_of_the_codes_model": -0.00009115,
@@ -419,6 +453,16 @@
             },
             {
               "code": "SIM 5",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0092,
+                0.07917,
+                0.00009835
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                9.992e-16,
+                1.11e-15,
+                8.882e-16
+              ],
               "largest_difference": -0.004078,
               "largest_difference_at_s": 3.42,
               "largest_difference_of_the_codes_model": 0.003281,
@@ -432,6 +476,16 @@
             },
             {
               "code": "SIM 6",
+              "damping_law_off_on_the_inertial_rate": [
+                0.009308,
+                0.04533,
+                0.00009834
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                1.159e-10,
+                1.141e-10,
+                1.141e-10
+              ],
               "largest_difference": 0.003575,
               "largest_difference_at_s": 9.7,
               "largest_difference_of_the_codes_model": 0.003261,
@@ -453,6 +507,7 @@
           "model_difference": -0.003755,
           "model_difference_at_s": 3.85,
           "most_left_of_a_kept_codes_largest_difference": 0.003176,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial roll rate",
           "spread": 0.003609,
           "spread_of_all_codes": 0.03192,
@@ -466,6 +521,16 @@
           "codes": [
             {
               "code": "SIM 1",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0001348,
+                0.01015,
+                3.508e-6
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.008824,
+                0.04066,
+                0.0001009
+              ],
               "largest_difference": 0.06979,
               "largest_difference_at_s": 3.7,
               "largest_difference_of_the_codes_model": 0.07434,
@@ -479,6 +544,16 @@
             },
             {
               "code": "SIM 2",
+              "damping_law_off_on_the_inertial_rate": [
+                0.2264,
+                0.1333,
+                0.1103
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.235,
+                0.1899,
+                0.1103
+              ],
               "largest_difference": -0.004253,
               "largest_difference_at_s": 2.0,
               "largest_difference_of_the_codes_model": 0.001884,
@@ -492,6 +567,16 @@
             },
             {
               "code": "SIM 4",
+              "damping_law_off_on_the_inertial_rate": [
+                0.00003,
+                8.115e-11,
+                0.00003
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.009162,
+                0.04967,
+                0.0001283
+              ],
               "largest_difference": -0.005633,
               "largest_difference_at_s": 2.5,
               "largest_difference_of_the_codes_model": -0.00005211,
@@ -505,6 +590,16 @@
             },
             {
               "code": "SIM 5",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0092,
+                0.07917,
+                0.00009835
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                9.992e-16,
+                1.11e-15,
+                8.882e-16
+              ],
               "largest_difference": -0.005134,
               "largest_difference_at_s": 2.24,
               "largest_difference_of_the_codes_model": -0.00379,
@@ -518,6 +613,16 @@
             },
             {
               "code": "SIM 6",
+              "damping_law_off_on_the_inertial_rate": [
+                0.009308,
+                0.04533,
+                0.00009834
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                1.159e-10,
+                1.141e-10,
+                1.141e-10
+              ],
               "largest_difference": -0.004757,
               "largest_difference_at_s": 1.7,
               "largest_difference_of_the_codes_model": -0.00379,
@@ -539,6 +644,7 @@
           "model_difference": -0.005609,
           "model_difference_at_s": 2.5,
           "most_left_of_a_kept_codes_largest_difference": 0.001123,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial pitch rate",
           "spread": 0.003792,
           "spread_of_all_codes": 0.07435,
@@ -552,6 +658,16 @@
           "codes": [
             {
               "code": "SIM 1",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0001348,
+                0.01015,
+                3.508e-6
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.008824,
+                0.04066,
+                0.0001009
+              ],
               "largest_difference": 0.01878,
               "largest_difference_at_s": 5.3,
               "largest_difference_of_the_codes_model": 0.01628,
@@ -565,6 +681,16 @@
             },
             {
               "code": "SIM 2",
+              "damping_law_off_on_the_inertial_rate": [
+                0.2264,
+                0.1333,
+                0.1103
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.235,
+                0.1899,
+                0.1103
+              ],
               "largest_difference": 0.005102,
               "largest_difference_at_s": 3.0,
               "largest_difference_of_the_codes_model": 0.002682,
@@ -578,6 +704,16 @@
             },
             {
               "code": "SIM 4",
+              "damping_law_off_on_the_inertial_rate": [
+                0.00003,
+                8.115e-11,
+                0.00003
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                0.009162,
+                0.04967,
+                0.0001283
+              ],
               "largest_difference": 0.004484,
               "largest_difference_at_s": 2.6,
               "largest_difference_of_the_codes_model": 0.0003215,
@@ -591,6 +727,16 @@
             },
             {
               "code": "SIM 5",
+              "damping_law_off_on_the_inertial_rate": [
+                0.0092,
+                0.07917,
+                0.00009835
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                9.992e-16,
+                1.11e-15,
+                8.882e-16
+              ],
               "largest_difference": 0.004399,
               "largest_difference_at_s": 2.53,
               "largest_difference_of_the_codes_model": -0.001297,
@@ -604,6 +750,16 @@
             },
             {
               "code": "SIM 6",
+              "damping_law_off_on_the_inertial_rate": [
+                0.009308,
+                0.04533,
+                0.00009834
+              ],
+              "damping_law_off_on_the_rate_relative_to_the_earth": [
+                1.159e-10,
+                1.141e-10,
+                1.141e-10
+              ],
               "largest_difference": 0.004206,
               "largest_difference_at_s": 2.3,
               "largest_difference_of_the_codes_model": -0.001297,
@@ -625,6 +781,7 @@
           "model_difference": 0.004433,
           "model_difference_at_s": 2.57,
           "most_left_of_a_kept_codes_largest_difference": 0.0007793,
+          "most_left_with_the_gravity_alone": null,
           "name": "inertial yaw rate",
           "spread": 0.003503,
           "spread_of_all_codes": 0.01674,
@@ -650,11 +807,13 @@
               "largest_air_density_difference": 0.001351,
               "largest_difference": 0.1026,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 1.092e-11,
               "largest_unexplained": 0.07757,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.07757,
               "left_of_the_largest_difference": 0.07757,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.08504,
               "model_difference_there": 0.1802,
               "samples": 301
             },
@@ -663,11 +822,13 @@
               "largest_air_density_difference": 0.0003496,
               "largest_difference": 0.05846,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 0.1903,
               "largest_unexplained": 0.008196,
               "largest_unexplained_at_s": 28.4,
               "largest_unexplained_at_tight_tolerances": 0.008196,
               "left_of_the_largest_difference": 0.002342,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.04092,
               "model_difference_there": 0.05858,
               "samples": 301
             },
@@ -676,11 +837,13 @@
               "largest_air_density_difference": -0.002836,
               "largest_difference": 0.1705,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 3.661e-7,
               "largest_unexplained": 0.188,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.188,
               "left_of_the_largest_difference": 0.188,
               "left_out": true,
+              "left_with_the_gravity_alone": 0.188,
               "model_difference_there": 0.01759,
               "samples": 301
             },
@@ -689,11 +852,13 @@
               "largest_air_density_difference": -4.031e-7,
               "largest_difference": 0.01757,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 2.081e-7,
               "largest_unexplained": 0.00003922,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.00003994,
               "left_of_the_largest_difference": 0.00003922,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.00001406,
               "model_difference_there": 0.01753,
               "samples": 301
             },
@@ -702,11 +867,13 @@
               "largest_air_density_difference": 2.429e-6,
               "largest_difference": 0.01786,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 1.554e-15,
               "largest_unexplained": 7.677e-6,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 6.95e-6,
               "left_of_the_largest_difference": 7.677e-6,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.0003114,
               "model_difference_there": 0.01787,
               "samples": 3001
             },
@@ -715,11 +882,13 @@
               "largest_air_density_difference": 0.00002071,
               "largest_difference": 0.02082,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 1.11e-15,
               "largest_unexplained": 0.00001062,
               "largest_unexplained_at_s": 25.4,
               "largest_unexplained_at_tight_tolerances": 3.182e-6,
               "left_of_the_largest_difference": 2.454e-6,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.003264,
               "model_difference_there": 0.02081,
               "samples": 301
             }
@@ -733,6 +902,7 @@
           "model_difference": 0.1802,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 0.07757,
+          "most_left_with_the_gravity_alone": 0.08504,
           "name": "position",
           "spread": 0.08503,
           "spread_of_all_codes": 0.2731,
@@ -763,6 +933,7 @@
               "largest_unexplained_at_tight_tolerances": 0.07763,
               "left_of_the_largest_difference": 0.07763,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.08525,
               "model_difference_there": 0.1804,
               "samples": 301
             },
@@ -776,6 +947,7 @@
               "largest_unexplained_at_tight_tolerances": 0.00726,
               "left_of_the_largest_difference": 0.002895,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.04092,
               "model_difference_there": 0.05865,
               "samples": 301
             },
@@ -789,6 +961,7 @@
               "largest_unexplained_at_tight_tolerances": 0.1883,
               "left_of_the_largest_difference": 0.1883,
               "left_out": true,
+              "left_with_the_gravity_alone": 0.1883,
               "model_difference_there": 0.01759,
               "samples": 301
             },
@@ -802,6 +975,7 @@
               "largest_unexplained_at_tight_tolerances": 0.00003205,
               "left_of_the_largest_difference": 0.00003127,
               "left_out": false,
+              "left_with_the_gravity_alone": 6.026e-6,
               "model_difference_there": 0.01753,
               "samples": 301
             },
@@ -815,6 +989,7 @@
               "largest_unexplained_at_tight_tolerances": 0.00001491,
               "left_of_the_largest_difference": 0.00001569,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.0003039,
               "model_difference_there": 0.01787,
               "samples": 3001
             },
@@ -828,6 +1003,7 @@
               "largest_unexplained_at_tight_tolerances": 0.00001598,
               "left_of_the_largest_difference": 0.00001624,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.003262,
               "model_difference_there": 0.02082,
               "samples": 301
             }
@@ -841,6 +1017,7 @@
           "model_difference": 0.1804,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 0.07763,
+          "most_left_with_the_gravity_alone": 0.08525,
           "name": "position",
           "spread": 0.08524,
           "spread_of_all_codes": 0.2735,
@@ -871,6 +1048,7 @@
               "largest_unexplained_at_tight_tolerances": 0.07768,
               "left_of_the_largest_difference": 0.07768,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.08771,
               "model_difference_there": 0.1823,
               "samples": 301
             },
@@ -884,6 +1062,7 @@
               "largest_unexplained_at_tight_tolerances": 0.009562,
               "left_of_the_largest_difference": 0.009562,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.04478,
               "model_difference_there": 0.05916,
               "samples": 301
             },
@@ -897,6 +1076,7 @@
               "largest_unexplained_at_tight_tolerances": 0.188,
               "left_of_the_largest_difference": 0.188,
               "left_out": true,
+              "left_with_the_gravity_alone": 0.1879,
               "model_difference_there": 0.01759,
               "samples": 301
             },
@@ -910,6 +1090,7 @@
               "largest_unexplained_at_tight_tolerances": 4.751e-6,
               "left_of_the_largest_difference": 4.812e-6,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.0000296,
               "model_difference_there": 0.01753,
               "samples": 301
             },
@@ -923,6 +1104,7 @@
               "largest_unexplained_at_tight_tolerances": 0.00005095,
               "left_of_the_largest_difference": 0.00005101,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.0002719,
               "model_difference_there": 0.01788,
               "samples": 3001
             },
@@ -936,6 +1118,7 @@
               "largest_unexplained_at_tight_tolerances": 0.0004319,
               "left_of_the_largest_difference": 0.000432,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.003422,
               "model_difference_there": 0.02085,
               "samples": 301
             }
@@ -949,6 +1132,7 @@
           "model_difference": 0.1823,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 0.07768,
+          "most_left_with_the_gravity_alone": 0.08771,
           "name": "position",
           "spread": 0.08774,
           "spread_of_all_codes": 0.2755,
@@ -974,11 +1158,13 @@
               "largest_air_density_difference": 0.0009996,
               "largest_difference": 1.859,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 5.5e-12,
               "largest_unexplained": 0.6285,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.6285,
               "left_of_the_largest_difference": 0.6285,
               "left_out": false,
+              "left_with_the_gravity_alone": 1.87,
               "model_difference_there": 1.253,
               "samples": 301
             },
@@ -987,11 +1173,13 @@
               "largest_air_density_difference": 0.0009107,
               "largest_difference": 0.6724,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 0.001259,
               "largest_unexplained": 0.00227,
               "largest_unexplained_at_s": 17.3,
               "largest_unexplained_at_tight_tolerances": 0.002273,
               "left_of_the_largest_difference": 0.001693,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.6828,
               "model_difference_there": 0.6725,
               "samples": 301
             },
@@ -1000,11 +1188,13 @@
               "largest_air_density_difference": -0.0005668,
               "largest_difference": 1.98,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 3.661e-7,
               "largest_unexplained": 1.991,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 1.991,
               "left_of_the_largest_difference": 1.991,
               "left_out": false,
+              "left_with_the_gravity_alone": 1.991,
               "model_difference_there": 0.01687,
               "samples": 301
             },
@@ -1013,11 +1203,13 @@
               "largest_air_density_difference": 8.649e-7,
               "largest_difference": 0.0156,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 2.081e-7,
               "largest_unexplained": 0.0004177,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.0004207,
               "left_of_the_largest_difference": 0.0004177,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.001788,
               "model_difference_there": 0.01581,
               "samples": 301
             },
@@ -1026,11 +1218,13 @@
               "largest_air_density_difference": 3.884e-6,
               "largest_difference": 0.01368,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 1.332e-15,
               "largest_unexplained": 0.0000383,
               "largest_unexplained_at_s": 21.85,
               "largest_unexplained_at_tight_tolerances": 0.00002862,
               "left_of_the_largest_difference": 0.00002551,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.007032,
               "model_difference_there": 0.01369,
               "samples": 3001
             },
@@ -1039,11 +1233,13 @@
               "largest_air_density_difference": 9.126e-6,
               "largest_difference": 0.1312,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 5.329e-15,
               "largest_unexplained": 0.1305,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.1305,
               "left_of_the_largest_difference": 0.1305,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.1423,
               "model_difference_there": 0.01436,
               "samples": 301
             }
@@ -1057,6 +1253,7 @@
           "model_difference": 1.253,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 1.991,
+          "most_left_with_the_gravity_alone": 1.991,
           "name": "position",
           "spread": 1.989,
           "spread_of_all_codes": 1.989,
@@ -1082,11 +1279,13 @@
               "largest_air_density_difference": 0.0009995,
               "largest_difference": 1.858,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 6.177e-12,
               "largest_unexplained": 0.6286,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 0.6286,
               "left_of_the_largest_difference": 0.6286,
               "left_out": false,
+              "left_with_the_gravity_alone": 1.868,
               "model_difference_there": 1.251,
               "samples": 301
             },
@@ -1095,11 +1294,13 @@
               "largest_air_density_difference": 0.0009106,
               "largest_difference": 46.51,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 0.001259,
               "largest_unexplained": 45.99,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 45.99,
               "left_of_the_largest_difference": 45.99,
               "left_out": true,
+              "left_with_the_gravity_alone": 46.51,
               "model_difference_there": 0.6722,
               "samples": 301
             },
@@ -1108,11 +1309,13 @@
               "largest_air_density_difference": -0.0005751,
               "largest_difference": 1.977,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 3.661e-7,
               "largest_unexplained": 1.988,
               "largest_unexplained_at_s": 30.0,
               "largest_unexplained_at_tight_tolerances": 1.988,
               "left_of_the_largest_difference": 1.988,
               "left_out": false,
+              "left_with_the_gravity_alone": 1.988,
               "model_difference_there": 0.01687,
               "samples": 301
             },
@@ -1121,11 +1324,13 @@
               "largest_air_density_difference": 8.649e-7,
               "largest_difference": 0.0156,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 2.081e-7,
               "largest_unexplained": 0.0004154,
               "largest_unexplained_at_s": 29.9,
               "largest_unexplained_at_tight_tolerances": 0.0004176,
               "left_of_the_largest_difference": 0.0004151,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.001786,
               "model_difference_there": 0.01581,
               "samples": 301
             },
@@ -1134,11 +1339,13 @@
               "largest_air_density_difference": 3.884e-6,
               "largest_difference": 0.01368,
               "largest_difference_at_s": 30.0,
+              "largest_drag_off_its_density": 1.332e-15,
               "largest_unexplained": 0.00004217,
               "largest_unexplained_at_s": 27.64,
               "largest_unexplained_at_tight_tolerances": 0.00003268,
               "left_of_the_largest_difference": 0.00002633,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.007035,
               "model_difference_there": 0.01369,
               "samples": 3001
             },
@@ -1147,11 +1354,13 @@
               "largest_air_density_difference": 9.108e-6,
               "largest_difference": 0.3379,
               "largest_difference_at_s": 0.3,
+              "largest_drag_off_its_density": 3.109e-15,
               "largest_unexplained": 0.3379,
               "largest_unexplained_at_s": 0.3,
               "largest_unexplained_at_tight_tolerances": 0.3379,
               "left_of_the_largest_difference": 0.3379,
               "left_out": false,
+              "left_with_the_gravity_alone": 0.3379,
               "model_difference_there": 1.594e-6,
               "samples": 301
             }
@@ -1165,6 +1374,7 @@
           "model_difference": 1.251,
           "model_difference_at_s": 30.0,
           "most_left_of_a_kept_codes_largest_difference": 1.988,
+          "most_left_with_the_gravity_alone": 1.988,
           "name": "position",
           "spread": 1.986,
           "spread_of_all_codes": 46.51,

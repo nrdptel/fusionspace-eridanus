@@ -128,10 +128,10 @@ enum Load {
     /// dynamic pressure, `V` the speed through the air, `ω` the inertial body rate about that
     /// axis and `l` its length, the span `b` for roll and yaw and the chord `c̄` for pitch;
     /// `ω l / 2V` is the rate made dimensionless. Written as `¼ ρ V S l² C ω`, it needs no
-    /// division and is zero at rest. The rate is the inertial one, relative to the stars, as the
-    /// codes' files show: SIM 1's roll and yaw moments follow this law in that rate to 1.4e-4
-    /// and 5e-7 of their size over the first 8 s, and to 8.8e-3 and 9.9e-5 in the rate relative
-    /// to the Earth.
+    /// division and is zero at rest. The rate is the inertial one, relative to the stars. The
+    /// codes split on it: the moments in their files follow this law in the inertial rate for
+    /// SIM 1 and SIM 4 and in the rate relative to the Earth for SIM 5 and SIM 6, each to its
+    /// printed digits ([`damping_law_fit`], in the report). The test takes the first.
     Damping {
         area_m2: f64,
         span_m: f64,
@@ -517,6 +517,8 @@ struct History {
     /// For a position's case, the code's own air by time: its altitude, m, and its air density
     /// there, kg/m³.
     air: BTreeMap<i64, [f64; 2]>,
+    /// The file as read, for the readings of its other columns ([`table`]).
+    text: String,
 }
 
 impl History {
@@ -640,7 +642,156 @@ fn history(
         code: code.to_owned(),
         samples,
         air,
+        text: text.to_owned(),
     })
+}
+
+/// A file's rows of the named columns, with each row's time, from the start to the case's end;
+/// `None` if a column is missing or a cell is not a finite number. For readings beside the
+/// comparison, which a code's file may not support.
+fn table(text: &str, names: &[&str]) -> Option<Vec<(f64, Vec<f64>)>> {
+    let mut lines = text.lines().filter(|line| !line.trim().is_empty());
+    let header: Vec<&str> = lines.next()?.split(',').map(str::trim).collect();
+    let index = |name: &str| header.iter().position(|h| *h == name);
+    let time = index("time")?;
+    let columns = names.iter().map(|n| index(n)).collect::<Option<Vec<_>>>()?;
+    let mut rows = Vec::new();
+    for line in lines {
+        let cells: Vec<&str> = line.split(',').collect();
+        let number = |i: usize| {
+            cells
+                .get(i)?
+                .trim()
+                .parse::<f64>()
+                .ok()
+                .filter(|v| v.is_finite())
+        };
+        let t = number(time)?;
+        if !(0.0..=DURATION_S + 0.0005).contains(&t) {
+            continue;
+        }
+        rows.push((
+            t,
+            columns
+                .iter()
+                .map(|&i| number(i))
+                .collect::<Option<Vec<_>>>()?,
+        ));
+    }
+    Some(rows)
+}
+
+/// The largest relative difference, about each axis, between a code's printed aerodynamic
+/// moments and case 3's damping law ([`Load::Damping`]) on its own printed density, speed and
+/// rates over the first 8 s, while the moments are large: on the inertial rate, and on the rate
+/// relative to the Earth (the inertial rate less the Earth's, turned into the body by the
+/// code's own Euler angles and latitude). `None` if the file lacks a column.
+fn damping_law_fit(
+    case: &Case,
+    environment: &Environment,
+    history: &History,
+) -> Option<[[f64; 3]; 2]> {
+    let Load::Damping {
+        area_m2,
+        span_m,
+        chord_m,
+        coefficients,
+    } = case.load
+    else {
+        return None;
+    };
+    let rows = table(
+        &history.text,
+        &[
+            "aero_bodyMoment_ftlbf_L",
+            "aero_bodyMoment_ftlbf_M",
+            "aero_bodyMoment_ftlbf_N",
+            "airDensity_slug_ft3",
+            "feVelocity_ft_s_X",
+            "feVelocity_ft_s_Y",
+            "feVelocity_ft_s_Z",
+            "bodyAngularRateWrtEi_deg_s_Roll",
+            "bodyAngularRateWrtEi_deg_s_Pitch",
+            "bodyAngularRateWrtEi_deg_s_Yaw",
+            "eulerAngle_deg_Yaw",
+            "eulerAngle_deg_Pitch",
+            "eulerAngle_deg_Roll",
+            "latitude_deg",
+        ],
+    )?;
+    let omega = environment.earth.field().angular_velocity_rad_s();
+    let lengths = DVec3::new(span_m, chord_m, span_m);
+    let per_rate = lengths * lengths * DVec3::from_array(coefficients) * (0.25 * area_m2);
+    let mut worst = [[0.0_f64; 3]; 2];
+    for (t, r) in rows {
+        if !(t > 0.0 && t <= 8.0 + 0.0005) {
+            continue;
+        }
+        let moment = DVec3::new(r[0], r[1], r[2]) * (POUND_FORCE_N * FOOT_M);
+        let density = r[3] * SLUG_KG / FOOT_M.powi(3);
+        let speed = DVec3::new(r[4], r[5], r[6]).length() * FOOT_M;
+        let inertial = DVec3::new(r[7], r[8], r[9]) * (1.0_f64.to_radians());
+        // North-East-Down to body, by yaw, pitch and roll in turn.
+        let (yaw, pitch, roll) = (r[10].to_radians(), r[11].to_radians(), r[12].to_radians());
+        let to_body = DQuat::from_rotation_x(roll).conjugate()
+            * DQuat::from_rotation_y(pitch).conjugate()
+            * DQuat::from_rotation_z(yaw).conjugate();
+        let latitude = r[13].to_radians();
+        let earth_ned = DVec3::new(omega * latitude.cos(), 0.0, -omega * latitude.sin());
+        let relative = inertial - to_body.mul_vec3(earth_ned);
+        for (at, rate) in [inertial, relative].into_iter().enumerate() {
+            let law = per_rate * rate * (density * speed);
+            for axis in 0..3 {
+                if moment[axis].abs() > 1e-6 * POUND_FORCE_N * FOOT_M {
+                    let off = (law[axis] / moment[axis] - 1.0).abs();
+                    worst[at][axis] = worst[at][axis].max(off);
+                }
+            }
+        }
+    }
+    Some(worst)
+}
+
+/// The largest relative difference between a code's printed drag force and `½ρV²SC_D` on its own
+/// printed density and speed, in still air, where the speed through the air is the speed over
+/// the ground. `None` if the case has wind or the file lacks a column.
+fn drag_fit(case: &Case, history: &History) -> Option<f64> {
+    let Load::Drag {
+        area_m2,
+        coefficient,
+    } = case.load
+    else {
+        return None;
+    };
+    if case.air != Air::Still {
+        return None;
+    }
+    let rows = table(
+        &history.text,
+        &[
+            "aero_bodyForce_lbf_X",
+            "aero_bodyForce_lbf_Y",
+            "aero_bodyForce_lbf_Z",
+            "airDensity_slug_ft3",
+            "feVelocity_ft_s_X",
+            "feVelocity_ft_s_Y",
+            "feVelocity_ft_s_Z",
+        ],
+    )?;
+    let mut worst = 0.0_f64;
+    for (t, r) in rows {
+        if t <= 0.0 {
+            continue;
+        }
+        let force = DVec3::new(r[0], r[1], r[2]).length() * POUND_FORCE_N;
+        let density = r[3] * SLUG_KG / FOOT_M.powi(3);
+        let speed = DVec3::new(r[4], r[5], r[6]).length() * FOOT_M;
+        let law = 0.5 * density * speed * speed * area_m2 * coefficient;
+        if law > 0.0 {
+            worst = worst.max((force / law - 1.0).abs());
+        }
+    }
+    Some(worst)
 }
 
 /// Every code's file of a case, from the archive, in the codes' order. Two files that name the
@@ -962,10 +1113,13 @@ fn density_ratio(environment: &Environment, history: &History, time_s: f64) -> R
 /// code's own altitude and time); once as HPR Sim flies, in WGS 84's normal gravity and the
 /// 1976 atmosphere. Returns the second's position less the first's, in Earth-fixed axes, m, at
 /// each of `times_s`. It flies no rigid body and none of HPR Sim's flight code.
+///
+/// With `own_air` false, the code's side flies HPR Sim's air too, which leaves the gravity alone.
 fn point_mass_gap_m(
     case: &Case,
     environment: &Environment,
     history: &History,
+    own_air: bool,
     times_s: &[f64],
 ) -> Result<Vec<Vec<f64>>, String> {
     let Load::Drag {
@@ -1004,7 +1158,7 @@ fn point_mass_gap_m(
             .map_err(|e| e.to_string())?
             .air
             .density_kg_m3;
-        if !ours {
+        if own_air && !ours {
             density *= density_ratio(environment, history, t)?;
         }
         let wind = environment
@@ -1234,6 +1388,9 @@ struct Against {
     model: Option<Vec<Vec<Vec<f64>>>>,
     /// The named model difference, HPR Sim's less the codes'.
     gap: Vec<Vec<Vec<f64>>>,
+    /// For a position, the model difference with the gravity alone, the code flying HPR Sim's
+    /// air.
+    gravity_alone: Option<Vec<Vec<Vec<f64>>>>,
 }
 
 fn against(case: &Case, environment: &Environment, history: &History) -> Result<Against, String> {
@@ -1248,7 +1405,7 @@ fn against(case: &Case, environment: &Environment, history: &History) -> Result<
         ),
         Trace::GravityOnTheFlight => (
             None,
-            point_mass_gap_m(case, environment, history, &times_s)?
+            point_mass_gap_m(case, environment, history, true, &times_s)?
                 .into_iter()
                 .map(|gap| vec![gap])
                 .collect(),
@@ -1262,12 +1419,22 @@ fn against(case: &Case, environment: &Environment, history: &History) -> Result<
             )
         }
     };
+    let gravity_alone = match case.trace {
+        Trace::GravityOnTheFlight => Some(
+            point_mass_gap_m(case, environment, history, false, &times_s)?
+                .into_iter()
+                .map(|gap| vec![gap])
+                .collect(),
+        ),
+        _ => None,
+    };
     Ok(Against {
         flown: flown(case, environment, Method::default(), &times_s)?,
         tight: flown(case, environment, tight(), &times_s)?,
         times_s,
         model,
         gap,
+        gravity_alone,
     })
 }
 
@@ -1291,6 +1458,7 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
         let mut nearest = f64::INFINITY;
         let mut nearest_tight = f64::INFINITY;
         let mut model_gap = (0.0_f64, 0.0);
+        let mut left_gravity_alone: Option<f64> = None;
         let zero = vec![0.0; if quantity.is_distance() { 3 } else { 1 }];
         for (at, (history, flight)) in histories.iter().zip(&flights).enumerate() {
             let code: Vec<&Vec<f64>> = history.samples.values().map(|v| &v[index]).collect();
@@ -1356,6 +1524,26 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
                 );
                 row["largest_difference_of_the_codes_model"] = json!(kept(from_model.0));
             }
+            if let Some(alone) = &flight.gravity_alone {
+                // What the gravity alone leaves of the largest difference, at its sample.
+                let left = less_both(
+                    &flight.flown[there][index],
+                    code[there],
+                    &alone[there][index],
+                );
+                row["left_with_the_gravity_alone"] = json!(kept(left));
+                if !left_out {
+                    left_gravity_alone = Some(left_gravity_alone.unwrap_or(0.0).max(left.abs()));
+                }
+            }
+            if let Some(fit) = drag_fit(case, history) {
+                row["largest_drag_off_its_density"] = json!(kept(fit));
+            }
+            if let Some([inertial, relative]) = damping_law_fit(case, environment, history) {
+                row["damping_law_off_on_the_inertial_rate"] = json!(inertial.map(kept));
+                row["damping_law_off_on_the_rate_relative_to_the_earth"] =
+                    json!(relative.map(kept));
+            }
             if quantity.is_distance() {
                 // The code's own air: its density's largest relative difference from HPR Sim's
                 // 1976 atmosphere at the code's altitude, over its samples.
@@ -1388,6 +1576,7 @@ fn compare(case: &Case, environment: &Environment, histories: &[History]) -> Res
             "largest_unexplained_over_the_spread": kept((unexplained_kept - rule.kept).max(0.0)),
             "largest_unexplained_from_the_nearest_kept_code": kept(nearest),
             "the_same_at_tight_tolerances": kept(nearest_tight),
+            "most_left_with_the_gravity_alone": left_gravity_alone.map(kept),
             "codes": codes,
         }));
     }
@@ -1606,6 +1795,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             let air = codes
                 .iter()
                 .all(|code| code["largest_air_density_difference"].is_number());
+            let alone = codes
+                .iter()
+                .all(|code| code["left_with_the_gravity_alone"].is_number());
             let distance = quantity["distance"] == json!(true);
             let figure = |value: f64| {
                 if distance {
@@ -1624,12 +1816,19 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                 text(quantity, "name")?,
                 if model {
                     " The codes' model, integrated here, less the code |"
-                } else if air {
-                    " Its air density less the 1976 atmosphere's, largest, relative |"
+                } else if air && alone {
+                    " Its air density less the 1976 atmosphere's, largest, relative | \
+                     Left with the gravity alone |"
                 } else {
                     ""
                 },
-                if model || air { "--:|" } else { "" },
+                if model {
+                    "--:|"
+                } else if air && alone {
+                    "--:|--:|"
+                } else {
+                    ""
+                },
             );
             for code in codes {
                 let _ = write!(
@@ -1658,14 +1857,79 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                             &unit
                         )
                     );
-                } else if air {
+                } else if air && alone {
                     let _ = write!(
                         out,
-                        " {:+.3e} |",
-                        number(code, "largest_air_density_difference")?
+                        " {:+.3e} | {} |",
+                        number(code, "largest_air_density_difference")?,
+                        figure(number(code, "left_with_the_gravity_alone")?),
                     );
                 }
                 out.push('\n');
+            }
+        }
+        // Readings of the codes' files beside the comparison: which rate case 3's codes damp,
+        // and whether a sphere's code drags on the density it prints.
+        let codes = quantities
+            .first()
+            .and_then(|q| q["codes"].as_array())
+            .ok_or_else(|| format!("{REPORT}: no `codes`"))?;
+        if codes
+            .iter()
+            .any(|code| code["damping_law_off_on_the_inertial_rate"].is_array())
+        {
+            let _ = write!(
+                out,
+                "\n### Case {}: the damping law in each code's file\n\n\
+                 Each code's printed moments against the test's law on its own printed density, \
+                 speed and rates, over the first 8 s: the largest relative difference about roll, \
+                 pitch and yaw, on the inertial rate and on the rate relative to the Earth.\n\n\
+                 | Code | On the inertial rate | On the rate relative to the Earth |\n\
+                 |---|---|---|\n",
+                case["case"],
+            );
+            for code in codes {
+                let three = |key: &str| -> String {
+                    code[key].as_array().map_or_else(
+                        || "no columns".to_owned(),
+                        |v| {
+                            v.iter()
+                                .map(|x| format!("{:.3e}", x.as_f64().unwrap_or(f64::NAN)))
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        },
+                    )
+                };
+                let _ = writeln!(
+                    out,
+                    "| {} | {} | {} |",
+                    text(code, "code")?,
+                    three("damping_law_off_on_the_inertial_rate"),
+                    three("damping_law_off_on_the_rate_relative_to_the_earth"),
+                );
+            }
+        }
+        if codes
+            .iter()
+            .any(|code| code["largest_drag_off_its_density"].is_number())
+        {
+            let _ = write!(
+                out,
+                "\n### Case {}: each code's drag on its own density\n\n\
+                 The largest relative difference between a code's printed drag force and \
+                 ½ρV²SC_D on its own printed density and speed, in still air.\n\n\
+                 | Code | Largest relative difference |\n|---|--:|\n",
+                case["case"],
+            );
+            for code in codes {
+                let _ = writeln!(
+                    out,
+                    "| {} | {} |",
+                    text(code, "code")?,
+                    code["largest_drag_off_its_density"]
+                        .as_f64()
+                        .map_or_else(|| "no columns".to_owned(), |x| format!("{x:.3e}")),
+                );
             }
         }
     }
@@ -1723,6 +1987,7 @@ mod tests {
                 .map(|(time, value)| (key(*time), vec![vec![*value]]))
                 .collect(),
             air: BTreeMap::new(),
+            text: String::new(),
         }
     }
 
@@ -1735,6 +2000,7 @@ mod tests {
                 .map(|(time, p)| (key(*time), vec![p.to_vec()]))
                 .collect(),
             air: BTreeMap::new(),
+            text: String::new(),
         }
     }
 
@@ -2047,7 +2313,6 @@ mod tests {
         );
     }
 
-    #[test]
     /// The test's drag acts along the velocity through the air whichever way the body points.
     /// At an angle of attack of 90° (the body's x axis level and north, the sphere falling
     /// along its z axis) it is the whole `½ρV²SC_D`, straight up, where a drag along the body's
@@ -2226,16 +2491,20 @@ mod tests {
                 .into_iter()
                 .map(|(time, height)| (time, [height, ratio * ours(height)]))
                 .collect(),
+            text: String::new(),
         };
         let times = [0.0, 30.0];
         // At 0° N, 0° E the local up is the Earth-fixed x axis.
-        let same = point_mass_gap_m(&case, &environment, &code(1.0), &times).unwrap();
+        let same = point_mass_gap_m(&case, &environment, &code(1.0), true, &times).unwrap();
         assert_eq!(same[0], vec![0.0; 3]);
         let up = same[1][0];
         assert!(up < -0.015 && up > -0.0195, "{up}");
         assert!(same[1][1].abs() < 0.1 * up.abs() && same[1][2].abs() < 1e-9);
-        let denser = point_mass_gap_m(&case, &environment, &code(1.001), &times).unwrap();
+        let denser = point_mass_gap_m(&case, &environment, &code(1.001), true, &times).unwrap();
         assert!(denser[1][0] < up - 0.1, "{:?}", denser[1]);
+        // Without the code's own air the denser code's gap is the gravity's again.
+        let alone = point_mass_gap_m(&case, &environment, &code(1.001), false, &times).unwrap();
+        assert_eq!(alone, same);
     }
 
     #[test]
@@ -2363,6 +2632,64 @@ mod tests {
             }
         }
         assert_eq!(quantities, 12);
+
+        // The readings the decision rests on. Case 3's codes split on the rate they damp: SIM 4
+        // the inertial one, SIM 5 and SIM 6 the one relative to the Earth.
+        let code_of = |case: u64, name: &str| -> Value {
+            cases.iter().find(|c| c["case"] == json!(case)).unwrap()["quantities"][0]["codes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|code| code["code"] == json!(name))
+                .unwrap()
+                .clone()
+        };
+        let worst = |code: &Value, key: &str| {
+            code[key]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|x| x.as_f64().unwrap())
+                .fold(0.0, f64::max)
+        };
+        let inertial = "damping_law_off_on_the_inertial_rate";
+        let relative = "damping_law_off_on_the_rate_relative_to_the_earth";
+        let sim4 = code_of(3, "SIM 4");
+        assert!(worst(&sim4, inertial) < 1e-4 && worst(&sim4, relative) > 1e-3);
+        for name in ["SIM 5", "SIM 6"] {
+            let code = code_of(3, name);
+            assert!(
+                worst(&code, relative) < 1e-9 && worst(&code, inertial) > 1e-3,
+                "{name}"
+            );
+        }
+        // SIM 1 drags on the density it prints, and that density is the far one.
+        for case in [6, 9, 10] {
+            let sim1 = code_of(case, "SIM 1");
+            assert!(sim1["largest_drag_off_its_density"].as_f64().unwrap() < 1e-9);
+        }
+        assert!(
+            code_of(6, "SIM 1")["largest_air_density_difference"]
+                .as_f64()
+                .unwrap()
+                > 1e-3
+        );
+        // The gravity alone leaves cases 6 and 7 past the spread and case 8 inside it; the air
+        // brings all three inside.
+        for (case, past) in [(6, true), (7, true), (8, false)] {
+            let quantity =
+                &cases.iter().find(|c| c["case"] == json!(case)).unwrap()["quantities"][0];
+            let alone = quantity["most_left_with_the_gravity_alone"]
+                .as_f64()
+                .unwrap();
+            let spread = quantity["spread"].as_f64().unwrap();
+            assert_eq!(
+                alone > spread,
+                past,
+                "case {case}: {alone} against {spread}"
+            );
+            assert_eq!(quantity["traced_to_within_the_spread"], json!(true));
+        }
     }
 
     /// The pages quote the committed report as it is, which CI can't regenerate: the accuracy
@@ -2399,7 +2726,22 @@ mod tests {
                     }
                 }
             }
-            plain + rest
+            // The pages group digits in threes (`1,980 mm`); the report doesn't.
+            let plain: Vec<char> = (plain + rest).chars().collect();
+            let digit = |at: usize| plain.get(at).is_some_and(char::is_ascii_digit);
+            plain
+                .iter()
+                .enumerate()
+                .filter(|&(at, &c)| {
+                    let grouping = c == ','
+                        && at > 0
+                        && digit(at - 1)
+                        && (1..=3).all(|k| digit(at + k))
+                        && !digit(at + 4);
+                    !grouping
+                })
+                .map(|(_, &c)| c)
+                .collect::<String>()
         };
         let report = committed();
         let quantities: Vec<&Value> = report["cases"]

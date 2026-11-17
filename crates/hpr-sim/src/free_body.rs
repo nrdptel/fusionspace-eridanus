@@ -543,7 +543,9 @@ mod tests {
             velocity_enu_m_s: evaluation.cg_velocity_enu_m_s,
             ..nose
         };
-        let derivative = body.derivative(&environment, &NoLoads, &at_cg.to_array()).unwrap();
+        let derivative = body
+            .derivative(&environment, &NoLoads, &at_cg.to_array())
+            .unwrap();
         let acceleration = DVec3::from_slice(&derivative[3..6]);
         let turning = DVec3::from_slice(&derivative[10..13]);
 
@@ -584,7 +586,14 @@ mod tests {
         };
         let times: Vec<f64> = (0..=300).map(|i| 0.1 * f64::from(i)).collect();
         let states = body
-            .fly(&airless_earth(), &NoLoads, Method::default(), 0.0, start, &times)
+            .fly(
+                &airless_earth(),
+                &NoLoads,
+                Method::default(),
+                0.0,
+                start,
+                &times,
+            )
             .unwrap();
         assert_eq!(states.len(), times.len());
         assert_eq!(states[0], start);
@@ -669,7 +678,14 @@ mod tests {
         let end = |rotation| {
             let environment = environment(rotation);
             let states = brick()
-                .fly(&environment, &NoLoads, Method::default(), 0.0, start, &[30.0])
+                .fly(
+                    &environment,
+                    &NoLoads,
+                    Method::default(),
+                    0.0,
+                    start,
+                    &[30.0],
+                )
                 .unwrap();
             let height = environment
                 .earth
@@ -844,8 +860,7 @@ mod tests {
         let environment = Environment::new(
             Earth::wgs84(site()).unwrap(),
             air,
-            ConstantWind::new(wind.length(), wind.x.atan2(wind.y) + std::f64::consts::PI)
-                .unwrap(),
+            ConstantWind::new(wind.length(), wind.x.atan2(wind.y) + std::f64::consts::PI).unwrap(),
         );
         let body = brick();
         let state = tumbling();
@@ -873,14 +888,21 @@ mod tests {
             .height_m;
         assert_eq!(inputs.height_msl_m, height);
         assert_eq!(inputs.air.density_kg_m3, density);
-        assert!((inputs.wind_enu_m_s - wind).length() < 1e-12, "{:?}", inputs.wind_enu_m_s);
+        assert!(
+            (inputs.wind_enu_m_s - wind).length() < 1e-12,
+            "{:?}",
+            inputs.wind_enu_m_s
+        );
         let through_air = q.conjugate().mul_vec3(state.velocity_enu_m_s - wind);
         assert!((inputs.air_velocity_body_m_s - through_air).length() < 1e-12);
         assert_eq!(inputs.state.body_rate_rad_s, state.body_rate_rad_s);
 
         let gained = DVec3::from_slice(&loaded[3..6]) - DVec3::from_slice(&free[3..6]);
         let expected = q.mul_vec3(force) / body.mass_kg();
-        assert!((gained - expected).length() < 1e-12, "{gained:?} vs {expected:?}");
+        assert!(
+            (gained - expected).length() < 1e-12,
+            "{gained:?} vs {expected:?}"
+        );
         let turned = DVec3::from_slice(&loaded[10..13]) - DVec3::from_slice(&free[10..13]);
         let expected = body.inertia_kg_m2().inverse() * moment;
         assert!(
@@ -924,7 +946,10 @@ mod tests {
         for (time, state) in times.iter().zip(&states) {
             let expected = start.body_rate_rad_s * (-c * time / j).exp();
             let gap = (state.body_rate_rad_s - expected).length();
-            assert!(gap < 1e-7 * start.body_rate_rad_s.length(), "{time} s: {gap:e}");
+            assert!(
+                gap < 1e-7 * start.body_rate_rad_s.length(),
+                "{time} s: {gap:e}"
+            );
         }
         // The decay is real: the spin fell to e^(−2) of its start.
         assert!(states[2].body_rate_rad_s.length() < 0.14 * start.body_rate_rad_s.length());

@@ -588,7 +588,9 @@ agree to rounding.
   which is the dynamic pressure $\tfrac12\rho V^2$ times $S l C$ times the rate made
   dimensionless, $\omega l / 2V$. Here $V$ is the speed through the air, $\omega$ the rate
   relative to the stars about that axis, and $l$ the span for roll and yaw and the chord for
-  pitch. The codes' files follow that law in that rate. The inertial rates are compared.
+  pitch. The codes split on the rate. SIM 1 and SIM 4 damp the one relative to the stars, and
+  SIM 5 and SIM 6 the one relative to the Earth. The test takes the first.
+  The inertial rates are compared.
 - **Cases 6 to 10, the sphere with drag.** Case 1's sphere with a drag coefficient of 0.1,
   acting along its velocity through the air whichever way it points. It is dropped from
   30,000 ft in still air (case 6), in a steady 20 ft/s (6.1 m/s) wind from the west (7), and in
@@ -618,8 +620,8 @@ largest difference from any kept code.
 | Case 6, position | 5 of 6 | 85.03 mm (3.3 in) | 102.6 mm (4.0 in) | 180.2 mm (7.1 in) | 77.57 mm (3.1 in) |
 | Case 7, position | 5 of 6 | 85.24 mm (3.4 in) | 102.8 mm (4.0 in) | 180.4 mm (7.1 in) | 77.63 mm (3.1 in) |
 | Case 8, position | 5 of 6 | 87.74 mm (3.5 in) | 105.0 mm (4.1 in) | 182.3 mm (7.2 in) | 77.68 mm (3.1 in) |
-| Case 9, position | 6 of 6 | 1989 mm (78 in) | 1980 mm (78 in) | 1253 mm (49 in) | 1991 mm (78 in) |
-| Case 10, position | 5 of 6 | 1986 mm (78 in) | 1977 mm (78 in) | 1251 mm (49 in) | 1988 mm (78 in) |
+| Case 9, position | 6 of 6 | 1,989 mm (78 in) | 1,980 mm (78 in) | 1,253 mm (49 in) | 1,991 mm (78 in) |
+| Case 10, position | 5 of 6 | 1,986 mm (78 in) | 1,977 mm (78 in) | 1,251 mm (49 in) | 1,988 mm (78 in) |
 
 For a position the model difference is a distance, and it differs from code to code; the table
 gives the largest.
@@ -650,21 +652,23 @@ Cases 9 and 10 come out inside it.
 - **Case 3 is the Earth's rate again.** The same two sets of equations are damped alike, on
   the rate relative to the stars, along the same fall. They leave at most 0.003176, 0.001123
   and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside too.
+  Against SIM 4, which damps as the test does, at most 0.0002691 deg/s is left; the most is
+  left against the two codes that damp the rate relative to the Earth.
 - **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
   (0.8 in) of three codes and 102.6 to 105.0 mm (4.0 to 4.1 in) from SIM 1. The codes don't fly
   the same air. Set against HPR Sim's 1976 standard atmosphere, SIM 4's density is within
   4.1e-7 of it. SIM 1's is up to 1.35e-3 denser: more drag, so its sphere falls less. The model
   difference flies a point mass twice. Once it falls in the codes' gravity through the code's
   own density, read from its file; once in HPR Sim's gravity and atmosphere. Less that, HPR Sim
-  sits 0.004812 to 0.01569 mm from the nearest code. It sits 77.57 to 77.68 mm (3.1 in) from
+  sits 0.004812 to 0.01569 mm (0.00019 to 0.00062 in) from the nearest code. It sits 77.57 to 77.68 mm (3.05 to 3.06 in) from
   SIM 1, inside the spread. SIM 1 is brought inside, not explained. Its own air, flown, would
   put its sphere 180.2 mm (7.1 in) above HPR Sim's; its file is 102.6 mm (4.0 in) above. With
-  the gravity alone, cases 6 and 7 were left 0.01 mm past the spread, so the air is part of the
+  the gravity alone, cases 6 and 7 were left 0.01 mm (0.0004 in) past the spread, so the air is part of the
   trace ([the decision][adr-356]).
 - **Cases 9 and 10 are inside the spread.** Shot 6.9 km (4.3 mi) downrange, HPR Sim ends
-  1980 and 1977 mm (78 in) from the farthest kept code, inside spreads of 1989 and 1986 mm
+  1,980 and 1,977 mm (78 in) from the farthest kept code, inside spreads of 1,989 and 1,986 mm
   (78 in). Less the same model difference it sits
-  0.03830 and 0.04217 mm from the nearest code. Here the launch frame's flat axes carry the
+  0.03830 mm (0.0015 in) and 0.04217 mm (0.0017 in) from the nearest code. Here the launch frame's flat axes carry the
   body far from the pad. So the cases also hold the conversion that gives apogee and landing
   points.
 

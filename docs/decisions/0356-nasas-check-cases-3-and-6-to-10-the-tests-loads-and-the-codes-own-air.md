@@ -1,7 +1,7 @@
 # ADR-356: NASA's check cases 3 and 6 to 10: the test's loads, and the codes' own air (2026-11-17)
 
 - **Status:** accepted; the decision record that [M1.14b4][m1-14b4]'s *done when* asks for ([ADR-351][adr-351], decision 2); amends [ADR-353][adr-353]'s spread rule for a case of three codes ([#1524][i-1524]); no *done when* changed
-- **Summary:** The free body flies NASA/TM-2015-218675's check cases 3 and 6 to 10 under loads the test applies: case 3's damping moments, and the sphere's constant drag along its velocity through the air. Case 3's inertial rates differ from the kept codes past their spread, and the Earth's rate left out of the rotational equations accounts for all but 0.003176, 0.001123 and 0.0007793 deg/s, inside it. The sphere's positions in cases 6 to 8 differ from SIM 1 past the spread, and the gravity past J2 with each code's own air density, as its file gives it, accounts for all but 77.57 to 77.68 mm, inside it. Cases 9 and 10 are within the spread.
+- **Summary:** The free body flies NASA/TM-2015-218675's check cases 3 and 6 to 10 under loads the test applies: case 3's damping moments, and the sphere's constant drag along its velocity through the air. Case 3's inertial rates differ from the kept codes past their spread, and the Earth's rate left out of the rotational equations accounts for all but 0.003176, 0.001123 and 0.0007793 deg/s, inside it. The sphere's positions in cases 6 to 8 differ from SIM 1 past the spread, and the gravity past J2 with each code's own air density, as its file gives it, accounts for all but 77.57 to 77.68 mm (3.05 to 3.06 in), inside it. Cases 9 and 10 are within the spread.
 
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
 [m1-14b4]: ../decisions-and-roadmap.md#m1-14b4
@@ -45,10 +45,16 @@ reading made for this record.
    `ω` the inertial body rate about that axis and `l` its length: the span for roll and yaw, the
    chord for pitch. `ω l / 2V` is the rate made dimensionless. It is written `¼ ρ V S l² C ω`,
    which needs no division and is zero at rest.
-   - **Why the inertial rate.** The codes' files hold their aerodynamic moments. Over the first
-     8 s, SIM 1's roll and yaw moments follow this law in the inertial rate to 1.4e-4 and 5e-7
-     of their size, and in the rate relative to the Earth to 8.8e-3 and 9.9e-5. That is a
-     reading of the files made for this record, not a figure of the report.
+   - **Why the inertial rate.** The codes' files hold their aerodynamic moments, and the
+     report sets each code's against this law on its own printed density, speed and rates over
+     the first 8 s. The codes split. SIM 4's follow the law in the inertial rate to 3.0e-5 of
+     their size in roll and yaw and 8.1e-11 in pitch, and SIM 1's to 1.3e-4 and 3.5e-6 in roll
+     and yaw. SIM 5's follow it in the rate relative to the Earth to 1.1e-15, and SIM 6's to
+     1.2e-10. SIM 2 prints its moments to three or four digits, which can't tell the two apart.
+     The rate relative to the air, which turns with the Earth, is the physical one. The test
+     takes the inertial rate, as SIM 1 and SIM 4 do, so that the named difference below is the
+     Earth's rate alone against them; against SIM 5 and SIM 6 the choice is part of what is
+     left, and the report gives it.
    - **A test** (`the_damping_is_on_the_inertial_rate_with_the_span_and_the_chord`) holds the
      moment on each axis, and pitch's at `(c̄/b)²` times roll's per unit rate.
 
@@ -78,17 +84,19 @@ reading made for this record.
      atmosphere, by RK4 at 1 ms. It uses no flight of HPR Sim's.
    - **What it leaves** of each kept code's largest difference: at most 0.003176, 0.001123 and
      0.0007793 deg/s, inside the spread. The stricter reading, at every sample, leaves at most
-     0.003287, 0.003791 and 0.002631 deg/s: inside too.
+     0.003287, 0.003791 and 0.002631 deg/s: inside too. Against SIM 4, which damps as the test
+     does, HPR Sim sits 0.00006587, 0.00006268 and 0.0002691 deg/s from it at every sample;
+     the most is left against SIM 5 and SIM 6, which damp the rate relative to the Earth.
 
 6. **Cases 6 to 8 are the gravity and the codes' own air.** Six codes; SIM 3 is left out, as it
    cuts the spread from 273.1 to 275.5 mm to 85.03, 85.24 and 87.74 mm. HPR Sim's sphere ends within
    21 mm of SIM 4, SIM 5 and SIM 6, and 102.6, 102.8 and 105.0 mm from SIM 1, past the spread.
    - **The codes don't fly the same air.** Against HPR Sim's 1976 atmosphere at each code's own
      altitude, SIM 4's density is within 4.1e-7 of it and SIM 5's within 2.5e-6, SIM 1's up to 1.35e-3
-     denser and SIM 2's 3.5e-4 (the report's last column). The report traces its own spread to
-     the codes' atmosphere tables. SIM 1's printed drag force is `½ρV²SC_D` on its printed
-     density to the printed digits (a reading made for this record), so that density is the air
-     it flew.
+     denser and SIM 2's 3.5e-4. NASA's report traces its own spread to the codes' atmosphere
+     tables. In still air the report sets each code's printed drag force against `½ρV²SC_D` on
+     its own printed density and speed: SIM 1's agrees to 1.1e-11, so that density is the air it
+     flew.
    - **The named difference.** A point mass of the sphere's mass is flown twice from the case's
      start, by RK4 at 1 ms, with the Coriolis force and the same drag and wind. Once as the code
      flies: in gravitation cut off after `J₂` with the centrifugal term, through the code's own
@@ -98,12 +106,12 @@ reading made for this record.
    - **What it leaves** of each kept code's largest difference: at most 77.57, 77.63 and
      77.68 mm, against SIM 1, inside the spread. Against the others it leaves 0.0025 to 9.6 mm;
      HPR Sim sits 0.007677, 0.01569 and 0.004812 mm from the nearest kept code.
-   - **Gravity alone was not enough.** Before the air was added, the tool with the gravity alone
-     left 85.04 mm against SIM 1 in case 6 and 85.25 mm in case 7, each 0.01 mm past the spread,
-     and case 8 inside (a measurement made while building the tool; the report keeps only the
-     tool as committed). The spread is SIM 1 against the codes that fly the 1976 atmosphere;
-     HPR Sim, less its gravity, sits on those codes, so against SIM 1 it came to the spread and
-     a part of its own small distance from them.
+   - **Gravity alone is not enough.** The report gives the tool with the gravity alone, the
+     code flying HPR Sim's air: it leaves 85.04 mm against SIM 1 in case 6 and 85.25 mm in
+     case 7, each 0.01 mm past the spread, and 87.71 mm in case 8, inside. The spread is SIM 1
+     against the codes that fly the 1976 atmosphere; HPR Sim, less its gravity, sits on those
+     codes, so against SIM 1 it comes to the spread and a part of its own small distance from
+     them.
    - **SIM 1 is not explained, only brought inside.** Its own air, flown, would put its sphere
      180.2 mm above HPR Sim's, where its file is 102.6 mm above: the density over-explains it,
      and the 77.57 mm left is the other way. What else SIM 1 does differently is not known
