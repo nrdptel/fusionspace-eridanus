@@ -892,8 +892,7 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
   it accelerates alike. A recovery device opens fully at once ([the landing](#the-landing)), so
   its opening shows as a sharp spike. The spike is the motion's acceleration, which includes
   gravity, so it differs by up to g from the opening shock the `--json` summary gives
-  (`max_descent_acceleration_m_s2`), which leaves gravity out: above it when the device opens on
-  the way up, below it when the rocket is falling.
+  (`max_descent_acceleration_m_s2`), which leaves gravity out: above or below it by up to g.
 - **Not what an accelerometer reads.** The panel shows how the motion changes: zero on the pad,
   and in a coast about −10 m/s² vertically, gravity plus drag. An accelerometer reads about zero
   in that coast, and 9.8 m/s² on the pad.
@@ -1121,9 +1120,9 @@ When a flight opened a recovery device, two more figures follow, each when any f
 value for it. The opening shock is each flight's largest drag over the mass of the part hanging
 from its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
 mass, without gravity. (A motor still burning when a device opens adds its thrust.) A canopy in
-steady fall carries 1 g, so the figure never reads below 1.0 g; a median of 1.0 g means the
-openings were gentler than the steady fall. The opening airspeed is the fastest a device opened
-through the air, the speed that load follows. After a split with no motor left, the table gives
+steady fall carries 1 g, so the figure never reads below about 1 g; a median of 1.0 g means the
+openings were gentler than the steady fall. The opening airspeed is the fastest a device on the
+stack, or on the part that keeps the nose, opened through the air, the speed that load follows. After a split with no motor left, the table gives
 the opening airspeed, the nose part's openings included, but no opening shock, because the
 simulator doesn't follow the nose part's load under its canopy.
 

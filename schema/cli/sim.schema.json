@@ -1493,7 +1493,7 @@
           ]
         },
         "max_deployment_airspeed_m_s": {
-          "description": "The top airspeed at which a recovery device opened, m/s: the speed the opening load\nfollows. `null` when none opened.",
+          "description": "The top airspeed at which a recovery device on the stack, or on the part that keeps the\nnose, opened, m/s: the speed the opening load follows. `null` when none opened.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"

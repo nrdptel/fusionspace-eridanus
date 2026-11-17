@@ -1150,8 +1150,8 @@ pub struct Summary {
     /// thrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning
     /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g.
     pub max_descent_acceleration_m_s2: Option<Peak>,
-    /// The top airspeed at which a recovery device opened, m/s: the speed the opening load
-    /// follows. `null` when none opened.
+    /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
+    /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.
     pub max_deployment_airspeed_m_s: Option<Peak>,
     /// The least static stability margin, calibers, from the rail exit to apogee or the first
     /// deployment.
