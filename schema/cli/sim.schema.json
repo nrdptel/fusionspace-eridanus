@@ -1095,6 +1095,11 @@
       "description": "One event of a flight.",
       "type": "object",
       "properties": {
+        "airspeed_m_s": {
+          "description": "The speed through the air, m/s: at a deployment, the speed the opening load follows. It\ndiffers from `speed_m_s` by the wind's part.",
+          "type": "number",
+          "format": "double"
+        },
         "height_above_ground_m": {
           "description": "The center of gravity's height above the launch site, m.",
           "type": "number",
@@ -1134,7 +1139,8 @@
         "time_s",
         "height_above_ground_m",
         "speed_m_s",
-        "vertical_velocity_m_s"
+        "vertical_velocity_m_s",
+        "airspeed_m_s"
       ]
     },
     "SimFlag": {
@@ -1486,8 +1492,19 @@
             }
           ]
         },
+        "max_deployment_airspeed_m_s": {
+          "description": "The top airspeed at which a recovery device opened, m/s: the speed the opening load\nfollows. `null` when none opened.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "max_descent_acceleration_m_s2": {
-          "description": "The top acceleration under the recovery devices, m/s²: the opening shock.",
+          "description": "The opening shock, m/s²: the top specific force under the recovery devices, `(drag +\nthrust)/m`, the opening load over the mass. Gravity is not in it, so the mass times it is\nthe load a shock cord carries.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"

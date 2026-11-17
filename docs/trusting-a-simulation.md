@@ -117,11 +117,15 @@ configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 
 200 simulated flights, seed 2026: 0 failed
-                        nominal     mean  std dev       5%   median      95%
-apogee (m AGL)           1065.1   1072.4     41.5   1006.2   1072.8   1137.3
-apogee (ft AGL)            3494     3519      136     3301     3520     3731
-landing distance (m)        0.7      0.7      0.0      0.7      0.7      0.8
-landing distance (ft)         2        2        0        2        2        3
+                          nominal     mean  std dev       5%   median      95%
+apogee (m AGL)             1065.1   1072.4     41.5   1006.2   1072.8   1137.3
+apogee (ft AGL)              3494     3519      136     3301     3520     3731
+landing distance (m)          0.7      0.7      0.0      0.7      0.7      0.8
+landing distance (ft)           2        2        0        2        2        3
+opening shock (m/s²)         11.6     15.2      8.7      9.8      9.8     34.7
+opening shock (g)             1.2      1.5      0.9      1.0      1.0      3.5
+opening airspeed (m/s)        5.1      4.7      2.4      0.8      4.6      8.8
+opening airspeed (ft/s)        17       15        8        3       15       29
 
 200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad
 landing ellipse                   semi-major            semi-minor  heading   flights inside

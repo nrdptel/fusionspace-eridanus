@@ -641,6 +641,11 @@ pub struct McRun {
     pub apogee_m: McSpread,
     /// The spread of the landing's distance from the pad, m.
     pub landing_distance_m: McSpread,
+    /// The spread of the opening shock, m/s²: each flight's top specific force under its
+    /// recovery devices, the opening load over the mass. A flight that opened none has no value.
+    pub opening_shock_m_s2: McSpread,
+    /// The spread of the top airspeed at which each flight opened a recovery device, m/s.
+    pub deployment_airspeed_m_s: McSpread,
     /// Where the flights landed, as ellipses.
     pub landing: McLanding,
     /// The operating envelope's flags the flights raise, each with how many raised it.
@@ -725,6 +730,10 @@ pub struct McNominal {
     pub landing_east_m: Option<f64>,
     /// Its landing, m north of the pad.
     pub landing_north_m: Option<f64>,
+    /// Its opening shock, m/s², if a recovery device opened.
+    pub opening_shock_m_s2: Option<f64>,
+    /// The top airspeed at which it opened a recovery device, m/s.
+    pub deployment_airspeed_m_s: Option<f64>,
 }
 
 /// How a figure spreads over a run's flights. A failed flight, or one without the figure, counts
@@ -1135,8 +1144,13 @@ pub struct Summary {
     /// The top acceleration of the nose tip relative to the launch site's frame, from liftoff
     /// until a recovery device opens, m/s²: the motion's, not what an accelerometer reads.
     pub max_acceleration_m_s2: Option<Peak>,
-    /// The top acceleration under the recovery devices, m/s²: the opening shock.
+    /// The opening shock, m/s²: the top specific force under the recovery devices, `(drag +
+    /// thrust)/m`, the opening load over the mass. Gravity is not in it, so the mass times it is
+    /// the load a shock cord carries.
     pub max_descent_acceleration_m_s2: Option<Peak>,
+    /// The top airspeed at which a recovery device opened, m/s: the speed the opening load
+    /// follows. `null` when none opened.
+    pub max_deployment_airspeed_m_s: Option<Peak>,
     /// The least static stability margin, calibers, from the rail exit to apogee or the first
     /// deployment.
     pub min_static_margin_cal: Option<Peak>,
@@ -1296,6 +1310,9 @@ pub struct SimEvent {
     /// The center of gravity's vertical velocity, m/s, positive up: a descent's rate is its
     /// negative.
     pub vertical_velocity_m_s: f64,
+    /// The speed through the air, m/s: at a deployment, the speed the opening load follows. It
+    /// differs from `speed_m_s` by the wind's part.
+    pub airspeed_m_s: f64,
 }
 
 /// What happened at an event.

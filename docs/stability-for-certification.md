@@ -99,9 +99,9 @@ rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)
 burnout               2.14 s    406.4 m   (1333 ft)   240.4 m/s   (789 ft/s)
 apogee               11.62 s   1065.1 m   (3494 ft)     0.1 m/s     (0 ft/s)
 charge               12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)
-deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)
+deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s), airspeed 5.1 m/s (17 ft/s)
 ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
 
 top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842
@@ -175,10 +175,10 @@ liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
 rail exit             0.14 s      1.9 m      (6 ft)    28.9 m/s    (95 ft/s)
 burnout               1.97 s    385.2 m   (1264 ft)   260.5 m/s   (855 ft/s)
 charge               10.97 s   1099.1 m   (3606 ft)     8.0 m/s    (26 ft/s)
-deployment           10.97 s   1099.1 m   (3606 ft)     8.0 m/s    (26 ft/s)
+deployment           10.97 s   1099.1 m   (3606 ft)     8.0 m/s    (26 ft/s), airspeed 8.0 m/s (26 ft/s)
 apogee               11.48 s   1100.7 m   (3611 ft)     0.0 m/s     (0 ft/s)
 ground hit          247.48 s      0.0 m      (0 ft)     4.5 m/s    (15 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
 
 top speed             281.3 m/s (923 ft/s) at 1.75 s
 top Mach number       0.830

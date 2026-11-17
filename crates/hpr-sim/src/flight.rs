@@ -3582,6 +3582,7 @@ fn sample_of(phase: Phase, t: f64, y: &[f64; STATE_LEN], e: &Evaluation) -> Samp
         height_above_ground_m: e.height_above_ground_m,
         vertical_speed_m_s: e.vertical_speed_m_s,
         acceleration_enu_m_s2: e.acceleration_enu_m_s2,
+        specific_force_enu_m_s2: e.specific_force_enu_m_s2,
         airspeed_m_s: e.airspeed_m_s,
         mach: e.mach,
         angle_of_attack_rad: e.angle_of_attack_rad,

@@ -200,6 +200,12 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let distance = run
         .distribution(|flight| flight.nose_landing().map(|landing| landing.distance_m))
         .map_err(analysis)?;
+    let shock = run
+        .distribution(|flight| flight.max_descent_acceleration_m_s2.map(|peak| peak.value))
+        .map_err(analysis)?;
+    let opening = run
+        .distribution(|flight| flight.max_deployment_airspeed_m_s.map(|peak| peak.value))
+        .map_err(analysis)?;
     let landing = landing(&run).map_err(analysis)?;
     let mut read = setup.read;
     // `hpr sim`'s notes on the flight's own numbers, said of the nominal flight; a scattered
@@ -277,9 +283,13 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             landing_distance_m: summary.nose_landing().map(|l| l.distance_m),
             landing_east_m: summary.nose_landing().map(|l| l.east_m),
             landing_north_m: summary.nose_landing().map(|l| l.north_m),
+            opening_shock_m_s2: summary.max_descent_acceleration_m_s2.map(|peak| peak.value),
+            deployment_airspeed_m_s: summary.max_deployment_airspeed_m_s.map(|peak| peak.value),
         },
         apogee_m: spread(&apogee),
         landing_distance_m: spread(&distance),
+        opening_shock_m_s2: spread(&shock),
+        deployment_airspeed_m_s: spread(&opening),
         landing,
         flags: flags(&run),
         issues: sim::issues(&nominal),

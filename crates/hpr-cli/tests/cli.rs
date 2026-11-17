@@ -6832,7 +6832,7 @@ fn mc_flies_a_public_ork_as_the_library_does() {
     let apogee = run.apogee().unwrap().summary();
     assert!(
         text.contains(&format!(
-            "apogee (m AGL)        {:>9.1}{:>9.1}{:>9.1}",
+            "apogee (m AGL)          {:>9.1}{:>9.1}{:>9.1}",
             summary.apogee.unwrap().height_above_ground_m,
             apogee.mean.unwrap(),
             apogee.standard_deviation.unwrap()
@@ -7228,7 +7228,7 @@ fn mc_places_its_failed_flights_past_each_tail() {
     let text = streams(&args[..args.len() - 2]);
     assert!(
         text.out.contains(&format!(
-            "the columns count only the flights with a value: {} of 100 with an apogee",
+            "the columns count only the flights with a value, of 100: {} with an apogee",
             100 - failed
         )),
         "{}",
@@ -7289,6 +7289,127 @@ fn mc_places_its_failed_flights_past_each_tail() {
     ]);
     assert!(calm.out.contains("seed 0: 0 failed"), "{}", calm.out);
     assert!(!calm.out.contains("columns count only"), "{}", calm.out);
+    // No device opens on this design, so the table has no opening rows.
+    assert!(!text.out.contains("opening shock"), "{}", text.out);
+}
+
+/// #1258: `hpr mc` gives the spread of the opening shock and of the airspeed a device opened at,
+/// with the flights that opened none counted past each end as #1200 counts failed ones; the
+/// nominal values are `hpr sim`'s, and the export has a column for each.
+#[test]
+fn mc_spreads_the_opening_shock_and_airspeed() {
+    let folder = tempfile::tempdir().unwrap();
+    let csv = folder.path().join("runs.csv");
+    let csv_arg = csv.to_string_lossy().into_owned();
+    let design = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let args = [
+        "mc",
+        &design,
+        "--runs",
+        "100",
+        "--mass-sd",
+        "0.45",
+        "--delay-sd",
+        "1",
+        "--wind",
+        "4",
+        "--export",
+        &csv_arg,
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    let sim = json(&["sim", &design, "--wind", "4"], 0, "sim.schema.json");
+    let summary = &sim["summary"];
+    assert_eq!(
+        document["nominal"]["opening_shock_m_s2"],
+        summary["max_descent_acceleration_m_s2"]["value"]
+    );
+    assert_eq!(
+        document["nominal"]["deployment_airspeed_m_s"],
+        summary["max_deployment_airspeed_m_s"]["value"]
+    );
+    let rows = std::fs::read_to_string(&csv).unwrap();
+    let header = rows.lines().next().unwrap();
+    for column in [
+        "max descent acceleration [m/s^2]",
+        "max deployment airspeed [m/s]",
+    ] {
+        assert!(header.contains(column), "{header}");
+    }
+    for spread in ["opening_shock_m_s2", "deployment_airspeed_m_s"] {
+        let figure = &document[spread];
+        assert_eq!(figure["attempted"], 100);
+        let count = figure["count"].as_u64().unwrap();
+        assert!(0 < count && count < 100, "{spread}: {figure}");
+        let p95 = figure["p95"].as_f64().unwrap();
+        // Counted past the top, a flight with no opening can only raise the 95%.
+        match &figure["p95_counting_missing"] {
+            serde_json::Value::String(word) => assert_eq!(word, "unbounded"),
+            tail => assert!(tail["value"].as_f64().unwrap() >= p95, "{spread}: {figure}"),
+        }
+    }
+    let text = streams(&args[..args.len() - 2]);
+    for label in [
+        "opening shock (m/s²)",
+        "opening shock (g)",
+        "opening airspeed (m/s)",
+        "opening airspeed (ft/s)",
+    ] {
+        assert_eq!(
+            text.out
+                .lines()
+                .filter(|line| line.starts_with(label))
+                .count(),
+            2,
+            "{label}: the spread's row and the counted one\n{}",
+            text.out
+        );
+    }
+}
+
+/// #1258: a deployment's row gives the airspeed the device opened at, which sets its load, as
+/// well as the speed over the ground; the JSON gives every event's, and the summary the top one.
+#[test]
+fn sim_gives_each_deployment_its_airspeed() {
+    let design = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let args = ["sim", &design, "--wind", "6"];
+    let flight = json(&args, 0, "sim.schema.json");
+    let deployments: Vec<&serde_json::Value> = flight["events"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|event| event["kind"] == "deployment")
+        .collect();
+    assert!(!deployments.is_empty());
+    let top = deployments
+        .iter()
+        .map(|event| event["airspeed_m_s"].as_f64().unwrap())
+        .fold(f64::NEG_INFINITY, f64::max);
+    assert_eq!(
+        flight["summary"]["max_deployment_airspeed_m_s"]["value"].as_f64(),
+        Some(top)
+    );
+    // In a 6 m/s wind the device opens drifting with the air, so its airspeed and its speed over
+    // the ground differ.
+    let first = deployments[0];
+    let ground = first["speed_m_s"].as_f64().unwrap();
+    let air = first["airspeed_m_s"].as_f64().unwrap();
+    assert!(
+        (air - ground).abs() > 0.5,
+        "{ground} over the ground, {air} through the air"
+    );
+    let text = streams(&args);
+    let row = text
+        .out
+        .lines()
+        .find(|line| line.starts_with("deployment"))
+        .unwrap();
+    assert!(
+        row.ends_with(&format!(
+            ", airspeed {air:.1} m/s ({:.0} ft/s)",
+            air / 0.3048
+        )),
+        "{row}"
+    );
 }
 
 /// What `hpr mc` refuses before it flies, each by its option: a run of no flights or too many, a

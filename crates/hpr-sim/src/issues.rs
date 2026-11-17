@@ -706,7 +706,9 @@ impl IssueWarning {
                  its open devices' drag. Until its first device opens, it has no drag at all, \
                  where a real one has its airframe's. Falling, it likely lands early and the wind \
                  carries it less far than it would, so its drift likely reads short. Climbing, \
-                 its peak reads high"
+                 its peak reads high. Its speed when a device opens can read either way: high \
+                 after a long fall, but low for a part split off climbing whose device opens \
+                 near the top of its drag-free climb, where a real one would still be moving"
                 .to_owned(),
             KnownIssue::OffAxisCenterOfGravity => {
                 let offset = match &self.detail {

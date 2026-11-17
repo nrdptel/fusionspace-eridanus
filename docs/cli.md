@@ -395,7 +395,7 @@ rail exit             0.15 s      1.8 m      (6 ft)    21.3 m/s    (70 ft/s)
 burnout               3.50 s    466.0 m   (1529 ft)   136.3 m/s   (447 ft/s)
 apogee               11.21 s    846.1 m   (2776 ft)     0.1 m/s     (0 ft/s)
 ground hit           29.71 s      0.0 m      (0 ft)    65.9 m/s   (216 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
 
 top speed             178.3 m/s (585 ft/s) at 2.31 s
 top Mach number       0.525
@@ -431,7 +431,7 @@ What each part says:
 | `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope $C_{m\alpha}$ is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest $C_{m\alpha}$ per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
 | `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
 | `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325, #326, #1198 or #1290) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean; a `help:` line gives the address; `<number>` is the issue's. A flight on a drag table of your own prints no drag warning except #179 and #354 (a separated part's), and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. |
-| the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
+| the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail. A deployment's row adds its airspeed, the speed through the air that sets the device's opening load: in a wind it differs from the speed over the ground. The JSON gives every event's `airspeed_m_s`, and the summary's `max_deployment_airspeed_m_s` the top one |
 | the last figures | the top speed and [Mach number](glossary.md#mach-number), and the landing |
 
 OpenRocket's example *A simple model rocket*, with its C6-5, prints this `delay` line:
@@ -535,11 +535,11 @@ rail exit             0.27 s      2.1 m      (7 ft)    11.2 m/s    (37 ft/s)
 burnout               3.50 s    163.1 m    (535 ft)    59.6 m/s   (196 ft/s)
 apogee                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
 charge                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
-deployment            9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+deployment            9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s), airspeed 0.0 m/s (0 ft/s)
 charge               22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
-deployment           22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
+deployment           22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s), airspeed 14.1 m/s (46 ft/s)
 ground hit           53.94 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
 
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
@@ -763,7 +763,7 @@ rail exit             0.21 s      3.3 m     (11 ft)    30.2 m/s    (99 ft/s)
 burnout               3.50 s    468.6 m   (1537 ft)   144.4 m/s   (474 ft/s)
 apogee               11.48 s    877.4 m   (2879 ft)    11.3 m/s    (37 ft/s)
 ground hit           28.71 s      0.0 m      (0 ft)    70.3 m/s   (230 ft/s)
-(heights are the center of gravity's above the site; speeds are over the ground)
+(heights are the center of gravity's above the site; speeds are over the ground, and a deployment's airspeed through the air)
 
 top speed             184.3 m/s (605 ft/s) at 2.35 s
 top Mach number       0.556
@@ -1074,11 +1074,11 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
 200 simulated flights, seed 2026: 0 failed
-                        nominal     mean  std dev       5%   median      95%
-apogee (m AGL)            813.9    819.4     34.4    765.0    818.8    870.8
-apogee (ft AGL)            2670     2688      113     2510     2686     2857
-landing distance (m)      286.9    283.2     44.8    208.8    281.8    354.5
-landing distance (ft)       941      929      147      685      925     1163
+                          nominal     mean  std dev       5%   median      95%
+apogee (m AGL)              813.9    819.4     34.4    765.0    818.8    870.8
+apogee (ft AGL)              2670     2688      113     2510     2686     2857
+landing distance (m)        286.9    283.2     44.8    208.8    281.8    354.5
+landing distance (ft)         941      929      147      685      925     1163
 
 200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
 landing ellipse                   semi-major            semi-minor  heading   flights inside
@@ -1111,12 +1111,22 @@ median and 95th percentile. Each quantity is in meters, then in feet on the row 
 landing's center and the ellipses' axes give feet in parentheses. A failed flight counts as tried
 with no value.
 
+When the design has a recovery device, two more figures follow. The opening shock is each
+flight's largest drag over the mass under its devices, in m/s² and then in g: the
+[opening load](glossary.md#opening-load) over the mass, without gravity, so the mass times it is
+the force a shock cord carries. The opening airspeed is the fastest a device opened through the
+air, the speed that load follows. `--delay-sd` and `--deployment-lag-sd` spread both: a charge
+late after apogee opens the device faster. The simulator opens a canopy at once by default, and
+leaves out a canopy's drag overshoot, so the shock is no bound either way
+([The opening load](physics/recovery.md#the-opening-load)); its spread shows how the timing moves
+it. A flight that opened no device has no value, as a failed one has none.
+
 The columns cover only the flights that have a value, so a failed flight is left out of them.
 If the failed flights are the ones that would have flown highest or landed farthest, the 95%
 column reads low: with 5% failed, it is about the 90th percentile of all the flights tried. If
 they'd have been the lowest, the 5% column reads high.
 
-So when some flights have no apogee or no landing, `hpr mc` says how many have one, and adds rows
+So when some flights have no value for a figure, `hpr mc` says how many have one, and adds rows
 under the table that count the failed flights. For the 5% they're placed below every flown
 flight, and for the 95% above every one. That makes the 5% the lowest and the 95% the highest
 they could be, whatever the failed flights would have done. This run scatters the mass by 45%, so
@@ -1130,17 +1140,17 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
 100 simulated flights, seed 0: 2 failed
-                        nominal     mean  std dev       5%   median      95%
-apogee (m AGL)            846.1    822.8     34.4    769.9    834.6    851.1
-apogee (ft AGL)            2776     2700      113     2526     2738     2792
-landing distance (m)       17.4     23.2     46.1     13.3     16.5     33.3
-landing distance (ft)        57       76      151       43       54      109
-the columns count only the flights with a value: 98 of 100 with an apogee, 98 with a landing;
+                          nominal     mean  std dev       5%   median      95%
+apogee (m AGL)              846.1    822.8     34.4    769.9    834.6    851.1
+apogee (ft AGL)              2776     2700      113     2526     2738     2792
+landing distance (m)         17.4     23.2     46.1     13.3     16.5     33.3
+landing distance (ft)          57       76      151       43       54      109
+the columns count only the flights with a value, of 100: 98 with an apogee, 98 with a landing;
 with each of the others placed past that end, the 5% and 95% are at worst
-apogee (m AGL)                                       734.1             851.4
-apogee (ft AGL)                                       2408              2793
-landing distance (m)                                  12.4              36.7
-landing distance (ft)                                   41               120
+apogee (m AGL)                                         734.1             851.4
+apogee (ft AGL)                                         2408              2793
+landing distance (m)                                    12.4              36.7
+landing distance (ft)                                     41               120
 
 98 of 100 flights landed, centered 23.2 m (76 ft) east and 0.0 m (0 ft) south of the pad
 landing ellipse                   semi-major            semi-minor  heading   flights inside
@@ -1241,7 +1251,7 @@ takes:
 | `motor_N_impulse_scale`, `motor_N_burn_time_scale`, `motor_N_ejection_delay_offset_s` | each motor's in the configuration flown |
 | `device_N_deployment_lag_offset_s` | each recovery device's, a tumble's always 0 |
 | `termination`, `apogee_m`, `apogee_time_s` | why the flight ended, and its apogee above the site |
-| `rail_exit_speed_m_s`, `max_speed_m_s`, `max_mach`, `max_dynamic_pressure_pa`, `max_acceleration_m_s2`, `min_static_margin_cal`, `min_flight_margin_cal`, `max_angle_of_attack_rad` | the flight's peaks, as `hpr sim --json`'s `summary` has them |
+| `rail_exit_speed_m_s`, `max_speed_m_s`, `max_mach`, `max_dynamic_pressure_pa`, `max_acceleration_m_s2`, `max_descent_acceleration_m_s2`, `max_deployment_airspeed_m_s`, `min_static_margin_cal`, `min_flight_margin_cal`, `max_angle_of_attack_rad` | the flight's peaks, as `hpr sim --json`'s `summary` has them; `max_descent_acceleration_m_s2` is the opening shock |
 | `landing_time_s`, `landing_east_m`, `landing_north_m`, `landing_distance_m`, `landing_latitude_deg`, `landing_longitude_deg`, `ground_hit_speed_m_s` | where and when it landed; after a split with nothing left to burn, where the part that keeps the nose landed |
 | `part_N_landing_time_s`, `part_N_landing_east_m`, `part_N_landing_north_m`, `part_N_ground_hit_speed_m_s` | for a staged flight, each dropped part's landing |
 | `flags` | the [operating envelope](VALIDATION.md#operating-envelope)'s flags the flight raised, and [`unstable_under_power` or `unstable_without_margin`](physics/metrics.md#unstable-under-power), separated by `;` |

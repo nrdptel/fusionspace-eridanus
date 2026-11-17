@@ -8,6 +8,10 @@
       "description": "The apogee's spread, m above the site.",
       "$ref": "#/$defs/McSpread"
     },
+    "deployment_airspeed_m_s": {
+      "description": "The spread of the top airspeed at which each flight opened a recovery device, m/s.",
+      "$ref": "#/$defs/McSpread"
+    },
     "design": {
       "description": "The design and the configuration flown.",
       "$ref": "#/$defs/SimDesign"
@@ -85,6 +89,10 @@
         "type": "string"
       }
     },
+    "opening_shock_m_s2": {
+      "description": "The spread of the opening shock, m/s²: each flight's top specific force under its\nrecovery devices, the opening load over the mass. A flight that opened none has no value.",
+      "$ref": "#/$defs/McSpread"
+    },
     "runs": {
       "description": "The flights tried.",
       "type": "integer",
@@ -148,6 +156,8 @@
     "nominal",
     "apogee_m",
     "landing_distance_m",
+    "opening_shock_m_s2",
+    "deployment_airspeed_m_s",
     "landing",
     "flags",
     "issues",
@@ -828,6 +838,14 @@
           ],
           "format": "double"
         },
+        "deployment_airspeed_m_s": {
+          "description": "The top airspeed at which it opened a recovery device, m/s.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
         "landing_distance_m": {
           "description": "Its landing's distance from the pad, m, if it landed.",
           "type": [
@@ -846,6 +864,14 @@
         },
         "landing_north_m": {
           "description": "Its landing, m north of the pad.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "opening_shock_m_s2": {
+          "description": "Its opening shock, m/s², if a recovery device opened.",
           "type": [
             "number",
             "null"

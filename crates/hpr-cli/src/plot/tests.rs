@@ -30,6 +30,7 @@ fn event(kind: EventKind, time_s: f64) -> FlightEvent {
         height_above_ground_m: 0.0,
         vertical_speed_m_s: 0.0,
         acceleration_enu_m_s2: hpr::hpr_core::DVec3::ZERO,
+        specific_force_enu_m_s2: hpr::hpr_core::DVec3::ZERO,
         airspeed_m_s: 0.0,
         mach: 0.0,
         angle_of_attack_rad: 0.0,

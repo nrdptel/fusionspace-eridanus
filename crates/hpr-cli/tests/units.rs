@@ -155,11 +155,15 @@ fn mc_gives_feet_beside_meters() {
     holds_lines(
         &text,
         &[
-            "                        nominal     mean  std dev       5%   median      95%",
-            "apogee (m AGL)           1058.3   1058.3      0.0   1058.3   1058.3   1058.3",
-            "apogee (ft AGL)            3472     3472        0     3472     3472     3472",
-            "landing distance (m)     1325.1   1325.1      0.0   1325.1   1325.1   1325.1",
-            "landing distance (ft)      4347     4347        0     4347     4347     4347",
+            "                          nominal     mean  std dev       5%   median      95%",
+            "apogee (m AGL)             1058.3   1058.3      0.0   1058.3   1058.3   1058.3",
+            "apogee (ft AGL)              3472     3472        0     3472     3472     3472",
+            "landing distance (m)       1325.1   1325.1      0.0   1325.1   1325.1   1325.1",
+            "landing distance (ft)        4347     4347        0     4347     4347     4347",
+            "opening shock (m/s²)         21.6     21.6      0.0     21.6     21.6     21.6",
+            "opening shock (g)             2.2      2.2      0.0      2.2      2.2      2.2",
+            "opening airspeed (m/s)        6.9      6.9      0.0      6.9      6.9      6.9",
+            "opening airspeed (ft/s)        23       23        0       23       23       23",
             "20 of 20 flights landed, centered 0.7 m (2 ft) west and 1325.1 m (4347 ft) south of \
              the pad",
             "landing ellipse                   semi-major            semi-minor  heading   flights inside",
@@ -187,19 +191,38 @@ fn mc_gives_feet_beside_meters() {
             .map(|cell| cell.parse().unwrap())
             .collect()
     };
-    for (name, datum) in [("apogee", " AGL"), ("landing distance", "")] {
-        let (m, ft) = (
-            cells(&format!("{name} (m{datum})")),
-            cells(&format!("{name} (ft{datum})")),
-        );
-        assert_eq!((m.len(), ft.len()), (6, 6), "{text}");
-        for (m, ft) in m.iter().zip(&ft) {
+    // Each second row's cell is the first's in its unit, to both cells' rounding: feet whole
+    // from meters to a tenth, and gravities to a tenth from m/s² to a tenth.
+    for (si, us, per_si, us_half) in [
+        ("apogee (m AGL)", "apogee (ft AGL)", 1.0 / 0.3048, 0.5),
+        (
+            "landing distance (m)",
+            "landing distance (ft)",
+            1.0 / 0.3048,
+            0.5,
+        ),
+        (
+            "opening airspeed (m/s)",
+            "opening airspeed (ft/s)",
+            1.0 / 0.3048,
+            0.5,
+        ),
+        (
+            "opening shock (m/s²)",
+            "opening shock (g)",
+            1.0 / 9.80665,
+            0.05,
+        ),
+    ] {
+        let (a, b) = (cells(si), cells(us));
+        assert_eq!((a.len(), b.len()), (6, 6), "{text}");
+        for (a, b) in a.iter().zip(&b) {
             assert!(
-                (m / 0.3048 - ft).abs() <= 0.5 + 0.05 / 0.3048,
-                "{m} m, {ft} ft"
+                (a * per_si - b).abs() <= us_half + 0.05 * per_si,
+                "{a} {si}, {b} {us}"
             );
         }
-        assert!(m[2] > 0.0, "{name}: no spread in\n{text}");
+        assert!(a[2] > 0.0, "{si}: no spread in\n{text}");
     }
     let ellipse = text
         .lines()
