@@ -739,7 +739,7 @@ struct Aerodynamics {
 /// acceleration `ω̇`, both in body axes: `T20` from `[T03, T04, F]` (the Coriolis-like term's
 /// vector, the terms along the axis, and the external force), and `T21` from the jets' gyration
 /// and the moments about `O`, less the moving parts' `ω × h + h′`.
-fn free_motion(
+pub(crate) fn free_motion(
     mass: &MassState,
     omega: DVec3,
     [t03, t04, forces]: [DVec3; 3],
