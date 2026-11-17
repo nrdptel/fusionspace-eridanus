@@ -160,12 +160,12 @@ the descent rates and the landing points.
      - Each record's SHA-256, a fingerprint of the record, is merged in a list of its own,
        read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]): at the
        merge base, where the branch last took main. A digest of the ids of every flight
-       with a record is merged beside the list and read the same way, as one of the
-       manifest's ids is for the apogees. The flights whose ids hash to that digest are
-       sealed. A later run stops when the ids of the records present don't hash to the
-       digest, when a sealed flight's record's hash isn't on the list, and when a hash on
-       the list matches no record. So no record is dropped, added or rewritten unseen, and
-       the sealed set changes only by a decision record.
+       with a record, the SHA-256 of the sorted ids, is merged beside the list and read at
+       the merge base too. The flights whose ids hash to that digest are sealed. A later
+       run stops when the ids of the records present don't hash to the digest, when a
+       sealed flight's record's hash isn't on the list, and when a hash on the list matches
+       no record. So no record is dropped, added or rewritten unseen, and a branch can't
+       change the sealed set: only a merged pull request can.
      - OpenRocket 24.12's speed is read from its own flight's history at the same travel, not
        from its launch-rod figure, whose travel may differ. The run that stores that history
        merges here.
