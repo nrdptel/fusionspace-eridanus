@@ -74,3 +74,5 @@ branch's figures are rounded: each later line of prose moves them a little:
 `book.toml` leaves one out stands. The rebuild and its checks against mdBook's own counts
 stand. The rule beside the limit stands: shorten the words a page added first, and change
 the limit only with a decision record that measures the new one.
+
+**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) until the work lands again. Until then `cargo xtask site` holds the index to the earlier limit.

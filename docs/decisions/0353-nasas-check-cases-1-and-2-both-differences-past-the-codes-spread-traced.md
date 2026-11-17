@@ -9,9 +9,9 @@
 [adr-351]: 0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [adr-011]: 0011-rigid-body-flight-equations-of-motion.md
 [nesc-note]: ../research/nesc-check-cases.md
-[report]: ../../validation/reports/check-cases.md
-[report-json]: ../../validation/reports/check-cases.json
-[flight]: ../physics/flight.md#a-free-body-against-nasas-check-cases
+[report]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/validation/reports/check-cases.md
+[report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/validation/reports/check-cases.json
+[flight]: https://github.com/nrdptel/fusionspace-eridanus/blob/eabacbd3b0254d6f841a463491c0d126fbe10290/docs/physics/flight.md#a-free-body-against-nasas-check-cases
 [i-759]: https://github.com/nrdptel/fusionspace-eridanus/issues/759
 [i-1521]: https://github.com/nrdptel/fusionspace-eridanus/issues/1521
 
@@ -120,3 +120,5 @@ narrowed and no tolerance is set. HPR Sim's gravity and rotational equations are
 were: the increment adds a reference and two measured differences. ADR-011's choice stands
 until [#1521][i-1521] is worked. [The page on rigid-body flight][flight] gives the comparison
 to a reader.
+
+**Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) until the work lands again. Until then the links to the report and to the page point at the commit that held them.

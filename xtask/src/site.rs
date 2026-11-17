@@ -246,14 +246,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let index = search::rebuild(&output)?;
     println!(
         "site search: {} sections indexed, each field with its own words only (issue #414): {} \
-         postings, not mdBook's {}; {} bytes (at most {}), not {}; {} compressed with gzip",
+         postings, not mdBook's {}; {} bytes, not {}; {} compressed with gzip (at most {})",
         index.sections,
         index.postings,
         index.mdbook_postings,
         index.bytes,
-        search::LIMIT_BYTES,
         index.mdbook_bytes,
-        index.gzip_bytes
+        index.gzip_bytes,
+        search::LIMIT_GZIP_BYTES
     );
     let issued = theme::commit_date(&root)?;
     let dated = theme::fill_issue_date(&output, &issued)?;

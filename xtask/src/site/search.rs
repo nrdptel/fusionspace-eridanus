@@ -24,14 +24,11 @@
 //! - **What changes for a reader.** A section is found by the same words. Its body and
 //!   breadcrumbs no longer count its heading's and body's words twice or three times, so ranking
 //!   follows the weights mdBook gives each field (title 2, body 1, breadcrumbs 1).
-//! - **Its size** is checked against [`LIMIT_BYTES`], the size at which mdBook itself warns that
-//!   an index is very large (ADR-354). Until 2026-11-17 the limit was what main's file at
-//!   b7313b32 weighed compressed with gzip before the rebuild, 1,675,059 bytes. The index stores
-//!   every section's text, so that held the guide to the words it had that week. What a reader
-//!   downloads when they open the search is the file compressed with gzip, which the build's
-//!   summary line still prints ([`gzip_len`]; GitHub Pages compresses a little less well: for
-//!   main's file at b7313b32 it sent 1,754,850 bytes, measured 2026-11-10 05:10 UTC, against
-//!   1,675,059 here).
+//! - **Its size,** checked against [`LIMIT_GZIP_BYTES`], stands for what a reader downloads
+//!   when they open the search: the file compressed with gzip at the default level ([`gzip_len`]).
+//!   GitHub Pages compresses a little less well: for main's file at b7313b32 it sent 1,754,850
+//!   bytes (measured 2026-11-10 05:10 UTC), against 1,675,059 here. The limit and the file are
+//!   measured the same way, so the comparison holds.
 
 use std::io::Write as _;
 use std::path::Path;
@@ -47,15 +44,14 @@ const PREFIX: &str = "window.search = Object.assign(window.search, JSON.parse('"
 const SUFFIX: &str = "'));";
 
 /// The words mdBook logs when the index it built passes 10 MB. That index is the one [`rebuild`]
-/// replaces, so the build checks the shipped file's size instead ([`LIMIT_BYTES`]).
+/// replaces, so the build checks the shipped file's size instead ([`LIMIT_GZIP_BYTES`]).
 pub(super) const MDBOOK_SIZE_WARNING: &str = "search index is very large (";
 
-/// The most the shipped index may weigh, in bytes of the file as written: 10,000,000, the size
-/// past which mdBook logs [`MDBOOK_SIZE_WARNING`] for the index it builds (ADR-354). mdBook
-/// counts the index's JSON before it is wrapped and escaped for the file, which is a little
-/// less than the file (9,999,756 against 10,020,860 bytes for main's at b7313b32), so this
-/// check trips first.
-pub(super) const LIMIT_BYTES: usize = 10_000_000;
+/// The most the shipped index may weigh compressed by [`gzip_len`]: 1,675,059 bytes, main's file
+/// at b7313b32 (10,020,860 bytes before compression) measured the same way, built before this
+/// rebuild, with fifteen pages left out of search to stay under mdBook's warning. Every page
+/// back in, the rebuilt index must still cost a reader no more than that.
+pub(super) const LIMIT_GZIP_BYTES: usize = 1_675_059;
 
 /// mdBook leaves out words longer than this, in bytes.
 const MAX_WORD_BYTES: usize = 80;
@@ -76,12 +72,12 @@ pub(super) struct Rebuilt {
     pub postings: usize,
 }
 
-/// Rebuilds `output`'s [`FILE`] in place and checks it against [`LIMIT_BYTES`].
+/// Rebuilds `output`'s [`FILE`] in place and checks it against [`LIMIT_GZIP_BYTES`].
 pub(super) fn rebuild(output: &Path) -> Result<Rebuilt, String> {
-    rebuild_within(output, LIMIT_BYTES)
+    rebuild_within(output, LIMIT_GZIP_BYTES)
 }
 
-/// [`rebuild`], held to `limit` bytes of the file as written.
+/// [`rebuild`], held to `limit` bytes as gzip sends the file.
 fn rebuild_within(output: &Path, limit: usize) -> Result<Rebuilt, String> {
     let path = output.join(FILE);
     let text = std::fs::read_to_string(&path)
@@ -89,12 +85,13 @@ fn rebuild_within(output: &Path, limit: usize) -> Result<Rebuilt, String> {
     let (rebuilt, report) = rebuild_text(&text)?;
     std::fs::write(&path, &rebuilt)
         .map_err(|err| format!("could not write the search index {}: {err}", path.display()))?;
-    if report.bytes > limit {
+    if report.gzip_bytes > limit {
         return Err(format!(
-            "the search index weighs {} bytes, more than the {limit} past which mdBook calls an \
-             index very large (xtask/src/site/search.rs, ADR-354): shorten the words a page \
-             added; change the limit only with a decision record that measures the new one",
-            report.bytes
+            "the search index weighs {} bytes compressed with gzip, more than the {limit} \
+             main's file at b7313b32 weighed before the rebuild, measured the same way \
+             (xtask/src/site/search.rs): shorten the words a page added; raise the limit only \
+             with a decision record that measures the new one",
+            report.gzip_bytes
         ));
     }
     Ok(report)
@@ -450,12 +447,10 @@ mod tests {
         assert_eq!(gzip_len(written.as_bytes()).unwrap(), report.gzip_bytes);
         // At its own size it passes; a byte less fails.
         std::fs::write(dir.join(FILE), FIXTURE).unwrap();
-        assert!(rebuild_within(&dir, report.bytes).is_ok());
+        assert!(rebuild_within(&dir, report.gzip_bytes).is_ok());
         std::fs::write(dir.join(FILE), FIXTURE).unwrap();
-        let err = rebuild_within(&dir, report.bytes - 1).unwrap_err();
-        assert!(err.contains("very large"), "{err}");
-        // The limit is mdBook's own bar, written out so a moved constant fails here.
-        assert_eq!(LIMIT_BYTES, 10_000_000);
+        let err = rebuild_within(&dir, report.gzip_bytes - 1).unwrap_err();
+        assert!(err.contains("compressed with gzip"), "{err}");
         std::fs::remove_dir_all(&dir).unwrap();
     }
 
