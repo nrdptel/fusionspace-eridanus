@@ -24,8 +24,9 @@ added, and raise the limit only with a decision record that measures the new one
 that record.
 
 The measurements, each from a build's `site search:` line and [the voice report][voice]'s
-word count. That report counts the site's pages and the repository's other pages (the
-README, the crates' own), which are not in search, so a figure in words below is rough. The
+word count. That report counts 77 of the site's 78 pages (not the records page, which is in
+search) and the repository's other pages (the README, the crates' own), which are not in
+search, so a figure in words below is rough. The
 branch's figures are rounded: each later line of prose moves them a little:
 
 | Build | Words the voice report counts | The file, bytes | Compressed with gzip, bytes |
