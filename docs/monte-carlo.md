@@ -321,6 +321,17 @@ tried: `attempted()` is the run's size, `count()` the flights that gave a value,
 the rest. Its mean and percentiles are over the flights that gave a value, so many failures can
 bias them: check `missing()` first.
 
+How much a failure can move a percentile has a bound. If every failed flight had gone past one end,
+the 95th percentile of all the flights tried is the percentile of the flown ones with the failed
+ones counted as infinitely high. `quantile_counting_missing(0.95, MissingEnd::Above)` gives it,
+and `MissingEnd::Below` gives the 5th percentile's worst case. Say 100 flights are tried and 2
+fail. The 95th percentile of all 100 sits at position $h = 99 \times 0.95 = 94.05$ of them, counted
+from 0, smallest first. With the 2 failures placed last, that's 0.05 of the way from the 95th
+smallest flown value to the 96th. Over the 98 flown flights alone it sits at $97 \times 0.95 =
+92.15$, lower. With 5 or more of the 100 failed, the position reaches a failed flight, and the
+answer is [`Bound::Unbounded`]. `hpr mc` prints both ends whenever a flight has no value
+([`hpr mc`](cli.md#hpr-mc)).
+
 A share such as "reached 1,100 m (3,609 ft)" is given as two bounds, `share_at_least(1100.0)`:
 
 - `low` counts a failed flight as not reaching it;
@@ -460,6 +471,7 @@ The API reference is [`hpr_analysis::montecarlo`](api/hpr_analysis/montecarlo/in
 [`hpr_analysis::ellipse`](api/hpr_analysis/ellipse/index.html).
 
 [`Run::failed`]: api/hpr_analysis/montecarlo/struct.Run.html#method.failed
+[`Bound::Unbounded`]: api/hpr_analysis/statistics/enum.Bound.html#variant.Unbounded
 [`Run::apogee`]: api/hpr_analysis/montecarlo/struct.Run.html#method.apogee
 [`run_parallel`]: api/hpr_analysis/montecarlo/struct.MonteCarlo.html#method.run_parallel
 [`Run::landing`]: api/hpr_analysis/montecarlo/struct.Run.html#method.landing

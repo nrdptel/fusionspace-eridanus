@@ -11,7 +11,7 @@
 use std::io::{self, Write};
 
 use crate::console::{Diagnostics, Level, Text};
-use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpread};
+use crate::output::{EllipseKind, FlagKind, IssueKind, McBound, McDispersion, McRun, McSpread};
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, issue_help, issue_text, launch_lines, motor_lines,
     note_lines,
@@ -53,6 +53,7 @@ pub(crate) fn print(
         run.nominal.landing_distance_m,
         &run.landing_distance_m,
     )?;
+    counting_missing(run, out)?;
     writeln!(out)?;
     landing(run, out)?;
     writeln!(out)?;
@@ -151,6 +152,55 @@ fn row(
             write!(out, "{text:>9}")?;
         }
         writeln!(out)?;
+    }
+    Ok(())
+}
+
+/// When a flight failed or gave no value, what the spreads' columns are taken over, and the 5%
+/// and 95% with each such flight placed past that end: the worst case the missing flights allow
+/// (#1200). Nothing when every flight gave both values.
+fn counting_missing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
+    let spreads = [
+        ("apogee", " AGL", &run.apogee_m),
+        ("landing distance", "", &run.landing_distance_m),
+    ];
+    if spreads
+        .iter()
+        .all(|(_, _, spread)| spread.count == spread.attempted)
+    {
+        return Ok(());
+    }
+    writeln!(
+        out,
+        "the columns count only the flights with a value: {} of {} with an apogee, {} with a landing;",
+        run.apogee_m.count, run.runs, run.landing_distance_m.count
+    )?;
+    writeln!(
+        out,
+        "with each of the others placed past that end, the 5% and 95% are at worst"
+    )?;
+    for (name, datum, spread) in spreads {
+        if spread.count == spread.attempted {
+            continue;
+        }
+        let cells = [spread.p05_counting_missing, spread.p95_counting_missing];
+        for (unit, per_m, decimals) in [("m", 1.0, 1), ("ft", 1.0 / FOOT_M, 0)] {
+            let label = format!("{name} ({unit}{datum})");
+            write!(out, "{label:<NAME$}{:27}", "")?;
+            for (i, cell) in cells.iter().enumerate() {
+                let text = match cell {
+                    Some(McBound::Value(v)) => fixed(v * per_m, decimals),
+                    Some(McBound::Unbounded) => "unbounded".to_owned(),
+                    None => "-".to_owned(),
+                };
+                if i == 0 {
+                    write!(out, "{text:>9}{:9}", "")?;
+                } else {
+                    write!(out, "{text:>9}")?;
+                }
+            }
+            writeln!(out)?;
+        }
     }
     Ok(())
 }

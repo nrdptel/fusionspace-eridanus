@@ -148,6 +148,37 @@ def test_the_failed_flights_are_counted(runs):
     assert not numpy.isnan(run["apogee_m"][~failed]).any()
 
 
+def test_a_spread_is_hpr_mcs_failed_flights_counted(runs):
+    # The run has failed flights: each spread is `hpr mc`'s, and its tails count them (#1200).
+    run, _, output = runs
+    assert run.failed > 0
+    for name in ("apogee_m", "landing_distance_m"):
+        spread = run.spread(name)
+        expected = dict(output[name])
+        for key, end in (("p05_counting_missing", -math.inf), ("p95_counting_missing", math.inf)):
+            tail = expected[key]
+            expected[key] = end if tail == "unbounded" else tail["value"]
+        assert spread == expected, name
+        values = run[name]
+        # NumPy's nanpercentile drops the failed flights, as the p05 and p95 do; the counting
+        # tails lie outside them.
+        assert spread["p95"] == numpy.nanpercentile(values, 95)
+        assert spread["p95_counting_missing"] > spread["p95"]
+        assert spread["p05_counting_missing"] < spread["p05"]
+    with pytest.raises(TypeError, match="isn't a column of numbers"):
+        run.spread("outcome")
+    with pytest.raises(KeyError, match="no column"):
+        run.spread("no_such_column")
+
+
+def test_with_every_flight_flown_a_spread_counts_nothing_missing(repo):
+    run = monte_carlo(repo, runs=8, seed=1, drag_sd_fraction=0.05)
+    assert run.failed == 0
+    spread = run.spread("apogee_m")
+    assert spread["count"] == spread["attempted"] == 8
+    assert spread["p05_counting_missing"] is None and spread["p95_counting_missing"] is None
+
+
 def test_the_nominal_flight_and_the_dispersion(runs):
     run, _, output = runs
     assert run.nominal["apogee"]["height_above_ground_m"] == output["nominal"]["apogee_m"]

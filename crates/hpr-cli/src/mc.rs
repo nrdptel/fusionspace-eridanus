@@ -16,13 +16,13 @@ use std::time::{Duration, Instant};
 
 use hpr::hpr_analysis::ellipse::{Ellipse, Scatter};
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo, Outcome, Run, Sample};
-use hpr::hpr_analysis::statistics::Distribution;
+use hpr::hpr_analysis::statistics::{Bound, Distribution};
 use hpr::hpr_analysis::table::RunTable;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::output::{
     EllipseKind, Export, ExportFormat, McDispersion, McEllipse, McExportMeta, McFailed, McFailedAt,
-    McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
+    McBound, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
 };
 use crate::sim::{self, FlightArgs, Setup};
 use crate::{Failure, Out};
@@ -424,6 +424,16 @@ fn spread(distribution: &Distribution) -> McSpread {
         p50: summary.p50,
         p95: summary.p95,
         max: summary.max,
+        p05_counting_missing: summary.p05_counting_missing.map(bound),
+        p95_counting_missing: summary.p95_counting_missing.map(bound),
+    }
+}
+
+/// A percentile counting the flights with no value, in the output's terms.
+fn bound(bound: Bound) -> McBound {
+    match bound {
+        Bound::Value(value) => McBound::Value(value),
+        Bound::Unbounded => McBound::Unbounded,
     }
 }
 

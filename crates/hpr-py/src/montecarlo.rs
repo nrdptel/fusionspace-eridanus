@@ -2,6 +2,7 @@
 //! at random about the nominal flight's. The run's table reads as NumPy arrays.
 
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo as Runner, Outcome, Run};
+use hpr::hpr_analysis::statistics::{Bound as StatBound, Distribution};
 use hpr::hpr_analysis::table::{RunTable, Values};
 use hpr::hpr_sim::FlightSummary;
 use numpy::{PyArray1, PyArrayMethods};
@@ -307,6 +308,58 @@ impl MonteCarlo {
             }
         };
         Ok(array)
+    }
+
+    /// How a number column spreads over the run, as `hpr mc --json` gives the apogee's and the
+    /// landing distance's: a dictionary of `attempted` (the flights tried), `count` (those with
+    /// a value), `mean`, `standard_deviation` (`n - 1`), `min`, `p05`, `p50`, `p95` and `max`,
+    /// over the flights with a value; each `None` when too few flights have one.
+    ///
+    /// A failed flight, or one without the figure, is left out of those but not forgotten.
+    /// `p05_counting_missing` and `p95_counting_missing` are the 5th and 95th percentiles of
+    /// every flight tried, each flight with no value placed past that end: the worst case the
+    /// missing flights allow. They are `-inf` and `inf` when too many have no value for the rest
+    /// to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
+    /// missing flights instead, so it reads each tail short.
+    fn spread<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyDict>> {
+        let column = self.table.column(name).ok_or_else(|| {
+            pyo3::exceptions::PyKeyError::new_err(format!(
+                "no column `{name}`; MonteCarlo.columns lists them"
+            ))
+        })?;
+        let Values::Numbers(values) = &column.values else {
+            return Err(pyo3::exceptions::PyTypeError::new_err(format!(
+                "`{name}` isn't a column of numbers"
+            )));
+        };
+        let distribution =
+            Distribution::new(values.iter().flatten().copied().collect(), values.len())
+                .map_err(error)?;
+        let summary = distribution.summary();
+        let tail = |bound: Option<StatBound>, end: f64| match bound {
+            Some(StatBound::Value(value)) => Some(value),
+            Some(StatBound::Unbounded) => Some(end),
+            None => None,
+        };
+        let dict = PyDict::new(py);
+        dict.set_item("attempted", summary.attempted)?;
+        dict.set_item("count", summary.count)?;
+        dict.set_item("mean", summary.mean)?;
+        dict.set_item("standard_deviation", summary.standard_deviation)?;
+        dict.set_item("min", summary.min)?;
+        dict.set_item("p05", summary.p05)?;
+        dict.set_item("p50", summary.p50)?;
+        dict.set_item("p95", summary.p95)?;
+        dict.set_item("max", summary.max)?;
+        dict.set_item(
+            "p05_counting_missing",
+            tail(summary.p05_counting_missing, f64::NEG_INFINITY),
+        )?;
+        dict.set_item(
+            "p95_counting_missing",
+            tail(summary.p95_counting_missing, f64::INFINITY),
+        )?;
+        Ok(dict)
     }
 
     /// The table as CSV text, the bytes `hpr mc --export` writes for the same run. A header gives
