@@ -30,6 +30,7 @@ mod aero_mach;
 mod aero_override;
 mod aero_roll;
 mod census;
+mod check_cases;
 mod ci_budget;
 mod cli;
 mod collection_boost;
@@ -117,6 +118,7 @@ Commands:
 {DESIGN_CHECKS}
 {AERO}
 {ROLL_DREV}
+{CHECK_CASES}
 {VALIDATE}
 {CENSUS}
 {CI_BUDGET}
@@ -158,6 +160,7 @@ fn usage() -> String {
         .replace("{DESIGN_CHECKS}", design_checks::USAGE)
         .replace("{AERO}", aero::USAGE)
         .replace("{ROLL_DREV}", aero_roll::USAGE)
+        .replace("{CHECK_CASES}", check_cases::USAGE)
         .replace("{VALIDATE}", validate::USAGE)
         .replace("{CENSUS}", census::USAGE)
         .replace("{CI_BUDGET}", ci_budget::USAGE)
@@ -201,6 +204,7 @@ fn main() -> ExitCode {
         Some("design-checks") => design_checks::run(&args.collect::<Vec<_>>()),
         Some("aero") => aero::run(&args.collect::<Vec<_>>()),
         Some("roll-drev") => aero_roll::run_drev(&args.collect::<Vec<_>>()),
+        Some("check-cases") => check_cases::run(&args.collect::<Vec<_>>()),
         Some("validate") => validate::run(&args.collect::<Vec<_>>()),
         Some("census") => census::run(&args.collect::<Vec<_>>()),
         Some("ci-budget") => ci_budget::run(&args.collect::<Vec<_>>()),
