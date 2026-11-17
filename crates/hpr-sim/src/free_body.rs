@@ -68,10 +68,38 @@ pub const FREE_BODY_TIME_REFUSED: &str =
 /// velocity are the center of mass's in the launch frame, the attitude takes the body's axes to
 /// the launch frame's, and the body rates are relative to the launch frame, in body axes. The
 /// body's axes are whatever the inertia is given in; no axis is a nose.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+///
+/// It serializes as its `mass_kg` and `inertia_kg_m2` and is checked again when read, so a body
+/// that [`FreeBody::new`] would refuse can't be read from a file either.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "FreeBodyData", into = "FreeBodyData")]
 pub struct FreeBody {
     mass_kg: f64,
     inertia_kg_m2: DMat3,
+}
+
+/// [`FreeBody`] as it is written: the two values [`FreeBody::new`] takes.
+#[derive(Serialize, Deserialize)]
+struct FreeBodyData {
+    mass_kg: f64,
+    inertia_kg_m2: DMat3,
+}
+
+impl TryFrom<FreeBodyData> for FreeBody {
+    type Error = SimError;
+
+    fn try_from(data: FreeBodyData) -> Result<Self, SimError> {
+        Self::new(data.mass_kg, data.inertia_kg_m2)
+    }
+}
+
+impl From<FreeBody> for FreeBodyData {
+    fn from(body: FreeBody) -> Self {
+        Self {
+            mass_kg: body.mass_kg,
+            inertia_kg_m2: body.inertia_kg_m2,
+        }
+    }
 }
 
 impl FreeBody {
@@ -233,6 +261,9 @@ impl FreeBody {
         state: State,
         times_s: &[f64],
     ) -> Result<Vec<State>, SimError> {
+        // The integrator refuses a start that is not finite; checked first, so a sample time
+        // is not blamed for it.
+        let mut integrator = Integrator::new(method, t0_s, state.to_array())?;
         let mut last = t0_s;
         for &time in times_s {
             if !(time.is_finite() && time >= last) {
@@ -243,7 +274,6 @@ impl FreeBody {
             }
             last = time;
         }
-        let mut integrator = Integrator::new(method, t0_s, state.to_array())?;
         let mut system = Flight {
             body: self,
             environment,
@@ -640,5 +670,47 @@ mod tests {
         assert_eq!(refused(0.0, &[1.0, 0.75]), (FREE_BODY_TIME_REFUSED, 0.75));
         assert_eq!(refused(0.0, &[f64::INFINITY]).0, FREE_BODY_TIME_REFUSED);
         assert!(refused(0.0, &[f64::NAN]).1.is_nan());
+        // A start that is not finite is the integrator's to refuse, not a sample time's.
+        let start = body.fly(
+            &environment,
+            Method::default(),
+            f64::NAN,
+            tumbling(),
+            &[1.0],
+        );
+        assert!(matches!(start, Err(SimError::Settings(_))), "{start:?}");
+    }
+
+    /// A body read from JSON goes through [`FreeBody::new`] again: a mass of zero, two negative
+    /// moments (whose determinant is positive, so the equations of motion would take them) and
+    /// a tensor that is not symmetric are each refused by name, and a good body comes back as
+    /// it was written.
+    #[test]
+    fn a_body_read_from_json_is_checked_again() {
+        let read = |json: &str| serde_json::from_str::<FreeBody>(json).map_err(|e| e.to_string());
+        let refused = |json: &str, what: &str| {
+            let error = read(json).unwrap_err();
+            assert!(error.contains(what), "{error}");
+        };
+        refused(
+            r#"{"mass_kg":0.0,"inertia_kg_m2":[1,0,0,0,1,0,0,0,1]}"#,
+            FREE_BODY_MASS_REFUSED,
+        );
+        refused(
+            r#"{"mass_kg":-1.0,"inertia_kg_m2":[1,0,0,0,1,0,0,0,1]}"#,
+            FREE_BODY_MASS_REFUSED,
+        );
+        refused(
+            r#"{"mass_kg":1.0,"inertia_kg_m2":[-1,0,0,0,-2,0,0,0,3]}"#,
+            FREE_BODY_INERTIA_NOT_POSITIVE,
+        );
+        refused(
+            r#"{"mass_kg":1.0,"inertia_kg_m2":[1,0.25,0,0,2,0,0,0,3]}"#,
+            FREE_BODY_INERTIA_NOT_SYMMETRIC,
+        );
+        let body = brick();
+        let json = serde_json::to_string(&body).unwrap();
+        assert!(json.starts_with(r#"{"mass_kg":"#), "{json}");
+        assert_eq!(read(&json).unwrap(), body);
     }
 }
