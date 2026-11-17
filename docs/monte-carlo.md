@@ -159,8 +159,9 @@ A test runs both on 40 flights with every input scattered and finds every number
 bit. That holds on one platform, with both built in release mode
 ([`test_a_run_is_hpr_mcs_bit_for_bit`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_montecarlo.py)).
 Landing ellipses aren't in Python yet; NumPy finds them from the landing arrays.
-`run.spread(name)` gives a column's spread, and its 5% and 95% with the failed flights counted. A configuration that drops a stage can't be read from Python yet, so it runs only from
-Rust and `hpr mc`.
+`run.spread(name)` gives a column's spread, and its 5% and 95% with the failed flights counted. A
+configuration that drops a stage can't be read from Python yet, so it runs only from Rust and
+`hpr mc`.
 
 ## Landing ellipses
 
