@@ -1,6 +1,6 @@
 //! HPR Sim's tip-off phase, flown as RocketPy flew its own: the flights behind
-//! `validation/reports/tip-off-model.json` (M1.14b9; the tip-off decision record,
-//! [ADR-357][adr-357], decision 4).
+//! `validation/reports/tip-off-model.json` ([the tip-off phase, held to RocketPy's][m1-14b11];
+//! the tip-off decision record, [ADR-357][adr-357], decision 4).
 //!
 //! `validation/reports/tip-off.json` holds what RocketPy's tip-off phase does to thirteen designs
 //! built from its examples, in still air and in a crosswind, with everything each flight carried. [`fly`]
@@ -24,6 +24,7 @@
 //!   right of its heading, and the rate at which the nose's direction moves, as the same two
 //!   parts.
 //!
+//! [m1-14b11]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b11
 //! [adr-357]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
 //! [l75]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l75
 
