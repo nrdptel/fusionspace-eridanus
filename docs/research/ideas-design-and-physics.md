@@ -118,13 +118,13 @@ From the 2026-10-10 planning review:
   ([OpenRocket after 24.12](openrocket-after-24-12.md) §2). *Done when:* `hpr sim` prints both; the
   fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
   that the bounded apogee is never below the other.
-- SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
-  `hpr sim` lets the rocket pitch about the aft guide, which slides along the rail, between the
-  forward guide's release and the aft one's (not modeled today), and prints the pitch rate and angle
-  of attack at rail exit. Why: RocketPy's development line added that phase in September 2026 (its
-  PR #920). Moves: angle of attack at rail exit against RocketPy, not measured today. *Done when:*
-  a body on a frictionless line under gravity matches the energy integral
-  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ), and RocketPy's example's pitch rate is within 5%.
+- PROMOTED to M1.14b9 and M1.14b10 (ADR-357, which sets the *done when*): rail tip-off. User: a
+  flyer of a heavy rocket leaving a short rail slowly. Workflow: `hpr sim` lets the rocket pitch
+  about the aft guide, which slides along the rail, between the forward guide's release and the aft
+  one's (not modeled today). Why: RocketPy's development line added that phase in September 2026
+  (its PR #920). Measured with RocketPy's on its examples: `validation/reports/tip-off.md`. A check
+  to keep: a body on a frictionless line under gravity matches the energy integral
+  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ).
 - SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
   curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
   for rows doubled at time zero, times out of order and impulse off the certification

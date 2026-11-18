@@ -1,7 +1,7 @@
 # ADR-357: Tip-off, measured with RocketPy's: past the plan's bar, the model in two more increments (2026-11-18)
 
 - **Status:** accepted; splits [M1.14b5][m1-14b5]'s *done when* ([ADR-351][adr-351], decision 2) into M1.14b5, [M1.14b9][m1-14b9] and [M1.14b10][m1-14b10]: the *done when* changed, M1.14b5 keeping the measurement and M1.14b9 the model in ADR-351's words; M1.14b9 and M1.14b10 go ahead of [M1.14b6][m1-14b6] to [M1.14b8][m1-14b8]
-- **Summary:** RocketPy's tip-off phase, at the merge of its pull request #920, flies thirteen example rockets in still air and in a 20 mph (8.94 m/s) crosswind. Turned on, it moves 9 of 26 landing points by more than 1% of the apogee and one apogee by more than 1%, so the plan calls for a tip-off model. Against a rocket guided to its last button, as HPR Sim guides it, the phase moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%. The model is M1.14b9's, and flying it by default is M1.14b10's.
+- **Summary:** RocketPy's tip-off phase, at the merge of its pull request #920, flies thirteen example designs in still air and in a 20 mph (8.94 m/s) crosswind. Turned on, it moves 9 of 26 landing points by more than 1% of the apogee and one apogee by more than 1%, so the plan calls for a tip-off model. Against a rocket guided to its last button, as HPR Sim guides it, the phase moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%. The model is M1.14b9's, and flying it by default is M1.14b10's.
 
 [m1-14b5]: ../decisions-and-roadmap.md#m1-14b5
 [m1-14b6]: ../decisions-and-roadmap.md#m1-14b6
@@ -42,15 +42,17 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      [pull request #1196][pr-1196], the sign correction every whole flight of this suite flies
      with ([ADR-026][adr-026]). A second run flies the commit as pinned. The report keeps the
      first whole and the second's largest moves.
-   - **The inputs.** The thirteen rockets are the public designs built from RocketPy's
-     examples (`validation/fixtures/design/rocketpy-rocket-mass.json`). Each flies from its
-     example's rail and site, in the standard atmosphere, on a declared constant drag
-     coefficient of 0.5, with its parachutes and no sensor noise. The wind is none, or 20 mph
-     (8.94 m/s) square across the rail's heading at every height.
+   - **The inputs.** The thirteen are RocketPy's own inputs for the public designs built from
+     its examples (`validation/fixtures/design/rocketpy-rocket-mass.json`): twelve rockets,
+     Calisto at two motor positions. Each flies from its example's rail and site, in the
+     standard atmosphere, on a declared constant drag coefficient of 0.5 and the fixture's
+     substitute thrust curve, with its parachutes and no sensor noise. The wind is none, or
+     20 mph (8.94 m/s) square across the rail's heading at every height.
 
 2. **Three flights a rocket and wind, and two differences.** The phase off, the phase on, and a
    third: the phase off on a rail longer by the distance between the buttons. That third flight
-   is guided until the lower button leaves the real rail, which is HPR Sim's release.
+   is guided until the lower button leaves the real rail. That is HPR Sim's release to within
+   half a button's length: HPR Sim waits for the button's aft edge.
    - **On less off** is the plan's rule. It mixes two things: the pivot, and RocketPy's earlier
      release, which lets the rocket weathercock while its lower button is still on the rail.
    - **On less guided** is what HPR Sim's release leaves out: the pivot alone.
@@ -59,18 +61,20 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      lands with the phase on.
    - **One declared change.** NDRT 2020's rail is vertical. In still air the rocket falls
      tail-first through its apogee parachute's 1 s lag, and RocketPy's integration of that fall
-     does not finish: the script's watchdog stops a flight that runs past ten minutes. Those
-     three flights open that parachute at apogee with no lag. The
-     report says so beside them. The change acts after apogee, on a flight that goes straight
-     up and down: the three land within 6 mm (0.2 in) of each other.
+     does not finish. The script's probe flies it with the lag: after 20 s of wall time the
+     flight had not finished, its integration at 16.0 s with the apogee at 15.4 s. So those
+     three flights open that parachute at apogee with no lag, and the report says so, with
+     the probe's result. The change acts only after
+     apogee and all three carry it; their landing points lie within 6 mm (0.2 in) of each
+     other.
 
-3. **The measurement: the plan's rule calls for a model.**
+3. **The measurement: the plan's rule calls for a model** ([the flight page's section][flight]).
 
    | What the phase moves | On less off | On less guided |
    |---|--:|--:|
    | Apogees moved by more than 1% | 1 of 26 | 0 of 26 |
    | Landing points moved by more than 1% of the apogee | 9 of 26 | 6 of 26 |
-   | Rockets with a move past a bar | 6 of 13 | 3 of 13 |
+   | Designs with a move past a bar | 6 of 13 | 3 of 13 |
    | Largest apogee move | +1.165% | −0.414% |
    | Largest landing-point move, of the apogee | 4.585% | 3.765% |
    | Landings farther from the pad with the phase on | 22 of 26 | 23 of 26 |
@@ -82,7 +86,8 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
    - **On less guided.** The six landing points past the bar are Valetudo's, Juno III's and
      Prometheus 2022's, in both winds: 3.621% and 3.765%, 3.481% and 3.692%, and 1.417% and 1.565%
      of the apogee. The largest in distance is Juno III's in the crosswind, 92.0 m (302 ft).
-     The largest apogee move is Juno III's in still air, −10.9 m (−36 ft).
+     The largest apogee move, as a share, is Juno III's in still air: −0.414%, −10.9 m
+     (−36 ft).
    - **The pivot itself is small.** With the phase on, a rocket leaves its lower button
      turning at up to 2.38 deg/s, its axis at most 0.083° off the rail's. The three rockets
      past the bar are the three that leave turning fastest in still air, at 1.49 to
@@ -104,7 +109,8 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      from RocketPy's examples twice, the phase on and off, in still air and in a 20 mph
      (8.9 m/s) crosswind; a committed report gives what the phase moves on each: the apogee,
      the landing point, and the attitude and pitch rate where the last guide leaves the rail,
-     and which moves are past 1% of the apogee or, for a landing point, 1% of the apogee; the
+     and which apogees it moves by more than 1% and which landing points by more than 1% of
+     the apogee; the
      flight page states the measured cost where it says tip-off is left out, and that the
      measurement calls for a model; and a check holds the report.
    - **M1.14b9 The tip-off pivot, held to RocketPy's.** *Done when:* HPR Sim gains a tip-off
@@ -122,10 +128,11 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
        committed report, held by a check, sets beside RocketPy's for each of the 26: the pitch
        rate and the angle off the rail's axis where the last guide leaves, and what the model
        moves from the guided flight in the apogee and, as a vector, in the landing point;
-     - on each of the 26, the pitch rate is within 10% of RocketPy's or 0.1 deg/s, whichever
-       is larger, and the angle within 10% or 0.005°; the apogee's move is within 0.2% of the
-       guided apogee of RocketPy's move; and the landing point's move is within 1% of the
-       guided apogee of RocketPy's, as the distance between the two moves;
+     - on each of the 26, HPR Sim's pitch rate differs from RocketPy's by at most 10% of
+       RocketPy's or 0.1 deg/s, whichever is larger, and its angle by at most 10% of
+       RocketPy's or 0.005°, whichever is larger; the two codes' apogee moves differ by at
+       most 0.2% of RocketPy's guided apogee; and the two codes' landing-point moves, as
+       vectors, differ by at most 1% of RocketPy's guided apogee;
      - a figure past its bar is not met: an ADR gives its cause with its sign and size, the
        report keeps it visible, and no bar is widened;
      - and the model is off unless a flight asks for it: every other committed report
@@ -142,27 +149,31 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      cause before the default changes, or keeps the phase opt-in with that measurement on the
      flight page.
 
-5. **Why the bars of M1.14b9 are these.** They are set by what matters at the plan's 1%, not
-   by what the model is expected to reach.
-   - On the three rockets past the bar the landing point's move grows with the pitch rate, so
-     a rate 10% off is worth about a tenth of the move: at most 0.38% of the apogee on the
-     largest, 3.765%. The 0.1 deg/s floor is under the smallest rate of an inclined rail in
-     still air, 0.11 deg/s, whose flight moves its landing point by 0.086% of the apogee.
-   - The landing point's bar is the plan's own 1% of the apogee, taken on the difference
+5. **Why the bars of M1.14b9 are these.** They are choices made here, set against the plan's
+   1% and the report's figures, not derived.
+   - **The landing point's bar is the plan's own:** 1% of the apogee, on the difference
      between the two codes' moves. A model that moved nothing would miss it on the six flights
-     of decision 3, and miss the apogee's 0.2% on four of them (−0.414%, −0.345%, −0.345% and
+     of decision 3.
+   - **The apogee's bar, 0.2%,** is about half the largest apogee move in the report, 0.414%.
+     A model that moved nothing would miss it on four flights (−0.414%, −0.345%, −0.345% and
      −0.249%).
-   - The two codes fly different aerodynamics after the rail, which is why moves are
-     compared, each code against its own guided flight, and not the flights themselves.
+   - **The pitch rate's and the angle's, 10%,** hold the state the phase hands to free
+     flight. No flight here varies the rate alone, so this record does not show what 10% of a
+     rate is worth downrange; the landing point's bar holds that. The floors keep a ratio
+     from deciding where there is next to nothing to compare: the vertical rail's still-air
+     flight is the one under 0.1 deg/s.
+   - **Moves are compared, not flights,** because the two codes fly different aerodynamics
+     after the rail: each code's move is taken against its own guided flight.
 
 6. **M1.14b9 and M1.14b10 come next, ahead of M1.14b6 to M1.14b8.** ADR-351 put the three
-   after tip-off without knowing its size. The measurement puts HPR Sim's landing points on
-   the flattering side, and a flattering-side error is the worst class for a safety number
+   after tip-off without knowing its size. In 23 of the 26 flights the measurement puts a
+   rocket guided to its last button nearer the pad than one that pivots, the flattering
+   side, and a flattering-side error is the worst class for a safety number
    ([ADR-144][adr-144] §6, [ADR-347][adr-347]). This
    record does not call the omission a known wrong number in shipped physics: its one
    reference is another code's unreleased phase, checked against no flight, and the flight
-   page has said tip-off is left out since the rail was built. It is a measured omission with
-   its model next in line.
+   page already says tip-off is left out. It is a measured omission with its model next in
+   line.
 
 **What this leaves open.**
 

@@ -9,14 +9,17 @@
 //!   merge of its pull request #920 (pinned in `validation/refs.lock.toml` as
 //!   `rocketpy-tip-off`), flying each example rocket with the phase off and on, in still air and
 //!   in a 20 mph crosswind, and a third time guided to where the lower button leaves, which is
-//!   HPR Sim's release. Its docstring states every input it declares.
+//!   HPR Sim's release to within half a button's length (HPR Sim waits for the button's aft
+//!   edge). Its docstring states what it declares.
 //! - **The bars** are the plan's: a tip-off model is called for when the phase moves any apogee
 //!   by more than 1%, or any landing point by more than 1% of the apogee
 //!   ([`APOGEE_BAR_PERCENT`], [`LANDING_BAR_PERCENT_OF_APOGEE`]).
-//! - **Two runs.** The first flies the commit's equations with RocketPy's pull request #1196, as
-//!   every whole flight of the suite does; the second flies them as pinned, to show the
-//!   correction does not decide the reading. The report keeps the first whole and the second's
-//!   largest moves.
+//! - **Two runs and a probe.** The first run flies the commit's equations with RocketPy's pull
+//!   request #1196, as every whole flight of the suite does; the second flies them as pinned,
+//!   to show the correction does not decide whether a model is called for. The report keeps
+//!   the first whole and the second's largest moves and reading. The probe flies, with its
+//!   parachute's lag, the one rocket and wind the runs fly without it, and the report keeps
+//!   that it did not finish.
 
 use std::fmt::Write as _;
 use std::fs;
@@ -42,12 +45,12 @@ const APOGEE_BAR_PERCENT: f64 = 1.0;
 /// Or any landing point by more than this, percent of the apogee.
 const LANDING_BAR_PERCENT_OF_APOGEE: f64 = 1.0;
 
-/// One run of the oracle, its printed document parsed.
-fn oracle(root: &Path, as_pinned: bool) -> Result<Value, String> {
+/// One run of the oracle, with `flag` if given, its printed document parsed.
+fn oracle(root: &Path, flag: Option<&str>) -> Result<Value, String> {
     let mut command = crate::refs::oracle_python(root)?;
     command.current_dir(root).arg(ORACLE);
-    if as_pinned {
-        command.arg("--as-pinned");
+    if let Some(flag) = flag {
+        command.arg(flag);
     }
     let output = command.output().map_err(|e| format!("{ORACLE}: {e}"))?;
     if !output.status.success() {
@@ -89,7 +92,7 @@ fn rows<'a>(flown: &'a Value, key: &str) -> Result<Vec<(&'a str, &'a str, &'a Va
     Ok(rows)
 }
 
-/// The rows of a run whose move under `key` is past a bar, and the rockets they belong to. A
+/// The rows of a run whose move under `key` is past a bar, and the designs they belong to. A
 /// move exactly at a bar is not past it.
 fn past_the_bars(flown: &Value, key: &str) -> Result<Value, String> {
     let (mut apogee, mut landing, mut rockets) = (Vec::new(), Vec::new(), Vec::<&str>::new());
@@ -125,7 +128,7 @@ fn past_the_bars(flown: &Value, key: &str) -> Result<Value, String> {
         "landing_nearer_the_pad": nearer,
         "apogee_past_the_bar": apogee,
         "landing_point_past_the_bar": landing,
-        "rockets_past_a_bar": rockets,
+        "designs_past_a_bar": rockets,
     }))
 }
 
@@ -133,7 +136,7 @@ fn past_the_bars(flown: &Value, key: &str) -> Result<Value, String> {
 /// less the flight guided to the lower button, which is what HPR Sim's release leaves out.
 fn reading(flown: &Value) -> Result<Value, String> {
     let moved = past_the_bars(flown, "moved")?;
-    let model_called_for = !list(&moved, "rockets_past_a_bar")?.is_empty();
+    let model_called_for = !list(&moved, "designs_past_a_bar")?.is_empty();
     Ok(json!({
         "model_called_for": model_called_for,
         "moved": moved,
@@ -142,7 +145,36 @@ fn reading(flown: &Value) -> Result<Value, String> {
 }
 
 /// The report from the two runs' documents.
-fn report(flown: Value, as_pinned: &Value) -> Result<Value, String> {
+fn report(flown: Value, as_pinned: &Value, lag_probe: &Value) -> Result<Value, String> {
+    // The declared change stands on the probe: each flight flown without its parachute's lag
+    // did not finish with it.
+    let probes = list(lag_probe, "lag_probe")?;
+    for probe in probes {
+        if probe["finished"] != json!(false) {
+            return Err(format!("the flight with its lag finished: {probe}"));
+        }
+        number(probe, "solver_time_s")?;
+    }
+    let declared: Vec<Value> = list(&flown, "cases")?
+        .iter()
+        .flat_map(|case| {
+            case["winds"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter(|wind| wind.get("declared").is_some())
+                .map(|wind| json!([case["name"], wind["wind"]]))
+        })
+        .collect();
+    let probed: Vec<Value> = probes
+        .iter()
+        .map(|probe| json!([probe["case"], probe["wind"]]))
+        .collect();
+    if declared != probed {
+        return Err(format!(
+            "the flights with a declared change, {declared:?}, are not the probed ones, {probed:?}"
+        ));
+    }
     Ok(json!({
         "generator": "cargo xtask tip-off",
         "bars": {
@@ -157,14 +189,17 @@ fn report(flown: Value, as_pinned: &Value) -> Result<Value, String> {
             "largest_from_guided": as_pinned["largest_from_guided"],
             "reading": reading(as_pinned)?,
         },
+        "lag_probe": probes,
         "flown": flown,
     }))
 }
 
-/// Flies both runs. Needs the oracle environment and the pinned checkout under `refs/`.
+/// Flies both runs and the probe. Needs the oracle environment and the pinned checkout under
+/// `refs/`.
 pub fn generate(root: &Path) -> Result<Value, String> {
-    let flown = oracle(root, false)?;
-    let as_pinned = oracle(root, true)?;
+    let flown = oracle(root, None)?;
+    let as_pinned = oracle(root, Some("--as-pinned"))?;
+    let lag_probe = oracle(root, Some("--lag-probe"))?;
     let pinned = crate::refs::pinned_commit(root, LOCK_NAME)?;
     for run in [&flown, &as_pinned] {
         if !text(run, "oracle")?.contains(&pinned) {
@@ -174,7 +209,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             ));
         }
     }
-    report(flown, &as_pinned)
+    report(flown, &as_pinned, &lag_probe)
 }
 
 /// `value` to `decimals` places, a value that rounds to zero without its sign.
@@ -240,11 +275,11 @@ fn largest_line(run: &Value, key: &str) -> Result<String, String> {
     ))
 }
 
-/// How many rows and rockets of a reading's part are past the bars, in words.
+/// How many rows and designs of a reading's part are past the bars, in words.
 fn past_line(part: &Value) -> Result<String, String> {
     Ok(format!(
         "{} of {} apogees past {}% and {} of {} landing points past {}% of the apogee, on {} of \
-         the rockets; with the phase on the rocket lands farther from the pad on {} of the {} \
+         the designs; with the phase on the rocket lands farther from the pad on {} of the {} \
          and nearer on {}",
         list(part, "apogee_past_the_bar")?.len(),
         number(part, "rows")?,
@@ -252,7 +287,7 @@ fn past_line(part: &Value) -> Result<String, String> {
         list(part, "landing_point_past_the_bar")?.len(),
         number(part, "rows")?,
         fixed(LANDING_BAR_PERCENT_OF_APOGEE, 0),
-        list(part, "rockets_past_a_bar")?.len(),
+        list(part, "designs_past_a_bar")?.len(),
         number(part, "landing_farther_from_the_pad")?,
         number(part, "rows")?,
         number(part, "landing_nearer_the_pad")?,
@@ -346,12 +381,21 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     for case in list(flown, "cases")? {
         for wind in list(case, "winds")? {
             if let Some(declared) = wind.get("declared") {
+                let probe = list(report, "lag_probe")?
+                    .iter()
+                    .find(|probe| probe["case"] == case["name"] && probe["wind"] == wind["wind"])
+                    .ok_or("a declared change with no probe")?;
                 let _ = writeln!(
                     w,
-                    "- **A declared change** ({}, {}): {}.",
+                    "- **A declared change** ({}, {}): {}. Flown with the lag (`tip_off.py \
+                     --lag-probe`), the flight had not finished after {} s of wall time: its \
+                     integration had reached {} s, and the apogee is at {} s.",
                     text(case, "name")?,
                     text(wind, "wind")?,
                     declared.as_str().ok_or("`declared` is not text")?,
+                    fixed(number(probe, "wall_s")?, 0),
+                    fixed(number(probe, "solver_time_s")?, 1),
+                    fixed(number(&wind["phase_off"], "apogee_time_s")?, 1),
                 );
             }
         }
@@ -539,7 +583,7 @@ mod tests {
         let read = reading(&run).unwrap();
         assert_eq!(read["model_called_for"], false);
         assert_eq!(
-            read["moved_from_guided"]["rockets_past_a_bar"],
+            read["moved_from_guided"]["designs_past_a_bar"],
             json!(["a"])
         );
     }
@@ -568,9 +612,11 @@ mod tests {
         assert_eq!(page, markdown(&committed()).unwrap());
     }
 
-    /// The pages quote the committed report, which CI can't regenerate: each figure the page on
-    /// rigid-body flight, the validation page, the glossary, the risks note and the decision
-    /// record give is the report's, at the report page's own precision.
+    /// The pages quote the committed report, which CI can't regenerate. Held to the report, at
+    /// the report page's own precision: the figures in SI of the flight page's section and its
+    /// two short statements of the cost; the cost on the validation page, in the glossary and
+    /// in the risks note; and the decision record's table and its sentence on the equations as
+    /// pinned. Not held: a conversion to US units, and the record's other figures.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
@@ -625,7 +671,7 @@ mod tests {
 
         // The three rockets past the bar against the guided flight, as the pages name them.
         assert_eq!(
-            guided_reading["rockets_past_a_bar"],
+            guided_reading["designs_past_a_bar"],
             json!(["valetudo", "juno-iii", "prometheus-2022-generic-motor"])
         );
         let juno = wind_of("juno-iii", "still");
@@ -711,10 +757,10 @@ mod tests {
                 fixed(num(juno_case, "button_spacing_m"), 3)
             ),
             format!(
-                "passes the top at {} m/s",
+                "its last button leaves at {} m/s",
                 fixed(at(&juno["phase_on"], "speed_m_s"), 2)
             ),
-            format!("for {} s", fixed(held, 3)),
+            format!("{} s after the forward one", fixed(held, 3)),
             format!(
                 "nose-down to {} deg/s",
                 fixed(at(&juno["phase_on"], "pitch_rate_deg_s"), 2)
@@ -766,7 +812,7 @@ mod tests {
             .unwrap();
         let record = page(&format!("docs/decisions/{record}"));
         let pinned = &report["as_pinned"];
-        let of_13 = |part: &Value| count(part, "rockets_past_a_bar");
+        let of_13 = |part: &Value| count(part, "designs_past_a_bar");
         let expected = [
             format!(
                 "| {} of 26 | {} of 26 |",
@@ -836,7 +882,8 @@ mod tests {
 
     /// The committed report holds together without the oracle: it flew the pinned commit, every
     /// public design built from RocketPy's examples in both winds, each move is its two
-    /// flights' difference, and the reading and the largest moves are the rows'.
+    /// flights' difference, the reading is the rows', and so are the largest apogee and
+    /// landing-point shares. The one declared change has its probe, which did not finish.
     #[test]
     fn the_committed_report_is_its_own_flights() {
         let root = crate::designs::root().unwrap();
@@ -955,8 +1002,25 @@ mod tests {
                 assert!(rate(on) > rate(guided), "{name}");
             }
         }
-        // The one declared change is the vertical rail's in still air.
+        // The one declared change is the vertical rail's in still air, and its probe, flown
+        // with the lag, had not finished: its integration was past the apogee and short of
+        // the flight without the lag's end.
         assert_eq!(declared, ["\"ndrt-2020-nose-to-tail\", \"still\""]);
+        let probes = list(&report, "lag_probe").unwrap();
+        assert_eq!(probes.len(), 1);
+        let probe = &probes[0];
+        assert_eq!(probe["case"], "ndrt-2020-nose-to-tail");
+        assert_eq!(probe["wind"], "still");
+        assert_eq!(probe["finished"], false);
+        let without_lag = list(flown, "cases")
+            .unwrap()
+            .iter()
+            .find(|case| case["name"] == probe["case"])
+            .map(|case| &case["winds"][0]["phase_off"])
+            .unwrap();
+        let reached = number(probe, "solver_time_s").unwrap();
+        assert!(reached > number(without_lag, "apogee_time_s").unwrap());
+        assert!(reached < number(without_lag, "flight_time_s").unwrap());
 
         // The reading and the largest moves are recomputed from the rows.
         assert_eq!(report["reading"], reading(flown).unwrap());

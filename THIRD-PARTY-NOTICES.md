@@ -183,7 +183,8 @@ adds a source.
   `validation/refs.lock.toml` and fetched under the gitignored `refs/`), from the committed
   example inputs above. Only the flights' results are committed, in
   `validation/reports/tip-off.json`. No RocketPy code is copied. Each example's rail and site
-  are read from its notebook and cited by line in the script.
+  are RocketPy's own, from its notebooks and test code, as `flight.py` and `tip_off.py` cite
+  them.
 - **Comparisons with RocketPy's drag curves** (ADR-009): `cargo xtask aero` reads the Calisto,
   Juno III, Cavour and Valetudo curves from the `refs/rocketpy` checkout and commits only derived
   numbers to `validation/fixtures/aero/rocketpy-drag-curves.json` (each curve's value at Mach 0.3,

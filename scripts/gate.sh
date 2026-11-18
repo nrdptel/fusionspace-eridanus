@@ -35,7 +35,8 @@
 # `check-cases --check` (M1.14b3, M1.14b4: NASA's check cases 1 to 3 and 6 to 10 against each
 # code's history, read from the pinned archive; it writes nothing),
 # `tip-off --check` (M1.14b5, ADR-357: RocketPy's example rockets flown again with its tip-off phase
-# off and on, from the checkout pinned as rocketpy-tip-off, against the committed report),
+# off, on and guided to the last button, from the checkout pinned as rocketpy-tip-off, against the
+# committed report),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)

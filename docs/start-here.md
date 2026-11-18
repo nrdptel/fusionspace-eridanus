@@ -396,9 +396,11 @@ motors have burnt out.
 
 These are left out of a flight, or approximated:
 
-- [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail;
+- [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail. Its cost is
+  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs), and
+  [a model is planned](decisions-and-roadmap.md#m1-14b9);
 - thrust misalignment, a motor pushing slightly off the rocket's axis;
-- turbulence: the model exists, but a flight doesn't use it. No milestone plans these first three
+- turbulence: the model exists, but a flight doesn't use it. No milestone plans these last two
   yet, though turbulence has
   [an open issue of its own, #39](https://github.com/nrdptel/fusionspace-eridanus/issues/39);
 - the shock load when a parachute opens, and the canopy's overshoot of its steady drag

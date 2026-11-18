@@ -1,4 +1,4 @@
-"""What RocketPy's tip-off phase moves on its own example rockets (M1.14b5, ADR-351 decision 2).
+"""What RocketPy's tip-off phase moves on its own example rockets (M1.14b5, ADR-357 decision 4).
 
 HPR Sim keeps a rocket guided until its last guide leaves the rail and then frees it with no
 angular velocity (`docs/physics/flight.md`, The rail). A real rocket pivots about its last guide
@@ -31,6 +31,10 @@ What is declared here, and why:
   commit already carries #1188. `--as-pinned` flies the commit's equations untouched instead,
   to show the correction does not decide the result.
 - **The drag** is the constant `flight.py` declares for same-drag flights, power on and off.
+- **The motors** are the mass fixture's: each flies the bundled substitute thrust curve the
+  fixture names, not the example's own file (`recovery.build_motor`).
+- **The air** is RocketPy's standard atmosphere at the site (`recovery.environment_of`), and
+  **the solver** runs at `flight.SOLVER`'s settings, which the output repeats.
 - **The rail** is each example's own (`flight.py`'s table, and `RAILS` below for the examples it
   does not fly), and so is the site.
 - **The wind** is declared: none, or 20 mph (8.9408 m/s) at every height, blowing square across
@@ -44,14 +48,18 @@ rail events, where the distance travelled from the start reaches `effective_2rl`
 
 One rocket and wind fly with a changed recovery. NDRT 2020's rail is vertical, and in still air
 the rocket falls tail-first through its apogee parachute's 1 s lag; RocketPy's integration of
-that fall does not finish (the watchdog below stops a flight after ten minutes). Those three
-flights open that parachute at apogee with no lag, and the output says so (`declared`).
+that fall does not finish. Those three flights open that parachute at apogee with no lag, and
+the output says so (`declared`). `--lag-probe` shows the reason: it flies that rocket in still
+air with its lag for `LAG_PROBE_WALL_S` seconds of wall time and prints whether the flight
+finished and the time its integration had reached.
 
-`cargo xtask tip-off` runs it both ways and writes `validation/reports/tip-off.json` and `.md`;
+`cargo xtask tip-off` runs it both ways, and the probe, and writes
+`validation/reports/tip-off.json` and `.md`;
 `cargo xtask tip-off --check`, in the gate's `refs` step, holds them. By hand, from the
 repository root with the oracle environment, it prints one run:
 
     refs/venv/bin/python validation/oracles/rocketpy/tip_off.py [--as-pinned] [case ...]
+    refs/venv/bin/python validation/oracles/rocketpy/tip_off.py --lag-probe
 
 RocketPy is MIT-licensed (`THIRD-PARTY-NOTICES.md`).
 """
@@ -59,8 +67,11 @@ RocketPy is MIT-licensed (`THIRD-PARTY-NOTICES.md`).
 import faulthandler
 import json
 import math
+import os
 import subprocess
 import sys
+import threading
+import time
 import tomllib
 from pathlib import Path
 
@@ -83,6 +94,9 @@ import recovery  # noqa: E402
 
 COMMAND = "refs/venv/bin/python validation/oracles/rocketpy/tip_off.py"
 AS_PINNED_FLAG = "--as-pinned"
+LAG_PROBE_FLAG = "--lag-probe"
+# How long the probe lets the flight with its lag run, in seconds of wall time.
+LAG_PROBE_WALL_S = 20
 
 MPH_M_S = 0.44704
 CROSSWIND_MPH = 20.0
@@ -187,8 +201,8 @@ WATCHDOG_S = 600
 
 # The one declared change to an example's recovery. On a vertical rail in still air the rocket
 # falls tail-first through the apogee parachute's lag, and RocketPy's integration of that fall
-# does not finish; the watchdog above would stop it after ten minutes. The flights of that
-# rocket and wind (the phase off, on, and guided alike) open the apogee parachute with no lag.
+# does not finish (`lag_probe` shows it). The flights of that rocket and wind (the phase off,
+# on, and guided alike) open the apogee parachute with no lag.
 NO_LAG = (
     "the parachute that opens at apogee opens with no lag: on a vertical rail in still air "
     "RocketPy's integration of the tail-first fall through the lag does not finish"
@@ -422,6 +436,56 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
     return result
 
 
+def lag_probe(document):
+    """The reason for `NO_LAG`, shown: each rocket and wind that flies without the lag is flown
+    with it, the phase off, for `LAG_PROBE_WALL_S` seconds of wall time. Prints, for each,
+    whether the flight finished and the latest time its integration had reached, and exits."""
+    reached = [0.0]
+
+    class Probe(corrections.CorrectedFlight):
+        def u_dot_generalized(self, t, u, post_processing=False):
+            reached[0] = max(reached[0], float(t))
+            return super().u_dot_generalized(t, u, post_processing)
+
+    probes = []
+    for name in [case["name"] for case in document["cases"]]:
+        site, rail = site_and_rail(name, document)
+        if not no_lag(rail, "still"):
+            continue
+        inputs = recovery.mass_case(document, name)
+        inputs["name"] = name
+        rocket = build_rocket(dict(inputs))
+        env = recovery.environment_of({**site, "wind_u": 0.0, "wind_v": 0.0})
+        reached[0] = 0.0
+        probe = {"case": name, "wind": "still", "wall_s": LAG_PROBE_WALL_S}
+        probes.append(probe)
+
+        def stop():
+            time.sleep(LAG_PROBE_WALL_S)
+            probe["finished"] = False
+            # To a tenth of a second: the integration creeps on, and the report must reproduce.
+            probe["solver_time_s"] = round(reached[0], 1)
+            json.dump({"lag_probe": probes}, sys.stdout, indent=2, sort_keys=True)
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            os._exit(0)
+
+        threading.Thread(target=stop, daemon=True).start()
+        flown = Probe(
+            rocket=rocket,
+            environment=env,
+            rail_length=rail["rail_length_m"],
+            inclination=rail["inclination_deg"],
+            heading=rail["heading_deg"],
+            use_udot_rail2=False,
+            **flight.SOLVER,
+        )
+        # Only one such rocket exists; a second would need the first's timer stopped.
+        fail(f"{name}: the flight with its lag finished at {flown.t_final} s: fly it with the lag")
+    if not probes:
+        fail("no rocket flies without its parachute's lag: nothing to probe")
+
+
 def between(a, b, east, north):
     return math.hypot(b[east] - a[east], b[north] - a[north])
 
@@ -479,6 +543,10 @@ def largest(cases, key):
 
 def main():
     arguments = sys.argv[1:]
+    if arguments == [LAG_PROBE_FLAG]:
+        pinned_commit()
+        lag_probe(recovery.mass_fixture())
+        return
     as_pinned = AS_PINNED_FLAG in arguments
     keep = {a for a in arguments if a != AS_PINNED_FLAG}
     commit = pinned_commit()

@@ -52,6 +52,13 @@
             "wind": "crosswind"
           }
         ],
+        "designs_past_a_bar": [
+          "bella-lui",
+          "valetudo",
+          "juno-iii",
+          "cavour",
+          "prometheus-2022-generic-motor"
+        ],
         "landing_farther_from_the_pad": 22,
         "landing_nearer_the_pad": 4,
         "landing_point_past_the_bar": [
@@ -98,17 +105,15 @@
             "wind": "crosswind"
           }
         ],
-        "rockets_past_a_bar": [
-          "bella-lui",
-          "valetudo",
-          "juno-iii",
-          "cavour",
-          "prometheus-2022-generic-motor"
-        ],
         "rows": 26
       },
       "moved_from_guided": {
         "apogee_past_the_bar": [],
+        "designs_past_a_bar": [
+          "valetudo",
+          "juno-iii",
+          "prometheus-2022-generic-motor"
+        ],
         "landing_farther_from_the_pad": 24,
         "landing_nearer_the_pad": 2,
         "landing_point_past_the_bar": [
@@ -148,11 +153,6 @@
             "landing_point_percent_of_apogee": 1.0900039740383576,
             "wind": "crosswind"
           }
-        ],
-        "rockets_past_a_bar": [
-          "valetudo",
-          "juno-iii",
-          "prometheus-2022-generic-motor"
         ],
         "rows": 26
       }
@@ -2675,6 +2675,15 @@
     }
   },
   "generator": "cargo xtask tip-off",
+  "lag_probe": [
+    {
+      "case": "ndrt-2020-nose-to-tail",
+      "finished": false,
+      "solver_time_s": 16.0,
+      "wall_s": 20,
+      "wind": "still"
+    }
+  ],
   "reading": {
     "model_called_for": true,
     "moved": {
@@ -2684,6 +2693,14 @@
           "case": "bella-lui",
           "wind": "crosswind"
         }
+      ],
+      "designs_past_a_bar": [
+        "bella-lui",
+        "valetudo",
+        "juno-iii",
+        "cavour",
+        "lince",
+        "prometheus-2022-generic-motor"
       ],
       "landing_farther_from_the_pad": 22,
       "landing_nearer_the_pad": 4,
@@ -2743,18 +2760,15 @@
           "wind": "crosswind"
         }
       ],
-      "rockets_past_a_bar": [
-        "bella-lui",
-        "valetudo",
-        "juno-iii",
-        "cavour",
-        "lince",
-        "prometheus-2022-generic-motor"
-      ],
       "rows": 26
     },
     "moved_from_guided": {
       "apogee_past_the_bar": [],
+      "designs_past_a_bar": [
+        "valetudo",
+        "juno-iii",
+        "prometheus-2022-generic-motor"
+      ],
       "landing_farther_from_the_pad": 23,
       "landing_nearer_the_pad": 3,
       "landing_point_past_the_bar": [
@@ -2794,11 +2808,6 @@
           "landing_point_percent_of_apogee": 1.5650911757185604,
           "wind": "crosswind"
         }
-      ],
-      "rockets_past_a_bar": [
-        "valetudo",
-        "juno-iii",
-        "prometheus-2022-generic-motor"
       ],
       "rows": 26
     }
