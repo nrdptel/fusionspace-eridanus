@@ -4647,6 +4647,11 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // against itself with the phase off, on one declared drag coefficient. HPR Sim flies
         // nothing in it, and it holds no Mach number.
         "tip-off.json",
+        // HPR Sim's tip-off phase against RocketPy's on those rockets (M1.14b11): one code
+        // against another on one declared drag coefficient, compared where the last guide
+        // leaves the rail. Its one Mach number a flight is the Mach number there, 0.16 at most,
+        // so it never sets the fastest reference.
+        "tip-off-model.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.

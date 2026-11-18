@@ -963,7 +963,8 @@ A library of routines for computing integrals numerically, published by Piessens
 Rail exit is the moment the rocket leaves the launch rail and starts to fly free; the rail-exit
 velocity is its speed then. HPR Sim keeps the rocket guided until the aft edge of its aft-most rail
 button or launch lug passes the top of the rail. RocketPy stops guiding it at the forward button. The rocket
-leaves with no rotation, since [tip-off](#tip-off) is not modeled. The slower the exit in a
+leaves with no rotation, since [tip-off](#tip-off) is left out unless a flight asks for it;
+with it, the rocket leaves turning slightly. The slower the exit in a
 crosswind, the larger the [angle of attack](#angle-of-attack) just after it, where HPR Sim's models
 are least trustworthy. See [Rigid-body flight](physics/flight.md#phases).
 
@@ -1266,13 +1267,14 @@ download a motor's files itself
 ### Tip-off
 
 The unwanted turn a rocket picks up as it is let go. Leaving a launch rail, it pivots about its last
-guide. The recovery page uses the word for a separation too. HPR Sim models neither: a rocket leaves
+guide, the aft-most rail button or launch lug. The recovery page uses the word for a separation too. By default HPR Sim models neither: a rocket leaves
 the rail with no rotation, and a separated body starts with no spin of its own. RocketPy's
 tip-off phase puts the cost of the first at up to 3.765% of the apogee in the landing point,
 one code against another with no flight to check it
-([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)), and
-[a model of it is planned](decisions-and-roadmap.md#m1-14b9). No milestone plans the second
-yet. See [Rigid-body flight](physics/flight.md#phases) and
+([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)). The Rust
+library flies [a tip-off phase](physics/flight.md#tip-off) when a flight asks for it, held to
+RocketPy's in still air and, on RocketPy's normal force, in a crosswind. No milestone plans
+the second yet. See [Rigid-body flight](physics/flight.md#phases) and
 [Recovery](physics/recovery.md#separation).
 
 ### Title block

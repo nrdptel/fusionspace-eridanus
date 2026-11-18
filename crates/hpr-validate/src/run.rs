@@ -106,12 +106,12 @@ impl ValidateError {
 /// They are two builds of one rocket, not two measurements of it: anything above rounding means
 /// the case is comparing different vehicles, which must not read as a difference in the physics
 /// (Loft lesson L75).
-const MASS_AGREEMENT: f64 = 1e-9;
+pub(crate) const MASS_AGREEMENT: f64 = 1e-9;
 
 /// How close hpr's reference area has to be to the one the oracle flew its drag table on, as a
 /// fraction. The drag force is `½ρV² A C_D`, so "the same drag" means the same `A` as well as the
 /// same `C_D`; as with the mass, anything above rounding is two different vehicles.
-const AREA_AGREEMENT: f64 = 1e-9;
+pub(crate) const AREA_AGREEMENT: f64 = 1e-9;
 
 /// Runs every case the lock names, in its order, and reports the comparisons.
 ///
@@ -705,7 +705,7 @@ fn fly_descent(
 /// The environment a RocketPy case declares, flown with RocketPy's own models where hpr has them
 /// (ADR-015): its standard atmosphere, the declared wind interpolated by component as RocketPy's
 /// `custom_atmosphere` does, Coriolis, and RocketPy's gravity.
-fn rocketpy_environment(
+pub(crate) fn rocketpy_environment(
     latitude_deg: f64,
     longitude_deg: f64,
     elevation_m: f64,
@@ -1275,8 +1275,9 @@ impl Peaks {
         let p = self.dry_cg_m;
         // ω̇ from the step's own interpolant, whose derivative is the integrator's to the order
         // of its dense output: a backward difference over a microsecond, or over the step's first
-        // quarter if it is shorter. Off the free phase nothing rotates.
-        let omega_dot = if step.phase() == Phase::Free {
+        // quarter if it is shorter. On the pad and the rail nothing rotates; on its last guide
+        // alone (tip-off) the rocket does.
+        let omega_dot = if matches!(step.phase(), Phase::Free | Phase::TipOff) {
             let back = (0.25 * (t_s - step.start_s())).min(1e-6);
             let ahead = (0.25 * (step.end_s() - t_s)).min(1e-6);
             if back > 0.0 {

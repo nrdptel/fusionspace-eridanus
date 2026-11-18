@@ -62,20 +62,20 @@ fn oracle(root: &Path, flag: Option<&str>) -> Result<Value, String> {
     serde_json::from_slice(&output.stdout).map_err(|e| format!("{ORACLE}'s output: {e}"))
 }
 
-fn number(value: &Value, key: &str) -> Result<f64, String> {
+pub(crate) fn number(value: &Value, key: &str) -> Result<f64, String> {
     value[key]
         .as_f64()
         .filter(|x| x.is_finite())
         .ok_or_else(|| format!("no number `{key}` in {value}"))
 }
 
-fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
+pub(crate) fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
     value[key]
         .as_str()
         .ok_or_else(|| format!("no text `{key}` in {value}"))
 }
 
-fn list<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>, String> {
+pub(crate) fn list<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>, String> {
     value[key]
         .as_array()
         .ok_or_else(|| format!("no list `{key}` in {value}"))
@@ -213,7 +213,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
 }
 
 /// `value` to `decimals` places, a value that rounds to zero without its sign.
-fn fixed(value: f64, decimals: usize) -> String {
+pub(crate) fn fixed(value: f64, decimals: usize) -> String {
     let shown = format!("{value:.decimals$}");
     if shown
         .trim_start_matches('-')
@@ -227,7 +227,7 @@ fn fixed(value: f64, decimals: usize) -> String {
 }
 
 /// `value` to `decimals` places with its sign, zero bare.
-fn signed(value: f64, decimals: usize) -> String {
+pub(crate) fn signed(value: f64, decimals: usize) -> String {
     let shown = fixed(value, decimals);
     if value > 0.0 && shown.chars().any(|c| ('1'..='9').contains(&c)) {
         format!("+{shown}")
@@ -309,8 +309,10 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         "Written by `cargo xtask tip-off`; don't edit it by hand. What it measures and how far to \
          trust it: [rigid-body flight](../../docs/physics/flight.md#what-leaving-tip-off-out-costs). \
          It is one code against another: the phase is in RocketPy's development branch, in no \
-         release, and no flight checks it. HPR Sim frees a rocket with no turning rate where its last guide leaves the rail. This \
-         report measures the pivot about that guide which it leaves out, with RocketPy's tip-off \
+         release, and no flight checks it. By default HPR Sim frees a rocket with no turning rate \
+         where its last guide leaves the rail ([its opt-in tip-off phase against this \
+         report](tip-off-model.md)). This \
+         report measures the pivot about that guide which that leaves out, with RocketPy's tip-off \
          phase: {}. Equations: {}. Each example rocket of \
          `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and \
          site on a declared constant drag coefficient, in still air and in a {} mph ({} m/s) wind \

@@ -397,8 +397,10 @@ motors have burnt out.
 These are left out of a flight, or approximated:
 
 - [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail. Its cost is
-  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs), and
-  [a model is planned](decisions-and-roadmap.md#m1-14b9);
+  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs). The Rust library
+  flies [a tip-off phase](physics/flight.md#tip-off) when asked. It is held to RocketPy's in
+  still air, and not yet in a crosswind on HPR Sim's own normal force.
+  [Flying it by default is planned](decisions-and-roadmap.md#m1-14b10);
 - thrust misalignment, a motor pushing slightly off the rocket's axis;
 - turbulence: the model exists, but a flight doesn't use it. No milestone plans these last two
   yet, though turbulence has

@@ -86,7 +86,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(CHECKOUT.resolve()))
 
 import rocketpy  # noqa: E402
-from rocketpy import Flight, Rocket  # noqa: E402
+from rocketpy import Flight, NoseCone, Rocket  # noqa: E402
 
 import corrections  # noqa: E402
 import flight  # noqa: E402
@@ -363,8 +363,22 @@ def state_at(flown, t, rail):
         2 * (e2 * e3 - e0 * e1),
         1 - 2 * (e1**2 + e2**2),
     )
+    # The body's other two axes there: the rotation matrix's first and second columns.
+    first = (
+        1 - 2 * (e2**2 + e3**2),
+        2 * (e1 * e2 + e0 * e3),
+        2 * (e1 * e3 - e0 * e2),
+    )
+    second = (
+        2 * (e1 * e2 - e0 * e3),
+        1 - 2 * (e1**2 + e3**2),
+        2 * (e2 * e3 + e0 * e1),
+    )
     along, up, right = rail_axes(rail)
     w1, w2 = flown.w1.get_value_opt(t), flown.w2.get_value_opt(t)
+    # How fast the nose's direction moves: the body rate crossed with the long axis, which the
+    # roll rate does not enter, `w2 first - w1 second`, in the launch frame, rad/s.
+    turning = tuple(w2 * a - w1 * b for a, b in zip(first, second))
     return {
         "time_s": finite(t, "time"),
         "speed_m_s": finite(flown.speed.get_value_opt(t), "speed"),
@@ -378,6 +392,15 @@ def state_at(flown, t, rail):
         "nose_right_deg": finite(math.degrees(math.asin(dot(axis, right))), "nose-right angle"),
         # The turning rate across the long axis: the pitch and yaw rates together.
         "pitch_rate_deg_s": finite(math.degrees(math.hypot(w1, w2)), "pitch rate"),
+        # Its two parts, as the angle's: how fast the nose swings below the rail's line in the
+        # rail's vertical plane, and to the right of the heading (M1.14b9 compares the rate as
+        # a vector of these two).
+        "pitch_rate_nose_down_deg_s": finite(
+            math.degrees(-dot(turning, up)), "nose-down pitch rate"
+        ),
+        "pitch_rate_nose_right_deg_s": finite(
+            math.degrees(dot(turning, right)), "nose-right pitch rate"
+        ),
     }
 
 
@@ -435,7 +458,124 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
     result["flight_time_s"] = finite(flown.t_final, "flight time")
     result["upper_button_leaves_s"] = finite(flown.out_of_rail_time, "rail-exit time")
     result["lower_button_leaves"] = state_at(flown, last, rail)
-    return result
+    return result, flown_with(inputs, rocket)
+
+
+# The Mach numbers RocketPy's normal force is recorded at: to the top of the declared drag
+# table, every 0.02. A straight line between two follows RocketPy's own curve but at Mach 1.1,
+# where its compressibility factor steps (Calisto's slope by 4.1%) and the line spreads the
+# step over 0.02. The last guide leaves the rail at Mach 0.06 to 0.16, far below it.
+NORMAL_FORCE_MACH_STEP = 0.02
+NORMAL_FORCE_MACH_TOP = 3.0
+# The angles of attack, rad, at which each surface's lift is checked to be its slope times the
+# angle.
+NORMAL_FORCE_CHECK_ANGLES = (0.05, 0.2, 0.45)
+
+
+def normal_force_of(inputs, rocket):
+    """RocketPy's normal force on the rocket, so another code can fly the same one.
+
+    `Flight.u_dot_generalized` gives each aerodynamic surface a force across the rocket's axis,
+    `q A_i cl_i(alpha, Mach)`, at the surface's center of pressure, with `alpha` the angle
+    between the axis and the air it meets and `A_i` the surface's own reference area: the
+    cross-section of the body it sits on (`AeroSurface.compute_forces_and_moments`). Every
+    surface's `cl` is its slope times the angle, which this checks. So on the rocket's
+    reference area `A` the whole rocket's normal-force coefficient is
+    `alpha * sum(slope_i(Mach) A_i / A)`, at the station where those shares balance. Recorded
+    against Mach number: that summed slope, per radian, and that station in meters aft of the
+    nose tip. Both are checked against RocketPy's own totals (`Rocket.total_lift_coeff_der`,
+    `Rocket.cp_position`).
+    """
+    cdm = rocket.center_of_dry_mass_position
+    csys = rocket._csys
+    tips = [
+        position.z
+        for surface, position, *_ in rocket.aerodynamic_surfaces
+        if isinstance(surface, NoseCone)
+    ]
+    if len(tips) != 1:
+        fail(f"{inputs['name']} has {len(tips)} nose cones")
+    # The nose tip from the center of dry mass, toward the nose.
+    tip = (tips[0] - cdm) * csys
+    count = round(NORMAL_FORCE_MACH_TOP / NORMAL_FORCE_MACH_STEP)
+    machs = [round(index * NORMAL_FORCE_MACH_STEP, 10) for index in range(count + 1)]
+    slopes, stations = [], []
+    for mach in machs:
+        total, moment = 0.0, 0.0
+        for surface, *_ in rocket.aerodynamic_surfaces:
+            slope = surface.clalpha.get_value_opt(mach) if not hasattr(
+                surface, "clalpha_multiple_fins"
+            ) else surface.clalpha_multiple_fins.get_value_opt(mach)
+            for alpha in NORMAL_FORCE_CHECK_ANGLES:
+                lift = surface.cl.get_value_opt(alpha, mach)
+                if abs(lift - slope * alpha) > 1e-12 * max(abs(slope * alpha), 1.0):
+                    fail(
+                        f"{inputs['name']}: {surface.name}'s lift at {alpha} rad, Mach {mach} "
+                        f"is {lift}, not its slope {slope} times the angle"
+                    )
+            # On the rocket's reference area, at the surface's center of pressure, which
+            # `surfaces_cp_to_cdm` gives from the center of dry mass, toward the nose.
+            share = slope * surface.reference_area / rocket.area
+            station = tip - rocket.surfaces_cp_to_cdm[surface].z
+            total += share
+            moment += share * station
+        if not total > 0:
+            fail(f"{inputs['name']}: no normal force at Mach {mach}")
+        own_total = rocket.total_lift_coeff_der.get_value_opt(mach)
+        own_station = (tips[0] - rocket.cp_position.get_value_opt(mach)) * csys
+        if abs(total - own_total) > 1e-9 * abs(own_total) or abs(
+            moment / total - own_station
+        ) > 1e-9 * max(abs(own_station), 1.0):
+            fail(
+                f"{inputs['name']}, Mach {mach}: the surfaces sum to a slope of {total} at "
+                f"{moment / total} m, where RocketPy's own totals are {own_total} at "
+                f"{own_station} m"
+            )
+        slopes.append(finite(total, "normal-force slope"))
+        stations.append(finite(moment / total, "center of pressure"))
+    return {
+        "source": "the sum over rocket.aerodynamic_surfaces of each surface's lift slope on "
+                  "its own reference area, and the mean of rocket.surfaces_cp_to_cdm those "
+                  "shares weight, as Flight.u_dot_generalized applies them; each surface's cl "
+                  "is checked to be its slope times the angle of attack, and the totals "
+                  "against Rocket.total_lift_coeff_der and Rocket.cp_position",
+        "law": "C_N = slope_per_rad(Mach) * alpha, alpha in radians, on the reference radius, "
+               "acting at cp_station_m(Mach) aft of the nose tip",
+        "mach": machs,
+        "slope_per_rad": slopes,
+        "cp_station_m": stations,
+    }
+
+
+def flown_with(inputs, rocket):
+    """What a flight carried besides its rail, site and wind, recorded so a code that flies the
+    same flight reads it here and not from its own design (L75): the parachutes in the order
+    they open (none: the rocket comes down ballistic), the dry mass, the area the drag acts on,
+    and the motor."""
+    by_name = {parachute.name: parachute for parachute in rocket.parachutes}
+    chutes = inputs["geometry"]["parachutes"]
+    return {
+        "devices": [
+            {
+                "name": chute["name"],
+                "cd_s_m2": finite(by_name[chute["name"]].cd_s, "cd_s"),
+                "trigger": chute["trigger"],
+                "lag_s": finite(by_name[chute["name"]].lag, "lag"),
+                "sampling_rate_hz": finite(by_name[chute["name"]].sampling_rate, "sampling rate"),
+            }
+            for chute in (recovery.devices_of(inputs) if chutes else [])
+        ],
+        "dry_mass_kg": finite(rocket.dry_mass, "dry mass"),
+        "reference_radius_m": finite(rocket.radius, "reference radius"),
+        "normal_force": normal_force_of(inputs, rocket),
+        "motor": {
+            "total_impulse_ns": finite(rocket.motor.total_impulse, "total impulse"),
+            "burn_out_time_s": finite(rocket.motor.burn_out_time, "burn-out time"),
+            "propellant_initial_mass_kg": finite(
+                rocket.motor.propellant_initial_mass, "propellant mass"
+            ),
+        },
+    }
 
 
 def lag_probe(document):
@@ -567,15 +707,20 @@ def main():
         site, rail = site_and_rail(name, document)
         winds = []
         for wind_kind in WINDS:
-            off = fly_one(inputs, site, rail, wind_kind, False, False, flight_class)
-            on = fly_one(inputs, site, rail, wind_kind, True, False, flight_class)
-            guided = fly_one(inputs, site, rail, wind_kind, False, True, flight_class)
+            off, carried = fly_one(inputs, site, rail, wind_kind, False, False, flight_class)
+            on, carried_on = fly_one(inputs, site, rail, wind_kind, True, False, flight_class)
+            guided, carried_guided = fly_one(
+                inputs, site, rail, wind_kind, False, True, flight_class
+            )
+            if not carried == carried_on == carried_guided:
+                fail(f"{name}, {wind_kind}: the three flights did not carry the same rocket")
             wind_u, wind_v = wind_of(wind_kind, rail["heading_deg"])
             winds.append({
                 "wind": wind_kind,
                 **({"declared": NO_LAG} if no_lag(rail, wind_kind) else {}),
                 "wind_east_m_s": wind_u,
                 "wind_north_m_s": wind_v,
+                "flown_with": carried,
                 "phase_off": off,
                 "phase_on": on,
                 "guided_to_lower_button": guided,

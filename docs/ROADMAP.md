@@ -256,9 +256,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
     Met when its ten increments are (ADR-351's decision 2 and ADR-357's decision 4 give each
-    *done when*).
-    - [ ] **M1.14b9 The tip-off pivot, held to RocketPy's.** *Done when:* ADR-357 decision 4's
-      for M1.14b9.
+    *done when*; ADR-358 splits M1.14b9).
+    - [ ] **M1.14b9 The tip-off pivot, held to RocketPy's** (ADR-358: in two; met when
+      M1.14b11 and M1.14b12 are). *Done when:* ADR-357 decision 4's for M1.14b9.
+      - [ ] **M1.14b12 The crosswind tip-off on HPR Sim's own normal force** (after M1.14e,
+        #1538). *Done when:* ADR-358 decision 1's for M1.14b12.
     - [ ] **M1.14b10 Tip-off in every flight that has two guides.** *Done when:* ADR-357
       decision 4's for M1.14b10.
     - [ ] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351

@@ -45,6 +45,7 @@ pub mod report;
 pub mod rocketpy;
 pub mod run;
 pub mod summary;
+pub mod tip_off;
 
 pub use case::{Case, CaseLock, DragMode, Metric, Tolerance, committed_cases};
 pub use metrics::{Measured, Reference, ReferenceValue};

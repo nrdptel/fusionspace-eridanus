@@ -62,6 +62,10 @@ pub enum Phase {
     Pad,
     /// Guided along the rail: one degree of freedom, no rotation.
     Rail,
+    /// Tip-off: sliding along the rail on the last guide alone, free to pitch and yaw about it,
+    /// roll held (`docs/physics/flight.md`). Only a flight that asks for it has this phase
+    /// ([`crate::Simulation::with_tip_off`]).
+    TipOff,
     /// Free flight: six degrees of freedom.
     Free,
     /// Descent under recovery devices: a point mass, with the attitude frozen where it deployed
@@ -79,6 +83,8 @@ pub(crate) struct Conditions {
     pub(crate) window: (f64, f64),
     /// The open recovery devices' drag area, m² (descent phase only).
     pub(crate) drag_area_m2: f64,
+    /// Where the rocket pivots and the rail's line (tip-off phase only).
+    pub(crate) pivot: Option<crate::rail::Pivot>,
 }
 
 /// The burning motors' cross-section, m², by the base it comes off.
@@ -393,6 +399,7 @@ impl Vehicle {
             phase,
             window,
             drag_area_m2: recovery_drag_area_m2,
+            pivot,
         } = conditions;
         let state = State::from_array(y);
         let norm = state.attitude.length();
@@ -407,7 +414,7 @@ impl Vehicle {
         let mass = self.mass_state(t, window);
         let m = mass.mass_kg;
         let r = mass.cg_m;
-        let omega = if phase == Phase::Free {
+        let omega = if matches!(phase, Phase::Free | Phase::TipOff) {
             state.body_rate_rad_s
         } else {
             DVec3::ZERO
@@ -524,6 +531,61 @@ impl Vehicle {
                     jet_gyration,
                     [r.cross(weight), aero.moment, thrust_moment],
                 )?;
+                acceleration_enu_m_s2 = q.mul_vec3(a_body);
+                let q_dot = quaternion_derivative(state.attitude, omega);
+                derivative = [
+                    v_o.x,
+                    v_o.y,
+                    v_o.z,
+                    acceleration_enu_m_s2.x,
+                    acceleration_enu_m_s2.y,
+                    acceleration_enu_m_s2.z,
+                    q_dot.w,
+                    q_dot.x,
+                    q_dot.y,
+                    q_dot.z,
+                    omega_dot.x,
+                    omega_dot.y,
+                    omega_dot.z,
+                ];
+            }
+            Phase::TipOff => {
+                // The free equations, and what the last guide adds to keep its pivot on the
+                // rail's line and the roll held.
+                let Some(pivot) = pivot else {
+                    return Err(SimError::Domain {
+                        what: "tip-off without a last guide to pivot about",
+                        value: f64::NAN,
+                    });
+                };
+                let (free_acceleration, free_angular) = free_motion(
+                    &mass,
+                    omega,
+                    [t03, t04, forces],
+                    jet_gyration,
+                    [r.cross(weight), aero.moment, thrust_moment],
+                )?;
+                let rail_body = to_body.mul_vec3(pivot.rail_enu);
+                // Which way the pivot slides: up the rail unless it has turned back.
+                let pivot_velocity = to_body.mul_vec3(v_o) + omega.cross(pivot.point_m);
+                let sliding = if pivot_velocity.dot(rail_body) < 0.0 {
+                    -1.0
+                } else {
+                    1.0
+                };
+                let (a_body, omega_dot) = crate::rail::pivot_motion(
+                    (m, r, mass.inertia_cg),
+                    omega,
+                    (free_acceleration, free_angular),
+                    (pivot.point_m, rail_body),
+                    (friction_coefficient, sliding),
+                )?;
+                // The force along the rail, as the rail phase gives it: the pivot's acceleration
+                // there times the mass.
+                let pivot_acceleration = a_body
+                    + omega_dot.cross(pivot.point_m)
+                    + omega.cross(omega.cross(pivot.point_m));
+                rail_force_n = m * pivot_acceleration.dot(rail_body);
                 acceleration_enu_m_s2 = q.mul_vec3(a_body);
                 let q_dot = quaternion_derivative(state.attitude, omega);
                 derivative = [
@@ -871,7 +933,8 @@ fn outer(u: DVec3, v: DVec3) -> DMat3 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testing::{UniformAir, analytic_environment, design};
+    use crate::testing::{UniformAir, analytic_environment, analytic_wind_environment, design};
+    use hpr_atmos::ConstantWind;
 
     fn valetudo() -> Vehicle {
         let assembly = design("rocketpy-valetudo").assemble("example").unwrap();
@@ -1258,6 +1321,7 @@ mod tests {
                         phase: Phase::Rail,
                         window: (1.0, 2.0),
                         drag_area_m2: 0.0,
+                        pivot: None,
                     },
                     1.5,
                     &state.to_array(),
@@ -1271,6 +1335,178 @@ mod tests {
         let direction = state.unit_attitude().mul_vec3(DVec3::Z);
         let difference = free.acceleration_enu_m_s2 - rubbing.acceleration_enu_m_s2;
         assert!((difference - direction * (expected / mass)).length() < 1e-12);
+    }
+
+    /// The tip-off phase's state for [`valetudo`] on a rail at `elevation_rad` heading north,
+    /// sliding at `speed_m_s` with its axis along the rail and no turning rate, and the pivot:
+    /// the middle of its last guide, on the rail's line.
+    fn tipping(elevation_rad: f64, speed_m_s: f64) -> (Vehicle, State, crate::rail::Pivot) {
+        let vehicle = valetudo();
+        let rail = crate::rail::Rail {
+            elevation_rad,
+            ..crate::rail::Rail::vertical(5.0)
+        };
+        let guides = crate::rail::Guides::of(&vehicle.assembly);
+        let pivot = crate::rail::Pivot {
+            point_m: DVec3::new(0.0, 0.0, -guides.pivot_station_m.unwrap()),
+            rail_enu: rail.direction_enu(),
+        };
+        let state = State {
+            position_enu_m: DVec3::new(0.0, 0.0, 10.0),
+            velocity_enu_m_s: rail.direction_enu() * speed_m_s,
+            attitude: rail.attitude(),
+            body_rate_rad_s: DVec3::ZERO,
+        };
+        (vehicle, state, pivot)
+    }
+
+    fn tip_off_at(
+        vehicle: &Vehicle,
+        environment: &Environment,
+        (state, pivot): (&State, crate::rail::Pivot),
+        (friction, t): (f64, f64),
+    ) -> Evaluation {
+        vehicle
+            .evaluate(
+                environment,
+                friction,
+                Conditions {
+                    phase: Phase::TipOff,
+                    window: (t - 0.5, t + 0.5),
+                    drag_area_m2: 0.0,
+                    pivot: Some(pivot),
+                },
+                t,
+                &state.to_array(),
+            )
+            .unwrap()
+    }
+
+    #[test]
+    fn tip_off_turns_a_fixed_mass_as_a_pendulum_about_its_last_guide() {
+        // ADR-357 decision 4, M1.14b9: at the instant the forward guide leaves, a body of fixed
+        // mass with no thrust and no air turns nose-down at m g r cos θ / (I + m r²), with r the
+        // distance along the axis from the last guide to the center of mass, I the inertia about
+        // the center of mass for a turn in the rail's vertical plane and θ the rail's angle above
+        // the horizontal. Long after burnout the mass is fixed and nothing pushes; the rail leans
+        // 5° to 60° off the vertical, and the rocket slides up it or sits still.
+        let g = 9.806_65;
+        let environment = analytic_environment(UniformAir::vacuum(), g);
+        for (elevation_deg, speed_m_s) in
+            [(85.0_f64, 25.0), (84.0, 0.0), (60.0, 12.0), (30.0, 40.0)]
+        {
+            let theta = elevation_deg.to_radians();
+            let (vehicle, state, pivot) = tipping(theta, speed_m_s);
+            let t = vehicle.burnout_s() + 100.0;
+            let evaluation = tip_off_at(&vehicle, &environment, (&state, pivot), (0.0, t));
+            let mass = evaluation.mass;
+            assert_eq!(mass.mass_rate_kg_s, 0.0);
+            assert_eq!(evaluation.thrust_n, 0.0);
+            assert_eq!(evaluation.dynamic_pressure_pa, 0.0);
+            // The center of mass is on the axis, so r is a distance along it.
+            assert!(mass.cg_m.x.abs() < 1e-12 && mass.cg_m.y.abs() < 1e-12);
+            let r = mass.cg_m.z - pivot.point_m.z;
+            assert!(
+                r > 0.3,
+                "the center of mass is ahead of the last guide by {r} m"
+            );
+            // The turn's axis: horizontal, square to the rail's vertical plane, nose-down by
+            // the right-hand rule.
+            let to_body = state.unit_attitude().conjugate();
+            let axis = to_body.mul_vec3(DVec3::Z.cross(pivot.rail_enu).normalize());
+            let inertia = axis.dot(mass.inertia_cg * axis);
+            let expected = mass.mass_kg * g * r * theta.cos() / (inertia + mass.mass_kg * r * r);
+            let turning = DVec3::from_slice(&evaluation.derivative[10..13]);
+            assert!(
+                (turning - axis * expected).length() <= 1e-9 * expected,
+                "rail at {elevation_deg} deg: {turning:?} against {expected} rad/s² about {axis:?}"
+            );
+            // Nose-down: the nose's direction gains a downward rate.
+            let nose_rate = state.unit_attitude().mul_vec3(turning.cross(DVec3::Z));
+            assert!(nose_rate.z < 0.0);
+            // And the pivot keeps to the rail's line: its acceleration has no part across it.
+            let rail_body = to_body.mul_vec3(pivot.rail_enu);
+            let pivot_acceleration =
+                to_body.mul_vec3(evaluation.acceleration_enu_m_s2) + turning.cross(pivot.point_m);
+            let across = pivot_acceleration - rail_body * pivot_acceleration.dot(rail_body);
+            assert!(across.length() < 1e-12, "{across:?}");
+            // Along it, gravity alone: −g sin θ.
+            assert!((pivot_acceleration.dot(rail_body) + g * theta.sin()).abs() < 1e-12);
+        }
+    }
+
+    #[test]
+    fn tip_off_holds_the_pivot_and_the_roll_under_thrust_air_and_a_turning_rate() {
+        // The three conditions, checked from the outside on a burning rocket in a crosswind
+        // that already turns and rolls: the pivot's acceleration has no part across the rail,
+        // the roll acceleration is zero, and what the guide adds is a force through the pivot
+        // (its moment about the pivot is along the long axis alone).
+        let environment = analytic_wind_environment(
+            UniformAir::sea_level(),
+            9.806_65,
+            ConstantWind::new(8.0, 1.2).unwrap(),
+        );
+        let (vehicle, mut state, pivot) = tipping(84.0_f64.to_radians(), 22.0);
+        state.body_rate_rad_s = DVec3::new(0.05, -0.03, 0.0);
+        // Turned a little off the rail already.
+        state.attitude =
+            (state.attitude * DQuat::from_scaled_axis(DVec3::new(0.002, -0.001, 0.0))).normalize();
+        let t = 0.4;
+        let window = (0.0, 1.0);
+        let at = |phase: Phase, friction: f64| {
+            vehicle
+                .evaluate(
+                    &environment,
+                    friction,
+                    Conditions {
+                        phase,
+                        window,
+                        drag_area_m2: 0.0,
+                        pivot: (phase == Phase::TipOff).then_some(pivot),
+                    },
+                    t,
+                    &state.to_array(),
+                )
+                .unwrap()
+        };
+        let free = at(Phase::Free, 0.0);
+        assert!(free.thrust_n > 100.0 && free.dynamic_pressure_pa > 100.0);
+        let to_body = state.unit_attitude().conjugate();
+        let rail_body = to_body.mul_vec3(pivot.rail_enu);
+        let omega = state.body_rate_rad_s;
+        let p = pivot.point_m;
+        for friction in [0.0, 0.3] {
+            let held = at(Phase::TipOff, friction);
+            let turning = DVec3::from_slice(&held.derivative[10..13]);
+            assert_eq!(turning.z, 0.0);
+            let acceleration = to_body.mul_vec3(held.acceleration_enu_m_s2);
+            let pivot_acceleration = acceleration + turning.cross(p) + omega.cross(omega.cross(p));
+            let across = pivot_acceleration - rail_body * pivot_acceleration.dot(rail_body);
+            assert!(across.length() < 1e-10, "μ = {friction}: {across:?}");
+            // What the guide adds, from the two evaluations: a force (the center of mass's
+            // acceleration changes by F/m) and a moment about the center of mass.
+            let r = held.mass.cg_m;
+            let free_turning = DVec3::from_slice(&free.derivative[10..13]);
+            let center = |a: DVec3, w: DVec3| a + w.cross(r) + omega.cross(omega.cross(r));
+            let force = (center(acceleration, turning)
+                - center(to_body.mul_vec3(free.acceleration_enu_m_s2), free_turning))
+                * held.mass.mass_kg;
+            let moment = held.mass.inertia_cg * (turning - free_turning);
+            // About the pivot, only the roll moment is left.
+            let about_pivot = moment - (p - r).cross(force);
+            assert!(
+                about_pivot.truncate().length() < 1e-9 * force.length().max(1.0),
+                "μ = {friction}: {about_pivot:?}"
+            );
+            // Friction: μ times the force across the rail, against the sliding.
+            let along = force.dot(rail_body);
+            let normal = (force - rail_body * along).length();
+            assert!(normal > 1.0, "the guide carries {normal} N");
+            assert!(
+                (along + friction * normal).abs() < 1e-9 * normal,
+                "μ = {friction}: {along} N along the rail against {normal} N across"
+            );
+        }
     }
 
     #[test]
@@ -1302,6 +1538,7 @@ mod tests {
                     phase: Phase::Free,
                     window,
                     drag_area_m2: 0.0,
+                    pivot: None,
                 },
                 t,
                 &state.to_array(),

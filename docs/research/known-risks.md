@@ -44,8 +44,9 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   past Mach 0.3.
 - In wind, a slow rocket's drift rests on body lift: Juno III's apogee drift is 245 m in hpr, 240 to
   194 m over Galejs's `K` 1.0 to 1.5 (oracle corrections, #1196).
-- Flight: no tip-off (RocketPy's phase, code to code with no flight, moves landing points up to 3.765% of the apogee, farther
-  from the pad in 23 of 26 flights, ADR-357; the model is M1.14b9), turbulence or thrust misalignment; small-angle aero at every `α` (a fall with
+- Flight: no tip-off unless asked (RocketPy's phase, code to code with no flight, moves landing points up to 3.765% of the apogee, farther
+  from the pad in 23 of 26 flights, ADR-357; the opt-in phase is held to RocketPy's on RocketPy's normal force and in still air,
+  its crosswind turn on hpr's own normal force is up to 4.010 deg/s from RocketPy's, ADR-358, #1538, M1.14b12; default-on is M1.14b10), turbulence or thrust misalignment; small-angle aero at every `α` (a fall with
   no recovery glides tail-first, #241; its ascent peaks unshown, #243); two apogees on a near-flat
   rail (#242). Recovery omits canopy overshoot, opening-load factor, added mass and airframe drag;
   attitude freezes at deployment, streamer pleats unmodeled (+58% on Kidwell's), tumble reads +19%.
