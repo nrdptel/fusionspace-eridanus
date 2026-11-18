@@ -1275,8 +1275,9 @@ impl Peaks {
         let p = self.dry_cg_m;
         // ω̇ from the step's own interpolant, whose derivative is the integrator's to the order
         // of its dense output: a backward difference over a microsecond, or over the step's first
-        // quarter if it is shorter. Off the free phase nothing rotates.
-        let omega_dot = if step.phase() == Phase::Free {
+        // quarter if it is shorter. On the pad and the rail nothing rotates; on its last guide
+        // alone (tip-off) the rocket does.
+        let omega_dot = if matches!(step.phase(), Phase::Free | Phase::TipOff) {
             let back = (0.25 * (t_s - step.start_s())).min(1e-6);
             let ahead = (0.25 * (step.end_s() - t_s)).min(1e-6);
             if back > 0.0 {

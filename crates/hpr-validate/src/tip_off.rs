@@ -115,7 +115,8 @@ const RECORDED_TOP_ANGLE_RAD: f64 = 1.5;
 /// # Errors
 ///
 /// [`ValidateError`] if the record is not the oracle's shape, the design is not the rocket the
-/// record flew (its dry mass, reference area or motor differ past rounding), or the flight fails
+/// record flew (its dry mass, reference area, motor or the distance between its last two guides
+/// differ past rounding), or the flight fails
 /// or does not end at the ground.
 pub fn fly(
     root: &Path,
@@ -256,8 +257,8 @@ pub fn fly(
         simulation
     };
 
-    // L75: the same rocket has to weigh the same, fly its drag on the same area and burn the
-    // same motor in both codes.
+    // L75: the same rocket has to weigh the same, fly its drag on the same area, burn the same
+    // motor and carry its last two guides as far apart in both codes.
     let assembly = simulation.assembly();
     let dry = assembly
         .motors
@@ -273,7 +274,20 @@ pub fn fly(
     };
     let motor = &placed.mounted.motor;
     let recorded = &carried["motor"];
+    // The stretch the phase runs over: from the guide ahead of the last one leaving the rail to
+    // the last one leaving it, RocketPy's distance between its two buttons.
+    let guides = simulation.guides();
+    let stretch_m = guides
+        .tip_off_travel_m(rail.length_m)
+        .map(|begins| guides.exit_travel_m(rail.length_m) - begins)
+        .ok_or_else(|| refuse("the design has fewer than two guides".to_owned()))?;
     for (what, hpr, rocketpy, agreement) in [
+        (
+            "distance between the last two guides, m",
+            stretch_m,
+            number(&case["button_spacing_m"], "the button spacing")?,
+            AREA_AGREEMENT,
+        ),
         (
             "dry mass, kg",
             dry.mass_kg,
@@ -559,6 +573,17 @@ mod tests {
                 .to_string();
             assert!(error.contains(named), "{pointer}: {error}");
         }
+        // And the stretch the phase runs over: buttons another distance apart are another
+        // rocket on the rail.
+        let mut other = case.clone();
+        other["button_spacing_m"] = (1.01 * case["button_spacing_m"].as_f64().unwrap()).into();
+        let error = fly(&root(), &other, &wind, drag, (NormalForce::Own, true))
+            .expect_err("other buttons are refused")
+            .to_string();
+        assert!(
+            error.contains("distance between the last two guides"),
+            "{error}"
+        );
         let mut bare = wind.clone();
         bare["flown_with"]["normal_force"] = Value::Null;
         let error = fly(&root(), &case, &bare, drag, (NormalForce::Recorded, true))
