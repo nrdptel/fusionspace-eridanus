@@ -4113,10 +4113,10 @@ mod tests {
 
     /// Landing over a burst under the mark that rises past the ceiling at its end, as a descent's
     /// track might dip and recover, takes time in proportion to the burst, to within a binary
-    /// search's logarithm: checking each candidate's span sample by sample, in `landing` or in
+    /// search's logarithm: checking each candidate's span sample by sample, as `landing` did before
     /// [`first_settled`], took 47 s on this burst of 600,000 samples on a fast desktop, and grows
-    /// as the square of the burst (#1250). The clock times `landing` alone, and
-    /// nothing it reads reaches a result.
+    /// as the square of the burst (#1250). The clock times `landing` alone, and nothing it reads
+    /// reaches a result.
     #[test]
     #[allow(clippy::disallowed_types, reason = "the clock times landing alone")]
     fn landing_over_a_burst_is_not_walked_for_each_sample() {
@@ -4156,7 +4156,7 @@ mod tests {
         let landed = landing(&track, &track.height_m, 0.0, &apex, (1.0, 0.5));
         let elapsed = began.elapsed();
         let landed_s = landed.value().map(|l| l.time_s);
-        assert!(landed_s.is_some_and(|t| t > 9.0), "{landed:?}");
+        assert!(landed_s.is_some_and(|t| t > 9.5 && t < 10.5), "{landed:?}");
         assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
     }
 
@@ -4168,7 +4168,7 @@ mod tests {
     #[test]
     fn a_burst_in_the_main_leg_keeps_the_drogues_leg() {
         let g = STANDARD_GRAVITY_MPS2;
-        // A climb at 4 g for 3 s from 1 s, a vacuum coast to 882 m at 16 s, 25 m/s under the
+        // A climb at 4 g for 3 s from 1 s, a vacuum coast to 883 m at 16 s, 25 m/s under the
         // drogue to 200 m at 43.3 s, then 6 m/s under the main to the pad at 76.6 s.
         let fly = move |t: f64| {
             if t <= 1.0 {
@@ -4202,6 +4202,7 @@ mod tests {
                         altitude_m.push(fly(at));
                     }
                     t += 0.4;
+                    continue;
                 }
                 time_s.push(t);
                 altitude_m.push(fly(since.max(0.0)));
@@ -4218,9 +4219,13 @@ mod tests {
             assert!(drogue.is_some(), "{:?}", readings.drogue_descent);
             readings.main_descent.value().map(|d| d.from_s)
         };
-        let clean = opening(&log_of(0)).unwrap();
+        let clean_log = log_of(0);
+        let burst_log = log_of(60_000);
+        // The burst's 60,000 samples, in place of the 200 its 0.4 s holds at 500 a second.
+        assert_eq!(burst_log.time_s.len(), clean_log.time_s.len() + 59_800);
+        let clean = opening(&clean_log).unwrap();
         // 60,000 samples in the burst against about 30,000 in the rest of the descent.
-        let burst = opening(&log_of(60_000)).unwrap();
+        let burst = opening(&burst_log).unwrap();
         assert!((burst - clean).abs() < 0.5, "{burst} against {clean}");
     }
 
@@ -4248,6 +4253,7 @@ mod tests {
                         altitude_m.push(height(k, at));
                     }
                     t += 0.4;
+                    continue;
                 }
                 time_s.push(t);
                 altitude_m.push(fly(since.max(0.0)));

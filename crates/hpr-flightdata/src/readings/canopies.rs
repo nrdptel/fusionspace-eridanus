@@ -55,12 +55,13 @@ use super::{
 use crate::filter::running_median;
 
 /// The half window, in samples, of the running median the descent's rates are walked back on: the
-/// median spans [`DESCENT_TAIL_S`], or twice the fit's `window_s` where that is longer, so each side
-/// is half of that, in samples at the descent's median `interval`, so that a few samples bunched together don't widen it; never more than the descent's
-/// `samples`, nor less than one. The interval is held to the shortest the readings accept,
-/// [`MIN_INTERVAL_S`] less a part in a thousand, so that a steady log they read keeps its window: a
-/// burst of samples making most of the descent's would otherwise widen the window to the whole
-/// descent, and each step of the median would cost the descent's length (#1250).
+/// median spans [`DESCENT_TAIL_S`], or twice the fit's `window_s` where that is longer, so each
+/// side is half of that, in samples at the descent's median `interval`, so that a few samples
+/// bunched together don't widen it; never more than the descent's `samples`, nor less than one. The
+/// interval is held to the shortest the readings accept, [`MIN_INTERVAL_S`] less a part in a
+/// thousand, so that a steady log they read keeps its window: a burst of samples making most of the
+/// descent's would otherwise widen the window to the whole descent, and each step of the median
+/// would cost the descent's length (#1250).
 fn median_half(interval: f64, window_s: f64, samples: usize) -> usize {
     #[expect(
         clippy::cast_precision_loss,

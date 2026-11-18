@@ -1140,17 +1140,18 @@ range the bounds were checked over, or catches a track that isn't what it says:
 can hold a short burst of faster samples. Without a limit, a fit would walk the whole burst for each
 sample in it, and the time would grow as the square of the burst. So each least-squares slope reads
 at most twice its window's steps at 500 samples a second, plus one: 501 samples for the 0.5 s
-top-speed fit, 1,001 for the descent rates' usual 1 s fit, and 10,001 at its 10 s limit. A window
-holding more is read at every n-th sample, n the smallest whole number that brings the count within
-the cap. A log sampled no faster than 500 a second is read whole. The descent rates' running median
-sizes its window from the descent's median interval, but never from one shorter than the rate check
-allows. The landing's search moves forward only.
+top-speed fit, 1,001 for the descent rates' usual 1 s fit, and 10,001 at the descent fit's 10 s
+limit. A window holding more is read at every n-th sample, n the smallest whole number that brings
+the count within the cap. A log sampled no faster than 500 a second is read whole. The descent
+rates' running median sizes its window from the descent's median interval, but never from one
+shorter than the rate check allows. The landing's search moves forward only.
 
 Tests pin each of these. They count the samples a burst's window is read at, and check the median's
 window at a burst's interval. A descent with a burst in its main leg still reads its drogue's leg.
-Landing over a dip of 600,000 samples takes under 5 s, where a walk over the burst for each sample
-took 47 s. The fits read at every n-th sample weren't checked against the bounds, as the tuning set
-holds no log with a burst.
+Landing over a burst of 600,000 samples that dips to the pad and rises past the landing ceiling is
+held under 5 s; a walk over the burst for each sample took 47 s there once, on a fast desktop. The
+fits read at every n-th sample weren't checked against the bounds, as the tuning set holds no log
+with a burst.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are
