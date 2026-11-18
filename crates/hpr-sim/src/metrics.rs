@@ -373,7 +373,7 @@ pub struct FlightSummary {
     /// over its mass counts too ([`BodyStep::specific_force_enu_m_s2`]), whether they open
     /// before the split or after, until an ejection parts it. From an ejection on, body 0 is the
     /// ejection's lead piece (a nose cone pushed off is the nose cone alone), and its load is
-    /// left out, as its apogee is.
+    /// left out. An ejection that parts the stack leaves out the flight's apogee too.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
@@ -663,7 +663,7 @@ impl FlightMetrics {
         // Body 0's opening shock counts while it is the part that keeps the nose: after a
         // separation with no ejection, and until an ejection of its own parts it. From an
         // ejection on, body 0 is that ejection's lead piece (a nose cone pushed off is the nose
-        // cone alone), whose load is left out as its apogee is.
+        // cone alone), whose load is left out.
         let mut max_descent_acceleration = self.max_descent_acceleration;
         let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
         if result.termination == Termination::Separated

@@ -4142,8 +4142,8 @@ mod tests {
     fn the_nose_parts_shock_stops_counting_where_an_ejection_parts_it() {
         // #1519, found in review: after the split, the part that keeps the nose opens a drogue,
         // then pushes off its nose cone under the cone's own canopy. From the ejection on, body 0
-        // is the nose cone alone, whose far larger shock is left out, as its apogee is: the
-        // flight's is the drogue's, `q C_D S / m` at its opening on the whole part.
+        // is the nose cone alone, whose far larger shock is left out: the flight's is the
+        // drogue's, `q C_D S / m` at its opening on the whole part.
         let air = UniformAir::sea_level();
         let assembly = two_stage().assemble("j760-i175").unwrap();
         let burnout_s = assembly
