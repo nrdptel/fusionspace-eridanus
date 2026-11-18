@@ -14,8 +14,9 @@ rocket's body, attitude and launch angles.
   launch-angle convention.
 - **How well it is validated:** unit tests, and one check against another simulator. For 8 rail
   setups, launch angles give RocketPy's starting attitude to 1e-12 rad. Over 1e6 integration
-  steps, attitude stays within 1e-9 rad of the exact answer. Two of NASA's check cases fly
-  through the launch frame against the codes NASA published
+  steps, attitude stays within 1e-9 rad of the exact answer. Eight of NASA's check cases fly
+  through the launch frame against the codes NASA published, two of them shots that carry a
+  body kilometers from the pad, which come out inside the codes' spread
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   No real-flight check.
 - **What it leaves out:** heights are above the WGS 84 ellipsoid, not sea level. The two are up
@@ -205,15 +206,18 @@ $$
 - In `hpr_core::attitude::tests`: the kinematic equation checked against a closed-form coning
   motion, and norm drift ≤ 1e-12 over 1e6 RK4 steps with attitude error < 1e-9 rad.
 - `cargo xtask check-cases`, held by the gate where the codes' files are fetched: NASA's check
-  cases 1 and 2 flown in the launch frame
+  cases 1 to 3 and 6 to 10 flown in the launch frame, the positions of cases 6 to 10 turned into
+  Earth-fixed axes and compared as distances
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   Two things of this page are in them. The height above the ellipsoid is read back from the
   launch frame along a 4.4 km (2.7 mi) fall, down the site's vertical on the equator, where the
   ellipsoid's shape hardly enters. The Earth's rate is turned from the launch frame
-  into the body's axes to give inertial rates. With the two named model differences taken off
-  each kept code's largest difference, at most 0.1364 mm (0.0054 in) of altitude and 0.001005
-  deg/s of body rate are left, both inside the codes' spread; read at every sample, the rates
-  are left just past it. The attitude itself is not compared.
+  into the body's axes to give inertial rates. In cases 1 and 2, with the two named model
+  differences taken off each kept code's largest difference, at most 0.1364 mm (0.0054 in) of
+  altitude and 0.001005 deg/s of body rate are left, both inside the codes' spread; read at every
+  sample, case 2's rates are left just past it. Case 3's rates and the sphere's positions in
+  cases 6 to 8 are traced to inside the spread, and cases 9 and 10 come out inside it as flown;
+  the flight page's table gives each. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

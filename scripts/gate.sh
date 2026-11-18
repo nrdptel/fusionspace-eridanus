@@ -32,8 +32,8 @@
 # EuRoC 2022 weather file `validation/oracles/netcdf/euroc_2022.py` writes under refs/; M2.3d5,
 # ADR-337: the two Macie XL flights too, from the pinned checkout under refs/public-flights/),
 # `roll-drev --check` (#763: the Basic Finner's roll damping against DREV-TM-9703's cached range fits),
-# `check-cases --check` (M1.14b3: NASA's check cases 1 and 2 against each code's history, read from
-# the pinned archive; it writes nothing),
+# `check-cases --check` (M1.14b3, M1.14b4: NASA's check cases 1 to 3 and 6 to 10 against each
+# code's history, read from the pinned archive; it writes nothing),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)

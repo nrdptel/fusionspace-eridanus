@@ -2,19 +2,25 @@
 //! flight's gravity, Earth rotation, rigid-body equations and integrator on a body a test gives.
 //!
 //! It exists to fly published check cases whose bodies are not rockets, such as NASA's dragless
-//! sphere and tumbling brick (NASA/TM-2015-218675, cases 1 and 2), through the code a rocket
-//! flies on. Nothing here is a second model: the weight and the Coriolis force come from the
-//! [`Environment`]'s Earth, as [`crate::dynamics`] takes them, the two accelerations from that
+//! sphere and tumbling brick (NASA/TM-2015-218675, cases 1 to 3 and 6 to 10), through the code a
+//! rocket flies on. Nothing here is a second model: the weight and the Coriolis force come from
+//! the [`Environment`]'s Earth, as [`crate::dynamics`] takes them, the air and the wind from the
+//! environment at the height a rocket's flight reads them at, the two accelerations from that
 //! module's free-flight equations, and the steps from [`crate::integrator`]. A test holds the
 //! derivative to the one a coasting rocket's flight evaluates at the same state.
 //!
+//! The caller may add loads of its own ([`FreeBodyLoads`]): a force `F` through the center of
+//! mass and a moment `M` about it, in body axes, formed from the state, the air there and the
+//! velocity through it ([`LoadInputs`]). A check case's constant drag or damping coefficient is
+//! such a load; the body has no aerodynamics of its own.
+//!
 //! With the reference point at the center of mass, a constant mass `m` and a constant inertia `I`
-//! about it, and no load but gravity `g` and the Coriolis force, the equations of
+//! about it, and no load but gravity `g`, the Coriolis force and the caller's, the equations of
 //! [`crate::dynamics`] reduce to Newton's and Euler's:
 //!
 //! ```text
-//! a  = g(x) − 2 Ω × v
-//! ω̇ = I⁻¹ (−ω × I ω)
+//! a  = g(x) − 2 Ω × v + q F / m
+//! ω̇ = I⁻¹ (M − ω × I ω)
 //! q̇ = ½ q ⊗ ω
 //! ```
 //!
@@ -30,6 +36,7 @@
 
 use std::ops::ControlFlow;
 
+use hpr_atmos::AirState;
 use hpr_core::attitude::quaternion_derivative;
 use hpr_core::{DMat3, DVec3};
 use serde::{Deserialize, Serialize};
@@ -61,6 +68,66 @@ pub const FREE_BODY_INERTIA_NOT_POSITIVE: &str =
 /// comes before the sample ahead of it; the value is the time, s.
 pub const FREE_BODY_TIME_REFUSED: &str =
     "free body's sample time (s), which must be finite, not before the start and not descending";
+
+/// [`SimError::Domain`]'s `what` for a caller's load with a component that is not finite; the
+/// value is the component.
+pub const FREE_BODY_LOAD_NOT_FINITE: &str =
+    "free body's load (N in the force, N·m in the moment), which must be finite";
+
+/// What a free body's loads are formed from at one state, read as a rocket's flight reads them:
+/// the air and the wind at the center of mass's height above mean sea level.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct LoadInputs {
+    /// The state, its attitude normalized.
+    pub state: State,
+    /// The height above mean sea level, m: the ellipsoidal height less the environment's geoid
+    /// undulation.
+    pub height_msl_m: f64,
+    /// The air there.
+    pub air: AirState,
+    /// The wind there, in the launch frame's East-North-Up axes, m/s.
+    pub wind_enu_m_s: DVec3,
+    /// The velocity through the air in body axes, m/s: the velocity less the wind, turned into
+    /// the body.
+    pub air_velocity_body_m_s: DVec3,
+}
+
+/// A force through the center of mass and a moment about it, in body axes.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+pub struct Loads {
+    /// The force, N.
+    pub force_body_n: DVec3,
+    /// The moment about the center of mass, N·m.
+    pub moment_body_n_m: DVec3,
+}
+
+/// The loads a caller puts on a free body, formed at each state the integrator evaluates. Any
+/// `Fn(&LoadInputs) -> Result<Loads, SimError>` is one; [`NoLoads`] is none.
+pub trait FreeBodyLoads {
+    /// The loads at `inputs`.
+    ///
+    /// # Errors
+    ///
+    /// Whatever the caller's loads refuse; the flight stops with it.
+    fn loads(&self, inputs: &LoadInputs) -> Result<Loads, SimError>;
+}
+
+impl<F: Fn(&LoadInputs) -> Result<Loads, SimError>> FreeBodyLoads for F {
+    fn loads(&self, inputs: &LoadInputs) -> Result<Loads, SimError> {
+        self(inputs)
+    }
+}
+
+/// No load but gravity and the Coriolis force.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct NoLoads;
+
+impl FreeBodyLoads for NoLoads {
+    fn loads(&self, _inputs: &LoadInputs) -> Result<Loads, SimError> {
+        Ok(Loads::default())
+    }
+}
 
 /// A rigid body of fixed mass and inertia.
 ///
@@ -105,6 +172,11 @@ impl From<FreeBody> for FreeBodyData {
 impl FreeBody {
     /// A body of mass `mass_kg` and inertia tensor `inertia_kg_m2` about its center of mass, in
     /// its own axes, kg·m².
+    ///
+    /// The tensor must be symmetric exactly, to the last bit. One computed by parts, such as a
+    /// rocket's inertia moved to its center of mass, is often off by rounding; the caller
+    /// averages it with its transpose first, `(I + Iᵀ)/2`, so that what is flown is what the
+    /// caller chose, not a repair made here.
     ///
     /// # Errors
     ///
@@ -185,17 +257,21 @@ impl FreeBody {
         }
     }
 
-    /// The state's time derivative in `environment`, in [`State::to_array`]'s order: the weight
-    /// and the Coriolis force at the center of mass, as a rocket's flight takes them, through the
-    /// flight's free-motion equations.
+    /// The state's time derivative in `environment` under the caller's `loads`, in
+    /// [`State::to_array`]'s order: the weight and the Coriolis force at the center of mass, as a
+    /// rocket's flight takes them, and the caller's force and moment, through the flight's
+    /// free-motion equations.
     ///
     /// # Errors
     ///
-    /// [`SimError::Domain`] for an attitude quaternion whose norm is zero or not finite;
-    /// [`SimError::Core`] if the Earth model refuses the position.
+    /// [`SimError::Domain`] for an attitude quaternion whose norm is zero or not finite, or with
+    /// [`FREE_BODY_LOAD_NOT_FINITE`] for a load that is not finite; [`SimError::Core`] if the
+    /// Earth model refuses the position; whatever the environment refuses of the air or the wind
+    /// there; and whatever `loads` refuses.
     pub fn derivative(
         &self,
         environment: &Environment,
+        loads: &dyn FreeBodyLoads,
         y: &[f64; STATE_LEN],
     ) -> Result<[f64; STATE_LEN], SimError> {
         let state = State::from_array(y);
@@ -208,6 +284,40 @@ impl FreeBody {
         }
         let q = state.attitude / norm;
         let omega = state.body_rate_rad_s;
+        // The air and the wind where the center of mass is, at the height a rocket's flight
+        // reads them at (`crate::dynamics`).
+        let geodetic = environment
+            .earth
+            .frame()
+            .geodetic_from_enu(state.position_enu_m)?;
+        let height_msl_m = geodetic.height_m - environment.geoid_undulation_m;
+        let air = environment.air_at(height_msl_m)?;
+        let wind_enu_m_s = environment.wind_enu_m_s(height_msl_m)?;
+        let air_velocity_body_m_s = q
+            .conjugate()
+            .mul_vec3(state.velocity_enu_m_s - wind_enu_m_s);
+        let applied = loads.loads(&LoadInputs {
+            state: State {
+                attitude: q,
+                ..state
+            },
+            height_msl_m,
+            air,
+            wind_enu_m_s,
+            air_velocity_body_m_s,
+        })?;
+        if let Some(&value) = applied
+            .force_body_n
+            .to_array()
+            .iter()
+            .chain(&applied.moment_body_n_m.to_array())
+            .find(|component| !component.is_finite())
+        {
+            return Err(SimError::Domain {
+                what: FREE_BODY_LOAD_NOT_FINITE,
+                value,
+            });
+        }
         let gravity_enu = environment.earth.gravity_enu_mps2(state.position_enu_m)?;
         let coriolis_enu = environment
             .earth
@@ -218,9 +328,9 @@ impl FreeBody {
         let (a_body, omega_dot) = free_motion(
             &self.mass_state(),
             omega,
-            [DVec3::ZERO, DVec3::ZERO, weight],
+            [DVec3::ZERO, DVec3::ZERO, weight + applied.force_body_n],
             DMat3::ZERO,
-            [DVec3::ZERO; 3],
+            [DVec3::ZERO, applied.moment_body_n_m, DVec3::ZERO],
         )?;
         let a = q.mul_vec3(a_body);
         let v = state.velocity_enu_m_s;
@@ -242,10 +352,10 @@ impl FreeBody {
         ])
     }
 
-    /// Flies the body in `environment` from `state` at `t0_s` and gives its state at each of
-    /// `times_s`, read from the steps' dense output as a flight's recorder reads its samples. The
-    /// times don't shape the steps, but for the last, where the integration stops. Nothing ends
-    /// the flight early: the ground is not looked for.
+    /// Flies the body in `environment` under the caller's `loads` from `state` at `t0_s` and
+    /// gives its state at each of `times_s`, read from the steps' dense output as a flight's
+    /// recorder reads its samples. The times don't shape the steps, but for the last, where the
+    /// integration stops. Nothing ends the flight early: the ground is not looked for.
     ///
     /// # Errors
     ///
@@ -256,6 +366,7 @@ impl FreeBody {
     pub fn fly(
         &self,
         environment: &Environment,
+        loads: &dyn FreeBodyLoads,
         method: Method,
         t0_s: f64,
         state: State,
@@ -277,6 +388,7 @@ impl FreeBody {
         let mut system = Flight {
             body: self,
             environment,
+            loads,
             times_s,
             states: Vec::with_capacity(times_s.len()),
         };
@@ -303,6 +415,7 @@ impl FreeBody {
 struct Flight<'a> {
     body: &'a FreeBody,
     environment: &'a Environment,
+    loads: &'a dyn FreeBodyLoads,
     times_s: &'a [f64],
     states: Vec<State>,
 }
@@ -322,7 +435,7 @@ impl OdeSystem<STATE_LEN> for Flight<'_> {
         _t_s: f64,
         y: &[f64; STATE_LEN],
     ) -> Result<[f64; STATE_LEN], SimError> {
-        self.body.derivative(self.environment, y)
+        self.body.derivative(self.environment, self.loads, y)
     }
 
     fn accept_step(&mut self, step: &Step<STATE_LEN>) -> ControlFlow<()> {
@@ -430,7 +543,9 @@ mod tests {
             velocity_enu_m_s: evaluation.cg_velocity_enu_m_s,
             ..nose
         };
-        let derivative = body.derivative(&environment, &at_cg.to_array()).unwrap();
+        let derivative = body
+            .derivative(&environment, &NoLoads, &at_cg.to_array())
+            .unwrap();
         let acceleration = DVec3::from_slice(&derivative[3..6]);
         let turning = DVec3::from_slice(&derivative[10..13]);
 
@@ -471,7 +586,14 @@ mod tests {
         };
         let times: Vec<f64> = (0..=300).map(|i| 0.1 * f64::from(i)).collect();
         let states = body
-            .fly(&airless_earth(), Method::default(), 0.0, start, &times)
+            .fly(
+                &airless_earth(),
+                &NoLoads,
+                Method::default(),
+                0.0,
+                start,
+                &times,
+            )
             .unwrap();
         assert_eq!(states.len(), times.len());
         assert_eq!(states[0], start);
@@ -507,6 +629,7 @@ mod tests {
         let states = body
             .fly(
                 &analytic_environment(UniformAir::vacuum(), G),
+                &NoLoads,
                 Method::default(),
                 0.0,
                 start,
@@ -555,7 +678,14 @@ mod tests {
         let end = |rotation| {
             let environment = environment(rotation);
             let states = brick()
-                .fly(&environment, Method::default(), 0.0, start, &[30.0])
+                .fly(
+                    &environment,
+                    &NoLoads,
+                    Method::default(),
+                    0.0,
+                    start,
+                    &[30.0],
+                )
                 .unwrap();
             let height = environment
                 .earth
@@ -597,7 +727,7 @@ mod tests {
         let start = tumbling();
         let environment = airless_earth();
         let fly = |times: &[f64]| {
-            body.fly(&environment, Method::default(), 2.0, start, times)
+            body.fly(&environment, &NoLoads, Method::default(), 2.0, start, times)
                 .unwrap()
         };
         let dense: Vec<f64> = (0..=100).map(|i| 2.0 + 0.05 * f64::from(i)).collect();
@@ -658,6 +788,7 @@ mod tests {
         let environment = airless_earth();
         let refused = |t0: f64, times: &[f64]| match body.fly(
             &environment,
+            &NoLoads,
             Method::default(),
             t0,
             tumbling(),
@@ -673,6 +804,7 @@ mod tests {
         // A start that is not finite is the integrator's to refuse, not a sample time's.
         let start = body.fly(
             &environment,
+            &NoLoads,
             Method::default(),
             f64::NAN,
             tumbling(),
@@ -712,5 +844,145 @@ mod tests {
         let json = serde_json::to_string(&body).unwrap();
         assert!(json.starts_with(r#"{"mass_kg":"#), "{json}");
         assert_eq!(read(&json).unwrap(), body);
+    }
+
+    /// A caller's loads are formed from the air and the wind where a rocket's flight reads them,
+    /// and enter as a force through the center of mass and a moment about it: the acceleration
+    /// gains `q F / m` and the turning `I⁻¹ M`, each to rounding, at a state that tumbles in a
+    /// wind.
+    #[test]
+    fn loads_see_the_air_as_a_flight_does_and_enter_newtons_and_eulers_equations() {
+        use std::cell::Cell;
+
+        // The 1976 atmosphere, which changes with height, and a geoid 17 m above the
+        // ellipsoid: air read at the ellipsoidal height, or with the undulation's sign turned,
+        // is other air.
+        let undulation_m = 17.0;
+        let wind = DVec3::new(-6.0, 4.0, 0.0);
+        let environment = Environment::standard(site())
+            .unwrap()
+            .with_wind(
+                ConstantWind::new(wind.length(), wind.x.atan2(wind.y) + std::f64::consts::PI)
+                    .unwrap(),
+            )
+            .with_geoid_undulation_m(undulation_m);
+        let body = brick();
+        let state = tumbling();
+        let force = DVec3::new(0.7, -1.1, 2.3);
+        let moment = DVec3::new(0.002, 0.003, -0.001);
+        let seen = Cell::new(None);
+        let loads = |inputs: &LoadInputs| {
+            seen.set(Some(*inputs));
+            Ok(Loads {
+                force_body_n: force,
+                moment_body_n_m: moment,
+            })
+        };
+        let y = state.to_array();
+        let loaded = body.derivative(&environment, &loads, &y).unwrap();
+        let free = body.derivative(&environment, &NoLoads, &y).unwrap();
+
+        let inputs = seen.get().unwrap();
+        let q = state.unit_attitude();
+        let height = environment
+            .earth
+            .frame()
+            .geodetic_from_enu(state.position_enu_m)
+            .unwrap()
+            .height_m;
+        assert_eq!(inputs.height_msl_m, height - undulation_m);
+        let density = |at_m: f64| environment.atmosphere.air(at_m).unwrap().air.density_kg_m3;
+        assert_eq!(inputs.air.density_kg_m3, density(height - undulation_m));
+        for wrong in [height, height + undulation_m] {
+            assert!((density(wrong) / density(height - undulation_m) - 1.0).abs() > 1e-4);
+        }
+        assert!(
+            (inputs.wind_enu_m_s - wind).length() < 1e-12,
+            "{:?}",
+            inputs.wind_enu_m_s
+        );
+        let through_air = q.conjugate().mul_vec3(state.velocity_enu_m_s - wind);
+        assert!((inputs.air_velocity_body_m_s - through_air).length() < 1e-12);
+        assert_eq!(inputs.state.body_rate_rad_s, state.body_rate_rad_s);
+
+        let gained = DVec3::from_slice(&loaded[3..6]) - DVec3::from_slice(&free[3..6]);
+        let expected = q.mul_vec3(force) / body.mass_kg();
+        assert!(
+            (gained - expected).length() < 1e-12,
+            "{gained:?} vs {expected:?}"
+        );
+        let turned = DVec3::from_slice(&loaded[10..13]) - DVec3::from_slice(&free[10..13]);
+        let expected = body.inertia_kg_m2().inverse() * moment;
+        assert!(
+            (turned - expected).length() < 1e-9 * expected.length(),
+            "{turned:?} vs {expected:?}"
+        );
+        // The position and attitude rates don't depend on the loads.
+        assert_eq!(loaded[0..3], free[0..3]);
+        assert_eq!(loaded[6..10], free[6..10]);
+    }
+
+    /// A moment `M = −c ω` on a body of equal moments `J` damps its spin as `ω₀ e^(−c t / J)`,
+    /// with no gyroscopic term to couple the axes: the integrator carries the caller's moment
+    /// through a 5 s decay to 1e-7 of the start.
+    #[test]
+    fn a_damped_spin_decays_as_the_exponential() {
+        let j = 0.05;
+        let c = 0.02;
+        let body = FreeBody::new(1.0, DMat3::from_diagonal(DVec3::splat(j))).unwrap();
+        let damping = |inputs: &LoadInputs| {
+            Ok(Loads {
+                force_body_n: DVec3::ZERO,
+                moment_body_n_m: inputs.state.body_rate_rad_s * -c,
+            })
+        };
+        let start = State {
+            body_rate_rad_s: DVec3::new(1.0, -2.0, 0.5),
+            ..tumbling()
+        };
+        let times = [1.0, 2.5, 5.0];
+        let states = body
+            .fly(
+                &analytic_environment(UniformAir::vacuum(), 9.806_65),
+                &damping,
+                Method::default(),
+                0.0,
+                start,
+                &times,
+            )
+            .unwrap();
+        for (time, state) in times.iter().zip(&states) {
+            let expected = start.body_rate_rad_s * (-c * time / j).exp();
+            let gap = (state.body_rate_rad_s - expected).length();
+            assert!(
+                gap < 1e-7 * start.body_rate_rad_s.length(),
+                "{time} s: {gap:e}"
+            );
+        }
+        // The decay is real: the spin fell to e^(−2) of its start.
+        assert!(states[2].body_rate_rad_s.length() < 0.14 * start.body_rate_rad_s.length());
+    }
+
+    /// A load that is not finite stops the derivative, naming the component.
+    #[test]
+    fn a_load_that_is_not_finite_is_refused() {
+        let body = brick();
+        let bad = |_: &LoadInputs| {
+            Ok(Loads {
+                force_body_n: DVec3::ZERO,
+                moment_body_n_m: DVec3::new(0.0, f64::NAN, 0.0),
+            })
+        };
+        let error = body
+            .derivative(&airless_earth(), &bad, &tumbling().to_array())
+            .unwrap_err();
+        assert!(
+            matches!(
+                error,
+                SimError::Domain { what, value }
+                    if what == FREE_BODY_LOAD_NOT_FINITE && value.is_nan()
+            ),
+            "{error:?}"
+        );
     }
 }

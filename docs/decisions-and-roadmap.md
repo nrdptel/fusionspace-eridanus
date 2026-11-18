@@ -384,6 +384,7 @@ until someone rewrites it in plainer words.
 | [ADR-353: NASA's check cases 1 and 2: both differences past the codes' spread, traced][adr-353] | A free body of the report's mass and inertia flies NASA/TM-2015-218675's check cases 1 and 2 on HPR Sim's gravity, Coriolis force, rigid-body equations and default integrator. In case 1 its altitude ends 19.51 mm (0.77 in) below the codes', 137 times their spread: WGS 84's normal gravity holds the terms past J2 that the codes' gravitation drops, and that accounts for all but 0.1364 mm (0.0054 in). In case 2 its inertial body rates differ by up to 0.01633 deg/s, 12 to 16 times the spread: the rotational equations leave the Earth's rate out, and that accounts for all but 0.001005 deg/s. Both remainders are inside the spread. |  |
 | [ADR-354: The search index is held to mdBook's own bar, not to its weight on 2026-11-10][adr-354] | The site's search index was held to its weight on 2026-11-10, 1,675,059 bytes compressed. The file stores every section's text, so that limit held the guide to the words it had that week: a week later main had 2,684 bytes of room, about 920 words. The limit is now 10,000,000 bytes of the file, the size past which mdBook itself calls an index very large. That is room for about 139,000 more words; [#1522](https://github.com/nrdptel/fusionspace-eridanus/issues/1522) decides what follows. |  |
 | [ADR-355: Withdraw NASA's check cases 1 and 2 to land them again in order][adr-355] | [M1.14b3](#m1-14b3), the free body flown against NASA's check cases 1 and 2, merged in #1523 before the captures of the pages it changed were looked at, as [ADR-282][adr-282] requires before a merge. A look done right after the merge found nothing cut at an edge. As with [ADR-306][adr-306], #1523 is reverted and one pull request lands it again with every check run before its merge. [M1.14b3](#m1-14b3)'s roadmap entry is open until then; [ADR-353][adr-353] and [ADR-354][adr-354] stay, withdrawn with it. |  |
+| [ADR-356: NASA's check cases 3 and 6 to 10: the test's loads, and the codes' own air][adr-356] | The free body flies NASA/TM-2015-218675's check cases 3 and 6 to 10 under loads the test applies: case 3's damping moments, and the sphere's constant drag along its velocity through the air. Case 3's inertial rates differ from the kept codes past their spread, and the Earth's rate left out of the rotational equations accounts for all but 0.003176, 0.001123 and 0.0007793 deg/s, inside it. The sphere's positions in cases 6 to 8 differ from SIM 1 past the spread; the gravity past J2 with each code's own air density brings them inside it, to 77.57 to 77.68 mm (3.05 to 3.06 in), without explaining SIM 1's. Cases 9 and 10 are within the spread. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -651,7 +652,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b1"></a>[M1.14b1][done-1] | The Basic Finner's normal force against DREV's range | done |
 | <a id="m1-14b2"></a>[M1.14b2][done-1] | The Basic Finner's drag and pitch damping against DREV's range | done |
 | <a id="m1-14b3"></a>[M1.14b3][done-1] | NASA's check cases 1 and 2 | done |
-| <a id="m1-14b4"></a>[M1.14b4][phase-1] | NASA's check cases 3 and 6 to 10 | not yet done |
+| <a id="m1-14b4"></a>[M1.14b4][done-1] | NASA's check cases 3 and 6 to 10 | done |
 | <a id="m1-14b5"></a>[M1.14b5][phase-1] | Tip-off, measured with RocketPy's | not yet done |
 | <a id="m1-14b6"></a>[M1.14b6][phase-1] | Wind from the GPS descent, against the reanalysis | not yet done |
 | <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty for each real flight | not yet done |
@@ -1437,6 +1438,7 @@ is the milestone that added or will add that test.
 [adr-353]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
 [adr-354]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0354-the-search-index-is-held-to-mdbooks-own-bar.md
 [adr-355]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md
+[adr-356]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

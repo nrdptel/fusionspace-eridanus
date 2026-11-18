@@ -14,6 +14,7 @@
 [flight]: ../physics/flight.md#a-free-body-against-nasas-check-cases
 [i-759]: https://github.com/nrdptel/fusionspace-eridanus/issues/759
 [i-1521]: https://github.com/nrdptel/fusionspace-eridanus/issues/1521
+[i-1524]: https://github.com/nrdptel/fusionspace-eridanus/issues/1524
 
 **Context.** [M1.14b3][m1-14b3] flies two of NASA's six-degree-of-freedom check cases
 ([the note][nesc-note]): case 1, a sphere dropped with no drag from 30,000 ft, and case 2, a
@@ -39,7 +40,8 @@ Every measured figure below is in [the committed report][report] ([as data][repo
 2. **The spread, as computed.** The spread of a quantity is the largest difference between
    any two codes at a time every code's file has (the files share a 0.1 s grid; one code's is
    at 0.01 s). The code left out is the one whose leaving cuts the spread most, and only when
-   that cuts it by more than half. With three codes or fewer none is left out.
+   that cuts it by more than half. With three codes or fewer none is left out (since
+   [ADR-356](0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md): with two).
    - Case 1, altitude, six codes: 0.6351 mm over all; SIM 1 left out; 0.1424 mm over the rest.
      SIM 1's own difference from HPR Sim is −20.00 mm.
    - Case 2, inertial rates, five codes: 0.003015, 0.004742 and 0.001152 deg/s in roll, pitch
@@ -120,5 +122,7 @@ narrowed and no tolerance is set. HPR Sim's gravity and rotational equations are
 were: the increment adds a reference and two measured differences. ADR-011's choice stands
 until [#1521][i-1521] is worked. [The page on rigid-body flight][flight] gives the comparison
 to a reader.
+
+**Amended 2026-11-17 ([ADR-356](0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md), [#1524][i-1524]).** The spread rule may leave a code out of three, where it had needed four or more: two must remain, and ADR-351's *done when* holds no other condition. No figure here moves.
 
 **Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) and landed again unchanged.

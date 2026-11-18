@@ -73,7 +73,7 @@ pub use flight::{
     EventKind, FlightEvent, FlightResult, FlightSettings, Simulation, Termination, UserEvent,
 };
 pub use flutter::{FlutterMargin, FlutterPanel};
-pub use free_body::FreeBody;
+pub use free_body::{FreeBody, FreeBodyLoads, LoadInputs, Loads, NoLoads};
 pub use histories::{MassHistory, ThrustHistory};
 pub use integrator::{
     Adaptive, Advance, DEFAULT_STEP_LIMIT, IntegrationError, Integrator, Method, OdeSystem,
