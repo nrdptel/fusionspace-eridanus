@@ -121,20 +121,23 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
        page gives the equation, its source and a worked example; and a test holds the turning
        acceleration at the instant the forward guide leaves, on a body of fixed mass with no
        thrust and no air, to $m g r \cos\theta / (I + m r^2)$ within 1e-9 of its size, with
-       $r$ from the guide to the center of mass, $I$ the pitch inertia about the center of
-       mass and $\theta$ the rail's angle above the horizontal;
-     - HPR Sim flies each of the report's thirteen designs from the report's rail and site, in
-       still air and in the report's crosswind, guided as today and with the model; a
-       committed report, held by a check, sets beside RocketPy's for each of the 26: the pitch
-       rate and the angle off the rail's axis where the last guide leaves, and what the model
-       moves from the guided flight in the apogee and, as a vector, in the landing point;
-     - on each of the 26, HPR Sim's pitch rate differs from RocketPy's by at most 10% of
-       RocketPy's or 0.1 deg/s, whichever is larger, and its angle by at most 10% of
-       RocketPy's or 0.005°, whichever is larger; the two codes' apogee moves differ by at
-       most 0.2% of RocketPy's guided apogee; and the two codes' landing-point moves, as
-       vectors, differ by at most 1% of RocketPy's guided apogee;
-     - a figure past its bar is not met: an ADR gives its cause with its sign and size, the
-       report keeps it visible, and no bar is widened;
+       $r$ the distance along the rocket's axis from the last guide to the center of mass,
+       $I$ the inertia about the center of mass for a turn in the rail's vertical plane, and
+       $\theta$ the rail's angle above the horizontal;
+     - HPR Sim flies each of the report's thirteen designs from the report's rail and site, on
+       the report's drag coefficient, in still air and in the report's crosswind, guided as
+       today and with the model; a committed report, held by a check, sets beside RocketPy's
+       for each of the 26: the pitch rate and the angle off the rail's axis where the last
+       guide leaves, each as its nose-down and nose-right parts, and what the model moves from
+       the guided flight in the apogee and, as a vector, in the landing point;
+     - on each of the 26, HPR Sim's pitch rate differs from RocketPy's, as a vector of those
+       two parts, by at most 10% of RocketPy's rate or 0.1 deg/s, whichever is larger, and
+       its angle, likewise, by at most 10% of RocketPy's angle or 0.005°, whichever is
+       larger; the two codes' apogee moves differ by at most 0.2% of RocketPy's guided
+       apogee; and the two codes' landing-point moves, as vectors, differ by at most 1% of
+       RocketPy's guided apogee;
+     - M1.14b9 is not met while any figure is past its bar: an ADR then gives the miss's
+       cause with its sign and size, the report keeps it visible, and no bar is widened;
      - and the model is off unless a flight asks for it: every other committed report
        reproduces unchanged.
    - **M1.14b10 Tip-off in every flight that has two guides.** *Done when:* a flight of a
@@ -146,8 +149,7 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      (OpenRocket, RocketPy as released) flies with it off and says so; a test pins which way a
      landing point errs without the phase, with a mutation probe; and if the real flights'
      mean absolute apogee error rises with the phase on, an ADR measures the rise and its
-     cause before the default changes, or keeps the phase opt-in with that measurement on the
-     flight page.
+     cause before the default changes. M1.14b10 is not met while the phase is opt-in.
 
 5. **Why the bars of M1.14b9 are these.** They are choices made here, set against the plan's
    1% and the report's figures, not derived.
@@ -158,7 +160,8 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      A model that moved nothing would miss it on four flights (−0.414%, −0.345%, −0.345% and
      −0.249%).
    - **The pitch rate's and the angle's, 10%,** hold the state the phase hands to free
-     flight. No flight here varies the rate alone, so this record does not show what 10% of a
+     flight. Each is compared as its nose-down and nose-right parts, so a turn the wrong way
+     misses its bar. No flight here varies the rate alone, so this record does not show what 10% of a
      rate is worth downrange; the landing point's bar holds that. The floors keep a ratio
      from deciding where there is next to nothing to compare: the vertical rail's still-air
      flight is the one under 0.1 deg/s.
