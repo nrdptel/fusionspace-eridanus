@@ -293,38 +293,64 @@ fn reading_of(flights: &[Value], key: &str) -> Result<Value, String> {
 }
 
 /// How far apart the two normal forces are where the last guide leaves in the crosswind, and what
-/// that does to the turn: the least and greatest ratio of HPR Sim's own normal-force coefficient
-/// to RocketPy's, and how much farther nose-right (downwind) the rocket turns on HPR Sim's own
-/// normal force than on RocketPy's, both flown by HPR Sim, so the phase is the same in both.
+/// that does to the turn, both flown by HPR Sim so the phase is the same in both. The turn
+/// follows the force's moment about the last guide, so the record is of three ratios, HPR Sim's
+/// own over RocketPy's: the normal-force coefficient's, the moment's and the nose-right turning
+/// rate's. It also counts the flights where the force acts ahead of the guide in both (the nose
+/// turns downwind) and behind it in both (upwind), and how the rate differs in signed terms.
 fn crosswind_cause(flights: &[Value]) -> Result<Value, String> {
     let (recorded, own) = (FORCES[0].0, FORCES[1].0);
-    let (mut ratios, mut rates) = (Vec::new(), Vec::new());
+    let (mut coefficients, mut moments, mut rates, mut more) =
+        (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+    let (mut ahead, mut behind, mut downwind_farther, mut upwind_less_far) = (0, 0, 0, 0);
     for flight in flights
         .iter()
         .filter(|flight| flight["wind"] == "crosswind")
     {
         let release = |key: &str| &flight[key]["tip_off"]["last_guide_leaves"];
-        ratios.push(
-            number(release(own), "normal_force_coefficient")?
-                / number(release(recorded), "normal_force_coefficient")?,
-        );
-        rates.push(
-            number(release(own), "pitch_rate_nose_right_deg_s")?
-                - number(release(recorded), "pitch_rate_nose_right_deg_s")?,
-        );
+        let pair = |figure: &str| -> Result<(f64, f64), String> {
+            Ok((
+                number(release(own), figure)?,
+                number(release(recorded), figure)?,
+            ))
+        };
+        let (coefficient, theirs) = pair("normal_force_coefficient")?;
+        coefficients.push(coefficient / theirs);
+        let (moment, their_moment) = pair("pivot_moment_m")?;
+        moments.push(moment / their_moment);
+        let (rate, their_rate) = pair("pitch_rate_nose_right_deg_s")?;
+        rates.push(rate / their_rate);
+        more.push(rate - their_rate);
+        ahead += usize::from(moment > 0.0 && their_moment > 0.0);
+        behind += usize::from(moment < 0.0 && their_moment < 0.0);
+        downwind_farther += usize::from(rate > their_rate && their_rate > 0.0);
+        upwind_less_far += usize::from(their_rate < rate && rate < 0.0);
     }
     let least = |values: &[f64]| values.iter().copied().fold(f64::INFINITY, f64::min);
     let greatest = |values: &[f64]| values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    if ratios.is_empty() || ratios.iter().chain(&rates).any(|x| !x.is_finite()) {
+    let every = coefficients
+        .iter()
+        .chain(&moments)
+        .chain(&rates)
+        .chain(&more);
+    if coefficients.is_empty() || every.clone().any(|x| !x.is_finite()) {
         return Ok(Value::Null);
     }
     Ok(json!({
-        "flights": ratios.len(),
-        "coefficient_ratio_least": least(&ratios),
-        "coefficient_ratio_greatest": greatest(&ratios),
-        "farther_nose_right": rates.iter().filter(|&&rate| rate > 0.0).count(),
-        "nose_right_rate_more_least_deg_s": least(&rates),
-        "nose_right_rate_more_greatest_deg_s": greatest(&rates),
+        "flights": coefficients.len(),
+        "coefficient_ratio_least": least(&coefficients),
+        "coefficient_ratio_greatest": greatest(&coefficients),
+        "moment_ratio_least": least(&moments),
+        "moment_ratio_greatest": greatest(&moments),
+        "nose_right_rate_ratio_least": least(&rates),
+        "nose_right_rate_ratio_greatest": greatest(&rates),
+        "force_ahead_of_the_guide_in_both": ahead,
+        "force_behind_the_guide_in_both": behind,
+        "turning_downwind_farther": downwind_farther,
+        "turning_upwind_less_far": upwind_less_far,
+        "farther_nose_right": more.iter().filter(|&&rate| rate > 0.0).count(),
+        "nose_right_rate_more_least_deg_s": least(&more),
+        "nose_right_rate_more_greatest_deg_s": greatest(&more),
     }))
 }
 
@@ -619,7 +645,8 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     .map_err(|e| e.to_string())?;
     writeln!(
         out,
-        "- **Held:** {}; {}.",
+        "- **Held:** {}; {}. **Not held:** the crosswind flights on HPR Sim's own normal force, \
+         {} of {} inside every bar.",
         if reading["held_on_the_recorded_normal_force"] == true {
             "every figure on RocketPy's normal force is inside its bar"
         } else {
@@ -629,7 +656,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             "every still-air figure on HPR Sim's own normal force is inside its bar"
         } else {
             "a still-air figure on HPR Sim's own normal force is past its bar"
-        }
+        },
+        reading[own]["crosswind"]["inside_every_bar"],
+        reading[own]["crosswind"]["flights"],
     )
     .map_err(|e| e.to_string())?;
 
@@ -644,7 +673,8 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          coefficient each model gives there, and that force's moment about the last guide for \
          each unit of dynamic pressure and reference area (the coefficient times its arm ahead \
          of the guide, negative when the force acts behind it). The moment is what turns the \
-         nose downwind, and the nose-right turning rate follows it.\n\n\
+         nose: downwind where the force acts ahead of the guide, upwind where it acts behind. \
+         The nose-right turning rate follows it.\n\n\
          | Rocket | Speed | Angle of attack | Normal force, HPR Sim's own | RocketPy's | Moment \
          about the guide, HPR Sim's own | RocketPy's | Nose-right rate, on its own | on \
          RocketPy's | RocketPy |\n\
@@ -676,14 +706,27 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     if !cause.is_null() {
         writeln!(
             out,
-            "\nOn these {} flights HPR Sim's own normal-force coefficient is {} to {} times \
-             RocketPy's. Flown by HPR Sim on each, the rocket leaves its last guide turning \
-             farther nose-right on HPR Sim's own normal force than on RocketPy's in {} of the \
-             {}, by {} to {} deg/s. Which of the two forces is nearer a real rocket's at these \
-             angles, no reference here says.",
+            "\nThe turn follows the moment, not the force's size alone. On these {} flights HPR \
+             Sim's own normal-force coefficient is {} to {} times RocketPy's, and its moment \
+             about the last guide {} to {} times. Flown by HPR Sim on each, the nose-right \
+             turning rate on its own normal force is {} to {} times that on RocketPy's. On {} \
+             the force acts ahead of the guide on both, and on {} the nose turns downwind, \
+             farther on HPR Sim's own. On {} it acts behind the guide on both, and on {} the \
+             nose turns upwind, less far on HPR Sim's own, whose force acts nearer the guide. \
+             In signed terms the rate is farther nose-right on HPR Sim's own in {} of the {}, by \
+             {} to {} deg/s. Which of the two forces is nearer a real rocket's at these angles, \
+             no reference here says.",
             cause["flights"],
             fixed(number(cause, "coefficient_ratio_least")?, 2),
             fixed(number(cause, "coefficient_ratio_greatest")?, 2),
+            fixed(number(cause, "moment_ratio_least")?, 2),
+            fixed(number(cause, "moment_ratio_greatest")?, 2),
+            fixed(number(cause, "nose_right_rate_ratio_least")?, 2),
+            fixed(number(cause, "nose_right_rate_ratio_greatest")?, 2),
+            cause["force_ahead_of_the_guide_in_both"],
+            cause["turning_downwind_farther"],
+            cause["force_behind_the_guide_in_both"],
+            cause["turning_upwind_less_far"],
             cause["farther_nose_right"],
             cause["flights"],
             fixed(number(cause, "nose_right_rate_more_least_deg_s")?, 3),
@@ -948,13 +991,38 @@ mod tests {
         let turned = super::reading(&flights).unwrap();
         assert_eq!(turned["held_in_still_air_on_its_own_normal_force"], false);
         assert_eq!(turned["held_on_the_recorded_normal_force"], true);
-        // The cause's size is the committed flights': 13 crosswind flights, HPR Sim's own
-        // normal force the larger on every one, the nose turning farther downwind on every one.
+        // The cause's size and sign are the committed flights': 13 crosswind flights, HPR
+        // Sim's own normal force the larger on every one. The turn follows the force's moment
+        // about the guide: on 10 the force acts ahead of the guide and the nose turns downwind,
+        // farther on HPR Sim's own; on 3 it acts behind and the nose turns upwind, less far.
         let cause = &reading["crosswind_normal_force"];
         assert_eq!(cause["flights"], 13);
         assert_eq!(cause["farther_nose_right"], 13);
         assert!(cause["coefficient_ratio_least"].as_f64().unwrap() > 1.2);
         assert!(cause["coefficient_ratio_greatest"].as_f64().unwrap() < 2.8);
+        assert_eq!(
+            (
+                &cause["force_ahead_of_the_guide_in_both"],
+                &cause["turning_downwind_farther"],
+                &cause["force_behind_the_guide_in_both"],
+                &cause["turning_upwind_less_far"],
+            ),
+            (&json!(10), &json!(10), &json!(3), &json!(3))
+        );
+        // The rate's ratio keeps to the moment's, far from the coefficient's: each end within
+        // a third of the moment's end.
+        for end in ["least", "greatest"] {
+            let moment = cause[format!("moment_ratio_{end}")].as_f64().unwrap();
+            let rate = cause[format!("nose_right_rate_ratio_{end}")]
+                .as_f64()
+                .unwrap();
+            assert!(
+                (rate / moment - 1.0).abs() < 1.0 / 3.0,
+                "{end}: {rate} against {moment}"
+            );
+        }
+        assert!(cause["moment_ratio_least"].as_f64().unwrap() < 0.5);
+        assert!(cause["moment_ratio_greatest"].as_f64().unwrap() > 15.0);
         let none = super::reading(&[]).unwrap();
         assert_eq!(none["crosswind_normal_force"], Value::Null);
         assert_eq!(none["held_on_the_recorded_normal_force"], false);

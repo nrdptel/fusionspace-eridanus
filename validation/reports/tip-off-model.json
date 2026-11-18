@@ -3494,8 +3494,16 @@
       "coefficient_ratio_least": 1.2303481468060138,
       "farther_nose_right": 13,
       "flights": 13,
+      "force_ahead_of_the_guide_in_both": 10,
+      "force_behind_the_guide_in_both": 3,
+      "moment_ratio_greatest": 15.201941400815281,
+      "moment_ratio_least": 0.3512762626918582,
       "nose_right_rate_more_greatest_deg_s": 4.010575091562748,
-      "nose_right_rate_more_least_deg_s": 0.13637592853127187
+      "nose_right_rate_more_least_deg_s": 0.13637592853127187,
+      "nose_right_rate_ratio_greatest": 16.246416437260326,
+      "nose_right_rate_ratio_least": 0.2436131896221509,
+      "turning_downwind_farther": 10,
+      "turning_upwind_less_far": 3
     },
     "held_in_still_air_on_its_own_normal_force": true,
     "held_on_the_recorded_normal_force": true,

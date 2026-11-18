@@ -1,7 +1,7 @@
 # ADR-358: M1.14b9 in two: the tip-off phase on RocketPy's normal force first (2026-11-18)
 
 - **Status:** accepted; splits [M1.14b9][m1-14b9] ([ADR-357][adr-357], decision 4) into [M1.14b11][m1-14b11] and [M1.14b12][m1-14b12], each with its own *done when*, M1.14b9's *done when* whole across the two; M1.14b12 waits for [M1.14e][m1-14e], and [M1.14b10][m1-14b10] comes next
-- **Summary:** HPR Sim's tip-off phase agrees with RocketPy's on all 26 flights when both fly RocketPy's normal force, and on the 13 still-air flights on HPR Sim's own. On its own normal force the 13 crosswind flights are past the bars, because the two codes' normal forces differ by 1.23 to 2.71 times at 9.7° to 25.6° angle of attack. M1.14b9 stays open on those 13.
+- **Summary:** HPR Sim's tip-off phase agrees with RocketPy's on all 26 flights when both fly RocketPy's normal force, and on the 13 still-air flights on HPR Sim's own. On its own normal force the 13 crosswind flights are past the bars, because the two codes' normal forces differ at 9.7° to 25.6° angle of attack: HPR Sim's coefficient is 1.23 to 2.71 times RocketPy's, and its moment about the last guide 0.35 to 15.20 times. M1.14b9 stays open on those 13.
 
 [m1-14b9]: ../decisions-and-roadmap.md#m1-14b9
 [m1-14b10]: ../decisions-and-roadmap.md#m1-14b10
@@ -77,11 +77,17 @@ and what is not. Every figure below is in [the committed report][report]
    - **Size.** There HPR Sim's own normal-force coefficient is 1.23 to 2.71 times RocketPy's.
      RocketPy's is its slope at the Mach number times the angle of attack, at any angle. HPR
      Sim's adds [body lift][body-lift], which grows with the angle, to the nose's and the
-     fins'. How much of the difference is body lift is not split out here. The force's moment
-     about the last guide differs more, since the center of pressure differs too: for Bella
-     Lui +2.44 m against +0.16 m for each unit of dynamic pressure and reference area.
-   - **Sign.** On all 13, HPR Sim on its own normal force leaves the last guide turning
-     farther nose-right, downwind, than on RocketPy's: by 0.136 to 4.011 deg/s.
+     fins'. How much of the difference is body lift is not split out here. The turn follows
+     the force's moment about the last guide, and the center of pressure differs too. HPR
+     Sim's moment is 0.35 to 15.20 times RocketPy's: for Bella Lui +2.44 m against +0.16 m
+     for each unit of dynamic pressure and reference area. The nose-right turning rate on HPR
+     Sim's own normal force is 0.24 to 16.25 times that on RocketPy's.
+   - **Sign.** On 10 of the 13 the force acts ahead of the last guide on both normal forces,
+     and the nose turns downwind, farther on HPR Sim's own. On 3 (NDRT 2020, Astra and
+     Andromeda) it acts behind the guide on both, and the nose turns upwind, less far on HPR
+     Sim's own, whose force acts nearer the guide. In signed terms HPR Sim on its own normal
+     force leaves the last guide turning farther nose-right on all 13, by 0.136 to
+     4.011 deg/s.
    - **What separates the cause from the phase.** The same 13 flights, in the same code, with
      the same phase, differ in the normal force alone, and that takes the turning rate's
      difference from RocketPy's from as much as 4.010 deg/s to at most 0.003 deg/s.
@@ -115,8 +121,8 @@ and what is not. Every figure below is in [the committed report][report]
   flies without it and reproduces unchanged.
 - The oracle's report ([RocketPy's side][reference]) now records what each flight carried: the
   normal force, the dry mass, the reference radius, the motor and the parachutes. HPR Sim's
-  flights refuse a design whose dry mass, reference area or motor differs from what RocketPy
-  flew.
+  flights refuse a design whose dry mass, reference area, motor or distance between its last
+  two guides differs from what RocketPy flew.
 
 **What this leaves open.**
 
@@ -126,6 +132,9 @@ and what is not. Every figure below is in [the committed report][report]
   force at these angles nearer a measured one than RocketPy's line, bars against RocketPy's
   crosswind figures would hold HPR Sim to a force that reference rejects. A record would then
   have to say so, with that reference. This record does not pre-judge it.
+- **M1.14b11's *done when* was written after the measurement,** to name the flights the bars
+  hold on. That is why M1.14b9 keeps its own words and stays open, and why the flights the bars
+  do not hold on are an increment of their own.
 - **The pivot is on the rocket's axis,** at the middle of the last guide. A real button sits a
   body radius off the axis and has play in its slot; a lug slides on a rod. Neither code models
   that.
