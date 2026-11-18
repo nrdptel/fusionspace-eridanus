@@ -44,7 +44,7 @@ rail events, where the distance travelled from the start reaches `effective_2rl`
 
 One rocket and wind fly with a changed recovery. NDRT 2020's rail is vertical, and in still air
 the rocket falls tail-first through its apogee parachute's 1 s lag; RocketPy's integration of
-that fall does not finish (its steps shrink to 1e-10 s about 0.63 s past apogee). Those three
+that fall does not finish (the watchdog below stops a flight after ten minutes). Those three
 flights open that parachute at apogee with no lag, and the output says so (`declared`).
 
 `cargo xtask tip-off` runs it both ways and writes `validation/reports/tip-off.json` and `.md`;
@@ -187,7 +187,7 @@ WATCHDOG_S = 600
 
 # The one declared change to an example's recovery. On a vertical rail in still air the rocket
 # falls tail-first through the apogee parachute's lag, and RocketPy's integration of that fall
-# does not finish: its steps shrink to 1e-10 s about 0.63 s past apogee. The flights of that
+# does not finish; the watchdog above would stop it after ten minutes. The flights of that
 # rocket and wind (the phase off, on, and guided alike) open the apogee parachute with no lag.
 NO_LAG = (
     "the parachute that opens at apogee opens with no lag: on a vertical rail in still air "

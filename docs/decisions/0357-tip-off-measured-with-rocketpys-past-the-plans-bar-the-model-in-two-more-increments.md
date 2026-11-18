@@ -25,8 +25,7 @@ it is off the rail, and gravity and the wind turn it about that guide: tip-off. 
 rule: if the phase moves any apogee by more than 1%, or any landing point by more than 1% of the
 apogee, HPR Sim gains a tip-off model held to RocketPy's; otherwise the flight page states the
 cost. Every measured figure below is in [the committed report][report] ([as data][report-json]),
-which `cargo xtask tip-off --check` holds in the gate's `refs` step, unless it is marked as a
-reading made for this record.
+which `cargo xtask tip-off --check` holds in the gate's `refs` step.
 
 **Decision.**
 
@@ -60,8 +59,8 @@ reading made for this record.
      lands with the phase on.
    - **One declared change.** NDRT 2020's rail is vertical. In still air the rocket falls
      tail-first through its apogee parachute's 1 s lag, and RocketPy's integration of that fall
-     does not finish: in a reading made for this record its steps shrank to about 1e-10 s,
-     0.63 s past apogee. Those three flights open that parachute at apogee with no lag. The
+     does not finish: the script's watchdog stops a flight that runs past ten minutes. Those
+     three flights open that parachute at apogee with no lag. The
      report says so beside them. The change acts after apogee, on a flight that goes straight
      up and down: the three land within 6 mm (0.2 in) of each other.
 
@@ -173,6 +172,6 @@ reading made for this record.
 - **One drag, one wind.** The thirteen fly a constant drag coefficient and a wind that does
   not change with height. The moves on a rocket's own drag, or in a sheared wind, are not
   measured.
-- **The descent RocketPy does not finish** (decision 2) is RocketPy's, in a tail-first fall
-  that its small-angle aerodynamics hold exactly on axis. It is recorded here and in the
-  oracle script; nothing in HPR Sim rests on it.
+- **The descent RocketPy does not finish** (decision 2) is RocketPy's own, in a tail-first
+  fall; its cause was not traced. It is recorded here and in the oracle script, and nothing
+  in HPR Sim rests on it.
