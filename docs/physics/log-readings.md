@@ -1124,10 +1124,12 @@ range the bounds were checked over, or catches a track that isn't what it says:
   (`sampled_too_fast`). A clock a part in a thousand faster than 500 a second still reads, as a
   logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
   second, is withheld as too fast. The check is on the median interval, so a burst of samples
-  closer together can still sit among them. A slope's fit then reads its window at most at twice
-  the samples it holds at 500 a second, evenly spaced, and the descent rates' running median
-  sizes its window at no faster than 500 a second. A log sampled no faster is read whole, and a
-  burst costs time in proportion to its samples, not to their square.
+  closer together can still sit among them. A slope's fit then reads at most twice its window's
+  steps at 500 a second, plus one (501 for the 0.5 s top-speed fit), taking every second or third
+  sample, or as many as that needs. The descent rates' running median sizes its window at no
+  faster than 500 a second. A log sampled no faster is read whole. A burst in the climb, the
+  descent or just before landing then costs time in proportion to its samples, not to their
+  square.
 - **Its step is no coarser than 10 m (33 ft), or 100 Pa for a pressure** (`step_too_coarse`), the
   coarsest checked on the tuning set. The coarsest the readers meet are a MARSA's 8.8 m (29 ft)
   heights and an ARTS2's 92 Pa raw counts.

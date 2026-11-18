@@ -8,7 +8,7 @@
 //! [`MAIN_TOLERANCE_SHARE`] of it, or [`MAIN_TOLERANCE_M_S`] more if that is more, is the main's
 //! descent, and its first sample the opening. The run is walked on the rate's running median over
 //! [`DESCENT_TAIL_S`], or twice the fit where that is longer, in samples at the descent's median
-//! interval and never more than it holds, so a spike of the fit's noise on a long leg doesn't end
+//! interval, held to no less than [`MIN_INTERVAL_S`], and never more than it holds, so a spike of the fit's noise on a long leg doesn't end
 //! it, as a step, the opening, stays where it is under a median. Every rate is
 //! compared at the ground's density, scaled by `exp(−h/2H)` for its height `h` above the pad with
 //! the least scale height `H`, [`DENSITY_SCALE_HEIGHT_M`]: a canopy falls as the density to the

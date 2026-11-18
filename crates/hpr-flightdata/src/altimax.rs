@@ -111,7 +111,7 @@ const PAD_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
 const VOLT_CHANNELS: usize = 16;
 
 /// The most columns a header may name: the export the reader was built on names eleven. Wider is
-/// refused before its names are checked, as the other CSV readers refuse past theirs.
+/// refused before its names are checked, as several of the other CSV readers refuse past theirs.
 pub const MAX_COLUMNS: usize = 256;
 
 /// Whether `text` is an AltiMAX export: its first line that isn't blank opens with the five
@@ -683,8 +683,6 @@ mod tests {
         }
     }
 
-    /// A second `TIME` or `HEIGHT RAW [m]` would read the rows against the wrong clock or track;
-    /// only `EVENT` is named twice, and not three times.
     /// A name given twice in another case is the same name; `EVENT` a third time is refused.
     #[test]
     fn a_name_twice_in_another_case_or_event_thrice_is_refused() {
@@ -740,6 +738,8 @@ mod tests {
         assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
     }
 
+    /// A second `TIME` or `HEIGHT RAW [m]` would read the rows against the wrong clock or track;
+    /// only `EVENT` is named twice, and not three times.
     #[test]
     fn a_column_named_twice_is_refused_but_event() {
         for (from, to) in [

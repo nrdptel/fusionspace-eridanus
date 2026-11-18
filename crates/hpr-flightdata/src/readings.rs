@@ -1940,16 +1940,17 @@ fn slope(times: &[f64], heights: &[f64], center: usize) -> Option<f64> {
     slope_over(times, heights, center, SPEED_WINDOW_S)
 }
 
-/// The most samples a slope's window of `window_s` is read at, evenly spaced: twice those it
-/// holds at the fastest steady rate the readings accept, one every [`MIN_INTERVAL_S`]. A log
-/// sampled no faster is read whole; a burst of samples close together, which the median interval
-/// doesn't see, costs each of them this many steps, not a walk over the burst, so that the slopes
-/// over a climb or a descent take time linear in its samples (#1250).
+/// The most samples a slope's window of `window_s` is read at: twice the window's steps at the
+/// fastest steady rate the readings accept, one every [`MIN_INTERVAL_S`], plus one (501 for the
+/// 0.5 s speed window, which holds 251 at that rate). A log sampled no faster is read whole; a
+/// burst of samples close together, which the median interval doesn't see, costs each of them at
+/// most this many steps, not a walk over the burst, so that the slopes over a climb or a descent
+/// take time linear in its samples, but for a binary search's logarithm (#1250).
 fn slope_samples(window_s: f64) -> usize {
     #[expect(
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss,
-        reason = "a window of at most DESCENT_WINDOW_MAX_S holds a few thousand steps, positive"
+        reason = "a window of at most DESCENT_WINDOW_MAX_S is at most 10,000 steps, positive"
     )]
     let steps = (2.0 * window_s / MIN_INTERVAL_S).ceil() as usize;
     steps + 1
@@ -1957,13 +1958,14 @@ fn slope_samples(window_s: f64) -> usize {
 
 /// The least-squares slope of `heights` against `times` over the samples within half of
 /// `window_s` of `times[center]`, skipping gaps; `None` with fewer than [`SPEED_MIN_SAMPLES`].
-/// A window of more than [`slope_samples`] is read at every `stride`-th sample, evenly spaced.
+/// A window of more than [`slope_samples`] is read at every `stride`-th sample, so at most that
+/// many; one of no more is read whole.
 fn slope_over(times: &[f64], heights: &[f64], center: usize, window_s: f64) -> Option<f64> {
     let t0 = times[center];
     let reach = 0.5 * window_s;
     let from = times.partition_point(|t| *t < t0 - reach);
     let to = times.partition_point(|t| *t <= t0 + reach);
-    let stride = (to - from) / slope_samples(window_s) + 1;
+    let stride = (to - from).div_ceil(slope_samples(window_s)).max(1);
     let window = || {
         (from..to)
             .step_by(stride)
@@ -2361,7 +2363,8 @@ fn landing(
     let ceiling = level + (LANDED_CEILING_M - LANDING_HEIGHT_M) + track.step_m;
     // The first sample under the mark from which the track stays under the ceiling for the
     // span. `high` is the first sample from `index` on that isn't under the ceiling (a gap
-    // included); it only moves forward, so the scan is linear in the samples, where checking
+    // included); it only moves forward, so the scan is linear in the samples (but for a binary
+    // search's logarithm at each candidate), where checking
     // each candidate's span sample by sample costs a burst's square (#1250).
     let n = filtered.len();
     let mut high = apex.index + 1;
