@@ -737,6 +737,18 @@ mod tests {
                 "farther from the pad in {} of the 26 flights",
                 num(guided_reading, "landing_farther_from_the_pad")
             ),
+            {
+                // The one flight with nothing to turn it: the vertical rail's, in still air.
+                let range_m = num(
+                    &wind_of("ndrt-2020-nose-to-tail", "still")["moved_from_guided"],
+                    "landing_range_m",
+                );
+                format!(
+                    "in still air) by {} mm ({} in)",
+                    fixed(range_m * 1000.0, 0),
+                    fixed(range_m / 0.0254, 1)
+                )
+            },
             format!(
                 "turning at up to {} deg/s",
                 fixed(

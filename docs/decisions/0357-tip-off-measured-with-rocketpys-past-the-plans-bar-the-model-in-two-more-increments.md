@@ -160,11 +160,12 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      A model that moved nothing would miss it on four flights (−0.414%, −0.345%, −0.345% and
      −0.249%).
    - **The pitch rate's and the angle's, 10%,** hold the state the phase hands to free
-     flight. Each is compared as its nose-down and nose-right parts, so a turn the wrong way
-     misses its bar. No flight here varies the rate alone, so this record does not show what 10% of a
-     rate is worth downrange; the landing point's bar holds that. The floors keep a ratio
-     from deciding where there is next to nothing to compare: the vertical rail's still-air
-     flight is the one under 0.1 deg/s.
+     flight. Each is compared as its nose-down and nose-right parts, so a part turned the
+     wrong way misses wherever RocketPy's part is over half the bar. No flight here varies
+     the rate alone, so this record does not show what 10% of a rate is worth downrange; the
+     landing point's bar holds that. The floors keep a ratio from deciding where there is
+     next to nothing to compare: the vertical rail's still-air flight is the one under
+     0.1 deg/s.
    - **Moves are compared, not flights,** because the two codes fly different aerodynamics
      after the rail: each code's move is taken against its own guided flight.
 

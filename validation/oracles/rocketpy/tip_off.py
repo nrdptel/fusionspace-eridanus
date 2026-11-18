@@ -466,7 +466,7 @@ def lag_probe(document):
         def stop():
             time.sleep(LAG_PROBE_WALL_S)
             probe["finished"] = False
-            # To a tenth of a second, so that the report reproduces on any machine.
+            # To a tenth of a second, which is all the report keeps of it.
             probe["solver_time_s"] = round(reached[0], 1)
             json.dump({"lag_probe": probes}, sys.stdout, indent=2, sort_keys=True)
             sys.stdout.write("\n")
