@@ -90,7 +90,7 @@
       }
     },
     "opening_shock_m_s2": {
-      "description": "The spread of the opening shock, m/s²: each flight's top specific force under its\nrecovery devices, the opening load over the mass, the part that keeps the nose counting\nafter a separation with nothing left to burn. A flight that opened none has no value, nor\nhas one that came apart at an ejection charge before the stack flew under a device.",
+      "description": "The spread of the opening shock, m/s²: each flight's top specific force under its\nrecovery devices, the opening load over the mass, the part that keeps the nose counting\nafter a separation with nothing left to burn. A flight that opened none has no value, nor\nhas one that came apart at an ejection before the stack flew under a device.",
       "$ref": "#/$defs/McSpread"
     },
     "runs": {

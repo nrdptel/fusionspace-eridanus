@@ -188,9 +188,9 @@ reads, and with no motor burning it is the opening force over the mass (Knacke, 
 p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In a canopy's steady fall it is
 1 g, so it reads at least about that once the canopy reaches its steady fall. A canopy opened
 slower than its steady fall reads less if the flight ends before it gets there: at the ground,
-or at an ejection charge that parts the stack, whose lead piece the figure leaves out. After a
-separation with nothing left to burn, the part that keeps the nose is followed to the ground. In the example above the canopy opens while the
-rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
+or at an ejection that parts the stack, whose lead piece the figure leaves out. After a
+separation with nothing left to burn, the part that keeps the nose is followed to the ground.
+In the example above the canopy opens while the rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
 plot's spike) is close to g above the opening shock of 144.0 m/s².
 A test opens a canopy 5 s after apogee, falling, and finds the shock equal to $q C_D S / m$ at the
 opening to 1e-9. At the ground, in the canopy's steady fall, the specific force is g and the
