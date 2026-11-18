@@ -643,8 +643,9 @@ pub struct McRun {
     pub landing_distance_m: McSpread,
     /// The spread of the opening shock, m/s²: each flight's top specific force under its
     /// recovery devices, the opening load over the mass, the part that keeps the nose counting
-    /// after a separation with nothing left to burn. A flight that opened none has no value, nor
-    /// has one that came apart at an ejection before the stack flew under a device.
+    /// after a separation with nothing left to burn. A flight that opened none on the stack or
+    /// on that part has no value, nor has one that came apart at an ejection before either flew
+    /// under a device.
     pub opening_shock_m_s2: McSpread,
     /// The spread of the top airspeed at which each flight opened a recovery device on its stack,
     /// or on the part that keeps the nose, m/s.
@@ -734,7 +735,7 @@ pub struct McNominal {
     /// Its landing, m north of the pad.
     pub landing_north_m: Option<f64>,
     /// Its opening shock, m/s², if its stack flew under a recovery device or, after a separation
-    /// with nothing left to burn, the part that keeps the nose did.
+    /// with nothing left to burn, the part that keeps the nose did, before any ejection.
     pub opening_shock_m_s2: Option<f64>,
     /// The top airspeed at which it opened a recovery device on its stack, or on the part that
     /// keeps the nose, m/s.
@@ -1153,7 +1154,8 @@ pub struct Summary {
     /// thrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning
     /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a
     /// separation with no motor left, the part that keeps the nose counts too, under its own
-    /// devices, until an ejection parts it; the piece ahead of an ejection's joint does not.
+    /// devices, until an ejection parts it. The part dropped aft does not count, nor does any
+    /// piece from an ejection on.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
     /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.

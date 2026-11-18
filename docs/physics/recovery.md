@@ -440,13 +440,18 @@ So the peak load the simulator reports is **no safe bound** on the real one, in 
   infinite-mass $C_x = 1.7$ on the same dynamic pressure would be 5.1 kN.
 
 The flight's opening shock, `max_descent_acceleration_m_s2`, is the largest of this load over the
-mass. After a separation with nothing left to burn, the part that keeps the nose flies on as a
-point mass (body 0), and its own devices' load counts too: their drag alone over its mass,
-$\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$, with no airframe drag, whether they
-open before the split or after. A test pins it at $q\,(C_D S)/m$ at an instant opening. An
-[ejection](../glossary.md#ejection) is not such a split: from its charge on, body 0 is the piece
-ahead of the parted joint (a nose cone pushed off is the nose cone alone), and its load is left
-out.
+mass. After a [separation](../glossary.md#separation) with nothing left to burn, the part that
+keeps the nose flies on as a point mass (body 0), and its own devices' load counts too: their
+drag alone over its mass, $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$ ($\rho$ the
+air's density, $\mathbf{v}$ the part's velocity, $\mathbf{w}$ the wind's), with no airframe
+drag, whether they open before the split or after. The part dropped aft does not count once it
+has left. Two tests pin it: at $q\,(C_D S)/m$ to 1e-9 at an instant opening
+(`the_part_that_keeps_the_nose_has_its_own_opening_shock`), and, under a canopy filling in a
+crosswind, at the top of the load inside a step, which the step's ends alone read low
+(`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
+[ejection](../glossary.md#ejection) ends the count: from its charge on no piece's load counts,
+neither the piece ahead of the parted joint (a nose cone pushed off is the nose cone alone),
+which is body 0 from then on, nor the pieces behind it.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are
