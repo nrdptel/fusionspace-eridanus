@@ -209,7 +209,7 @@ Recorded by `validation/oracles/rocketpy/gravity.py` into
   at $J_2$, the term for the Earth's bulge at the equator, and the terms normal gravity holds past it account for 19.50 mm (0.77 in), which leaves
   at most 0.1364 mm (0.0054 in) of a kept code's largest difference, inside the spread
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
-  The same terms are part of the traces of cases 6 to 10, the dragged sphere, with each code's
+  The same terms are part of the traces of cases 6 to 8, the dragged sphere, with each code's
   own air.
 - `hpr_sim::free_body::tests::the_coriolis_force_lifts_a_long_fall`: a body dropped over the
   equator is carried east at $\Omega g t^2$ and so ends $\Omega^2 g t^4/6$ higher than with the

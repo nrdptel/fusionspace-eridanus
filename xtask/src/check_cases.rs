@@ -2429,7 +2429,7 @@ mod tests {
             "{moment:?} against {expected:?}"
         );
         let per_rate = moment / inertial;
-        assert!((per_rate.y / per_rate.x - 4.000_2).abs() < 1e-4);
+        assert!((per_rate.y / per_rate.x - 4.000_12).abs() < 1e-6);
         assert!((per_rate.z / per_rate.x - 1.0).abs() < 1e-12);
         assert!(per_rate.max_element() < 0.0);
     }
