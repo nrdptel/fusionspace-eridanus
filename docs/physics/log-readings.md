@@ -1137,17 +1137,18 @@ range the bounds were checked over, or catches a track that isn't what it says:
   78.5 m (257 ft), since a flight whose motor burns into those 4 s loses less.
 
 **A burst of samples.** The rate check above is on the median interval, so a hostile or damaged file
-can hold a short burst of faster samples. The top speed's and the descent rates' fits, the landing's
-scan and the descent rates' running median must still take time in proportion to the samples, to
-within a logarithm, not to their square. A fit of the climb's or the descent's rate, the
-least-squares slope over a window of the track, reads at most 501 samples in the 0.5 s top-speed
-window. That is twice the window's 250 steps at 500 a second, plus one; a longer descent window
-scales it. A window holding more is read at every n-th sample, n the least whole number that keeps
-it to that. The descent rates' running median sizes its window from the descent's median interval,
-but never from one shorter than the rate check allows. The landing's search moves forward only. A
-log sampled no faster than 500 a second is read whole. A log with a burst is only timed in a test,
-with the reading it stresses checked to be given: its thinned fits weren't checked against the
-bounds, as the tuning set holds no such log.
+can hold a short burst of faster samples. Without a limit, a fit would walk the whole burst for each
+sample in it, and the time would grow as the square of the burst. So each least-squares slope, the
+top speed's 0.5 s fit and the descent rates' fits, reads at most twice its window's steps at 500 a
+second, plus one: 501 samples for the 0.5 s window, 1,001 for the 1 s descent window. A window
+holding more is read at every n-th sample, n the least whole number that keeps it within that. A log
+sampled no faster than 500 a second is read whole. The descent rates' running median sizes its
+window from the descent's median interval, but never from one shorter than the rate check allows.
+The landing's search moves forward only. Tests pin each of these: the samples a burst's window is
+read at, the median's window at a burst's interval, and the landing search's time over a burst of
+400,000 samples. A log with a burst in the climb, the descent or just before landing still gives the
+reading each stresses. Its fits read at every n-th sample weren't checked against the bounds, as the
+tuning set holds no such log.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are

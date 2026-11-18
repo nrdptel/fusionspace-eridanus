@@ -1761,7 +1761,7 @@ mod tests {
         let log = read(&text).unwrap();
         let elapsed = began.elapsed();
         assert_eq!(log.altitude_m, [0.0, 10.0]);
-        // The run is copied as written, then cut for the note.
+        // The run is copied as written.
         let short = "A".repeat(1_000);
         assert_eq!(
             own_row(&format!("=1{short}+J2"), 2),

@@ -94,6 +94,8 @@ use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
+use std::iter::StepBy;
+use std::ops::Range;
 
 use crate::filter::{median, running_median};
 use crate::log::{Channel, FlightLog, LogFormat, Quantity};
@@ -1957,19 +1959,27 @@ fn slope_samples(window_s: f64) -> usize {
     steps + 1
 }
 
-/// The least-squares slope of `heights` against `times` over the samples within half of
-/// `window_s` of `times[center]`, skipping gaps; `None` with fewer than [`SPEED_MIN_SAMPLES`].
-/// A window of more than [`slope_samples`] is read at every `stride`-th sample, so at most that
-/// many; one of no more is read whole.
-fn slope_over(times: &[f64], heights: &[f64], center: usize, window_s: f64) -> Option<f64> {
+/// The samples a slope's window of `window_s` about `times[center]` is read at: those within half
+/// of it, at every `stride`-th sample where the window holds more than [`slope_samples`], so at
+/// most that many; a window of no more is read whole.
+fn slope_indices(times: &[f64], center: usize, window_s: f64) -> StepBy<Range<usize>> {
     let t0 = times[center];
     let reach = 0.5 * window_s;
     let from = times.partition_point(|t| *t < t0 - reach);
     let to = times.partition_point(|t| *t <= t0 + reach);
     let stride = (to - from).div_ceil(slope_samples(window_s)).max(1);
+    (from..to).step_by(stride)
+}
+
+/// The least-squares slope of `heights` against `times` over the samples within half of
+/// `window_s` of `times[center]`, skipping gaps; `None` with fewer than [`SPEED_MIN_SAMPLES`].
+/// The window is read at [`slope_indices`].
+fn slope_over(times: &[f64], heights: &[f64], center: usize, window_s: f64) -> Option<f64> {
+    let t0 = times[center];
+    let indices = slope_indices(times, center, window_s);
     let window = || {
-        (from..to)
-            .step_by(stride)
+        indices
+            .clone()
             .map(|k| (times[k], heights[k]))
             .filter(|(_, h)| h.is_finite())
             .map(|(t, h)| (t - t0, h))
@@ -2340,6 +2350,37 @@ fn without_bad_start(heights: &[f64], time: &[f64], half: usize, rise: f64) -> O
     (!is_pad).then_some(kept)
 }
 
+/// The first sample from `from` on whose height is under `mark` and from which the heights stay
+/// under `ceiling` (a gap is not under it) for `span_s`, the span ending by the record's last
+/// sample; `heights` and `time` are as long as each other or `time` longer, `time` increasing.
+///
+/// `high` is the first sample from the candidate on that isn't under the ceiling; it only moves
+/// forward, so the scan is linear in the samples, but for a binary search's logarithm at each
+/// candidate, where checking each candidate's span sample by sample costs a burst's square
+/// (#1250).
+fn first_settled(
+    heights: &[f64],
+    time: &[f64],
+    from: usize,
+    (mark, ceiling): (f64, f64),
+    span_s: f64,
+) -> Option<usize> {
+    let n = heights.len();
+    let end = time[n.checked_sub(1)?];
+    let mut high = from;
+    (from..n).find(|&index| {
+        high = high.max(index);
+        if !(heights[index] < mark && time[index] + span_s <= end) {
+            return false;
+        }
+        while high < n && heights[high] < ceiling {
+            high += 1;
+        }
+        let span_end = index + time[index..n].partition_point(|t| *t <= time[index] + span_s);
+        high >= span_end
+    })
+}
+
 /// Apogee, as landing needs it.
 struct Apex {
     index: usize,
@@ -2362,24 +2403,13 @@ fn landing(
     // liftoff's is, so a coarse or noisy track flickering on the ground doesn't hold landing off.
     let level = LANDING_HEIGHT_M.max(allowance);
     let ceiling = level + (LANDED_CEILING_M - LANDING_HEIGHT_M) + track.step_m;
-    // The first sample under the mark from which the track stays under the ceiling for the
-    // span. `high` is the first sample from `index` on that isn't under the ceiling (a gap
-    // included); it only moves forward, so the scan is linear in the samples (but for a binary
-    // search's logarithm at each candidate), where checking each candidate's span sample by
-    // sample costs a burst's square (#1250).
-    let n = filtered.len();
-    let mut high = apex.index + 1;
-    let landed = (apex.index + 1..n).find(|&index| {
-        high = high.max(index);
-        if !(filtered[index] < pad + level && time[index] + LANDED_FOR_S <= end) {
-            return false;
-        }
-        while high < n && filtered[high] < pad + ceiling {
-            high += 1;
-        }
-        let span_end = index + time[index..n].partition_point(|t| *t <= time[index] + LANDED_FOR_S);
-        high >= span_end
-    });
+    let landed = first_settled(
+        filtered,
+        time,
+        apex.index + 1,
+        (pad + level, pad + ceiling),
+        LANDED_FOR_S,
+    );
     let Some(index) = landed else {
         return Reading::withheld(
             Reason::EndsBeforeLanding,
@@ -3998,23 +4028,123 @@ mod tests {
         }
     }
 
-    /// A burst of samples close together, too few to move the median interval, costs the top
-    /// speed's fit, the landing's scan and the descent's rates no walk over the burst for each of
-    /// its samples (#1250). A burst in 0.4 s sits in the climb (500,000 samples), in the
-    /// descent's last seconds (300,000), or just before landing (1,500,000), where the track dips
-    /// to the pad and rises again past the landed ceiling, so that each sample under the mark has
-    /// to look to the burst's end, and the descent's median interval falls into the burst. A pad
-    /// at 500 samples a second, 10% longer than the burst's samples need, holds the median at
-    /// 2 ms. Each walk cost its reading 136 to 273 s on a fast desktop, where the readings take 0.3
-    /// to 2.7 s; the bound is the smoother's burst test's, 60 s, as CI's slowest runners took 8
-    /// times a fast desktop's time. The clock times each log's reading alone, and nothing it
-    /// reads reaches a result.
+    /// A burst of samples close together, which the median interval doesn't see, is read by a
+    /// slope's fit at no more than [`slope_samples`] of them, for the top speed's window and the
+    /// descent's alike, rather than every sample of the burst for each of them (#1250).
     #[test]
-    #[allow(
-        clippy::disallowed_types,
-        reason = "the clock times each reading alone"
-    )]
-    fn a_burst_of_samples_costs_the_readings_no_walk_over_it() {
+    fn a_burst_is_read_at_no_more_than_the_cap() {
+        let burst: u32 = 1_000_000;
+        let times: Vec<f64> = (0..500)
+            .map(|k| 0.002 * f64::from(k))
+            .chain((0..burst).map(|k| 1.0 + 0.4 * f64::from(k) / f64::from(burst)))
+            .chain((0..500).map(|k| 1.4 + 0.002 * f64::from(k)))
+            .collect();
+        let center = 500 + 500_000;
+        for window_s in [SPEED_WINDOW_S, DESCENT_WINDOW_S, DESCENT_WINDOW_MAX_S] {
+            let cap = slope_samples(window_s);
+            let read = slope_indices(&times, center, window_s).len();
+            assert!(
+                read <= cap && 2 * read >= cap,
+                "{window_s} s: {read} of {cap}"
+            );
+        }
+    }
+
+    /// The landing's scan finds the sample the rule names, checking each candidate's span sample
+    /// by sample, on tracks with gaps, dips and bursts.
+    #[test]
+    fn the_settled_scan_is_the_rule_written_out() {
+        let rule = |heights: &[f64],
+                    time: &[f64],
+                    from: usize,
+                    (mark, ceiling): (f64, f64),
+                    span_s: f64| {
+            let end = time[heights.len() - 1];
+            (from..heights.len()).find(|&index| {
+                heights[index] < mark
+                    && time[index] + span_s <= end
+                    && heights[index..]
+                        .iter()
+                        .zip(&time[index..])
+                        .take_while(|(_, t)| **t <= time[index] + span_s)
+                        .all(|(h, _)| *h < ceiling)
+            })
+        };
+        // A linear congruential generator, so the tracks are the same on every run.
+        let mut state: u64 = 0x2545_f491_4f6c_dd1d;
+        let mut next = move || {
+            state = state
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            f64::from(u32::try_from(state >> 40).unwrap_or(0)) / f64::from(1_u32 << 24)
+        };
+        let mut found = 0;
+        for _ in 0..2_000 {
+            let n = 2 + (next() * 300.0) as usize;
+            let mut t = 0.0;
+            let (mut time, mut heights) = (Vec::new(), Vec::new());
+            for _ in 0..n {
+                t += if next() < 0.2 {
+                    1e-4
+                } else {
+                    0.05 + 0.2 * next()
+                };
+                time.push(t);
+                let u = next();
+                heights.push(if u < 0.05 {
+                    f64::NAN
+                } else if u < 0.5 {
+                    3.0 * next()
+                } else {
+                    12.0 * next()
+                });
+            }
+            let from = (next() * n as f64) as usize;
+            let span_s = 0.2 + 2.0 * next();
+            let want = rule(&heights, &time, from, (2.0, 7.0), span_s);
+            assert_eq!(
+                first_settled(&heights, &time, from, (2.0, 7.0), span_s),
+                want
+            );
+            found += usize::from(want.is_some());
+        }
+        assert!(found > 200, "{found}");
+    }
+
+    /// The landing's scan over a burst under the mark that rises past the ceiling at its end takes
+    /// time linear in the burst: checking each candidate's span sample by sample took 21 s on this
+    /// track of 400,000 samples on a fast desktop, and grows as the square of the burst (#1250).
+    /// The clock times the scan alone, and nothing it reads reaches a result.
+    #[test]
+    #[allow(clippy::disallowed_types, reason = "the clock times the scan alone")]
+    fn the_settled_scan_over_a_burst_is_linear() {
+        let burst: u32 = 400_000;
+        let mut time: Vec<f64> = (0..burst)
+            .map(|k| 0.4 * f64::from(k) / f64::from(burst))
+            .collect();
+        let mut heights: Vec<f64> = (0..burst)
+            .map(|k| if k + 5_000 < burst { 0.0 } else { 50.0 })
+            .collect();
+        for k in 1..=1_000 {
+            time.push(0.4 + 0.01 * f64::from(k));
+            heights.push(0.0);
+        }
+        let began = std::time::Instant::now();
+        let settled = first_settled(&heights, &time, 0, (2.0, 7.0), 1.0);
+        let elapsed = began.elapsed();
+        assert_eq!(settled, Some(burst as usize));
+        assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
+    }
+
+    /// Logs with a burst of samples in the climb, in the descent's last seconds, or just before
+    /// landing, where the track dips to the pad and rises past the landed ceiling and the
+    /// descent's median interval falls into the burst, still give the reading each stresses, and
+    /// read well within the smoother's burst bound, 60 s (#1250). A pad at 500 samples a second,
+    /// 10% longer than the burst's samples need, holds the median at 2 ms. The clock times each
+    /// read alone, and nothing it reads reaches a result.
+    #[test]
+    #[allow(clippy::disallowed_types, reason = "the clock times each read alone")]
+    fn a_burst_of_samples_still_gives_the_readings() {
         let fly = flight(10.0);
         // A log with a burst from `start` s after the pad, its height at each time, and its pad.
         let with_burst = |start: f64, burst: u32, height: &dyn Fn(u32, f64) -> f64| {
@@ -4043,29 +4173,25 @@ mod tests {
         let timed = |log: &FlightLog| {
             let began = std::time::Instant::now();
             let readings = read(log);
-            (readings, began.elapsed())
+            (readings, began.elapsed().as_secs_f64())
         };
-        let bound_s = 60.0;
-        // In the climb: the top speed is read.
-        let (log, _) = with_burst(1.2, 500_000, &|_, at| fly(at));
+        let (log, _) = with_burst(1.2, 200_000, &|_, at| fly(at));
         let (climb, elapsed) = timed(&log);
         assert!(climb.max_speed.value().is_some(), "{:?}", climb.max_speed);
-        assert!(elapsed.as_secs_f64() < bound_s, "climb: {elapsed:?}");
-        // In the descent's last 2 s: the descent's rate is read.
-        let (log, _) = with_burst(14.0, 300_000, &|_, at| fly(at));
+        assert!(elapsed < 60.0, "climb: {elapsed} s");
+        let (log, _) = with_burst(14.0, 200_000, &|_, at| fly(at));
         let (tail, elapsed) = timed(&log);
         assert!(
             tail.main_descent.value().is_some(),
             "{:?}",
             tail.main_descent
         );
-        assert!(elapsed.as_secs_f64() < bound_s, "descent: {elapsed:?}");
-        // Down to the pad and up past the ceiling to 50 m, under the apogee: landing comes after.
-        let dip = |k: u32, _: f64| if k + 5_000 < 1_500_000 { 0.0 } else { 50.0 };
-        let (log, pad_s) = with_burst(13.0, 1_500_000, &dip);
+        assert!(elapsed < 60.0, "descent: {elapsed} s");
+        let dip = |k: u32, _: f64| if k + 5_000 < 300_000 { 0.0 } else { 50.0 };
+        let (log, pad_s) = with_burst(13.0, 300_000, &dip);
         let (dipped, elapsed) = timed(&log);
         let landing = dipped.landing.value().map(|l| l.time_s - pad_s);
         assert!(landing.is_some_and(|t| t > 13.4), "{:?}", dipped.landing);
-        assert!(elapsed.as_secs_f64() < bound_s, "landing: {elapsed:?}");
+        assert!(elapsed < 60.0, "landing: {elapsed} s");
     }
 }

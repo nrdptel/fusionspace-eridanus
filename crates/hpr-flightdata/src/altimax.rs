@@ -166,8 +166,7 @@ fn role(name: &str) -> Role {
 /// [`LogError::NotThisFormat`] when the first line isn't the export's header ([`recognizes`]);
 /// [`LogError::Syntax`] when the header names more than [`MAX_COLUMNS`] columns or a column twice
 /// (but `EVENT`, a code's and a name's), a row's cells aren't as many as the header's, a time is
-/// missing, isn't a number or doesn't
-/// increase, a value isn't a number (`NaN` included) or is too large for pascals, or `VOLT.
+/// missing, isn't a number or doesn't increase, a value isn't a number (`NaN` included) or is too large for pascals, or `VOLT.
 /// CHANNEL` holds more than 16 numbers; [`LogError::Unit`] when the clock has one row or its
 /// shortest step isn't 5 ms, or a pressure's first value is a pad's in neither hPa nor Pa;
 /// [`LogError::NoData`] when no row follows the header.
