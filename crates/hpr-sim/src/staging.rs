@@ -1609,6 +1609,7 @@ mod tests {
                     phase: Phase::Free,
                     window: (t - 0.1, t + 0.1),
                     drag_area_m2: 0.0,
+                    pivot: None,
                 },
                 t,
                 &state.to_array(),

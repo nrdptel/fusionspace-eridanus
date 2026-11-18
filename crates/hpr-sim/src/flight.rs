@@ -53,7 +53,7 @@ use crate::integrator::{
 };
 use crate::metrics::Stability;
 use crate::pieces::{Ejection, Pieces};
-use crate::rail::{Guides, Rail};
+use crate::rail::{Guides, Pivot, Rail};
 use crate::recorder::{BodyStep, FlightStep, Observer, Sample};
 use crate::recovery::{self, BodyEvent, BodyFlight, BodySample, Device, Run, Separation, Trigger};
 use crate::releases::{MassRelease, ReleasedFlight, Releases};
@@ -339,6 +339,8 @@ pub struct Simulation {
     /// Whether the recovery charges are held: no device on the stack fires, whatever its trigger
     /// ([`crate::metrics::optimum_delays`] flies the ascent so).
     recovery_held: bool,
+    /// Whether the flight has a tip-off phase ([`Simulation::with_tip_off`]).
+    tip_off: bool,
 }
 
 impl Simulation {
@@ -426,7 +428,32 @@ impl Simulation {
             configuration_id: configuration_id.to_owned(),
             aero_overridden: false,
             recovery_held: false,
+            tip_off: false,
         })
+    }
+
+    /// Flies tip-off as a phase of its own: once the guide ahead of the aft-most one has left
+    /// the rail, the rocket slides on along the rail, free to pitch and yaw about its last guide
+    /// with roll held, until that guide leaves too ([`Phase::TipOff`]; the equations are
+    /// [`crate::rail`]'s, `docs/physics/flight.md`). It leaves the rail turning. Without this
+    /// the rocket is guided to its last guide and leaves with no angular velocity.
+    ///
+    /// A design with fewer than two guides at different stations has no such stretch, and flies
+    /// as it does without this. On a rail so short that only the last guide starts on it, the
+    /// rocket pivots from liftoff.
+    ///
+    /// The phase is held code to code against RocketPy's on thirteen designs
+    /// (`validation/reports/tip-off-model.md`); no flight checks it.
+    #[must_use]
+    pub fn with_tip_off(mut self) -> Self {
+        self.tip_off = true;
+        self
+    }
+
+    /// Whether the flight has a tip-off phase.
+    #[must_use]
+    pub fn tip_off(&self) -> bool {
+        self.tip_off
     }
 
     /// Flies another tool's `C_D0(M)` table instead of the drag buildup, and instead of any drag
@@ -1447,6 +1474,7 @@ impl Simulation {
             configuration_id: self.configuration_id.clone(),
             aero_overridden: self.aero_overridden,
             recovery_held: true,
+            tip_off: self.tip_off,
         }
     }
 
@@ -1516,6 +1544,40 @@ impl Simulation {
         )
     }
 
+    /// Where the rocket pivots during tip-off, and the rail's line: `None` without guides.
+    fn pivot(&self) -> Option<Pivot> {
+        self.guides.pivot_station_m.map(|station_m| Pivot {
+            point_m: DVec3::new(0.0, 0.0, -station_m),
+            rail_enu: self.rail.direction_enu(),
+        })
+    }
+
+    /// The travel along the rail at which tip-off begins, and its pivot, if the flight asks for
+    /// tip-off and the design has a guide ahead of its last one that leaves the rail before it.
+    fn tip_off_start(&self) -> Option<(f64, Pivot)> {
+        if !self.tip_off {
+            return None;
+        }
+        let travel_m = self.guides.tip_off_travel_m(self.rail.length_m)?;
+        (travel_m < self.guides.exit_travel_m(self.rail.length_m))
+            .then_some(travel_m)
+            .zip(self.pivot())
+    }
+
+    /// What an evaluation in `phase` needs.
+    fn conditions(&self, phase: Phase, window: (f64, f64), drag_area_m2: f64) -> Conditions {
+        Conditions {
+            phase,
+            window,
+            drag_area_m2,
+            pivot: if phase == Phase::TipOff {
+                self.pivot()
+            } else {
+                None
+            },
+        }
+    }
+
     fn evaluate(
         &self,
         vehicle: &Vehicle,
@@ -1528,11 +1590,7 @@ impl Simulation {
         vehicle.evaluate(
             &self.environment,
             self.rail.friction_coefficient,
-            Conditions {
-                phase,
-                window,
-                drag_area_m2,
-            },
+            self.conditions(phase, window, drag_area_m2),
             t,
             y,
         )
@@ -1648,6 +1706,20 @@ impl Simulation {
         let mut burnout_s = self.vehicle.burnout_s();
         let rail_origin = state.position_enu_m;
         let exit_travel_m = self.guides.exit_travel_m(self.rail.length_m);
+        // Tip-off, if the flight has it: the travel where it begins, the pivot, and where the
+        // pivot started.
+        let tip_off = self.tip_off_start().map(|(travel_m, pivot)| TipOff {
+            travel_m,
+            pivot_m: pivot.point_m,
+            pivot_origin: rail_origin + self.rail.attitude().mul_vec3(pivot.point_m),
+            along: pivot.rail_enu,
+        });
+        // The phase of a rocket that moves on the rail: guided, or past where its last guide
+        // holds it alone.
+        let on_rail = |y: &[f64; STATE_LEN]| match &tip_off {
+            Some(tip_off) if tip_off.pivot_travel_m(y) >= tip_off.travel_m => Phase::TipOff,
+            _ => Phase::Rail,
+        };
 
         let mut phase = start_phase;
         // When a device froze the stack's attitude, which says nothing of its axis after that.
@@ -1714,7 +1786,7 @@ impl Simulation {
                 if !starts {
                     continue;
                 }
-                if matches!(phase, Phase::Pad | Phase::Rail) {
+                if matches!(phase, Phase::Pad | Phase::Rail | Phase::TipOff) {
                     // The rail has no stop at its foot: a part thrown aft on the pad could push
                     // the rocket up the rail and leave it there.
                     return Err(SimError::Domain {
@@ -1805,7 +1877,7 @@ impl Simulation {
                     if !leaves {
                         continue;
                     }
-                    if matches!(phase, Phase::Pad | Phase::Rail) {
+                    if matches!(phase, Phase::Pad | Phase::Rail | Phase::TipOff) {
                         // On the pad or the rail the part has nowhere to go.
                         return Err(SimError::Domain {
                             what: "time of a mass release, s (it must come once the rocket has left \
@@ -2022,7 +2094,10 @@ impl Simulation {
             // A separation or an ejection known to come while the rocket is still on the pad or
             // the rail: the stack can't come apart there, and firing it at the rail exit instead
             // would be a different flight (#231). Refused, as an early shift or release is.
-            if self.parts() && !separation_held && matches!(phase, Phase::Pad | Phase::Rail) {
+            if self.parts()
+                && !separation_held
+                && matches!(phase, Phase::Pad | Phase::Rail | Phase::TipOff)
+            {
                 let separations = self.separation_times_s.iter().skip(staged).map(|time_s| {
                     (
                         time_s,
@@ -2302,7 +2377,7 @@ impl Simulation {
                     .rail_force_n
                     > 0.0
                 {
-                    phase = Phase::Rail;
+                    phase = on_rail(&y);
                     lifted = true;
                     let sample = self.sample(vehicle, phase, window, t, &y, 0.0)?;
                     record(&mut events, observer, EventKind::Liftoff, sample);
@@ -2319,7 +2394,7 @@ impl Simulation {
             let apogee_pending = !(released.contains(&true)
                 && events.iter().any(|event| event.kind == EventKind::Apogee));
             let watches = self.watches(
-                phase,
+                (phase, tip_off.is_some()),
                 &run,
                 (
                     (!separation_held
@@ -2336,6 +2411,7 @@ impl Simulation {
                 window,
                 rail_origin,
                 exit_travel_m,
+                tip_off,
                 canopies: Canopies {
                     devices: &self.devices,
                     run: &run,
@@ -2383,11 +2459,12 @@ impl Simulation {
                                 record(&mut events, observer, EventKind::RailExit, sample);
                             }
                             Watch::RailStall => next_phase = Phase::Pad,
+                            Watch::TipOff => next_phase = Phase::TipOff,
                             Watch::RailForce => {
-                                next_phase = Phase::Rail;
+                                next_phase = on_rail(&y);
                                 lifted = true;
                                 let sample =
-                                    self.sample(vehicle, Phase::Rail, window, t, &y, area)?;
+                                    self.sample(vehicle, next_phase, window, t, &y, area)?;
                                 record(&mut events, observer, EventKind::Liftoff, sample);
                             }
                             // The watch stays armed past the apogee until a part leaves, and can
@@ -2441,10 +2518,13 @@ impl Simulation {
                     if ground {
                         break Termination::GroundHit;
                     }
-                    if next_phase == Phase::Pad && phase == Phase::Rail {
-                        // Stopped on the rail: at rest where it stopped.
+                    if next_phase == Phase::Pad && matches!(phase, Phase::Rail | Phase::TipOff) {
+                        // Stopped on the rail: at rest where it stopped, held as on the pad. A
+                        // rocket that stops on its last guide alone keeps the angle it has
+                        // turned to and stops turning.
                         let mut at_rest = State::from_array(&y);
                         at_rest.velocity_enu_m_s = DVec3::ZERO;
+                        at_rest.body_rate_rad_s = DVec3::ZERO;
                         integrator.reset(t, at_rest.to_array())?;
                     }
                     phase = next_phase;
@@ -3220,14 +3300,15 @@ impl Simulation {
     /// What the integrator watches for in `phase`, in event order.
     fn watches(
         &self,
-        phase: Phase,
+        (phase, tip_off): (Phase, bool),
         run: &Run,
         (separation_pending, apogee_pending): (Option<usize>, bool),
         (shift_started, released): (&[bool], &[bool]),
     ) -> Vec<Watch> {
         match phase {
             Phase::Pad => vec![Watch::RailForce],
-            Phase::Rail => vec![Watch::RailExit, Watch::RailStall],
+            Phase::Rail if tip_off => vec![Watch::RailExit, Watch::RailStall, Watch::TipOff],
+            Phase::Rail | Phase::TipOff => vec![Watch::RailExit, Watch::RailStall],
             Phase::Free | Phase::Descent => {
                 let mut watches = if apogee_pending {
                     vec![Watch::Apogee, Watch::Ground]
@@ -3374,6 +3455,9 @@ enum Watch {
     RailExit,
     /// The speed along the rail falling through zero: a stall.
     RailStall,
+    /// The travel along the rail reaching where the last guide holds the rocket alone: tip-off
+    /// begins.
+    TipOff,
     /// The center of mass's height rate falling through zero: apogee.
     Apogee,
     /// The center of mass reaching the ground, descending.
@@ -3622,6 +3706,37 @@ fn sample_of(phase: Phase, t: f64, y: &[f64; STATE_LEN], e: &Evaluation) -> Samp
     }
 }
 
+/// Where tip-off begins and what it turns about.
+#[derive(Debug, Clone, Copy)]
+struct TipOff {
+    /// The travel along the rail at which the last guide holds the rocket alone, m.
+    travel_m: f64,
+    /// The pivot in body axes, m from the nose tip.
+    pivot_m: DVec3,
+    /// Where the pivot started, in `L`, m.
+    pivot_origin: DVec3,
+    /// The unit vector along the rail, up, in `L`.
+    along: DVec3,
+}
+
+impl TipOff {
+    /// How far the pivot has moved along the rail, m. While the rocket is guided this is the
+    /// nose tip's travel; once it turns, only the pivot keeps to the rail's line.
+    fn pivot_travel_m(&self, y: &[f64; STATE_LEN]) -> f64 {
+        (State::from_array(y).point_enu_m(self.pivot_m) - self.pivot_origin).dot(self.along)
+    }
+
+    /// The pivot's speed along the rail, m/s.
+    fn pivot_speed_m_s(&self, y: &[f64; STATE_LEN]) -> f64 {
+        let state = State::from_array(y);
+        let velocity = state.velocity_enu_m_s
+            + state
+                .unit_attitude()
+                .mul_vec3(state.body_rate_rad_s.cross(self.pivot_m));
+        velocity.dot(self.along)
+    }
+}
+
 /// One phase over one interval, as the integrator sees it.
 struct PhaseSystem<'a> {
     simulation: &'a Simulation,
@@ -3630,6 +3745,8 @@ struct PhaseSystem<'a> {
     window: (f64, f64),
     rail_origin: DVec3,
     exit_travel_m: f64,
+    /// Tip-off's start and pivot, if the flight has the phase.
+    tip_off: Option<TipOff>,
     canopies: Canopies<'a>,
     watches: &'a [Watch],
     observer: &'a mut dyn Observer,
@@ -3655,11 +3772,9 @@ impl PhaseSystem<'_> {
                 // Overwritten in place; `out` is untouched on an error, so the entry stays the
                 // evaluation of the state it names.
                 Some((ct, cy, out)) => {
-                    let conditions = Conditions {
-                        phase: self.phase,
-                        window: self.window,
-                        drag_area_m2,
-                    };
+                    let conditions =
+                        self.simulation
+                            .conditions(self.phase, self.window, drag_area_m2);
                     self.simulation
                         .evaluate_into(self.vehicle, conditions, t, y, out)?;
                     *ct = t;
@@ -3711,7 +3826,7 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
 
     fn event_direction(&self, index: usize) -> Direction {
         match self.watches.get(index) {
-            Some(Watch::RailForce | Watch::RailExit) => Direction::Rising,
+            Some(Watch::RailForce | Watch::RailExit | Watch::TipOff) => Direction::Rising,
             Some(
                 Watch::RailStall
                 | Watch::Apogee
@@ -3737,6 +3852,16 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
             return f64::NAN;
         };
         match watch {
+            // In tip-off the pivot keeps to the rail's line, and the nose tip does not.
+            Watch::RailExit | Watch::RailStall if self.phase == Phase::TipOff => {
+                match (&self.tip_off, watch) {
+                    (Some(tip_off), Watch::RailExit) => {
+                        tip_off.pivot_travel_m(y) - self.exit_travel_m
+                    }
+                    (Some(tip_off), _) => tip_off.pivot_speed_m_s(y),
+                    (None, _) => f64::NAN,
+                }
+            }
             Watch::RailExit => {
                 let along = self.simulation.rail.direction_enu();
                 (state.position_enu_m - self.rail_origin).dot(along) - self.exit_travel_m
@@ -3744,6 +3869,13 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
             Watch::RailStall => state
                 .velocity_enu_m_s
                 .dot(self.simulation.rail.direction_enu()),
+            Watch::TipOff => match &self.tip_off {
+                Some(tip_off) => {
+                    let along = self.simulation.rail.direction_enu();
+                    (state.position_enu_m - self.rail_origin).dot(along) - tip_off.travel_m
+                }
+                None => f64::NAN,
+            },
             Watch::Apogee => {
                 let value = self.evaluation(t_s, y).map(|e| e.vertical_speed_m_s);
                 self.or_fail(value)

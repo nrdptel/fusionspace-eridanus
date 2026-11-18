@@ -524,6 +524,7 @@ mod tests {
                     phase: Phase::Free,
                     window: (t, t + 1.0),
                     drag_area_m2: 0.0,
+                    pivot: None,
                 },
                 t,
                 &nose.to_array(),

@@ -231,3 +231,344 @@ fn rail_exit_is_when_the_last_button_leaves() {
     assert!(rubbing.time_s > frictionless.time_s);
     assert!(rubbing.airspeed_m_s < frictionless.airspeed_m_s);
 }
+
+/// The Valetudo with `count` rail buttons `spacing_m` apart, the first where the design's is.
+fn with_buttons(count: u32, spacing_m: f64) -> hpr_design::Rocket {
+    fn set(value: &mut serde_json::Value, count: u32, spacing_m: f64) -> bool {
+        match value {
+            serde_json::Value::Object(map) => {
+                if let Some(button) = map.get_mut("rail_button") {
+                    button["count"] = count.into();
+                    button["spacing_m"] = spacing_m.into();
+                    return true;
+                }
+                map.values_mut().any(|inner| set(inner, count, spacing_m))
+            }
+            serde_json::Value::Array(items) => {
+                items.iter_mut().any(|inner| set(inner, count, spacing_m))
+            }
+            _ => false,
+        }
+    }
+    let mut rocket = serde_json::to_value(design("rocketpy-valetudo")).unwrap();
+    assert!(
+        set(&mut rocket, count, spacing_m),
+        "the design has rail buttons"
+    );
+    serde_json::from_value(rocket).unwrap()
+}
+
+/// Every step's phase and the state it ends in.
+#[derive(Default)]
+struct Steps(Vec<(crate::Phase, f64, crate::State)>);
+
+impl crate::Observer for Steps {
+    fn step(&mut self, step: &dyn crate::FlightStep) -> Result<(), crate::SimError> {
+        self.0
+            .push((step.phase(), step.end_s(), step.state_at(step.end_s())));
+        Ok(())
+    }
+}
+
+/// The Valetudo's own rail (`validation/reports/tip-off.json`): 5.7 m at 84.7°.
+fn valetudo_rail(friction_coefficient: f64) -> Rail {
+    Rail {
+        length_m: 5.7,
+        azimuth_rad: 0.3,
+        elevation_rad: 84.7_f64.to_radians(),
+        roll_rad: 0.0,
+        friction_coefficient,
+    }
+}
+
+fn first_second(rocket: &hpr_design::Rocket, rail: Rail) -> Simulation {
+    Simulation::new(
+        rocket,
+        "example",
+        Environment::standard(site()).unwrap(),
+        rail,
+        FlightSettings {
+            max_time_s: 1.0,
+            ..FlightSettings::default()
+        },
+    )
+    .unwrap()
+}
+
+#[test]
+fn guides_name_the_guide_ahead_of_the_last_and_the_pivot() {
+    let guides = |rocket: &hpr_design::Rocket| Guides::of(&rocket.assemble("example").unwrap());
+    // Two buttons: the one ahead of the last is the first, and the pivot is the last one's
+    // center, half a button ahead of its aft edge.
+    let two = guides(&design("rocketpy-valetudo"));
+    let diameter = 0.0113;
+    assert_eq!(two.next_guide_station_m, two.first_guide_station_m);
+    let last = two.last_guide_station_m.unwrap();
+    assert!((two.pivot_station_m.unwrap() - (last - 0.5 * diameter)).abs() < 1e-12);
+    assert_eq!(
+        two.tip_off_travel_m(5.7),
+        Some(two.first_guide_exit_travel_m(5.7))
+    );
+    assert!(two.tip_off_travel_m(5.7).unwrap() < two.exit_travel_m(5.7));
+    // Three buttons 0.4 m apart: the one ahead of the last is the middle one, 0.4 m ahead.
+    let three = guides(&with_buttons(3, 0.4));
+    let first = three.first_guide_station_m.unwrap();
+    assert!((three.last_guide_station_m.unwrap() - (first + 0.8)).abs() < 1e-12);
+    assert!((three.next_guide_station_m.unwrap() - (first + 0.4)).abs() < 1e-12);
+    assert!((three.exit_travel_m(5.7) - three.tip_off_travel_m(5.7).unwrap() - 0.4).abs() < 1e-12);
+    // One button, or two at one station, hold the rocket until they leave: no such stretch.
+    for one in [guides(&with_buttons(1, 0.0)), guides(&with_buttons(2, 0.0))] {
+        assert_eq!(one.next_guide_station_m, None);
+        assert_eq!(one.tip_off_travel_m(5.7), None);
+        assert!(one.pivot_station_m.is_some());
+    }
+    // An older record without the two stations still reads, as a rocket with no such stretch.
+    let old: Guides = serde_json::from_str(
+        r#"{"aft_station_m":2.0,"first_guide_station_m":0.9,"last_guide_station_m":1.9}"#,
+    )
+    .unwrap();
+    assert_eq!(
+        (old.next_guide_station_m, old.pivot_station_m),
+        (None, None)
+    );
+}
+
+#[test]
+fn tip_off_turns_the_rocket_about_its_last_guide_and_keeps_that_guide_on_the_rail() {
+    let rocket = design("rocketpy-valetudo");
+    for friction in [0.0, 0.3] {
+        let rail = valetudo_rail(friction);
+        let guided = first_second(&rocket, rail);
+        let tipping = first_second(&rocket, rail).with_tip_off();
+        assert!(tipping.tip_off() && !guided.tip_off());
+        let start = tipping.initial_state();
+        let guides = tipping.guides();
+        let pivot = DVec3::new(0.0, 0.0, -guides.pivot_station_m.unwrap());
+        let along = rail.direction_enu();
+        let pivot_start = start.point_enu_m(pivot);
+
+        // Guided, as before: no phase of its own, and no turning at the exit.
+        let mut steps = Steps::default();
+        let straight = guided.run(&mut steps).unwrap();
+        assert!(
+            steps
+                .0
+                .iter()
+                .all(|(phase, ..)| *phase != crate::Phase::TipOff)
+        );
+        let straight = straight.event(EventKind::RailExit).unwrap().sample;
+        assert_eq!(straight.state.body_rate_rad_s, DVec3::ZERO);
+
+        let mut steps = Steps::default();
+        let result = tipping.run(&mut steps).unwrap();
+        let exit = result.event(EventKind::RailExit).unwrap().sample;
+        // The phase runs from where the forward button leaves to where the last one does.
+        let travel = |state: &crate::State| (state.point_enu_m(pivot) - pivot_start).dot(along);
+        let phases: Vec<crate::Phase> = steps.0.iter().map(|(phase, ..)| *phase).collect();
+        let first = phases
+            .iter()
+            .position(|p| *p == crate::Phase::TipOff)
+            .unwrap();
+        let last = phases
+            .iter()
+            .rposition(|p| *p == crate::Phase::TipOff)
+            .unwrap();
+        assert!(
+            phases[..first]
+                .iter()
+                .all(|p| matches!(p, crate::Phase::Pad | crate::Phase::Rail))
+        );
+        assert!(
+            phases[first..=last]
+                .iter()
+                .all(|p| *p == crate::Phase::TipOff)
+        );
+        assert!(phases[last + 1..].iter().all(|p| *p == crate::Phase::Free));
+        let before = &steps.0[first - 1].2;
+        assert!(
+            (travel(before) - guides.tip_off_travel_m(rail.length_m).unwrap()).abs() < 1e-6,
+            "tip-off began {} m up the rail",
+            travel(before)
+        );
+        assert_eq!(before.body_rate_rad_s, DVec3::ZERO);
+        assert!((travel(&exit.state) - guides.exit_travel_m(rail.length_m)).abs() < 1e-6);
+        // Through the phase the last guide keeps to the rail's line and the roll is held.
+        for (_, _, state) in &steps.0[first..=last] {
+            let moved = state.point_enu_m(pivot) - pivot_start;
+            let across = moved - along * moved.dot(along);
+            assert!(
+                across.length() < 1e-9,
+                "μ = {friction}: the guide is {across} off the rail"
+            );
+            assert_eq!(state.body_rate_rad_s.z, 0.0);
+        }
+        // It leaves turning nose-down, at the degree or two a second gravity gives it over the
+        // 1.154 m between its buttons, its axis a few hundredths of a degree below the rail's.
+        let axis = exit.state.unit_attitude().mul_vec3(DVec3::Z);
+        let turning = exit
+            .state
+            .unit_attitude()
+            .mul_vec3(exit.state.body_rate_rad_s.cross(DVec3::Z));
+        assert!(turning.z < 0.0 && axis.z < along.z);
+        let rate_deg_s = exit.state.body_rate_rad_s.length().to_degrees();
+        assert!(
+            (1.5..3.0).contains(&rate_deg_s),
+            "μ = {friction}: {rate_deg_s} deg/s"
+        );
+        let off_deg = axis.dot(along).clamp(-1.0, 1.0).acos().to_degrees();
+        assert!(
+            (0.03..0.1).contains(&off_deg),
+            "μ = {friction}: {off_deg} deg"
+        );
+        // The same flight twice is the same flight.
+        let again = tipping.run(&mut ()).unwrap();
+        assert_eq!(again.final_sample, result.final_sample);
+    }
+}
+
+#[test]
+fn tip_off_changes_nothing_for_a_rocket_with_one_guide_or_none_to_turn_it() {
+    // One button: no stretch on a last guide alone, so the flight is the guided flight, bit for
+    // bit.
+    let one = with_buttons(1, 0.0);
+    let rail = valetudo_rail(0.0);
+    let guided = first_second(&one, rail).run(&mut ()).unwrap();
+    let mut steps = Steps::default();
+    let asked = first_second(&one, rail)
+        .with_tip_off()
+        .run(&mut steps)
+        .unwrap();
+    assert!(
+        steps
+            .0
+            .iter()
+            .all(|(phase, ..)| *phase != crate::Phase::TipOff)
+    );
+    assert_eq!(asked.final_sample, guided.final_sample);
+    assert_eq!(asked.events, guided.events);
+
+    // Two buttons on a vertical rail in still air with no Earth rotation: nothing acts across
+    // the rail, so the rocket pivots about nothing and leaves as straight as it was.
+    let simulation = Simulation::new(
+        &design("rocketpy-valetudo"),
+        "example",
+        crate::testing::analytic_environment(crate::testing::UniformAir::sea_level(), 9.806_65),
+        Rail::vertical(5.7),
+        FlightSettings {
+            max_time_s: 1.0,
+            ..FlightSettings::default()
+        },
+    )
+    .unwrap()
+    .with_tip_off();
+    let mut steps = Steps::default();
+    let result = simulation.run(&mut steps).unwrap();
+    assert!(
+        steps
+            .0
+            .iter()
+            .any(|(phase, ..)| *phase == crate::Phase::TipOff)
+    );
+    let exit = result.event(EventKind::RailExit).unwrap().sample;
+    assert!(exit.state.body_rate_rad_s.length() < 1e-12);
+    let axis = exit.state.unit_attitude().mul_vec3(DVec3::Z);
+    assert!((axis - DVec3::Z).length() < 1e-12);
+}
+
+#[test]
+fn a_rocket_that_stops_on_its_last_guide_is_held_there() {
+    // A rail far longer than the burn, 10° off the vertical: the rocket coasts to a stop on it.
+    // Cut the rail so that the stop falls where only the last guide is still on it: the rocket
+    // starts to pivot, stops, and is held where it stopped, its turning stopped with it.
+    let rocket = design("rocketpy-valetudo");
+    let leaning = |length_m: f64| Rail {
+        length_m,
+        azimuth_rad: 0.0,
+        elevation_rad: 80.0_f64.to_radians(),
+        roll_rad: 0.0,
+        friction_coefficient: 0.0,
+    };
+    let fly = |rail: Rail, tip_off: bool| {
+        let simulation = Simulation::new(
+            &rocket,
+            "example",
+            Environment::standard(site()).unwrap(),
+            rail,
+            FlightSettings::default(),
+        )
+        .unwrap();
+        let simulation = if tip_off {
+            simulation.with_tip_off()
+        } else {
+            simulation
+        };
+        let start = simulation.initial_state();
+        let mut steps = Steps::default();
+        let result = simulation.run(&mut steps).unwrap();
+        (simulation.guides(), start, steps, result)
+    };
+    let (guides, start, _, long) = fly(leaning(2000.0), false);
+    assert_eq!(long.termination, Termination::StalledOnRail);
+    let along = leaning(1.0).direction_enu();
+    let stop_m = (long.final_sample.state.position_enu_m - start.position_enu_m).dot(along);
+    // The stop midway between where the forward button and the last one would leave.
+    let lead = guides.aft_station_m - guides.last_guide_station_m.unwrap();
+    let between = guides.last_guide_station_m.unwrap() - guides.next_guide_station_m.unwrap();
+    let rail = leaning(stop_m + lead + 0.5 * between);
+    let (guides, start, steps, held) = fly(rail, true);
+    assert!(guides.tip_off_travel_m(rail.length_m).unwrap() < stop_m);
+    assert!(stop_m < guides.exit_travel_m(rail.length_m));
+    assert_eq!(held.termination, Termination::StalledOnRail);
+    assert!(held.event(EventKind::RailExit).is_none());
+    assert!(
+        steps
+            .0
+            .iter()
+            .any(|(phase, ..)| *phase == crate::Phase::TipOff)
+    );
+    let state = held.final_sample.state;
+    assert_eq!(state.velocity_enu_m_s, DVec3::ZERO);
+    assert_eq!(state.body_rate_rad_s, DVec3::ZERO);
+    // It turned nose-down before it stopped, and its last guide is still on the rail's line.
+    let axis = state.unit_attitude().mul_vec3(DVec3::Z);
+    assert!(axis.z < along.z);
+    let pivot = DVec3::new(0.0, 0.0, -guides.pivot_station_m.unwrap());
+    let moved = state.point_enu_m(pivot) - start.point_enu_m(pivot);
+    assert!((moved - along * moved.dot(along)).length() < 1e-6);
+    assert!(
+        (moved.dot(along) - stop_m).abs() < 0.05,
+        "{} vs {stop_m}",
+        moved.dot(along)
+    );
+}
+
+#[test]
+fn a_rail_that_holds_only_the_last_guide_pivots_from_liftoff() {
+    // A rail so short that the forward button starts above its top: the last guide holds the
+    // rocket alone from the start, so it pivots from liftoff.
+    let rocket = design("rocketpy-valetudo");
+    let guides = Guides::of(&rocket.assemble("example").unwrap());
+    let lead = guides.aft_station_m - guides.last_guide_station_m.unwrap();
+    let rail = Rail {
+        length_m: lead + 0.3,
+        ..valetudo_rail(0.0)
+    };
+    assert!(guides.tip_off_travel_m(rail.length_m).unwrap() < 0.0);
+    let mut steps = Steps::default();
+    let result = first_second(&rocket, rail)
+        .with_tip_off()
+        .run(&mut steps)
+        .unwrap();
+    assert_eq!(
+        result.event(EventKind::Liftoff).unwrap().sample.phase,
+        crate::Phase::TipOff
+    );
+    assert!(
+        steps
+            .0
+            .iter()
+            .all(|(phase, ..)| *phase != crate::Phase::Rail)
+    );
+    let exit = result.event(EventKind::RailExit).unwrap().sample;
+    assert!(exit.state.body_rate_rad_s.length() > 0.0);
+}

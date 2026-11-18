@@ -755,7 +755,7 @@ impl Observer for FlightMetrics {
         let start = step.sample(a)?;
         if self.last_end_s.is_none() {
             match phase {
-                Phase::Pad | Phase::Rail => {
+                Phase::Pad | Phase::Rail | Phase::TipOff => {
                     self.launch_height_m = Some(start.height_above_ground_m)
                 }
                 // A flight begun in the air on its way down has no apogee to come.
@@ -786,7 +786,7 @@ impl Observer for FlightMetrics {
                 }
             }
         }
-        if phase == Phase::Rail {
+        if matches!(phase, Phase::Rail | Phase::TipOff) {
             self.on_rail = true;
         }
         // On the rail the rail holds the rocket, so stability starts at the rail exit.
