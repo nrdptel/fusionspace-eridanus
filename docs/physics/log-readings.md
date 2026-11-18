@@ -1125,8 +1125,8 @@ range the bounds were checked over, or catches a track that isn't what it says:
   logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
   second, is withheld as too fast. The check is on the median interval, so a burst of samples
   closer together can still sit among them. A slope's fit then reads at most twice its window's
-  steps at 500 a second, plus one (501 for the 0.5 s top-speed fit), taking every second or third
-  sample, or as many as that needs. The descent rates' running median sizes its window at no
+  steps at 500 a second, plus one (501 for the 0.5 s top-speed fit), taking every n-th sample, n
+  the least whole number that keeps the window within that. The descent rates' running median sizes its window at no
   faster than 500 a second. A log sampled no faster is read whole. A burst in the climb, the
   descent or just before landing then costs time in proportion to its samples, not to their
   square.

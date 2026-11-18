@@ -2364,8 +2364,8 @@ fn landing(
     // The first sample under the mark from which the track stays under the ceiling for the
     // span. `high` is the first sample from `index` on that isn't under the ceiling (a gap
     // included); it only moves forward, so the scan is linear in the samples (but for a binary
-    // search's logarithm at each candidate), where checking
-    // each candidate's span sample by sample costs a burst's square (#1250).
+    // search's logarithm at each candidate), where checking each candidate's span sample by
+    // sample costs a burst's square (#1250).
     let n = filtered.len();
     let mut high = apex.index + 1;
     let landed = (apex.index + 1..n).find(|&index| {
@@ -3951,6 +3951,46 @@ mod tests {
         assert_eq!(json["max_acceleration"]["reason"], "no_accelerometer");
         let back: Readings = serde_json::from_value(json).unwrap();
         assert_eq!(back, read);
+    }
+
+    /// A window of exactly [`slope_samples`] is read whole, every sample in the sums as a fit
+    /// over them all takes them; one sample more is read at every second.
+    #[test]
+    fn a_window_of_the_cap_is_read_whole_and_one_more_is_not() {
+        let window_s = SPEED_WINDOW_S;
+        let cap = slope_samples(window_s);
+        let fit = |times: &[f64], heights: &[f64], center: usize| {
+            let t0 = times[center];
+            let count = times.len() as f64;
+            let mean_t = times.iter().map(|t| t - t0).sum::<f64>() / count;
+            let mean_h = heights.iter().sum::<f64>() / count;
+            let (num, den) = times
+                .iter()
+                .zip(heights)
+                .fold((0.0, 0.0), |(n, d), (t, h)| {
+                    let dt = t - t0 - mean_t;
+                    (n + dt * (h - mean_h), d + dt * dt)
+                });
+            num / den
+        };
+        for samples in [cap, cap + 1] {
+            // All within the window, 0.9 of it end to end.
+            let step = 0.9 * window_s / (samples - 1) as f64;
+            let times: Vec<f64> = (0..samples).map(|k| 10.0 + step * k as f64).collect();
+            let heights: Vec<f64> = times
+                .iter()
+                .enumerate()
+                .map(|(k, t)| 40.0 * t + (k % 3) as f64)
+                .collect();
+            let center = samples / 2;
+            let slope = slope_over(&times, &heights, center, window_s).unwrap();
+            let whole = fit(&times, &heights, center);
+            if samples == cap {
+                assert_eq!(slope.to_bits(), whole.to_bits(), "{slope} against {whole}");
+            } else {
+                assert_ne!(slope.to_bits(), whole.to_bits(), "{slope}");
+            }
+        }
     }
 
     /// A burst of samples close together, too few to move the median interval, costs the top
