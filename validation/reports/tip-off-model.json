@@ -1,0 +1,3791 @@
+{
+  "bars": {
+    "angle_floor_deg": 0.005,
+    "angle_fraction": 0.1,
+    "apogee_move_percent_of_apogee": 0.2,
+    "judged_on": "recorded_normal_force",
+    "landing_move_percent_of_apogee": 1.0,
+    "pitch_rate_floor_deg_s": 0.1,
+    "pitch_rate_fraction": 0.1
+  },
+  "evaluation": "HPR Sim's tip-off phase against RocketPy's: each rocket and wind of the reference flown in HPR Sim guided to its last guide and with the phase, on RocketPy's normal force as the reference records it and on HPR Sim's own; moved is the flight with the phase less the guided one, and differences are HPR Sim's figures less RocketPy's, each beside its bar",
+  "flights": [
+    {
+      "case": "calisto-getting-started-motor-at-minus-1.255",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000011120518796630186,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0000965819567676176,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0033917456998393183,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00047621916776980624
+        },
+        "guided": {
+          "apogee_agl_m": 2615.3581269855013,
+          "flight_time_s": 260.9380286464212,
+          "landing_east_m": -4.340166863136385,
+          "landing_north_m": 510.01926240267113,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 8.187958434991192e-16,
+            "mach": 0.09280210263420363,
+            "normal_force_coefficient": 1.0319894178936688e-16,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.2148281370275082e-17,
+            "speed_m_s": 31.075435535885816,
+            "time_s": 0.3222675145735625
+          }
+        },
+        "moved": {
+          "apogee_m": -1.5752503015746697,
+          "landing_east_m": -0.046223435990199846,
+          "landing_north_m": 16.429609676757707,
+          "landing_range_m": 16.42941647512248
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.7828766839266,
+          "flight_time_s": 260.854113934008,
+          "landing_east_m": -4.386390299126584,
+          "landing_north_m": 526.4488720794288,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0010678817038586945,
+            "mach": 0.09280210377518079,
+            "normal_force_coefficient": 0.0001346004132139862,
+            "nose_down_deg": 0.008375913389238076,
+            "nose_right_deg": -0.00003328026011263015,
+            "pitch_rate_nose_down_deg_s": 0.7169667224121575,
+            "pitch_rate_nose_right_deg_s": -0.002887444279738488,
+            "pivot_moment_m": 0.0000158478775618433,
+            "speed_m_s": 31.075441835182797,
+            "time_s": 0.32226751419900745
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000011120391630696013,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0002630483452766075,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.00034057105700798635,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0004762070336096621
+        },
+        "guided": {
+          "apogee_agl_m": 2615.2180818208503,
+          "flight_time_s": 260.8648475753986,
+          "landing_east_m": -4.340796512066294,
+          "landing_north_m": 510.12411275913274,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 8.187958434991192e-16,
+            "mach": 0.09280210263420363,
+            "normal_force_coefficient": 1.0320054003804694e-16,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.2147516815727618e-17,
+            "speed_m_s": 31.075435535885816,
+            "time_s": 0.3222675145735625
+          }
+        },
+        "moved": {
+          "apogee_m": -1.5708981824186594,
+          "landing_east_m": -0.04548424248884775,
+          "landing_north_m": 16.349827480634133,
+          "landing_range_m": 16.34963093448664
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.6471836384317,
+          "flight_time_s": 260.7868463260925,
+          "landing_east_m": -4.386280754555142,
+          "landing_north_m": 526.4739402397669,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.00106788173668626,
+            "mach": 0.09280210377365901,
+            "normal_force_coefficient": 0.00013459517754215808,
+            "nose_down_deg": 0.0083759135164054,
+            "nose_right_deg": -0.00003328026061473062,
+            "pitch_rate_nose_down_deg_s": 0.7169667345471333,
+            "pitch_rate_nose_right_deg_s": -0.0028874443284297177,
+            "pivot_moment_m": 0.000015842913046993035,
+            "speed_m_s": 31.07544183467342,
+            "time_s": 0.32226751419941
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2614.413152703959,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.008387033881840237,
+          "nose_right_deg": -0.0000332561231802932,
+          "pitch_rate_nose_down_deg_s": 0.7174429253480603,
+          "pitch_rate_nose_right_deg_s": -0.002883512411360877,
+          "speed_m_s": 31.056666274011395,
+          "time_s": 0.32230265201508207
+        },
+        "moved": {
+          "apogee_m": -1.5777753529555412,
+          "landing_east_m": -0.044851718602995305,
+          "landing_north_m": 16.340946041377492,
+          "landing_range_m": 16.340749464807743
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "calisto-getting-started-motor-at-minus-1.255",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00784682181955572,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.06572274295180544,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.6766837417935727,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.6713267955237462
+        },
+        "guided": {
+          "apogee_agl_m": 2578.9380045608436,
+          "flight_time_s": 259.0708450708503,
+          "landing_east_m": 1652.5173224918865,
+          "landing_north_m": 498.46802876811324,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.054163228757993,
+            "mach": 0.09654942396431433,
+            "normal_force_coefficient": 3.6358087263320416,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.0991472319190105,
+            "speed_m_s": 31.069395148599817,
+            "time_s": 0.322289787972562
+          }
+        },
+        "moved": {
+          "apogee_m": 0.6225665732481502,
+          "landing_east_m": 20.908301887991684,
+          "landing_north_m": 17.246533792049433,
+          "landing_range_m": 25.0293941216828
+        },
+        "tip_off": {
+          "apogee_agl_m": 2579.560571134092,
+          "flight_time_s": 259.1040886475988,
+          "landing_east_m": 1673.4256243798782,
+          "landing_north_m": 515.7145625601627,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.053737342419033,
+            "mach": 0.09654442273090214,
+            "normal_force_coefficient": 3.6356712903454524,
+            "nose_down_deg": 0.008375834767903817,
+            "nose_right_deg": 0.009860925879642565,
+            "pitch_rate_nose_down_deg_s": 0.7167243050017926,
+            "pitch_rate_nose_right_deg_s": 0.8456254239943184,
+            "pivot_moment_m": 1.0990968526954905,
+            "speed_m_s": 31.069405143216898,
+            "time_s": 0.32228978671698394
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000011419591650841794,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0001515224602901081,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.007795823755448955,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0006570680640133104
+        },
+        "guided": {
+          "apogee_agl_m": 2571.6497989543573,
+          "flight_time_s": 258.6781594776765,
+          "landing_east_m": 1592.2469510264868,
+          "landing_north_m": 497.77361500653194,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.054163228757993,
+            "mach": 0.09654942396431433,
+            "normal_force_coefficient": 2.0236839344550304,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.23806761186802738,
+            "speed_m_s": 31.069395148599817,
+            "time_s": 0.322289787972562
+          }
+        },
+        "moved": {
+          "apogee_m": -1.0634422884081687,
+          "landing_east_m": 3.6398010262707885,
+          "landing_north_m": 15.910163313573776,
+          "landing_range_m": 8.280593745939314
+        },
+        "tip_off": {
+          "apogee_agl_m": 2570.586356665949,
+          "flight_time_s": 258.6224328712551,
+          "landing_east_m": 1595.8867520527576,
+          "landing_north_m": 513.6837783201057,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.05405777577235,
+            "mach": 0.09654838676759263,
+            "normal_force_coefficient": 2.0236705789680025,
+            "nose_down_deg": 0.008376686966395033,
+            "nose_right_deg": 0.0020117146996155473,
+            "pitch_rate_nose_down_deg_s": 0.7168042308151177,
+            "pitch_rate_nose_right_deg_s": 0.17414875080615627,
+            "pivot_moment_m": 0.23806607834324733,
+            "speed_m_s": 31.069398029024118,
+            "time_s": 0.322289786677757
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2571.2635040466907,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.008387851820739867,
+          "nose_right_deg": 0.002014113261878784,
+          "pitch_rate_nose_down_deg_s": 0.7174438864852619,
+          "pitch_rate_nose_right_deg_s": 0.17429901412303211,
+          "speed_m_s": 31.054526722103564,
+          "time_s": 0.322325311462975
+        },
+        "moved": {
+          "apogee_m": -1.0673383301300419,
+          "landing_east_m": 3.547583613106326,
+          "landing_north_m": 16.088142583967965,
+          "landing_range_m": 8.263497188151177
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "calisto-tests-motor-at-minus-1.373",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000010626267321686212,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0002279857183134874,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.002456733258111953,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0004501756030379209
+        },
+        "guided": {
+          "apogee_agl_m": 2615.4813469567844,
+          "flight_time_s": 260.93257589086454,
+          "landing_east_m": -4.326424470390579,
+          "landing_north_m": 508.4269192065749,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0,
+            "mach": 0.0916244983992055,
+            "normal_force_coefficient": 0.0,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.0,
+            "speed_m_s": 30.681116389479648,
+            "time_s": 0.318446060050504
+          }
+        },
+        "moved": {
+          "apogee_m": -1.6133045471324294,
+          "landing_east_m": -0.04648939719233969,
+          "landing_north_m": 16.86684606930544,
+          "landing_range_m": 16.866639980642503
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.868042409652,
+          "flight_time_s": 260.84782249352656,
+          "landing_east_m": -4.372913867582919,
+          "landing_north_m": 525.2937652758803,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0003848181734286823,
+            "mach": 0.09162449923034224,
+            "normal_force_coefficient": 0.000040917252733289735,
+            "nose_down_deg": 0.007809605559675558,
+            "nose_right_deg": -0.000030595988585714986,
+            "pitch_rate_nose_down_deg_s": 0.6590044737657034,
+            "pitch_rate_nose_right_deg_s": -0.0026179461484127585,
+            "pivot_moment_m": 4.348624991523819e-6,
+            "speed_m_s": 30.68112098180283,
+            "time_s": 0.318446059715267
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000010626198477159015,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00031599968385888935,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.004701321770895204,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0004501696326744993
+        },
+        "guided": {
+          "apogee_agl_m": 2615.33092798307,
+          "flight_time_s": 260.8643019422108,
+          "landing_east_m": -4.327103975769772,
+          "landing_north_m": 508.5249527741666,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0,
+            "mach": 0.0916244983992055,
+            "normal_force_coefficient": 0.0,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.0,
+            "speed_m_s": 30.681116389479648,
+            "time_s": 0.318446060050504
+          }
+        },
+        "moved": {
+          "apogee_m": -1.611003458230698,
+          "landing_east_m": -0.0458844077531797,
+          "landing_north_m": 16.808165208196158,
+          "landing_range_m": 16.80795614349711
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.7199245248394,
+          "flight_time_s": 260.7849051867087,
+          "landing_east_m": -4.3729883835229515,
+          "landing_north_m": 525.3331179823628,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.00038481817871482266,
+            "mach": 0.09162449923159263,
+            "normal_force_coefficient": 0.00004091699337801122,
+            "nose_down_deg": 0.00780960562852105,
+            "nose_right_deg": -0.00003059598885436998,
+            "pitch_rate_nose_down_deg_s": 0.6590044797365314,
+            "pitch_rate_nose_right_deg_s": -0.002617946171832445,
+            "pivot_moment_m": 4.347806557794583e-6,
+            "speed_m_s": 30.68112098222161,
+            "time_s": 0.31844605971504425
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2614.4588389718715,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.007820231789001406,
+          "nose_right_deg": -0.00003056757192817665,
+          "pitch_rate_nose_down_deg_s": 0.6594546305031572,
+          "pitch_rate_nose_right_deg_s": -0.00261382482636071,
+          "speed_m_s": 30.662069672805636,
+          "time_s": 0.318478897768075
+        },
+        "moved": {
+          "apogee_m": -1.61926513989647,
+          "landing_east_m": -0.0469596328171038,
+          "landing_north_m": 16.931074627780504,
+          "landing_range_m": 16.930875432033247
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "calisto-tests-motor-at-minus-1.373",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.006140746475508848,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.05414068390799725,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.5440154664156568,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.5179067216243352
+        },
+        "guided": {
+          "apogee_agl_m": 2580.4693602873626,
+          "flight_time_s": 259.1506272763379,
+          "landing_east_m": 1665.7482753211805,
+          "landing_north_m": 497.9090941626487,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.249612743376375,
+            "mach": 0.0954188461687751,
+            "normal_force_coefficient": 3.378778619510001,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.8699636899383973,
+            "speed_m_s": 30.675266916597753,
+            "time_s": 0.3184675972246529
+          }
+        },
+        "moved": {
+          "apogee_m": 0.17404844426528143,
+          "landing_east_m": 16.95773678292676,
+          "landing_north_m": 17.195085100000313,
+          "landing_range_m": 21.21028119945413
+        },
+        "tip_off": {
+          "apogee_agl_m": 2580.643408731628,
+          "flight_time_s": 259.1601865956931,
+          "landing_east_m": 1682.7060121041072,
+          "landing_north_m": 515.104179262649,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.24985152020472,
+            "mach": 0.09541523674035464,
+            "normal_force_coefficient": 3.3788508852481707,
+            "nose_down_deg": 0.007810118743053628,
+            "nose_right_deg": 0.007650619885001747,
+            "pitch_rate_nose_down_deg_s": 0.6588542864317569,
+            "pitch_rate_nose_right_deg_s": 0.6467353108221413,
+            "pivot_moment_m": 0.8699858900824289,
+            "speed_m_s": 30.67527162164859,
+            "time_s": 0.3184675956033402
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000010475898243775166,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00025758921649243446,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.001885493342448357,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0005662299263985781
+        },
+        "guided": {
+          "apogee_agl_m": 2577.1361818558426,
+          "flight_time_s": 258.96684614815507,
+          "landing_east_m": 1636.7614450859649,
+          "landing_north_m": 497.6422361962891,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.249612743376375,
+            "mach": 0.0954188461687751,
+            "normal_force_coefficient": 1.7279931320043669,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.1834711861881857,
+            "speed_m_s": 30.675266916597753,
+            "time_s": 0.3184675972246529
+          }
+        },
+        "moved": {
+          "apogee_m": -1.2144200747075047,
+          "landing_east_m": 2.943649107559395,
+          "landing_north_m": 16.385436538107797,
+          "landing_range_m": 7.646670248815099
+        },
+        "tip_off": {
+          "apogee_agl_m": 2575.921761781135,
+          "flight_time_s": 258.9033260724564,
+          "landing_east_m": 1639.7050941935242,
+          "landing_north_m": 514.0276727343969,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 16.249646765374717,
+            "mach": 0.09541812114814688,
+            "normal_force_coefficient": 1.7279967112557797,
+            "nose_down_deg": 0.00781065804939859,
+            "nose_right_deg": 0.0015081260725652195,
+            "pitch_rate_nose_down_deg_s": 0.6589017534080246,
+            "pitch_rate_nose_right_deg_s": 0.12872869597177042,
+            "pivot_moment_m": 0.18347159372685873,
+            "speed_m_s": 30.675268344985103,
+            "time_s": 0.3184675955288576
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2576.8165821249527,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.007820985564276527,
+          "nose_right_deg": 0.0015098830246021051,
+          "pitch_rate_nose_down_deg_s": 0.6594590387995171,
+          "pitch_rate_nose_right_deg_s": 0.12882894227832795,
+          "speed_m_s": 30.6599594721532,
+          "time_s": 0.3185012937672463
+        },
+        "moved": {
+          "apogee_m": -1.2210576763518475,
+          "landing_east_m": 2.9602907162548036,
+          "landing_north_m": 16.431083307986853,
+          "landing_range_m": 7.691824825981939
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "bella-lui",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00001604853403803504,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00018469620121637376,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.011541426734660635,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0004909815649151726
+        },
+        "guided": {
+          "apogee_agl_m": 540.3406618149558,
+          "flight_time_s": 39.74736387794931,
+          "landing_east_m": 18.905767729405337,
+          "landing_north_m": 19.331773014358177,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.7052441752300572e-16,
+            "mach": 0.055066525949770594,
+            "normal_force_coefficient": 3.5071581657202734e-17,
+            "nose_down_deg": -3.3793393490549868e-15,
+            "nose_right_deg": 9.93923337957349e-17,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.0679559524936168e-18,
+            "speed_m_s": 18.651608535970656,
+            "time_s": 0.37760553258828405
+          }
+        },
+        "moved": {
+          "apogee_m": -0.019532403029757006,
+          "landing_east_m": 0.8603182937591463,
+          "landing_north_m": 0.8713983939421972,
+          "landing_range_m": 1.2245205045599121
+        },
+        "tip_off": {
+          "apogee_agl_m": 540.321129411926,
+          "flight_time_s": 39.74777505685506,
+          "landing_east_m": 19.766086023164483,
+          "landing_north_m": 20.203171408300374,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.004621665586233081,
+            "mach": 0.05506652747833503,
+            "normal_force_coefficient": 0.0009506551013005251,
+            "nose_down_deg": 0.009066725633198302,
+            "nose_right_deg": -0.00006392555231906252,
+            "pitch_rate_nose_down_deg_s": 0.542770345330828,
+            "pitch_rate_nose_right_deg_s": -0.0038854415910290208,
+            "pivot_moment_m": 0.00002902572505516783,
+            "speed_m_s": 18.651616197294977,
+            "time_s": 0.3776055322831641
+          }
+        }
+      },
+      "rail_inclination_deg": 89.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00001604739499487596,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00020150104604556513,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.005016196566463256,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0004908859454251635
+        },
+        "guided": {
+          "apogee_agl_m": 540.3399336332186,
+          "flight_time_s": 39.74845380992039,
+          "landing_east_m": 19.12065173021318,
+          "landing_north_m": 19.55459638467106,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.7052441752300572e-16,
+            "mach": 0.055066525949770594,
+            "normal_force_coefficient": 3.507193985620253e-17,
+            "nose_down_deg": -3.3793393490549868e-15,
+            "nose_right_deg": 9.93923337957349e-17,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.0678233608107225e-18,
+            "speed_m_s": 18.651608535970656,
+            "time_s": 0.37760553258828405
+          }
+        },
+        "moved": {
+          "apogee_m": -0.01962317456047913,
+          "landing_east_m": 0.8849163950256411,
+          "landing_north_m": 0.896642020284002,
+          "landing_range_m": 1.2597663675546542
+        },
+        "tip_off": {
+          "apogee_agl_m": 540.3203104586581,
+          "flight_time_s": 39.74862046938533,
+          "landing_east_m": 20.00556812523882,
+          "landing_north_m": 20.451238404955063,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.004621666858558707,
+            "mach": 0.05506652747958059,
+            "normal_force_coefficient": 0.0009505431800129382,
+            "nose_down_deg": 0.009066726772245395,
+            "nose_right_deg": -0.00006392556033743966,
+            "pitch_rate_nose_down_deg_s": 0.5427704409581285,
+            "pitch_rate_nose_right_deg_s": -0.0038854422712085797,
+            "pivot_moment_m": 0.000028940863178896934,
+            "speed_m_s": 18.6516161977195,
+            "time_s": 0.37760553228249516
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 540.150960301906,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.00908277416543105,
+          "nose_right_deg": -0.00006391794019725652,
+          "pitch_rate_nose_down_deg_s": 0.5432613130402437,
+          "pitch_rate_nose_right_deg_s": -0.003881753041496895,
+          "speed_m_s": 18.636979226061513,
+          "time_s": 0.3774129422111096
+        },
+        "moved": {
+          "apogee_m": -0.018534764725245623,
+          "landing_east_m": 0.9037068353537876,
+          "landing_north_m": 0.916162783989293,
+          "landing_range_m": 1.286860878916638
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "bella-lui",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.06713654566014528,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.37926708847688967,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 1.6777456648449527,
+          "past": [
+            "pitch_rate",
+            "angle",
+            "apogee_move",
+            "landing_move"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 4.009834344520717
+        },
+        "guided": {
+          "apogee_agl_m": 495.5911040094647,
+          "flight_time_s": 37.49845611690179,
+          "landing_east_m": -39.433387624870505,
+          "landing_north_m": 74.58187733142158,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 25.61831451582435,
+            "mach": 0.061050355887417675,
+            "normal_force_coefficient": 8.756691862143347,
+            "nose_down_deg": -3.3793393490549868e-15,
+            "nose_right_deg": 9.93923337957349e-17,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 2.438766696461993,
+            "speed_m_s": 18.64559165556187,
+            "time_s": 0.377653223757308
+          }
+        },
+        "moved": {
+          "apogee_m": 1.9480216050698118,
+          "landing_east_m": 6.995551369139662,
+          "landing_north_m": -5.239383604814961,
+          "landing_range_m": -7.810451098065798
+        },
+        "tip_off": {
+          "apogee_agl_m": 497.5391256145345,
+          "flight_time_s": 37.60605500380997,
+          "landing_east_m": -32.43783625573084,
+          "landing_north_m": 69.34249372660662,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 25.60212936504607,
+            "mach": 0.061005566880190466,
+            "normal_force_coefficient": 8.749257002585871,
+            "nose_down_deg": 0.00905154652990827,
+            "nose_right_deg": 0.07150323240044835,
+            "pitch_rate_nose_down_deg_s": 0.5412022592525472,
+            "pitch_rate_nose_right_deg_s": 4.273625435757821,
+            "pivot_moment_m": 2.4360199058218654,
+            "speed_m_s": 18.646047041831423,
+            "time_s": 0.3776532158930684
+          }
+        }
+      },
+      "rail_inclination_deg": 89.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000026050265391029526,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0009426983835808153,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.008708681702648479,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0013930564040295283
+        },
+        "guided": {
+          "apogee_agl_m": 487.3335559603391,
+          "flight_time_s": 37.035568274175915,
+          "landing_east_m": -62.116978270860066,
+          "landing_north_m": 96.76795663625202,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 25.61831451582435,
+            "mach": 0.061050355887417675,
+            "normal_force_coefficient": 5.269408539730656,
+            "nose_down_deg": -3.3793393490549868e-15,
+            "nose_right_deg": 9.93923337957349e-17,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.16025040536861823,
+            "speed_m_s": 18.64559165556187,
+            "time_s": 0.377653223757308
+          }
+        },
+        "moved": {
+          "apogee_m": 0.09944276817952868,
+          "landing_east_m": 1.062418542804636,
+          "landing_north_m": 0.418757849846628,
+          "landing_range_m": -0.2160476188919631
+        },
+        "tip_off": {
+          "apogee_agl_m": 487.4329987285186,
+          "flight_time_s": 37.04113266726512,
+          "landing_east_m": -61.05455972805543,
+          "landing_north_m": 97.18671448609865,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 25.617274082536447,
+            "mach": 0.061047598328382795,
+            "normal_force_coefficient": 5.269194254934415,
+            "nose_down_deg": 0.009059006310739741,
+            "nose_right_deg": 0.004354424880145844,
+            "pitch_rate_nose_down_deg_s": 0.5417571493180114,
+            "pitch_rate_nose_right_deg_s": 0.26305034419507306,
+            "pivot_moment_m": 0.16024400052556587,
+            "speed_m_s": 18.645600173867138,
+            "time_s": 0.3776532237682135
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 486.19969837038286,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.009081986602956282,
+          "nose_right_deg": 0.00436669364115034,
+          "pitch_rate_nose_down_deg_s": 0.5429367018155447,
+          "pitch_rate_nose_right_deg_s": 0.2637914663512463,
+          "speed_m_s": 18.632443283737672,
+          "time_s": 0.37750289389995983
+        },
+        "moved": {
+          "apogee_m": 0.10402616487704108,
+          "landing_east_m": 1.0985432661680221,
+          "landing_north_m": 0.39667133559085244,
+          "landing_range_m": -0.2628469434562106
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "ndrt-2020-nose-to-tail",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 1.3894391363580309e-8,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0009124307221751334,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 7.522404501453668e-7,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 1.490184288630085e-6
+        },
+        "guided": {
+          "apogee_agl_m": 1220.2643319333613,
+          "flight_time_s": 84.51689717771679,
+          "landing_east_m": -1.2626184353227905,
+          "landing_north_m": 0.0010576676448608173,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0,
+            "mach": 0.056930933125920256,
+            "normal_force_coefficient": 0.0,
+            "nose_down_deg": -3.508354649267438e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.0,
+            "speed_m_s": 19.327375720946655,
+            "time_s": 0.24315474536744985
+          }
+        },
+        "moved": {
+          "apogee_m": -3.4680208500503795e-6,
+          "landing_east_m": -0.005584213147019179,
+          "landing_north_m": 4.840522295854882e-6,
+          "landing_range_m": 0.00558421524259467
+        },
+        "tip_off": {
+          "apogee_agl_m": 1220.2643284653404,
+          "flight_time_s": 84.5168970771832,
+          "landing_east_m": -1.2682026484698097,
+          "landing_north_m": 0.0010625081671566722,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 2.2090440519929244e-6,
+            "mach": 0.056930933437846144,
+            "normal_force_coefficient": 2.4007315015344563e-7,
+            "nose_down_deg": 7.713769207488332e-8,
+            "nose_right_deg": 4.419225191851946e-6,
+            "pitch_rate_nose_down_deg_s": 5.681720023665712e-6,
+            "pitch_rate_nose_right_deg_s": 0.0003255065315443976,
+            "pivot_moment_m": -1.0525470927965195e-7,
+            "speed_m_s": 19.327375826844307,
+            "time_s": 0.24315474681710209
+          }
+        }
+      },
+      "rail_inclination_deg": 90.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 1.389421620409479e-8,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00091242199546475,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 5.071750230376523e-7,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 1.4901774991798735e-6
+        },
+        "guided": {
+          "apogee_agl_m": 1220.2643315767632,
+          "flight_time_s": 84.5168971221157,
+          "landing_east_m": -1.2630326778255798,
+          "landing_north_m": 0.0010581961385371726,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0,
+            "mach": 0.056930933125920256,
+            "normal_force_coefficient": 0.0,
+            "nose_down_deg": -3.508354649267438e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 0.0,
+            "speed_m_s": 19.327375720946655,
+            "time_s": 0.24315474536744985
+          }
+        },
+        "moved": {
+          "apogee_m": -3.361605422469438e-6,
+          "landing_east_m": -0.005581224733424817,
+          "landing_north_m": 4.8373209222464e-6,
+          "landing_range_m": 0.00558122682739004
+        },
+        "tip_off": {
+          "apogee_agl_m": 1220.2643282151578,
+          "flight_time_s": 84.51689704394596,
+          "landing_east_m": -1.2686139025590046,
+          "landing_north_m": 0.001063033459459419,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 2.2090440889062408e-6,
+            "mach": 0.056930933437846144,
+            "normal_force_coefficient": 2.4007533058523186e-7,
+            "nose_down_deg": 7.713768901795306e-8,
+            "nose_right_deg": 4.419225016719138e-6,
+            "pitch_rate_nose_down_deg_s": 5.68171990517563e-6,
+            "pitch_rate_nose_right_deg_s": 0.00032550652475598144,
+            "pivot_moment_m": -1.0525712594800391e-7,
+            "speed_m_s": 19.327375826844307,
+            "time_s": 0.24315474681710209
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 1219.4220147878896,
+        "last_guide_leaves": {
+          "nose_down_deg": 7.689513998126227e-8,
+          "nose_right_deg": 4.405332917745587e-6,
+          "pitch_rate_nose_down_deg_s": 5.6557060327085225e-6,
+          "pitch_rate_nose_right_deg_s": 0.000324016574334826,
+          "speed_m_s": 19.299691288447846,
+          "time_s": 0.2430454179294378
+        },
+        "moved": {
+          "apogee_m": 0.011122913075041652,
+          "landing_east_m": -0.00557504019781363,
+          "landing_north_m": 4.8663808814536184e-6,
+          "landing_range_m": 0.005575042319150958
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "ndrt-2020-nose-to-tail",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.0019076348201053335,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.016669788204450336,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.17781198724875252,
+          "past": [
+            "pitch_rate"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.1365657594064893
+        },
+        "guided": {
+          "apogee_agl_m": 1205.0479063382202,
+          "flight_time_s": 84.2004593352208,
+          "landing_east_m": -425.9284407425667,
+          "landing_north_m": 7.374966513658396,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 24.83037291924134,
+            "mach": 0.0627150159367838,
+            "normal_force_coefficient": 5.30575035292026,
+            "nose_down_deg": -3.508354649267438e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": -0.41573980218966256,
+            "speed_m_s": 19.322756282591516,
+            "time_s": 0.243173984907517
+          }
+        },
+        "moved": {
+          "apogee_m": -0.06509858706317573,
+          "landing_east_m": 0.7617314232263652,
+          "landing_north_m": -0.014031057600247365,
+          "landing_range_m": -0.7618601723914367
+        },
+        "tip_off": {
+          "apogee_agl_m": 1204.982807751157,
+          "flight_time_s": 84.19843389684547,
+          "landing_east_m": -425.1667093193403,
+          "landing_north_m": 7.360935456058149,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 24.83054714118959,
+            "mach": 0.0627153895588911,
+            "normal_force_coefficient": 5.305803521317509,
+            "nose_down_deg": 7.705805984869198e-8,
+            "nose_right_deg": -0.0005624149505839013,
+            "pitch_rate_nose_down_deg_s": 5.681762379204727e-6,
+            "pitch_rate_nose_right_deg_s": -0.0439232605346321,
+            "pivot_moment_m": -0.4157383135242796,
+            "speed_m_s": 19.322756494034245,
+            "time_s": 0.2431739847701287
+          }
+        }
+      },
+      "rail_inclination_deg": 90.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 6.200555908863379e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0003360680267163192,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.00943417602381624,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00018983087636494848
+        },
+        "guided": {
+          "apogee_agl_m": 1204.2621089584618,
+          "flight_time_s": 84.07562547888438,
+          "landing_east_m": -417.2579566669376,
+          "landing_north_m": 7.215979398250433,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 24.83037291924134,
+            "mach": 0.0627150159367838,
+            "normal_force_coefficient": 2.6988503103891475,
+            "nose_down_deg": -3.508354649267438e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": -1.1834813151301775,
+            "speed_m_s": 19.322756282591516,
+            "time_s": 0.243173984907517
+          }
+        },
+        "moved": {
+          "apogee_m": -0.2699301500672391,
+          "landing_east_m": 3.016690430376343,
+          "landing_north_m": -0.05527994074121878,
+          "landing_range_m": -3.0171952680834124
+        },
+        "tip_off": {
+          "apogee_agl_m": 1203.9921788083946,
+          "flight_time_s": 84.06746220333879,
+          "landing_east_m": -414.2412662365613,
+          "landing_north_m": 7.160699457509215,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 24.83093321990349,
+            "mach": 0.0627165487059623,
+            "normal_force_coefficient": 2.6989113121029,
+            "nose_down_deg": 7.712373309566805e-8,
+            "nose_right_deg": -0.0024638492147833996,
+            "pitch_rate_nose_down_deg_s": 5.6894735571415214e-6,
+            "pitch_rate_nose_right_deg_s": -0.18029918906590398,
+            "pivot_moment_m": -1.1835081321420455,
+            "speed_m_s": 19.322757396548365,
+            "time_s": 0.24317398472348775
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 1204.4766239330443,
+        "last_guide_leaves": {
+          "nose_down_deg": 7.692981203348794e-8,
+          "nose_right_deg": -0.0024700497706892305,
+          "pitch_rate_nose_down_deg_s": 5.66859505386069e-6,
+          "pitch_rate_nose_right_deg_s": -0.18048901994112077,
+          "speed_m_s": 19.296491533854265,
+          "time_s": 0.24308780531543678
+        },
+        "moved": {
+          "apogee_m": -0.26588228924492796,
+          "landing_east_m": 2.9030758937303176,
+          "landing_north_m": -0.053262618434652076,
+          "landing_range_m": -2.9035628922825367
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "valetudo",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005612287437472562,
+          "angle_deg": 0.0000644771808870324,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.003323771651027239,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.06009214616109047,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.20902192927330746,
+          "pitch_rate_deg_s": 0.0012137453522125636
+        },
+        "guided": {
+          "apogee_agl_m": 778.807957396006,
+          "flight_time_s": 58.65853366116285,
+          "landing_east_m": 159.01481288124174,
+          "landing_north_m": 120.7288118960299,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 8.472728858104349e-16,
+            "mach": 0.06669688042755377,
+            "normal_force_coefficient": 9.475203735578865e-17,
+            "nose_down_deg": -3.1805546814635168e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 5.710178477256588e-17,
+            "speed_m_s": 22.52323709205858,
+            "time_s": 0.5096707006668111
+          }
+        },
+        "moved": {
+          "apogee_m": -2.6564489969644,
+          "landing_east_m": 22.832294533196546,
+          "landing_north_m": 17.29287276183436,
+          "landing_range_m": 28.6418599122527
+        },
+        "tip_off": {
+          "apogee_agl_m": 776.1515083990416,
+          "flight_time_s": 58.531448745264456,
+          "landing_east_m": 181.84710741443828,
+          "landing_north_m": 138.02168465786426,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.02346639619449966,
+            "mach": 0.06669694149229952,
+            "normal_force_coefficient": 0.002629408883118937,
+            "nose_down_deg": 0.05605828704334876,
+            "nose_right_deg": -0.00011133348023126765,
+            "pitch_rate_nose_down_deg_s": 2.089001296654299,
+            "pitch_rate_nose_right_deg_s": -0.004228697154955272,
+            "pivot_moment_m": 0.0015863295221921832,
+            "speed_m_s": 22.523318712981563,
+            "time_s": 0.5096706824452787
+          }
+        }
+      },
+      "rail_inclination_deg": 84.7,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005612287437472562,
+          "angle_deg": 0.00006443917164250995,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0006153028119368902,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.019730333564117287,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.20902192927330746,
+          "pitch_rate_deg_s": 0.0012118123956322236
+        },
+        "guided": {
+          "apogee_agl_m": 778.6222500781203,
+          "flight_time_s": 58.556424447742494,
+          "landing_east_m": 160.23206938773438,
+          "landing_north_m": 121.65733208039802,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 8.472728858104349e-16,
+            "mach": 0.06669688042755377,
+            "normal_force_coefficient": 9.475371036933332e-17,
+            "nose_down_deg": -3.1805546814635168e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 5.710178383732383e-17,
+            "speed_m_s": 22.52323709205858,
+            "time_s": 0.5096707006668111
+          }
+        },
+        "moved": {
+          "apogee_m": -2.6775237248921258,
+          "landing_east_m": 22.33850374754232,
+          "landing_north_m": 16.916125494271597,
+          "landing_range_m": 28.020759211637085
+        },
+        "tip_off": {
+          "apogee_agl_m": 775.9447263532281,
+          "flight_time_s": 58.42395932314378,
+          "landing_east_m": 182.5705731352767,
+          "landing_north_m": 138.57345757466962,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.02346643177117261,
+            "mach": 0.06669694149226758,
+            "normal_force_coefficient": 0.0026243392423138255,
+            "nose_down_deg": 0.056058325052757416,
+            "nose_right_deg": -0.0001113335555766202,
+            "pitch_rate_nose_down_deg_s": 2.089003229653506,
+            "pitch_rate_nose_right_deg_s": -0.004228701039667466,
+            "pivot_moment_m": 0.0015815153970598177,
+            "speed_m_s": 22.523318713094284,
+            "time_s": 0.5096706824457706
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 778.1048695691743,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.05612276414562794,
+          "nose_right_deg": -0.00011123279845806393,
+          "pitch_rate_nose_down_deg_s": 2.090215027296568,
+          "pitch_rate_nose_right_deg_s": -0.004222721534876708,
+          "speed_m_s": 22.51214590012352,
+          "time_s": 0.5098753931055539
+        },
+        "moved": {
+          "apogee_m": -2.6823114260344028,
+          "landing_east_m": 22.460759996012598,
+          "landing_north_m": 17.00898358439703,
+          "landing_range_m": 28.17428199082272
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "valetudo",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005902868397096936,
+          "angle_deg": 0.05172563280498906,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.29467619295034025,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 4.081870909266917,
+          "past": [
+            "pitch_rate",
+            "angle",
+            "apogee_move",
+            "landing_move"
+          ],
+          "pitch_rate_bar_deg_s": 0.220140127508953,
+          "pitch_rate_deg_s": 1.9265935110040981
+        },
+        "guided": {
+          "apogee_agl_m": 763.0250209346179,
+          "flight_time_s": 57.7964154345115,
+          "landing_east_m": 278.6650794748453,
+          "landing_north_m": -48.30608312932532,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 21.655820359045563,
+            "mach": 0.07174459208234685,
+            "normal_force_coefficient": 6.567616185846907,
+            "nose_down_deg": -3.1805546814635168e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 5.341475912508853,
+            "speed_m_s": 22.51776365115101,
+            "time_s": 0.5097175145816635
+          }
+        },
+        "moved": {
+          "apogee_m": 0.7529451486336711,
+          "landing_east_m": 47.869821798608996,
+          "landing_north_m": -13.145700398440944,
+          "landing_range_m": 49.44603075339353
+        },
+        "tip_off": {
+          "apogee_agl_m": 763.7779660832516,
+          "flight_time_s": 57.83809095665501,
+          "landing_east_m": 326.5349012734543,
+          "landing_north_m": -61.45178352776627,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 21.63968908740134,
+            "mach": 0.07170186369147068,
+            "normal_force_coefficient": 6.559937514388311,
+            "nose_down_deg": 0.05602766212426291,
+            "nose_right_deg": 0.06998851914568714,
+            "pitch_rate_nose_down_deg_s": 2.08677619084111,
+            "pitch_rate_nose_right_deg_s": 2.617156473100872,
+            "pivot_moment_m": 5.334904782806559,
+            "speed_m_s": 22.51795096271427,
+            "time_s": 0.5097174809815929
+          }
+        }
+      },
+      "rail_inclination_deg": 84.7,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005902868397096936,
+          "angle_deg": 0.00006843465459241473,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0011698727749862312,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.029275712395402536,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.220140127508953,
+          "pitch_rate_deg_s": 0.0018128132608458143
+        },
+        "guided": {
+          "apogee_agl_m": 756.5567136715761,
+          "flight_time_s": 57.38577979591589,
+          "landing_east_m": 248.52330691029886,
+          "landing_north_m": -9.093172963930877,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 21.655820359045563,
+            "mach": 0.07174459208234685,
+            "normal_force_coefficient": 2.4221878943836876,
+            "nose_down_deg": -3.1805546814635168e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.4594886537053795,
+            "speed_m_s": 22.51776365115101,
+            "time_s": 0.5097175145816635
+          }
+        },
+        "moved": {
+          "apogee_m": -1.4855851604429517,
+          "landing_east_m": 26.653055946573772,
+          "landing_north_m": 9.4046989482317,
+          "landing_range_m": 26.486933718681797
+        },
+        "tip_off": {
+          "apogee_agl_m": 755.0711285111331,
+          "flight_time_s": 57.29833286452184,
+          "landing_east_m": 275.17636285687263,
+          "landing_north_m": 0.3115259843008225,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 21.651360711195352,
+            "mach": 0.07173336567846994,
+            "normal_force_coefficient": 2.4216883385594663,
+            "nose_down_deg": 0.05606676156193838,
+            "nose_right_deg": 0.01824370002694855,
+            "pitch_rate_nose_down_deg_s": 2.088562272996149,
+            "pitch_rate_nose_right_deg_s": 0.6899978502903426,
+            "pivot_moment_m": 1.4591880990293973,
+            "speed_m_s": 22.517852546445102,
+            "time_s": 0.5097174948259604
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 756.6537359854399,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.05613242057050287,
+          "nose_right_deg": 0.01826299242295089,
+          "pitch_rate_nose_down_deg_s": 2.0902837031384554,
+          "pitch_rate_nose_right_deg_s": 0.6905661549479488,
+          "speed_m_s": 22.509042271418124,
+          "time_s": 0.5099459562968862
+        },
+        "moved": {
+          "apogee_m": -1.476733274384742,
+          "landing_east_m": 26.85729606400838,
+          "landing_north_m": 9.490461477854382,
+          "landing_range_m": 26.74543324015235
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "juno-iii",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.007886783853496308,
+          "angle_deg": 0.00010319434932830963,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.01804195171981126,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.15361421848240717,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.22552180815037823,
+          "pitch_rate_deg_s": 0.0015583226013422317
+        },
+        "guided": {
+          "apogee_agl_m": 2625.218556741902,
+          "flight_time_s": 136.2488953335064,
+          "landing_east_m": 605.3157183910654,
+          "landing_north_m": -164.41089924177308,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.1901728712246835e-15,
+            "mach": 0.06440180112223508,
+            "normal_force_coefficient": 2.1676737117512347e-16,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.3056039973804224e-16,
+            "speed_m_s": 21.54514881365971,
+            "time_s": 0.5152906924850341
+          }
+        },
+        "moved": {
+          "apogee_m": -11.33402862478988,
+          "landing_east_m": 92.07711810323315,
+          "landing_north_m": -24.847505820381514,
+          "landing_range_m": 95.37071395292867
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.884528117112,
+          "flight_time_s": 135.80122691705373,
+          "landing_east_m": 697.3928364942985,
+          "landing_north_m": -189.2584050621546,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.02693513134378625,
+            "mach": 0.06440190233054456,
+            "normal_force_coefficient": 0.0049107395995027685,
+            "nose_down_deg": 0.07876461406624778,
+            "nose_right_deg": 0.00006898627581183953,
+            "pitch_rate_nose_down_deg_s": 2.253658849140006,
+            "pitch_rate_nose_right_deg_s": 0.002029865130313725,
+            "pivot_moment_m": 0.002960621003531618,
+            "speed_m_s": 21.545309121042756,
+            "time_s": 0.5152906485047964
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.007886783853496308,
+          "angle_deg": 0.00010353909652388146,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0006440462918598975,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.004963643524475334,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.22552180815037823,
+          "pitch_rate_deg_s": 0.0015703658710555465
+        },
+        "guided": {
+          "apogee_agl_m": 2624.8402676264395,
+          "flight_time_s": 136.22303763100945,
+          "landing_east_m": 607.9221341369705,
+          "landing_north_m": -165.1188301828759,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.1901728712246835e-15,
+            "mach": 0.06440180112223508,
+            "normal_force_coefficient": 2.312885294446246e-16,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.3294913068070875e-16,
+            "speed_m_s": 21.54514881365971,
+            "time_s": 0.5152906924850341
+          }
+        },
+        "moved": {
+          "apogee_m": -10.877518467150367,
+          "landing_east_m": 88.31133251725703,
+          "landing_north_m": -23.831261091526926,
+          "landing_range_m": 91.47021856043443
+        },
+        "tip_off": {
+          "apogee_agl_m": 2613.962749159289,
+          "flight_time_s": 135.79687478974154,
+          "landing_east_m": 696.2334666542275,
+          "landing_north_m": -188.95009127440284,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.026934911239160114,
+            "mach": 0.06440190233290906,
+            "normal_force_coefficient": 0.005234311894373676,
+            "nose_down_deg": 0.0787642693188804,
+            "nose_right_deg": 0.00006898597648665791,
+            "pitch_rate_nose_down_deg_s": 2.2536468058417305,
+            "pitch_rate_nose_right_deg_s": 0.002029854422376259,
+            "pivot_moment_m": 0.0030087839519849415,
+            "speed_m_s": 21.545309120397086,
+            "time_s": 0.5152906485032144
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2623.9374591960213,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.07886780840479798,
+          "nose_right_deg": 0.00006893911142530834,
+          "pitch_rate_nose_down_deg_s": 2.255217170052263,
+          "pitch_rate_nose_right_deg_s": 0.002027570729145144,
+          "speed_m_s": 21.533969570257124,
+          "time_s": 0.5156329696398215
+        },
+        "moved": {
+          "apogee_m": -10.860619095243692,
+          "landing_east_m": 88.18573297309376,
+          "landing_north_m": -23.796794180293574,
+          "landing_range_m": 91.33997634990521
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "juno-iii",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.008313358007373447,
+          "angle_deg": 0.04290258982734667,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.3314393273900776,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 2.357330494866101,
+          "past": [
+            "pitch_rate",
+            "angle",
+            "apogee_move",
+            "landing_move"
+          ],
+          "pitch_rate_bar_deg_s": 0.23821393845485273,
+          "pitch_rate_deg_s": 1.2273836509741851
+        },
+        "guided": {
+          "apogee_agl_m": 2521.948952718086,
+          "flight_time_s": 131.99539594061463,
+          "landing_east_m": 549.756257920023,
+          "landing_north_m": -214.35722531236956,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 22.54069800386334,
+            "mach": 0.06971740798403438,
+            "normal_force_coefficient": 7.434558649722905,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 6.336602309133166,
+            "speed_m_s": 21.541709032524448,
+            "time_s": 0.5153202083106935
+          }
+        },
+        "moved": {
+          "apogee_m": 4.354784561509405,
+          "landing_east_m": 72.74058889569221,
+          "landing_north_m": -109.71127828163395,
+          "landing_range_m": 111.73102017421581
+        },
+        "tip_off": {
+          "apogee_agl_m": 2526.303737279595,
+          "flight_time_s": 132.18014353213636,
+          "landing_east_m": 622.4968468157152,
+          "landing_north_m": -324.0685035940035,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 22.530006638113353,
+            "mach": 0.06967719227177661,
+            "normal_force_coefficient": 7.429616761465727,
+            "nose_down_deg": 0.07871663822469234,
+            "nose_right_deg": 0.06916665609672161,
+            "pitch_rate_nose_down_deg_s": 2.2513358196370974,
+            "pitch_rate_nose_right_deg_s": 1.994664510276666,
+            "pivot_moment_m": 6.331972856788459,
+            "speed_m_s": 21.54197326638132,
+            "time_s": 0.5153201486297043
+          }
+        }
+      },
+      "rail_inclination_deg": 85.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.008313358007373447,
+          "angle_deg": 0.00012420878885177432,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.001717374898513281,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.018476068596894383,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.23821393845485273,
+          "pitch_rate_deg_s": 0.002610700831421596
+        },
+        "guided": {
+          "apogee_agl_m": 2492.7264929494386,
+          "flight_time_s": 130.75010696000223,
+          "landing_east_m": 582.3696029747401,
+          "landing_north_m": -80.49675420829314,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 22.54069800386334,
+            "mach": 0.06971740798403438,
+            "normal_force_coefficient": 4.380560285009637,
+            "nose_down_deg": -3.975693351829396e-15,
+            "nose_right_deg": -7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 2.517955438322023,
+            "speed_m_s": 21.541709032524448,
+            "time_s": 0.5153202083106935
+          }
+        },
+        "moved": {
+          "apogee_m": -3.9474906928076052,
+          "landing_east_m": 76.26985550137044,
+          "landing_north_m": -50.700136769284995,
+          "landing_range_m": 83.67262947640859
+        },
+        "tip_off": {
+          "apogee_agl_m": 2488.779002256631,
+          "flight_time_s": 130.58213694348458,
+          "landing_east_m": 658.6394584761106,
+          "landing_north_m": -131.19689097757814,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 22.53623811410794,
+            "mach": 0.06970200916116599,
+            "normal_force_coefficient": 4.379693016597107,
+            "nose_down_deg": 0.07875673346481858,
+            "nose_right_deg": 0.026228644723334645,
+            "pitch_rate_nose_down_deg_s": 2.252715732610895,
+            "pitch_rate_nose_right_deg_s": 0.7664389313102282,
+            "pivot_moment_m": 2.5174571493656615,
+            "speed_m_s": 21.541883501543058,
+            "time_s": 0.5153201631291019
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2492.0030716132246,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.07887569632607117,
+          "nose_right_deg": 0.026264361118318227,
+          "pitch_rate_nose_down_deg_s": 2.2551848857095744,
+          "pitch_rate_nose_right_deg_s": 0.7672868946387198,
+          "speed_m_s": 21.531937270756142,
+          "time_s": 0.5156864309631546
+        },
+        "moved": {
+          "apogee_m": -3.9046936575855398,
+          "landing_east_m": 76.51781060842552,
+          "landing_north_m": -51.0880912846866,
+          "landing_range_m": 83.80662720964733
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "cavour",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 4.225401034047789e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00014176099331474534,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.006443157217192874,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00018766498099875866
+        },
+        "guided": {
+          "apogee_agl_m": 3164.0437683419123,
+          "flight_time_s": 52.825968876836136,
+          "landing_east_m": 738.4181075749566,
+          "landing_north_m": -698.0042873421212,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 4.897822219816178e-16,
+            "mach": 0.15294493801355935,
+            "normal_force_coefficient": 9.001384282693787e-17,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 5.032437122337412e-17,
+            "speed_m_s": 51.95051251301461,
+            "time_s": 0.46665895469937174
+          }
+        },
+        "moved": {
+          "apogee_m": -1.0297369193895065,
+          "landing_east_m": 10.134301893212637,
+          "landing_north_m": -9.570342404672488,
+          "landing_range_m": 13.938991480184654
+        },
+        "tip_off": {
+          "apogee_agl_m": 3163.0140314225227,
+          "flight_time_s": 52.81578607276828,
+          "landing_east_m": 748.5524094681692,
+          "landing_north_m": -707.5746297467937,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0071488012141812385,
+            "mach": 0.15294494361101446,
+            "normal_force_coefficient": 0.0013142841336148863,
+            "nose_down_deg": 0.008416295441652977,
+            "nose_right_deg": 0.00003582030463598105,
+            "pitch_rate_nose_down_deg_s": 0.7856912328829324,
+            "pitch_rate_nose_right_deg_s": 0.0033703624381597993,
+            "pivot_moment_m": 0.0007351033250337789,
+            "speed_m_s": 51.95052246730733,
+            "time_s": 0.46665895458891304
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 4.222997716190078e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00001319184595267136,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0006737116683207822,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00018731733385354395
+        },
+        "guided": {
+          "apogee_agl_m": 3163.960417413586,
+          "flight_time_s": 52.81185920574331,
+          "landing_east_m": 739.7760678577638,
+          "landing_north_m": -699.300743603994,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 4.897822219816178e-16,
+            "mach": 0.15294493801355935,
+            "normal_force_coefficient": 9.001470190533457e-17,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 5.0324472666689865e-17,
+            "speed_m_s": 51.95051251301461,
+            "time_s": 0.46665895469937174
+          }
+        },
+        "moved": {
+          "apogee_m": -1.0256699330943775,
+          "landing_east_m": 10.002303217208237,
+          "landing_north_m": -9.444311357434344,
+          "landing_range_m": 13.756490344624353
+        },
+        "tip_off": {
+          "apogee_agl_m": 3162.9347474804918,
+          "flight_time_s": 52.802336969665824,
+          "landing_east_m": 749.778371074972,
+          "landing_north_m": -708.7450549614283,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.007148805699849856,
+            "mach": 0.15294494360782798,
+            "normal_force_coefficient": 0.001313844368540086,
+            "nose_down_deg": 0.008416297845083675,
+            "nose_right_deg": 0.00003582031485112755,
+            "pitch_rate_nose_down_deg_s": 0.7856915806121286,
+            "pitch_rate_nose_right_deg_s": 0.003370363924673134,
+            "pivot_moment_m": 0.0007345302889896739,
+            "speed_m_s": 51.950522466233494,
+            "time_s": 0.4666589545891931
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3163.2676879124488,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.008420520758085701,
+          "nose_right_deg": 0.000035793566238758214,
+          "pitch_rate_nose_down_deg_s": 0.7858788679830216,
+          "pitch_rate_nose_right_deg_s": 0.003367013661104278,
+          "speed_m_s": 51.93936687691599,
+          "time_s": 0.4666562255197058
+        },
+        "moved": {
+          "apogee_m": -1.0252526396939174,
+          "landing_east_m": 9.986978898126608,
+          "landing_north_m": -9.429501330353446,
+          "landing_range_m": 13.735180326941418
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "cavour",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.012247755467878714,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.051391295118419146,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.7713546539580138,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.13236920139556316,
+          "pitch_rate_deg_s": 1.141310851705256
+        },
+        "guided": {
+          "apogee_agl_m": 3121.937521638308,
+          "flight_time_s": 52.44802502750665,
+          "landing_east_m": 1167.588325792192,
+          "landing_north_m": -220.2435885525544,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.769636045622597,
+            "mach": 0.15512165197490443,
+            "normal_force_coefficient": 2.633432808594005,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 2.0649758804352087,
+            "speed_m_s": 51.92576225382546,
+            "time_s": 0.4667563336856548
+          }
+        },
+        "moved": {
+          "apogee_m": 2.0646265137725095,
+          "landing_east_m": -17.527632728020535,
+          "landing_north_m": -41.0432403395867,
+          "landing_range_m": -8.81052201192756
+        },
+        "tip_off": {
+          "apogee_agl_m": 3124.0021481520807,
+          "flight_time_s": 52.46609429552271,
+          "landing_east_m": 1150.0606930641716,
+          "landing_north_m": -261.2868288921411,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.750736433656972,
+            "mach": 0.15510189011264616,
+            "normal_force_coefficient": 2.626751401257945,
+            "nose_down_deg": 0.008416696701594437,
+            "nose_right_deg": 0.023575556253322853,
+            "pitch_rate_nose_down_deg_s": 0.7850990644129877,
+            "pitch_rate_nose_right_deg_s": 2.206433757378963,
+            "pivot_moment_m": 2.0589762710969657,
+            "speed_m_s": 51.92584722676173,
+            "time_s": 0.4667563320769664
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 6.069002315128765e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0007217909747463397,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.005448343647491362,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.13236920139556316,
+          "pitch_rate_deg_s": 0.0010698631776185766
+        },
+        "guided": {
+          "apogee_agl_m": 3116.187148294092,
+          "flight_time_s": 52.394424689268604,
+          "landing_east_m": 1213.7645376791406,
+          "landing_north_m": -169.35712543029604,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.769636045622597,
+            "mach": 0.15512165197490443,
+            "normal_force_coefficient": 1.7956340021484243,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.0038307920413563,
+            "speed_m_s": 51.92576225382546,
+            "time_s": 0.4667563336856548
+          }
+        },
+        "moved": {
+          "apogee_m": 0.44088527013445855,
+          "landing_east_m": -2.1767542842874263,
+          "landing_north_m": -22.341404265191727,
+          "landing_range_m": 1.1365771564801435
+        },
+        "tip_off": {
+          "apogee_agl_m": 3116.6280335642264,
+          "flight_time_s": 52.39828883497822,
+          "landing_east_m": 1211.5877833948532,
+          "landing_north_m": -191.69852969548776,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.760475749484222,
+            "mach": 0.15511211899091132,
+            "normal_force_coefficient": 1.7939498385513093,
+            "nose_down_deg": 0.008421412263767806,
+            "nose_right_deg": 0.011321735252087564,
+            "pitch_rate_nose_down_deg_s": 0.7856761134862684,
+            "pitch_rate_nose_right_deg_s": 1.0640819366319216,
+            "pivot_moment_m": 1.0028895111859,
+            "speed_m_s": 51.92579057801191,
+            "time_s": 0.46675633318930476
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3115.8032758512854,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.00842158619921837,
+          "nose_right_deg": 0.011327801761426556,
+          "pitch_rate_nose_down_deg_s": 0.7859218230051036,
+          "pitch_rate_nose_right_deg_s": 1.0651232022326105,
+          "speed_m_s": 51.93457024074067,
+          "time_s": 0.4666986667219909
+        },
+        "moved": {
+          "apogee_m": 0.4633748569704039,
+          "landing_east_m": -2.238406281392372,
+          "landing_north_m": -22.499573088794648,
+          "landing_range_m": 1.0416292305592378
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "genesis",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.8649732912473792e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00021262057067600066,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0038435214196188257,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00014792102933555473
+        },
+        "guided": {
+          "apogee_agl_m": 3265.8593086844367,
+          "flight_time_s": 192.93642326229804,
+          "landing_east_m": 523.9517050269021,
+          "landing_north_m": -494.98443669728766,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.5004516922073822e-15,
+            "mach": 0.14557043234345063,
+            "normal_force_coefficient": 3.5826737072353186e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.3498249805095763e-16,
+            "speed_m_s": 49.44020908598644,
+            "time_s": 0.4860579201162939
+          }
+        },
+        "moved": {
+          "apogee_m": -1.2102417296036947,
+          "landing_east_m": 7.6211880386365465,
+          "landing_north_m": -7.179606933026037,
+          "landing_range_m": 10.470389179579342
+        },
+        "tip_off": {
+          "apogee_agl_m": 3264.649066954833,
+          "flight_time_s": 192.8890831087325,
+          "landing_east_m": 531.5728930655387,
+          "landing_north_m": -502.1640436303137,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0031582995235177784,
+            "mach": 0.145570433981101,
+            "normal_force_coefficient": 0.0007542039832720371,
+            "nose_down_deg": 0.005496414712822579,
+            "nose_right_deg": 0.00002237745533674108,
+            "pitch_rate_nose_down_deg_s": 0.6034515055831752,
+            "pitch_rate_nose_right_deg_s": 0.0024725789628283284,
+            "pivot_moment_m": 0.0002842157726245084,
+            "speed_m_s": 49.440213314427766,
+            "time_s": 0.48605792005115145
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.8646205551829017e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.000029592330519280318,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0020259569923321208,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0001478703393434483
+        },
+        "guided": {
+          "apogee_agl_m": 3265.7078851756064,
+          "flight_time_s": 192.8932615608451,
+          "landing_east_m": 523.9527974718947,
+          "landing_north_m": -494.9848601755625,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.5004516922073822e-15,
+            "mach": 0.14557043234345063,
+            "normal_force_coefficient": 3.5826982265960996e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.3498268625682353e-16,
+            "speed_m_s": 49.44020908598644,
+            "time_s": 0.4860579201162939
+          }
+        },
+        "moved": {
+          "apogee_m": -1.2023331124519245,
+          "landing_east_m": 7.5781037440829095,
+          "landing_north_m": -7.138793111869518,
+          "landing_range_m": 10.411042599146526
+        },
+        "tip_off": {
+          "apogee_agl_m": 3264.5055520631545,
+          "flight_time_s": 192.84821126535368,
+          "landing_east_m": 531.5309012159776,
+          "landing_north_m": -502.12365328743203,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.003158299897748185,
+            "mach": 0.1455704339827099,
+            "normal_force_coefficient": 0.0007541219422093428,
+            "nose_down_deg": 0.005496415065563589,
+            "nose_right_deg": 0.00002237745678349589,
+            "pitch_rate_nose_down_deg_s": 0.6034515562778088,
+            "pitch_rate_nose_right_deg_s": 0.002472579169809782,
+            "pivot_moment_m": 0.00028412497811176147,
+            "speed_m_s": 49.44021331497486,
+            "time_s": 0.48605792005110626
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3265.1510769007054,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.005499279676462124,
+          "nose_right_deg": 0.00002237001869458519,
+          "pitch_rate_nose_down_deg_s": 0.6035994191433918,
+          "pitch_rate_nose_right_deg_s": 0.0024710924825083074,
+          "speed_m_s": 49.42887202956106,
+          "time_s": 0.48605818776891707
+        },
+        "moved": {
+          "apogee_m": -1.2032993467505548,
+          "landing_east_m": 7.530316886775495,
+          "landing_north_m": -7.093051310408384,
+          "landing_range_m": 10.344893522740449
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "genesis",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.007083411517687369,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.04887926067926538,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.5785497546936313,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.7768785700410128
+        },
+        "guided": {
+          "apogee_agl_m": 3227.513902676992,
+          "flight_time_s": 191.4442344983751,
+          "landing_east_m": -157.3787894642987,
+          "landing_north_m": -1203.7662105424677,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.25438738050692,
+            "mach": 0.14787785659844285,
+            "normal_force_coefficient": 3.358631146466578,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.8714370809734495,
+            "speed_m_s": 49.421658935563116,
+            "time_s": 0.4861366751212642
+          }
+        },
+        "moved": {
+          "apogee_m": 1.897667659239687,
+          "landing_east_m": -12.628842664424411,
+          "landing_north_m": -31.31607301405279,
+          "landing_range_m": 32.71768684905169
+        },
+        "tip_off": {
+          "apogee_agl_m": 3229.4115703362318,
+          "flight_time_s": 191.5182645476779,
+          "landing_east_m": -170.00763212872312,
+          "landing_north_m": -1235.0822835565205,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.247065030982085,
+            "mach": 0.14786797622260153,
+            "normal_force_coefficient": 3.355596998295833,
+            "nose_down_deg": 0.0054978561906822805,
+            "nose_right_deg": 0.013846756194738295,
+            "pitch_rate_nose_down_deg_s": 0.6032758570466746,
+            "pitch_rate_nose_right_deg_s": 1.523719936370935,
+            "pivot_moment_m": 1.8694398072769713,
+            "speed_m_s": 49.421687390560756,
+            "time_s": 0.4861366747953117
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 3.1463908108117853e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0005485670742321577,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.004692004662637684,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0005545320307612581
+        },
+        "guided": {
+          "apogee_agl_m": 3218.688233011488,
+          "flight_time_s": 191.0928264230367,
+          "landing_east_m": -107.46297719042308,
+          "landing_north_m": -1148.2190088674442,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.25438738050692,
+            "mach": 0.14787785659844285,
+            "normal_force_coefficient": 2.448629721869267,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 0.9225093009295584,
+            "speed_m_s": 49.421658935563116,
+            "time_s": 0.4861366751212642
+          }
+        },
+        "moved": {
+          "apogee_m": 0.3067436111787174,
+          "landing_east_m": -0.9790918247976634,
+          "landing_north_m": -16.59544952904139,
+          "landing_range_m": 16.614616608453844
+        },
+        "tip_off": {
+          "apogee_agl_m": 3218.994976622667,
+          "flight_time_s": 191.10480813956585,
+          "landing_east_m": -108.44206901522074,
+          "landing_north_m": -1164.8144583964856,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.250779514853166,
+            "mach": 0.14787301743136289,
+            "normal_force_coefficient": 2.447767907366249,
+            "nose_down_deg": 0.005499198808862382,
+            "nose_right_deg": 0.0067602804862201766,
+            "pitch_rate_nose_down_deg_s": 0.6034638758424253,
+            "pitch_rate_nose_right_deg_s": 0.7463126922398832,
+            "pivot_moment_m": 0.9221847064831152,
+            "speed_m_s": 49.421668945482466,
+            "time_s": 0.48613667497180596
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3218.6808936761236,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0054999120278218985,
+          "nose_right_deg": 0.00676334497538644,
+          "pitch_rate_nose_down_deg_s": 0.6036309795602733,
+          "pitch_rate_nose_right_deg_s": 0.746841447495764,
+          "speed_m_s": 49.425115381734976,
+          "time_s": 0.4860946292388229
+        },
+        "moved": {
+          "apogee_m": 0.324400234786026,
+          "landing_east_m": -1.0712686107836475,
+          "landing_north_m": -16.715076779905303,
+          "landing_range_m": 16.743002550816982
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "lince",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000024967445161494045,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00007346006051834887,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0026357255660332877,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.11816398939252915,
+          "pitch_rate_deg_s": 0.0009382390871561717
+        },
+        "guided": {
+          "apogee_agl_m": 3804.0439375872975,
+          "flight_time_s": 546.863073619319,
+          "landing_east_m": 532.3660806260268,
+          "landing_north_m": -503.34167842722746,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 6.062479968913936e-16,
+            "mach": 0.15446707715918867,
+            "normal_force_coefficient": 8.016007744179358e-17,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 3.6355685847560786e-17,
+            "speed_m_s": 52.46293097498347,
+            "time_s": 0.48086565075472115
+          }
+        },
+        "moved": {
+          "apogee_m": -2.5796133604467286,
+          "landing_east_m": 14.095849588978012,
+          "landing_north_m": -13.281234198116692,
+          "landing_range_m": 19.36706130363484
+        },
+        "tip_off": {
+          "apogee_agl_m": 3801.4643242268507,
+          "flight_time_s": 546.5358776710909,
+          "landing_east_m": 546.4619302150048,
+          "landing_north_m": -516.6229126253442,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0012866303315495645,
+            "mach": 0.15446708409823645,
+            "normal_force_coefficient": 0.00017013381155301055,
+            "nose_down_deg": 0.016264169681451116,
+            "nose_right_deg": 0.0000690436656588114,
+            "pitch_rate_nose_down_deg_s": 1.1825672413570045,
+            "pitch_rate_nose_right_deg_s": 0.005075419810234023,
+            "pivot_moment_m": 0.00007716687925158949,
+            "speed_m_s": 52.462939700381604,
+            "time_s": 0.48086565015401694
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000024969001475702208,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00009012012878170139,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0021426559215160412,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.11816398939252915,
+          "pitch_rate_deg_s": 0.0009383610095731592
+        },
+        "guided": {
+          "apogee_agl_m": 3803.96948476383,
+          "flight_time_s": 546.846127119268,
+          "landing_east_m": 532.298044476153,
+          "landing_north_m": -503.27643752837764,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 6.062479968913936e-16,
+            "mach": 0.15446707715918867,
+            "normal_force_coefficient": 8.016080857534422e-17,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 3.635565560863516e-17,
+            "speed_m_s": 52.46293097498347,
+            "time_s": 0.48086565075472115
+          }
+        },
+        "moved": {
+          "apogee_m": -2.573392236168729,
+          "landing_east_m": 14.082188480939635,
+          "landing_north_m": -13.268387799038578,
+          "landing_range_m": 19.348308910881087
+        },
+        "tip_off": {
+          "apogee_agl_m": 3801.3960925276615,
+          "flight_time_s": 546.5202880668442,
+          "landing_east_m": 546.3802329570926,
+          "landing_north_m": -516.5448253274162,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0012866305846089045,
+            "mach": 0.15446708409919271,
+            "normal_force_coefficient": 0.0001701240227641831,
+            "nose_down_deg": 0.016264171237751448,
+            "nose_right_deg": 0.00006904367225210126,
+            "pitch_rate_nose_down_deg_s": 1.1825673632783356,
+            "pitch_rate_nose_right_deg_s": 0.0050754203311609725,
+            "pivot_moment_m": 0.00007715703584724673,
+            "speed_m_s": 52.462939700707736,
+            "time_s": 0.4808656501540431
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3803.1037282810917,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.01623920249770231,
+          "nose_right_deg": 0.00006892941354454385,
+          "pitch_rate_nose_down_deg_s": 1.1816290137042813,
+          "pitch_rate_nose_right_deg_s": 0.005070787712100489,
+          "speed_m_s": 52.500291460776644,
+          "time_s": 0.4813622700890946
+        },
+        "moved": {
+          "apogee_m": -2.5768195981463577,
+          "landing_east_m": 14.023296726346302,
+          "landing_north_m": -13.212067624692565,
+          "landing_range_m": 19.266823979555284
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "lince",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.012183561980802496,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.04507270574434738,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.48493308454117307,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.14954746641052813,
+          "pitch_rate_deg_s": 0.8845457504750565
+        },
+        "guided": {
+          "apogee_agl_m": 3761.5767217085836,
+          "flight_time_s": 541.624665920536,
+          "landing_east_m": -2284.0976609736667,
+          "landing_north_m": -3506.382889632965,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.674660756088704,
+            "mach": 0.15664349755955032,
+            "normal_force_coefficient": 1.9161047585504225,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 1.1267620425164355,
+            "speed_m_s": 52.445480012769764,
+            "time_s": 0.48093468169179476
+          }
+        },
+        "moved": {
+          "apogee_m": 0.9888374318347815,
+          "landing_east_m": -7.208098315794359,
+          "landing_north_m": -37.90380413746516,
+          "landing_range_m": 35.71944789755344
+        },
+        "tip_off": {
+          "apogee_agl_m": 3762.5655591404184,
+          "flight_time_s": 541.7543938284684,
+          "landing_east_m": -2291.305759289461,
+          "landing_north_m": -3544.2866937704302,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.673324273513293,
+            "mach": 0.15663139461341802,
+            "normal_force_coefficient": 1.9157531841982531,
+            "nose_down_deg": 0.016268581079276267,
+            "nose_right_deg": 0.024649549993457438,
+            "pitch_rate_nose_down_deg_s": 1.1824105929098616,
+            "pitch_rate_nose_right_deg_s": 1.8011140491025222,
+            "pivot_moment_m": 1.1265325523316791,
+            "speed_m_s": 52.44550409491892,
+            "time_s": 0.48093468011070184
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000032751780294377145,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0002975568938722088,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.004120119401991175,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.14954746641052813,
+          "pitch_rate_deg_s": 0.0010943686099825383
+        },
+        "guided": {
+          "apogee_agl_m": 3758.3673389429046,
+          "flight_time_s": 541.2099077758029,
+          "landing_east_m": -2264.8391481055437,
+          "landing_north_m": -3485.3000283193855,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.674660756088704,
+            "mach": 0.15664349755955032,
+            "normal_force_coefficient": 1.2793195707067704,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 0.5801685493762361,
+            "speed_m_s": 52.445480012769764,
+            "time_s": 0.48093468169179476
+          }
+        },
+        "moved": {
+          "apogee_m": -0.7162758453009701,
+          "landing_east_m": 4.463220289155743,
+          "landing_north_m": -23.727083664703514,
+          "landing_range_m": 17.496748293462588
+        },
+        "tip_off": {
+          "apogee_agl_m": 3757.6510630976036,
+          "flight_time_s": 541.1200832917284,
+          "landing_east_m": -2260.375927816388,
+          "landing_north_m": -3509.027111984089,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 9.673916603828712,
+            "mach": 0.15663734413423305,
+            "normal_force_coefficient": 1.2792209059061415,
+            "nose_down_deg": 0.016272537697110366,
+            "nose_right_deg": 0.012475220257069704,
+            "pitch_rate_nose_down_deg_s": 1.1827183224937599,
+            "pitch_rate_nose_right_deg_s": 0.9162510354976713,
+            "pivot_moment_m": 0.5801239363671107,
+            "speed_m_s": 52.44549287873193,
+            "time_s": 0.4809346807565419
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3758.2177796329884,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.016241104977237904,
+          "nose_right_deg": 0.012466018994445993,
+          "pitch_rate_nose_down_deg_s": 1.1816710448345,
+          "pitch_rate_nose_right_deg_s": 0.9165686077869699,
+          "speed_m_s": 52.49700963085011,
+          "time_s": 0.48139499230987215
+        },
+        "moved": {
+          "apogee_m": -0.7050930092109411,
+          "landing_east_m": 4.321531545702783,
+          "landing_north_m": -23.789539034210975,
+          "landing_range_m": 17.634032469115482
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "astra",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.3988743340604427e-7,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.000017419721542495803,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0022460693396828867,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00002401969514747981
+        },
+        "guided": {
+          "apogee_agl_m": 3448.0724906254804,
+          "flight_time_s": 54.86623196873499,
+          "landing_east_m": 883.1696721396647,
+          "landing_north_m": -836.2259158530455,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 3.40220891879378e-15,
+            "mach": 0.14481549017474413,
+            "normal_force_coefficient": 9.555655073588567e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -1.601837454633046e-16,
+            "speed_m_s": 49.184122864674706,
+            "time_s": 0.47970689818673035
+          }
+        },
+        "moved": {
+          "apogee_m": -0.2050780254530764,
+          "landing_east_m": 2.214619969104774,
+          "landing_north_m": -2.0925385122232,
+          "landing_range_m": 3.0468424649211556
+        },
+        "tip_off": {
+          "apogee_agl_m": 3447.8674126000274,
+          "flight_time_s": 54.86408534349988,
+          "landing_east_m": 885.3842921087695,
+          "landing_north_m": -838.3184543652687,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.00014409735514602423,
+            "mach": 0.14481549012183145,
+            "normal_force_coefficient": 0.000040472209171840156,
+            "nose_down_deg": 0.0004671428892320825,
+            "nose_right_deg": 1.917214579786147e-6,
+            "pitch_rate_nose_down_deg_s": 0.11387593813174944,
+            "pitch_rate_nose_right_deg_s": 0.000468737579411546,
+            "pivot_moment_m": -6.784382096807626e-6,
+            "speed_m_s": 49.18412289734415,
+            "time_s": 0.47970689803088046
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.400004786547355e-7,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 9.54654579776233e-6,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.00018537874533756016,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.000024023405262839224
+        },
+        "guided": {
+          "apogee_agl_m": 3448.014011971812,
+          "flight_time_s": 54.86210392082053,
+          "landing_east_m": 886.1730644137787,
+          "landing_north_m": -839.0970602787892,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 3.40220891879378e-15,
+            "mach": 0.14481549017474413,
+            "normal_force_coefficient": 9.555721331974464e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -1.6018612293533492e-16,
+            "speed_m_s": 49.184122864674706,
+            "time_s": 0.47970689818673035
+          }
+        },
+        "moved": {
+          "apogee_m": -0.2041483533603241,
+          "landing_east_m": 2.163281756725496,
+          "landing_north_m": -2.0434313700973235,
+          "landing_range_m": 2.9758002176333775
+        },
+        "tip_off": {
+          "apogee_agl_m": 3447.809863618452,
+          "flight_time_s": 54.86004159335873,
+          "landing_east_m": 888.3363461705042,
+          "landing_north_m": -841.1404916488865,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0001440972526399046,
+            "mach": 0.14481549012274114,
+            "normal_force_coefficient": 0.00004047232911893702,
+            "nose_down_deg": 0.0004671427761872177,
+            "nose_right_deg": 1.917214264513664e-6,
+            "pitch_rate_nose_down_deg_s": 0.11387593442138894,
+            "pitch_rate_nose_right_deg_s": 0.00046873756339069455,
+            "pivot_moment_m": -6.784527575141161e-6,
+            "speed_m_s": 49.184122897653126,
+            "time_s": 0.47970689803085165
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3447.537180514354,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0004673827762785978,
+          "nose_right_deg": 1.91764541653059e-6,
+          "pitch_rate_nose_down_deg_s": 0.11389995706544442,
+          "pitch_rate_nose_right_deg_s": 0.0004685463226891258,
+          "speed_m_s": 49.17476626336447,
+          "time_s": 0.47973052257674426
+        },
+        "moved": {
+          "apogee_m": -0.2044774740761568,
+          "landing_east_m": 2.1586787853756277,
+          "landing_north_m": -2.0389976864470327,
+          "landing_range_m": 2.9694094398435027
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "astra",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.0007059146948227694,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.009123340295485904,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.11217799076981912,
+          "past": [
+            "pitch_rate"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.17200676636334722
+        },
+        "guided": {
+          "apogee_agl_m": 3397.4599666940308,
+          "flight_time_s": 54.43574756342113,
+          "landing_east_m": 1482.6832615116668,
+          "landing_north_m": -185.49024456615751,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.305997540908644,
+            "mach": 0.14714431725615257,
+            "normal_force_coefficient": 3.56156247381506,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -0.2360803413998287,
+            "speed_m_s": 49.16878747448587,
+            "time_s": 0.4797714472248373
+          }
+        },
+        "moved": {
+          "apogee_m": -0.5185871883722939,
+          "landing_east_m": 4.8546673065909545,
+          "landing_north_m": 1.0698945108454723,
+          "landing_range_m": 4.685227704390854
+        },
+        "tip_off": {
+          "apogee_agl_m": 3396.9413795056585,
+          "flight_time_s": 54.43156919882504,
+          "landing_east_m": 1487.5379288182578,
+          "landing_north_m": -184.42035005531204,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.305793524582706,
+            "mach": 0.1471445137460814,
+            "normal_force_coefficient": 3.5614790869424238,
+            "nose_down_deg": 0.0004674157946456567,
+            "nose_right_deg": -0.0006245741335063759,
+            "pitch_rate_nose_down_deg_s": 0.11390257941879722,
+            "pitch_rate_nose_right_deg_s": -0.1531039726426769,
+            "pivot_moment_m": -0.23608046263808014,
+            "speed_m_s": 49.168787648235075,
+            "time_s": 0.479771447109087
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 1.5717855927605454e-7,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00015968252720958439,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0006559065128141109,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.000054634932666117133
+        },
+        "guided": {
+          "apogee_agl_m": 3392.7281020017385,
+          "flight_time_s": 54.396492048687094,
+          "landing_east_m": 1521.9919104758487,
+          "landing_north_m": -142.56899391827668,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.305997540908644,
+            "mach": 0.14714431725615257,
+            "normal_force_coefficient": 2.8948149613907503,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -0.48530495998889567,
+            "speed_m_s": 49.16878747448587,
+            "time_s": 0.4797714472248373
+          }
+        },
+        "moved": {
+          "apogee_m": -0.8227165823732321,
+          "landing_east_m": 7.225461950801446,
+          "landing_north_m": 4.01909672287843,
+          "landing_range_m": 6.826248739273069
+        },
+        "tip_off": {
+          "apogee_agl_m": 3391.9053854193653,
+          "flight_time_s": 54.38986784504442,
+          "landing_east_m": 1529.2173724266502,
+          "landing_north_m": -138.54989719539824,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 10.305560090397684,
+            "mach": 0.1471447345044471,
+            "normal_force_coefficient": 2.8946921212406673,
+            "nose_down_deg": 0.000467420709074952,
+            "nose_right_deg": -0.0013303323660054272,
+            "pitch_rate_nose_down_deg_s": 0.11390263328230923,
+            "pitch_rate_nose_right_deg_s": -0.32505612995235017,
+            "pivot_moment_m": -0.48528437280252934,
+            "speed_m_s": 49.16878803191232,
+            "time_s": 0.47977144710724273
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3392.9161717585434,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0004674357000246799,
+          "nose_right_deg": -0.0013304888280484995,
+          "pitch_rate_nose_down_deg_s": 0.11390431497210503,
+          "pitch_rate_nose_right_deg_s": -0.3251107389972682,
+          "speed_m_s": 49.1716663648125,
+          "time_s": 0.47976145930299546
+        },
+        "moved": {
+          "apogee_m": -0.8281344766623988,
+          "landing_east_m": 7.241156645154433,
+          "landing_north_m": 4.034874334408926,
+          "landing_range_m": 6.844048347052649
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "andromeda",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.0967804238416892e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 6.478362070779131e-6,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.001469143321770341,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0001335758113089247
+        },
+        "guided": {
+          "apogee_agl_m": 3055.711907450015,
+          "flight_time_s": 219.62484933082553,
+          "landing_east_m": 485.4921974038962,
+          "landing_north_m": -458.3948463704137,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.8586084994261395e-15,
+            "mach": 0.13519867435530503,
+            "normal_force_coefficient": 3.6604562263833115e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -9.941240658276651e-17,
+            "speed_m_s": 45.917813091483126,
+            "time_s": 0.5113764364955753
+          }
+        },
+        "moved": {
+          "apogee_m": -0.5832506910896882,
+          "landing_east_m": 3.370574777066281,
+          "landing_north_m": -3.1723893361827322,
+          "landing_range_m": 4.628690451558782
+        },
+        "tip_off": {
+          "apogee_agl_m": 3055.1286567589254,
+          "flight_time_s": 219.59918523595056,
+          "landing_east_m": 488.8627721809625,
+          "landing_north_m": -461.5672357065964,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.00020171333529110986,
+            "mach": 0.13519867466040247,
+            "normal_force_coefficient": 0.000039726867469261305,
+            "nose_down_deg": 0.003777077304755153,
+            "nose_right_deg": 0.000014330205414135691,
+            "pitch_rate_nose_down_deg_s": 0.4877352986981011,
+            "pitch_rate_nose_right_deg_s": 0.0018607154358498159,
+            "pivot_moment_m": -0.000010789085206785293,
+            "speed_m_s": 45.91781441769072,
+            "time_s": 0.5113764364258583
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.096763231741864e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.000010605287739110615,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.001528582412582169,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.0001335722020168989
+        },
+        "guided": {
+          "apogee_agl_m": 3055.6913967686564,
+          "flight_time_s": 219.62190756583507,
+          "landing_east_m": 485.48206906601996,
+          "landing_north_m": -458.3850559198354,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.8586084994261395e-15,
+            "mach": 0.13519867435530503,
+            "normal_force_coefficient": 3.660494917673667e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -9.941487868298822e-17,
+            "speed_m_s": 45.917813091483126,
+            "time_s": 0.5113764364955753
+          }
+        },
+        "moved": {
+          "apogee_m": -0.5827288145487728,
+          "landing_east_m": 3.369254818382217,
+          "landing_north_m": -3.171142442231883,
+          "landing_range_m": 4.626874679353136
+        },
+        "tip_off": {
+          "apogee_agl_m": 3055.1086679541077,
+          "flight_time_s": 219.59631597311756,
+          "landing_east_m": 488.8513238844022,
+          "landing_north_m": -461.5561983620673,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.00020171334750270127,
+            "mach": 0.1351986746618859,
+            "normal_force_coefficient": 0.00003972706912708612,
+            "nose_down_deg": 0.0037770773219476415,
+            "nose_right_deg": 0.000014330205481722478,
+            "pitch_rate_nose_down_deg_s": 0.4877353023078027,
+            "pitch_rate_nose_right_deg_s": 0.0018607154498081274,
+            "pivot_moment_m": -0.000010789420137402795,
+            "speed_m_s": 45.917814418194574,
+            "time_s": 0.5113764364257847
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3054.830476642557,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0037791740695871483,
+          "nose_right_deg": 0.000014322119307882251,
+          "pitch_rate_nose_down_deg_s": 0.48786886538961327,
+          "pitch_rate_nose_right_deg_s": 0.001859154575403027,
+          "speed_m_s": 45.90645646288953,
+          "time_s": 0.5115404438795529
+        },
+        "moved": {
+          "apogee_m": -0.5830527881107628,
+          "landing_east_m": 3.403092094207068,
+          "landing_north_m": -3.20332190703283,
+          "landing_range_m": 4.67357007912608
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "andromeda",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.0018732836154007507,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.011556020646531419,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.07534509078493695,
+          "past": [
+            "pitch_rate"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.24178592346531086
+        },
+        "guided": {
+          "apogee_agl_m": 2989.37207922271,
+          "flight_time_s": 216.6345049360773,
+          "landing_east_m": -258.91736277909934,
+          "landing_north_m": -1219.7725786466426,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.022825975544714,
+            "mach": 0.13768277732159342,
+            "normal_force_coefficient": 2.8209437383998397,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -0.39813025465779006,
+            "speed_m_s": 45.8987956347594,
+            "time_s": 0.5114628560262514
+          }
+        },
+        "moved": {
+          "apogee_m": -1.2365786109321562,
+          "landing_east_m": 6.207672264883513,
+          "landing_north_m": 0.37617350486402756,
+          "landing_range_m": -1.6425129014749018
+        },
+        "tip_off": {
+          "apogee_agl_m": 2988.135500611778,
+          "flight_time_s": 216.5776587546082,
+          "landing_east_m": -252.70969051421582,
+          "landing_north_m": -1219.3964051417786,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.02290736345971,
+            "mach": 0.13768448128832433,
+            "normal_force_coefficient": 2.820969399870436,
+            "nose_down_deg": 0.0037798000941223877,
+            "nose_right_deg": -0.003553539026875512,
+            "pitch_rate_nose_down_deg_s": 0.48786842120513907,
+            "pitch_rate_nose_right_deg_s": -0.4623223942857868,
+            "pivot_moment_m": -0.3981319254168678,
+            "speed_m_s": 45.89879878929971,
+            "time_s": 0.5114628559431258
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 6.342371800176789e-7,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0002068371028302561,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.001768081954478337,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00013720479978322693
+        },
+        "guided": {
+          "apogee_agl_m": 2989.040869232491,
+          "flight_time_s": 216.6188058853861,
+          "landing_east_m": -257.1922552143388,
+          "landing_north_m": -1217.8288122229428,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.022825975544714,
+            "mach": 0.13768277732159342,
+            "normal_force_coefficient": 2.1711237918554955,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": -0.5897262410988344,
+            "speed_m_s": 45.8987956347594,
+            "time_s": 0.5114628560262514
+          }
+        },
+        "moved": {
+          "apogee_m": -1.575783934509218,
+          "landing_east_m": 7.630669724901679,
+          "landing_north_m": 2.1085647278655415,
+          "landing_range_m": -3.6198834985464146
+        },
+        "tip_off": {
+          "apogee_agl_m": 2987.4650852979817,
+          "flight_time_s": 216.5463342352649,
+          "landing_east_m": -249.5615854894371,
+          "landing_north_m": -1215.7202474950773,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.02293463634709,
+            "mach": 0.13768537114747073,
+            "normal_force_coefficient": 2.1711454018253824,
+            "nose_down_deg": 0.0037799216929206647,
+            "nose_right_deg": -0.005426230381095546,
+            "pitch_rate_nose_down_deg_s": 0.4878843695509279,
+            "pitch_rate_nose_right_deg_s": -0.7039711298279634,
+            "pivot_moment_m": -0.5897321878238255,
+            "speed_m_s": 45.898800405854494,
+            "time_s": 0.5114628559250538
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2988.808157616959,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0037796947854493567,
+          "nose_right_deg": -0.005426822639316242,
+          "pitch_rate_nose_down_deg_s": 0.48788656445470513,
+          "pitch_rate_nose_right_deg_s": -0.7041083170703767,
+          "speed_m_s": 45.902368761221574,
+          "time_s": 0.5115886256588784
+        },
+        "moved": {
+          "apogee_m": -1.5819658987115872,
+          "landing_east_m": 7.596470426457074,
+          "landing_north_m": 2.148850673020206,
+          "landing_range_m": -3.643590057556139
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "erebus-11",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.736474357316432e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.00023270439106014618,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.016651213933568994,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00016779057322173057
+        },
+        "guided": {
+          "apogee_agl_m": 2815.135474170577,
+          "flight_time_s": 50.25089050837399,
+          "landing_east_m": 669.2112778985538,
+          "landing_north_m": -632.1026568356178,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.569607110132997e-15,
+            "mach": 0.1312580503711579,
+            "normal_force_coefficient": 2.2171598442707709e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 2.5687464401018893e-17,
+            "speed_m_s": 44.5794380902546,
+            "time_s": 0.5518511761371395
+          }
+        },
+        "moved": {
+          "apogee_m": -0.9886566886934816,
+          "landing_east_m": 9.835055646266824,
+          "landing_north_m": -9.278881380028679,
+          "landing_range_m": 13.521312746560852
+        },
+        "tip_off": {
+          "apogee_agl_m": 2814.1468174818833,
+          "flight_time_s": 50.23785958440231,
+          "landing_east_m": 679.0463335448206,
+          "landing_north_m": -641.3815382156465,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0006160859294125464,
+            "mach": 0.1312580509583527,
+            "normal_force_coefficient": 0.0000870286741484331,
+            "nose_down_deg": 0.00497420950448677,
+            "nose_right_deg": 0.000018314978451261603,
+            "pitch_rate_nose_down_deg_s": 0.6238246699729275,
+            "pitch_rate_nose_right_deg_s": 0.0023096657838810007,
+            "pivot_moment_m": 0.000010084217758472136,
+            "speed_m_s": 44.579440664394845,
+            "time_s": 0.5518511759744419
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 2.7363994769573484e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 1.066776415434438e-6,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.001066043917370182,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00016777287014037927
+        },
+        "guided": {
+          "apogee_agl_m": 2814.999172955386,
+          "flight_time_s": 50.223524565151116,
+          "landing_east_m": 673.3273314695053,
+          "landing_north_m": -636.0273001026328,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.569607110132997e-15,
+            "mach": 0.1312580503711579,
+            "normal_force_coefficient": 2.2171886031181156e-16,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 2.5686472583026006e-17,
+            "speed_m_s": 44.5794380902546,
+            "time_s": 0.5518511761371395
+          }
+        },
+        "moved": {
+          "apogee_m": -0.9820770635260487,
+          "landing_east_m": 9.51768881848011,
+          "landing_north_m": -8.976068619786247,
+          "landing_range_m": 13.082664127173643
+        },
+        "tip_off": {
+          "apogee_agl_m": 2814.0170958918598,
+          "flight_time_s": 50.21227905635823,
+          "landing_east_m": 682.8450202879854,
+          "landing_north_m": -645.003368722419,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.0006160860133234951,
+            "mach": 0.13125805095516524,
+            "normal_force_coefficient": 0.00008702680298080495,
+            "nose_down_deg": 0.0049742095793681605,
+            "nose_right_deg": 0.000018314978802712897,
+            "pitch_rate_nose_down_deg_s": 0.6238246876772243,
+            "pitch_rate_nose_right_deg_s": 0.002309665849108462,
+            "pivot_moment_m": 0.000010082189604596715,
+            "speed_m_s": 44.57944066331244,
+            "time_s": 0.5518511759751533
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2814.5580306091942,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.004976945971308223,
+          "nose_right_deg": 0.000018308556353569952,
+          "pitch_rate_nose_down_deg_s": 0.6239924543435212,
+          "pitch_rate_nose_right_deg_s": 0.0023082230619590896,
+          "speed_m_s": 44.56835232309483,
+          "time_s": 0.551867316400471
+        },
+        "moved": {
+          "apogee_m": -0.982107088567318,
+          "landing_east_m": 9.496072725298063,
+          "landing_north_m": -8.9552597270648,
+          "landing_range_m": 13.052660984073668
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "erebus-11",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00802128454675368,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0645040246945862,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.889312472896357,
+          "past": [
+            "pitch_rate",
+            "angle"
+          ],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 1.0048514617358206
+        },
+        "guided": {
+          "apogee_agl_m": 2773.3834421802,
+          "flight_time_s": 49.82097729602246,
+          "landing_east_m": 1074.785793057754,
+          "landing_north_m": -189.3872175621421,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.347075509141487,
+            "mach": 0.13379783441216783,
+            "normal_force_coefficient": 2.611528255242115,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 0.7314535160206623,
+            "speed_m_s": 44.55378990349678,
+            "time_s": 0.5519820865657058
+          }
+        },
+        "moved": {
+          "apogee_m": 1.4256500439469164,
+          "landing_east_m": -10.982398255924409,
+          "landing_north_m": -32.65834268798284,
+          "landing_range_m": -4.61422583443823
+        },
+        "tip_off": {
+          "apogee_agl_m": 2774.8090922241468,
+          "flight_time_s": 49.834456674478936,
+          "landing_east_m": 1063.8033948018297,
+          "landing_north_m": -222.04556025012494,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.346205134179263,
+            "mach": 0.13379240905978304,
+            "normal_force_coefficient": 2.611252233023415,
+            "nose_down_deg": 0.004977657258069831,
+            "nose_right_deg": 0.010700388575679984,
+            "pitch_rate_nose_down_deg_s": 0.6237984513581928,
+            "pitch_rate_nose_right_deg_s": 1.3424064685852197,
+            "pivot_moment_m": 0.7313569782820872,
+            "speed_m_s": 44.55380225218953,
+            "time_s": 0.5519820862957573
+          }
+        }
+      },
+      "rail_inclination_deg": 84.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 1.2924209922226007e-6,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0003197942136423769,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0035046892217417743,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1,
+          "pitch_rate_deg_s": 0.00033504372283599205
+        },
+        "guided": {
+          "apogee_agl_m": 2764.8367634606716,
+          "flight_time_s": 49.73583264313075,
+          "landing_east_m": 1139.114677625448,
+          "landing_north_m": -118.98311399519322,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.347075509141487,
+            "mach": 0.13379783441216783,
+            "normal_force_coefficient": 1.6029969932020671,
+            "nose_down_deg": -2.3854160110976376e-15,
+            "nose_right_deg": 7.951386703658792e-16,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": -0.0,
+            "pivot_moment_m": 0.18564606397338457,
+            "speed_m_s": 44.55378990349678,
+            "time_s": 0.5519820865657058
+          }
+        },
+        "moved": {
+          "apogee_m": -0.36658932656200705,
+          "landing_east_m": 4.481951105096186,
+          "landing_north_m": -13.440717143852353,
+          "landing_range_m": 5.926319914676242
+        },
+        "tip_off": {
+          "apogee_agl_m": 2764.4701741341096,
+          "flight_time_s": 49.73249454528455,
+          "landing_east_m": 1143.5966287305441,
+          "landing_north_m": -132.42383113904557,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 11.34684644746775,
+            "mach": 0.13379647202863196,
+            "normal_force_coefficient": 1.6029645603308995,
+            "nose_down_deg": 0.004978373804142612,
+            "nose_right_deg": 0.0026778567075553318,
+            "pitch_rate_nose_down_deg_s": 0.6238987721698918,
+            "pitch_rate_nose_right_deg_s": 0.33725252094633446,
+            "pivot_moment_m": 0.18564234198558793,
+            "speed_m_s": 44.55379292769382,
+            "time_s": 0.5519820863112784
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 2764.785229710403,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.0049780353973112226,
+          "nose_right_deg": 0.002679104037839421,
+          "pitch_rate_nose_down_deg_s": 0.6240427812093122,
+          "pitch_rate_nose_right_deg_s": 0.3375550365538277,
+          "speed_m_s": 44.56281926143872,
+          "time_s": 0.5519438047480895
+        },
+        "moved": {
+          "apogee_m": -0.3577477033777541,
+          "landing_east_m": 4.475217043678867,
+          "landing_north_m": -13.537379991986313,
+          "landing_range_m": 5.892675962046269
+        }
+      },
+      "wind": "crosswind"
+    },
+    {
+      "case": "prometheus-2022-generic-motor",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00001618676925610546,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.004290294421131427,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.0185551732265856,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.14894120059330573,
+          "pitch_rate_deg_s": 0.0008985764218432448
+        },
+        "guided": {
+          "apogee_agl_m": 3807.0858935619945,
+          "flight_time_s": 207.4975943250849,
+          "landing_east_m": 1420.641111828545,
+          "landing_north_m": 380.9446470711236,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.0391019204759832e-15,
+            "mach": 0.08175899398489954,
+            "normal_force_coefficient": 1.5250596092330504e-16,
+            "nose_down_deg": -6.3611093629270335e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 5.760150158351778e-17,
+            "speed_m_s": 27.377243112590293,
+            "time_s": 0.4010588340097636
+          }
+        },
+        "moved": {
+          "apogee_m": -13.280094063271463,
+          "landing_east_m": 52.80775592729469,
+          "landing_north_m": 14.095180605569794,
+          "landing_range_m": 54.65646693224426
+        },
+        "tip_off": {
+          "apogee_agl_m": 3793.805799498723,
+          "flight_time_s": 207.0388669987564,
+          "landing_east_m": 1473.4488677558397,
+          "landing_north_m": 395.0398276766934,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.015450625479744953,
+            "mach": 0.0817590042322052,
+            "normal_force_coefficient": 0.0022687864256321967,
+            "nose_down_deg": 0.013363685062195384,
+            "nose_right_deg": -3.6300696515163965e-6,
+            "pitch_rate_nose_down_deg_s": 1.48851337389783,
+            "pitch_rate_nose_right_deg_s": -0.00040767578633471954,
+            "pivot_moment_m": 0.0008573862992200094,
+            "speed_m_s": 27.37728431330993,
+            "time_s": 0.4010588336290188
+          }
+        }
+      },
+      "rail_inclination_deg": 80.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.00001618551743747789,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.000758941383602844,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.002130195234939761,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.14894120059330573,
+          "pitch_rate_deg_s": 0.0008983511514285205
+        },
+        "guided": {
+          "apogee_agl_m": 3806.878461450603,
+          "flight_time_s": 207.4884411324578,
+          "landing_east_m": 1421.2853173104688,
+          "landing_north_m": 381.11633898829,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 1.0391019204759832e-15,
+            "mach": 0.08175899398489954,
+            "normal_force_coefficient": 1.525062595129507e-16,
+            "nose_down_deg": -6.3611093629270335e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 5.760149623087847e-17,
+            "speed_m_s": 27.377243112590293,
+            "time_s": 0.4010588340097636
+          }
+        },
+        "moved": {
+          "apogee_m": -13.087890518600034,
+          "landing_east_m": 52.04702270181747,
+          "landing_north_m": 13.891971561082812,
+          "landing_range_m": 53.869060830018725
+        },
+        "tip_off": {
+          "apogee_agl_m": 3793.790570932003,
+          "flight_time_s": 207.03658406404568,
+          "landing_east_m": 1473.3323400122863,
+          "landing_north_m": 395.0083105493728,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 0.01545062858852918,
+            "mach": 0.08175900423260696,
+            "normal_force_coefficient": 0.0022676481748249645,
+            "nose_down_deg": 0.013363686314014033,
+            "nose_right_deg": -3.6300699894503315e-6,
+            "pitch_rate_nose_down_deg_s": 1.4885135991682898,
+            "pitch_rate_nose_right_deg_s": -0.00040767584773726583,
+            "pivot_moment_m": 0.0008564889611543331,
+            "speed_m_s": 27.377284313456396,
+            "time_s": 0.40105883362902
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3806.586820350415,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.013379871831425489,
+          "nose_right_deg": -3.6291521875202737e-6,
+          "pitch_rate_nose_down_deg_s": 1.4894119502417569,
+          "pitch_rate_nose_right_deg_s": -0.0004073015836808521,
+          "speed_m_s": 27.361467718859373,
+          "time_s": 0.4009725655271472
+        },
+        "moved": {
+          "apogee_m": -13.116780281282445,
+          "landing_east_m": 52.12538200749418,
+          "landing_north_m": 13.91282915783978,
+          "landing_range_m": 53.950148582066504
+        }
+      },
+      "wind": "still"
+    },
+    {
+      "case": "prometheus-2022-generic-motor",
+      "own_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.005812557481643808,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.04785201621903275,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 1.0246758478882805,
+          "past": [
+            "pitch_rate",
+            "angle",
+            "landing_move"
+          ],
+          "pitch_rate_bar_deg_s": 0.1584630869317324,
+          "pitch_rate_deg_s": 0.6471823873965548
+        },
+        "guided": {
+          "apogee_agl_m": 3755.2821324423703,
+          "flight_time_s": 205.7070987202775,
+          "landing_east_m": 1625.9527296190108,
+          "landing_north_m": -545.6974785834756,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 18.09006209767807,
+            "mach": 0.08598930424894537,
+            "normal_force_coefficient": 4.163664917881645,
+            "nose_down_deg": -6.3611093629270335e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 2.1780719187918924,
+            "speed_m_s": 27.370487417630642,
+            "time_s": 0.40109428982916856
+          }
+        },
+        "moved": {
+          "apogee_m": -7.477674155339628,
+          "landing_east_m": 75.72218185029487,
+          "landing_north_m": -39.296460765262964,
+          "landing_range_m": 84.33834471149862
+        },
+        "tip_off": {
+          "apogee_agl_m": 3747.8044582870307,
+          "flight_time_s": 205.44798332298575,
+          "landing_east_m": 1701.6749114693057,
+          "landing_north_m": -584.9939393487385,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 18.079914805975417,
+            "mach": 0.08597912988519062,
+            "normal_force_coefficient": 4.160543959353006,
+            "nose_down_deg": 0.013364223900761963,
+            "nose_right_deg": 0.01063510459516725,
+            "pitch_rate_nose_down_deg_s": 1.487937296313619,
+            "pitch_rate_nose_right_deg_s": 1.1879645718156835,
+            "pivot_moment_m": 2.176243837850434,
+            "speed_m_s": 27.37055476456026,
+            "time_s": 0.40109428619316756
+          }
+        }
+      },
+      "rail_inclination_deg": 80.0,
+      "recorded_normal_force": {
+        "differences": {
+          "angle_bar_deg": 0.005,
+          "angle_deg": 0.000016612509362124334,
+          "apogee_move_bar_percent_of_apogee": 0.2,
+          "apogee_move_percent_of_apogee": 0.0011298221515924087,
+          "landing_move_bar_percent_of_apogee": 1.0,
+          "landing_move_percent_of_apogee": 0.021381625637324052,
+          "past": [],
+          "pitch_rate_bar_deg_s": 0.1584630869317324,
+          "pitch_rate_deg_s": 0.0012836977688062074
+        },
+        "guided": {
+          "apogee_agl_m": 3715.5748563426414,
+          "flight_time_s": 204.31183588820605,
+          "landing_east_m": 1551.6368708870828,
+          "landing_north_m": -296.5252748696434,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 18.09006209767807,
+            "mach": 0.08598930424894537,
+            "normal_force_coefficient": 2.655153709173591,
+            "nose_down_deg": -6.3611093629270335e-15,
+            "nose_right_deg": 0.0,
+            "pitch_rate_nose_down_deg_s": -0.0,
+            "pitch_rate_nose_right_deg_s": 0.0,
+            "pivot_moment_m": 1.0028008256233196,
+            "speed_m_s": 27.370487417630642,
+            "time_s": 0.40109428982916856
+          }
+        },
+        "moved": {
+          "apogee_m": -9.213301870622672,
+          "landing_east_m": 57.09352621293533,
+          "landing_north_m": -5.479276332453935,
+          "landing_range_m": 57.11588061668044
+        },
+        "tip_off": {
+          "apogee_agl_m": 3706.3615544720187,
+          "flight_time_s": 203.98938398636415,
+          "landing_east_m": 1608.730397100018,
+          "landing_north_m": -302.00455120209733,
+          "last_guide_leaves": {
+            "angle_of_attack_deg": 18.085428838994194,
+            "mach": 0.08598468236334292,
+            "normal_force_coefficient": 2.654473532366949,
+            "nose_down_deg": 0.013366520325263824,
+            "nose_right_deg": 0.00481771481726675,
+            "pitch_rate_nose_down_deg_s": 1.488281903119241,
+            "pitch_rate_nose_right_deg_s": 0.540376269506938,
+            "pivot_moment_m": 1.0025439890073624,
+            "speed_m_s": 27.370534808949245,
+            "time_s": 0.4010942863301096
+          }
+        }
+      },
+      "rocketpy": {
+        "guided_apogee_agl_m": 3714.7821285485497,
+        "last_guide_leaves": {
+          "nose_down_deg": 0.013382405813611413,
+          "nose_right_deg": 0.00482257555046919,
+          "pitch_rate_nose_down_deg_s": 1.4894991046594281,
+          "pitch_rate_nose_right_deg_s": 0.5407840689333768,
+          "speed_m_s": 27.35866009497216,
+          "time_s": 0.40101816851732025
+        },
+        "moved": {
+          "apogee_m": -9.25527230199441,
+          "landing_east_m": 57.86135624969256,
+          "landing_north_m": -5.682547177782112,
+          "landing_range_m": 57.93281857060947
+        }
+      },
+      "wind": "crosswind"
+    }
+  ],
+  "generator": "cargo xtask tip-off-model",
+  "pad_dead_band_m": 0.1,
+  "reading": {
+    "held_on_the_recorded_normal_force": true,
+    "own_normal_force": {
+      "all": {
+        "flights": 26,
+        "inside_every_bar": 13
+      },
+      "crosswind": {
+        "flights": 13,
+        "inside_every_bar": 0
+      },
+      "landing_against_the_pad": {
+        "farther": 20,
+        "nearer": 5,
+        "same": 1
+      },
+      "largest": {
+        "angle": {
+          "apart": 0.06713654566014528,
+          "bar": 0.005,
+          "case": "bella-lui",
+          "wind": "crosswind"
+        },
+        "apogee_move": {
+          "apart": 0.37926708847688967,
+          "bar": 0.2,
+          "case": "bella-lui",
+          "wind": "crosswind"
+        },
+        "landing_move": {
+          "apart": 4.081870909266917,
+          "bar": 1.0,
+          "case": "valetudo",
+          "wind": "crosswind"
+        },
+        "pitch_rate": {
+          "apart": 4.009834344520717,
+          "bar": 0.1,
+          "case": "bella-lui",
+          "wind": "crosswind"
+        }
+      },
+      "past": {
+        "angle": [
+          {
+            "apart": 0.00784682181955572,
+            "bar": 0.005,
+            "case": "calisto-getting-started-motor-at-minus-1.255",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.006140746475508848,
+            "bar": 0.005,
+            "case": "calisto-tests-motor-at-minus-1.373",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.06713654566014528,
+            "bar": 0.005,
+            "case": "bella-lui",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.05172563280498906,
+            "bar": 0.005902868397096936,
+            "case": "valetudo",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.04290258982734667,
+            "bar": 0.008313358007373447,
+            "case": "juno-iii",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.012247755467878714,
+            "bar": 0.005,
+            "case": "cavour",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.007083411517687369,
+            "bar": 0.005,
+            "case": "genesis",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.012183561980802496,
+            "bar": 0.005,
+            "case": "lince",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.00802128454675368,
+            "bar": 0.005,
+            "case": "erebus-11",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.005812557481643808,
+            "bar": 0.005,
+            "case": "prometheus-2022-generic-motor",
+            "wind": "crosswind"
+          }
+        ],
+        "apogee_move": [
+          {
+            "apart": 0.37926708847688967,
+            "bar": 0.2,
+            "case": "bella-lui",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.29467619295034025,
+            "bar": 0.2,
+            "case": "valetudo",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.3314393273900776,
+            "bar": 0.2,
+            "case": "juno-iii",
+            "wind": "crosswind"
+          }
+        ],
+        "landing_move": [
+          {
+            "apart": 1.6777456648449527,
+            "bar": 1.0,
+            "case": "bella-lui",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 4.081870909266917,
+            "bar": 1.0,
+            "case": "valetudo",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 2.357330494866101,
+            "bar": 1.0,
+            "case": "juno-iii",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 1.0246758478882805,
+            "bar": 1.0,
+            "case": "prometheus-2022-generic-motor",
+            "wind": "crosswind"
+          }
+        ],
+        "pitch_rate": [
+          {
+            "apart": 0.6713267955237462,
+            "bar": 0.1,
+            "case": "calisto-getting-started-motor-at-minus-1.255",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.5179067216243352,
+            "bar": 0.1,
+            "case": "calisto-tests-motor-at-minus-1.373",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 4.009834344520717,
+            "bar": 0.1,
+            "case": "bella-lui",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.1365657594064893,
+            "bar": 0.1,
+            "case": "ndrt-2020-nose-to-tail",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 1.9265935110040981,
+            "bar": 0.220140127508953,
+            "case": "valetudo",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 1.2273836509741851,
+            "bar": 0.23821393845485273,
+            "case": "juno-iii",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 1.141310851705256,
+            "bar": 0.13236920139556316,
+            "case": "cavour",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.7768785700410128,
+            "bar": 0.1,
+            "case": "genesis",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.8845457504750565,
+            "bar": 0.14954746641052813,
+            "case": "lince",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.17200676636334722,
+            "bar": 0.1,
+            "case": "astra",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.24178592346531086,
+            "bar": 0.1,
+            "case": "andromeda",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 1.0048514617358206,
+            "bar": 0.1,
+            "case": "erebus-11",
+            "wind": "crosswind"
+          },
+          {
+            "apart": 0.6471823873965548,
+            "bar": 0.1584630869317324,
+            "case": "prometheus-2022-generic-motor",
+            "wind": "crosswind"
+          }
+        ]
+      },
+      "still": {
+        "flights": 13,
+        "inside_every_bar": 13
+      }
+    },
+    "recorded_normal_force": {
+      "all": {
+        "flights": 26,
+        "inside_every_bar": 26
+      },
+      "crosswind": {
+        "flights": 13,
+        "inside_every_bar": 13
+      },
+      "landing_against_the_pad": {
+        "farther": 22,
+        "nearer": 3,
+        "same": 1
+      },
+      "largest": {
+        "angle": {
+          "apart": 0.00012420878885177432,
+          "bar": 0.008313358007373447,
+          "case": "juno-iii",
+          "wind": "crosswind"
+        },
+        "apogee_move": {
+          "apart": 0.001717374898513281,
+          "bar": 0.2,
+          "case": "juno-iii",
+          "wind": "crosswind"
+        },
+        "landing_move": {
+          "apart": 0.029275712395402536,
+          "bar": 1.0,
+          "case": "valetudo",
+          "wind": "crosswind"
+        },
+        "pitch_rate": {
+          "apart": 0.002610700831421596,
+          "bar": 0.23821393845485273,
+          "case": "juno-iii",
+          "wind": "crosswind"
+        }
+      },
+      "past": {
+        "angle": [],
+        "apogee_move": [],
+        "landing_move": [],
+        "pitch_rate": []
+      },
+      "still": {
+        "flights": 13,
+        "inside_every_bar": 13
+      }
+    },
+    "rocketpy_landing_against_the_pad": {
+      "farther": 22,
+      "nearer": 3,
+      "same": 1
+    }
+  },
+  "reference": {
+    "equations": "the pinned commit's with pull request #1196's sign correction (corrections.py, ADR-026)",
+    "oracle": "rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c (pull request #920's merge)",
+    "report": "validation/reports/tip-off.json",
+    "sha256": "af8467df095acab240ef3cb2e19c4fa5154cace5cb09abae79a073521f3daa78"
+  }
+}

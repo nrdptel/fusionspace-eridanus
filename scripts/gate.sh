@@ -53,6 +53,9 @@
 # xtask is built once first. A failed lane fails the step, and the step's log holds each lane's
 # output whole, in this order, with the failed lanes named last (`cargo test -p xtask lanes`). Each
 # run's lane logs are in a folder of its own under target/gate/lanes/.
+# Step validate runs `tip-off-model --check` as CI does (M1.14b9, ADR-358: HPR Sim's tip-off phase
+# on the committed RocketPy reference `tip-off --check` holds, flown again and held to the
+# committed report and to ADR-357's bars; it needs nothing under refs/).
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
 # also holds the committed records and files to it. It runs that in the dev profile, where CI runs it
 # optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
@@ -364,7 +367,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --slice && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK tip-off-model --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --slice && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;

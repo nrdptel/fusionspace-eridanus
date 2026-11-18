@@ -304,6 +304,13 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask -- validate --check
+      # The tip-off phase held to RocketPy's (M1.14b9, ADR-358): each of RocketPy's example rockets
+      # flown again with HPR Sim's tip-off phase off and on, in still air and in the crosswind, on
+      # RocketPy's recorded normal force and on HPR Sim's own, against the committed reference
+      # (`validation/reports/tip-off.json`) and report, and every figure on RocketPy's normal
+      # force inside ADR-357's bars.
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask -- tip-off-model --check
       # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
       # write, every file stored as passing is within 1% of its record, worked out again from its
       # bytes, and none stored as failing is, and every motor flies by name offline.
