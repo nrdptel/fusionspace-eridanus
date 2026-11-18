@@ -1504,7 +1504,7 @@
           ]
         },
         "max_descent_acceleration_m_s2": {
-          "description": "The opening shock, m/s²: the top specific force under the recovery devices, `(drag +\nthrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning\nthe mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a\nsplit with no motor left, the part that keeps the nose counts too, under its own devices.",
+          "description": "The opening shock, m/s²: the top specific force under the recovery devices, `(drag +\nthrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning\nthe mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a\nseparation with no motor left, the part that keeps the nose counts too, under its own\ndevices; after an ejection charge, the piece it pushes off does not.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"

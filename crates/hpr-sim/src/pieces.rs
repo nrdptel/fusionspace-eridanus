@@ -987,7 +987,7 @@ mod tests {
     }
 
     #[test]
-    fn a_nose_cone_ejected_before_apogee_leaves_the_summary_with_no_apogee() {
+    fn a_nose_cone_ejected_before_apogee_leaves_the_summary_with_no_apogee_or_shock() {
         // Body 0 of an ejection is its lead piece, here the nose cone alone: its apogee under its
         // own canopy is not the rocket's, so the summary has none, as it had before body 0's
         // apogee stood in for a separation's (ADR-165).
@@ -1030,9 +1030,9 @@ mod tests {
         assert!(nose.event(EventKind::Apogee).is_some());
         let summary = metrics.summary(&result, sim.environment()).unwrap();
         assert_eq!(summary.apogee, None);
-        // Nor is the nose cone's opening shock under its own canopy, which opens at the charge
-        // and pulls on the nose cone alone, the rocket's (#1519): the stack flew no step under it,
-        // so the summary has none.
+        // Nor is the opening shock of the nose cone's own canopy, which opens at the charge and
+        // pulls on the nose cone alone, the rocket's (#1519): the stack flew no step under it, so
+        // the summary has none.
         let charge_s = result.event(EventKind::Ejection(0)).unwrap().sample.time_s;
         let opened_s = result
             .event(EventKind::Deployment(0))

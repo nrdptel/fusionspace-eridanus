@@ -440,10 +440,12 @@ So the peak load the simulator reports is **no safe bound** on the real one, in 
   infinite-mass $C_x = 1.7$ on the same dynamic pressure would be 5.1 kN.
 
 The flight's opening shock, `max_descent_acceleration_m_s2`, is the largest of this load over the
-mass. After a split with nothing left to burn, the part that keeps the nose flies on as a point
-mass (body 0), and its own devices' load counts too: their drag alone over its mass,
+mass. After a separation with nothing left to burn, the part that keeps the nose flies on as a
+point mass (body 0), and its own devices' load counts too: their drag alone over its mass,
 $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$, with no airframe drag, whether they
-open before the split or after. A test pins it at $q\,(C_D S)/m$ at an instant opening.
+open before the split or after. A test pins it at $q\,(C_D S)/m$ at an instant opening. An
+ejection charge that parts the stack is not such a split: the piece it pushes off is left out,
+as its apogee is.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are

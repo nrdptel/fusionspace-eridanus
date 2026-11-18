@@ -642,8 +642,9 @@ pub struct McRun {
     /// The spread of the landing's distance from the pad, m.
     pub landing_distance_m: McSpread,
     /// The spread of the opening shock, m/s²: each flight's top specific force under its
-    /// recovery devices, the opening load over the mass. A flight that opened none, or a stack
-    /// whose devices opened only at a split with nothing left to burn, has no value.
+    /// recovery devices, the opening load over the mass, the part that keeps the nose counting
+    /// after a separation with nothing left to burn. A flight that opened none has no value, nor
+    /// has one that came apart at an ejection charge before the stack flew under a device.
     pub opening_shock_m_s2: McSpread,
     /// The spread of the top airspeed at which each flight opened a recovery device on its stack,
     /// or on the part that keeps the nose, m/s.
@@ -732,8 +733,8 @@ pub struct McNominal {
     pub landing_east_m: Option<f64>,
     /// Its landing, m north of the pad.
     pub landing_north_m: Option<f64>,
-    /// Its opening shock, m/s², if its stack flew under a recovery device (a stack whose devices
-    /// open only at a split with nothing left to burn has none).
+    /// Its opening shock, m/s², if its stack flew under a recovery device or, after a separation
+    /// with nothing left to burn, the part that keeps the nose did.
     pub opening_shock_m_s2: Option<f64>,
     /// The top airspeed at which it opened a recovery device on its stack, or on the part that
     /// keeps the nose, m/s.
@@ -1151,7 +1152,8 @@ pub struct Summary {
     /// The opening shock, m/s²: the top specific force under the recovery devices, `(drag +
     /// thrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning
     /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a
-    /// split with no motor left, the part that keeps the nose counts too, under its own devices.
+    /// separation with no motor left, the part that keeps the nose counts too, under its own
+    /// devices; after an ejection charge, the piece it pushes off does not.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
     /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.

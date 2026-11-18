@@ -367,10 +367,12 @@ pub struct FlightSummary {
     /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
     /// no motor burning, the mass times this is the opening force. Once a canopy reaches its
     /// steady fall it reads about 1 g, so it is at least that unless the flight reaches the
-    /// ground first. When the stack comes apart
-    /// with nothing left to burn ([`Termination::Separated`]), the part that keeps the nose, body
-    /// 0, flies on as a point mass, and the drag of its own devices over its mass counts too
-    /// ([`BodyStep::specific_force_enu_m_s2`]), whether they open before the split or after.
+    /// ground first or comes apart at an ejection ([`crate::Ejection`]). When the stack comes
+    /// apart at a separation with nothing left to burn ([`Termination::Separated`]), the part
+    /// that keeps the nose, body 0, flies on as a point mass, and the drag of its own devices
+    /// over its mass counts too ([`BodyStep::specific_force_enu_m_s2`]), whether they open
+    /// before the split or after. At an ejection, body 0 is the ejection's lead piece, and its
+    /// load stays out, as its apogee does.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
@@ -484,8 +486,8 @@ pub struct FlightMetrics {
     max_descent_acceleration: Option<Peak>,
     /// The largest specific force on body 0, a separated body flown as a point mass, while a
     /// device of its own is open: its opening shock. It joins the stack's in the summary only
-    /// when the stack came apart with nothing left to burn, body 0 then being the part that keeps
-    /// the nose.
+    /// when the stack came apart at a separation with nothing left to burn and no ejection, body
+    /// 0 then being the part that keeps the nose.
     nose_descent_acceleration: Option<Peak>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
@@ -656,8 +658,8 @@ impl FlightMetrics {
                 }
             }
         }
-        // Its opening shock counts on the same terms as its apogee: a split, not an ejection,
-        // whose body 0 is a lead piece rather than the part that keeps the nose.
+        // Body 0's opening shock counts on the same terms as its apogee: at a separation with no
+        // ejection. An ejection's body 0 is its lead piece, not the part that keeps the nose.
         let mut max_descent_acceleration = self.max_descent_acceleration;
         if result.termination == Termination::Separated
             && result.event(EventKind::Separation).is_some()
@@ -898,7 +900,8 @@ impl Observer for FlightMetrics {
                 best = found;
             }
         }
-        // A NaN is not dropped as a zero is: it is kept where it comes first, as a stack's is.
+        // A NaN is not dropped as a zero is: here, as in a stack's slot, it is kept where it
+        // comes first.
         if (best.value > 0.0 || best.value.is_nan())
             && self
                 .nose_descent_acceleration
