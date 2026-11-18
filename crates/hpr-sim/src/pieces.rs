@@ -1030,6 +1030,17 @@ mod tests {
         assert!(nose.event(EventKind::Apogee).is_some());
         let summary = metrics.summary(&result, sim.environment()).unwrap();
         assert_eq!(summary.apogee, None);
+        // Nor is the nose cone's opening shock under its own canopy, which opens at the charge
+        // and pulls on the nose cone alone, the rocket's (#1519): the stack flew no step under it,
+        // so the summary has none.
+        let charge_s = result.event(EventKind::Ejection(0)).unwrap().sample.time_s;
+        let opened_s = result
+            .event(EventKind::Deployment(0))
+            .unwrap()
+            .sample
+            .time_s;
+        assert_eq!(opened_s, charge_s);
+        assert_eq!(summary.max_descent_acceleration_m_s2, None);
 
         // The nose's canopy, fired by the charge but opening 0.5 s after it, would leave the
         // nose climbing through the lag with no drag: refused at the charge (M4.6a's review).

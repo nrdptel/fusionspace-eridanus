@@ -3985,6 +3985,160 @@ mod tests {
     }
 
     #[test]
+    fn the_part_that_keeps_the_nose_has_its_own_opening_shock() {
+        // #1519: a stack that comes apart with nothing left to burn leaves the part that keeps
+        // the nose, body 0, to fly on as a point mass. Its opening shock is the drag of its own
+        // device over its mass, `q C_D S / m` at the opening for a device that opens at once
+        // (Knacke, NWC TP 6575, p. 5-50, with C_x X_1 = 1), as the stack's is (#1258). Before,
+        // the summary had none: the stack opened nothing before the split.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let flight = |devices: Vec<Device>| {
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                devices,
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            );
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            (result, summary)
+        };
+        // Each body's own apogee, from a flight whose devices open there.
+        let (scouted, _) = flight(vec![
+            Device::new(
+                "nose part",
+                DeviceDrag::DragArea { cd_s_m2: 0.3 },
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "aft part",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+        ]);
+        let apogee_s = |body: usize| {
+            let flown = scouted.bodies.iter().find(|b| b.body == body).unwrap();
+            flown.event(EventKind::Apogee).unwrap().sample.time_s
+        };
+        // Each opens falling fast: the nose part 5 s past its apogee, the aft part 8 s past its
+        // own under a larger device, so its shock is the larger and must not be taken.
+        let cd_s_m2 = [0.3, 1.0];
+        let (result, summary) = flight(vec![
+            Device::new(
+                "nose part",
+                DeviceDrag::DragArea {
+                    cd_s_m2: cd_s_m2[0],
+                },
+                Trigger::Time {
+                    time_s: apogee_s(0) + 5.0,
+                },
+            ),
+            Device::new(
+                "aft part",
+                DeviceDrag::DragArea {
+                    cd_s_m2: cd_s_m2[1],
+                },
+                Trigger::Time {
+                    time_s: apogee_s(1) + 8.0,
+                },
+            )
+            .on_body(1),
+        ]);
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed());
+        // The stack itself opened nothing: what the summary has is body 0's.
+        assert!(
+            !result
+                .events
+                .iter()
+                .any(|event| matches!(event.kind, EventKind::Deployment(_)))
+        );
+        let rho = air.0.density_kg_m3;
+        let opening = |body: usize| {
+            let flown = result.bodies.iter().find(|b| b.body == body).unwrap();
+            let deployed = flown.event(EventKind::Deployment(body)).unwrap().sample;
+            assert!(deployed.vertical_speed_m_s < -40.0, "{deployed:?}");
+            let q_pa = 0.5 * rho * deployed.airspeed_m_s.powi(2);
+            (q_pa * cd_s_m2[body] / deployed.mass_kg, deployed)
+        };
+        let (nose_per_kg, deployed) = opening(0);
+        let (aft_per_kg, _) = opening(1);
+        assert!(
+            aft_per_kg > 1.5 * nose_per_kg,
+            "{aft_per_kg} vs {nose_per_kg}"
+        );
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            (shock.value / nose_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {nose_per_kg}",
+            shock.value
+        );
+        assert_eq!(shock.time_s, deployed.time_s);
+        assert_eq!(shock.height_above_ground_m, deployed.height_above_ground_m);
+    }
+
+    #[test]
+    fn a_split_with_an_ejection_keeps_the_lead_pieces_shock_out() {
+        // #1519: with an ejection at the split, body 0 is the ejection's lead piece, here the
+        // nose cone alone under its own device, not the part that keeps the nose; its opening
+        // shock is left out of the summary as its apogee is (ADR-165), though it opens at once
+        // at 100 m/s.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let at = Trigger::Time { time_s: split_s };
+        let devices = vec![
+            Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, at),
+            Device::new(
+                "sustainer",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+            Device::new(
+                "booster",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(2),
+        ];
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(at, 0),
+        )
+        .with_ejections(vec![crate::Ejection::aft_of(at, "nose")])
+        .unwrap();
+        let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+        let mut metrics = crate::metrics::FlightMetrics::new();
+        let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.event(EventKind::Separation).is_some());
+        let opened = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(
+            opened.time_s,
+            result.event(EventKind::Ejection(0)).unwrap().sample.time_s
+        );
+        assert!(opened.airspeed_m_s > 50.0, "{opened:?}");
+        let summary = metrics.summary(&result, sim.environment()).unwrap();
+        assert_eq!(summary.max_descent_acceleration_m_s2, None);
+    }
+
+    #[test]
     fn a_timed_separation_fires_at_its_own_time() {
         // Found in review: the separation's trigger was neither a stop time nor a located event,
         // so a timed or height separation fired at whatever boundary happened to come next,

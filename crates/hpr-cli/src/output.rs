@@ -1150,7 +1150,8 @@ pub struct Summary {
     pub max_acceleration_m_s2: Option<Peak>,
     /// The opening shock, m/s²: the top specific force under the recovery devices, `(drag +
     /// thrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning
-    /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g.
+    /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a
+    /// split with no motor left, the part that keeps the nose counts too, under its own devices.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
     /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.
