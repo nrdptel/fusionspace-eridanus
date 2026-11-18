@@ -1146,8 +1146,8 @@ scales it. A window holding more is read at every n-th sample, n the least whole
 it to that. The descent rates' running median sizes its window from the descent's median interval,
 but never from one shorter than the rate check allows. The landing's search moves forward only. A
 log sampled no faster than 500 a second is read whole. A log with a burst is only timed in a test,
-and its readings checked to be given: its thinned fits weren't checked against the bounds, as the
-tuning set holds no such log.
+with the reading it stresses checked to be given: its thinned fits weren't checked against the
+bounds, as the tuning set holds no such log.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are
