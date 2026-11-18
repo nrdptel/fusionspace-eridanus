@@ -4000,24 +4000,25 @@ mod tests {
 
     /// A burst of samples close together, too few to move the median interval, costs the top
     /// speed's fit, the landing's scan and the descent's rates no walk over the burst for each of
-    /// its samples (#1250). A pad of 2,000 s at 500 samples a second holds the median at 2 ms; a
-    /// burst in 0.4 s sits in the climb, in the descent's last seconds (200,000 samples each), or
-    /// just before landing (900,000), where the track dips to the pad and rises again past the
-    /// landed ceiling, so that each sample under the mark has to look to the burst's end, and the
-    /// descent's median interval falls into the burst. Each walk cost its reading 27 to 131 s on a
-    /// fast desktop: the top speed's and the descent's fits, the landing's scan, and the descent
-    /// rates' running median at the burst's interval. The clock times each log's
-    /// reading alone, and nothing it reads reaches a result.
+    /// its samples (#1250). A burst in 0.4 s sits in the climb (500,000 samples), in the
+    /// descent's last seconds (300,000), or just before landing (1,500,000), where the track dips
+    /// to the pad and rises again past the landed ceiling, so that each sample under the mark has
+    /// to look to the burst's end, and the descent's median interval falls into the burst. A pad
+    /// at 500 samples a second, 10% longer than the burst's samples need, holds the median at
+    /// 2 ms. Each walk cost its reading 136 to 273 s on a fast desktop, where the readings take 0.3
+    /// to 2.7 s; the bound is the smoother's burst test's, 60 s, as CI's slowest runners took 8
+    /// times a fast desktop's time. The clock times each log's reading alone, and nothing it
+    /// reads reaches a result.
     #[test]
     #[allow(
         clippy::disallowed_types,
         reason = "the clock times each reading alone"
     )]
     fn a_burst_of_samples_costs_the_readings_no_walk_over_it() {
-        let pad_s = 2_000.0;
         let fly = flight(10.0);
-        // A log with a burst from `start` s after the pad, its height at each time.
+        // A log with a burst from `start` s after the pad, its height at each time, and its pad.
         let with_burst = |start: f64, burst: u32, height: &dyn Fn(u32, f64) -> f64| {
+            let pad_s = (1.1 * f64::from(burst) * MIN_INTERVAL_S).ceil();
             let (mut time_s, mut altitude_m) = (Vec::new(), Vec::new());
             let mut t: f64 = 0.0;
             while t <= pad_s + 45.0 {
@@ -4037,30 +4038,34 @@ mod tests {
             let mut log = log_every(DT, 0.0, |_| 0.0);
             log.time_s = time_s;
             log.altitude_m = altitude_m;
-            log
+            (log, pad_s)
         };
         let timed = |log: &FlightLog| {
             let began = std::time::Instant::now();
             let readings = read(log);
             (readings, began.elapsed())
         };
+        let bound_s = 60.0;
         // In the climb: the top speed is read.
-        let (climb, elapsed) = timed(&with_burst(1.2, 200_000, &|_, at| fly(at)));
+        let (log, _) = with_burst(1.2, 500_000, &|_, at| fly(at));
+        let (climb, elapsed) = timed(&log);
         assert!(climb.max_speed.value().is_some(), "{:?}", climb.max_speed);
-        assert!(elapsed.as_secs_f64() < 10.0, "climb: {elapsed:?}");
+        assert!(elapsed.as_secs_f64() < bound_s, "climb: {elapsed:?}");
         // In the descent's last 2 s: the descent's rate is read.
-        let (tail, elapsed) = timed(&with_burst(14.0, 200_000, &|_, at| fly(at)));
+        let (log, _) = with_burst(14.0, 300_000, &|_, at| fly(at));
+        let (tail, elapsed) = timed(&log);
         assert!(
             tail.main_descent.value().is_some(),
             "{:?}",
             tail.main_descent
         );
-        assert!(elapsed.as_secs_f64() < 10.0, "descent: {elapsed:?}");
+        assert!(elapsed.as_secs_f64() < bound_s, "descent: {elapsed:?}");
         // Down to the pad and up past the ceiling to 50 m, under the apogee: landing comes after.
-        let dip = |k: u32, _: f64| if k + 5_000 < 900_000 { 0.0 } else { 50.0 };
-        let (dipped, elapsed) = timed(&with_burst(13.0, 900_000, &dip));
+        let dip = |k: u32, _: f64| if k + 5_000 < 1_500_000 { 0.0 } else { 50.0 };
+        let (log, pad_s) = with_burst(13.0, 1_500_000, &dip);
+        let (dipped, elapsed) = timed(&log);
         let landing = dipped.landing.value().map(|l| l.time_s - pad_s);
         assert!(landing.is_some_and(|t| t > 13.4), "{:?}", dipped.landing);
-        assert!(elapsed.as_secs_f64() < 10.0, "landing: {elapsed:?}");
+        assert!(elapsed.as_secs_f64() < bound_s, "landing: {elapsed:?}");
     }
 }
