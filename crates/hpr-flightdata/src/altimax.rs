@@ -110,8 +110,10 @@ const PAD_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
 /// p. 42); more, from a file the reader doesn't know, are refused rather than made channels.
 const VOLT_CHANNELS: usize = 16;
 
-/// The most columns a header may name: the export the reader was built on names eleven. Wider is
-/// refused before its names are checked, as several of the other CSV readers refuse past theirs.
+/// The most columns a header may name: the export the reader was built on names eleven. A header
+/// of more names is refused before they are compared, as the AltOS telemetry CSV, Fluctus and
+/// AeroSpaceNU readers refuse one past their own limits, so that a hostile header can't cost time
+/// growing as the square of its width (#1250).
 pub const MAX_COLUMNS: usize = 256;
 
 /// Whether `text` is an AltiMAX export: its first line that isn't blank opens with the five
@@ -163,8 +165,8 @@ fn role(name: &str) -> Role {
 ///
 /// [`LogError::NotThisFormat`] when the first line isn't the export's header ([`recognizes`]);
 /// [`LogError::Syntax`] when the header names more than [`MAX_COLUMNS`] columns or a column twice
-/// (but `EVENT`, a code's and a name's),
-/// a row's cells aren't as many as the header's, a time is missing, isn't a number or doesn't
+/// (but `EVENT`, a code's and a name's), a row's cells aren't as many as the header's, a time is
+/// missing, isn't a number or doesn't
 /// increase, a value isn't a number (`NaN` included) or is too large for pascals, or `VOLT.
 /// CHANNEL` holds more than 16 numbers; [`LogError::Unit`] when the clock has one row or its
 /// shortest step isn't 5 ms, or a pressure's first value is a pad's in neither hPa nor Pa;

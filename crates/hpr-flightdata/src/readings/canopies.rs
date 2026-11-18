@@ -8,7 +8,8 @@
 //! [`MAIN_TOLERANCE_SHARE`] of it, or [`MAIN_TOLERANCE_M_S`] more if that is more, is the main's
 //! descent, and its first sample the opening. The run is walked on the rate's running median over
 //! [`DESCENT_TAIL_S`], or twice the fit where that is longer, in samples at the descent's median
-//! interval, held to no less than [`MIN_INTERVAL_S`], and never more than it holds, so a spike of
+//! interval, held to no less than [`MIN_INTERVAL_S`] less a part in a thousand, and never more
+//! than it holds, so a spike of
 //! the fit's noise on a long leg doesn't end it, as a step, the opening, stays where it is under a
 //! median. Every rate is
 //! compared at the ground's density, scaled by `exp(−h/2H)` for its height `h` above the pad with
@@ -151,9 +152,10 @@ pub(super) fn read(
         .collect();
     // The median's half window in samples at the descent's own interval, its median, so that a
     // few samples bunched together don't widen it; never wider than the descent. The interval is
-    // held to [`MIN_INTERVAL_S`], as the accelerometer's window is: a burst of samples making most
-    // of the descent's would otherwise widen the window to the whole descent, and each step of
-    // the median would cost the descent's length (#1250).
+    // held to the shortest the readings accept, [`MIN_INTERVAL_S`] less a part in a thousand, so
+    // that a steady log they read keeps its window: a burst of samples making most of the
+    // descent's would otherwise widen the window to the whole descent, and each step of the
+    // median would cost the descent's length (#1250).
     let mut intervals: Vec<f64> = (first..landing).map(|k| time[k + 1] - time[k]).collect();
     let interval = median(&mut intervals).unwrap_or(0.0);
     #[expect(
@@ -162,7 +164,7 @@ pub(super) fn read(
     )]
     let samples = rates.len() as f64;
     let half = if interval > 0.0 {
-        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval.max(MIN_INTERVAL_S))
+        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval.max(MIN_INTERVAL_S * (1.0 - 1e-3)))
             .round()
             .min(samples)
     } else {

@@ -1123,13 +1123,8 @@ range the bounds were checked over, or catches a track that isn't what it says:
   fastest rates on the tuning set. Those are half a sample a second (`sampled_too_slowly`) and 500 a second
   (`sampled_too_fast`). A clock a part in a thousand faster than 500 a second still reads, as a
   logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
-  second, is withheld as too fast. The check is on the median interval, so a burst of samples
-  closer together can still sit among them. A slope's fit then reads at most twice its window's
-  steps at 500 a second, plus one (501 for the 0.5 s top-speed fit), taking every n-th sample, n
-  the least whole number that keeps the window within that. The descent rates' running median sizes its window at no
-  faster than 500 a second. A log sampled no faster is read whole. A burst in the climb, the
-  descent or just before landing then costs time in proportion to its samples, not to their
-  square.
+  second, is withheld as too fast. The check is on the median interval, so a short burst of
+  faster samples can still sit in a log that passes.
 - **Its step is no coarser than 10 m (33 ft), or 100 Pa for a pressure** (`step_too_coarse`), the
   coarsest checked on the tuning set. The coarsest the readers meet are a MARSA's 8.8 m (29 ft)
   heights and an ARTS2's 92 Pa raw counts.
@@ -1140,6 +1135,18 @@ range the bounds were checked over, or catches a track that isn't what it says:
   noise and step in the 4 s before its top, or it is withheld
   (`slower_than_free_coast`). The threshold is 6.6 m (22 ft) on a PerfectFlite. It isn't a coast's
   78.5 m (257 ft), since a flight whose motor burns into those 4 s loses less.
+
+**A burst of samples.** The rate check above is on the median interval, so a hostile or damaged
+file can hold a short burst of faster samples. Each reading must still take time in proportion
+to the samples, not to their square. A fit of the climb's or the
+descent's rate, the least-squares slope over a window of the track, reads at most 501 samples in
+the 0.5 s top-speed window. That is twice the window's 250 steps at 500 a second, plus one; a
+longer descent window scales it. A window holding more is read at every n-th sample, n the least
+whole number that keeps it to that. The descent rates' running median sizes its window from the
+descent's median interval, but never from one shorter than the rate check allows. The landing's
+search moves forward only. A log sampled no faster than 500 a second is read whole. A log with a
+burst is only timed, in a test: its thinned fits weren't checked against the bounds,
+as the tuning set holds no such log.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are

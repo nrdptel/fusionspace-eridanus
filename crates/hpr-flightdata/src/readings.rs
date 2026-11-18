@@ -3957,6 +3957,10 @@ mod tests {
     /// over them all takes them; one sample more is read at every second.
     #[test]
     fn a_window_of_the_cap_is_read_whole_and_one_more_is_not() {
+        // Twice the steps at the fastest steady rate read, plus one.
+        assert_eq!(slope_samples(SPEED_WINDOW_S), 501);
+        assert_eq!(slope_samples(DESCENT_WINDOW_S), 1_001);
+        assert_eq!(slope_samples(DESCENT_WINDOW_MAX_S), 10_001);
         let window_s = SPEED_WINDOW_S;
         let cap = slope_samples(window_s);
         let fit = |times: &[f64], heights: &[f64], center: usize| {
@@ -3995,11 +3999,11 @@ mod tests {
 
     /// A burst of samples close together, too few to move the median interval, costs the top
     /// speed's fit, the landing's scan and the descent's rates no walk over the burst for each of
-    /// its samples (#1250). A pad of 1,300 s at 500 samples a second holds the median at 2 ms; a
+    /// its samples (#1250). A pad of 2,000 s at 500 samples a second holds the median at 2 ms; a
     /// burst in 0.4 s sits in the climb, in the descent's last seconds (200,000 samples each), or
-    /// just before landing (600,000), where the track dips to the pad and rises again past the
+    /// just before landing (900,000), where the track dips to the pad and rises again past the
     /// landed ceiling, so that each sample under the mark has to look to the burst's end, and the
-    /// descent's median interval falls into the burst. Each walk cost its reading 22 to 103 s on a
+    /// descent's median interval falls into the burst. Each walk cost its reading 27 to 131 s on a
     /// fast desktop: the top speed's and the descent's fits, the landing's scan, and the descent
     /// rates' running median at the burst's interval. The clock times each log's
     /// reading alone, and nothing it reads reaches a result.
@@ -4009,7 +4013,7 @@ mod tests {
         reason = "the clock times each reading alone"
     )]
     fn a_burst_of_samples_costs_the_readings_no_walk_over_it() {
-        let pad_s = 1_300.0;
+        let pad_s = 2_000.0;
         let fly = flight(10.0);
         // A log with a burst from `start` s after the pad, its height at each time.
         let with_burst = |start: f64, burst: u32, height: &dyn Fn(u32, f64) -> f64| {
@@ -4052,8 +4056,8 @@ mod tests {
         );
         assert!(elapsed.as_secs_f64() < 10.0, "descent: {elapsed:?}");
         // Down to the pad and up past the ceiling to 50 m, under the apogee: landing comes after.
-        let dip = |k: u32, _: f64| if k + 5_000 < 600_000 { 0.0 } else { 50.0 };
-        let (dipped, elapsed) = timed(&with_burst(13.0, 600_000, &dip));
+        let dip = |k: u32, _: f64| if k + 5_000 < 900_000 { 0.0 } else { 50.0 };
+        let (dipped, elapsed) = timed(&with_burst(13.0, 900_000, &dip));
         let landing = dipped.landing.value().map(|l| l.time_s - pad_s);
         assert!(landing.is_some_and(|t| t > 13.4), "{:?}", dipped.landing);
         assert!(elapsed.as_secs_f64() < 10.0, "landing: {elapsed:?}");

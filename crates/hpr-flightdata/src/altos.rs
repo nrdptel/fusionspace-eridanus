@@ -1745,13 +1745,13 @@ mod tests {
     }
 
     /// A formula cell holding a long run of capitals after a digit reads in time linear in its
-    /// length: stepping through the run one letter at a time, recounting the rest at each, took
-    /// 20 s on this cell of 300,000 letters on a fast desktop and grows as the square of its length (#1250).
-    /// The clock times this test alone, and nothing it reads reaches a result.
+    /// length: stepping through the run one letter at a time, recounting the rest at each, grows
+    /// as the square of its length, and took 50 s to read this cell of 600,000 letters on a fast
+    /// desktop (#1250). The clock times the read alone, and nothing it reads reaches a result.
     #[test]
     #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
     fn a_long_run_of_capitals_in_a_formula_reads_in_linear_time() {
-        let letters = "A".repeat(300_000);
+        let letters = "A".repeat(600_000);
         let text = format!(
             "#version,serial,flight,time,height,altitude (ft)\n\
              6,77,4,0.0,0,=1{letters}\n\
@@ -1762,9 +1762,10 @@ mod tests {
         let elapsed = began.elapsed();
         assert_eq!(log.altitude_m, [0.0, 10.0]);
         // The run is copied as written, then cut for the note.
+        let short = "A".repeat(1_000);
         assert_eq!(
-            own_row(&format!("=1{letters}+J2"), 2),
-            format!("=1{letters}+J{{row}}")
+            own_row(&format!("=1{short}+J2"), 2),
+            format!("=1{short}+J{{row}}")
         );
         assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
     }
