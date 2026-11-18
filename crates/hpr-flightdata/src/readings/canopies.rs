@@ -46,8 +46,8 @@ use super::interval::{self, Shares};
 use super::{
     Apex, BAROMETER_GAIN, DENSITY_SCALE_HEIGHT_M, DESCENT_FIT_STEPS, DESCENT_GUARD_S,
     DESCENT_TAIL_S, DESCENT_WINDOW_MAX_S, DESCENT_WINDOW_S, DRIFT_M_PER_S, DROGUE_RATIO, Descent,
-    LEG_LEAST_M, LEG_LEAST_SHARE, MAIN_TOLERANCE_M_S, MAIN_TOLERANCE_SHARE, Method, NOISE_M,
-    Opening, Provenance, Reading, Reason, STANDARD_GRAVITY_MPS2, TEMPERATURE_SHARE, Track,
+    LEG_LEAST_M, LEG_LEAST_SHARE, MAIN_TOLERANCE_M_S, MAIN_TOLERANCE_SHARE, MIN_INTERVAL_S, Method,
+    NOISE_M, Opening, Provenance, Reading, Reason, STANDARD_GRAVITY_MPS2, TEMPERATURE_SHARE, Track,
     local_interval, median, slope_over,
 };
 use crate::filter::running_median;
@@ -149,7 +149,10 @@ pub(super) fn read(
         .map(|k| rate(k).unwrap_or(f64::NAN))
         .collect();
     // The median's half window in samples at the descent's own interval, its median, so that a
-    // few samples bunched together don't widen it; never wider than the descent.
+    // few samples bunched together don't widen it; never wider than the descent. The interval is
+    // held to [`MIN_INTERVAL_S`], as the accelerometer's window is: a burst of samples making most
+    // of the descent's would otherwise widen the window to the whole descent, and each step of
+    // the median would cost the descent's length (#1250).
     let mut intervals: Vec<f64> = (first..landing).map(|k| time[k + 1] - time[k]).collect();
     let interval = median(&mut intervals).unwrap_or(0.0);
     #[expect(
@@ -158,7 +161,7 @@ pub(super) fn read(
     )]
     let samples = rates.len() as f64;
     let half = if interval > 0.0 {
-        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval)
+        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval.max(MIN_INTERVAL_S))
             .round()
             .min(samples)
     } else {

@@ -625,11 +625,19 @@ fn own_row(formula: &str, row: usize) -> String {
             .take_while(|b| b.is_ascii_uppercase())
             .count();
         let starts = at == 0 || !bytes[at - 1].is_ascii_alphanumeric();
-        if letters == 0 || !starts {
+        if letters == 0 {
             // Copies one character, whole.
             let next = formula[at..].chars().next().map_or(1, char::len_utf8);
             out.push_str(&formula[at..at + next]);
             at += next;
+            continue;
+        }
+        if !starts {
+            // Copies the run of capitals whole: none of them starts a reference, as each follows
+            // a letter or digit. Stepping one at a time would count the run's rest again at each,
+            // in time growing as the square of its length.
+            out.push_str(&formula[at..at + letters]);
+            at += letters;
             continue;
         }
         let mut end = at + letters;
@@ -1734,6 +1742,31 @@ mod tests {
         let speed = log.channels.iter().find(|c| c.column == "(ft/s)").unwrap();
         assert_eq!(speed.values[1], 1.5);
         assert!(speed.values[0].is_nan() && speed.values[3].is_nan());
+    }
+
+    /// A formula cell holding a long run of capitals after a digit reads in time linear in its
+    /// length: stepping through the run one letter at a time, recounting the rest at each, took
+    /// 20 s on this cell of 300,000 letters on a fast desktop and grows as the square of its length (#1250).
+    /// The clock times this test alone, and nothing it reads reaches a result.
+    #[test]
+    #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
+    fn a_long_run_of_capitals_in_a_formula_reads_in_linear_time() {
+        let letters = "A".repeat(300_000);
+        let text = format!(
+            "#version,serial,flight,time,height,altitude (ft)\n\
+             6,77,4,0.0,0,=1{letters}\n\
+             6,77,4,0.5,10,1\n"
+        );
+        let began = std::time::Instant::now();
+        let log = read(&text).unwrap();
+        let elapsed = began.elapsed();
+        assert_eq!(log.altitude_m, [0.0, 10.0]);
+        // The run is copied as written, then cut for the note.
+        assert_eq!(
+            own_row(&format!("=1{letters}+J2"), 2),
+            format!("=1{letters}+J{{row}}")
+        );
+        assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
     }
 
     /// Only a reference to the cell's own row becomes `{row}`.
