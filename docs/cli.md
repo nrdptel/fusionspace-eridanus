@@ -1121,19 +1121,19 @@ value for it. The opening shock is each flight's largest drag over the mass of t
 from its devices, in m/s² and then in g: the [opening load](glossary.md#opening-load) over the
 mass, without gravity. (A motor still burning when a device opens adds its thrust.) A canopy in
 steady fall carries 1 g, so the figure reads at least about 1 g unless the flight reaches the
-ground, or the canopy's part stops being counted (below), before the canopy reaches steady
-fall; a median near 1.0 g means the openings were no harder than the steady fall. The opening
-airspeed is the fastest a device on the stack, or on the part that keeps the nose, opened
-through the air, the speed that load follows.
+ground, or comes apart at an ejection, before its canopy reaches steady fall; a median near
+1.0 g means the openings were no harder than the steady fall. The opening airspeed is the
+fastest a device on the stack, or on the part that keeps the nose, opened through the air, the
+speed that load follows.
 
-After a [separation](#separation) with no motor left to burn, both figures count the part that
-keeps the nose, whether its devices opened before the split or after: its shock is its own
-devices' drag over its own mass, as the simulator flies that part as a point, with no drag from
-its airframe. The part dropped aft counts in neither figure once it has left. An
-[ejection](glossary.md#ejection) ends the opening shock's count: from the charge on no piece's
-load counts, neither the piece ahead of the parted joint (a nose cone pushed off is that piece
-alone) nor the pieces behind it. The opening airspeed still counts the openings of the piece
-ahead.
+After a [separation](glossary.md#separation) with no motor left to burn, both figures count the
+part that keeps the nose, whether its devices opened before the split or after: its shock is
+its own devices' drag over its own mass, as the simulator flies that part as a point, with no
+drag from its airframe. The part dropped aft counts in neither figure. An
+[ejection](glossary.md#ejection) that parts the stack, or the part that keeps the nose, ends
+the opening shock's count: from the charge on, neither the piece ahead of the parted joint (a
+nose cone pushed off is that piece alone) nor the pieces behind it count. The opening airspeed
+still counts the openings of the piece ahead.
 
 `--delay-sd` and `--deployment-lag-sd` spread both: a charge late after apogee opens the device
 faster, because the rocket has had longer to fall. The simulator opens a canopy at once by

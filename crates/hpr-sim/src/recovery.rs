@@ -4235,7 +4235,7 @@ mod tests {
             filling_s: (f64, f64),
             /// The largest over the steps' starts, middles and ends.
             coarse: f64,
-            /// The largest over those and 2,000 points of each step that meets the filling.
+            /// The largest over those and 2,000 intervals of each step that meets the filling.
             fine: f64,
             /// The most the step's specific force differs from the hand value, relative (the
             /// force itself where nothing is open).

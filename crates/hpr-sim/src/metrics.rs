@@ -366,15 +366,15 @@ pub struct FlightSummary {
     /// opening load over the mass, `(drag + thrust)/m` ([`Sample::specific_force_enu_m_s2`]),
     /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
     /// no motor burning, the mass times this is the opening force. Once a canopy reaches its
-    /// steady fall it reads about 1 g, so it is at least that unless the canopy's part reaches
-    /// the ground first, or stops being counted first: at an ejection ([`crate::Ejection`]), or
-    /// leaving with the aft part at a separation. When the stack comes apart at a separation
-    /// with nothing left to burn ([`Termination::Separated`]), the part that keeps the nose,
-    /// body 0, flies on as a point mass, and the drag of its own devices over its mass counts
-    /// too ([`BodyStep::specific_force_enu_m_s2`]), whether they open before the split or
-    /// after, until an ejection parts it. No other body's load counts: not the aft part's after
-    /// a separation, nor any piece's from an ejection on, where body 0 is the ejection's lead
-    /// piece (a nose cone pushed off is the nose cone alone).
+    /// steady fall it reads about 1 g, so it is at least that unless the flight reaches the
+    /// ground first or comes apart at an ejection ([`crate::Ejection`]). When the stack comes
+    /// apart at a separation with nothing left to burn ([`Termination::Separated`]), the part
+    /// that keeps the nose, body 0, flies on as a point mass, and the drag of its own devices
+    /// over its mass counts too ([`BodyStep::specific_force_enu_m_s2`]), whether they open
+    /// before the split or after, until an ejection parts it. No other body's load counts:
+    /// never the part dropped aft at a separation, and no piece from an ejection of the stack
+    /// or of body 0 on, where body 0 is the ejection's lead piece (a nose cone pushed off is
+    /// the nose cone alone).
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing

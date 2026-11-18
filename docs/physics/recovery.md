@@ -444,14 +444,16 @@ mass. After a [separation](../glossary.md#separation) with nothing left to burn,
 keeps the nose flies on as a point mass (body 0), and its own devices' load counts too: their
 drag alone over its mass, $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$ ($\rho$ the
 air's density, $\mathbf{v}$ the part's velocity, $\mathbf{w}$ the wind's), with no airframe
-drag, whether they open before the split or after. The part dropped aft does not count once it
-has left. Two tests pin it: at $q\,(C_D S)/m$ to 1e-9 at an instant opening
+drag, whether they open before the split or after. The part dropped aft is never counted: its
+devices act only once it flies on its own. Two tests pin the nose part's load: at
+$q\,(C_D S)/m$ to 1e-9 at an instant opening
 (`the_part_that_keeps_the_nose_has_its_own_opening_shock`), and, under a canopy filling in a
-crosswind, at the top of the load inside a step, which the step's ends alone read low
-(`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
-[ejection](../glossary.md#ejection) ends the count: from its charge on no piece's load counts,
-neither the piece ahead of the parted joint (a nose cone pushed off is the nose cone alone),
-which is body 0 from then on, nor the pieces behind it.
+crosswind, at the top of the load inside a step, which the step's start, middle and end alone
+read low (`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
+[ejection](../glossary.md#ejection) that parts the stack, or the part that keeps the nose, ends
+the count: from its charge on, neither the piece ahead of the parted joint (a nose cone pushed
+off is the nose cone alone), which is body 0 from then on, nor the pieces behind it count. An
+ejection in the part dropped aft changes nothing.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are

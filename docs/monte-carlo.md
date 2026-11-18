@@ -141,7 +141,7 @@ included. Each dispersion is an option in the units the command line uses elsewh
 angles, a fraction for a percentage (`--impulse-sd 0.03` is 3%). It prints the apogee's and the
 landing distance's spreads, and when a device opens the opening shock's and opening airspeed's
 (after a [separation](glossary.md#separation) with nothing left to burn, the part that keeps the
-nose counts too, the shock until an [ejection](glossary.md#ejection);
+nose counts too, the shock until an [ejection](glossary.md#ejection) parts it;
 [`hpr mc`](cli.md#hpr-mc) gives the rule), the landing ellipses below and the failed flights.
 `--export runs.csv` writes every flight's draw and outcome, one row a flight. The command's runs
 are the library's for the same seed, bit for bit: a test compares them
