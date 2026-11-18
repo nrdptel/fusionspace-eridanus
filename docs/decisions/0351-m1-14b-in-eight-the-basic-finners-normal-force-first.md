@@ -1,9 +1,10 @@
 # ADR-351: M1.14b in eight: the Basic Finner's normal force first (2026-11-16)
 
-- **Status:** accepted; splits [M1.14b][m1-14b] into [M1.14b1][m1-14b1] to [M1.14b8][m1-14b8], each with its own *done when*, M1.14b's *done when* whole across the eight, and so plans every remaining increment of M1.14b; under [ADR-143][adr-143] §6b, not changed; amended 2026-11-16 ([#1504][i-1504]): M1.14b4's *done when* states how case 3's damping moments are formed, a condition added, none removed
+- **Status:** accepted; splits [M1.14b][m1-14b] into [M1.14b1][m1-14b1] to [M1.14b8][m1-14b8], each with its own *done when*, M1.14b's *done when* whole across the eight, and so plans every remaining increment of M1.14b; under [ADR-143][adr-143] §6b, not changed; amended 2026-11-16 ([#1504][i-1504]): M1.14b4's *done when* states how case 3's damping moments are formed, a condition added, none removed; M1.14b5's *done when* split 2026-11-18 by [ADR-357][adr-357]: the measurement stays M1.14b5's, and the model it calls for is M1.14b9's in these words
 - **Summary:** ADR-143 §6b names nine references for Mach 1.5 to 2.5. Three are refused on what the research notes found; the other six need work the tree lacks, in eight increments. The first ships here: against DREV-TM-9703's free-flight range fits of the Basic Finner, HPR Sim's normal-force slope reads 11.2% and 16.1% low at Mach 1.832 and 2.375, and its center of pressure 0.34 and 0.18 calibers forward, the side that understates stability.
 
 [m1-14b]: ../decisions-and-roadmap.md#m1-14b
+[adr-357]: 0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
 [i-1504]: https://github.com/nrdptel/fusionspace-eridanus/issues/1504
 [m1-14b1]: ../decisions-and-roadmap.md#m1-14b1
 [m1-14b2]: ../decisions-and-roadmap.md#m1-14b2

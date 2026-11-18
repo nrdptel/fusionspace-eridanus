@@ -260,6 +260,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14b2 The Basic Finner's drag and pitch damping against DREV's range ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b3 NASA's check cases 1 and 2 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b4 NASA's check cases 3 and 6 to 10 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14b5 Tip-off, measured with RocketPy's ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1441,6 +1442,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M1.14b3 NASA's check cases 1 and 2.** *Done when:* ADR-351 decision 2's for M1.14b3.
     - [x] **M1.14b4 NASA's check cases 3 and 6 to 10.** *Done when:* ADR-351 decision 2's for
       M1.14b4.
+    - [x] **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* ADR-357 decision 4's for
+      M1.14b5.
 - [x] **M2.10 Evidence register** (ADR-278). Each claim the site makes about what backs a reader,
   model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register

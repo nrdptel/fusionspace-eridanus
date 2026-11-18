@@ -187,6 +187,33 @@ fn write_repins(root: &Path, repins: &[Repin]) -> Result<(), String> {
     Ok(())
 }
 
+/// The oracle environment's interpreter in isolated mode, for a task that runs an oracle script
+/// itself (`validation/refs.lock.toml`'s `[python]`).
+pub fn oracle_python(root: &Path) -> Result<std::process::Command, String> {
+    let lock = Lock::load(root)?;
+    let python = lock
+        .python
+        .as_ref()
+        .ok_or("validation/refs.lock.toml names no oracle environment")?;
+    if !python::interpreter(root, python).is_file() {
+        return Err(format!(
+            "{} holds no interpreter: run `cargo xtask refs fetch python`",
+            python.venv
+        ));
+    }
+    Ok(python::python_command(root, python))
+}
+
+/// The commit `validation/refs.lock.toml` pins the git checkout `name` at.
+pub fn pinned_commit(root: &Path, name: &str) -> Result<String, String> {
+    let lock = Lock::load(root)?;
+    lock.git
+        .iter()
+        .find(|source| source.name == name)
+        .map(|source| source.commit.clone())
+        .ok_or_else(|| format!("validation/refs.lock.toml pins no git checkout named {name}"))
+}
+
 fn summary(command: &str, tally: &Tally) -> Result<(), String> {
     println!(
         "refs {command}: {} ok, {} fetched, {} skipped, {} failed",
