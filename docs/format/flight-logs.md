@@ -1583,7 +1583,7 @@ stated, it would put the pad above 50,000 hPa. Read in pascals, it falls between
 as any launch site's does. The two ranges don't overlap, so only one reading fits. A note says so
 when it is pascals. A file whose pad fits neither is refused. The reader also refuses:
 
-- a header that names a column twice (but `EVENT`);
+- a header that names a column twice (but `EVENT`), or more than 256 columns (the AltiMAX export has 11);
 - a file of one row, whose clock has no step to check;
 - a value that isn't a finite number or is too large for pascals;
 - more than 16 voltage channel numbers.

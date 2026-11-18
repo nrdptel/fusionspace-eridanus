@@ -8,8 +8,10 @@
 //! [`MAIN_TOLERANCE_SHARE`] of it, or [`MAIN_TOLERANCE_M_S`] more if that is more, is the main's
 //! descent, and its first sample the opening. The run is walked on the rate's running median over
 //! [`DESCENT_TAIL_S`], or twice the fit where that is longer, in samples at the descent's median
-//! interval and never more than it holds, so a spike of the fit's noise on a long leg doesn't end
-//! it, as a step, the opening, stays where it is under a median. Every rate is
+//! interval, held to no less than [`MIN_INTERVAL_S`] less a part in a thousand, and never more
+//! than it holds, so a spike of
+//! the fit's noise on a long leg doesn't end it, as a step, the opening, stays where it is under a
+//! median. Every rate is
 //! compared at the ground's density, scaled by `exp(−h/2H)` for its height `h` above the pad with
 //! the least scale height `H`, [`DENSITY_SCALE_HEIGHT_M`]: a canopy falls as the density to the
 //! −½, so one canopy from a high apogee would otherwise fall fast enough up high to read as two.
@@ -46,11 +48,41 @@ use super::interval::{self, Shares};
 use super::{
     Apex, BAROMETER_GAIN, DENSITY_SCALE_HEIGHT_M, DESCENT_FIT_STEPS, DESCENT_GUARD_S,
     DESCENT_TAIL_S, DESCENT_WINDOW_MAX_S, DESCENT_WINDOW_S, DRIFT_M_PER_S, DROGUE_RATIO, Descent,
-    LEG_LEAST_M, LEG_LEAST_SHARE, MAIN_TOLERANCE_M_S, MAIN_TOLERANCE_SHARE, Method, NOISE_M,
-    Opening, Provenance, Reading, Reason, STANDARD_GRAVITY_MPS2, TEMPERATURE_SHARE, Track,
+    LEG_LEAST_M, LEG_LEAST_SHARE, MAIN_TOLERANCE_M_S, MAIN_TOLERANCE_SHARE, MIN_INTERVAL_S, Method,
+    NOISE_M, Opening, Provenance, Reading, Reason, STANDARD_GRAVITY_MPS2, TEMPERATURE_SHARE, Track,
     local_interval, median, slope_over,
 };
 use crate::filter::running_median;
+
+/// The half window, in samples, of the running median the descent's rates are walked back on: the
+/// median spans [`DESCENT_TAIL_S`], or twice the fit's `window_s` where that is longer, so each
+/// side is half of that, in samples at the descent's median `interval`, so that a few samples
+/// bunched together don't widen it; never more than the descent's `samples`, nor less than one. The
+/// interval is held to the shortest the readings accept, [`MIN_INTERVAL_S`] less a part in a
+/// thousand, so that a steady log they read keeps its window: a burst of samples making most of the
+/// descent's would otherwise widen the window to the whole descent, and each step of the median
+/// would cost the descent's length (#1250).
+fn median_half(interval: f64, window_s: f64, samples: usize) -> usize {
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a count of samples converts exactly"
+    )]
+    let samples = samples as f64;
+    let half = if interval > 0.0 {
+        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval.max(MIN_INTERVAL_S * (1.0 - 1e-3)))
+            .round()
+            .min(samples)
+    } else {
+        samples
+    };
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "a positive count of samples, rounded, no more than the descent holds"
+    )]
+    let half = half as usize;
+    half.max(1)
+}
 
 /// The leg from sample `from`, at `from_s`, to sample `to`, or why it is too short to read.
 struct Leg {
@@ -148,28 +180,9 @@ pub(super) fn read(
     let rates: Vec<f64> = (first..landing)
         .map(|k| rate(k).unwrap_or(f64::NAN))
         .collect();
-    // The median's half window in samples at the descent's own interval, its median, so that a
-    // few samples bunched together don't widen it; never wider than the descent.
     let mut intervals: Vec<f64> = (first..landing).map(|k| time[k + 1] - time[k]).collect();
     let interval = median(&mut intervals).unwrap_or(0.0);
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "a count of samples converts exactly"
-    )]
-    let samples = rates.len() as f64;
-    let half = if interval > 0.0 {
-        (0.5 * DESCENT_TAIL_S.max(2.0 * window_s) / interval)
-            .round()
-            .min(samples)
-    } else {
-        samples
-    };
-    #[expect(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        reason = "a positive count of samples, rounded, no more than the descent holds"
-    )]
-    let smoothed = running_median(&rates, (half as usize).max(1));
+    let smoothed = running_median(&rates, median_half(interval, window_s, rates.len()));
     let steady = |k: usize| {
         smoothed
             .get(k - first)
@@ -312,6 +325,23 @@ mod tests {
     use super::super::read as read_all;
     use super::*;
     use crate::log::{FlightLog, LogFormat, Stated};
+
+    /// The descent rates' median spans the time it names at a steady log's own interval, a clock
+    /// half a part in a thousand fast included, and at a burst's interval no more samples than a
+    /// steady log at the fastest rate the readings accept would give it (#1250).
+    #[test]
+    fn the_median_window_is_held_at_a_bursts_interval() {
+        // A 1 s fit: the median spans 2 s, so 1 s either side, 500 samples at 500 a second.
+        assert_eq!(median_half(0.002, DESCENT_WINDOW_S, 1_000_000), 500);
+        // A clock half a part in a thousand fast keeps its own window: a 2.5 s fit's 2.5 s either
+        // side at 0.001999 s is 1,251 samples, where 0.002 s would give 1,250.
+        assert_eq!(median_half(0.001_999, 2.5, 1_000_000), 1_251);
+        // A burst at a microsecond: 1 s either side over the shortest interval read, 0.001998 s.
+        assert_eq!(median_half(1e-6, DESCENT_WINDOW_S, 1_000_000), 501);
+        // Never more than the descent, nor less than one.
+        assert_eq!(median_half(0.05, DESCENT_WINDOW_S, 7), 7);
+        assert_eq!(median_half(0.0, DESCENT_WINDOW_S, 0), 1);
+    }
 
     const G: f64 = STANDARD_GRAVITY_MPS2;
 

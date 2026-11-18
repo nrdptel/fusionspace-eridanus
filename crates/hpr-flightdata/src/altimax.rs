@@ -26,7 +26,7 @@
 //! | `VOLTAGE [V]` | one voltage channel for each `VOLT. CHANNEL` number, on its own rows | V |
 //!
 //! A column the reader doesn't know is kept as written, as [`Quantity::Unrecognized`], with a
-//! note.
+//! note. A header of more than [`MAX_COLUMNS`] names is refused.
 //!
 //! **The primary track** is `HEIGHT RAW [m]`, the height from the barometer's own reading; the
 //! filtered height is a channel, as an Eggtimer's filtered altitude is.
@@ -77,6 +77,8 @@
 //! # Ok::<(), hpr_flightdata::error::LogError>(())
 //! ```
 
+use std::collections::HashMap;
+
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
 use crate::table::{Notes, finite, numbered_lines, short};
@@ -107,6 +109,12 @@ const PAD_PA: std::ops::RangeInclusive<f64> = 50_000.0..=110_000.0;
 /// The most voltage channel numbers read: the software lists five voltages (*AltiMAX G4 Manual*,
 /// p. 42); more, from a file the reader doesn't know, are refused rather than made channels.
 const VOLT_CHANNELS: usize = 16;
+
+/// The most columns a header may name: the export the reader was built on names eleven. A header
+/// of more names is refused before they are compared, as the AltOS telemetry CSV, Fluctus and
+/// AeroSpaceNU readers refuse one past their own limits, so that a hostile header can't cost time
+/// growing as the square of its width (#1250).
+pub const MAX_COLUMNS: usize = 256;
 
 /// Whether `text` is an AltiMAX export: its first line that isn't blank opens with the five
 /// columns `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],PRESS RAW [hpa],HEIGHT RAW [m]`, in any
@@ -156,12 +164,12 @@ fn role(name: &str) -> Role {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] when the first line isn't the export's header ([`recognizes`]);
-/// [`LogError::Syntax`] when the header names a column twice (but `EVENT`, a code's and a name's),
-/// a row's cells aren't as many as the header's, a time is missing, isn't a number or doesn't
-/// increase, a value isn't a number (`NaN` included) or is too large for pascals, or `VOLT.
-/// CHANNEL` holds more than 16 numbers; [`LogError::Unit`] when the clock has one row or its
-/// shortest step isn't 5 ms, or a pressure's first value is a pad's in neither hPa nor Pa;
-/// [`LogError::NoData`] when no row follows the header.
+/// [`LogError::Syntax`] when the header names more than [`MAX_COLUMNS`] columns or a column twice
+/// (but `EVENT`, a code's and a name's), a row's cells aren't as many as the header's, a time is
+/// missing, isn't a number or doesn't increase, a value isn't a number (`NaN` included) or is too
+/// large for pascals, or `VOLT. CHANNEL` holds more than 16 numbers; [`LogError::Unit`] when the
+/// clock has one row or its shortest step isn't 5 ms, or a pressure's first value is a pad's in
+/// neither hPa nor Pa; [`LogError::NoData`] when no row follows the header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     if !recognizes(text) {
@@ -180,21 +188,29 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     };
     let names: Vec<String> = header
         .split(',')
+        .take(MAX_COLUMNS + 1)
         .map(|name| name.trim().to_owned())
         .collect();
+    if names.len() > MAX_COLUMNS {
+        return Err(syntax(
+            header_line,
+            format!("the header names more than {MAX_COLUMNS} columns"),
+        ));
+    }
     // Each column is named once, but `EVENT`, a code's and a name's: a second `TIME` or `HEIGHT
-    // RAW [m]` would read rows against the wrong clock or track.
-    for (index, name) in names.iter().enumerate() {
-        let same = names[..index]
-            .iter()
-            .filter(|earlier| earlier.eq_ignore_ascii_case(name))
-            .count();
-        if same > usize::from(name.eq_ignore_ascii_case(EVENT)) {
+    // RAW [m]` would read rows against the wrong clock or track. The names met so far, in lower
+    // case, with how often: a map, so that a header of many names isn't checked in quadratic
+    // time.
+    let mut seen: HashMap<String, usize> = HashMap::new();
+    for name in &names {
+        let same = seen.entry(name.to_ascii_lowercase()).or_insert(0);
+        if *same > usize::from(name.eq_ignore_ascii_case(EVENT)) {
             return Err(syntax(
                 header_line,
                 format!("the header names {:?} more than once", short(name)),
             ));
         }
+        *same += 1;
     }
     // The second column named `EVENT` holds the events' names; the first, their codes.
     let mut roles: Vec<Role> = names.iter().map(|name| role(name)).collect();
@@ -666,6 +682,61 @@ mod tests {
             }
             other => panic!("expected a refusal, got {other:?}"),
         }
+    }
+
+    /// A name given twice in another case is the same name; `EVENT` a third time is refused.
+    #[test]
+    fn a_name_twice_in_another_case_or_event_thrice_is_refused() {
+        for (from, to) in [("ACCEL [m/s2]", "time"), ("VOLTAGE [V]", "event")] {
+            let (line, message) = refused(&sample().replacen(from, to, 1));
+            assert_eq!(line, 1, "{to}");
+            assert!(
+                message.contains(&format!("names {to:?} more than once")),
+                "{to}: {message}"
+            );
+        }
+    }
+
+    /// A header of [`MAX_COLUMNS`] names reads; one more is refused, and a header of a million
+    /// distinct names is refused at once rather than checked pair by pair, which grows as the
+    /// square of the names' count: minutes for this one (#1250). The clock times this test alone,
+    /// and nothing it reads reaches a result.
+    #[test]
+    #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
+    fn a_header_wider_than_the_limit_is_refused_at_once() {
+        let widened = |extra: usize| {
+            let names: String = (0..extra).map(|k| format!(",X{k}")).collect();
+            let cells = ",0".repeat(extra);
+            sample()
+                .lines()
+                .enumerate()
+                .map(|(index, line)| {
+                    let added = if index == 0 {
+                        names.as_str()
+                    } else {
+                        cells.as_str()
+                    };
+                    format!("{line}{added}\n")
+                })
+                .collect::<String>()
+        };
+        let known = HEADER.split(',').count();
+        assert!(read(&widened(MAX_COLUMNS - known)).is_ok());
+        let (line, message) = refused(&widened(MAX_COLUMNS + 1 - known));
+        assert_eq!(line, 1);
+        assert!(
+            message.contains(&format!("more than {MAX_COLUMNS} columns")),
+            "{message}"
+        );
+        let wide = widened(1_000_000);
+        let began = std::time::Instant::now();
+        let (_, message) = refused(&wide);
+        let elapsed = began.elapsed();
+        assert!(
+            message.contains(&format!("more than {MAX_COLUMNS} columns")),
+            "{message}"
+        );
+        assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
     }
 
     /// A second `TIME` or `HEIGHT RAW [m]` would read the rows against the wrong clock or track;

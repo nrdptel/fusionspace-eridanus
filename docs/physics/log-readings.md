@@ -1123,7 +1123,8 @@ range the bounds were checked over, or catches a track that isn't what it says:
   fastest rates on the tuning set. Those are half a sample a second (`sampled_too_slowly`) and 500 a second
   (`sampled_too_fast`). A clock a part in a thousand faster than 500 a second still reads, as a
   logger's rounding of its own clock may make it. One sample log, a Raven's CSV at 800 samples a
-  second, is withheld as too fast.
+  second, is withheld as too fast. The check is on the median interval, so a short burst of
+  faster samples can still sit in a log that passes.
 - **Its step is no coarser than 10 m (33 ft), or 100 Pa for a pressure** (`step_too_coarse`), the
   coarsest checked on the tuning set. The coarsest the readers meet are a MARSA's 8.8 m (29 ft)
   heights and an ARTS2's 92 Pa raw counts.
@@ -1134,6 +1135,23 @@ range the bounds were checked over, or catches a track that isn't what it says:
   noise and step in the 4 s before its top, or it is withheld
   (`slower_than_free_coast`). The threshold is 6.6 m (22 ft) on a PerfectFlite. It isn't a coast's
   78.5 m (257 ft), since a flight whose motor burns into those 4 s loses less.
+
+**A burst of samples.** The rate check above is on the median interval, so a hostile or damaged file
+can hold a short burst of faster samples. Without a limit, a fit would walk the whole burst for each
+sample in it, and the time would grow as the square of the burst. So each least-squares slope reads
+at most twice its window's steps at 500 samples a second, plus one: 501 samples for the 0.5 s
+top-speed fit, 1,001 for the descent rates' usual 1 s fit, and 10,001 at the descent fit's 10 s
+limit. A window holding more is read at every n-th sample, n the smallest whole number that brings
+the count within the cap. A log sampled no faster than 500 a second is read whole. The descent
+rates' running median sizes its window from the descent's median interval, but never from one
+shorter than the rate check allows. The landing's search moves forward only.
+
+Tests pin each of these. They count the samples a burst's window is read at, and check the median's
+window at a burst's interval. A descent with a burst in its main leg still reads its drogue's leg.
+Landing over a burst of 600,000 samples that dips to the pad and rises past the landing ceiling is
+held under 5 s; a walk over the burst for each sample took 47 s there once, on a fast desktop. The
+fits read at every n-th sample weren't checked against the bounds, as the tuning set holds no log
+with a burst.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are
