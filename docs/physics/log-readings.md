@@ -1138,17 +1138,19 @@ range the bounds were checked over, or catches a track that isn't what it says:
 
 **A burst of samples.** The rate check above is on the median interval, so a hostile or damaged file
 can hold a short burst of faster samples. Without a limit, a fit would walk the whole burst for each
-sample in it, and the time would grow as the square of the burst. So each least-squares slope, the
-top speed's 0.5 s fit and the descent rates' fits, reads at most twice its window's steps at 500 a
-second, plus one: 501 samples for the 0.5 s window, 1,001 for the 1 s descent window. A window
-holding more is read at every n-th sample, n the least whole number that keeps it within that. A log
-sampled no faster than 500 a second is read whole. The descent rates' running median sizes its
-window from the descent's median interval, but never from one shorter than the rate check allows.
-The landing's search moves forward only. Tests pin each of these: the samples a burst's window is
-read at, the median's window at a burst's interval, and the landing search's time over a burst of
-400,000 samples. A log with a burst in the climb, the descent or just before landing still gives the
-reading each stresses. Its fits read at every n-th sample weren't checked against the bounds, as the
-tuning set holds no such log.
+sample in it, and the time would grow as the square of the burst. So each least-squares slope reads
+at most twice its window's steps at 500 samples a second, plus one: 501 samples for the 0.5 s
+top-speed fit, 1,001 for the descent rates' usual 1 s fit, and 10,001 at its 10 s limit. A window
+holding more is read at every n-th sample, n the smallest whole number that brings the count within
+the cap. A log sampled no faster than 500 a second is read whole. The descent rates' running median
+sizes its window from the descent's median interval, but never from one shorter than the rate check
+allows. The landing's search moves forward only.
+
+Tests pin each of these. They count the samples a burst's window is read at, and check the median's
+window at a burst's interval. A descent with a burst in its main leg still reads its drogue's leg.
+Landing over a dip of 600,000 samples takes under 5 s, where a walk over the burst for each sample
+took 47 s. The fits read at every n-th sample weren't checked against the bounds, as the tuning set
+holds no log with a burst.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are

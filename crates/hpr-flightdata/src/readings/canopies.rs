@@ -54,9 +54,9 @@ use super::{
 };
 use crate::filter::running_median;
 
-/// The half window, in samples, of the running median the descent's rates are walked back on:
-/// [`DESCENT_TAIL_S`], or twice the fit's `window_s` where that is longer, at the descent's median
-/// `interval`, so that a few samples bunched together don't widen it; never more than the descent's
+/// The half window, in samples, of the running median the descent's rates are walked back on: the
+/// median spans [`DESCENT_TAIL_S`], or twice the fit's `window_s` where that is longer, so each side
+/// is half of that, in samples at the descent's median `interval`, so that a few samples bunched together don't widen it; never more than the descent's
 /// `samples`, nor less than one. The interval is held to the shortest the readings accept,
 /// [`MIN_INTERVAL_S`] less a part in a thousand, so that a steady log they read keeps its window: a
 /// burst of samples making most of the descent's would otherwise widen the window to the whole
@@ -323,24 +323,24 @@ fn descent(
 mod tests {
     use super::super::read as read_all;
     use super::*;
+    use crate::log::{FlightLog, LogFormat, Stated};
 
     /// The descent rates' median spans the time it names at a steady log's own interval, a clock
-    /// a part in a thousand fast included, and at a burst's interval no more samples than a
+    /// half a part in a thousand fast included, and at a burst's interval no more samples than a
     /// steady log at the fastest rate the readings accept would give it (#1250).
     #[test]
     fn the_median_window_is_held_at_a_bursts_interval() {
-        // 2 s at 500 samples a second, either side.
+        // A 1 s fit: the median spans 2 s, so 1 s either side, 500 samples at 500 a second.
         assert_eq!(median_half(0.002, DESCENT_WINDOW_S, 1_000_000), 500);
-        // A clock a part in a thousand fast keeps its own window: 2.5 s either side at 0.001999 s
-        // is 1,251 samples, where 0.002 s would give 1,250.
+        // A clock half a part in a thousand fast keeps its own window: a 2.5 s fit's 2.5 s either
+        // side at 0.001999 s is 1,251 samples, where 0.002 s would give 1,250.
         assert_eq!(median_half(0.001_999, 2.5, 1_000_000), 1_251);
-        // A burst at a microsecond: 1 s over the shortest interval read, 0.001998 s.
+        // A burst at a microsecond: 1 s either side over the shortest interval read, 0.001998 s.
         assert_eq!(median_half(1e-6, DESCENT_WINDOW_S, 1_000_000), 501);
         // Never more than the descent, nor less than one.
         assert_eq!(median_half(0.05, DESCENT_WINDOW_S, 7), 7);
         assert_eq!(median_half(0.0, DESCENT_WINDOW_S, 0), 1);
     }
-    use crate::log::{FlightLog, LogFormat, Stated};
 
     const G: f64 = STANDARD_GRAVITY_MPS2;
 

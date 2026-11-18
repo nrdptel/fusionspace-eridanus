@@ -1960,8 +1960,8 @@ fn slope_samples(window_s: f64) -> usize {
 }
 
 /// The samples a slope's window of `window_s` about `times[center]` is read at: those within half
-/// of it, at every `stride`-th sample where the window holds more than [`slope_samples`], so at
-/// most that many; a window of no more is read whole.
+/// of it, at every n-th sample where the window holds more than [`slope_samples`], n the least
+/// whole number that brings the count within it; a window of no more is read whole.
 fn slope_indices(times: &[f64], center: usize, window_s: f64) -> StepBy<Range<usize>> {
     let t0 = times[center];
     let reach = 0.5 * window_s;
@@ -4111,29 +4111,117 @@ mod tests {
         assert!(found > 200, "{found}");
     }
 
-    /// The landing's scan over a burst under the mark that rises past the ceiling at its end takes
-    /// time linear in the burst: checking each candidate's span sample by sample took 21 s on this
-    /// track of 400,000 samples on a fast desktop, and grows as the square of the burst (#1250).
-    /// The clock times the scan alone, and nothing it reads reaches a result.
+    /// Landing over a burst under the mark that rises past the ceiling at its end, as a descent's
+    /// track might dip and recover, takes time in proportion to the burst, to within a binary
+    /// search's logarithm: checking each candidate's span sample by sample, in `landing` or in
+    /// [`first_settled`], took 47 s on this burst of 600,000 samples on a fast desktop, and grows
+    /// as the square of the burst (#1250). The clock times `landing` alone, and
+    /// nothing it reads reaches a result.
     #[test]
-    #[allow(clippy::disallowed_types, reason = "the clock times the scan alone")]
-    fn the_settled_scan_over_a_burst_is_linear() {
-        let burst: u32 = 400_000;
-        let mut time: Vec<f64> = (0..burst)
-            .map(|k| 0.4 * f64::from(k) / f64::from(burst))
-            .collect();
-        let mut heights: Vec<f64> = (0..burst)
-            .map(|k| if k + 5_000 < burst { 0.0 } else { 50.0 })
-            .collect();
-        for k in 1..=1_000 {
-            time.push(0.4 + 0.01 * f64::from(k));
-            heights.push(0.0);
+    #[allow(clippy::disallowed_types, reason = "the clock times landing alone")]
+    fn landing_over_a_burst_is_not_walked_for_each_sample() {
+        let burst: u32 = 600_000;
+        // Down at 10 m/s from 100 m at apogee, a dip to the pad in 0.4 s at 8 s that rises past
+        // the ceiling at its end, the rest of the descent, and 3 s on the ground.
+        let (mut time_s, mut height_m) = (Vec::new(), Vec::new());
+        for k in 0..160 {
+            let t = 0.05 * f64::from(k);
+            time_s.push(t);
+            height_m.push(100.0 - 10.0 * t);
         }
+        for k in 0..burst {
+            time_s.push(8.0 + 0.4 * f64::from(k) / f64::from(burst));
+            height_m.push(if k + 5_000 < burst { 0.0 } else { 50.0 });
+        }
+        for k in 0..92 {
+            let t = 8.4 + 0.05 * f64::from(k);
+            time_s.push(t);
+            height_m.push((16.0 - 10.0 * (t - 8.4)).max(0.0));
+        }
+        let track = Track {
+            source: Source::Barometer,
+            time_s,
+            height_m,
+            step_m: 0.0,
+            pressure_step_pa: None,
+            zeroed: true,
+        };
+        let apex = Apex {
+            index: 0,
+            time_s: 0.0,
+            height_bound_m: 1.0,
+            time_bound_s: 0.1,
+        };
         let began = std::time::Instant::now();
-        let settled = first_settled(&heights, &time, 0, (2.0, 7.0), 1.0);
+        let landed = landing(&track, &track.height_m, 0.0, &apex, (1.0, 0.5));
         let elapsed = began.elapsed();
-        assert_eq!(settled, Some(burst as usize));
+        let landed_s = landed.value().map(|l| l.time_s);
+        assert!(landed_s.is_some_and(|t| t > 9.0), "{landed:?}");
         assert!(elapsed.as_secs_f64() < 5.0, "{elapsed:?}");
+    }
+
+    /// A descent under a drogue, then a main, whose main leg holds a burst of samples that makes
+    /// most of the descent's, still reads both legs, the main's opening where it reads without the
+    /// burst: the descent rates' median is sized at no faster than the readings accept. Sized at
+    /// the burst's interval, its window would span the whole descent, and the walk back from
+    /// landing would find no drogue's leg (#1250).
+    #[test]
+    fn a_burst_in_the_main_leg_keeps_the_drogues_leg() {
+        let g = STANDARD_GRAVITY_MPS2;
+        // A climb at 4 g for 3 s from 1 s, a vacuum coast to 882 m at 16 s, 25 m/s under the
+        // drogue to 200 m at 43.3 s, then 6 m/s under the main to the pad at 76.6 s.
+        let fly = move |t: f64| {
+            if t <= 1.0 {
+                0.0
+            } else if t < 4.0 {
+                2.0 * g * (t - 1.0).powi(2)
+            } else if t < 16.0 {
+                let c = t - 4.0;
+                18.0 * g + 12.0 * g * c - 0.5 * g * c * c
+            } else {
+                let top = 18.0 * g + 72.0 * g;
+                let main_s = 16.0 + (top - 200.0) / 25.0;
+                if t < main_s {
+                    top - 25.0 * (t - 16.0)
+                } else {
+                    (200.0 - 6.0 * (t - main_s)).max(0.0)
+                }
+            }
+        };
+        let pad_s = 200.0;
+        // Every 2 ms, with `burst` samples in 0.4 s from 55 s after the pad.
+        let log_of = |burst: u32| {
+            let (mut time_s, mut altitude_m) = (Vec::new(), Vec::new());
+            let mut t: f64 = 0.0;
+            while t <= pad_s + 90.0 {
+                let since = t - pad_s;
+                if burst > 0 && (since - 55.0).abs() < 1e-9 {
+                    for k in 0..burst {
+                        let at = 55.0 + 0.4 * f64::from(k) / f64::from(burst);
+                        time_s.push(pad_s + at);
+                        altitude_m.push(fly(at));
+                    }
+                    t += 0.4;
+                }
+                time_s.push(t);
+                altitude_m.push(fly(since.max(0.0)));
+                t = (t * 500.0 + 1.0).round() / 500.0;
+            }
+            let mut log = log_every(DT, 0.0, |_| 0.0);
+            log.time_s = time_s;
+            log.altitude_m = altitude_m;
+            log
+        };
+        let opening = |log: &FlightLog| {
+            let readings = read(log);
+            let drogue = readings.drogue_descent.value().copied();
+            assert!(drogue.is_some(), "{:?}", readings.drogue_descent);
+            readings.main_descent.value().map(|d| d.from_s)
+        };
+        let clean = opening(&log_of(0)).unwrap();
+        // 60,000 samples in the burst against about 30,000 in the rest of the descent.
+        let burst = opening(&log_of(60_000)).unwrap();
+        assert!((burst - clean).abs() < 0.5, "{burst} against {clean}");
     }
 
     /// Logs with a burst of samples in the climb, in the descent's last seconds, or just before
