@@ -255,9 +255,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   apogee error is below OpenRocket 24.12's and its newest release's (ADR-212), its mean bias
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
-    Met when its eight increments are (ADR-351, whose decision 2 gives each *done when*).
-    - [ ] **M1.14b5 Tip-off, measured with RocketPy's.** *Done when:* ADR-351 decision 2's for
-      M1.14b5.
+    Met when its ten increments are (ADR-351's decision 2 and ADR-357's decision 4 give each
+    *done when*).
+    - [ ] **M1.14b9 The tip-off pivot, held to RocketPy's.** *Done when:* ADR-357 decision 4's
+      for M1.14b9.
+    - [ ] **M1.14b10 Tip-off in every flight that has two guides.** *Done when:* ADR-357
+      decision 4's for M1.14b10.
     - [ ] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
       decision 2's for M1.14b6.
     - [ ] **M1.14b7 A validation uncertainty for each real flight.** *Done when:* ADR-351

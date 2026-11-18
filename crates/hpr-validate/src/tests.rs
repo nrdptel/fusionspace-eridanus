@@ -4643,6 +4643,10 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // test's damping or drag against other codes, differences in altitude, body rate and
         // position only: no whole flight of a rocket and no Mach number in it.
         "check-cases.json",
+        // What RocketPy's tip-off phase moves on its example rockets (M1.14b5): RocketPy
+        // against itself with the phase off, on one declared drag coefficient. HPR Sim flies
+        // nothing in it, and it holds no Mach number.
+        "tip-off.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.

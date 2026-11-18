@@ -1267,8 +1267,12 @@ download a motor's files itself
 
 The unwanted turn a rocket picks up as it is let go. Leaving a launch rail, it pivots about its last
 guide. The recovery page uses the word for a separation too. HPR Sim models neither: a rocket leaves
-the rail with no rotation, and a separated body starts with no spin of its own. No milestone plans
-either yet. See [Rigid-body flight](physics/flight.md#phases) and
+the rail with no rotation, and a separated body starts with no spin of its own. RocketPy's
+tip-off phase puts the cost of the first at up to 3.765% of the apogee in the landing point,
+one code against another with no flight to check it
+([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)), and
+[a model of it is planned](decisions-and-roadmap.md#m1-14b9). No milestone plans the second
+yet. See [Rigid-body flight](physics/flight.md#phases) and
 [Recovery](physics/recovery.md#separation).
 
 ### Title block

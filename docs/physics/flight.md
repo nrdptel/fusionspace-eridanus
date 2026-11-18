@@ -41,7 +41,10 @@ as its motor burns.
   been compared with their logs, on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)), tip-off (the
-  pivot as the rocket leaves the rail), turbulence and thrust misalignment. Its
+  pivot as the rocket leaves the rail), turbulence and thrust misalignment. RocketPy's tip-off
+  phase puts the pivot's cost at up to 3.765% of the apogee in the landing point and 0.414% in
+  the apogee, one code against another with no flight to check it
+  ([below](#what-leaving-tip-off-out-costs)). Its
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
   aerodynamic models, stops with an error. The rotational equations leave out the Earth's rate;
@@ -334,7 +337,9 @@ $$
     the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
     rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
   - The pivot about the last guide ("tip-off") is not modeled, and the rocket leaves the rail
-    with no angular velocity.
+    with no angular velocity. On thirteen example designs, RocketPy's tip-off phase moves the
+    landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, one code
+    against another ([what leaving tip-off out costs](#what-leaving-tip-off-out-costs)).
   - Friction is Coulomb friction: a user coefficient times the net reaction $\lvert \sum N \rvert$, the force
     pressing the guides onto the rail. With a moment across two buttons (a crosswind at low
     speed), the true friction $\mu(\lvert N_1 \rvert + \lvert N_2 \rvert)$ is larger. No source gives a default coefficient,
@@ -768,6 +773,63 @@ The rail exit comes when the rocket has traveled RocketPy's `effective_1rl`, the
 the top of the rail. HPR Sim's own rail-exit event waits for the last one. Each case file argues
 its tolerances. [Accuracy][accuracy] gives every result.
 
+### What leaving tip-off out costs
+
+HPR Sim has no tip-off. RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
+the landing point and 0.414% in the apogee, on thirteen example designs. Both are measured
+from a rocket held straight to its last guide, as HPR Sim holds it. The landing point moves
+farther from the pad in most flights, and the largest apogee move is down. That is one code
+against another: the phase is in RocketPy's development branch, in no release, and no flight
+checks it. The landing point's cost is past the plan's bar of 1% of the apogee, so a model of
+the pivot is [the next increment](../decisions-and-roadmap.md#m1-14b9).
+
+Tip-off is the turn a rocket picks up between its guides leaving the rail. Once the forward
+guide is off, the last one holds the rocket alone, and gravity and the wind turn it about that
+guide. HPR Sim keeps the rocket straight until the last guide leaves, then frees it with no
+turning rate.
+
+`cargo xtask tip-off` flies the comparison and writes [the report][tip-off]
+([the decision record][adr-357]):
+
+- **What flies.** RocketPy, at the merge of its pull request #920, flies its own inputs for
+  the thirteen public designs built from its examples: twelve rockets, Calisto at two motor
+  positions. Each flies from its example's rail on a constant drag coefficient of 0.5, in
+  still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
+- **Three ways.** With the phase off, RocketPy frees the rocket where its forward button
+  leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
+  button, until that button leaves too. Guided, the phase is off on a rail longer by the
+  distance between the buttons. That holds the rocket straight to where its last button leaves
+  the real rail, as HPR Sim holds it.
+- **What HPR Sim's release leaves out** is the phase on less the guided flight.
+  - The apogee moves by at most −0.414%: −10.9 m (−36 ft) for Juno III in still air. None of
+    the 26 apogees moves by 1%.
+  - The landing point moves by more than 1% of the apogee in 6 of the 26 flights, on three
+    rockets: Valetudo, Juno III and Prometheus 2022. The largest share is 3.765% of the apogee,
+    28.5 m (93 ft) for Valetudo in the crosswind. The largest distance is 92.0 m (302 ft), for
+    Juno III in the crosswind.
+  - With the phase on, the rocket lands farther from the pad in 23 of the 26 flights, one of
+    them (the vertical rail's, in still air) by 6 mm (0.2 in). In those, a rocket guided to its last
+    button lands nearer the pad than one that pivots. For a landing-area estimate that
+    understates how far the rocket travels: the flattering side.
+- **The pivot itself is small.** With the phase on, a rocket leaves its last button turning
+  at up to 2.38 deg/s, its axis at most 0.083° off the rail's.
+- **The plan's rule** set the phase on against the phase off. That moves 9 of the 26 landing
+  points by more than 1% of the apogee, by up to 4.585%, and one apogee by +1.165%. Part of
+  that is RocketPy's early release and not the pivot. Bella Lui, freed at its forward button
+  in the crosswind, has turned into the wind at 15.78 deg/s by the time its last button
+  leaves. With the phase on it turns at 0.60 deg/s.
+- **A worked example.** Juno III leaves a 5.20 m (17.1 ft) rail at 85°, its buttons 1.410 m
+  (4.63 ft) apart. In still air its last button leaves at 21.53 m/s (70.6 ft/s), 0.071 s
+  after the forward one. By then gravity has it turning nose-down at 2.26 deg/s, its axis
+  0.079° off the rail's line. Guided, it reaches 2,623.9 m (8,609 ft). With the
+  phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m (300 ft) farther from the pad.
+- **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
+  a real button has play in its slot. The guided flight frees the rocket at its last
+  button's position, and HPR Sim half a button's length later, at the button's aft edge. The
+  thirteen fly one drag coefficient, and a wind that does not change with height. One
+  rocket's still-air flights open the apogee parachute with no lag, and the report says
+  which and why.
+
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-353]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
@@ -780,6 +842,8 @@ its tolerances. [Accuracy][accuracy] gives every result.
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [adr-021]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md
+[adr-357]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
+[tip-off]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off.md
 [adr-026]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md
 [accuracy]: ../accuracy.md#whole-flights-against-rocketpy

@@ -298,7 +298,7 @@ The envelope's decision named nine references to add or check for Mach 1.5 to 2.
 ([the reference increment](decisions-and-roadmap.md#m1-14b)). Each will be reported, with a
 number on a page, or refused, with the reason
 ([the decision that split the work](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md)).
-So far two are reported and three are refused; four are open.
+So far three are reported and three are refused; three are open.
 
 | reference | where it stands | why, or where |
 |---|---|---|
@@ -307,7 +307,7 @@ So far two are reported and three are refused; four are open.
 | ARL-TN-1128 | refused | The report defines a shape, the High-Speed Army Reference Vehicle, and gives no coefficient, test or Mach number ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#3-arl-tn-1128-a-shape-no-data)). |
 | A wind-tunnel drag point at Mach 2.45 | refused | Its authors doubt their own force measurement, and its license bars committing a value ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#4-the-mach-245-drag-point)). |
 | NASA's six-degree-of-freedom check cases | cases 1 to 3 and 6 to 10 reported | A free body flies cases 1 to 3 and 6 to 10 against each code's published history. Cases 1 to 3 and 6 to 8 differ from the codes by more than the codes differ from each other; a named difference between the models brings each inside that spread at each code's largest difference. Cases 9 and 10 are inside it ([Rigid-body flight](physics/flight.md#a-free-body-against-nasas-check-cases)). Cases 4, 5 and 11 to 17 are refused: 4 and 5 need gravitation on a round Earth, 11 to 16 fly an aircraft, and 17 is past Mach 9. None of the cases is a reference for Mach 1.5 to 2.5: they check frames, gravity and rigid-body motion ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/nesc-check-cases.md)). |
-| Tip-off, against RocketPy's | open | HPR Sim has no tip-off. [Its increment](decisions-and-roadmap.md#m1-14b5) measures what that costs with RocketPy's tip-off phase. |
+| Tip-off, against RocketPy's | reported | HPR Sim has no tip-off. RocketPy's tip-off phase, flown on thirteen example designs in still air and in a 20 mph (8.94 m/s) crosswind, moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, from a rocket guided to its last button, as HPR Sim guides it ([Rigid-body flight](physics/flight.md#what-leaving-tip-off-out-costs)). That is past the plan's bar of 1% of the apogee for a landing point, so [a model of the pivot](decisions-and-roadmap.md#m1-14b9) is the next increment. The comparison is one code against another; no flight checks it. |
 | Wind reconstructed from the GPS descent | open | [Its increment](decisions-and-roadmap.md#m1-14b6) ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/wind-from-descent.md)). |
 | A validation uncertainty for each real flight (ASME V&V 20) | open | [Its increment](decisions-and-roadmap.md#m1-14b7). |
 | MAPLEAF, as another simulator to compare with | open | [Its increment](decisions-and-roadmap.md#m1-14b8). |

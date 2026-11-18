@@ -110,7 +110,7 @@ maintainer on 2026-09-19, not merged; head `f3c0c86`, against `develop`.
 - **#1056, `pressure_ISA` sampled from −2,000 m, not 0 m** [14]. Merged 2026-07-26. About 1e-5
   relative on trajectory quantities; 2.3% in pressure at −1,500 m.
 - **#920, an opt-in tip-off phase, `use_udot_rail2=True`** [15]. Merged 2026-09-14 (`ebe1b77`).
-  About −2 m on Calisto when turned on; off, bit-for-bit identical.
+  Its author: about −2 m on Calisto when on; off, bit-for-bit identical. ADR-357 measures 13 cases.
 - **#1121, parachute triggers evaluated once per time node** (#1086). Merged 2026-08-15. No size
   given (**Inference**: none for a trigger that fires at or after apogee).
 - **#1138, opt-in unbonded grains.** Merged 2026-08-15. No size given; the default keeps the grain

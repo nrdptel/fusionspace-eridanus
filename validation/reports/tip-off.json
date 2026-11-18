@@ -1,0 +1,2815 @@
+{
+  "as_pinned": {
+    "command": "refs/venv/bin/python validation/oracles/rocketpy/tip_off.py --as-pinned",
+    "equations": "as the pinned commit has them",
+    "largest": {
+      "apogee": {
+        "apogee_m": 5.860648749708503,
+        "apogee_percent": 1.2261404531545297,
+        "case": "bella-lui",
+        "wind": "crosswind"
+      },
+      "flights_compared": 26,
+      "landing_point": {
+        "case": "bella-lui",
+        "landing_point_m": 20.67682539414066,
+        "landing_point_percent_of_apogee": 4.3259190477555425,
+        "wind": "crosswind"
+      },
+      "pitch_rate": {
+        "case": "bella-lui",
+        "pitch_rate_deg_s": -17.29030710024536,
+        "wind": "crosswind"
+      }
+    },
+    "largest_from_guided": {
+      "apogee": {
+        "apogee_m": -9.075041799651444,
+        "apogee_percent": -0.3457216492602957,
+        "case": "juno-iii",
+        "wind": "still"
+      },
+      "flights_compared": 26,
+      "landing_point": {
+        "case": "valetudo",
+        "landing_point_m": 24.570018903303247,
+        "landing_point_percent_of_apogee": 3.2700370120120685,
+        "wind": "crosswind"
+      },
+      "pitch_rate": {
+        "case": "juno-iii",
+        "pitch_rate_deg_s": 2.2737172349338715,
+        "wind": "crosswind"
+      }
+    },
+    "reading": {
+      "model_called_for": true,
+      "moved": {
+        "apogee_past_the_bar": [
+          {
+            "apogee_percent": 1.2261404531545297,
+            "case": "bella-lui",
+            "wind": "crosswind"
+          }
+        ],
+        "designs_past_a_bar": [
+          "bella-lui",
+          "valetudo",
+          "juno-iii",
+          "cavour",
+          "prometheus-2022-generic-motor"
+        ],
+        "landing_farther_from_the_pad": 22,
+        "landing_nearer_the_pad": 4,
+        "landing_point_past_the_bar": [
+          {
+            "case": "bella-lui",
+            "landing_point_m": 20.67682539414066,
+            "landing_point_percent_of_apogee": 4.3259190477555425,
+            "wind": "crosswind"
+          },
+          {
+            "case": "valetudo",
+            "landing_point_m": 22.96519672912603,
+            "landing_point_percent_of_apogee": 2.948590260102897,
+            "wind": "still"
+          },
+          {
+            "case": "valetudo",
+            "landing_point_m": 28.630562972081975,
+            "landing_point_percent_of_apogee": 3.8210072888332527,
+            "wind": "crosswind"
+          },
+          {
+            "case": "juno-iii",
+            "landing_point_m": 66.14569968239329,
+            "landing_point_percent_of_apogee": 2.52096561420221,
+            "wind": "still"
+          },
+          {
+            "case": "juno-iii",
+            "landing_point_m": 102.97078827193367,
+            "landing_point_percent_of_apogee": 4.230861741101634,
+            "wind": "crosswind"
+          },
+          {
+            "case": "cavour",
+            "landing_point_m": 42.037668618358644,
+            "landing_point_percent_of_apogee": 1.354102153293383,
+            "wind": "crosswind"
+          },
+          {
+            "case": "prometheus-2022-generic-motor",
+            "landing_point_m": 46.781752085159276,
+            "landing_point_percent_of_apogee": 1.2780556958007838,
+            "wind": "crosswind"
+          }
+        ],
+        "rows": 26
+      },
+      "moved_from_guided": {
+        "apogee_past_the_bar": [],
+        "designs_past_a_bar": [
+          "valetudo",
+          "juno-iii",
+          "prometheus-2022-generic-motor"
+        ],
+        "landing_farther_from_the_pad": 24,
+        "landing_nearer_the_pad": 2,
+        "landing_point_past_the_bar": [
+          {
+            "case": "valetudo",
+            "landing_point_m": 25.162087473860474,
+            "landing_point_percent_of_apogee": 3.229859081672977,
+            "wind": "still"
+          },
+          {
+            "case": "valetudo",
+            "landing_point_m": 24.570018903303247,
+            "landing_point_percent_of_apogee": 3.2700370120120685,
+            "wind": "crosswind"
+          },
+          {
+            "case": "juno-iii",
+            "landing_point_m": 76.23106878524113,
+            "landing_point_percent_of_apogee": 2.904089193982649,
+            "wind": "still"
+          },
+          {
+            "case": "juno-iii",
+            "landing_point_m": 70.94743355555354,
+            "landing_point_percent_of_apogee": 2.8927278839123183,
+            "wind": "crosswind"
+          },
+          {
+            "case": "prometheus-2022-generic-motor",
+            "landing_point_m": 40.02846823140996,
+            "landing_point_percent_of_apogee": 1.0527998384174666,
+            "wind": "still"
+          },
+          {
+            "case": "prometheus-2022-generic-motor",
+            "landing_point_m": 39.95575581177304,
+            "landing_point_percent_of_apogee": 1.0900039740383576,
+            "wind": "crosswind"
+          }
+        ],
+        "rows": 26
+      }
+    }
+  },
+  "bars": {
+    "apogee_percent": 1.0,
+    "landing_point_percent_of_apogee": 1.0
+  },
+  "flown": {
+    "cases": [
+      {
+        "button_spacing_m": 0.6998,
+        "name": "calisto-getting-started-motor-at-minus-1.255",
+        "parachutes": [
+          "Main",
+          "Drogue"
+        ],
+        "rail": {
+          "heading_deg": 0,
+          "inclination_deg": 85,
+          "rail_length_m": 5.2,
+          "source": "docs/notebooks/getting_started.ipynb:791"
+        },
+        "site": {
+          "elevation": 1400,
+          "latitude": 32.990254,
+          "longitude": -106.974998,
+          "site": "docs/notebooks/getting_started.ipynb:116"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2614.413152703959,
+              "apogee_east_m": -4.0064203659610085,
+              "apogee_north_m": 448.8886880405324,
+              "apogee_time_s": 22.867732029479146,
+              "flight_time_s": 260.62418185648096,
+              "landing_east_m": -4.317929169172191,
+              "landing_north_m": 510.7006063985601,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 1.987846675914698e-16,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 4.739395799433465e-23,
+                "speed_m_s": 31.056919661077636,
+                "time_s": 0.32230267799299184
+              },
+              "upper_button_leaves_s": 0.32230267799299184
+            },
+            "moved": {
+              "apogee_m": -1.4222165045430302,
+              "apogee_percent": -0.054402309393143,
+              "apogee_point_m": 13.098336043820405,
+              "landing_point_m": 14.722623620226063,
+              "landing_point_percent_of_apogee": 0.5631665240192691,
+              "landing_range_m": 14.722391203779011,
+              "nose_down_deg": 0.00838220008831931,
+              "nose_right_deg": -0.00003323707876509824,
+              "off_rail_axis_deg": 0.008382300214904836,
+              "pitch_rate_deg_s": 0.7168230568819963
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.5777753529555412,
+              "apogee_percent": -0.060349120846631514,
+              "apogee_point_m": 14.526167141760828,
+              "landing_point_m": 16.34100759451119,
+              "landing_point_percent_of_apogee": 0.6250353957105246,
+              "landing_range_m": 16.340749464807686,
+              "nose_down_deg": 0.008387033881838646,
+              "nose_right_deg": -0.00003325612318049198,
+              "off_rail_axis_deg": 0.008387129887983739,
+              "pitch_rate_deg_s": 0.7174487276534443
+            },
+            "phase_off": {
+              "apogee_agl_m": 2614.2575938555465,
+              "apogee_east_m": -4.010658429106063,
+              "apogee_north_m": 450.3165128490591,
+              "apogee_time_s": 22.867087102059212,
+              "flight_time_s": 260.6196492334751,
+              "landing_east_m": -4.322474102973057,
+              "landing_north_m": 512.3189839946582,
+              "lower_button_leaves": {
+                "nose_down_deg": 4.833793520926687e-6,
+                "nose_right_deg": -1.90444151949614e-8,
+                "off_rail_axis_deg": 4.829673078902934e-6,
+                "pitch_rate_deg_s": 0.0006256707714479459,
+                "speed_m_s": 31.056672446569834,
+                "time_s": 0.32230265375568834
+              },
+              "upper_button_leaves_s": 0.2988552573065645
+            },
+            "phase_on": {
+              "apogee_agl_m": 2612.8353773510034,
+              "apogee_east_m": -4.0498061186550105,
+              "apogee_north_m": 463.41479039136397,
+              "apogee_time_s": 22.861067877777284,
+              "flight_time_s": 260.5441231829343,
+              "landing_east_m": -4.362780887775187,
+              "landing_north_m": 527.0415524399376,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.008387033881840237,
+                "nose_right_deg": -0.0000332561231802932,
+                "off_rail_axis_deg": 0.008387129887983739,
+                "pitch_rate_deg_s": 0.7174487276534443,
+                "speed_m_s": 31.056666274011395,
+                "time_s": 0.32230265201508207
+              },
+              "upper_button_leaves_s": 0.2988552573065645
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2571.2635040466907,
+              "apogee_east_m": -438.89426784566314,
+              "apogee_north_m": 441.43694116511983,
+              "apogee_time_s": 22.65528231698561,
+              "flight_time_s": 258.43167672826877,
+              "landing_east_m": 1587.1339264275953,
+              "landing_north_m": 498.1319623524399,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 1.987846675914698e-16,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 1.2424041724466862e-17,
+                "speed_m_s": 31.05476948181192,
+                "time_s": 0.3223252346887971
+              },
+              "upper_button_leaves_s": 0.3223252346887971
+            },
+            "moved": {
+              "apogee_m": 0.5098421818538554,
+              "apogee_percent": 0.01984063880421588,
+              "apogee_point_m": 18.773471064379745,
+              "landing_point_m": 21.224793628853185,
+              "landing_point_percent_of_apogee": 0.8259682683627171,
+              "landing_range_m": 18.934088203409374,
+              "nose_down_deg": 0.00838274455482777,
+              "nose_right_deg": 0.008768271148642877,
+              "off_rail_axis_deg": 0.0018721636122039148,
+              "pitch_rate_deg_s": 0.15552517548372236
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.0673383301300419,
+              "apogee_percent": -0.041510266390443834,
+              "apogee_point_m": 14.67755970242635,
+              "landing_point_m": 16.474637516317742,
+              "landing_point_percent_of_apogee": 0.640721477607788,
+              "landing_range_m": 8.263497188151177,
+              "nose_down_deg": 0.008387851820738276,
+              "nose_right_deg": 0.0020141132618785853,
+              "off_rail_axis_deg": 0.008626328834916902,
+              "pitch_rate_deg_s": 0.7383128665722578
+            },
+            "phase_off": {
+              "apogee_agl_m": 2569.686323534707,
+              "apogee_east_m": -448.7798074455212,
+              "apogee_north_m": 442.5933937070777,
+              "apogee_time_s": 22.647445283929496,
+              "flight_time_s": 258.3578774059076,
+              "landing_east_m": 1575.5727040089103,
+              "landing_north_m": 499.3131989904675,
+              "lower_button_leaves": {
+                "nose_down_deg": 5.107265912096362e-6,
+                "nose_right_deg": -0.006754157886764093,
+                "off_rail_axis_deg": 0.006754165222712987,
+                "pitch_rate_deg_s": 0.5827876910885355,
+                "speed_m_s": 31.054537910193076,
+                "time_s": 0.32232531030662726
+              },
+              "upper_button_leaves_s": 0.2988763156910945
+            },
+            "phase_on": {
+              "apogee_agl_m": 2570.1961657165607,
+              "apogee_east_m": -435.3096874101861,
+              "apogee_north_m": 455.67005543852764,
+              "apogee_time_s": 22.650237676106318,
+              "flight_time_s": 258.3721048388434,
+              "landing_east_m": 1590.6815100407016,
+              "landing_north_m": 514.2201049364079,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.008387851820739867,
+                "nose_right_deg": 0.002014113261878784,
+                "off_rail_axis_deg": 0.008626328834916902,
+                "pitch_rate_deg_s": 0.7383128665722578,
+                "speed_m_s": 31.054526722103564,
+                "time_s": 0.322325311462975
+              },
+              "upper_button_leaves_s": 0.2988763156910945
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": 8.9408,
+            "wind_north_m_s": -0.0
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.7,
+        "name": "calisto-tests-motor-at-minus-1.373",
+        "parachutes": [
+          "calisto_main_chute",
+          "calisto_drogue_chute"
+        ],
+        "rail": {
+          "heading_deg": 0,
+          "inclination_deg": 85,
+          "rail_length_m": 5.2,
+          "source": "tests/fixtures/flight/flight_fixtures.py:34-36"
+        },
+        "site": {
+          "elevation": 1400,
+          "latitude": 32.990254,
+          "longitude": -106.974998,
+          "site": "tests/fixtures/environment/environment_fixtures.py:36-42 (elevation, latitude, longitude); wind from tests/fixtures/flight/flight_fixtures.py:206-212"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2614.4588389718715,
+              "apogee_east_m": -3.993985976530787,
+              "apogee_north_m": 447.46853958119317,
+              "apogee_time_s": 22.865375509470415,
+              "flight_time_s": 260.62804824069826,
+              "landing_east_m": -4.302994301675845,
+              "landing_north_m": 509.0082867751421,
+              "lower_button_leaves": {
+                "nose_down_deg": 2.3854160110976376e-15,
+                "nose_right_deg": 1.1273442856388975e-29,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 0.0,
+                "speed_m_s": 30.662340246447087,
+                "time_s": 0.31847890573309307
+              },
+              "upper_button_leaves_s": 0.31847890573309307
+            },
+            "moved": {
+              "apogee_m": -1.471289826022712,
+              "apogee_percent": -0.05627830440807077,
+              "apogee_point_m": 13.573171236585969,
+              "landing_point_m": 15.3918054496177,
+              "landing_point_percent_of_apogee": 0.5887519217236916,
+              "landing_range_m": 15.391566038106589,
+              "nose_down_deg": 0.007816568469506038,
+              "nose_right_deg": -0.00003055334894150516,
+              "off_rail_axis_deg": 0.007816685325133677,
+              "pitch_rate_deg_s": 0.6589926607604871
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.61926513989647,
+              "apogee_percent": -0.06193500221763833,
+              "apogee_point_m": 14.93113055910369,
+              "landing_point_m": 16.9311397507252,
+              "landing_point_percent_of_apogee": 0.6475963399516866,
+              "landing_range_m": 16.930875432033247,
+              "nose_down_deg": 0.007820231788999021,
+              "nose_right_deg": -0.00003056757192817665,
+              "off_rail_axis_deg": 0.007820307579942854,
+              "pitch_rate_deg_s": 0.6594598167242891
+            },
+            "phase_off": {
+              "apogee_agl_m": 2614.3108636579977,
+              "apogee_east_m": -3.99794086155398,
+              "apogee_north_m": 448.82649314498235,
+              "apogee_time_s": 22.86476803877425,
+              "flight_time_s": 260.62493380650653,
+              "landing_east_m": -4.307236975656422,
+              "landing_north_m": 510.5476152297196,
+              "lower_button_leaves": {
+                "nose_down_deg": 3.663319495368132e-6,
+                "nose_right_deg": -1.422298667149517e-8,
+                "off_rail_axis_deg": 3.6222548091772e-6,
+                "pitch_rate_deg_s": 0.00046715596380195775,
+                "speed_m_s": 30.662076437789146,
+                "time_s": 0.31847890210310836
+              },
+              "upper_button_leaves_s": 0.29469574928420206
+            },
+            "phase_on": {
+              "apogee_agl_m": 2612.839573831975,
+              "apogee_east_m": -4.037787336378657,
+              "apogee_north_m": 462.39960589321106,
+              "apogee_time_s": 22.858602846746916,
+              "flight_time_s": 260.5535657458509,
+              "landing_east_m": -4.349953934492949,
+              "landing_north_m": 525.9393614029226,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.007820231789001406,
+                "nose_right_deg": -0.00003056757192817665,
+                "off_rail_axis_deg": 0.007820307579942854,
+                "pitch_rate_deg_s": 0.6594598167242891,
+                "speed_m_s": 30.662069672805636,
+                "time_s": 0.318478897768075
+              },
+              "upper_button_leaves_s": 0.29469574928420206
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2576.8165821249527,
+              "apogee_east_m": -400.79811101604827,
+              "apogee_north_m": 441.0200497938969,
+              "apogee_time_s": 22.681846561395137,
+              "flight_time_s": 258.7339413932368,
+              "landing_east_m": 1632.0261426341383,
+              "landing_north_m": 498.0662941382753,
+              "lower_button_leaves": {
+                "nose_down_deg": 2.3854160110976376e-15,
+                "nose_right_deg": -9.443928696936419e-23,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 1.2424041724466862e-17,
+                "speed_m_s": 30.660219587009916,
+                "time_s": 0.3185012000908148
+              },
+              "upper_button_leaves_s": 0.3185012000908148
+            },
+            "moved": {
+              "apogee_m": 0.0325723794935584,
+              "apogee_percent": 0.0012646702914945649,
+              "apogee_point_m": 17.604196494438224,
+              "landing_point_m": 19.920633484873832,
+              "landing_point_percent_of_apogee": 0.7734477415459936,
+              "landing_range_m": 16.754833944662323,
+              "nose_down_deg": 0.00781711334387914,
+              "nose_right_deg": 0.006555223648006893,
+              "off_rail_axis_deg": 0.0029200419632632547,
+              "pitch_rate_deg_s": 0.24243877681002513
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.2210576763518475,
+              "apogee_percent": -0.04738628604077483,
+              "apogee_point_m": 14.9571378174466,
+              "landing_point_m": 16.69562277361191,
+              "landing_point_percent_of_apogee": 0.6479166149980293,
+              "landing_range_m": 7.691824825981939,
+              "nose_down_deg": 0.007820985564274142,
+              "nose_right_deg": 0.0015098830246021051,
+              "off_rail_axis_deg": 0.007965418176206381,
+              "pitch_rate_deg_s": 0.6719249429429267
+            },
+            "phase_off": {
+              "apogee_agl_m": 2575.5629520691073,
+              "apogee_east_m": -409.08847883720125,
+              "apogee_north_m": 442.1675603469969,
+              "apogee_time_s": 22.675616870006547,
+              "flight_time_s": 258.65432105326175,
+              "landing_east_m": 1622.1904689603446,
+              "landing_north_m": 499.22993058153435,
+              "lower_button_leaves": {
+                "nose_down_deg": 3.872220397387755e-6,
+                "nose_right_deg": -0.005045340623404788,
+                "off_rail_axis_deg": 0.0050453762129431265,
+                "pitch_rate_deg_s": 0.4294861661329016,
+                "speed_m_s": 30.65996961722649,
+                "time_s": 0.31850129283139883
+              },
+              "upper_button_leaves_s": 0.29471652454492625
+            },
+            "phase_on": {
+              "apogee_agl_m": 2575.595524448601,
+              "apogee_east_m": -397.7962368228461,
+              "apogee_north_m": 455.672855771534,
+              "apogee_time_s": 22.676059697358824,
+              "flight_time_s": 258.6595364211648,
+              "landing_east_m": 1634.986433350393,
+              "landing_north_m": 514.4973774462621,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.007820985564276527,
+                "nose_right_deg": 0.0015098830246021051,
+                "off_rail_axis_deg": 0.007965418176206381,
+                "pitch_rate_deg_s": 0.6719249429429267,
+                "speed_m_s": 30.6599594721532,
+                "time_s": 0.3185012937672463
+              },
+              "upper_button_leaves_s": 0.29471652454492625
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": 8.9408,
+            "wind_north_m_s": -0.0
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.6,
+        "name": "bella-lui",
+        "parachutes": [
+          "Drogue"
+        ],
+        "rail": {
+          "heading_deg": 45,
+          "inclination_deg": 89,
+          "rail_length_m": 4.2,
+          "source": "docs/examples/bella_lui_flight_sim.ipynb:75-115, the `parameters` dict (rail_length, inclination, heading; the means, not the dispersions)"
+        },
+        "site": {
+          "elevation": 407,
+          "latitude": 47.213476,
+          "longitude": 9.003336,
+          "site": "docs/examples/bella_lui_flight_sim.ipynb:139-153 (elevation, latitude, longitude; the example's wind comes from an ERA5 reanalysis file, and its gravity=9.81 is replaced by RocketPy's Somigliana gravity, as for every case); the wind is declared by this script"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 540.150960301906,
+              "apogee_east_m": 14.789209171169698,
+              "apogee_north_m": 15.168292474834065,
+              "apogee_time_s": 11.256975010849972,
+              "flight_time_s": 39.75152508613484,
+              "landing_east_m": 19.016883227612134,
+              "landing_north_m": 19.445917130946864,
+              "lower_button_leaves": {
+                "nose_down_deg": -5.168401357378215e-15,
+                "nose_right_deg": 9.93923337957349e-17,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 9.47879159886693e-23,
+                "speed_m_s": 18.636867328027677,
+                "time_s": 0.37741305800951186
+              },
+              "upper_button_leaves_s": 0.37741305800951186
+            },
+            "moved": {
+              "apogee_m": -0.014635912323797129,
+              "apogee_percent": -0.0027096162079492054,
+              "apogee_point_m": 0.7109275973730151,
+              "landing_point_m": 0.952667895808969,
+              "landing_point_percent_of_apogee": 0.17637194827135586,
+              "landing_range_m": 0.9526595295342482,
+              "nose_down_deg": 0.009032277400092827,
+              "nose_right_deg": -0.00006356501498482776,
+              "off_rail_axis_deg": 0.009032497066863055,
+              "pitch_rate_deg_s": 0.5387282532085632
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.018534764725245623,
+              "apogee_percent": -0.0034314045678796915,
+              "apogee_point_m": 0.9605779366240106,
+              "landing_point_m": 1.2868722901019236,
+              "landing_point_percent_of_apogee": 0.2382430810421319,
+              "landing_range_m": 1.286860878916638,
+              "nose_down_deg": 0.009082774165436219,
+              "nose_right_deg": -0.00006391794019735591,
+              "off_rail_axis_deg": 0.009082999780722602,
+              "pitch_rate_deg_s": 0.5432751877918853
+            },
+            "phase_off": {
+              "apogee_agl_m": 540.1470614495046,
+              "apogee_east_m": 14.96457778834568,
+              "apogee_north_m": 15.34597516953997,
+              "apogee_time_s": 11.25695231588902,
+              "flight_time_s": 39.75144351340576,
+              "landing_east_m": 19.251574929564804,
+              "landing_north_m": 19.68385069779392,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00005049676533822377,
+                "nose_right_deg": -3.5292521242876836e-7,
+                "off_rail_axis_deg": 0.00005050271385954648,
+                "pitch_rate_deg_s": 0.004546934583322163,
+                "speed_m_s": 18.63697972856848,
+                "time_s": 0.37741294554570826
+              },
+              "upper_button_leaves_s": 0.34373878994948137
+            },
+            "phase_on": {
+              "apogee_agl_m": 540.1324255371808,
+              "apogee_east_m": 15.463973407530831,
+              "apogee_north_m": 15.851961398843939,
+              "apogee_time_s": 11.256858394899945,
+              "flight_time_s": 39.7510108243936,
+              "landing_east_m": 19.92059006296592,
+              "landing_north_m": 20.362079914936157,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00908277416543105,
+                "nose_right_deg": -0.00006391794019725652,
+                "off_rail_axis_deg": 0.009082999780722602,
+                "pitch_rate_deg_s": 0.5432751877918853,
+                "speed_m_s": 18.636979226061513,
+                "time_s": 0.3774129422111096
+              },
+              "upper_button_leaves_s": 0.34373878994948137
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 486.19969837038286,
+              "apogee_east_m": -167.94722942037217,
+              "apogee_north_m": 195.16431640897127,
+              "apogee_time_s": 10.710277553141186,
+              "flight_time_s": 36.981768624866795,
+              "landing_east_m": -65.11942986924107,
+              "landing_north_m": 99.76549132802343,
+              "lower_button_leaves": {
+                "nose_down_deg": -4.969616689786745e-15,
+                "nose_right_deg": 9.93923337957349e-17,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 0.0,
+                "speed_m_s": 18.632331819623655,
+                "time_s": 0.37750300262939473
+              },
+              "upper_button_leaves_s": 0.37750300262939473
+            },
+            "moved": {
+              "apogee_m": 5.6007878204883355,
+              "apogee_percent": 1.1651245275856514,
+              "apogee_point_m": 14.7283835170551,
+              "landing_point_m": 20.346463845728653,
+              "landing_point_percent_of_apogee": 4.232648126674826,
+              "landing_range_m": -19.723027303257453,
+              "nose_down_deg": 0.009024020784906068,
+              "nose_right_deg": 0.27149066389488086,
+              "off_rail_axis_deg": -0.25704674871265615,
+              "pitch_rate_deg_s": -15.175099449386039
+            },
+            "moved_from_guided": {
+              "apogee_m": 0.10402616487704108,
+              "apogee_percent": 0.021395769110040628,
+              "apogee_point_m": 0.8999667964714079,
+              "landing_point_m": 1.1679663762808143,
+              "landing_point_percent_of_apogee": 0.24022359129294799,
+              "landing_range_m": -0.2628469434562106,
+              "nose_down_deg": 0.009081986602961252,
+              "nose_right_deg": 0.00436669364115024,
+              "off_rail_axis_deg": 0.010077227144836316,
+              "pitch_rate_deg_s": 0.6036275434149908
+            },
+            "phase_off": {
+              "apogee_agl_m": 480.70293671477157,
+              "apogee_east_m": -178.08538701783044,
+              "apogee_north_m": 205.3388150680379,
+              "apogee_time_s": 10.652677536304337,
+              "flight_time_s": 36.67237173645359,
+              "landing_east_m": -79.13272828275935,
+              "landing_north_m": 113.78606930134633,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00005796581805021446,
+                "nose_right_deg": -0.2671239702537305,
+                "off_rail_axis_deg": 0.2671239758574925,
+                "pitch_rate_deg_s": 15.77872699280103,
+                "speed_m_s": 18.63249853396383,
+                "time_s": 0.3775028801875565
+              },
+              "upper_button_leaves_s": 0.3438205242909342
+            },
+            "phase_on": {
+              "apogee_agl_m": 486.3037245352599,
+              "apogee_east_m": -167.11631751820786,
+              "apogee_north_m": 195.51004122091382,
+              "apogee_time_s": 10.711375901119185,
+              "flight_time_s": 36.98776241516308,
+              "landing_east_m": -64.02088660307305,
+              "landing_north_m": 100.16216266361428,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.009081986602956282,
+                "nose_right_deg": 0.00436669364115034,
+                "off_rail_axis_deg": 0.010077227144836316,
+                "pitch_rate_deg_s": 0.6036275434149908,
+                "speed_m_s": 18.632443283737672,
+                "time_s": 0.37750289389995983
+              },
+              "upper_button_leaves_s": 0.3438205242909342
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": 6.322100309232684,
+            "wind_north_m_s": -6.322100309232683
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.5,
+        "name": "ndrt-2020-nose-to-tail",
+        "parachutes": [
+          "Drogue",
+          "Main"
+        ],
+        "rail": {
+          "heading_deg": 181,
+          "inclination_deg": 90,
+          "rail_length_m": 3.353,
+          "source": "docs/examples/ndrt_2020_flight_sim.ipynb, the `parameters` dict (rail_length, inclination, heading; the means, not the dispersions)"
+        },
+        "site": {
+          "elevation": 206,
+          "latitude": 41.775447,
+          "longitude": -86.572467,
+          "site": "docs/examples/ndrt_2020_flight_sim.ipynb (elevation, latitude, longitude); the wind profile is declared by this script"
+        },
+        "winds": [
+          {
+            "declared": "the parachute that opens at apogee opens with no lag: on a vertical rail in still air RocketPy's integration of the tail-first fall through the lag had not finished after 20 s of wall time",
+            "guided_to_lower_button": {
+              "apogee_agl_m": 1219.4220147878896,
+              "apogee_east_m": -1.1231965973725633,
+              "apogee_north_m": 0.0005529194912131268,
+              "apogee_time_s": 15.393132853768758,
+              "flight_time_s": 83.97110646455802,
+              "landing_east_m": -1.2550219995947174,
+              "landing_north_m": 0.0010573534671668309,
+              "lower_button_leaves": {
+                "nose_down_deg": -3.508354649267438e-15,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 1.446348815745076e-27,
+                "speed_m_s": 19.29840136030632,
+                "time_s": 0.24304668561789186
+              },
+              "upper_button_leaves_s": 0.24304668561789186
+            },
+            "moved": {
+              "apogee_m": -0.00031428122088072996,
+              "apogee_percent": -0.000025772724240906033,
+              "apogee_point_m": 0.002764483053782275,
+              "landing_point_m": 0.003491265654867588,
+              "landing_point_percent_of_apogee": 0.00028630227005766866,
+              "landing_range_m": 0.003491265654369302,
+              "nose_down_deg": 7.674432805142098e-8,
+              "nose_right_deg": 4.396692344907964e-6,
+              "off_rail_axis_deg": 4.436338000413295e-6,
+              "pitch_rate_deg_s": 0.00032312658812652163
+            },
+            "moved_from_guided": {
+              "apogee_m": 0.011122913075041652,
+              "apogee_percent": 0.000912146323434747,
+              "apogee_point_m": 0.004420115556717216,
+              "landing_point_m": 0.005575042321713865,
+              "landing_point_percent_of_apogee": 0.0004571872784077633,
+              "landing_range_m": 0.005575042319150958,
+              "nose_down_deg": 7.689514348961692e-8,
+              "nose_right_deg": 4.405332917745587e-6,
+              "off_rail_axis_deg": 4.436338000413295e-6,
+              "pitch_rate_deg_s": 0.0003240659307215197
+            },
+            "phase_off": {
+              "apogee_agl_m": 1219.4334519821855,
+              "apogee_east_m": -1.1248522294509995,
+              "apogee_north_m": 0.0005541156014548393,
+              "apogee_time_s": 15.39318452631452,
+              "flight_time_s": 83.97376804097969,
+              "landing_east_m": -1.25710577532798,
+              "landing_north_m": 0.0010593368945245128,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5081192984130481e-10,
+                "nose_right_deg": 8.640572837623197e-9,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 9.393425949981157e-7,
+                "speed_m_s": 19.299691220775404,
+                "time_s": 0.2430454165557413
+              },
+              "upper_button_leaves_s": 0.2151413208907473
+            },
+            "phase_on": {
+              "apogee_agl_m": 1219.4331377009646,
+              "apogee_east_m": -1.127616712004575,
+              "apogee_north_m": 0.0005557786185572032,
+              "apogee_time_s": 15.393182573118757,
+              "flight_time_s": 83.97369196934689,
+              "landing_east_m": -1.260597039792531,
+              "landing_north_m": 0.0010622198480482845,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.689513998126227e-8,
+                "nose_right_deg": 4.405332917745587e-6,
+                "off_rail_axis_deg": 4.436338000413295e-6,
+                "pitch_rate_deg_s": 0.0003240659307215197,
+                "speed_m_s": 19.299691288447846,
+                "time_s": 0.2430454179294378
+              },
+              "upper_button_leaves_s": 0.2151413208907473
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 1204.4766239330443,
+              "apogee_east_m": 131.2295963839595,
+              "apogee_north_m": -2.3965316529971403,
+              "apogee_time_s": 15.343345424820635,
+              "flight_time_s": 83.58904503699878,
+              "landing_east_m": -411.4222947162714,
+              "landing_north_m": 7.122707259243478,
+              "lower_button_leaves": {
+                "nose_down_deg": -3.5083546577021723e-15,
+                "nose_right_deg": -1.0563991446548177e-22,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 1.3890500925600808e-17,
+                "speed_m_s": 19.29518150871219,
+                "time_s": 0.24308888039540627
+              },
+              "upper_button_leaves_s": 0.24308888039540627
+            },
+            "moved": {
+              "apogee_m": 0.17080498130053456,
+              "apogee_percent": 0.014185989691836313,
+              "apogee_point_m": 1.4392200780066502,
+              "landing_point_m": 2.081651920155517,
+              "landing_point_percent_of_apogee": 0.17288894303005325,
+              "landing_range_m": 2.0816511465694134,
+              "nose_down_deg": 7.67637640207074e-8,
+              "nose_right_deg": 0.002404470799635334,
+              "off_rail_axis_deg": -0.0024044707855011512,
+              "pitch_rate_deg_s": -0.1753845278155744
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.26588228924492796,
+              "apogee_percent": -0.022074508044558624,
+              "apogee_point_m": 2.3937633614096057,
+              "landing_point_m": 2.903564456195281,
+              "landing_point_percent_of_apogee": 0.2410644090969662,
+              "landing_range_m": -2.9035628922825367,
+              "nose_down_deg": 7.69298155418426e-8,
+              "nose_right_deg": -0.0024700497706892305,
+              "off_rail_axis_deg": 0.0024700497901909368,
+              "pitch_rate_deg_s": 0.18048902019818738
+            },
+            "phase_off": {
+              "apogee_agl_m": 1204.0399366624988,
+              "apogee_east_m": 135.06195263363776,
+              "apogee_north_m": -2.465868517757016,
+              "apogee_time_s": 15.341356877599926,
+              "flight_time_s": 83.55967337971768,
+              "landing_east_m": -406.4379102647363,
+              "landing_north_m": 7.031637182606758,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.6604801278053458e-10,
+                "nose_right_deg": -0.004874520570324565,
+                "off_rail_axis_deg": 0.004874520575692088,
+                "pitch_rate_deg_s": 0.3558735480137618,
+                "speed_m_s": 19.296513555760026,
+                "time_s": 0.24308781528928602
+              },
+              "upper_button_leaves_s": 0.21517881191770213
+            },
+            "phase_on": {
+              "apogee_agl_m": 1204.2107416437993,
+              "apogee_east_m": 133.62296676868797,
+              "apogee_north_m": -2.439904823640303,
+              "apogee_time_s": 15.342136026844168,
+              "flight_time_s": 83.59102721157403,
+              "landing_east_m": -408.51921882254106,
+              "landing_north_m": 7.069444640808826,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.692981203348794e-8,
+                "nose_right_deg": -0.0024700497706892305,
+                "off_rail_axis_deg": 0.0024700497901909368,
+                "pitch_rate_deg_s": 0.1804890201981874,
+                "speed_m_s": 19.296491533854265,
+                "time_s": 0.24308780531543678
+              },
+              "upper_button_leaves_s": 0.21517881191770213
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -8.939438272854263,
+            "wind_north_m_s": 0.15603847547446553
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 1.1540000000000001,
+        "name": "valetudo",
+        "parachutes": [
+          "Drogue"
+        ],
+        "rail": {
+          "heading_deg": 53,
+          "inclination_deg": 84.7,
+          "rail_length_m": 5.7,
+          "source": "docs/examples/valetudo_flight_sim.ipynb, the `parameters` dict (rail_length, inclination, heading; the means, not the dispersions)"
+        },
+        "site": {
+          "elevation": 668,
+          "latitude": -23.363611,
+          "longitude": -48.011389,
+          "site": "docs/examples/valetudo_flight_sim.ipynb (elevation, latitude, longitude; the example's set_atmospheric_model call is commented out, leaving no wind)"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 778.1048695691743,
+              "apogee_east_m": 130.2669365335294,
+              "apogee_north_m": 98.93930343001755,
+              "apogee_time_s": 13.837478087300395,
+              "flight_time_s": 58.53158961809793,
+              "landing_east_m": 160.37726901187344,
+              "landing_north_m": 121.76673275778275,
+              "lower_button_leaves": {
+                "nose_down_deg": -5.565970692561154e-15,
+                "nose_right_deg": -1.1927080055488188e-15,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 2.3696978997167325e-23,
+                "speed_m_s": 22.512306868407475,
+                "time_s": 0.509875171704579
+              },
+              "upper_button_leaves_s": 0.509875171704579
+            },
+            "moved": {
+              "apogee_m": -2.507906152175565,
+              "apogee_percent": -0.3223817895404494,
+              "apogee_point_m": 21.453538506023325,
+              "landing_point_m": 26.206720778645856,
+              "landing_point_percent_of_apogee": 3.3687742004531325,
+              "landing_range_m": 26.206702769323186,
+              "nose_down_deg": 0.05608860332839526,
+              "nose_right_deg": -0.00011116570439506026,
+              "off_rail_axis_deg": 0.056088894037002415,
+              "pitch_rate_deg_s": 2.0882949362126975
+            },
+            "moved_from_guided": {
+              "apogee_m": -2.6823114260344028,
+              "apogee_percent": -0.3447236395679622,
+              "apogee_point_m": 23.061988551983426,
+              "landing_point_m": 28.174301449597067,
+              "landing_point_percent_of_apogee": 3.62088743451725,
+              "landing_range_m": 28.17428199082272,
+              "nose_down_deg": 0.056122764145633504,
+              "nose_right_deg": -0.00011123279845687123,
+              "off_rail_axis_deg": 0.056123055653356055,
+              "pitch_rate_deg_s": 2.0902202956159974
+            },
+            "phase_off": {
+              "apogee_agl_m": 777.9304642953155,
+              "apogee_east_m": 131.5492428154039,
+              "apogee_north_m": 99.91028342542022,
+              "apogee_time_s": 13.836334233241296,
+              "flight_time_s": 58.52295888266095,
+              "landing_east_m": 161.94579771114616,
+              "landing_north_m": 122.95462644883074,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.000034160817232672334,
+                "nose_right_deg": -6.709406300366478e-8,
+                "off_rail_axis_deg": 0.000034161616353636654,
+                "pitch_rate_deg_s": 0.0019253594033001467,
+                "speed_m_s": 22.512176170809447,
+                "time_s": 0.5098753924538197
+              },
+              "upper_button_leaves_s": 0.4556714822787183
+            },
+            "phase_on": {
+              "apogee_agl_m": 775.4225581431399,
+              "apogee_east_m": 148.65300925660705,
+              "apogee_north_m": 112.86078488112447,
+              "apogee_time_s": 13.819207984719853,
+              "flight_time_s": 58.39793138471126,
+              "landing_east_m": 182.83802900788604,
+              "landing_north_m": 138.77571634217978,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.05612276414562794,
+                "nose_right_deg": -0.00011123279845806393,
+                "off_rail_axis_deg": 0.056123055653356055,
+                "pitch_rate_deg_s": 2.0902202956159974,
+                "speed_m_s": 22.51214590012352,
+                "time_s": 0.5098753931055539
+              },
+              "upper_button_leaves_s": 0.4556714822787183
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 756.6537359854399,
+              "apogee_east_m": 22.72964924495794,
+              "apogee_north_m": 234.54523738016823,
+              "apogee_time_s": 13.659950027882424,
+              "flight_time_s": 57.40038809964052,
+              "landing_east_m": 247.9093168604332,
+              "landing_north_m": -7.6506053151745075,
+              "lower_button_leaves": {
+                "nose_down_deg": -7.156248033292914e-15,
+                "nose_right_deg": -3.975693351829396e-16,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 6.945250462800404e-18,
+                "speed_m_s": 22.509202451812587,
+                "time_s": 0.5099457335320376
+              },
+              "upper_button_leaves_s": 0.5099457335320376
+            },
+            "moved": {
+              "apogee_m": -0.14699934714394658,
+              "apogee_percent": -0.019461760349649262,
+              "apogee_point_m": 25.479559490602778,
+              "landing_point_m": 30.93032196348433,
+              "landing_point_percent_of_apogee": 4.094974061356664,
+              "landing_range_m": 30.89560929993354,
+              "nose_down_deg": 0.056094436972834893,
+              "nose_right_deg": 0.03873562340248894,
+              "off_rail_axis_deg": 0.03855600330309755,
+              "pitch_rate_deg_s": 1.4349011535072387
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.476733274384742,
+              "apogee_percent": -0.19516632300262088,
+              "apogee_point_m": 23.60470760641186,
+              "landing_point_m": 28.484789115112612,
+              "landing_point_percent_of_apogee": 3.764573907510679,
+              "landing_range_m": 26.74543324015235,
+              "nose_down_deg": 0.056132420570510023,
+              "nose_right_deg": 0.018262992422951287,
+              "off_rail_axis_deg": 0.059028693427358635,
+              "pitch_rate_deg_s": 2.201402443360614
+            },
+            "phase_off": {
+              "apogee_agl_m": 755.3240020581991,
+              "apogee_east_m": 19.674894948661706,
+              "apogee_north_m": 240.82431052877348,
+              "apogee_time_s": 13.64807324335398,
+              "flight_time_s": 57.32324506178359,
+              "landing_east_m": 243.8770323947414,
+              "landing_north_m": 0.2528364829123328,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00003798359766797451,
+                "nose_right_deg": -0.020472630979538053,
+                "off_rail_axis_deg": 0.020472690124261082,
+                "pitch_rate_deg_s": 0.7665012898533752,
+                "speed_m_s": 22.509085948946186,
+                "time_s": 0.5099459458269799
+              },
+              "upper_button_leaves_s": 0.4557345988930154
+            },
+            "phase_on": {
+              "apogee_agl_m": 755.1770027110551,
+              "apogee_east_m": 45.12748317563191,
+              "apogee_north_m": 241.9963618857813,
+              "apogee_time_s": 13.647711774979664,
+              "flight_time_s": 57.312864375823196,
+              "landing_east_m": 274.7666129244416,
+              "landing_north_m": 1.8398561626798742,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.05613242057050287,
+                "nose_right_deg": 0.01826299242295089,
+                "off_rail_axis_deg": 0.059028693427358635,
+                "pitch_rate_deg_s": 2.201402443360614,
+                "speed_m_s": 22.509042271418124,
+                "time_s": 0.5099459562968862
+              },
+              "upper_button_leaves_s": 0.4557345988930154
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": 5.380707758997833,
+            "wind_north_m_s": -7.140440368230835
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 1.41,
+        "name": "juno-iii",
+        "parachutes": [
+          "Drogue"
+        ],
+        "rail": {
+          "heading_deg": 105,
+          "inclination_deg": 85,
+          "rail_length_m": 5.2,
+          "source": "docs/examples/juno3_flight_sim.ipynb, the `Flight` call"
+        },
+        "site": {
+          "elevation": 1480,
+          "latitude": 32.939377,
+          "longitude": -106.911986,
+          "site": "docs/examples/juno3_flight_sim.ipynb (elevation, latitude, longitude); the wind is declared by this script"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2623.9374591960213,
+              "apogee_east_m": 531.9065018160078,
+              "apogee_north_m": -144.4909648673102,
+              "apogee_time_s": 24.565281465364315,
+              "flight_time_s": 136.19602997824123,
+              "landing_east_m": 608.1356739474529,
+              "landing_north_m": -165.1759426561482,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 7.951386703658792e-16,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 8.378147271266105e-24,
+                "speed_m_s": 21.53322157313784,
+                "time_s": 0.5156342406115924
+              },
+              "upper_button_leaves_s": 0.5156342406115924
+            },
+            "moved": {
+              "apogee_m": -9.916485832027774,
+              "apogee_percent": -0.3780598956919271,
+              "apogee_point_m": 74.5395516292533,
+              "landing_point_m": 82.71886831302629,
+              "landing_point_percent_of_apogee": 3.153605748638696,
+              "landing_range_m": 82.7187721958527,
+              "nose_down_deg": 0.07875812118228268,
+              "nose_right_deg": 0.00006884448172485996,
+              "off_rail_axis_deg": 0.07875819605969676,
+              "pitch_rate_deg_s": 2.250456466149131
+            },
+            "moved_from_guided": {
+              "apogee_m": -10.860619095243692,
+              "apogee_percent": -0.41390540987098845,
+              "apogee_point_m": 82.35479644778198,
+              "landing_point_m": 91.34008382556397,
+              "landing_point_percent_of_apogee": 3.4810312839373356,
+              "landing_range_m": 91.33997634990533,
+              "nose_down_deg": 0.07886780840479639,
+              "nose_right_deg": 0.0000689391114245132,
+              "off_rail_axis_deg": 0.07886788853095224,
+              "pitch_rate_deg_s": 2.255220218402337
+            },
+            "phase_off": {
+              "apogee_agl_m": 2622.9933259328054,
+              "apogee_east_m": 539.4518521620851,
+              "apogee_north_m": -146.52707385674708,
+              "apogee_time_s": 24.560777650391117,
+              "flight_time_s": 136.15963558011515,
+              "landing_east_m": 616.4591472607001,
+              "landing_north_m": -167.42208355142452,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0001096872225153134,
+                "nose_right_deg": 9.462970044836976e-8,
+                "off_rail_axis_deg": 0.000109692471255477,
+                "pitch_rate_deg_s": 0.004763752253205981,
+                "speed_m_s": 21.53401579909332,
+                "time_s": 0.5156329942375688
+              },
+              "upper_button_leaves_s": 0.44466673481450003
+            },
+            "phase_on": {
+              "apogee_agl_m": 2613.0768401007776,
+              "apogee_east_m": 611.4180044823245,
+              "apogee_north_m": -165.9440169042563,
+              "apogee_time_s": 24.512917503791396,
+              "flight_time_s": 135.77069230515235,
+              "landing_east_m": 696.3214069205467,
+              "landing_north_m": -188.97273683644178,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.07886780840479798,
+                "nose_right_deg": 0.00006893911142530834,
+                "off_rail_axis_deg": 0.07886788853095224,
+                "pitch_rate_deg_s": 2.255220218402337,
+                "speed_m_s": 21.533969570257124,
+                "time_s": 0.5156329696398215
+              },
+              "upper_button_leaves_s": 0.44466673481450003
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2492.0030716132246,
+              "apogee_east_m": 740.2992745081459,
+              "apogee_north_m": 738.5441851824943,
+              "apogee_time_s": 23.917268094215512,
+              "flight_time_s": 130.73683569992656,
+              "landing_east_m": 583.3956283867601,
+              "landing_north_m": -77.54368577103254,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 3.975693351829396e-16,
+                "off_rail_axis_deg": 0.0,
+                "pitch_rate_deg_s": 3.1060104311167156e-18,
+                "speed_m_s": 21.531189066114447,
+                "time_s": 0.5156877032348515
+              },
+              "upper_button_leaves_s": 0.5156877032348515
+            },
+            "moved": {
+              "apogee_m": 7.951504279187702,
+              "apogee_percent": 0.3206061852055065,
+              "apogee_point_m": 100.85711768583919,
+              "landing_point_m": 113.7214758430461,
+              "landing_point_percent_of_apogee": 4.5852718260379,
+              "landing_range_m": 70.36696267197374,
+              "nose_down_deg": 0.07875190793287482,
+              "nose_right_deg": 0.07992144934700222,
+              "off_rail_axis_deg": 0.029476332556842767,
+              "pitch_rate_deg_s": 0.8401523861182794
+            },
+            "moved_from_guided": {
+              "apogee_m": -3.9046936575855398,
+              "apogee_percent": -0.15668895845532788,
+              "apogee_point_m": 83.09262090952012,
+              "landing_point_m": 92.00526295500354,
+              "landing_point_percent_of_apogee": 3.692020447448444,
+              "landing_range_m": 83.80662720964733,
+              "nose_down_deg": 0.07887569632606957,
+              "nose_right_deg": 0.026264361118317828,
+              "off_rail_axis_deg": 0.08313359203901877,
+              "pitch_rate_deg_s": 2.3821418920194306
+            },
+            "phase_off": {
+              "apogee_agl_m": 2480.1468736764514,
+              "apogee_east_m": 756.2838327971926,
+              "apogee_north_m": 777.8254185126435,
+              "apogee_time_s": 23.860471917805118,
+              "flight_time_s": 130.2303013043046,
+              "landing_east_m": 601.1536129349906,
+              "landing_north_m": -31.26722031510565,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00012378839319634953,
+                "nose_right_deg": -0.053657088228684,
+                "off_rail_axis_deg": 0.053657259482176,
+                "pitch_rate_deg_s": 1.5419895059011512,
+                "speed_m_s": 21.532010792105343,
+                "time_s": 0.515686396635767
+              },
+              "upper_button_leaves_s": 0.44471346442658144
+            },
+            "phase_on": {
+              "apogee_agl_m": 2488.098377955639,
+              "apogee_east_m": 809.043553444634,
+              "apogee_north_m": 691.8686266629056,
+              "apogee_time_s": 23.899690641060737,
+              "flight_time_s": 130.570356302791,
+              "landing_east_m": 659.9134389951856,
+              "landing_north_m": -128.63177705571914,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.07887569632607117,
+                "nose_right_deg": 0.026264361118318227,
+                "off_rail_axis_deg": 0.08313359203901877,
+                "pitch_rate_deg_s": 2.3821418920194306,
+                "speed_m_s": 21.531937270756142,
+                "time_s": 0.5156864309631546
+              },
+              "upper_button_leaves_s": 0.44471346442658144
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -2.3140493184526183,
+            "wind_north_m_s": -8.6361496276853
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 1.0899999999999999,
+        "name": "cavour",
+        "parachutes": [],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/cavour_flight_sim.ipynb:315"
+        },
+        "site": {
+          "elevation": 150,
+          "latitude": 39.388692,
+          "longitude": -8.287814,
+          "site": "docs/examples/cavour_flight_sim.ipynb:128-130"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3163.2676879124488,
+              "apogee_east_m": 425.1682294423759,
+              "apogee_north_m": -401.53349013671004,
+              "apogee_time_s": 23.73471044248007,
+              "flight_time_s": 52.801165769837844,
+              "landing_east_m": 740.0681814523978,
+              "landing_north_m": -699.5800243709697,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 7.951386703658792e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 1.895758319773386e-22,
+                "speed_m_s": 51.93915522601732,
+                "time_s": 0.46665628567376427
+              },
+              "upper_button_leaves_s": 0.46665628567376427
+            },
+            "moved": {
+              "apogee_m": -0.8068853557183502,
+              "apogee_percent": -0.02550973045080525,
+              "apogee_point_m": 6.069838080930185,
+              "landing_point_m": 10.77486812186975,
+              "landing_point_percent_of_apogee": 0.34064812241779613,
+              "landing_range_m": 10.774866268316714,
+              "nose_down_deg": 0.008399101841763278,
+              "nose_right_deg": 0.000035702782624853546,
+              "off_rail_axis_deg": 0.008399286262706676,
+              "pitch_rate_deg_s": 0.7829064301639836
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.0252526396939174,
+              "apogee_percent": -0.03241118807654617,
+              "apogee_point_m": 7.73813125226091,
+              "landing_point_m": 13.735182665358462,
+              "landing_point_percent_of_apogee": 0.4342086734500421,
+              "landing_range_m": 13.735180326941531,
+              "nose_down_deg": 0.00842052075808411,
+              "nose_right_deg": 0.000035793566237963074,
+              "off_rail_axis_deg": 0.008419862037506234,
+              "pitch_rate_deg_s": 0.7858860892836965
+            },
+            "phase_off": {
+              "apogee_agl_m": 3163.049320628473,
+              "apogee_east_m": 426.3825072432789,
+              "apogee_north_m": -402.6774881822451,
+              "apogee_time_s": 23.73376811629155,
+              "flight_time_s": 52.79918757948095,
+              "landing_east_m": 742.220625096405,
+              "landing_north_m": -701.6123748717371,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00002141891632242379,
+                "nose_right_deg": 9.078361390467134e-8,
+                "off_rail_axis_deg": 0.000021429548445808714,
+                "pitch_rate_deg_s": 0.002979659119712903,
+                "speed_m_s": 51.939369119539926,
+                "time_s": 0.4666562241198029
+              },
+              "upper_button_leaves_s": 0.4451781381097851
+            },
+            "phase_on": {
+              "apogee_agl_m": 3162.242435272755,
+              "apogee_east_m": 430.80053694899834,
+              "apogee_north_m": -406.83969286823674,
+              "apogee_time_s": 23.73028748815862,
+              "flight_time_s": 52.79190841832448,
+              "landing_east_m": 750.0551603505244,
+              "landing_north_m": -709.0095257013231,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.008420520758085701,
+                "nose_right_deg": 0.000035793566238758214,
+                "off_rail_axis_deg": 0.008420715811152486,
+                "pitch_rate_deg_s": 0.7858860892836965,
+                "speed_m_s": 51.93936687691599,
+                "time_s": 0.4666562255197058
+              },
+              "upper_button_leaves_s": 0.4451781381097851
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3115.8032758512854,
+              "apogee_east_m": 739.1588251730446,
+              "apogee_north_m": -51.21774069892126,
+              "apogee_time_s": 23.523153250249447,
+              "flight_time_s": 52.38943300030596,
+              "landing_east_m": 1216.4359770694884,
+              "landing_north_m": -166.52282380224665,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 7.951386703658792e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 9.93923337957349e-17,
+                "speed_m_s": 51.934356262560485,
+                "time_s": 0.4666987209938513
+              },
+              "upper_button_leaves_s": 0.4666987209938513
+            },
+            "moved": {
+              "apogee_m": 3.0895720393195916,
+              "apogee_percent": 0.09924177010324652,
+              "apogee_point_m": 27.400713599790556,
+              "landing_point_m": 47.59992114327548,
+              "landing_point_percent_of_apogee": 1.5289821279176063,
+              "landing_range_m": -16.888486010451743,
+              "nose_down_deg": 0.008399971783150552,
+              "nose_right_deg": 0.03752549029532152,
+              "off_rail_axis_deg": -0.012082440230755375,
+              "pitch_rate_deg_s": -1.1270333575845515
+            },
+            "moved_from_guided": {
+              "apogee_m": 0.4633748569704039,
+              "apogee_percent": 0.014871762301610738,
+              "apogee_point_m": 12.971447247284065,
+              "landing_point_m": 22.61064465818233,
+              "landing_point_percent_of_apogee": 0.7256762592627019,
+              "landing_range_m": 1.0416292305592378,
+              "nose_down_deg": 0.008421586199216778,
+              "nose_right_deg": 0.011327801761425761,
+              "off_rail_axis_deg": 0.014114469996136903,
+              "pitch_rate_deg_s": 1.323692054129838
+            },
+            "phase_off": {
+              "apogee_agl_m": 3113.1770786689362,
+              "apogee_east_m": 751.0960378964584,
+              "apogee_north_m": -40.13544186778092,
+              "apogee_time_s": 23.51171899516675,
+              "flight_time_s": 52.366727467061054,
+              "landing_east_m": 1236.9802006713164,
+              "landing_north_m": -147.22880565446246,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.000021614416067817352,
+                "nose_right_deg": -0.026197688533894963,
+                "off_rail_axis_deg": 0.02619776400053853,
+                "pitch_rate_deg_s": 2.4507254117143895,
+                "speed_m_s": 51.934599300123324,
+                "time_s": 0.46669866564516704
+              },
+              "upper_button_leaves_s": 0.4452186041871521
+            },
+            "phase_on": {
+              "apogee_agl_m": 3116.266650708256,
+              "apogee_east_m": 737.8528113571094,
+              "apogee_north_m": -64.12327329551175,
+              "apogee_time_s": 23.5252958950945,
+              "flight_time_s": 52.393483309596036,
+              "landing_east_m": 1214.197570788096,
+              "landing_north_m": -189.0223968910413,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.00842158619921837,
+                "nose_right_deg": 0.011327801761426556,
+                "off_rail_axis_deg": 0.014115323769783155,
+                "pitch_rate_deg_s": 1.323692054129838,
+                "speed_m_s": 51.93457024074067,
+                "time_s": 0.4666986667219909
+              },
+              "upper_button_leaves_s": 0.4452186041871521
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.885,
+        "name": "genesis",
+        "parachutes": [
+          "Drogue",
+          "Main"
+        ],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/genesis_flight_sim.ipynb:327"
+        },
+        "site": {
+          "elevation": 160,
+          "latitude": 39.38895,
+          "longitude": -8.28837,
+          "site": "docs/examples/genesis_flight_sim.ipynb:127-129"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3265.1510769007054,
+              "apogee_east_m": 459.8957962316174,
+              "apogee_north_m": -434.62465071486474,
+              "apogee_time_s": 24.897742447117075,
+              "flight_time_s": 192.8572959767676,
+              "landing_east_m": 524.2246620624811,
+              "landing_north_m": -495.2385136007412,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.951386703658792e-16,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 3.791516639546772e-22,
+                "speed_m_s": 49.428776425294316,
+                "time_s": 0.4860582504108751
+              },
+              "upper_button_leaves_s": 0.4860582504108751
+            },
+            "moved": {
+              "apogee_m": -1.0145789048046936,
+              "apogee_percent": -0.031074750457617074,
+              "apogee_point_m": 7.811959422261296,
+              "landing_point_m": 8.682086851859443,
+              "landing_point_percent_of_apogee": 0.26591690512708394,
+              "landing_range_m": 8.682077419137613,
+              "nose_down_deg": 0.0054924990930565135,
+              "nose_right_deg": 0.000022342494761184144,
+              "off_rail_axis_deg": 0.005492639899793412,
+              "pitch_rate_deg_s": 0.6024896973268602
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.2032993467505548,
+              "apogee_percent": -0.03685279236428874,
+              "apogee_point_m": 9.284358286181611,
+              "landing_point_m": 10.344904509338996,
+              "landing_point_percent_of_apogee": 0.31682774443498096,
+              "landing_range_m": 10.344893522740449,
+              "nose_down_deg": 0.005499279676461329,
+              "nose_right_deg": 0.00002237001869458519,
+              "off_rail_axis_deg": 0.0054985627443789285,
+              "pitch_rate_deg_s": 0.6036044801559606
+            },
+            "phase_off": {
+              "apogee_agl_m": 3264.9623564587596,
+              "apogee_east_m": 460.9676164390247,
+              "apogee_north_m": -435.6341851907682,
+              "apogee_time_s": 24.896952446617508,
+              "flight_time_s": 192.84324155073728,
+              "landing_east_m": 525.4349604264231,
+              "landing_north_m": -496.3787506208939,
+              "lower_button_leaves": {
+                "nose_down_deg": 6.780583405610888e-6,
+                "nose_right_deg": 2.7523933401046543e-8,
+                "off_rail_axis_deg": 6.776618231767655e-6,
+                "pitch_rate_deg_s": 0.0011147828291004167,
+                "speed_m_s": 49.428875039363376,
+                "time_s": 0.4860581893547917
+              },
+              "upper_button_leaves_s": 0.46781236051041153
+            },
+            "phase_on": {
+              "apogee_agl_m": 3263.947777553955,
+              "apogee_east_m": 466.65436046223374,
+              "apogee_north_m": -440.990270741761,
+              "apogee_time_s": 24.892691413551344,
+              "flight_time_s": 192.8063899486518,
+              "landing_east_m": 531.7549789492566,
+              "landing_north_m": -502.3315649111496,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.005499279676462124,
+                "nose_right_deg": 0.00002237001869458519,
+                "off_rail_axis_deg": 0.00549941651802518,
+                "pitch_rate_deg_s": 0.6036044801559606,
+                "speed_m_s": 49.42887202956106,
+                "time_s": 0.48605818776891707
+              },
+              "upper_button_leaves_s": 0.46781236051041153
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3218.6808936761236,
+              "apogee_east_m": 787.0787002833109,
+              "apogee_north_m": -70.34315614487952,
+              "apogee_time_s": 24.688656722907165,
+              "flight_time_s": 191.068472135523,
+              "landing_east_m": -105.53428908422579,
+              "landing_north_m": -1146.658067163214,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": 3.975693351829396e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 9.93923337957349e-17,
+                "speed_m_s": 49.42502932278596,
+                "time_s": 0.4860947842084952
+              },
+              "upper_button_leaves_s": 0.4860947842084952
+            },
+            "moved": {
+              "apogee_m": 2.163526986586021,
+              "apogee_percent": 0.06725624520395995,
+              "apogee_point_m": 24.712241834256805,
+              "landing_point_m": 28.383069893463276,
+              "landing_point_percent_of_apogee": 0.8823272000910634,
+              "landing_range_m": 26.943328287616396,
+              "nose_down_deg": 0.005493022023218696,
+              "nose_right_deg": 0.01661892702296488,
+              "off_rail_axis_deg": -0.0011383632712195623,
+              "pitch_rate_deg_s": -0.1249952152595677
+            },
+            "moved_from_guided": {
+              "apogee_m": 0.324400234786026,
+              "apogee_percent": 0.010078670284568707,
+              "apogee_point_m": 14.731722008520924,
+              "landing_point_m": 16.749370382034655,
+              "landing_point_percent_of_apogee": 0.5203799610872529,
+              "landing_range_m": 16.743002550816755,
+              "nose_down_deg": 0.005499912027820309,
+              "nose_right_deg": 0.006763344975386043,
+              "off_rail_axis_deg": 0.00871648593607536,
+              "pitch_rate_deg_s": 0.9602825253723687
+            },
+            "phase_off": {
+              "apogee_agl_m": 3216.8417669243236,
+              "apogee_east_m": 796.0345794600722,
+              "apogee_north_m": -62.38129035665224,
+              "apogee_time_s": 24.680467257945327,
+              "flight_time_s": 191.00202709407836,
+              "landing_east_m": -95.35918386412602,
+              "landing_north_m": -1137.3132565252265,
+              "lower_button_leaves": {
+                "nose_down_deg": 6.8900046032025366e-6,
+                "nose_right_deg": -0.009855582047578438,
+                "off_rail_axis_deg": 0.009855702980941175,
+                "pitch_rate_deg_s": 1.0852777406319365,
+                "speed_m_s": 49.42513934585324,
+                "time_s": 0.48609462884312293
+              },
+              "upper_button_leaves_s": 0.4678473915284138
+            },
+            "phase_on": {
+              "apogee_agl_m": 3219.0052939109096,
+              "apogee_east_m": 786.1901623275876,
+              "apogee_north_m": -85.04805783232982,
+              "apogee_time_s": 24.690245885772033,
+              "flight_time_s": 191.0841644776445,
+              "landing_east_m": -106.60555769500944,
+              "landing_north_m": -1163.3731439431192,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0054999120278218985,
+                "nose_right_deg": 0.00676334497538644,
+                "off_rail_axis_deg": 0.008717339709721612,
+                "pitch_rate_deg_s": 0.9602825253723688,
+                "speed_m_s": 49.425115381734976,
+                "time_s": 0.4860946292388229
+              },
+              "upper_button_leaves_s": 0.4678473915284138
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 1.4049999999999998,
+        "name": "lince",
+        "parachutes": [
+          "Main"
+        ],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/lince_flight_sim.ipynb:435-437"
+        },
+        "site": {
+          "elevation": 158,
+          "latitude": 39.3897,
+          "longitude": -8.288964,
+          "site": "docs/examples/lince_flight_sim.ipynb:125-127"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3803.1037282810917,
+              "apogee_east_m": 521.9607394484759,
+              "apogee_north_m": -493.7044939330227,
+              "apogee_time_s": 26.374110793320483,
+              "flight_time_s": 546.8439753385373,
+              "landing_east_m": 533.6707050380073,
+              "landing_north_m": -504.538633103309,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.951386703658792e-16,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 1.895758319773386e-22,
+                "speed_m_s": 52.50071683869235,
+                "time_s": 0.4813621715471515
+              },
+              "upper_button_leaves_s": 0.4813621715471515
+            },
+            "moved": {
+              "apogee_m": -2.2641692802717444,
+              "apogee_percent": -0.05953967056966059,
+              "apogee_point_m": 16.817796872885523,
+              "landing_point_m": 17.03671211125577,
+              "landing_point_percent_of_apogee": 0.44800547182257167,
+              "landing_range_m": 17.036688734745894,
+              "nose_down_deg": 0.016218253861693697,
+              "nose_right_deg": 0.00006884094493394046,
+              "off_rail_axis_deg": 0.016218427589426453,
+              "pitch_rate_deg_s": 1.1793425141241352
+            },
+            "moved_from_guided": {
+              "apogee_m": -2.5768195981463577,
+              "apogee_percent": -0.06775570119174783,
+              "apogee_point_m": 19.14014085551122,
+              "landing_point_m": 19.26685189631675,
+              "landing_point_percent_of_apogee": 0.5066086352849727,
+              "landing_range_m": 19.26682397955517,
+              "nose_down_deg": 0.016239202497701517,
+              "nose_right_deg": 0.00006892941354454385,
+              "off_rail_axis_deg": 0.01623853913122589,
+              "pitch_rate_deg_s": 1.1816399414325938
+            },
+            "phase_off": {
+              "apogee_agl_m": 3802.791077963217,
+              "apogee_east_m": 523.6509121504234,
+              "apogee_north_m": -495.2971639593391,
+              "apogee_time_s": 26.372882830381922,
+              "flight_time_s": 546.8028140782552,
+              "landing_east_m": 535.2944014409171,
+              "landing_north_m": -506.06740190528706,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.000020948636008612414,
+                "nose_right_deg": 8.846861060338928e-8,
+                "off_rail_axis_deg": 0.000020965315445691517,
+                "pitch_rate_deg_s": 0.002297427308458594,
+                "speed_m_s": 52.50029646516113,
+                "time_s": 0.48136226986212594
+              },
+              "upper_button_leaves_s": 0.45372506469123913
+            },
+            "phase_on": {
+              "apogee_agl_m": 3800.5269086829453,
+              "apogee_east_m": 535.8908979260616,
+              "apogee_north_m": -506.8306387119804,
+              "apogee_time_s": 26.363905854622743,
+              "flight_time_s": 546.5171214805002,
+              "landing_east_m": 547.6940017643536,
+              "landing_north_m": -517.7507007280016,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.01623920249770231,
+                "nose_right_deg": 0.00006892941354454385,
+                "off_rail_axis_deg": 0.016239392904872144,
+                "pitch_rate_deg_s": 1.1816399414325938,
+                "speed_m_s": 52.500291460776644,
+                "time_s": 0.4813622700890946
+              },
+              "upper_button_leaves_s": 0.45372506469123913
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3758.2177796329884,
+              "apogee_east_m": 859.8384120383936,
+              "apogee_north_m": -118.26452934381858,
+              "apogee_time_s": 26.189132524473404,
+              "flight_time_s": 541.1150001924962,
+              "landing_east_m": -2261.691933994179,
+              "landing_north_m": -3484.1634102818393,
+              "lower_button_leaves": {
+                "nose_down_deg": -0.0,
+                "nose_right_deg": -7.951386703658792e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 1.7570248306230254e-17,
+                "speed_m_s": 52.49743666417283,
+                "time_s": 0.48139489532724333
+              },
+              "upper_button_leaves_s": 0.48139489532724333
+            },
+            "moved": {
+              "apogee_m": 2.0309534066996093,
+              "apogee_percent": 0.05407970404265083,
+              "apogee_point_m": 37.833093083653964,
+              "landing_point_m": 40.4831518310967,
+              "landing_point_percent_of_apogee": 1.07797493655807,
+              "landing_range_m": 38.96041518712536,
+              "nose_down_deg": 0.016219735672563112,
+              "nose_right_deg": 0.03253404018474586,
+              "off_rail_axis_deg": 0.0004056970326883312,
+              "pitch_rate_deg_s": 0.03018483511179304
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.7050930092109411,
+              "apogee_percent": -0.018761366438956005,
+              "apogee_point_m": 24.24563791496608,
+              "landing_point_m": 24.17887099020035,
+              "landing_point_percent_of_apogee": 0.6433600288209363,
+              "landing_range_m": 17.634032469114572,
+              "nose_down_deg": 0.016241104977237904,
+              "nose_right_deg": 0.012466018994446788,
+              "off_rail_axis_deg": 0.020473034191276905,
+              "pitch_rate_deg_s": 1.4954747597784388
+            },
+            "phase_off": {
+              "apogee_agl_m": 3755.481733217078,
+              "apogee_east_m": 873.9549346909563,
+              "apogee_north_m": -105.78046279124054,
+              "apogee_time_s": 26.178051913296105,
+              "flight_time_s": 540.7649927203173,
+              "landing_east_m": -2245.485365415301,
+              "landing_north_m": -3469.253705435844,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.000021369304674790884,
+                "nose_right_deg": -0.020068021190299865,
+                "off_rail_axis_deg": 0.020068190932234827,
+                "pitch_rate_deg_s": 1.4652899246666458,
+                "speed_m_s": 52.49703010483139,
+                "time_s": 0.4813949904575989
+              },
+              "upper_button_leaves_s": 0.45375607009442753
+            },
+            "phase_on": {
+              "apogee_agl_m": 3757.5126866237774,
+              "apogee_east_m": 863.7078304626773,
+              "apogee_north_m": -142.19941098048966,
+              "apogee_time_s": 26.186536692187282,
+              "flight_time_s": 541.0235426396279,
+              "landing_east_m": -2257.3704024484764,
+              "landing_north_m": -3507.9529493160503,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.016241104977237904,
+                "nose_right_deg": 0.012466018994445993,
+                "off_rail_axis_deg": 0.02047388796492316,
+                "pitch_rate_deg_s": 1.4954747597784388,
+                "speed_m_s": 52.49700963085011,
+                "time_s": 0.48139499230987215
+              },
+              "upper_button_leaves_s": 0.45375607009442753
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.3999999999999999,
+        "name": "astra",
+        "parachutes": [],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/astra_flight_sim.ipynb:317"
+        },
+        "site": {
+          "elevation": 160,
+          "latitude": 39.3897,
+          "longitude": -8.2889639,
+          "site": "docs/examples/astra_flight_sim.ipynb:126-128"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3447.537180514354,
+              "apogee_east_m": 494.54915757053425,
+              "apogee_north_m": -467.640094629259,
+              "apogee_time_s": 25.768206329261186,
+              "flight_time_s": 54.85262610461943,
+              "landing_east_m": 886.5975642982911,
+              "landing_north_m": -839.5037682765941,
+              "lower_button_leaves": {
+                "nose_down_deg": 1.5902773407317584e-15,
+                "nose_right_deg": -3.975693351829396e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 0.0,
+                "speed_m_s": 49.17473254098705,
+                "time_s": 0.4797305340843438
+              },
+              "upper_button_leaves_s": 0.4797305340843438
+            },
+            "moved": {
+              "apogee_m": -0.10884548402555083,
+              "apogee_percent": -0.0031572829442791496,
+              "apogee_point_m": 0.8447105313471621,
+              "landing_point_m": 1.5865377871170534,
+              "landing_point_percent_of_apogee": 0.04602073058486458,
+              "landing_range_m": 1.5865365771296638,
+              "nose_down_deg": 0.0004664682870926399,
+              "nose_right_deg": 1.9138927667320463e-6,
+              "off_rail_axis_deg": 0.00046661984910122486,
+              "pitch_rate_deg_s": 0.11361721263253445
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.2044774740761568,
+              "apogee_percent": -0.005931117298223013,
+              "apogee_point_m": 1.582084172621834,
+              "landing_point_m": 2.9694116696354427,
+              "landing_point_percent_of_apogee": 0.08613138928330347,
+              "landing_range_m": 2.9694094398435027,
+              "nose_down_deg": 0.00046738277627700754,
+              "nose_right_deg": 1.9176454169281593e-6,
+              "off_rail_axis_deg": 0.00046661984910122486,
+              "pitch_rate_deg_s": 0.11390092078682172
+            },
+            "phase_off": {
+              "apogee_agl_m": 3447.4415485243035,
+              "apogee_east_m": 495.08589488457085,
+              "apogee_north_m": -468.1456961944412,
+              "apogee_time_s": 25.767794451613867,
+              "flight_time_s": 54.85169555493519,
+              "landing_east_m": 887.6028635823383,
+              "landing_north_m": -840.4533542521322,
+              "lower_button_leaves": {
+                "nose_down_deg": 9.144891859578812e-7,
+                "nose_right_deg": 3.7526497985437334e-9,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 0.0002837081542872674,
+                "speed_m_s": 49.174767505790925,
+                "time_s": 0.47973052821744244
+              },
+              "upper_button_leaves_s": 0.4715237261701674
+            },
+            "phase_on": {
+              "apogee_agl_m": 3447.332703040278,
+              "apogee_east_m": 495.7007762071598,
+              "apogee_north_m": -468.72488255555487,
+              "apogee_time_s": 25.767323245442636,
+              "flight_time_s": 54.85063547309435,
+              "landing_east_m": 888.7562430836667,
+              "landing_north_m": -841.5427659630411,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0004673827762785978,
+                "nose_right_deg": 1.91764541653059e-6,
+                "off_rail_axis_deg": 0.00046747362274747646,
+                "pitch_rate_deg_s": 0.11390092078682172,
+                "speed_m_s": 49.17476626336447,
+                "time_s": 0.47973052257674426
+              },
+              "upper_button_leaves_s": 0.4715237261701674
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3392.9161717585434,
+              "apogee_east_m": 872.0745310155778,
+              "apogee_north_m": -46.52251169781782,
+              "apogee_time_s": 25.525602564629665,
+              "flight_time_s": 54.39699999917749,
+              "landing_east_m": 1523.1947615940576,
+              "landing_north_m": -141.49781303187652,
+              "lower_button_leaves": {
+                "nose_down_deg": -0.0,
+                "nose_right_deg": -3.975693351829396e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 7.028099322492102e-17,
+                "speed_m_s": 49.171632057323016,
+                "time_s": 0.4797614671156519
+              },
+              "upper_button_leaves_s": 0.4797614671156519
+            },
+            "moved": {
+              "apogee_m": 0.19921458649241686,
+              "apogee_percent": 0.005873264039772081,
+              "apogee_point_m": 2.2702675529672875,
+              "landing_point_m": 4.1068700294758385,
+              "landing_point_percent_of_apogee": 0.12107914628558741,
+              "landing_range_m": -1.0772331650516662,
+              "nose_down_deg": 0.00046664801112937776,
+              "nose_right_deg": 0.0011908506908455837,
+              "off_rail_axis_deg": -0.0011111184810261739,
+              "pitch_rate_deg_s": -0.27129029836336466
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.8281344766623988,
+              "apogee_percent": -0.024407749403168366,
+              "apogee_point_m": 4.595636690504994,
+              "landing_point_m": 8.289424615384114,
+              "landing_point_percent_of_apogee": 0.24431563279937205,
+              "landing_range_m": 6.844048347052649,
+              "nose_down_deg": 0.0004674357000246799,
+              "nose_right_deg": -0.001330488828048102,
+              "off_rail_axis_deg": 0.0014094942381515372,
+              "pitch_rate_deg_s": 0.3444868439504628
+            },
+            "phase_off": {
+              "apogee_agl_m": 3391.8888226953886,
+              "apogee_east_m": 876.876894791793,
+              "apogee_north_m": -42.15734246127628,
+              "apogee_time_s": 25.521165128086338,
+              "flight_time_s": 54.3887309896209,
+              "landing_east_m": 1531.858399930948,
+              "landing_north_m": -133.61028671789785,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.876888953021434e-7,
+                "nose_right_deg": -0.002521339518894083,
+                "off_rail_axis_deg": 0.0025214664928239626,
+                "pitch_rate_deg_s": 0.6157771423138275,
+                "speed_m_s": 49.17167120329926,
+                "time_s": 0.4797614593914059
+              },
+              "upper_button_leaves_s": 0.4715541247487902
+            },
+            "phase_on": {
+              "apogee_agl_m": 3392.088037281881,
+              "apogee_east_m": 876.0896576671009,
+              "apogee_north_m": -44.2867490620838,
+              "apogee_time_s": 25.52202851134617,
+              "flight_time_s": 54.39033578906766,
+              "landing_east_m": 1530.435918239212,
+              "landing_north_m": -137.4629386974676,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0004674357000246799,
+                "nose_right_deg": -0.0013304888280484995,
+                "off_rail_axis_deg": 0.0014103480117977887,
+                "pitch_rate_deg_s": 0.34448684395046286,
+                "speed_m_s": 49.1716663648125,
+                "time_s": 0.47976145930299546
+              },
+              "upper_button_leaves_s": 0.4715541247487902
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.7000000000000001,
+        "name": "andromeda",
+        "parachutes": [
+          "Drogue",
+          "Main"
+        ],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/andromeda_flight_sim.ipynb:389"
+        },
+        "site": {
+          "elevation": 160,
+          "latitude": 39.388692,
+          "longitude": -8.287814,
+          "site": "docs/examples/andromeda_flight_sim.ipynb:126-128"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3054.830476642557,
+              "apogee_east_m": 440.9350063247001,
+              "apogee_north_m": -416.55109266952945,
+              "apogee_time_s": 24.19449311539659,
+              "flight_time_s": 219.4516705312023,
+              "landing_east_m": 485.7956576859393,
+              "landing_north_m": -458.66790152443815,
+              "lower_button_leaves": {
+                "nose_down_deg": -0.0,
+                "nose_right_deg": -3.975693351829396e-16,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 7.583033279093544e-22,
+                "speed_m_s": 45.90641151836235,
+                "time_s": 0.511540823957554
+              },
+              "upper_button_leaves_s": 0.511540823957554
+            },
+            "moved": {
+              "apogee_m": -0.39113212215988824,
+              "apogee_percent": -0.012804530388533592,
+              "apogee_point_m": 2.892473591965601,
+              "landing_point_m": 3.127337971214075,
+              "landing_point_percent_of_apogee": 0.10237996783924656,
+              "landing_range_m": 3.1273343809793914,
+              "nose_down_deg": 0.0037695773929872687,
+              "nose_right_deg": 0.000014285817467766846,
+              "off_rail_axis_deg": 0.0037696249911938714,
+              "pitch_rate_deg_s": 0.48605521888255443
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.5830527881107628,
+              "apogee_percent": -0.019086256752013715,
+              "apogee_point_m": 4.322820593368939,
+              "landing_point_m": 4.67357540237997,
+              "landing_point_percent_of_apogee": 0.15298968103514898,
+              "landing_range_m": 4.67357007912608,
+              "nose_down_deg": 0.0037791740695871483,
+              "nose_right_deg": 0.000014322119308279821,
+              "off_rail_axis_deg": 0.0037783548029580107,
+              "pitch_rate_deg_s": 0.48787240884120564
+            },
+            "phase_off": {
+              "apogee_agl_m": 3054.6385559766063,
+              "apogee_east_m": 441.9765273324229,
+              "apogee_north_m": -417.53146328071745,
+              "apogee_time_s": 24.19362145118756,
+              "flight_time_s": 219.44692175953537,
+              "landing_east_m": 486.9215433270224,
+              "landing_north_m": -459.7277277920894,
+              "lower_button_leaves": {
+                "nose_down_deg": 9.596676599879477e-6,
+                "nose_right_deg": 3.630184011540521e-8,
+                "off_rail_axis_deg": 9.583585410390605e-6,
+                "pitch_rate_deg_s": 0.0018171899586512223,
+                "speed_m_s": 45.90645904995265,
+                "time_s": 0.5115404442965636
+              },
+              "upper_button_leaves_s": 0.49604071136164785
+            },
+            "phase_on": {
+              "apogee_agl_m": 3054.2474238544464,
+              "apogee_east_m": 444.0827432315811,
+              "apogee_north_m": -419.51395112843596,
+              "apogee_time_s": 24.19184470940608,
+              "flight_time_s": 219.41494652921745,
+              "landing_east_m": 489.1987497801464,
+              "landing_north_m": -461.871223431471,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0037791740695871483,
+                "nose_right_deg": 0.000014322119307882251,
+                "off_rail_axis_deg": 0.003779208576604262,
+                "pitch_rate_deg_s": 0.48787240884120564,
+                "speed_m_s": 45.90645646288953,
+                "time_s": 0.5115404438795529
+              },
+              "upper_button_leaves_s": 0.49604071136164785
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2988.808157616959,
+              "apogee_east_m": 835.9330744897542,
+              "apogee_north_m": 27.361807762935157,
+              "apogee_time_s": 23.893146630280505,
+              "flight_time_s": 216.46313044452293,
+              "landing_east_m": -255.2907691059663,
+              "landing_north_m": -1216.4181663982276,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.951386703658792e-16,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 0.0,
+                "speed_m_s": 45.902367897171274,
+                "time_s": 0.5115894765643461
+              },
+              "upper_button_leaves_s": 0.5115894765643461
+            },
+            "moved": {
+              "apogee_m": 1.0031377484165205,
+              "apogee_percent": 0.033592190880817406,
+              "apogee_point_m": 8.440881468276293,
+              "landing_point_m": 9.389927444431823,
+              "landing_point_percent_of_apogee": 0.31444159644903363,
+              "landing_range_m": 9.225146180937372,
+              "nose_down_deg": 0.003770114473747938,
+              "nose_right_deg": 0.010710445967199866,
+              "off_rail_axis_deg": -0.009524003895266,
+              "pitch_rate_deg_s": -1.2322441580083967
+            },
+            "moved_from_guided": {
+              "apogee_m": -1.5819658987115872,
+              "apogee_percent": -0.05292965674896052,
+              "apogee_point_m": 7.0931664789783255,
+              "landing_point_m": 7.894550155327175,
+              "landing_point_percent_of_apogee": 0.2641370653117352,
+              "landing_range_m": -3.6435900575559117,
+              "nose_down_deg": 0.0037796947854485618,
+              "nose_right_deg": -0.005426822639316242,
+              "off_rail_axis_deg": 0.006612533106478168,
+              "pitch_rate_deg_s": 0.856622339035504
+            },
+            "phase_off": {
+              "apogee_agl_m": 2986.2230539698307,
+              "apogee_east_m": 845.9727048264442,
+              "apogee_north_m": 36.80384460043159,
+              "apogee_time_s": 23.88170283162919,
+              "flight_time_s": 216.34841824248443,
+              "landing_east_m": -244.14055321262867,
+              "landing_north_m": -1205.5778468868396,
+              "lower_button_leaves": {
+                "nose_down_deg": 9.580311701418604e-6,
+                "nose_right_deg": -0.016137268606516108,
+                "off_rail_axis_deg": 0.01613739077539042,
+                "pitch_rate_deg_s": 2.0888664970439006,
+                "speed_m_s": 45.90238043396622,
+                "time_s": 0.511588624875009
+              },
+              "upper_button_leaves_s": 0.49608760119942175
+            },
+            "phase_on": {
+              "apogee_agl_m": 2987.2261917182473,
+              "apogee_east_m": 842.8427551835375,
+              "apogee_north_m": 28.964718680129096,
+              "apogee_time_s": 23.88616166916015,
+              "flight_time_s": 216.38307203179875,
+              "landing_east_m": -247.69429867950922,
+              "landing_north_m": -1214.2693157252074,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0037796947854493567,
+                "nose_right_deg": -0.005426822639316242,
+                "off_rail_axis_deg": 0.006613386880124419,
+                "pitch_rate_deg_s": 0.856622339035504,
+                "speed_m_s": 45.902368761221574,
+                "time_s": 0.5115886256588784
+              },
+              "upper_button_leaves_s": 0.49608760119942175
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.7,
+        "name": "erebus-11",
+        "parachutes": [],
+        "rail": {
+          "heading_deg": 133,
+          "inclination_deg": 84,
+          "rail_length_m": 12,
+          "source": "docs/examples/erebus_flight_sim.ipynb:321"
+        },
+        "site": {
+          "elevation": 160,
+          "latitude": 39.3897,
+          "longitude": -8.2889639,
+          "site": "docs/examples/erebus_flight_sim.ipynb:126-128"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2814.5580306091942,
+              "apogee_east_m": 389.6920695897199,
+              "apogee_north_m": -367.79695217512983,
+              "apogee_time_s": 22.810102266633933,
+              "flight_time_s": 50.20830428745743,
+              "landing_east_m": 674.1047662437725,
+              "landing_north_m": -636.7692099884978,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.951386703658792e-16,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 9.47879159886693e-23,
+                "speed_m_s": 44.5681389738709,
+                "time_s": 0.551867360573162
+              },
+              "upper_button_leaves_s": 0.551867360573162
+            },
+            "moved": {
+              "apogee_m": -0.8227918056727503,
+              "apogee_percent": -0.02923508318818133,
+              "apogee_point_m": 6.086992284830798,
+              "landing_point_m": 10.906567655953324,
+              "landing_point_percent_of_apogee": 0.3875274528999642,
+              "landing_range_m": 10.90656394274231,
+              "nose_down_deg": 0.004971651193190802,
+              "nose_right_deg": 0.000018289116947276946,
+              "off_rail_axis_deg": 0.004971653105059076,
+              "pitch_rate_deg_s": 0.6230031684474733
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.982107088567318,
+              "apogee_percent": -0.034893829790915584,
+              "apogee_point_m": 7.28573215110265,
+              "landing_point_m": 13.052665397662597,
+              "landing_point_percent_of_apogee": 0.4637554193486437,
+              "landing_range_m": 13.052660984073668,
+              "nose_down_deg": 0.004976945971307428,
+              "nose_right_deg": 0.000018308556353569952,
+              "off_rail_axis_deg": 0.004976131146124751,
+              "pitch_rate_deg_s": 0.6239967258811796
+            },
+            "phase_off": {
+              "apogee_agl_m": 2814.3987153262997,
+              "apogee_east_m": 390.56508749016064,
+              "apogee_north_m": -368.618424641454,
+              "apogee_time_s": 22.809398715071858,
+              "flight_time_s": 50.20656257641807,
+              "landing_east_m": 675.6660668638682,
+              "landing_north_m": -638.2416487453409,
+              "lower_button_leaves": {
+                "nose_down_deg": 5.2947781174211895e-6,
+                "nose_right_deg": 1.9439406293005677e-8,
+                "off_rail_axis_deg": 5.3318147119265075e-6,
+                "pitch_rate_deg_s": 0.0009935574337063798,
+                "speed_m_s": 44.56835502818908,
+                "time_s": 0.5518673163337802
+              },
+              "upper_button_leaves_s": 0.53590155605647
+            },
+            "phase_on": {
+              "apogee_agl_m": 2813.575923520627,
+              "apogee_east_m": 394.99819922535784,
+              "apogee_north_m": -372.78963494768965,
+              "apogee_time_s": 22.80575714544658,
+              "flight_time_s": 50.1976473808611,
+              "landing_east_m": 683.6008389690705,
+              "landing_north_m": -645.7244697155626,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.004976945971308223,
+                "nose_right_deg": 0.000018308556353569952,
+                "off_rail_axis_deg": 0.004976984919771003,
+                "pitch_rate_deg_s": 0.6239967258811796,
+                "speed_m_s": 44.56835232309483,
+                "time_s": 0.551867316400471
+              },
+              "upper_button_leaves_s": 0.53590155605647
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 2764.785229710403,
+              "apogee_east_m": 695.3607830258026,
+              "apogee_north_m": -25.472494498782183,
+              "apogee_time_s": 22.57541470137736,
+              "flight_time_s": 49.73351681998368,
+              "landing_east_m": 1142.2122622545332,
+              "landing_north_m": -115.92592526117375,
+              "lower_button_leaves": {
+                "nose_down_deg": 7.951386703658792e-16,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 2.4848083448933725e-17,
+                "speed_m_s": 44.562606343232076,
+                "time_s": 0.5519438508796392
+              },
+              "upper_button_leaves_s": 0.5519438508796392
+            },
+            "moved": {
+              "apogee_m": 1.3686253599685188,
+              "apogee_percent": 0.04953297888230044,
+              "apogee_point_m": 15.128441176336674,
+              "landing_point_m": 26.281238211865645,
+              "landing_point_percent_of_apogee": 0.9511646177438888,
+              "landing_range_m": -5.56869014059771,
+              "nose_down_deg": 0.004972631188683545,
+              "nose_right_deg": 0.011517839223901651,
+              "off_rail_axis_deg": -0.003185685981649468,
+              "pitch_rate_deg_s": -0.4018462508281252
+            },
+            "moved_from_guided": {
+              "apogee_m": -0.3577477033777541,
+              "apogee_percent": -0.012939439184403712,
+              "apogee_point_m": 8.197570283823099,
+              "landing_point_m": 14.257917962853664,
+              "landing_point_percent_of_apogee": 0.5156971257527698,
+              "landing_range_m": 5.892675962046269,
+              "nose_down_deg": 0.004978035397310427,
+              "nose_right_deg": 0.002679104037839421,
+              "off_rail_axis_deg": 0.0056523278233516884,
+              "pitch_rate_deg_s": 0.7094877027710832
+            },
+            "phase_off": {
+              "apogee_agl_m": 2763.058856647057,
+              "apogee_east_m": 702.689921471985,
+              "apogee_north_m": -18.881281425330023,
+              "apogee_time_s": 22.567382473151774,
+              "flight_time_s": 49.71759727445796,
+              "landing_east_m": 1154.825272073947,
+              "landing_north_m": -104.47371120507627,
+              "lower_button_leaves": {
+                "nose_down_deg": 5.404208627676946e-6,
+                "nose_right_deg": -0.00883873518606223,
+                "off_rail_axis_deg": 0.008838867578647408,
+                "pitch_rate_deg_s": 1.1113339535992084,
+                "speed_m_s": 44.562833520101485,
+                "time_s": 0.5519438043175195
+              },
+              "upper_button_leaves_s": 0.5359760563437787
+            },
+            "phase_on": {
+              "apogee_agl_m": 2764.4274820070254,
+              "apogee_east_m": 697.9536349554868,
+              "apogee_north_m": -33.24920829247115,
+              "apogee_time_s": 22.57384704904657,
+              "flight_time_s": 49.73026140691357,
+              "landing_east_m": 1146.687479298212,
+              "landing_north_m": -129.46330525316006,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.0049780353973112226,
+                "nose_right_deg": 0.002679104037839421,
+                "off_rail_axis_deg": 0.00565318159699794,
+                "pitch_rate_deg_s": 0.7094877027710832,
+                "speed_m_s": 44.56281926143872,
+                "time_s": 0.5519438047480895
+              },
+              "upper_button_leaves_s": 0.5359760563437787
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": -6.097610937646785,
+            "wind_north_m_s": -6.53888717543668
+          }
+        ]
+      },
+      {
+        "button_spacing_m": 0.48,
+        "name": "prometheus-2022-generic-motor",
+        "parachutes": [
+          "Drogue",
+          "Main"
+        ],
+        "rail": {
+          "heading_deg": 75,
+          "inclination_deg": 80,
+          "rail_length_m": 5.18,
+          "source": "docs/examples/prometheus_2022_flight_sim.ipynb:404-406"
+        },
+        "site": {
+          "elevation": 1401,
+          "latitude": 32.939377,
+          "longitude": -106.911986,
+          "site": "docs/examples/prometheus_flight_sim.ipynb (elevation, latitude, longitude); the wind is declared by this script"
+        },
+        "winds": [
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3806.586820350415,
+              "apogee_east_m": 1286.7872768464251,
+              "apogee_north_m": 345.41622398126566,
+              "apogee_time_s": 27.1508190208295,
+              "flight_time_s": 207.34396776672875,
+              "landing_east_m": 1422.1411051040025,
+              "landing_north_m": 381.3419400606773,
+              "lower_button_leaves": {
+                "nose_down_deg": -4.770832022195275e-15,
+                "nose_right_deg": -1.5902773407317584e-15,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 0.0,
+                "speed_m_s": 27.36150341275045,
+                "time_s": 0.40097328382541014
+              },
+              "upper_button_leaves_s": 0.40097328382541014
+            },
+            "moved": {
+              "apogee_m": -12.259348925917038,
+              "apogee_percent": -0.32212876095097953,
+              "apogee_point_m": 47.367215048033785,
+              "landing_point_m": 50.574622087941414,
+              "landing_point_percent_of_apogee": 1.328907468675703,
+              "landing_range_m": 50.57459009625222,
+              "nose_down_deg": 0.013376081420284753,
+              "nose_right_deg": -3.628128513671395e-6,
+              "off_rail_axis_deg": 0.01337637307810879,
+              "pitch_rate_deg_s": 1.4887791628927742
+            },
+            "moved_from_guided": {
+              "apogee_m": -13.116780281282445,
+              "apogee_percent": -0.34458114054193517,
+              "apogee_point_m": 50.759052927450696,
+              "landing_point_m": 53.95018317487379,
+              "landing_point_percent_of_apogee": 1.4172849778822965,
+              "landing_range_m": 53.950148582066504,
+              "nose_down_deg": 0.01337987183143026,
+              "nose_right_deg": -3.6291521859299964e-6,
+              "off_rail_axis_deg": 0.013379240817507208,
+              "pitch_rate_deg_s": 1.4894120465483647
+            },
+            "phase_off": {
+              "apogee_agl_m": 3805.7293889950497,
+              "apogee_east_m": 1290.0642890282772,
+              "apogee_north_m": 346.29129847351527,
+              "apogee_time_s": 27.14750163989225,
+              "flight_time_s": 207.31138664181157,
+              "landing_east_m": 1425.4025733299768,
+              "landing_north_m": 382.2121341592092,
+              "lower_button_leaves": {
+                "nose_down_deg": 3.7904111407354663e-6,
+                "nose_right_deg": -1.0236738488784236e-9,
+                "off_rail_axis_deg": 3.7215130446689415e-6,
+                "pitch_rate_deg_s": 0.0006328836555904486,
+                "speed_m_s": 27.36148010789696,
+                "time_s": 0.4009725621388377
+              },
+              "upper_button_leaves_s": 0.3829755770308478
+            },
+            "phase_on": {
+              "apogee_agl_m": 3793.4700400691327,
+              "apogee_east_m": 1335.8276501175453,
+              "apogee_north_m": 358.5129122466609,
+              "apogee_time_s": 27.100062250245134,
+              "flight_time_s": 206.90999527776674,
+              "landing_east_m": 1474.2664871114966,
+              "landing_north_m": 395.2547692185171,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.013379871831425489,
+                "nose_right_deg": -3.6291521875202737e-6,
+                "off_rail_axis_deg": 0.01338009459115346,
+                "pitch_rate_deg_s": 1.4894120465483647,
+                "speed_m_s": 27.361467718859373,
+                "time_s": 0.4009725655271472
+              },
+              "upper_button_leaves_s": 0.3829755770308478
+            },
+            "wind": "still",
+            "wind_east_m_s": 0.0,
+            "wind_north_m_s": 0.0
+          },
+          {
+            "guided_to_lower_button": {
+              "apogee_agl_m": 3714.7821285485497,
+              "apogee_east_m": 1045.6149294775553,
+              "apogee_north_m": 1116.2918613434406,
+              "apogee_time_s": 26.78721548719938,
+              "flight_time_s": 204.14843830149994,
+              "landing_east_m": 1550.0404716949402,
+              "landing_north_m": -288.1929705432673,
+              "lower_button_leaves": {
+                "nose_down_deg": -3.1805546814635168e-15,
+                "nose_right_deg": 0.0,
+                "off_rail_axis_deg": 8.537736462515939e-7,
+                "pitch_rate_deg_s": 1.3890500925600808e-17,
+                "speed_m_s": 27.35864294677828,
+                "time_s": 0.4010182028469972
+              },
+              "upper_button_leaves_s": 0.4010182028469972
+            },
+            "moved": {
+              "apogee_m": -6.354805723685786,
+              "apogee_percent": -0.17120173277056194,
+              "apogee_point_m": 57.23995662621219,
+              "landing_point_m": 61.60858985228369,
+              "landing_point_percent_of_apogee": 1.6597670794165964,
+              "landing_range_m": 61.08266712471959,
+              "nose_down_deg": 0.013378364200196165,
+              "nose_right_deg": 0.00834016005965266,
+              "off_rail_axis_deg": 0.01070745308142915,
+              "pitch_rate_deg_s": 1.1910274413696533
+            },
+            "moved_from_guided": {
+              "apogee_m": -9.25527230199441,
+              "apogee_percent": -0.24914710962095254,
+              "apogee_point_m": 54.34614739567223,
+              "landing_point_m": 58.13972729108347,
+              "landing_point_percent_of_apogee": 1.5650911757185604,
+              "landing_range_m": 57.93281857060947,
+              "nose_down_deg": 0.013382405813614592,
+              "nose_right_deg": 0.00482257555046919,
+              "off_rail_axis_deg": 0.01422422837722995,
+              "pitch_rate_deg_s": 1.5846309181591998
+            },
+            "phase_off": {
+              "apogee_agl_m": 3711.881661970241,
+              "apogee_east_m": 1045.2353819522173,
+              "apogee_north_m": 1127.7295714977984,
+              "apogee_time_s": 26.77598686922868,
+              "flight_time_s": 204.04317845936626,
+              "landing_east_m": 1549.2120831450025,
+              "landing_north_m": -275.1369959292648,
+              "lower_button_leaves": {
+                "nose_down_deg": 4.04161341524772e-6,
+                "nose_right_deg": -0.003517584509183471,
+                "off_rail_axis_deg": 0.0035176290694470527,
+                "pitch_rate_deg_s": 0.39360347678954655,
+                "speed_m_s": 27.35867699020706,
+                "time_s": 0.40101816782947
+              },
+              "upper_button_leaves_s": 0.3830191302886696
+            },
+            "phase_on": {
+              "apogee_agl_m": 3705.5268562465553,
+              "apogee_east_m": 1099.5587308501479,
+              "apogee_north_m": 1109.6911015215405,
+              "apogee_time_s": 26.752339898601676,
+              "flight_time_s": 203.8425613052253,
+              "landing_east_m": 1607.9018279446327,
+              "landing_north_m": -293.8755177210494,
+              "lower_button_leaves": {
+                "nose_down_deg": 0.013382405813611413,
+                "nose_right_deg": 0.00482257555046919,
+                "off_rail_axis_deg": 0.014225082150876202,
+                "pitch_rate_deg_s": 1.5846309181591998,
+                "speed_m_s": 27.35866009497216,
+                "time_s": 0.40101816851732025
+              },
+              "upper_button_leaves_s": 0.3830191302886696
+            },
+            "wind": "crosswind",
+            "wind_east_m_s": 2.3140493184526174,
+            "wind_north_m_s": -8.6361496276853
+          }
+        ]
+      }
+    ],
+    "command": "refs/venv/bin/python validation/oracles/rocketpy/tip_off.py",
+    "corrections": [
+      {
+        "issue": "https://github.com/RocketPy-Team/RocketPy/issues/1186",
+        "state": "open, head 927e771e1a7faa2915d1f96ff48a70c544db13b4 (2026-09-16)",
+        "upstream": "https://github.com/RocketPy-Team/RocketPy/pull/1196",
+        "what": "u_dot_generalized negates com_to_cdm_function and nozzle_to_cdm where it reads them and flips the sign of r_CM ^ w_dot in v_dot (flight.py:2509-2515, :2695): both attributes point to the centre of dry mass, the equations need them from it, so during the burn the moments were taken about a point as far forward of the dry centre of mass as the centre of mass is behind it"
+      }
+    ],
+    "crosswind": {
+      "direction": "square across the rail's heading, blowing toward its right, the same at every height",
+      "speed_m_s": 8.9408,
+      "speed_mph": 20.0
+    },
+    "drag": {
+      "declared_cd0": [
+        [
+          0.0,
+          0.5
+        ],
+        [
+          3.0,
+          0.5
+        ]
+      ]
+    },
+    "equations": "the pinned commit's with pull request #1196's sign correction (corrections.py, ADR-026)",
+    "evaluation": "What RocketPy's tip-off phase (use_udot_rail2) moves: each example rocket flown with the phase off and on, in still air and in a 20 mph crosswind; moved is on less off, and moved_from_guided is on less a flight with the phase off on a rail longer by the button spacing, which frees the rocket, unturned, where the lower button leaves",
+    "generator": "validation/oracles/rocketpy/tip_off.py",
+    "largest": {
+      "apogee": {
+        "apogee_m": 5.6007878204883355,
+        "apogee_percent": 1.1651245275856514,
+        "case": "bella-lui",
+        "wind": "crosswind"
+      },
+      "flights_compared": 26,
+      "landing_point": {
+        "case": "juno-iii",
+        "landing_point_m": 113.7214758430461,
+        "landing_point_percent_of_apogee": 4.5852718260379,
+        "wind": "crosswind"
+      },
+      "pitch_rate": {
+        "case": "bella-lui",
+        "pitch_rate_deg_s": -15.175099449386039,
+        "wind": "crosswind"
+      }
+    },
+    "largest_from_guided": {
+      "apogee": {
+        "apogee_m": -10.860619095243692,
+        "apogee_percent": -0.41390540987098845,
+        "case": "juno-iii",
+        "wind": "still"
+      },
+      "flights_compared": 26,
+      "landing_point": {
+        "case": "valetudo",
+        "landing_point_m": 28.484789115112612,
+        "landing_point_percent_of_apogee": 3.764573907510679,
+        "wind": "crosswind"
+      },
+      "pitch_rate": {
+        "case": "juno-iii",
+        "pitch_rate_deg_s": 2.3821418920194306,
+        "wind": "crosswind"
+      }
+    },
+    "oracle": "rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c (pull request #920's merge)",
+    "solver": {
+      "atol": 1e-8,
+      "max_time": 6000,
+      "max_time_step": 0.05,
+      "rtol": 1e-8
+    }
+  },
+  "generator": "cargo xtask tip-off",
+  "lag_probe": [
+    {
+      "case": "ndrt-2020-nose-to-tail",
+      "finished": false,
+      "solver_time_s": 16.0,
+      "wall_s": 20,
+      "wind": "still"
+    }
+  ],
+  "reading": {
+    "model_called_for": true,
+    "moved": {
+      "apogee_past_the_bar": [
+        {
+          "apogee_percent": 1.1651245275856514,
+          "case": "bella-lui",
+          "wind": "crosswind"
+        }
+      ],
+      "designs_past_a_bar": [
+        "bella-lui",
+        "valetudo",
+        "juno-iii",
+        "cavour",
+        "lince",
+        "prometheus-2022-generic-motor"
+      ],
+      "landing_farther_from_the_pad": 22,
+      "landing_nearer_the_pad": 4,
+      "landing_point_past_the_bar": [
+        {
+          "case": "bella-lui",
+          "landing_point_m": 20.346463845728653,
+          "landing_point_percent_of_apogee": 4.232648126674826,
+          "wind": "crosswind"
+        },
+        {
+          "case": "valetudo",
+          "landing_point_m": 26.206720778645856,
+          "landing_point_percent_of_apogee": 3.3687742004531325,
+          "wind": "still"
+        },
+        {
+          "case": "valetudo",
+          "landing_point_m": 30.93032196348433,
+          "landing_point_percent_of_apogee": 4.094974061356664,
+          "wind": "crosswind"
+        },
+        {
+          "case": "juno-iii",
+          "landing_point_m": 82.71886831302629,
+          "landing_point_percent_of_apogee": 3.153605748638696,
+          "wind": "still"
+        },
+        {
+          "case": "juno-iii",
+          "landing_point_m": 113.7214758430461,
+          "landing_point_percent_of_apogee": 4.5852718260379,
+          "wind": "crosswind"
+        },
+        {
+          "case": "cavour",
+          "landing_point_m": 47.59992114327548,
+          "landing_point_percent_of_apogee": 1.5289821279176063,
+          "wind": "crosswind"
+        },
+        {
+          "case": "lince",
+          "landing_point_m": 40.4831518310967,
+          "landing_point_percent_of_apogee": 1.07797493655807,
+          "wind": "crosswind"
+        },
+        {
+          "case": "prometheus-2022-generic-motor",
+          "landing_point_m": 50.574622087941414,
+          "landing_point_percent_of_apogee": 1.328907468675703,
+          "wind": "still"
+        },
+        {
+          "case": "prometheus-2022-generic-motor",
+          "landing_point_m": 61.60858985228369,
+          "landing_point_percent_of_apogee": 1.6597670794165964,
+          "wind": "crosswind"
+        }
+      ],
+      "rows": 26
+    },
+    "moved_from_guided": {
+      "apogee_past_the_bar": [],
+      "designs_past_a_bar": [
+        "valetudo",
+        "juno-iii",
+        "prometheus-2022-generic-motor"
+      ],
+      "landing_farther_from_the_pad": 23,
+      "landing_nearer_the_pad": 3,
+      "landing_point_past_the_bar": [
+        {
+          "case": "valetudo",
+          "landing_point_m": 28.174301449597067,
+          "landing_point_percent_of_apogee": 3.62088743451725,
+          "wind": "still"
+        },
+        {
+          "case": "valetudo",
+          "landing_point_m": 28.484789115112612,
+          "landing_point_percent_of_apogee": 3.764573907510679,
+          "wind": "crosswind"
+        },
+        {
+          "case": "juno-iii",
+          "landing_point_m": 91.34008382556397,
+          "landing_point_percent_of_apogee": 3.4810312839373356,
+          "wind": "still"
+        },
+        {
+          "case": "juno-iii",
+          "landing_point_m": 92.00526295500354,
+          "landing_point_percent_of_apogee": 3.692020447448444,
+          "wind": "crosswind"
+        },
+        {
+          "case": "prometheus-2022-generic-motor",
+          "landing_point_m": 53.95018317487379,
+          "landing_point_percent_of_apogee": 1.4172849778822965,
+          "wind": "still"
+        },
+        {
+          "case": "prometheus-2022-generic-motor",
+          "landing_point_m": 58.13972729108347,
+          "landing_point_percent_of_apogee": 1.5650911757185604,
+          "wind": "crosswind"
+        }
+      ],
+      "rows": 26
+    }
+  }
+}
