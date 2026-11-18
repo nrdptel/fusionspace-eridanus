@@ -978,7 +978,9 @@ held and what stays open.
 - **What the comparison leaves out.** Everything the comparison above does: one drag
   coefficient, a wind that does not change with height, and a frictionless rail. It also takes
   RocketPy's normal force as RocketPy states it for a rocket at rest in the air stream. In
-  flight RocketPy works each surface's angle from the air's speed at that surface.
+  flight RocketPy works each surface's angle from the air's speed at that surface. And in the
+  crosswind the rocket leaves the rail at 9.7° to 25.6° to the air. Both codes carry
+  small-angle models there, and 7 of the 13 are past the 15° the accuracy work assumes.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
