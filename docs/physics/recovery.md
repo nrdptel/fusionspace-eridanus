@@ -453,7 +453,7 @@ read low (`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
 [ejection](../glossary.md#ejection) that parts the stack, or the part that keeps the nose, ends
 the count: from its charge on, neither the piece ahead of the parted joint (a nose cone pushed
 off is the nose cone alone), which is body 0 from then on, nor the pieces behind it count. An
-ejection in the part dropped aft changes nothing.
+ejection in the part dropped aft, after the split, changes nothing.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are
