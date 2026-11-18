@@ -343,8 +343,8 @@ $$
   - The rocket leaves after traveling $L - (s_{\mathrm{aft}} - s_{\mathrm{guide}})$. RocketPy ends its rail phase when
     the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
     rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
-  - The pivot about the last guide ("tip-off") is left out unless the flight asks for it, and
-    the rocket then leaves the rail with no angular velocity ([Tip-off](#tip-off)). On thirteen
+  - The pivot about the last guide ("tip-off") is left out unless the flight asks for it
+    ([Tip-off](#tip-off)). Without it the rocket leaves the rail with no angular velocity. On thirteen
     example designs, RocketPy's tip-off phase moves the
     landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, one code
     against another ([what leaving tip-off out costs](#what-leaving-tip-off-out-costs)).
@@ -355,12 +355,12 @@ $$
 
 ### Tip-off
 
-A flight that asks for it flies one more phase between the rail and free flight: tip-off, the
-turn a rocket picks up on its last guide alone. It is off by default, so every flight on this
+A flight that asks for it flies one more phase between the rail and free flight. That phase is
+tip-off, the turn a rocket picks up on its last guide alone. It is off by default, so every flight on this
 site and in the reports flies without it unless it says otherwise.
 
 > **How far to trust it.** One code against another, and no real flight. On RocketPy's thirteen
-> example rockets the phase agrees with RocketPy's when both fly RocketPy's normal force: the
+> example rockets the phase agrees with RocketPy's when both fly RocketPy's normal force. The
 > turning rate where the last guide leaves is within 0.003 deg/s on all 26 flights. On HPR Sim's
 > own normal force the 13 still-air flights agree as well. The 13 crosswind flights do not, by
 > up to 4.010 deg/s, and that is open
@@ -375,14 +375,13 @@ is free, with the turning rate it has picked up.
 **The equation.** The free equations give the acceleration $\mathbf{a}$ of the nose tip and
 the angular acceleration $\dot{\boldsymbol{\omega}}$ the rocket would have with nothing holding it.
 The guide adds a force $\mathbf{F}$ on the pivot, square to the rail, and a moment $\tau$ about
-the long axis $\mathbf{z}_B$. With $\mathbf{d}$ the pivot's position from the center of mass,
-$\mathbf{r}$ the center of mass's from the nose tip and $\mathbf{I}_c$ the inertia about the
-center of mass, they change the motion by
+the long axis $\mathbf{z}_B$. Write $\mathbf{d}$ for the pivot's position from the center of
+mass and $\mathbf{r}$ for the center of mass's from the nose tip. $I_c$ is the inertia about
+the center of mass. The two change the motion by
 
 $$
 \begin{aligned}
-\Delta\dot{\boldsymbol{\omega}} &= \mathbf{I}_c^{-1}
-  (\mathbf{d} \times \mathbf{F} + \tau\, \mathbf{z}_B), \\
+\Delta\dot{\boldsymbol{\omega}} &= I_c^{-1} (\mathbf{d} \times \mathbf{F} + \tau\, \mathbf{z}_B), \\
 \Delta\mathbf{a} &= \frac{\mathbf{F}}{m}
   - \Delta\dot{\boldsymbol{\omega}} \times \mathbf{r}
 \end{aligned}
@@ -393,23 +392,23 @@ $\tau$. The pivot's acceleration has no part across the rail, in either directio
 angular acceleration has none about the long axis. The three equations are linear. Source:
 [RP-TIP], written for this page's equations about the nose tip.
 
-- **The pivot** is on the rocket's axis, at the middle of the aft-most guide.
-- **Friction** is the rail's, on that force: $\mu \lvert \mathbf{F} \rvert$ on the pivot along
+- The pivot is on the rocket's axis, at the middle of the aft-most guide.
+- Friction is the rail's, on that force: $\mu \lvert \mathbf{F} \rvert$ on the pivot along
   the rail, against the sliding. It is solved with the force, since it turns the rocket a
   little. RocketPy's rail has none.
-- **It starts** when the aft edge of the guide next ahead of the last one passes the top of the
-  rail, and ends when the last guide's does. A rocket with one guide, or none, has no such
+- The phase starts when the aft edge of the guide next ahead of the last one passes the top of
+  the rail. It ends when the last guide's does. A rocket with one guide, or none, has no such
   stretch and flies as before. A rail too short to hold both guides pivots the rocket from
   liftoff.
-- **A rocket that stops** on its last guide returns to the pad phase, at rest, as on the rail.
-- **Asking for it:** `Simulation::with_tip_off` in the Rust library. The command line and the
-  Python package don't offer it yet; flying it by default is
+- A rocket that stops on its last guide returns to the pad phase, at rest, as on the rail.
+- To ask for it, call `Simulation::with_tip_off` in the Rust library. The command line and the
+  Python package don't offer it yet. Flying it by default is
   [the next increment](../decisions-and-roadmap.md#m1-14b10).
 
 **For a burnt-out rocket in no air** the three conditions reduce to a pendulum hung from the
-guide. With $r$ the distance along the axis from the last guide to the center of mass, $I$ the
-inertia about the center of mass for a turn in the rail's vertical plane and $\theta$ the rail's
-angle above the horizontal, the nose turns down at
+guide. Write $r$ for the distance along the axis from the last guide to the center of mass.
+$I$ is the inertia about the center of mass for a turn in the rail's vertical plane, and
+$\theta$ is the rail's angle above the horizontal. The nose turns down at
 
 $$
 \dot\omega = \frac{m g\, r \cos\theta}{I + m r^2}
@@ -418,7 +417,7 @@ $$
 A test holds the phase to that within 1e-9 of its size on four rails, 5° to 60° off the vertical.
 
 **A worked example.** Take a 20 kg (44 lb) rocket on a rail 5° off the vertical, so
-$\theta = 85°$. Its center of mass is 0.80 m (2.6 ft) ahead of its last guide, and its inertia
+$\theta = 85°$. Its center of mass is 0.80 m (2.6 ft) ahead of its last guide. Its inertia
 about the center of mass is 9.0 kg m².
 
 $$
@@ -434,7 +433,7 @@ nose-down at about 2.5 deg/s. Juno III, a real example, is under
 [the tip-off phase against RocketPy's](#the-tip-off-phase-against-rocketpys).
 
 **What it leaves out.** A real button sits a body radius off the axis and has play in its slot,
-and a lug slides on a rod: here the pivot is a pin on the axis that lets nothing through across
+and a lug slides on a rod. Here the pivot is a pin on the axis that lets nothing through across
 the rail. The rail does not flex or whip. The rocket cannot slide back down, as on the rail. No
 real flight checks any of it.
 
@@ -939,13 +938,13 @@ held and what stays open.
   coefficient as RocketPy's flights above. HPR Sim flies each guided, as it does by default,
   and with the phase. A design whose dry mass, reference area or motor differs from what
   RocketPy flew is refused.
-- **Twice over.** On *RocketPy's normal force*, HPR Sim flies the force RocketPy flew: its
-  slope at the Mach number times the angle of attack, at RocketPy's center of pressure, read
-  from RocketPy with each flight. The two codes then differ in the phase alone. On *its own*,
+- **Twice over.** On *RocketPy's normal force*, HPR Sim flies the force RocketPy flew. That is
+  RocketPy's slope at the Mach number times the angle of attack, at RocketPy's center of
+  pressure, read from RocketPy with each flight. The two codes then differ in the phase alone. On *its own*,
   HPR Sim flies its own aerodynamics.
 - **The bars** are [the tip-off decision record's][adr-357]. Where the last guide leaves, the
-  turning rate is within 10% of RocketPy's or 0.1 deg/s, whichever is larger, and the angle
-  off the rail within 10% or 0.005°. Each is compared as a pair, nose-down and nose-right. The
+  turning rate is within 10% of RocketPy's or 0.1 deg/s, whichever is larger. The angle off
+  the rail is within 10% or 0.005°. Each is compared as a pair, nose-down and nose-right. The
   two codes' apogee moves are within 0.2% of RocketPy's guided apogee, and their landing-point
   moves, as vectors, within 1% of it.
 - **On RocketPy's normal force, 26 of 26 flights are inside every bar.** The largest
@@ -959,15 +958,15 @@ held and what stays open.
     4.082%.
   - The cause is the normal force. In the crosswind the air meets the rocket at 9.7° to 25.6°
     as the last guide leaves. There HPR Sim's own normal-force coefficient is 1.23 to 2.71
-    times RocketPy's, and on all 13 it turns the rocket farther downwind, by 0.136 to
+    times RocketPy's. On all 13 it turns the rocket farther downwind, by 0.136 to
     4.011 deg/s.
   - Which force is nearer a real rocket's at those angles, no reference here says
     ([issue #1538][i-1538]). HPR Sim's adds [body lift](aero.md#body-lift), which RocketPy
     leaves out. Holding these 13 to the bars is
     [an open increment](../decisions-and-roadmap.md#m1-14b12).
 - **Which way leaving the phase out errs.** With the phase, HPR Sim lands farther from the pad
-  in 22 of the 26 flights on RocketPy's normal force, as RocketPy does, and in 20 on its own.
-  A move of under 0.1 m either way is not counted. For a landing-area estimate, a flight
+  in 22 of the 26 flights on RocketPy's normal force, as RocketPy does. On its own it does in
+  20. A move of under 0.1 m (0.33 ft) either way is not counted. For a landing-area estimate, a flight
   without the phase understates how far the rocket travels in most of these.
 - **A worked example.** Juno III in still air, on HPR Sim's own normal force, leaves its last
   guide at 21.5 m/s (70.7 ft/s), turning nose-down at 2.254 deg/s. RocketPy's turns at
