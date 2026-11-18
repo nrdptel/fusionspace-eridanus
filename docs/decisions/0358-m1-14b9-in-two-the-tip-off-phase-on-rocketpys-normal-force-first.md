@@ -1,7 +1,7 @@
 # ADR-358: M1.14b9 in two: the tip-off phase on RocketPy's normal force first (2026-11-18)
 
 - **Status:** accepted; splits [M1.14b9][m1-14b9] ([ADR-357][adr-357], decision 4) into [M1.14b11][m1-14b11] and [M1.14b12][m1-14b12], each with its own *done when*, M1.14b9's *done when* whole across the two; M1.14b12 waits for [M1.14e][m1-14e], and [M1.14b10][m1-14b10] comes next
-- **Summary:** HPR Sim's tip-off phase agrees with RocketPy's on all 26 flights when both fly RocketPy's normal force, and on the 13 still-air flights on HPR Sim's own. On its own normal force the 13 crosswind flights are past the bars, because the two codes' normal forces differ by 1.23 to 2.71 times at 10° to 26° angle of attack. M1.14b9 stays open on those 13.
+- **Summary:** HPR Sim's tip-off phase agrees with RocketPy's on all 26 flights when both fly RocketPy's normal force, and on the 13 still-air flights on HPR Sim's own. On its own normal force the 13 crosswind flights are past the bars, because the two codes' normal forces differ by 1.23 to 2.71 times at 9.7° to 25.6° angle of attack. M1.14b9 stays open on those 13.
 
 [m1-14b9]: ../decisions-and-roadmap.md#m1-14b9
 [m1-14b10]: ../decisions-and-roadmap.md#m1-14b10
@@ -19,7 +19,7 @@
 [pr-920]: https://github.com/RocketPy-Team/RocketPy/pull/920
 
 **Context.** [ADR-357][adr-357] wrote [M1.14b9][m1-14b9]'s *done when*: HPR Sim gains a tip-off
-phase, and on RocketPy's thirteen example rockets, in still air and in a 20 mph (8.94 m/s)
+phase, and on RocketPy's thirteen example designs, in still air and in a 20 mph (8.94 m/s)
 crosswind, its figures are within set bars of RocketPy's. The bars are on the turning rate and
 the angle off the rail where the last guide leaves, and on what the phase moves in the apogee
 and the landing point. The *done when* ends: M1.14b9 is not met while any figure is past its
@@ -85,20 +85,22 @@ and what is not. Every figure below is in [the committed report][report]
    - **What separates the cause from the phase.** The same 13 flights, in the same code, with
      the same phase, differ in the normal force alone, and that takes the turning rate's
      difference from RocketPy's from as much as 4.010 deg/s to at most 0.003 deg/s.
-4. **No bar is widened, and no reference changes.** M1.14b9's bars are ADR-357's, and
+4. **No bar is widened, and no figure of the reference changes.** The reference gains what
+   each flight carried, and the turning rate's two parts. M1.14b9's bars are ADR-357's, and
    M1.14b11's are the same numbers. M1.14b11 holds them on fewer flights of HPR Sim's own
    aerodynamics than M1.14b9 asks for, which is why M1.14b9 stays open and M1.14b12 carries the
    rest. The report keeps the 13 crosswind flights on HPR Sim's own normal force, every figure
    past a bar in bold.
 5. **Which normal force is right is not decided here.** No reference in the validation set
-   gives a finned body's normal force at 10° to 26° and Mach 0.06 to 0.16
+   gives a finned body's normal force at 9.7° to 25.6° and Mach 0.06 to 0.16
    ([issue #1538][i1538]). RocketPy's line is a small-angle slope carried to any angle. HPR
    Sim's body lift is Jorgensen's method, checked on one body alone from 5.5° to 21.7° at
    Mach 1.5 to 4.63, and below Mach 1 only through that body's slope near zero angle
    ([the aerodynamics page][body-lift]). That question is the large-angle increment's
    ([M1.14e][m1-14e]), so M1.14b12 waits for it.
 6. **The order.** [M1.14b10][m1-14b10], the phase in every flight with two guides, comes next,
-   as ADR-357 decision 6 put it, ahead of M1.14b12. The normal force in question already acts
+   where ADR-357 decision 6 put it, after M1.14b9's phase. This record puts it ahead of
+   M1.14b12. The normal force in question already acts
    on every HPR Sim flight in a wind from the moment the rocket is free, with the phase or
    without it. The phase adds the stretch on the last guide alone, 0.071 s for Juno III in
    RocketPy's still-air flight ([the flight page's worked example][cost]). M1.14b10's

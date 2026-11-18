@@ -309,8 +309,10 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         "Written by `cargo xtask tip-off`; don't edit it by hand. What it measures and how far to \
          trust it: [rigid-body flight](../../docs/physics/flight.md#what-leaving-tip-off-out-costs). \
          It is one code against another: the phase is in RocketPy's development branch, in no \
-         release, and no flight checks it. HPR Sim frees a rocket with no turning rate where its last guide leaves the rail. This \
-         report measures the pivot about that guide which it leaves out, with RocketPy's tip-off \
+         release, and no flight checks it. By default HPR Sim frees a rocket with no turning rate \
+         where its last guide leaves the rail ([its opt-in tip-off phase against this \
+         report](tip-off-model.md)). This \
+         report measures the pivot about that guide which that leaves out, with RocketPy's tip-off \
          phase: {}. Equations: {}. Each example rocket of \
          `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and \
          site on a declared constant drag coefficient, in still air and in a {} mph ({} m/s) wind \

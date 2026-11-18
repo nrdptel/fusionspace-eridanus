@@ -462,8 +462,9 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
 
 
 # The Mach numbers RocketPy's normal force is recorded at: to the top of the declared drag
-# table, close enough together that a straight line between two misses RocketPy's own curve by
-# under 0.1% (its compressibility factor bends most at Mach 0.8, where it changes form).
+# table, every 0.02. A straight line between two follows RocketPy's own curve but at Mach 1.1,
+# where its compressibility factor steps (Calisto's slope by 4.1%) and the line spreads the
+# step over 0.02. The last guide leaves the rail at Mach 0.06 to 0.16, far below it.
 NORMAL_FORCE_MACH_STEP = 0.02
 NORMAL_FORCE_MACH_TOP = 3.0
 # The angles of attack, rad, at which each surface's lift is checked to be its slope times the

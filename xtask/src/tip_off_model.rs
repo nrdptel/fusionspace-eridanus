@@ -3,7 +3,7 @@
 //!
 //! - **The question.** HPR Sim's tip-off phase ([`hpr_sim::Simulation::with_tip_off`]) lets a
 //!   rocket pivot about its last guide once the guide ahead of it has left the rail. RocketPy's
-//!   development branch has the same phase. This report flies both on the same thirteen rockets,
+//!   development branch has the same phase. This report flies both on the same thirteen designs,
 //!   in still air and in a crosswind, and sets the two beside each other.
 //! - **The reference** is `validation/reports/tip-off.json`, which `cargo xtask tip-off` writes
 //!   from RocketPy's flights: for each rocket and wind, RocketPy guided to its lower button and
@@ -18,7 +18,8 @@
 //!   two codes' apogee moves within 0.2% of RocketPy's guided apogee; and their landing-point
 //!   moves, as vectors, within 1% of it.
 //! - **Which flights are held to the bars** is the next record's ([ADR-358][adr-358]): all 26 on
-//!   RocketPy's normal force, where the two codes differ in the phase alone, and the 13 in still
+//!   RocketPy's normal force, where the phase meets one drag and one normal force in both
+//!   codes, and the 13 in still
 //!   air on HPR Sim's own. The 13 crosswind flights on HPR Sim's own normal force are past the
 //!   bars: they stay in the report with every figure past a bar marked, and are an open
 //!   increment of the roadmap.
@@ -36,7 +37,7 @@ use serde_json::{Value, json};
 use crate::tip_off::{fixed, list, number, signed, text};
 
 pub const USAGE: &str = "\
-  tip-off-model [--check]  Fly HPR Sim's tip-off phase on the thirteen rockets of
+  tip-off-model [--check]  Fly HPR Sim's tip-off phase on the thirteen designs of
                            validation/reports/tip-off.json, on RocketPy's normal force and on
                            its own, and write the comparison with RocketPy's phase to
                            validation/reports/tip-off-model.json and .md. --check fails if the
@@ -542,7 +543,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         out,
         "Written by `cargo xtask tip-off-model`; don't edit it by hand. What it measures and how \
          far to trust it: [rigid-body flight](../../docs/physics/flight.md#tip-off). It is one \
-         code against another, on {} flights of thirteen rockets; RocketPy's phase is in its \
+         code against another, on {} flights of thirteen designs; RocketPy's phase is in its \
          development branch, in no release, and no real flight checks either. RocketPy's side \
          is [its own report](tip-off.md) ({}; {}).\n\n",
         flights.len(),
@@ -560,10 +561,11 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **On RocketPy's normal force,** HPR Sim flies the normal force RocketPy flew, which \
          the reference records for each rocket: a slope against Mach number times the angle of \
          attack, at a center of pressure against Mach number. Both codes already fly one \
-         declared drag coefficient. So the two flights differ in the phase alone. All of \
-         these are held to the bars.\n\
+         declared drag coefficient. So the phase meets one drag and one normal force in both \
+         codes; damping in pitch and yaw stays each code's own. All of these are held to the \
+         bars.\n\
          - **On its own normal force,** HPR Sim flies its own aerodynamics. In the crosswind \
-         the rocket meets the air at 10° to 26° as it leaves the rail, where HPR Sim's normal \
+         the rocket meets the air at 9.7° to 25.6° as it leaves the rail, where HPR Sim's normal \
          force and RocketPy's are far apart, and the turn about the last guide follows the \
          force. The still-air flights are held to the bars. The crosswind flights are past \
          them and are not held: they are open work \

@@ -360,7 +360,7 @@ tip-off, the turn a rocket picks up on its last guide alone. It is off by defaul
 site and in the reports flies without it unless it says otherwise.
 
 > **How far to trust it.** One code against another, and no real flight. On RocketPy's thirteen
-> example rockets the phase agrees with RocketPy's when both fly RocketPy's normal force. The
+> example designs the phase agrees with RocketPy's when both fly RocketPy's normal force. The
 > turning rate where the last guide leaves is within 0.003 deg/s on all 26 flights. On HPR Sim's
 > own normal force the 13 still-air flights agree as well. The 13 crosswind flights do not, by
 > up to 4.010 deg/s, and that is open
@@ -875,7 +875,8 @@ from a rocket held straight to its last guide, as HPR Sim holds it. The landing 
 farther from the pad in most flights, and the largest apogee move is down. That is one code
 against another: the phase is in RocketPy's development branch, in no release, and no flight
 checks it. The landing point's cost is past the plan's bar of 1% of the apogee, so HPR Sim
-gained [a model of the pivot](../decisions-and-roadmap.md#m1-14b11), held to RocketPy's
+gained [a model of the pivot](../decisions-and-roadmap.md#m1-14b11). It is held to RocketPy's
+on RocketPy's normal force and in still air, not yet in a crosswind on HPR Sim's own
 ([below](#the-tip-off-phase-against-rocketpys)).
 
 Tip-off is the turn a rocket picks up between its guides leaving the rail. Once the forward
@@ -933,7 +934,7 @@ not on the 13 crosswind flights. That is one code against another, with no fligh
 either.
 
 `cargo xtask tip-off-model` flies the comparison and writes [the report][tip-off-model]. The
-gate and CI hold it on every change (`--check`). [The decision record][adr-358] gives what is
+gate and CI hold it (`--check`). [The decision record][adr-358] gives what is
 held and what stays open.
 
 - **What flies.** The same thirteen designs, rails, sites, winds, parachutes and drag
@@ -942,7 +943,8 @@ held and what stays open.
   RocketPy flew is refused.
 - **Twice over.** On *RocketPy's normal force*, HPR Sim flies the force RocketPy flew. That is
   RocketPy's slope at the Mach number times the angle of attack, at RocketPy's center of
-  pressure, read from RocketPy with each flight. The two codes then differ in the phase alone. On *its own*,
+  pressure, read from RocketPy with each flight. The phase then meets one drag and one normal
+  force in both codes. Damping in pitch and yaw stays each code's own. On *its own*,
   HPR Sim flies its own aerodynamics.
 - **The bars** are [the tip-off decision record's][adr-357]. Where the last guide leaves, the
   turning rate is within 10% of RocketPy's or 0.1 deg/s, whichever is larger. The angle off
@@ -968,8 +970,9 @@ held and what stays open.
     [an open increment](../decisions-and-roadmap.md#m1-14b12).
 - **Which way leaving the phase out errs.** With the phase, HPR Sim lands farther from the pad
   in 22 of the 26 flights on RocketPy's normal force, as RocketPy does. On its own it does in
-  20. A move of under 0.1 m (0.33 ft) either way is not counted. For a landing-area estimate, a flight
-  without the phase understates how far the rocket travels in most of these.
+  20. A move of under 0.1 m (0.33 ft) either way is not counted here. The count of 23 above
+  includes the vertical rail's still-air flight, which moves 6 mm (0.2 in). For a landing-area
+  estimate, a flight without the phase lands nearer the pad than one with it in most of these.
 - **A worked example.** Juno III in still air, on HPR Sim's own normal force, leaves its last
   guide at 21.5 m/s (70.7 ft/s), turning nose-down at 2.254 deg/s. RocketPy's turns at
   2.255 deg/s. Its axis is 0.0788° below the rail's line, and RocketPy's 0.0789°. The phase

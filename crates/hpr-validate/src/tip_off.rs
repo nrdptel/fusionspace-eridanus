@@ -2,8 +2,8 @@
 //! `validation/reports/tip-off-model.json` (M1.14b9; the tip-off decision record,
 //! [ADR-357][adr-357], decision 4).
 //!
-//! `validation/reports/tip-off.json` holds what RocketPy's tip-off phase does to thirteen of its
-//! example rockets, in still air and in a crosswind, with everything each flight carried. [`fly`]
+//! `validation/reports/tip-off.json` holds what RocketPy's tip-off phase does to thirteen designs
+//! built from its examples, in still air and in a crosswind, with everything each flight carried. [`fly`]
 //! flies one of those flights in HPR Sim from that record: the public design built from the same
 //! example, the record's rail, site, wind, parachutes and declared drag coefficient, guided to
 //! the last guide as HPR Sim flies by default, or with its tip-off phase
@@ -100,7 +100,9 @@ pub enum NormalForce {
 
 /// The largest angle of attack the recorded normal force's table is given at, rad: RocketPy's
 /// force is its slope times the angle at any angle, and between two columns of one slope the
-/// table is exactly that. Past it the table's own rule takes over, which no flight here reaches.
+/// table is exactly that. Past it the table's own rule takes over. Where the last guide leaves
+/// the angle is at most 0.45 rad (25.6°), far inside. Whether a flight passes 1.5 rad later, at
+/// the top of its path, is not recorded; the guided and the tip-off flight fly the same table.
 const RECORDED_TOP_ANGLE_RAD: f64 = 1.5;
 
 /// Flies, in HPR Sim, the flight of `case` (a case of the oracle's report, with its `rail` and
