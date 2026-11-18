@@ -337,6 +337,8 @@ $$
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
+- **Tip-off.** Only when the flight asks for it: between the rail and free flight, the rocket
+  slides on its last guide alone and pivots about it ([Tip-off](#tip-off)).
 - **Free.** Six degrees of freedom until the ground.
 - **Rail geometry.**
   - A button's axial extent is its outer diameter, and a lug's is its length.
