@@ -62,20 +62,20 @@ fn oracle(root: &Path, flag: Option<&str>) -> Result<Value, String> {
     serde_json::from_slice(&output.stdout).map_err(|e| format!("{ORACLE}'s output: {e}"))
 }
 
-fn number(value: &Value, key: &str) -> Result<f64, String> {
+pub(crate) fn number(value: &Value, key: &str) -> Result<f64, String> {
     value[key]
         .as_f64()
         .filter(|x| x.is_finite())
         .ok_or_else(|| format!("no number `{key}` in {value}"))
 }
 
-fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
+pub(crate) fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
     value[key]
         .as_str()
         .ok_or_else(|| format!("no text `{key}` in {value}"))
 }
 
-fn list<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>, String> {
+pub(crate) fn list<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>, String> {
     value[key]
         .as_array()
         .ok_or_else(|| format!("no list `{key}` in {value}"))
@@ -213,7 +213,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
 }
 
 /// `value` to `decimals` places, a value that rounds to zero without its sign.
-fn fixed(value: f64, decimals: usize) -> String {
+pub(crate) fn fixed(value: f64, decimals: usize) -> String {
     let shown = format!("{value:.decimals$}");
     if shown
         .trim_start_matches('-')
@@ -227,7 +227,7 @@ fn fixed(value: f64, decimals: usize) -> String {
 }
 
 /// `value` to `decimals` places with its sign, zero bare.
-fn signed(value: f64, decimals: usize) -> String {
+pub(crate) fn signed(value: f64, decimals: usize) -> String {
     let shown = fixed(value, decimals);
     if value > 0.0 && shown.chars().any(|c| ('1'..='9').contains(&c)) {
         format!("+{shown}")
