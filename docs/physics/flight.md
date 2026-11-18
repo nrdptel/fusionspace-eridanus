@@ -382,8 +382,7 @@ the center of mass. The two change the motion by
 $$
 \begin{aligned}
 \Delta\dot{\boldsymbol{\omega}} &= I_c^{-1} (\mathbf{d} \times \mathbf{F} + \tau\, \mathbf{z}_B), \\
-\Delta\mathbf{a} &= \frac{\mathbf{F}}{m}
-  - \Delta\dot{\boldsymbol{\omega}} \times \mathbf{r}
+\Delta\mathbf{a} &= \frac{\mathbf{F}}{m} - \Delta\dot{\boldsymbol{\omega}} \times \mathbf{r}
 \end{aligned}
 $$
 
@@ -422,9 +421,12 @@ about the center of mass is 9.0 kg m².
 
 $$
 \begin{aligned}
-\dot\omega &= \frac{20 \times 9.80665 \times 0.80 \times \cos 85°}
-  {9.0 + 20 \times 0.80^2} \\
-&= \frac{13.675}{21.8} = 0.627\ \text{rad/s}^2
+m g\, r \cos\theta &= 20 \times 9.80665 \\
+&\quad \times 0.80 \times \cos 85° \\
+&= 13.675\ \text{N m}, \\
+I + m r^2 &= 9.0 + 20 \times 0.80^2 \\
+&= 21.8\ \text{kg m}^2, \\
+\dot\omega &= \frac{13.675}{21.8} = 0.627\ \text{rad/s}^2
 \end{aligned}
 $$
 
