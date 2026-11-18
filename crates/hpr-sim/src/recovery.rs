@@ -4139,6 +4139,89 @@ mod tests {
     }
 
     #[test]
+    fn the_nose_parts_shock_stops_counting_where_an_ejection_parts_it() {
+        // #1519, found in review: after the split, the part that keeps the nose opens a drogue,
+        // then pushes off its nose cone under the cone's own canopy. From the ejection on, body 0
+        // is the nose cone alone, whose far larger shock is left out, as its apogee is: the
+        // flight's is the drogue's, `q C_D S / m` at its opening on the whole part.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let charge = Trigger::Time {
+            time_s: split_s + 15.0,
+        };
+        let drogue_m2 = 0.05;
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: drogue_m2 },
+                Trigger::Time {
+                    time_s: split_s + 12.0,
+                },
+            ),
+            Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, charge),
+            Device::new(
+                "booster",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+            Device::new("airframe", DeviceDrag::DragArea { cd_s_m2: 1.0 }, charge).on_body(2),
+        ];
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(Trigger::Time { time_s: split_s }, 0),
+        )
+        .with_ejections(vec![crate::Ejection::aft_of(charge, "nose")])
+        .unwrap();
+        let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+        let mut metrics = crate::metrics::FlightMetrics::new();
+        let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        // The stack only split; the ejection is body 0's own, after the drogue opened.
+        assert!(
+            !result
+                .events
+                .iter()
+                .any(|event| matches!(event.kind, EventKind::Ejection(_)))
+        );
+        let nose = result.bodies.iter().find(|body| body.body == 0).unwrap();
+        let drogue = nose.event(EventKind::Deployment(0)).unwrap().sample;
+        let ejected = nose.event(EventKind::Ejection(0)).unwrap().sample;
+        let cone = nose.event(EventKind::Deployment(1)).unwrap().sample;
+        assert!(drogue.time_s < ejected.time_s);
+        assert!(drogue.vertical_speed_m_s < 0.0, "{drogue:?}");
+        let rho = air.0.density_kg_m3;
+        let per_kg = |sample: &BodySample, cd_s_m2: f64| {
+            0.5 * rho * sample.airspeed_m_s.powi(2) * cd_s_m2 / sample.mass_kg
+        };
+        let drogue_per_kg = per_kg(&drogue, drogue_m2);
+        // The nose cone alone, much lighter, under its canopy (the samples at the charge are
+        // the whole part's, taken as it fires): what must not be taken.
+        let cone_kg = nose.final_sample.mass_kg;
+        assert!(cone_kg < 0.5 * drogue.mass_kg, "{cone_kg} {drogue:?}");
+        let cone_per_kg = per_kg(&cone, 0.3) * cone.mass_kg / cone_kg;
+        assert!(
+            cone_per_kg > 5.0 * drogue_per_kg,
+            "{cone_per_kg} {drogue_per_kg}"
+        );
+        let summary = metrics.summary(&result, sim.environment()).unwrap();
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            (shock.value / drogue_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {drogue_per_kg}",
+            shock.value
+        );
+        assert_eq!(shock.time_s, drogue.time_s);
+    }
+
+    #[test]
     fn a_timed_separation_fires_at_its_own_time() {
         // Found in review: the separation's trigger was neither a stop time nor a located event,
         // so a timed or height separation fired at whatever boundary happened to come next,

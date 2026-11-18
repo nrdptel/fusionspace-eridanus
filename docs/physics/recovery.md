@@ -444,8 +444,9 @@ mass. After a separation with nothing left to burn, the part that keeps the nose
 point mass (body 0), and its own devices' load counts too: their drag alone over its mass,
 $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$, with no airframe drag, whether they
 open before the split or after. A test pins it at $q\,(C_D S)/m$ at an instant opening. An
-[ejection](../glossary.md#ejection) that parts the stack is not such a split: the piece it pushes off is left out,
-as its apogee is.
+[ejection](../glossary.md#ejection) is not such a split: from its charge on, body 0 is the piece
+ahead of the parted joint (a nose cone pushed off is the nose cone alone), and its load is left
+out, as its apogee is.
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are

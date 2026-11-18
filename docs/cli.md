@@ -1127,9 +1127,10 @@ fastest a device on the stack, or on the part that keeps the nose, opened throug
 speed that load follows.
 After a split with no motor left, both figures count the part that keeps the nose, whether its
 devices opened before the split or after: its shock is its own devices' drag over its own mass,
-as the simulator flies that part as a point, with no drag from its airframe. A nose cone pushed
-off at an [ejection](glossary.md#ejection) is not that part: its opening shock under its own
-canopy is left out, as its apogee is, though its opening still counts in the opening airspeed.
+as the simulator flies that part as a point, with no drag from its airframe. An
+[ejection](glossary.md#ejection) parts it differently: the piece ahead of the parted joint keeps
+body 0's number, so a nose cone pushed off is body 0 alone. From the charge on, the opening shock
+leaves body 0 out, as the flight's apogee does; the opening airspeed still counts its openings.
 
 `--delay-sd` and `--deployment-lag-sd` spread both: a charge late after apogee opens the device
 faster, because the rocket has had longer to fall. The simulator opens a canopy at once by

@@ -371,8 +371,9 @@ pub struct FlightSummary {
     /// apart at a separation with nothing left to burn ([`Termination::Separated`]), the part
     /// that keeps the nose, body 0, flies on as a point mass, and the drag of its own devices
     /// over its mass counts too ([`BodyStep::specific_force_enu_m_s2`]), whether they open
-    /// before the split or after. At an ejection, body 0 is the ejection's lead piece, and its
-    /// load stays out, as its apogee does.
+    /// before the split or after, until an ejection parts it. From an ejection on, body 0 is the
+    /// ejection's lead piece (a nose cone pushed off is the nose cone alone), and its load is
+    /// left out, as its apogee is.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
@@ -484,11 +485,12 @@ pub struct FlightMetrics {
     max_q: Option<Peak>,
     max_acceleration: Option<Peak>,
     max_descent_acceleration: Option<Peak>,
-    /// The largest specific force on body 0, a separated body flown as a point mass, while a
-    /// device of its own is open: its opening shock. It joins the stack's in the summary only
-    /// when the stack came apart at a separation with nothing left to burn and no ejection, body
-    /// 0 then being the part that keeps the nose.
-    nose_descent_acceleration: Option<Peak>,
+    /// The largest specific force on body 0, a separated body flown as a point mass, over each
+    /// of its steps where a device of its own is open, with the step's start, s. The summary
+    /// takes the largest of those that start before an ejection parts body 0, and only when the
+    /// stack came apart at a separation with no ejection: until then body 0 is the part that
+    /// keeps the nose.
+    nose_descent_peaks: Vec<(f64, Peak)>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
     last_end_s: Option<f64>,
@@ -658,19 +660,30 @@ impl FlightMetrics {
                 }
             }
         }
-        // Body 0's opening shock counts on the same terms as its apogee: at a separation with no
-        // ejection. An ejection's body 0 is its lead piece, not the part that keeps the nose.
+        // Body 0's opening shock counts while it is the part that keeps the nose: after a
+        // separation with no ejection, and until an ejection of its own parts it. From an
+        // ejection on, body 0 is that ejection's lead piece (a nose cone pushed off is the nose
+        // cone alone), whose load is left out as its apogee is.
         let mut max_descent_acceleration = self.max_descent_acceleration;
+        let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
         if result.termination == Termination::Separated
             && result.event(EventKind::Separation).is_some()
-            && !result
-                .events
-                .iter()
-                .any(|event| matches!(event.kind, EventKind::Ejection(_)))
-            && let Some(nose) = self.nose_descent_acceleration
-            && max_descent_acceleration.is_none_or(|peak| nose.value > peak.value)
+            && !result.events.iter().any(|event| ejection(&event.kind))
         {
-            max_descent_acceleration = Some(nose);
+            let parted_s = result
+                .bodies
+                .iter()
+                .filter(|body| body.body == 0)
+                .flat_map(|body| &body.events)
+                .find(|event| ejection(&event.kind))
+                .map_or(f64::INFINITY, |event| event.sample.time_s);
+            for (start_s, nose) in &self.nose_descent_peaks {
+                if *start_s < parted_s
+                    && max_descent_acceleration.is_none_or(|peak| nose.value > peak.value)
+                {
+                    max_descent_acceleration = Some(*nose);
+                }
+            }
         }
         let landing = if result.termination == Termination::GroundHit {
             let s = &result.final_sample;
@@ -875,8 +888,9 @@ impl Observer for FlightMetrics {
 
     /// Body 0's opening shock: the largest of its specific force over each step, from the step's
     /// start, middle and end and, where the parabola through them tops inside, a search between,
-    /// as a stack's step is read. With no device of its own open the force is zero, and is not
-    /// kept. Its steps are not the flight's: they don't count toward [`Self::summary`]'s check.
+    /// as a stack's step is read, kept with the step's start for [`Self::summary`] to cut at an
+    /// ejection. With no device of its own open the force is zero, and is not kept. Its steps are
+    /// not the flight's: they don't count toward the summary's check.
     fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
         if body != 0 {
             return Ok(());
@@ -900,14 +914,8 @@ impl Observer for FlightMetrics {
                 best = found;
             }
         }
-        // A NaN is not dropped as a zero is: here, as in a stack's slot, it is kept where it
-        // comes first.
-        if (best.value > 0.0 || best.value.is_nan())
-            && self
-                .nose_descent_acceleration
-                .is_none_or(|peak| best.value > peak.value)
-        {
-            self.nose_descent_acceleration = Some(best);
+        if best.value > 0.0 || best.value.is_nan() {
+            self.nose_descent_peaks.push((a, best));
         }
         Ok(())
     }
