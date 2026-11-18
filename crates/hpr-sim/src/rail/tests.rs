@@ -572,3 +572,116 @@ fn a_rail_that_holds_only_the_last_guide_pivots_from_liftoff() {
     let exit = result.event(EventKind::RailExit).unwrap().sample;
     assert!(exit.state.body_rate_rad_s.length() > 0.0);
 }
+
+#[test]
+fn guides_within_a_micron_of_each_other_are_one_guide() {
+    // Two rows of buttons at one nominal station can reach the layout through different sums
+    // and land a few ulps apart. They leave the rail together, so they are one guide: no stretch
+    // on a last guide alone, and the flight is the guided flight, bit for bit.
+    let rail = valetudo_rail(0.0);
+    let one = first_second(&with_buttons(2, 0.0), rail)
+        .run(&mut ())
+        .unwrap();
+    for spacing_m in [1e-15, 1e-12, 1e-9, 0.9e-6] {
+        let rocket = with_buttons(2, spacing_m);
+        let guides = Guides::of(&rocket.assemble("example").unwrap());
+        assert_eq!(guides.next_guide_station_m, None, "{spacing_m} m apart");
+        assert_eq!(guides.tip_off_travel_m(rail.length_m), None);
+        let mut steps = Steps::default();
+        let asked = first_second(&rocket, rail)
+            .with_tip_off()
+            .run(&mut steps)
+            .unwrap();
+        assert!(
+            steps
+                .0
+                .iter()
+                .all(|(phase, ..)| *phase != crate::Phase::TipOff)
+        );
+        // The aft-most of the two is the guide that leaves last, at most a micron after two
+        // buttons at one station would.
+        let (exit, single) = (
+            asked.event(EventKind::RailExit).unwrap().sample,
+            one.event(EventKind::RailExit).unwrap().sample,
+        );
+        assert!((exit.time_s - single.time_s).abs() < 1e-6);
+    }
+    // Past the micron they are two, and the stretch between them is flown.
+    let apart = Guides::of(&with_buttons(2, 2e-6).assemble("example").unwrap());
+    let stretch =
+        apart.exit_travel_m(rail.length_m) - apart.tip_off_travel_m(rail.length_m).unwrap();
+    assert!((stretch - 2e-6).abs() < 1e-12, "{stretch}");
+}
+
+#[test]
+fn a_rail_exit_in_the_step_tip_off_begins_frees_the_rocket() {
+    // No design gives guides a few ulps apart (they are one guide, above). If the last guide
+    // leaving and tip-off beginning ever fall in one event step all the same, the exit wins: the
+    // rocket is free, not held to the rail's line for the rest of the flight.
+    let rocket = design("rocketpy-valetudo");
+    let rail = valetudo_rail(0.0);
+    let fly = |simulation: Simulation| {
+        let mut steps = Steps::default();
+        let result = simulation.run(&mut steps).unwrap();
+        (steps, result)
+    };
+    let (_, guided) = fly(first_second(&rocket, rail));
+    for gap_m in [1e-15, 4e-16] {
+        let simulation = first_second(&rocket, rail).with_tip_off();
+        let mut guides = simulation.guides();
+        let last = guides.last_guide_station_m.unwrap();
+        guides.next_guide_station_m = Some(last - gap_m);
+        let (steps, result) = fly(simulation.with_guides(guides));
+        let phases: Vec<crate::Phase> = steps.0.iter().map(|(phase, ..)| *phase).collect();
+        let exit = phases
+            .iter()
+            .position(|p| *p == crate::Phase::Free)
+            .unwrap_or_else(|| panic!("{gap_m} m: the rocket never left the rail"));
+        assert!(phases[exit..].iter().all(|p| *p == crate::Phase::Free));
+        let tipping = phases
+            .iter()
+            .filter(|p| **p == crate::Phase::TipOff)
+            .count();
+        assert!(tipping <= 1, "{gap_m} m: {tipping} steps on the last guide");
+        // It flies on as the guided rocket does: the same height after a second, to a micron.
+        let (height, straight) = (
+            result.final_sample.height_above_ground_m,
+            guided.final_sample.height_above_ground_m,
+        );
+        assert!(
+            (height - straight).abs() < 1e-6,
+            "{gap_m} m: {height} m against {straight} m guided"
+        );
+        assert_eq!(result.events.len(), guided.events.len());
+    }
+}
+
+#[test]
+fn friction_too_large_for_the_last_guide_is_refused_by_name() {
+    // With the rocket's axis turned off the rail's, friction on the guide turns the rocket,
+    // which presses the guide harder. Past a coefficient there is no force that satisfies both,
+    // and the phase refuses instead of dividing by nothing. A coefficient a rail can have is far
+    // below it and is solved.
+    let inertia = hpr_core::DMat3::from_diagonal(DVec3::new(5.0, 5.0, 0.05));
+    let solve = |friction: f64| {
+        pivot_motion(
+            (10.0, DVec3::new(0.0, 0.0, -1.0), inertia),
+            DVec3::ZERO,
+            (DVec3::new(1.0, 0.0, 5.0), DVec3::new(0.0, 0.2, 0.0)),
+            (
+                DVec3::new(0.0, 0.0, -1.8),
+                DVec3::new(0.3, 0.0, 1.0).normalize(),
+            ),
+            (friction, 1.0),
+        )
+    };
+    assert!(solve(0.0).is_ok());
+    assert!(solve(0.3).is_ok());
+    match solve(1.0e3) {
+        Err(crate::SimError::Domain { what, value }) => {
+            assert!(what.contains("jams on its last guide"), "{what}");
+            assert!(value <= 0.0, "{value}");
+        }
+        other => panic!("a jammed guide was solved: {other:?}"),
+    }
+}

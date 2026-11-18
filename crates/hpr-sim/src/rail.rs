@@ -173,16 +173,17 @@ impl Guides {
                 let aft_edge = component.fore_station_m + f64::from(k) * spacing + extent;
                 first = Some(first.map_or(aft_edge, |f| f.min(aft_edge)));
                 match last {
-                    Some((edge, _)) if aft_edge > edge => {
+                    Some((edge, _)) if aft_edge > edge + SAME_GUIDE_M => {
                         next = Some(edge);
                         last = Some((aft_edge, extent));
                     }
-                    Some((edge, _)) if aft_edge < edge => {
+                    Some((edge, _)) if aft_edge < edge - SAME_GUIDE_M => {
                         next = Some(next.map_or(aft_edge, |n| n.max(aft_edge)));
                     }
                     // A guide at the aft-most one's station (a second row beside it) leaves
-                    // with it: the two are one guide here.
-                    Some(_) => {}
+                    // with it: the two are one guide here, and the aft-most edge of the two is
+                    // the guide's.
+                    Some((edge, kept)) => last = Some((edge.max(aft_edge), kept)),
                     None => last = Some((aft_edge, extent)),
                 }
             }
@@ -221,6 +222,12 @@ impl Guides {
             .map(|guide| rail_length_m - (self.aft_station_m - guide))
     }
 }
+
+/// How close two guides' aft edges are, m, for the two to count as one guide that leaves the
+/// rail at once: a micron. Two rows of buttons at one nominal station can reach the layout
+/// through different sums and land a few ulps apart; a stretch that short on the "last" of them
+/// alone is rounding, not tip-off.
+const SAME_GUIDE_M: f64 = 1e-6;
 
 /// What a rocket on its last guide alone needs besides the free equations: where it pivots and
 /// the line the pivot keeps to.

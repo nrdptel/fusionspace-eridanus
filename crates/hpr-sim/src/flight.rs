@@ -1403,6 +1403,14 @@ impl Simulation {
         self.guides
     }
 
+    /// The simulation on other guides than its design's: for a test of what the driver does
+    /// with guide geometry no design can give it.
+    #[cfg(test)]
+    pub(crate) fn with_guides(mut self, guides: Guides) -> Self {
+        self.guides = guides;
+        self
+    }
+
     /// The rail.
     #[must_use]
     pub fn rail(&self) -> Rail {
@@ -2459,7 +2467,12 @@ impl Simulation {
                                 record(&mut events, observer, EventKind::RailExit, sample);
                             }
                             Watch::RailStall => next_phase = Phase::Pad,
-                            Watch::TipOff => next_phase = Phase::TipOff,
+                            // The last guide leaving, or the rocket stopping, in the same
+                            // step wins: a rocket already off the rail, or at rest on it, has
+                            // no last guide to turn about. Were tip-off to win, the exit's
+                            // watch, already past its zero, would never fire again.
+                            Watch::TipOff if next_phase == phase => next_phase = Phase::TipOff,
+                            Watch::TipOff => {}
                             Watch::RailForce => {
                                 next_phase = on_rail(&y);
                                 lifted = true;
