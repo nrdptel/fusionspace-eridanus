@@ -19,7 +19,7 @@
 //!   to show the correction does not decide whether a model is called for. The report keeps
 //!   the first whole and the second's largest moves and reading. The probe flies, with its
 //!   parachute's lag, the one rocket and wind the runs fly without it, and the report keeps
-//!   that it did not finish.
+//!   that it had not finished in the probe's wall time.
 
 use std::fmt::Write as _;
 use std::fs;
@@ -147,7 +147,7 @@ fn reading(flown: &Value) -> Result<Value, String> {
 /// The report from the two runs' documents.
 fn report(flown: Value, as_pinned: &Value, lag_probe: &Value) -> Result<Value, String> {
     // The declared change stands on the probe: each flight flown without its parachute's lag
-    // did not finish with it.
+    // had not finished with it in the probe's wall time.
     let probes = list(lag_probe, "lag_probe")?;
     for probe in probes {
         if probe["finished"] != json!(false) {
@@ -387,9 +387,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                     .ok_or("a declared change with no probe")?;
                 let _ = writeln!(
                     w,
-                    "- **A declared change** ({}, {}): {}. Flown with the lag (`tip_off.py \
-                     --lag-probe`), the flight had not finished after {} s of wall time: its \
-                     integration had reached {} s, and the apogee is at {} s.",
+                    "- **A declared change** ({}, {}): {}. That is the probe's result \
+                     (`tip_off.py --lag-probe`, {} s of wall time): its integration had \
+                     reached {} s, and the apogee is at {} s.",
                     text(case, "name")?,
                     text(wind, "wind")?,
                     declared.as_str().ok_or("`declared` is not text")?,
@@ -613,10 +613,11 @@ mod tests {
     }
 
     /// The pages quote the committed report, which CI can't regenerate. Held to the report, at
-    /// the report page's own precision: the figures in SI of the flight page's section and its
-    /// two short statements of the cost; the cost on the validation page, in the glossary and
-    /// in the risks note; and the decision record's table and its sentence on the equations as
-    /// pinned. Not held: a conversion to US units, and the record's other figures.
+    /// the report page's own precision: the measured figures of the flight page's section with
+    /// their conversions to US units, its declared wind and drag, and its two short statements
+    /// of the cost; the cost on the validation page, in the glossary and in the risks note;
+    /// and the decision record's table and its sentence on the equations as pinned. Not held:
+    /// the record's other figures.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
@@ -684,23 +685,51 @@ mod tests {
         let held =
             at(&juno["phase_on"], "time_s") - num(&juno["phase_on"], "upper_button_leaves_s");
         let flight_page = page("docs/physics/flight.md");
+        // A length as the page gives it, with its feet at `feet` places.
+        let with_feet = |meters: f64, places: usize, feet: usize| {
+            format!(
+                "{} m ({} ft)",
+                fixed(meters, places),
+                fixed(meters / 0.3048, feet)
+            )
+        };
+        let apogee_m = num(&guided["apogee"], "apogee_m");
+        let speed = at(&juno["phase_on"], "speed_m_s");
+        let drag: Vec<f64> = list(&flown["drag"], "declared_cd0")
+            .unwrap()
+            .iter()
+            .map(|point| point[1].as_f64().unwrap())
+            .collect();
+        assert!(drag.iter().all(|&cd| cd == drag[0]), "{drag:?}");
+        assert_eq!(count(guided_reading, "apogee_past_the_bar"), 0);
+        assert_eq!(report["bars"]["landing_point_percent_of_apogee"], 1.0);
         let expected = [
+            "None of the 26 apogees moves by 1%".to_owned(),
+            "past the plan's bar of 1% of the apogee".to_owned(),
+            format!("constant drag coefficient of {}", drag[0]),
+            format!(
+                "a {} mph ({} m/s) wind",
+                fixed(num(&flown["crosswind"], "speed_mph"), 0),
+                fixed(num(&flown["crosswind"], "speed_m_s"), 2)
+            ),
             format!("at most {guided_apogee}%: "),
-            format!("{} m", minus(signed(num(&guided["apogee"], "apogee_m"), 1))),
+            minus(format!(
+                "{} m ({} ft)",
+                signed(apogee_m, 1),
+                signed(apogee_m / 0.3048, 0)
+            )),
             format!(
                 "in {} of the 26 flights on three rockets: Valetudo Juno III and Prometheus 2022",
                 count(guided_reading, "landing_point_past_the_bar")
             ),
             format!("The largest share is {cost}"),
+            with_feet(num(&guided["landing_point"], "landing_point_m"), 1, 0),
             format!(
-                "{} m",
-                fixed(num(&guided["landing_point"], "landing_point_m"), 1)
-            ),
-            format!(
-                "The largest distance is {} m",
-                fixed(
+                "The largest distance is {}",
+                with_feet(
                     largest(&|wind| num(&wind["moved_from_guided"], "landing_point_m")),
-                    1
+                    1,
+                    0
                 )
             ),
             format!(
@@ -745,20 +774,21 @@ mod tests {
                 fixed(at(&bella["phase_on"], "pitch_rate_deg_s"), 2)
             ),
             format!(
-                "leaves a {} m",
-                fixed(num(&juno_case["rail"], "rail_length_m"), 2)
+                "leaves a {}",
+                with_feet(num(&juno_case["rail"], "rail_length_m"), 2, 1)
             ),
             format!(
                 "rail at {}°",
                 fixed(num(&juno_case["rail"], "inclination_deg"), 0)
             ),
             format!(
-                "its buttons {} m",
-                fixed(num(juno_case, "button_spacing_m"), 3)
+                "its buttons {}",
+                with_feet(num(juno_case, "button_spacing_m"), 3, 2)
             ),
             format!(
-                "its last button leaves at {} m/s",
-                fixed(at(&juno["phase_on"], "speed_m_s"), 2)
+                "its last button leaves at {} m/s ({} ft/s)",
+                fixed(speed, 2),
+                fixed(speed / 0.3048, 1)
             ),
             format!("{} s after the forward one", fixed(held, 3)),
             format!(
@@ -770,16 +800,16 @@ mod tests {
                 fixed(at(&juno["phase_on"], "nose_down_deg"), 3)
             ),
             format!(
-                "Guided it reaches {} m",
-                fixed(num(&juno["guided_to_lower_button"], "apogee_agl_m"), 1)
+                "Guided it reaches {}",
+                with_feet(num(&juno["guided_to_lower_button"], "apogee_agl_m"), 1, 0)
             ),
             format!(
-                "it reaches {} m",
-                fixed(num(&juno["phase_on"], "apogee_agl_m"), 1)
+                "it reaches {}",
+                with_feet(num(&juno["phase_on"], "apogee_agl_m"), 1, 0)
             ),
             format!(
-                "lands {} m",
-                fixed(num(&juno["moved_from_guided"], "landing_range_m"), 1)
+                "lands {}",
+                with_feet(num(&juno["moved_from_guided"], "landing_range_m"), 1, 0)
             ),
         ];
         for fragment in &expected {
@@ -883,7 +913,7 @@ mod tests {
     /// The committed report holds together without the oracle: it flew the pinned commit, every
     /// public design built from RocketPy's examples in both winds, each move is its two
     /// flights' difference, the reading is the rows', and so are the largest apogee and
-    /// landing-point shares. The one declared change has its probe, which did not finish.
+    /// landing-point shares. The one declared change has its probe, which had not finished.
     #[test]
     fn the_committed_report_is_its_own_flights() {
         let root = crate::designs::root().unwrap();

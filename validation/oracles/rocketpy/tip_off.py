@@ -48,10 +48,10 @@ rail events, where the distance travelled from the start reaches `effective_2rl`
 
 One rocket and wind fly with a changed recovery. NDRT 2020's rail is vertical, and in still air
 the rocket falls tail-first through its apogee parachute's 1 s lag; RocketPy's integration of
-that fall does not finish. Those three flights open that parachute at apogee with no lag, and
-the output says so (`declared`). `--lag-probe` shows the reason: it flies that rocket in still
-air with its lag for `LAG_PROBE_WALL_S` seconds of wall time and prints whether the flight
-finished and the time its integration had reached.
+that fall had not finished after `LAG_PROBE_WALL_S` seconds of wall time. Those three flights
+open that parachute at apogee with no lag, and the output says so (`declared`). `--lag-probe`
+is that measurement: it flies that rocket in still air with its lag, on the corrected
+equations, and prints whether the flight finished and the time its integration had reached.
 
 `cargo xtask tip-off` runs it both ways, and the probe, and writes
 `validation/reports/tip-off.json` and `.md`;
@@ -201,11 +201,13 @@ WATCHDOG_S = 600
 
 # The one declared change to an example's recovery. On a vertical rail in still air the rocket
 # falls tail-first through the apogee parachute's lag, and RocketPy's integration of that fall
-# does not finish (`lag_probe` shows it). The flights of that rocket and wind (the phase off,
-# on, and guided alike) open the apogee parachute with no lag.
+# had not finished after `LAG_PROBE_WALL_S` seconds of wall time (`lag_probe`). The flights of
+# that rocket and wind (the phase off, on, and guided alike) open the apogee parachute with no
+# lag.
 NO_LAG = (
     "the parachute that opens at apogee opens with no lag: on a vertical rail in still air "
-    "RocketPy's integration of the tail-first fall through the lag does not finish"
+    "RocketPy's integration of the tail-first fall through the lag had not finished after "
+    f"{LAG_PROBE_WALL_S} s of wall time"
 )
 
 
@@ -437,9 +439,10 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
 
 
 def lag_probe(document):
-    """The reason for `NO_LAG`, shown: each rocket and wind that flies without the lag is flown
-    with it, the phase off, for `LAG_PROBE_WALL_S` seconds of wall time. Prints, for each,
-    whether the flight finished and the latest time its integration had reached, and exits."""
+    """The reason for `NO_LAG`, measured: the rocket and wind that fly without the lag (one,
+    today) are flown with it, the phase off, for `LAG_PROBE_WALL_S` seconds of wall time.
+    Prints whether the flight finished and the latest time its integration had reached, and
+    exits."""
     reached = [0.0]
 
     class Probe(corrections.CorrectedFlight):

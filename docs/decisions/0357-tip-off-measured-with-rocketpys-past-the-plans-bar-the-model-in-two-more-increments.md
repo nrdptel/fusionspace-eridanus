@@ -60,9 +60,9 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
      the other flight's apogee. The report also gives how much farther from the pad the rocket
      lands with the phase on.
    - **One declared change.** NDRT 2020's rail is vertical. In still air the rocket falls
-     tail-first through its apogee parachute's 1 s lag, and RocketPy's integration of that fall
-     does not finish. The script's probe flies it with the lag: after 20 s of wall time the
-     flight had not finished, its integration at 16.0 s with the apogee at 15.4 s. So those
+     tail-first through its apogee parachute's 1 s lag. The script's probe flies it with the
+     lag, on the corrected equations: after 20 s of wall time the flight had not finished,
+     its integration at 16.0 s with the apogee at 15.4 s. So those
      three flights open that parachute at apogee with no lag, and the report says so, with
      the probe's result. The change acts only after
      apogee and all three carry it; their landing points lie within 6 mm (0.2 in) of each
@@ -183,6 +183,6 @@ which `cargo xtask tip-off --check` holds in the gate's `refs` step.
 - **One drag, one wind.** The thirteen fly a constant drag coefficient and a wind that does
   not change with height. The moves on a rocket's own drag, or in a sheared wind, are not
   measured.
-- **The descent RocketPy does not finish** (decision 2) is RocketPy's own, in a tail-first
-  fall; its cause was not traced. It is recorded here and in the oracle script, and nothing
-  in HPR Sim rests on it.
+- **The descent RocketPy had not finished in 20 s** (decision 2) was flown on the corrected
+  equations only, and its cause was not traced. It is recorded here and in the oracle
+  script, and nothing in HPR Sim rests on it.

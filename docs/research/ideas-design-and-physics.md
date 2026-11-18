@@ -122,9 +122,7 @@ From the 2026-10-10 planning review:
   flyer of a heavy rocket leaving a short rail slowly. Workflow: `hpr sim` lets the rocket pitch
   about the aft guide, which slides along the rail, between the forward guide's release and the aft
   one's (not modeled today). Why: RocketPy's development line added that phase in September 2026
-  (its PR #920). Measured with RocketPy's on its examples: `validation/reports/tip-off.md`. A check
-  to keep: a body on a frictionless line under gravity matches the energy integral
-  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ).
+  (its PR #920). Measured with RocketPy's on its examples: `validation/reports/tip-off.md`.
 - SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
   curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
   for rows doubled at time zero, times out of order and impulse off the certification

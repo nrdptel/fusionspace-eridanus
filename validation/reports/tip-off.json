@@ -748,7 +748,7 @@
         },
         "winds": [
           {
-            "declared": "the parachute that opens at apogee opens with no lag: on a vertical rail in still air RocketPy's integration of the tail-first fall through the lag does not finish",
+            "declared": "the parachute that opens at apogee opens with no lag: on a vertical rail in still air RocketPy's integration of the tail-first fall through the lag had not finished after 20 s of wall time",
             "guided_to_lower_button": {
               "apogee_agl_m": 1219.4220147878896,
               "apogee_east_m": -1.1231965973725633,
