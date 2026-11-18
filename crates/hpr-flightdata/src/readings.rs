@@ -1941,8 +1941,9 @@ fn slope(times: &[f64], heights: &[f64], center: usize) -> Option<f64> {
 }
 
 /// The most samples a slope's window of `window_s` is read at: twice the window's steps at the
-/// fastest steady rate the readings accept, one every [`MIN_INTERVAL_S`], plus one (501 for the
-/// 0.5 s speed window, which holds 251 at that rate). A log sampled no faster is read whole; a
+/// fastest rate the readings were checked at, one every [`MIN_INTERVAL_S`], plus one (501 for the
+/// 0.5 s speed window, which holds 251 at that rate; a clock a part in a thousand faster still
+/// reads, and its window holds the same 251). A log sampled no faster is read whole; a
 /// burst of samples close together, which the median interval doesn't see, costs each of them at
 /// most this many steps, not a walk over the burst, so that the slopes over a climb or a descent
 /// take time linear in its samples, but for a binary search's logarithm (#1250).
@@ -3957,7 +3958,7 @@ mod tests {
     /// over them all takes them; one sample more is read at every second.
     #[test]
     fn a_window_of_the_cap_is_read_whole_and_one_more_is_not() {
-        // Twice the steps at the fastest steady rate read, plus one.
+        // Twice the steps at the fastest rate the readings were checked at, plus one.
         assert_eq!(slope_samples(SPEED_WINDOW_S), 501);
         assert_eq!(slope_samples(DESCENT_WINDOW_S), 1_001);
         assert_eq!(slope_samples(DESCENT_WINDOW_MAX_S), 10_001);

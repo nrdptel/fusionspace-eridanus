@@ -1749,7 +1749,7 @@ mod tests {
     /// as the square of its length, and took 50 s to read this cell of 600,000 letters on a fast
     /// desktop (#1250). The clock times the read alone, and nothing it reads reaches a result.
     #[test]
-    #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
+    #[allow(clippy::disallowed_types, reason = "the clock times the read alone")]
     fn a_long_run_of_capitals_in_a_formula_reads_in_linear_time() {
         let letters = "A".repeat(600_000);
         let text = format!(

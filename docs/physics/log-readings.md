@@ -1136,17 +1136,18 @@ range the bounds were checked over, or catches a track that isn't what it says:
   (`slower_than_free_coast`). The threshold is 6.6 m (22 ft) on a PerfectFlite. It isn't a coast's
   78.5 m (257 ft), since a flight whose motor burns into those 4 s loses less.
 
-**A burst of samples.** The rate check above is on the median interval, so a hostile or damaged
-file can hold a short burst of faster samples. Each reading must still take time in proportion
-to the samples, not to their square. A fit of the climb's or the
-descent's rate, the least-squares slope over a window of the track, reads at most 501 samples in
-the 0.5 s top-speed window. That is twice the window's 250 steps at 500 a second, plus one; a
-longer descent window scales it. A window holding more is read at every n-th sample, n the least
-whole number that keeps it to that. The descent rates' running median sizes its window from the
-descent's median interval, but never from one shorter than the rate check allows. The landing's
-search moves forward only. A log sampled no faster than 500 a second is read whole. A log with a
-burst is only timed, in a test: its thinned fits weren't checked against the bounds,
-as the tuning set holds no such log.
+**A burst of samples.** The rate check above is on the median interval, so a hostile or damaged file
+can hold a short burst of faster samples. The top speed's and the descent rates' fits, the landing's
+scan and the descent rates' running median must still take time in proportion to the samples, to
+within a logarithm, not to their square. A fit of the climb's or the descent's rate, the
+least-squares slope over a window of the track, reads at most 501 samples in the 0.5 s top-speed
+window. That is twice the window's 250 steps at 500 a second, plus one; a longer descent window
+scales it. A window holding more is read at every n-th sample, n the least whole number that keeps
+it to that. The descent rates' running median sizes its window from the descent's median interval,
+but never from one shorter than the rate check allows. The landing's search moves forward only. A
+log sampled no faster than 500 a second is read whole. A log with a burst is only timed in a test,
+and its readings checked to be given: its thinned fits weren't checked against the bounds, as the
+tuning set holds no such log.
 
 **A disturbed top.** A top that isn't the coast's is withheld as `disturbed_top`, by either of
 two checks. Which point is the apogee can't be told, so the apogee, the top speed and landing are
