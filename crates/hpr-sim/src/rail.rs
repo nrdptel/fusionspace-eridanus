@@ -9,7 +9,7 @@
 //!
 //! Once the guide ahead of the aft-most one is off the rail, a real rocket is held by one guide
 //! alone and gravity and the wind turn it about that guide: tip-off. A flight that asks for it
-//! ([`crate::Simulation::with_tip_off`]) flies that as a phase of its own ([`pivot_motion`]):
+//! ([`crate::Simulation::with_tip_off`]) flies that as a phase of its own (`pivot_motion`, in this module):
 //! the rocket slides on along the rail, free to pitch and yaw about its last guide with roll
 //! held, until that guide leaves too. Without it the rocket stays guided to its last guide and
 //! leaves the rail with no angular velocity.
