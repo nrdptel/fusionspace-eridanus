@@ -50,7 +50,8 @@ reading made for this record.
      the first 8 s. The codes split. SIM 4's follow the law in the inertial rate to 3.0e-5 of
      their size in roll and yaw and 8.1e-11 in pitch, and SIM 1's to 1.3e-4 and 3.5e-6 in roll
      and yaw. SIM 5's follow it in the rate relative to the Earth to 1.1e-15, and SIM 6's to
-     1.2e-10. SIM 2 prints its moments to three or four digits, which can't tell the two apart.
+     1.2e-10. SIM 2's follow neither: they are 0.1103 to 0.2264 of their size off the law in the
+     inertial rate and 0.1103 to 0.235 off it in the rate relative to the Earth.
      The rate relative to the air, which turns with the Earth, is the physical one. The test
      takes the inertial rate, as SIM 1 and SIM 4 do, so that the named difference below is the
      Earth's rate alone against them; against SIM 5 and SIM 6 the choice is part of what is
@@ -71,7 +72,7 @@ reading made for this record.
    axes; the distance between them is the difference, and the spread is the largest distance
    between two codes. Two codes, SIM 2 and SIM 4, write no Earth-fixed position, so every code's
    is read the same way: its latitude, longitude and altitude, turned into Earth-fixed axes on
-   WGS 84. The coarsest file prints a nine-decimal degree, about 0.1 mm on the ground.
+   WGS 84.
 
 5. **Case 3 is the Earth's rate again.** Five codes; SIM 1 is left out of each rate, as it cuts
    the spread from 0.03192, 0.07435 and 0.01674 deg/s to 0.003609, 0.003792 and 0.003503 deg/s.
@@ -86,7 +87,8 @@ reading made for this record.
      0.0007793 deg/s, inside the spread. The stricter reading, at every sample, leaves at most
      0.003287, 0.003791 and 0.002631 deg/s: inside too. Against SIM 4, which damps as the test
      does, HPR Sim sits 0.00006587, 0.00006268 and 0.0002691 deg/s from it at every sample;
-     the most is left against SIM 5 and SIM 6, which damp the rate relative to the Earth.
+     at every sample the most is left in roll and pitch against SIM 5 and SIM 6, which damp the
+     rate relative to the Earth, and in yaw against SIM 2.
 
 6. **Cases 6 to 8 are the gravity and the codes' own air.** Six codes; SIM 3 is left out, as it
    cuts the spread from 273.1 to 275.5 mm to 85.03, 85.24 and 87.74 mm. HPR Sim's sphere ends within
@@ -121,7 +123,7 @@ reading made for this record.
    kept code, inside spreads of 1989 and 1986 mm; in case 10 SIM 2 is left out, 46.51 m from HPR
    Sim. Nothing needs a trace. The same model difference is reported: less it, HPR Sim sits
    0.03830 and 0.04217 mm from the nearest kept code. These are the cases where the launch
-   frame's flat axes carry a body 6.9 km downrange, so the conversion HPR Sim uses for apogee
+   frame's flat axes carry a body kilometers downrange, so the conversion HPR Sim uses for apogee
    and landing points is part of what they hold.
 
 8. **[#1524][i-1524], each item.**

@@ -483,7 +483,7 @@ fn environment(air: Air) -> Result<Environment, String> {
         Air::Shear => {
             // Linear in its east component between levels, so exact between the calm level,
             // where Table 32's formula crosses zero, and one above the case's start: the sphere
-            // stays between the two (it falls from 30,000 ft to about 16,300 ft).
+            // stays between the two.
             let level = |height_ft: f64| WindLevel {
                 height_msl_m: height_ft * FOOT_M,
                 speed_m_s: shear_ft_s(height_ft) * FOOT_M,
@@ -2373,8 +2373,8 @@ mod tests {
                 (drag - expected).length() < 1e-9 * expected.length(),
                 "{air:?}: {drag:?} against {expected:?}"
             );
-            // A real force: 2.0 N up on the 14.6 kg sphere at 150 m/s.
-            assert!(drag.z > 1.9, "{drag:?}");
+            // A real force: about 9.4 N up, `½ρV²SC_D` at 150 m/s in the air 30,000 ft up.
+            assert!(drag.z > 9.3, "{drag:?}");
             match air {
                 Air::Steady => assert!(drag.x > 0.05 && drag.y.abs() < 1e-9, "{drag:?}"),
                 _ => assert!(drag.x.abs() < 1e-9 && drag.y.abs() < 1e-9, "{drag:?}"),
@@ -2384,7 +2384,7 @@ mod tests {
 
     /// Case 3's damping, as the test states it: about each axis `¼ ρ V S l² C ω`, the span `b`
     /// for roll and yaw and the chord `c̄` for pitch, on the inertial rate. Pitch's moment per
-    /// unit rate is `(c̄/b)²`, 4.0002, times roll's and yaw's, and each acts against its rate.
+    /// unit rate is `(c̄/b)²`, 4.0001, times roll's and yaw's, and each acts against its rate.
     #[test]
     fn the_damping_is_on_the_inertial_rate_with_the_span_and_the_chord() {
         let case = cases()

@@ -16,7 +16,7 @@ rocket's body, attitude and launch angles.
   setups, launch angles give RocketPy's starting attitude to 1e-12 rad. Over 1e6 integration
   steps, attitude stays within 1e-9 rad of the exact answer. Eight of NASA's check cases fly
   through the launch frame against the codes NASA published, two of them shots that carry a
-  body 6.9 km (4.3 mi) from the pad, which come out inside the codes' spread
+  body kilometers from the pad, which come out inside the codes' spread
   ([a free body against NASA's check cases](flight.md#a-free-body-against-nasas-check-cases)).
   No real-flight check.
 - **What it leaves out:** heights are above the WGS 84 ellipsoid, not sea level. The two are up
@@ -212,10 +212,11 @@ $$
   Two things of this page are in them. The height above the ellipsoid is read back from the
   launch frame along a 4.4 km (2.7 mi) fall, down the site's vertical on the equator, where the
   ellipsoid's shape hardly enters. The Earth's rate is turned from the launch frame
-  into the body's axes to give inertial rates. With the two named model differences taken off
-  each kept code's largest difference, at most 0.1364 mm (0.0054 in) of altitude and 0.001005
-  deg/s of body rate are left, both inside the codes' spread; read at every sample, the rates
-  are left just past it. The attitude itself is not compared.
+  into the body's axes to give inertial rates. In cases 1 and 2, with the two named model
+  differences taken off each kept code's largest difference, at most 0.1364 mm (0.0054 in) of
+  altitude and 0.001005 deg/s of body rate are left, both inside the codes' spread; read at every
+  sample, case 2's rates are left just past it. Case 3's rates and the sphere's positions are
+  traced or inside on the flight page. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

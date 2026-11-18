@@ -16,7 +16,7 @@ as its motor burns.
   from the codes NASA published by more than they differ from each other. It ends 19.51 mm
   (0.77 in) lower after a 4.4 km (2.7 mi) fall, turns up to 0.01633 deg/s apart, and puts a
   dragged sphere up to 105.0 mm (4.1 in) away. A named difference between the models accounts for each to
-  inside the codes' spread at each code's largest difference. Read at every sample, the
+  inside the codes' spread at each code's largest difference. Read at every sample, case 2's
   tumbling brick's rates are left just past it. Two shots from sea level come out inside the
   spread ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
   RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
@@ -80,7 +80,7 @@ Sources:
 - **[N15]** D. G. Murri, E. B. Jackson and R. O. Shelton, *Check-Cases for Verification of
   6-Degree-of-Freedom Flight Vehicle Simulations*, NASA/TM-2015-218675, both volumes, 2015,
   with the errata of September 8, 2025, and the codes' time histories posted with it
-  (<https://nescacademy.nasa.gov/flightsim/2015>). Cases 1 and 2 are flown
+  (<https://nescacademy.nasa.gov/flightsim/2015>). Cases 1 to 3 and 6 to 10 are flown
   ([below](#a-free-body-against-nasas-check-cases)).
 
 ## The equations
@@ -598,7 +598,7 @@ agree to rounding.
   start (8). In cases 9 and 10 it is shot from sea level at 1,000 ft/s (305 m/s) up and
   1,000 ft/s east or north. Its position is compared: the distance between HPR Sim's and the
   code's. Each code's position is read from the latitude, longitude and altitude in its file,
-  since two of the codes write no other.
+  since two of the codes write no Earth-fixed position.
 
 **How to read the table.** A difference is HPR Sim's value less a code's, the largest over the
 30 s; for a position, the distance. The spread is the largest difference between any two codes.
@@ -652,8 +652,9 @@ Cases 9 and 10 come out inside it.
 - **Case 3 is the Earth's rate again.** The same two sets of equations are damped alike, on
   the rate relative to the stars, along the same fall. They leave at most 0.003176, 0.001123
   and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside too.
-  Against SIM 4, which damps as the test does, at most 0.0002691 deg/s is left; the most is
-  left against the two codes that damp the rate relative to the Earth.
+  Against SIM 4, which damps as the test does, at most 0.0002691 deg/s is left. Read at every
+  sample, the most is left in roll and pitch against SIM 5 and SIM 6, which damp the rate
+  relative to the Earth, and in yaw against SIM 2.
 - **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
   (0.8 in) of three codes and 102.6 to 105.0 mm (4.0 to 4.1 in) from SIM 1. The codes don't fly
   the same air. Set against HPR Sim's 1976 standard atmosphere, SIM 4's density is within
@@ -665,7 +666,7 @@ Cases 9 and 10 come out inside it.
   put its sphere 180.2 mm (7.1 in) above HPR Sim's; its file is 102.6 mm (4.0 in) above. With
   the gravity alone, cases 6 and 7 were left 0.01 mm (0.0004 in) past the spread, so the air is part of the
   trace ([the decision][adr-356]).
-- **Cases 9 and 10 are inside the spread.** Shot 6.9 km (4.3 mi) downrange, HPR Sim ends
+- **Cases 9 and 10 are inside the spread.** Shot kilometers downrange, HPR Sim ends
   1,980 and 1,977 mm (78 in) from the farthest kept code, inside spreads of 1,989 and 1,986 mm
   (78 in). Less the same model difference it sits
   0.03830 mm (0.0015 in) and 0.04217 mm (0.0017 in) from the nearest code. Here the launch frame's flat axes carry the

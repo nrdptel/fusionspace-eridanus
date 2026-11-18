@@ -123,6 +123,6 @@ were: the increment adds a reference and two measured differences. ADR-011's cho
 until [#1521][i-1521] is worked. [The page on rigid-body flight][flight] gives the comparison
 to a reader.
 
-**Amended 2026-11-17 ([ADR-356](0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md), [#1524][i-1524]).** The spread rule leaves a code out of three as of four or more: two must remain, and ADR-351's *done when* holds no other condition. No figure here moves.
+**Amended 2026-11-17 ([ADR-356](0356-nasas-check-cases-3-and-6-to-10-the-tests-loads-and-the-codes-own-air.md), [#1524][i-1524]).** The spread rule may leave a code out of three, where it had needed four or more: two must remain, and ADR-351's *done when* holds no other condition. No figure here moves.
 
 **Amended 2026-11-17.** Withdrawn by [ADR-355](0355-withdraw-nasas-check-cases-1-and-2-to-land-them-again-in-order.md) and landed again unchanged.
