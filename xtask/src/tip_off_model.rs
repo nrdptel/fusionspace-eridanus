@@ -17,12 +17,14 @@
 //!   the rail within 10% or 0.005°, each as a vector of its nose-down and nose-right parts; the
 //!   two codes' apogee moves within 0.2% of RocketPy's guided apogee; and their landing-point
 //!   moves, as vectors, within 1% of it.
-//! - **Which flights the bars judge** is the next record's ([ADR-358][adr-358]): the flights on
-//!   RocketPy's normal force, where the two codes differ in the phase alone. The flights on HPR
-//!   Sim's own normal force stay in the report with every figure past a bar marked.
+//! - **Which flights are held to the bars** is the next record's ([ADR-358][adr-358]): all 26 on
+//!   RocketPy's normal force, where the two codes differ in the phase alone, and the 13 in still
+//!   air on HPR Sim's own. The 13 crosswind flights on HPR Sim's own normal force are past the
+//!   bars: they stay in the report with every figure past a bar marked, and are an open
+//!   increment of the roadmap.
 //!
 //! [adr-357]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
-//! [adr-358]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0358-the-tip-off-pivot-held-to-rocketpys-on-rocketpys-normal-force.md
+//! [adr-358]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md
 
 use std::fmt::Write as _;
 use std::fs;
@@ -289,18 +291,62 @@ fn reading_of(flights: &[Value], key: &str) -> Result<Value, String> {
     }))
 }
 
-/// The whole reading: each normal force's, RocketPy's landing points against the pad, and
-/// whether the phase is held (every figure on RocketPy's normal force inside its bar).
+/// How far apart the two normal forces are where the last guide leaves in the crosswind, and what
+/// that does to the turn: the least and greatest ratio of HPR Sim's own normal-force coefficient
+/// to RocketPy's, and how much farther nose-right (downwind) the rocket turns on HPR Sim's own
+/// normal force than on RocketPy's, both flown by HPR Sim, so the phase is the same in both.
+fn crosswind_cause(flights: &[Value]) -> Result<Value, String> {
+    let (recorded, own) = (FORCES[0].0, FORCES[1].0);
+    let (mut ratios, mut rates) = (Vec::new(), Vec::new());
+    for flight in flights
+        .iter()
+        .filter(|flight| flight["wind"] == "crosswind")
+    {
+        let release = |key: &str| &flight[key]["tip_off"]["last_guide_leaves"];
+        ratios.push(
+            number(release(own), "normal_force_coefficient")?
+                / number(release(recorded), "normal_force_coefficient")?,
+        );
+        rates.push(
+            number(release(own), "pitch_rate_nose_right_deg_s")?
+                - number(release(recorded), "pitch_rate_nose_right_deg_s")?,
+        );
+    }
+    let least = |values: &[f64]| values.iter().copied().fold(f64::INFINITY, f64::min);
+    let greatest = |values: &[f64]| values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    if ratios.is_empty() || ratios.iter().chain(&rates).any(|x| !x.is_finite()) {
+        return Ok(Value::Null);
+    }
+    Ok(json!({
+        "flights": ratios.len(),
+        "coefficient_ratio_least": least(&ratios),
+        "coefficient_ratio_greatest": greatest(&ratios),
+        "farther_nose_right": rates.iter().filter(|&&rate| rate > 0.0).count(),
+        "nose_right_rate_more_least_deg_s": least(&rates),
+        "nose_right_rate_more_greatest_deg_s": greatest(&rates),
+    }))
+}
+
+/// The whole reading: each normal force's, RocketPy's landing points against the pad, and the
+/// two things ADR-358 holds: every figure of every flight on RocketPy's normal force inside its
+/// bar, and every figure of every still-air flight on HPR Sim's own.
 fn reading(flights: &[Value]) -> Result<Value, String> {
-    let recorded = reading_of(flights, FORCES[0].0)?;
-    let held =
-        recorded["all"]["inside_every_bar"] == recorded["all"]["flights"] && !flights.is_empty();
+    let (recorded, own) = (
+        reading_of(flights, FORCES[0].0)?,
+        reading_of(flights, FORCES[1].0)?,
+    );
+    // A set with no flights in it holds nothing.
+    let all_inside =
+        |part: &Value| part["inside_every_bar"] == part["flights"] && part["flights"] != 0;
+    let (held, held_still) = (all_inside(&recorded["all"]), all_inside(&own["still"]));
     Ok(json!({
         FORCES[0].0: recorded,
-        FORCES[1].0: reading_of(flights, FORCES[1].0)?,
+        FORCES[1].0: own,
         "rocketpy_landing_against_the_pad":
             pad_counts(flights.iter().map(|flight| &flight["rocketpy"]["moved"]))?,
         "held_on_the_recorded_normal_force": held,
+        "held_in_still_air_on_its_own_normal_force": held_still,
+        "crosswind_normal_force": crosswind_cause(flights)?,
     }))
 }
 
@@ -514,12 +560,15 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **On RocketPy's normal force,** HPR Sim flies the normal force RocketPy flew, which \
          the reference records for each rocket: a slope against Mach number times the angle of \
          attack, at a center of pressure against Mach number. Both codes already fly one \
-         declared drag coefficient. So the two flights differ in the phase alone, and these \
-         are the flights the bars judge.\n\
+         declared drag coefficient. So the two flights differ in the phase alone. All of \
+         these are held to the bars.\n\
          - **On its own normal force,** HPR Sim flies its own aerodynamics. In the crosswind \
          the rocket meets the air at 10° to 26° as it leaves the rail, where HPR Sim's normal \
          force and RocketPy's are far apart, and the turn about the last guide follows the \
-         force. Every figure past a bar is in bold.\n\
+         force. The still-air flights are held to the bars. The crosswind flights are past \
+         them and are not held: they are open work \
+         ([the decision record](../../docs/decisions/0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md)). \
+         Every figure past a bar is in bold.\n\
          - **Where the last guide leaves:** the rate at which the nose's direction moves and \
          the angle of the rocket's axis off the rail's, each as two parts: nose down, below \
          the rail's line in the rail's vertical plane, and nose right, to the right of the \
@@ -568,11 +617,16 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     .map_err(|e| e.to_string())?;
     writeln!(
         out,
-        "- **Held:** {}.",
+        "- **Held:** {}; {}.",
         if reading["held_on_the_recorded_normal_force"] == true {
             "every figure on RocketPy's normal force is inside its bar"
         } else {
             "no: a figure on RocketPy's normal force is past its bar"
+        },
+        if reading["held_in_still_air_on_its_own_normal_force"] == true {
+            "every still-air figure on HPR Sim's own normal force is inside its bar"
+        } else {
+            "a still-air figure on HPR Sim's own normal force is past its bar"
         }
     )
     .map_err(|e| e.to_string())?;
@@ -613,6 +667,25 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             signed(number(release(own), rate)?, 3),
             signed(number(release(recorded), rate)?, 3),
             signed(number(&flight["rocketpy"]["last_guide_leaves"], rate)?, 3),
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    let cause = &reading["crosswind_normal_force"];
+    if !cause.is_null() {
+        writeln!(
+            out,
+            "\nOn these {} flights HPR Sim's own normal-force coefficient is {} to {} times \
+             RocketPy's. Flown by HPR Sim on each, the rocket leaves its last guide turning \
+             farther nose-right on HPR Sim's own normal force than on RocketPy's in {} of the \
+             {}, by {} to {} deg/s. Which of the two forces is nearer a real rocket's at these \
+             angles, no reference here says.",
+            cause["flights"],
+            fixed(number(cause, "coefficient_ratio_least")?, 2),
+            fixed(number(cause, "coefficient_ratio_greatest")?, 2),
+            cause["farther_nose_right"],
+            cause["flights"],
+            fixed(number(cause, "nose_right_rate_more_least_deg_s")?, 3),
+            fixed(number(cause, "nose_right_rate_more_greatest_deg_s")?, 3),
         )
         .map_err(|e| e.to_string())?;
     }
@@ -672,13 +745,21 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 "{REPORT_MD} is not {REPORT}'s page: run `cargo xtask tip-off-model` and commit it"
             ));
         }
-        if committed["reading"]["held_on_the_recorded_normal_force"] != true {
+        // The verdicts are read from the flights flown now, not from the committed words.
+        let reading = reading(list(&fresh, "flights")?)?;
+        if reading["held_on_the_recorded_normal_force"] != true {
             return Err(format!(
                 "{REPORT}: a figure on RocketPy's normal force is past its bar"
             ));
         }
+        if reading["held_in_still_air_on_its_own_normal_force"] != true {
+            return Err(format!(
+                "{REPORT}: a still-air figure on HPR Sim's own normal force is past its bar"
+            ));
+        }
         println!(
-            "{REPORT} is current, and every figure on RocketPy's normal force is inside its bar"
+            "{REPORT} is current; every figure on RocketPy's normal force is inside its bar, \
+             and every still-air figure on HPR Sim's own"
         );
         return Ok(());
     }
@@ -819,13 +900,14 @@ mod tests {
 
     #[test]
     fn the_phase_is_held_on_rocketpys_normal_force_and_in_still_air_on_its_own() {
-        // M1.14b9's bars (ADR-357 decision 4, as ADR-358 reads it): all 26 flights on
-        // RocketPy's normal force inside every bar, and the 13 still-air flights on HPR Sim's
-        // own. The crosswind flights on its own normal force are past the turning rate's bar,
-        // every one, and the report keeps them.
+        // What ADR-358 holds of ADR-357 decision 4's bars: all 26 flights on RocketPy's normal
+        // force inside every bar, and the 13 still-air flights on HPR Sim's own. The crosswind
+        // flights on its own normal force are past the turning rate's bar, every one: the
+        // report keeps them, and they are the open increment's.
         let report = committed();
         let reading = &report["reading"];
         assert_eq!(reading["held_on_the_recorded_normal_force"], true);
+        assert_eq!(reading["held_in_still_air_on_its_own_normal_force"], true);
         let inside = |force: &str, wind: &str| {
             (
                 reading[force][wind]["inside_every_bar"].as_u64().unwrap(),
@@ -853,6 +935,28 @@ mod tests {
             turned["recorded_normal_force"]["all"]["inside_every_bar"],
             25
         );
+        assert_eq!(turned["held_in_still_air_on_its_own_normal_force"], true);
+        // The same for a still-air flight on HPR Sim's own normal force, and for no flights.
+        let mut flights = list(&report, "flights").unwrap().clone();
+        let still = flights
+            .iter()
+            .position(|flight| flight["wind"] == "still")
+            .unwrap();
+        flights[still]["own_normal_force"]["differences"]["past"] = json!(["angle"]);
+        let turned = super::reading(&flights).unwrap();
+        assert_eq!(turned["held_in_still_air_on_its_own_normal_force"], false);
+        assert_eq!(turned["held_on_the_recorded_normal_force"], true);
+        // The cause's size is the committed flights': 13 crosswind flights, HPR Sim's own
+        // normal force the larger on every one, the nose turning farther downwind on every one.
+        let cause = &reading["crosswind_normal_force"];
+        assert_eq!(cause["flights"], 13);
+        assert_eq!(cause["farther_nose_right"], 13);
+        assert!(cause["coefficient_ratio_least"].as_f64().unwrap() > 1.2);
+        assert!(cause["coefficient_ratio_greatest"].as_f64().unwrap() < 2.8);
+        let none = super::reading(&[]).unwrap();
+        assert_eq!(none["crosswind_normal_force"], Value::Null);
+        assert_eq!(none["held_on_the_recorded_normal_force"], false);
+        assert_eq!(none["held_in_still_air_on_its_own_normal_force"], false);
     }
 
     #[test]

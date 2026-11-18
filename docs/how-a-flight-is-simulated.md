@@ -186,9 +186,10 @@ Each model page lists what its model leaves out. These gaps matter most for a wh
   that slides along the airframe in flight, or leaves it. The exact answers are hand calculations
   and conservation laws, not another simulator or a real flight
   ([Moving mass](physics/moving-mass.md), [Released mass](physics/released-mass.md)).
-- [Tip-off](glossary.md#tip-off), whose cost is
-  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs) and whose model is
-  [planned](decisions-and-roadmap.md#m1-14b9).
+- [Tip-off](glossary.md#tip-off), unless a flight asks for it. Its cost is
+  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs). The Rust library
+  flies [a tip-off phase](physics/flight.md#tip-off) when asked, and flying it by default is
+  [planned](decisions-and-roadmap.md#m1-14b10).
 - Thrust misalignment (a motor pushing slightly off the rocket's axis) and turbulence, which no
   milestone plans yet. Roll from canted fins and roll damping are
   modeled, and checked against measurements only from Mach 1.5 up

@@ -3489,6 +3489,15 @@
   "generator": "cargo xtask tip-off-model",
   "pad_dead_band_m": 0.1,
   "reading": {
+    "crosswind_normal_force": {
+      "coefficient_ratio_greatest": 2.708828138591306,
+      "coefficient_ratio_least": 1.2303481468060138,
+      "farther_nose_right": 13,
+      "flights": 13,
+      "nose_right_rate_more_greatest_deg_s": 4.010575091562748,
+      "nose_right_rate_more_least_deg_s": 0.13637592853127187
+    },
+    "held_in_still_air_on_its_own_normal_force": true,
     "held_on_the_recorded_normal_force": true,
     "own_normal_force": {
       "all": {
