@@ -303,6 +303,7 @@ fn crosswind_cause(flights: &[Value]) -> Result<Value, String> {
     let (mut coefficients, mut moments, mut rates, mut more) =
         (Vec::new(), Vec::new(), Vec::new(), Vec::new());
     let (mut ahead, mut behind, mut downwind_farther, mut upwind_less_far) = (0, 0, 0, 0);
+    let mut nearer = 0;
     for flight in flights
         .iter()
         .filter(|flight| flight["wind"] == "crosswind")
@@ -323,6 +324,12 @@ fn crosswind_cause(flights: &[Value]) -> Result<Value, String> {
         more.push(rate - their_rate);
         ahead += usize::from(moment > 0.0 && their_moment > 0.0);
         behind += usize::from(moment < 0.0 && their_moment < 0.0);
+        // The moment is the coefficient times the force's distance ahead of the guide.
+        nearer += usize::from(
+            moment < 0.0
+                && their_moment < 0.0
+                && (moment / coefficient).abs() < (their_moment / theirs).abs(),
+        );
         downwind_farther += usize::from(rate > their_rate && their_rate > 0.0);
         upwind_less_far += usize::from(their_rate < rate && rate < 0.0);
     }
@@ -346,6 +353,7 @@ fn crosswind_cause(flights: &[Value]) -> Result<Value, String> {
         "nose_right_rate_ratio_greatest": greatest(&rates),
         "force_ahead_of_the_guide_in_both": ahead,
         "force_behind_the_guide_in_both": behind,
+        "force_behind_and_nearer_the_guide_on_its_own": nearer,
         "turning_downwind_farther": downwind_farther,
         "turning_upwind_less_far": upwind_less_far,
         "farther_nose_right": more.iter().filter(|&&rate| rate > 0.0).count(),
@@ -712,7 +720,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
              turning rate on its own normal force is {} to {} times that on RocketPy's. On {} \
              the force acts ahead of the guide on both, and on {} the nose turns downwind, \
              farther on HPR Sim's own. On {} it acts behind the guide on both, and on {} the \
-             nose turns upwind, less far on HPR Sim's own, whose force acts nearer the guide. \
+             nose turns upwind, less far on HPR Sim's own, whose force acts nearer the guide on {}. \
              In signed terms the rate is farther nose-right on HPR Sim's own in {} of the {}, by \
              {} to {} deg/s. Which of the two forces is nearer a real rocket's at these angles, \
              no reference here says.",
@@ -727,6 +735,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             cause["turning_downwind_farther"],
             cause["force_behind_the_guide_in_both"],
             cause["turning_upwind_less_far"],
+            cause["force_behind_and_nearer_the_guide_on_its_own"],
             cause["farther_nose_right"],
             cause["flights"],
             fixed(number(cause, "nose_right_rate_more_least_deg_s")?, 3),
@@ -1009,6 +1018,7 @@ mod tests {
             ),
             (&json!(10), &json!(10), &json!(3), &json!(3))
         );
+        assert_eq!(cause["force_behind_and_nearer_the_guide_on_its_own"], 3);
         // The rate's ratio keeps to the moment's, far from the coefficient's: each end within
         // a third of the moment's end.
         for end in ["least", "greatest"] {

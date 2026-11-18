@@ -3495,6 +3495,7 @@
       "farther_nose_right": 13,
       "flights": 13,
       "force_ahead_of_the_guide_in_both": 10,
+      "force_behind_and_nearer_the_guide_on_its_own": 3,
       "force_behind_the_guide_in_both": 3,
       "moment_ratio_greatest": 15.201941400815281,
       "moment_ratio_least": 0.3512762626918582,

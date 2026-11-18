@@ -85,7 +85,7 @@ and what is not. Every figure below is in [the committed report][report]
    - **Sign.** On 10 of the 13 the force acts ahead of the last guide on both normal forces,
      and the nose turns downwind, farther on HPR Sim's own. On 3 (NDRT 2020, Astra and
      Andromeda) it acts behind the guide on both, and the nose turns upwind, less far on HPR
-     Sim's own, whose force acts nearer the guide. In signed terms HPR Sim on its own normal
+     Sim's own, whose force acts nearer the guide on all 3. In signed terms HPR Sim on its own normal
      force leaves the last guide turning farther nose-right on all 13, by 0.136 to
      4.011 deg/s.
    - **What separates the cause from the phase.** The same 13 flights, in the same code, with

@@ -43,7 +43,7 @@ as its motor burns.
 - **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)),
   turbulence and thrust misalignment. Tip-off (the pivot as the rocket leaves the rail) is left
   out unless a flight asks for it ([Tip-off](#tip-off)), and that phase is held to RocketPy's
-  only on RocketPy's normal force and in still air. RocketPy's tip-off
+  on RocketPy's normal force, and on HPR Sim's own in still air only. RocketPy's tip-off
   phase puts the pivot's cost at up to 3.765% of the apogee in the landing point and 0.414% in
   the apogee, one code against another with no flight to check it
   ([below](#what-leaving-tip-off-out-costs)). Its
@@ -334,7 +334,8 @@ $$
   $$
 
   - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
-    rail. With no guides, it ends when the aft end does.
+    rail. In a flight that asks for tip-off it ends sooner, when the guide next ahead of that
+    one does. With no guides, it ends when the aft end does.
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
@@ -371,7 +372,9 @@ site and in the reports flies without it unless it says otherwise.
 > own normal force the 13 still-air flights agree as well. The 13 crosswind flights do not, by
 > up to 4.010 deg/s, and that is open
 > ([the tip-off phase against RocketPy's](#the-tip-off-phase-against-rocketpys)). A flight you
-> run flies HPR Sim's own normal force, so in a crosswind its tip-off is not held to RocketPy's.
+> run flies HPR Sim's own normal force, unless you give it a table of another
+> (`Simulation::with_normal_force_table`). On HPR Sim's own, a crosswind tip-off is not held to
+> RocketPy's.
 
 **What it does.** Once the guide ahead of the last one leaves the top of the rail, the last guide
 holds the rocket alone. The rocket keeps sliding up the rail on it, free to pitch and yaw about

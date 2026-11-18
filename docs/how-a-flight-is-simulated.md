@@ -48,6 +48,7 @@ The numbers match the drawing.
    the rail, mostly the thrust, beats the weight's pull down it and the rail's friction. That
    instant is [liftoff](glossary.md#liftoff).
 2. **On the rail.** The rocket slides along the rail without turning: one degree of freedom.
+   A flight that asks for [tip-off](physics/flight.md#tip-off) lets it turn on its last guide.
    [Rail exit](glossary.md#rail-exit-and-rail-exit-velocity) comes when the rocket's last rail
    guide leaves the top of the rail. That guide is a rail button or a launch lug (a short tube on
    the body). A rocket that stops on the rail comes to rest there
