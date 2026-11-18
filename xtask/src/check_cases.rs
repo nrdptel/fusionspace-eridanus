@@ -130,8 +130,8 @@ enum Load {
     /// `ω l / 2V` is the rate made dimensionless. Written as `¼ ρ V S l² C ω`, it needs no
     /// division and is zero at rest. The rate is the inertial one, relative to the stars. The
     /// codes split on it ([`damping_law_fit`], in the report): SIM 4's moments follow this law
-    /// in the inertial rate, and SIM 1's come nearer it than the other, to 1e-4 of their size in
-    /// roll and yaw but 1e-2 in pitch; SIM 5's and SIM 6's follow it in the rate relative to the
+    /// in the inertial rate, and SIM 1's come nearer it than the other, to 1.3e-4 of their size in
+    /// roll and yaw but 1.0e-2 in pitch; SIM 5's and SIM 6's follow it in the rate relative to the
     /// Earth; SIM 2's follow neither. The test takes the first.
     Damping {
         area_m2: f64,

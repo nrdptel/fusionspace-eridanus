@@ -49,11 +49,11 @@ reading made for this record.
      report sets each code's against this law on its own printed density, speed and rates over
      the first 8 s. The codes split. SIM 4's follow the law in the inertial rate to 3.0e-5 of
      their size in roll and yaw and 8.1e-11 in pitch, and SIM 1's to 1.3e-4 and 3.5e-6 in roll
-     and yaw. SIM 5's follow it in the rate relative to the Earth to 1.1e-15, and SIM 6's to
+     and yaw, but 1.0e-2 in pitch. SIM 5's follow it in the rate relative to the Earth to 1.1e-15, and SIM 6's to
      1.2e-10. SIM 2's follow neither: they are 0.1103 to 0.2264 of their size off the law in the
      inertial rate and 0.1103 to 0.235 off it in the rate relative to the Earth.
      The rate relative to the air, which turns with the Earth, is the physical one. The test
-     takes the inertial rate, as SIM 1 and SIM 4 do, so that the named difference below is the
+     takes the inertial rate, as SIM 4 does and SIM 1 nearly does, so that the named difference below is the
      Earth's rate alone against them; against SIM 5 and SIM 6 the choice is part of what is
      left, and the report gives it.
    - **A test** (`the_damping_is_on_the_inertial_rate_with_the_span_and_the_chord`) holds the
@@ -85,8 +85,8 @@ reading made for this record.
      atmosphere, by RK4 at 1 ms. It uses no flight of HPR Sim's.
    - **What it leaves** of each kept code's largest difference: at most 0.003176, 0.001123 and
      0.0007793 deg/s, inside the spread. The stricter reading, at every sample, leaves at most
-     0.003287, 0.003791 and 0.002631 deg/s: inside in roll and yaw, and in pitch the spread
-     itself to its printed digits, a margin the damping rate's choice decides. Against SIM 4, which damps as the test
+     0.003287, 0.003791 and 0.002631 deg/s: inside in roll and yaw, and in pitch against a
+     spread of 0.003792 deg/s. Against SIM 4, which damps as the test
      does, HPR Sim sits 0.00006587, 0.00006268 and 0.0002691 deg/s from it at every sample;
      at every sample the most is left in roll and pitch against SIM 5 and SIM 6, which damp the
      rate relative to the Earth, and in yaw against SIM 2.

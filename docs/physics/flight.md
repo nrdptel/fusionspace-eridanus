@@ -626,8 +626,8 @@ largest difference from any kept code.
 | Case 10, position | 5 of 6 | 1,986 mm (78 in) | 1,977 mm (78 in) | 1,251 mm (49 in) | 1,988 mm (78 in) |
 
 For a position the model difference is a distance, and it differs from code to code; the table
-gives the largest. Distances don't subtract, so the last column is not the difference of the
-two before it.
+gives the largest. Distances don't subtract, so the last column need not be the difference
+of the two before it.
 
 Cases 1 to 3 and 6 to 8 come out past the codes' spread. Each is traced. A named difference
 between the models, computed apart from the flight, is taken off at each code's largest
@@ -657,8 +657,7 @@ Cases 9 and 10 come out inside it as flown.
 - **Case 3 is the Earth's rate again.** The same two sets of equations are damped alike, on
   the rate relative to the stars, along the same fall. They leave at most 0.003176, 0.001123
   and 0.0007793 deg/s, each inside the spread. Read at every sample, roll and yaw stay inside.
-  Pitch comes to the spread itself, 0.003791 against 0.003792 deg/s; the damping rate's choice
-  decides that margin. Against SIM 4, which damps as the test does, at most 0.0002691 deg/s
+  Pitch comes to the spread itself, 0.003791 against 0.003792 deg/s. Against SIM 4, which damps as the test does, at most 0.0002691 deg/s
   is left. Read at every sample, the most is left in roll and pitch against SIM 5 and SIM 6.
   Those damp the rate relative to the Earth. In yaw the most is left against SIM 2.
 - **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
