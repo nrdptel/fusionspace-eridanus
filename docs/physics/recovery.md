@@ -439,6 +439,22 @@ So the peak load the simulator reports is **no safe bound** on the real one, in 
   [Verification](#verification). It peaks at 1.6 kN filling and 3.0 kN opening instantly. Knacke's
   infinite-mass $C_x = 1.7$ on the same dynamic pressure would be 5.1 kN.
 
+The flight's opening shock, `max_descent_acceleration_m_s2`, is the largest of this load over the
+mass. After a [separation](../glossary.md#separation) with nothing left to burn, the part that
+keeps the nose flies on as a point mass (body 0), and its own devices' load counts too: their
+drag alone over its mass, $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$ ($\rho$ the
+air's density, $\mathbf{v}$ the part's velocity, $\mathbf{w}$ the wind's), with no airframe
+drag, whether they open before the split or after. The part dropped aft is never counted: its
+devices act only once it flies on its own. Two tests pin the nose part's load: at
+$q\,(C_D S)/m$ to 1e-9 at an instant opening
+(`the_part_that_keeps_the_nose_has_its_own_opening_shock`), and, under a canopy filling in a
+crosswind, at the top of the load inside a step, which the step's start, middle and end alone
+read low (`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
+[ejection](../glossary.md#ejection) that parts the stack, or the part that keeps the nose, ends
+the count: from its charge on, neither the piece ahead of the parted joint (a nose cone pushed
+off is the nose cone alone), which is body 0 from then on, nor the pieces behind it count. An
+ejection in the part dropped aft, after the split, changes nothing.
+
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are
 candidates for a later [milestone](../glossary.md#milestone).

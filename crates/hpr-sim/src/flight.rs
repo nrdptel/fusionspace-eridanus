@@ -3030,25 +3030,14 @@ impl Simulation {
         mass_kg: f64,
         drag_area_m2: f64,
     ) -> Result<[f64; 6], SimError> {
-        let cg_enu_m = DVec3::new(y[0], y[1], y[2]);
         let velocity_enu_m_s = DVec3::new(y[3], y[4], y[5]);
+        let drag_enu = self.point_mass_drag_enu_m_s2(y, mass_kg, drag_area_m2)?;
+        let cg_enu_m = DVec3::new(y[0], y[1], y[2]);
         let environment = &self.environment;
-        let frame = environment.earth.frame();
-        let geodetic = frame.geodetic_from_enu(cg_enu_m)?;
-        let height_msl_m = geodetic.height_m - environment.geoid_undulation_m;
-        let air = environment.air_at(height_msl_m)?;
-        let wind_enu = environment.wind_enu_m_s(height_msl_m)?;
         let gravity_enu = environment.earth.gravity_enu_mps2(cg_enu_m)?;
         let coriolis_enu = environment
             .earth
             .rotation_acceleration_enu_mps2(velocity_enu_m_s);
-        let air_velocity = velocity_enu_m_s - wind_enu;
-        let speed = air_velocity.length();
-        let drag_enu = if air.density_kg_m3 > 0.0 && speed > 0.0 && drag_area_m2 > 0.0 {
-            air_velocity * (-0.5 * air.density_kg_m3 * drag_area_m2 * speed / mass_kg)
-        } else {
-            DVec3::ZERO
-        };
         let acceleration = drag_enu + gravity_enu + coriolis_enu;
         Ok([
             velocity_enu_m_s.x,
@@ -3058,6 +3047,34 @@ impl Simulation {
             acceleration.y,
             acceleration.z,
         ])
+    }
+
+    /// The drag acceleration of a point mass of `mass_kg` under drag area `drag_area_m2` at the
+    /// state `y` of [`Self::point_mass_derivative`], m/s²: `−½ ρ (C_D S) |v − w| (v − w) / m`, its
+    /// specific force, as it has no thrust and no airframe. Zero with no drag area, in a vacuum,
+    /// or at rest in the air.
+    pub(crate) fn point_mass_drag_enu_m_s2(
+        &self,
+        y: &[f64; 6],
+        mass_kg: f64,
+        drag_area_m2: f64,
+    ) -> Result<DVec3, SimError> {
+        let cg_enu_m = DVec3::new(y[0], y[1], y[2]);
+        let velocity_enu_m_s = DVec3::new(y[3], y[4], y[5]);
+        let environment = &self.environment;
+        let geodetic = environment.earth.frame().geodetic_from_enu(cg_enu_m)?;
+        let height_msl_m = geodetic.height_m - environment.geoid_undulation_m;
+        let air = environment.air_at(height_msl_m)?;
+        let wind_enu = environment.wind_enu_m_s(height_msl_m)?;
+        let air_velocity = velocity_enu_m_s - wind_enu;
+        let speed = air_velocity.length();
+        Ok(
+            if air.density_kg_m3 > 0.0 && speed > 0.0 && drag_area_m2 > 0.0 {
+                air_velocity * (-0.5 * air.density_kg_m3 * drag_area_m2 * speed / mass_kg)
+            } else {
+                DVec3::ZERO
+            },
+        )
     }
 
     /// The way the nose of a body with no attitude of its own is taken to point, as a unit vector
@@ -3479,6 +3496,17 @@ impl BodyStep for BodyStepView<'_> {
             drag_area_m2,
         )?;
         Ok(DVec3::new(rates[3], rates[4], rates[5]))
+    }
+
+    fn specific_force_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError> {
+        let drag_area_m2 = self
+            .run
+            .body_drag_area_m2(&self.simulation.devices, self.body, t_s);
+        self.simulation.point_mass_drag_enu_m_s2(
+            &self.step.state_at(t_s),
+            self.mass_kg,
+            drag_area_m2,
+        )
     }
 }
 

@@ -232,6 +232,17 @@ pub trait BodyStep {
     ///
     /// As [`Self::sample`].
     fn acceleration_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError>;
+
+    /// Its specific force at `t_s`, m/s²: the force on it other than gravity over its mass, here
+    /// the drag of its open devices alone, `−½ ρ (C_D S) |v − w| (v − w) / m`, a point mass having
+    /// no thrust and no airframe drag (`docs/physics/recovery.md`). With nothing open it is zero.
+    /// Under its devices the mass times this is the opening force, as the stack's
+    /// [`crate::Sample::specific_force_enu_m_s2`] is.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sample`].
+    fn specific_force_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError>;
 }
 
 /// Watches a flight as it runs. Every method does nothing by default; `()` watches nothing.

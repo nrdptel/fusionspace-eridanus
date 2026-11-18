@@ -3985,6 +3985,388 @@ mod tests {
     }
 
     #[test]
+    fn the_part_that_keeps_the_nose_has_its_own_opening_shock() {
+        // #1519: a stack that comes apart with nothing left to burn leaves the part that keeps
+        // the nose, body 0, to fly on as a point mass. Its opening shock is the drag of its own
+        // device over its mass, `q C_D S / m` at the opening for a device that opens at once
+        // (Knacke, NWC TP 6575, p. 5-50, with C_x X_1 = 1), as the stack's is (#1258). Before,
+        // the summary had none: the stack opened nothing before the split.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let flight = |devices: Vec<Device>| {
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                devices,
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            );
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            (result, summary)
+        };
+        // Each body's own apogee, from a flight whose devices open there.
+        let (scouted, _) = flight(vec![
+            Device::new(
+                "nose part",
+                DeviceDrag::DragArea { cd_s_m2: 0.3 },
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "aft part",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+        ]);
+        let apogee_s = |body: usize| {
+            let flown = scouted.bodies.iter().find(|b| b.body == body).unwrap();
+            flown.event(EventKind::Apogee).unwrap().sample.time_s
+        };
+        // Each opens falling fast: the nose part 5 s past its apogee, the aft part 8 s past its
+        // own under a larger device, so its shock is the larger and must not be taken.
+        let cd_s_m2 = [0.3, 1.0];
+        let (result, summary) = flight(vec![
+            Device::new(
+                "nose part",
+                DeviceDrag::DragArea {
+                    cd_s_m2: cd_s_m2[0],
+                },
+                Trigger::Time {
+                    time_s: apogee_s(0) + 5.0,
+                },
+            ),
+            Device::new(
+                "aft part",
+                DeviceDrag::DragArea {
+                    cd_s_m2: cd_s_m2[1],
+                },
+                Trigger::Time {
+                    time_s: apogee_s(1) + 8.0,
+                },
+            )
+            .on_body(1),
+        ]);
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed());
+        // The stack itself opened nothing: what the summary has is body 0's.
+        assert!(
+            !result
+                .events
+                .iter()
+                .any(|event| matches!(event.kind, EventKind::Deployment(_)))
+        );
+        let rho = air.0.density_kg_m3;
+        let opening = |body: usize| {
+            let flown = result.bodies.iter().find(|b| b.body == body).unwrap();
+            let deployed = flown.event(EventKind::Deployment(body)).unwrap().sample;
+            assert!(deployed.vertical_speed_m_s < -40.0, "{deployed:?}");
+            let q_pa = 0.5 * rho * deployed.airspeed_m_s.powi(2);
+            (q_pa * cd_s_m2[body] / deployed.mass_kg, deployed)
+        };
+        let (nose_per_kg, deployed) = opening(0);
+        let (aft_per_kg, _) = opening(1);
+        assert!(
+            aft_per_kg > 1.5 * nose_per_kg,
+            "{aft_per_kg} vs {nose_per_kg}"
+        );
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            (shock.value / nose_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {nose_per_kg}",
+            shock.value
+        );
+        assert_eq!(shock.time_s, deployed.time_s);
+        assert_eq!(shock.height_above_ground_m, deployed.height_above_ground_m);
+    }
+
+    #[test]
+    fn a_split_with_an_ejection_keeps_the_lead_pieces_shock_out() {
+        // #1519: with an ejection at the split, body 0 is the ejection's lead piece, here the
+        // nose cone alone under its own device, not the part that keeps the nose; its opening
+        // shock is left out of the summary as its apogee is (ADR-165), though it opens at once
+        // at 100 m/s.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let at = Trigger::Time { time_s: split_s };
+        let devices = vec![
+            Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, at),
+            Device::new(
+                "sustainer",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+            Device::new(
+                "booster",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(2),
+        ];
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(at, 0),
+        )
+        .with_ejections(vec![crate::Ejection::aft_of(at, "nose")])
+        .unwrap();
+        let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+        let mut metrics = crate::metrics::FlightMetrics::new();
+        let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.event(EventKind::Separation).is_some());
+        let opened = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(
+            opened.time_s,
+            result.event(EventKind::Ejection(0)).unwrap().sample.time_s
+        );
+        assert!(opened.airspeed_m_s > 50.0, "{opened:?}");
+        let summary = metrics.summary(&result, sim.environment()).unwrap();
+        assert_eq!(summary.max_descent_acceleration_m_s2, None);
+    }
+
+    #[test]
+    fn the_nose_parts_shock_stops_counting_where_an_ejection_parts_it() {
+        // #1519, found in review: after the split, the part that keeps the nose opens a drogue,
+        // then pushes off its nose cone under the cone's own canopy. From the ejection on, body 0
+        // is the nose cone alone, whose far larger shock is left out: the flight's is the
+        // drogue's, `q C_D S / m` at its opening on the whole part.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let charge = Trigger::Time {
+            time_s: split_s + 15.0,
+        };
+        let drogue_m2 = 0.05;
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: drogue_m2 },
+                Trigger::Time {
+                    time_s: split_s + 12.0,
+                },
+            ),
+            Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, charge),
+            Device::new(
+                "booster",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1),
+            Device::new("airframe", DeviceDrag::DragArea { cd_s_m2: 1.0 }, charge).on_body(2),
+        ];
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(Trigger::Time { time_s: split_s }, 0),
+        )
+        .with_ejections(vec![crate::Ejection::aft_of(charge, "nose")])
+        .unwrap();
+        let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+        let mut metrics = crate::metrics::FlightMetrics::new();
+        let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        // The stack only split; the ejection is body 0's own, after the drogue opened.
+        assert!(
+            !result
+                .events
+                .iter()
+                .any(|event| matches!(event.kind, EventKind::Ejection(_)))
+        );
+        let nose = result.bodies.iter().find(|body| body.body == 0).unwrap();
+        let drogue = nose.event(EventKind::Deployment(0)).unwrap().sample;
+        let ejected = nose.event(EventKind::Ejection(0)).unwrap().sample;
+        let cone = nose.event(EventKind::Deployment(1)).unwrap().sample;
+        assert!(drogue.time_s < ejected.time_s);
+        assert!(drogue.vertical_speed_m_s < 0.0, "{drogue:?}");
+        let rho = air.0.density_kg_m3;
+        let per_kg = |sample: &BodySample, cd_s_m2: f64| {
+            0.5 * rho * sample.airspeed_m_s.powi(2) * cd_s_m2 / sample.mass_kg
+        };
+        let drogue_per_kg = per_kg(&drogue, drogue_m2);
+        // The nose cone alone, much lighter, under its canopy (the samples at the charge are
+        // the whole part's, taken as it fires): what must not be taken.
+        let cone_kg = nose.final_sample.mass_kg;
+        assert!(cone_kg < 0.5 * drogue.mass_kg, "{cone_kg} {drogue:?}");
+        let cone_per_kg = per_kg(&cone, 0.3) * cone.mass_kg / cone_kg;
+        assert!(
+            cone_per_kg > 5.0 * drogue_per_kg,
+            "{cone_per_kg} {drogue_per_kg}"
+        );
+        let summary = metrics.summary(&result, sim.environment()).unwrap();
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            (shock.value / drogue_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {drogue_per_kg}",
+            shock.value
+        );
+        assert_eq!(shock.time_s, drogue.time_s);
+    }
+
+    #[test]
+    fn the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy() {
+        // #1519: under a canopy that fills over a time, the nose part's load tops between a
+        // step's ends, where the growing drag area meets the falling speed. The summary finds the
+        // top by a search inside the step, as the stack's is found; the step's start, middle and
+        // end alone read it low, the flattering side. A crosswind keeps the airspeed apart from
+        // the speed over the ground: the load follows the airspeed.
+        /// Body 0's load over its mass, by hand from each sample's drag area, airspeed and mass.
+        struct Scan {
+            rho: f64,
+            /// Where the canopy fills, s: the steps scanned finely.
+            filling_s: (f64, f64),
+            /// The largest over the steps' starts, middles and ends.
+            coarse: f64,
+            /// The largest over those and 2,000 intervals of each step that meets the filling.
+            fine: f64,
+            /// The most the step's specific force differs from the hand value, relative (the
+            /// force itself where nothing is open).
+            worst_gap: f64,
+            /// The most the airspeed differs from the speed over the ground under a device,
+            /// relative.
+            wind_share: f64,
+        }
+        impl crate::recorder::Observer for Scan {
+            fn body_step(
+                &mut self,
+                body: usize,
+                step: &dyn crate::recorder::BodyStep,
+            ) -> Result<(), crate::SimError> {
+                if body != 0 {
+                    return Ok(());
+                }
+                let (a, b) = (step.start_s(), step.end_s());
+                let fills = a < self.filling_s.1 && b > self.filling_s.0;
+                let points: u32 = if fills { 2_000 } else { 2 };
+                for i in 0..=points {
+                    let t_s = a + (b - a) * f64::from(i) / f64::from(points);
+                    let sample = step.sample(t_s)?;
+                    let by_hand =
+                        0.5 * self.rho * sample.recovery_drag_area_m2 * sample.airspeed_m_s.powi(2)
+                            / sample.mass_kg;
+                    let force = step.specific_force_enu_m_s2(t_s)?.length();
+                    // With nothing open the hand value is zero, and so must the force be.
+                    let gap = if by_hand > 0.0 {
+                        (force / by_hand - 1.0).abs()
+                    } else {
+                        force
+                    };
+                    self.worst_gap = self.worst_gap.max(gap);
+                    if by_hand > 0.0 {
+                        let ground_m_s = sample.cg_velocity_enu_m_s.length();
+                        self.wind_share = self
+                            .wind_share
+                            .max((ground_m_s / sample.airspeed_m_s - 1.0).abs());
+                    }
+                    self.fine = self.fine.max(by_hand);
+                    if i % (points / 2) == 0 {
+                        self.coarse = self.coarse.max(by_hand);
+                    }
+                }
+                Ok(())
+            }
+        }
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let fill_s = 1.0;
+        let flight = |trigger: Trigger, filling_s: (f64, f64)| {
+            let sim = staged_flight(
+                analytic_wind_environment(air, G, ConstantWind::new(8.0, 1.5).unwrap()),
+                vec![
+                    Device::new("nose part", DeviceDrag::DragArea { cd_s_m2: 0.3 }, trigger)
+                        .with_inflation(Inflation::FillingTime {
+                            time_s: fill_s,
+                            exponent: 2.0,
+                        }),
+                    Device::new(
+                        "aft part",
+                        DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                        Trigger::Apogee,
+                    )
+                    .on_body(1),
+                ],
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            );
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let mut scan = Scan {
+                rho: air.0.density_kg_m3,
+                filling_s,
+                coarse: 0.0,
+                fine: 0.0,
+                worst_gap: 0.0,
+                wind_share: 0.0,
+            };
+            let result = sim
+                .run_free(split_s, start, &mut (&mut metrics, &mut scan))
+                .unwrap();
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            (result, summary, scan)
+        };
+        // The nose part's own apogee, from a flight whose device opens there.
+        let (scouted, _, _) = flight(Trigger::Apogee, (0.0, 0.0));
+        let nose = scouted.bodies.iter().find(|b| b.body == 0).unwrap();
+        let open_s = nose.event(EventKind::Apogee).unwrap().sample.time_s + 5.0;
+        let (result, summary, scan) =
+            flight(Trigger::Time { time_s: open_s }, (open_s, open_s + fill_s));
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed());
+        let nose = result.bodies.iter().find(|b| b.body == 0).unwrap();
+        let deployed = nose.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(deployed.time_s, open_s);
+        assert!(deployed.vertical_speed_m_s < -40.0, "{deployed:?}");
+        // The step's specific force is the hand value everywhere, and the wind is in it: under
+        // the canopy the airspeed and the speed over the ground differ by more than a tenth.
+        assert!(scan.worst_gap < 1e-12, "{}", scan.worst_gap);
+        assert!(scan.wind_share > 0.1, "{}", scan.wind_share);
+        // The top is inside a step: the steps' starts, middles and ends alone read it low.
+        assert!(
+            scan.fine > scan.coarse * (1.0 + 1e-5),
+            "{} vs {}",
+            scan.fine,
+            scan.coarse
+        );
+        // The summary's shock is that top: no lower than the fine scan, and no higher than a
+        // scan's spacing can miss.
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            shock.value >= scan.fine * (1.0 - 1e-9) && shock.value <= scan.fine * (1.0 + 1e-6),
+            "{} vs {}",
+            shock.value,
+            scan.fine
+        );
+        assert!(
+            shock.time_s > open_s && shock.time_s < open_s + fill_s,
+            "{} in {open_s} + {fill_s}",
+            shock.time_s
+        );
+    }
+
+    #[test]
     fn a_timed_separation_fires_at_its_own_time() {
         // Found in review: the separation's trigger was neither a stop time nor a located event,
         // so a timed or height separation fired at whatever boundary happened to come next,

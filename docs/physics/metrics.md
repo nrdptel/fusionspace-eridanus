@@ -187,9 +187,13 @@ mass (with a motor still burning, the drag and the thrust together). That is wha
 reads, and with no motor burning it is the opening force over the mass (Knacke, NWC TP 6575,
 p. 5-50, gives the opening force as $F = (C_D S)\,q\,C_x X_1$). In a canopy's steady fall it is
 1 g, so it reads at least about that once the canopy reaches its steady fall. A canopy opened
-slower than its steady fall reads less if the stack's flight ends before it gets there, at the
-ground or at a split with nothing left to burn. In the example above the canopy opens while the
-rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
+slower than its steady fall reads less if it doesn't get there while it is counted: the flight
+reaches the ground first, or an [ejection](../glossary.md#ejection) parts the stack or the part
+that keeps the nose, which ends the count. After a [separation](../glossary.md#separation) with
+nothing left to burn, the part that keeps the nose (body 0) is counted until it ejects a piece
+itself or lands, and the part dropped aft never is
+([the opening load](recovery.md#the-opening-load)).
+In the example above the canopy opens while the rocket still climbs, with the drag and the weight both pointing down, so the motion's acceleration there (the
 plot's spike) is close to g above the opening shock of 144.0 m/s².
 A test opens a canopy 5 s after apogee, falling, and finds the shock equal to $q C_D S / m$ at the
 opening to 1e-9. At the ground, in the canopy's steady fall, the specific force is g and the
@@ -580,6 +584,9 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibers of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
 | `peak_acceleration_is_analytic_and_excludes_opening_shock` | The boost's peak in a vacuum against the hand value, to 1e-6; a 100 Hz finite difference reads it more than 1% low; an opening shock over three times the boost's is kept apart ([L34](../decisions-and-roadmap.md#l34)) |
 | `the_opening_shock_is_the_drag_over_the_mass_without_gravity` | A canopy opened falling, 5 s after apogee: the opening shock is $q C_D S / m$ at the opening to 1e-9, about g above what the motion's acceleration reads there by the hand relation $\lvert a \rvert \approx D/m - g \cos\theta$; at the ground, in its steady fall, the specific force is g up to 1e-3 and the motion's acceleration under 1e-3 g ([#1258](https://github.com/nrdptel/fusionspace-eridanus/issues/1258)) |
+| `the_part_that_keeps_the_nose_has_its_own_opening_shock` (in `recovery.rs`, as the next two rows' tests are) | After a separation with nothing left to burn, the stack having opened nothing: the summary's shock is the nose part's $q C_D S / m$ at its instant opening to 1e-9, at that opening's time and height, and not the aft part's, which is more than 1.5 times larger ([#1519](https://github.com/nrdptel/fusionspace-eridanus/issues/1519)) |
+| `the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy` | The nose part under a canopy that fills over 1 s in an 8 m/s (26 ft/s) crosswind: each step's specific force is the sample's drag area, airspeed and mass by hand to 1e-12; the summary's shock is the top of a scan of the steps that meet the filling, 2,000 intervals each, no lower to 1e-9 and no more than 1e-6 higher, where the steps' starts, middles and ends alone read more than 1e-5 low |
+| `a_split_with_an_ejection_keeps_the_lead_pieces_shock_out`, `the_nose_parts_shock_stops_counting_where_an_ejection_parts_it` | An ejection that parts the stack or the part that keeps the nose ends the count: a nose cone ejected at the split, its device opening at over 50 m/s (164 ft/s), leaves the summary no shock; one ejected after the nose part's drogue opened leaves the drogue's $q C_D S / m$ to 1e-9, though the cone's own shock is more than 5 times larger |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |

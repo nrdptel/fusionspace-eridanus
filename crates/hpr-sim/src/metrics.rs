@@ -34,7 +34,7 @@ use crate::envelope::{self, EnvelopeFlag, HIGH_ANGLE_GRACE_S, HIGH_ANGLE_OF_ATTA
 use crate::environment::Environment;
 use crate::error::SimError;
 use crate::flight::{EventKind, FlightEvent, FlightResult, Simulation, Termination};
-use crate::recorder::{FlightStep, Observer, Sample};
+use crate::recorder::{BodyStep, FlightStep, Observer, Sample};
 use crate::recovery::BodySample;
 
 /// The largest ratio `κ = Σ |C_Nα,i| / C_Nα` at which a margin is given: `√10`.
@@ -366,8 +366,15 @@ pub struct FlightSummary {
     /// opening load over the mass, `(drag + thrust)/m` ([`Sample::specific_force_enu_m_s2`]),
     /// which follows the inflation model, kept apart from the boost's. Gravity is not in it: with
     /// no motor burning, the mass times this is the opening force. Once a canopy reaches its
-    /// steady fall it reads about 1 g, so it is at least that unless the stack's flight ends
-    /// first, at the ground or at a split with nothing left to burn.
+    /// steady fall it reads about 1 g, so it is at least that unless the flight reaches the
+    /// ground first or comes apart at an ejection ([`crate::Ejection`]). When the stack comes
+    /// apart at a separation with nothing left to burn ([`Termination::Separated`]), the part
+    /// that keeps the nose, body 0, flies on as a point mass, and the drag of its own devices
+    /// over its mass counts too ([`BodyStep::specific_force_enu_m_s2`]), whether they open
+    /// before the split or after, until an ejection parts it. No other body's load counts:
+    /// never the part dropped aft at a separation, and no piece from an ejection of the stack
+    /// or of body 0 on, where body 0 is the ejection's lead piece (a nose cone pushed off is
+    /// the nose cone alone).
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
@@ -479,6 +486,12 @@ pub struct FlightMetrics {
     max_q: Option<Peak>,
     max_acceleration: Option<Peak>,
     max_descent_acceleration: Option<Peak>,
+    /// The largest specific force on body 0, a separated body flown as a point mass, over each
+    /// of its steps where a device of its own is open, with the step's start, s. The summary
+    /// takes the largest of those that start before an ejection parts body 0, and only when the
+    /// stack came apart at a separation with no ejection: until then body 0 is the part that
+    /// keeps the nose.
+    nose_descent_peaks: Vec<(f64, Peak)>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
     last_end_s: Option<f64>,
@@ -648,6 +661,31 @@ impl FlightMetrics {
                 }
             }
         }
+        // Body 0's opening shock counts while it is the part that keeps the nose: after a
+        // separation with no ejection, and until an ejection of its own parts it. From an
+        // ejection on, body 0 is that ejection's lead piece (a nose cone pushed off is the nose
+        // cone alone), whose load is left out.
+        let mut max_descent_acceleration = self.max_descent_acceleration;
+        let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
+        if result.termination == Termination::Separated
+            && result.event(EventKind::Separation).is_some()
+            && !result.events.iter().any(|event| ejection(&event.kind))
+        {
+            let parted_s = result
+                .bodies
+                .iter()
+                .filter(|body| body.body == 0)
+                .flat_map(|body| &body.events)
+                .find(|event| ejection(&event.kind))
+                .map_or(f64::INFINITY, |event| event.sample.time_s);
+            for (start_s, nose) in &self.nose_descent_peaks {
+                if *start_s < parted_s
+                    && max_descent_acceleration.is_none_or(|peak| nose.value > peak.value)
+                {
+                    max_descent_acceleration = Some(*nose);
+                }
+            }
+        }
         let landing = if result.termination == Termination::GroundHit {
             let s = &result.final_sample;
             Some(Landing::at(
@@ -686,7 +724,7 @@ impl FlightMetrics {
             max_mach: self.max_mach,
             max_dynamic_pressure_pa: self.max_q,
             max_acceleration_m_s2: self.max_acceleration,
-            max_descent_acceleration_m_s2: self.max_descent_acceleration,
+            max_descent_acceleration_m_s2: max_descent_acceleration,
             max_deployment_airspeed_m_s: max_deployment_airspeed,
             min_static_margin_cal: self.min_static_margin,
             min_flight_margin_cal: self.min_flight_margin,
@@ -847,6 +885,40 @@ impl Observer for FlightMetrics {
             }
             _ => {}
         }
+    }
+
+    /// Body 0's opening shock: the largest of its specific force over each step, from the step's
+    /// start, middle and end and, where the parabola through them tops inside, a search between,
+    /// as a stack's step is read, kept with the step's start for [`Self::summary`] to cut at an
+    /// ejection. With no device of its own open the force is zero, and is not kept. Its steps are
+    /// not the flight's: they don't count toward the summary's check.
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        if body != 0 {
+            return Ok(());
+        }
+        let peak_at = |t_s: f64| -> Result<Peak, SimError> {
+            let sample = step.sample(t_s)?;
+            Ok(Peak {
+                value: step.specific_force_enu_m_s2(t_s)?.length(),
+                time_s: sample.time_s,
+                height_above_ground_m: sample.height_above_ground_m,
+            })
+        };
+        let (a, b) = (step.start_s(), step.end_s());
+        let [start, middle, end] = [peak_at(a)?, peak_at(0.5 * (a + b))?, peak_at(b)?];
+        let mut best = [middle, end]
+            .into_iter()
+            .fold(start, |x, y| if y.value > x.value { y } else { x });
+        if top_inside(start.value, middle.value, end.value) {
+            let found = golden_max(a, b, peak_at)?;
+            if found.value > best.value {
+                best = found;
+            }
+        }
+        if best.value > 0.0 || best.value.is_nan() {
+            self.nose_descent_peaks.push((a, best));
+        }
+        Ok(())
     }
 }
 

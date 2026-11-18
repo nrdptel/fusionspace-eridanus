@@ -1546,6 +1546,24 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
         .map(|event| event["kind"].as_str().unwrap())
         .collect();
     assert_eq!(kinds, ["ground_hit", "apogee"]);
+    // #1519: the payload's opening shock, under the parachute that opens at the split, is the
+    // flight's, though the stack opened nothing before it; `hpr mc` gives it too.
+    let shock = &document["summary"]["max_descent_acceleration_m_s2"];
+    assert!(shock["time_s"].as_f64().unwrap() >= split_s, "{shock}");
+    let shock_m_s2 = shock["value"].as_f64().unwrap();
+    assert!(shock_m_s2 > 9.8, "{shock}");
+    let mc = json(&["mc", &path, "--runs", "4"], 0, "mc.schema.json");
+    assert_eq!(
+        mc["nominal"]["opening_shock_m_s2"].as_f64().unwrap(),
+        shock_m_s2
+    );
+    assert_eq!(
+        mc["opening_shock_m_s2"]["count"], 4,
+        "{}",
+        mc["opening_shock_m_s2"]
+    );
+    let text = streams(&["mc", &path, "--runs", "4"]);
+    assert!(text.out.contains("opening shock (m/s²)"), "{}", text.out);
 
     // The payload's parachute opens at the split, on the part that keeps the nose; the booster's
     // at its own charge, the same instant; the booster's tumble, which it releases, is hpr's.
