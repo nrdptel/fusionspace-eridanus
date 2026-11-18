@@ -129,9 +129,10 @@ enum Load {
     /// axis and `l` its length, the span `b` for roll and yaw and the chord `c̄` for pitch;
     /// `ω l / 2V` is the rate made dimensionless. Written as `¼ ρ V S l² C ω`, it needs no
     /// division and is zero at rest. The rate is the inertial one, relative to the stars. The
-    /// codes split on it: the moments in their files follow this law in the inertial rate for
-    /// SIM 1 and SIM 4 and in the rate relative to the Earth for SIM 5 and SIM 6, each to its
-    /// printed digits ([`damping_law_fit`], in the report). The test takes the first.
+    /// codes split on it ([`damping_law_fit`], in the report): SIM 4's moments follow this law
+    /// in the inertial rate, and SIM 1's come nearer it than the other, to 1e-4 of their size in
+    /// roll and yaw but 1e-2 in pitch; SIM 5's and SIM 6's follow it in the rate relative to the
+    /// Earth; SIM 2's follow neither. The test takes the first.
     Damping {
         area_m2: f64,
         span_m: f64,
@@ -247,7 +248,7 @@ struct Case {
     measure: Measure,
     trace: Trace,
     /// The named difference between HPR Sim's model and the codes' that the trace sizes.
-    model_difference: Option<&'static str>,
+    model_difference: &'static str,
     quantities: Vec<Quantity>,
 }
 
@@ -342,12 +343,10 @@ fn cases() -> Result<Vec<Case>, String> {
             start,
             measure: Measure::Position,
             trace: Trace::GravityOnTheFlight,
-            model_difference: Some(
-                "WGS 84's normal gravity and the 1976 atmosphere, which HPR Sim flies in, less \
+            model_difference: "WGS 84's normal gravity and the 1976 atmosphere, which HPR Sim flies in, less \
                  gravitation cut off after J2 with the centrifugal term and the code's own air \
                  density as its file gives it, which the code flies in: a point mass flown in \
                  each, with the same drag and wind, one position less the other",
-            ),
             quantities: position(),
         })
     };
@@ -363,11 +362,9 @@ fn cases() -> Result<Vec<Case>, String> {
             start: dropped,
             measure: Measure::Altitude,
             trace: Trace::Gravity,
-            model_difference: Some(
-                "WGS 84's normal gravity, which HPR Sim falls in, less gravitation cut off \
+            model_difference: "WGS 84's normal gravity, which HPR Sim falls in, less gravitation cut off \
                  after J2 with the centrifugal term, which the codes fall in, integrated twice \
                  along the fall",
-            ),
             quantities: vec![Quantity {
                 key: "altitude",
                 name: "altitude",
@@ -389,11 +386,9 @@ fn cases() -> Result<Vec<Case>, String> {
             start: tumbling,
             measure: Measure::InertialRates,
             trace: Trace::EarthRate,
-            model_difference: Some(
-                "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
+            model_difference: "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
                  equations in the rate relative to the Earth-fixed launch frame, less the same \
                  equations in the rate relative to the stars",
-            ),
             quantities: rates(),
         },
         Case {
@@ -413,12 +408,10 @@ fn cases() -> Result<Vec<Case>, String> {
             start: tumbling,
             measure: Measure::InertialRates,
             trace: Trace::EarthRate,
-            model_difference: Some(
-                "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
+            model_difference: "the Earth's rate left out of HPR Sim's rotational equations: Euler's \
                  equations with the damping moment in the rate relative to the Earth-fixed \
                  launch frame, less the same equations in the rate relative to the stars, both \
                  damped by the inertial rate along the same fall",
-            ),
             quantities: rates(),
         },
         sphere_case(
@@ -897,6 +890,8 @@ fn flown(
 
 /// `a` less `b`: signed for one number, and for a position the distance between the two.
 fn less(a: &[f64], b: &[f64]) -> f64 {
+    // A quantity's two sides are read the same way: one number each, or one position each.
+    assert_eq!(a.len(), b.len(), "a quantity read two ways");
     match (a, b) {
         ([a], [b]) => a - b,
         _ => a
@@ -1617,7 +1612,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  distance) between any two kept codes at a time every one of them has; a code is \
                  left out when leaving it cuts the spread of all by more than half. \
                  model_difference is the case's named difference between the two models, \
-                 computed apart from the flight, or 0 where none is named. \
+                 computed apart from the flight. \
                  left_of_the_largest_difference is a code's largest difference less the model \
                  difference at the same sample, and a quantity is traced when that is no more \
                  than the spread for every kept code. largest_unexplained is the same \
@@ -1708,9 +1703,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
             text(case, "name")?,
             text(case, "source")?,
             case["codes"],
-            case["model_difference"]
-                .as_str()
-                .unwrap_or("none named, so it is 0 throughout"),
+            text(case, "model_difference")?,
         );
         out.push_str(
             "| Quantity | Spread of all codes | Code left out | Spread of the rest | \

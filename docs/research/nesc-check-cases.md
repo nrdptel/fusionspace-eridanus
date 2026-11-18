@@ -152,7 +152,7 @@ axis, and `hpr-aero` has no pitch or yaw damping coefficients ([flight](../physi
   Flown: past the spread in 6 to 8, traced to gravity and each code's own air; 9 and 10 inside ([ADR-356][adr-356]).
 - **Cases 7 and 8: fit** with the same drag. New: steady and sheared wind on a free body.
 - **Cases 9 and 10: fit,** with the same drag (45°). New: a 6.9 km shot, where the pad's tangent plane sits 3.7 m
-  (12 ft) above the ellipsoid (**Inference**): a test, inside a 4.3 ft spread, of the conversion HPR Sim uses for
+  (12 ft) above the ellipsoid (**Inference**): a test, inside the codes' 6.5 ft spread, of the conversion HPR Sim uses for
   apogee and landing ([Frames](../physics/frames.md#launch-frame-l-east-north-up)); 10 adds Coriolis on a path.
 - **Cases 11 to 17: refused.** 11 to 16 fly an aircraft under flight control. Case 17 is orbital, past Mach 9 in the
   files, 314 tonnes, aerodynamics without Mach, its codes 16.790% apart; staging is checked against OpenRocket.

@@ -215,8 +215,9 @@ $$
   into the body's axes to give inertial rates. In cases 1 and 2, with the two named model
   differences taken off each kept code's largest difference, at most 0.1364 mm (0.0054 in) of
   altitude and 0.001005 deg/s of body rate are left, both inside the codes' spread; read at every
-  sample, case 2's rates are left just past it. Case 3's rates and the sphere's positions are
-  traced or inside on the flight page. The attitude itself is not compared.
+  sample, case 2's rates are left just past it. Case 3's rates and the sphere's positions in
+  cases 6 to 8 are traced to inside the spread, and cases 9 and 10 come out inside it as flown;
+  the flight page's table gives each. The attitude itself is not compared.
 
 [adr-003]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0003-frames-attitude-geodesy-and-the-gravity-model.md
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

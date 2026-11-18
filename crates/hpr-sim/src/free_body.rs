@@ -76,7 +76,7 @@ pub const FREE_BODY_LOAD_NOT_FINITE: &str =
 
 /// What a free body's loads are formed from at one state, read as a rocket's flight reads them:
 /// the air and the wind at the center of mass's height above mean sea level.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct LoadInputs {
     /// The state, its attitude normalized.
@@ -94,7 +94,7 @@ pub struct LoadInputs {
 }
 
 /// A force through the center of mass and a moment about it, in body axes.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Loads {
     /// The force, N.
     pub force_body_n: DVec3,
@@ -353,9 +353,9 @@ impl FreeBody {
     }
 
     /// Flies the body in `environment` under the caller's `loads` from `state` at `t0_s` and
-    /// gives its state at each of `times_s`, read from the steps' dense output as a flight's recorder reads its samples. The
-    /// times don't shape the steps, but for the last, where the integration stops. Nothing ends
-    /// the flight early: the ground is not looked for.
+    /// gives its state at each of `times_s`, read from the steps' dense output as a flight's
+    /// recorder reads its samples. The times don't shape the steps, but for the last, where the
+    /// integration stops. Nothing ends the flight early: the ground is not looked for.
     ///
     /// # Errors
     ///
@@ -854,14 +854,18 @@ mod tests {
     fn loads_see_the_air_as_a_flight_does_and_enter_newtons_and_eulers_equations() {
         use std::cell::Cell;
 
-        let air = UniformAir::sea_level();
-        let density = air.0.density_kg_m3;
+        // The 1976 atmosphere, which changes with height, and a geoid 17 m above the
+        // ellipsoid: air read at the ellipsoidal height, or with the undulation's sign turned,
+        // is other air.
+        let undulation_m = 17.0;
         let wind = DVec3::new(-6.0, 4.0, 0.0);
-        let environment = Environment::new(
-            Earth::wgs84(site()).unwrap(),
-            air,
-            ConstantWind::new(wind.length(), wind.x.atan2(wind.y) + std::f64::consts::PI).unwrap(),
-        );
+        let environment = Environment::standard(site())
+            .unwrap()
+            .with_wind(
+                ConstantWind::new(wind.length(), wind.x.atan2(wind.y) + std::f64::consts::PI)
+                    .unwrap(),
+            )
+            .with_geoid_undulation_m(undulation_m);
         let body = brick();
         let state = tumbling();
         let force = DVec3::new(0.7, -1.1, 2.3);
@@ -886,8 +890,12 @@ mod tests {
             .geodetic_from_enu(state.position_enu_m)
             .unwrap()
             .height_m;
-        assert_eq!(inputs.height_msl_m, height);
-        assert_eq!(inputs.air.density_kg_m3, density);
+        assert_eq!(inputs.height_msl_m, height - undulation_m);
+        let density = |at_m: f64| environment.atmosphere.air(at_m).unwrap().air.density_kg_m3;
+        assert_eq!(inputs.air.density_kg_m3, density(height - undulation_m));
+        for wrong in [height, height + undulation_m] {
+            assert!((density(wrong) / density(height - undulation_m) - 1.0).abs() > 1e-4);
+        }
         assert!(
             (inputs.wind_enu_m_s - wind).length() < 1e-12,
             "{:?}",
@@ -969,7 +977,11 @@ mod tests {
             .derivative(&airless_earth(), &bad, &tumbling().to_array())
             .unwrap_err();
         assert!(
-            matches!(error, SimError::Domain { what, value } if what == FREE_BODY_LOAD_NOT_FINITE && value.is_nan()),
+            matches!(
+                error,
+                SimError::Domain { what, value }
+                    if what == FREE_BODY_LOAD_NOT_FINITE && value.is_nan()
+            ),
             "{error:?}"
         );
     }

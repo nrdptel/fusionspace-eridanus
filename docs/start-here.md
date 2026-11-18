@@ -180,8 +180,8 @@ six: by 19.51 mm (0.77 in) of altitude after 30 s, because its gravity model hol
 drops; by up to 0.01633 deg/s of turn rate, because its rotational equations leave the Earth's
 rotation out; and by up to 105.0 mm (4.1 in) of a dragged sphere's position, against one code
 whose air is denser than the standard atmosphere. Each named difference, sized on its own, brings its
-difference inside the codes' spread at each code's largest difference. The two shots come
-out inside the spread
+difference inside the codes' spread at each code's largest difference; for that one code it does
+so without explaining the gap. The two shots come out inside the spread as flown
 ([A free body against NASA's check cases](physics/flight.md#a-free-body-against-nasas-check-cases)).
 
 ### Recovery

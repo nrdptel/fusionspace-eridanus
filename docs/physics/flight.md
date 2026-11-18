@@ -15,10 +15,11 @@ as its motor burns.
   to 1.7e-6 m over 22 s. On six of the check cases, a free body on the same equations differs
   from the codes NASA published by more than they differ from each other. It ends 19.51 mm
   (0.77 in) lower after a 4.4 km (2.7 mi) fall, turns up to 0.01633 deg/s apart, and puts a
-  dragged sphere up to 105.0 mm (4.1 in) away. A named difference between the models accounts for each to
-  inside the codes' spread at each code's largest difference. Read at every sample, case 2's
-  tumbling brick's rates are left just past it. Two shots from sea level come out inside the
-  spread ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
+  dragged sphere up to 105.0 mm (4.1 in) away. A named difference between the models brings each
+  inside the codes' spread at each code's largest difference. For one code in the sphere's cases
+  it does so without explaining the gap. Read at every sample, case 2's tumbling brick's rates
+  are left just past the spread. Two shots from sea level come out inside it as flown. There the
+  codes sit about 2 m (6.6 ft) apart ([a free body against NASA's check cases](#a-free-body-against-nasas-check-cases)). Five of
   RocketPy's example rockets were flown from the pad to the ground by both codes, with the same
   declared drag. They agree on height, speed, time and acceleration within 3%. The largest scored
   difference is +1.783%, a peak acceleration on the rail ([validation report][report],
@@ -588,8 +589,9 @@ agree to rounding.
   which is the dynamic pressure $\tfrac12\rho V^2$ times $S l C$ times the rate made
   dimensionless, $\omega l / 2V$. Here $V$ is the speed through the air, $\omega$ the rate
   relative to the stars about that axis, and $l$ the span for roll and yaw and the chord for
-  pitch. The codes split on the rate. SIM 1 and SIM 4 damp the one relative to the stars, and
-  SIM 5 and SIM 6 the one relative to the Earth. The test takes the first.
+  pitch. The codes split on the rate. SIM 4 damps the one relative to the stars, and SIM 1 comes
+  nearer it than the other. SIM 5 and SIM 6 damp the one relative to the Earth. SIM 2 fits
+  neither. The test takes the first.
   The inertial rates are compared.
 - **Cases 6 to 10, the sphere with drag.** Case 1's sphere with a drag coefficient of 0.1,
   acting along its velocity through the air whichever way it points. It is dropped from
@@ -624,13 +626,16 @@ largest difference from any kept code.
 | Case 10, position | 5 of 6 | 1,986 mm (78 in) | 1,977 mm (78 in) | 1,251 mm (49 in) | 1,988 mm (78 in) |
 
 For a position the model difference is a distance, and it differs from code to code; the table
-gives the largest.
+gives the largest. Distances don't subtract, so the last column is not the difference of the
+two before it.
 
-Cases 1 to 3 and 6 to 8 come out past the codes' spread. Each has a named cause that accounts
-for the difference to inside the spread, taken at each code's largest difference
+Cases 1 to 3 and 6 to 8 come out past the codes' spread. Each is traced. A named difference
+between the models, computed apart from the flight, is taken off at each code's largest
+difference. What is left is inside the spread
 ([the decisions that trace them][adr-353], [and the later cases][adr-356],
-[the report][check-cases]). A stricter reading, below, leaves case 2 just past the spread.
-Cases 9 and 10 come out inside it.
+[the report][check-cases]). In cases 1 to 3 the difference explains the gap; in cases 6 to 8 it
+does not explain SIM 1's, below. A stricter reading, below, leaves case 2 just past the spread.
+Cases 9 and 10 come out inside it as flown.
 
 - **Case 1 is the gravity model.** HPR Sim's sphere ends 19.51 mm (0.77 in) lower after a fall of 4.4 km
   (2.7 mi). It falls in WGS 84's [normal gravity](../glossary.md#normal-gravity)
@@ -651,10 +656,11 @@ Cases 9 and 10 come out inside it.
   to carry the Earth's rate in the rotational equations, is [#1521][i-1521].
 - **Case 3 is the Earth's rate again.** The same two sets of equations are damped alike, on
   the rate relative to the stars, along the same fall. They leave at most 0.003176, 0.001123
-  and 0.0007793 deg/s, each inside the spread. Read at every sample, they stay inside too.
-  Against SIM 4, which damps as the test does, at most 0.0002691 deg/s is left. Read at every
-  sample, the most is left in roll and pitch against SIM 5 and SIM 6, which damp the rate
-  relative to the Earth, and in yaw against SIM 2.
+  and 0.0007793 deg/s, each inside the spread. Read at every sample, roll and yaw stay inside.
+  Pitch comes to the spread itself, 0.003791 against 0.003792 deg/s; the damping rate's choice
+  decides that margin. Against SIM 4, which damps as the test does, at most 0.0002691 deg/s
+  is left. Read at every sample, the most is left in roll and pitch against SIM 5 and SIM 6.
+  Those damp the rate relative to the Earth. In yaw the most is left against SIM 2.
 - **Cases 6 to 8 are the gravity and the codes' own air.** HPR Sim's sphere ends within 21 mm
   (0.8 in) of three codes and 102.6 to 105.0 mm (4.0 to 4.1 in) from SIM 1. The codes don't fly
   the same air. Set against HPR Sim's 1976 standard atmosphere, SIM 4's density is within
@@ -666,12 +672,14 @@ Cases 9 and 10 come out inside it.
   put its sphere 180.2 mm (7.1 in) above HPR Sim's; its file is 102.6 mm (4.0 in) above. With
   the gravity alone, cases 6 and 7 were left 0.01 mm (0.0004 in) past the spread, so the air is part of the
   trace ([the decision][adr-356]).
-- **Cases 9 and 10 are inside the spread.** Shot kilometers downrange, HPR Sim ends
-  1,980 and 1,977 mm (78 in) from the farthest kept code, inside spreads of 1,989 and 1,986 mm
-  (78 in). Less the same model difference it sits
-  0.03830 mm (0.0015 in) and 0.04217 mm (0.0017 in) from the nearest code. Here the launch frame's flat axes carry the
-  body far from the pad. So the cases also hold the conversion that gives apogee and landing
-  points.
+- **Cases 9 and 10 are inside the spread, as flown.** Shot kilometers downrange, HPR Sim ends
+  1,980 and 1,977 mm (78 in) from the farthest kept code, SIM 3. That is inside spreads of 1,989
+  and 1,986 mm (78 in): the codes themselves sit about 2 m (6.6 ft) apart. HPR Sim ends 15.60 mm (0.61 in)
+  from SIM 4 and 13.68 mm (0.54 in) from SIM 5 in both. Less the same model difference it sits
+  0.03830 mm (0.0015 in) and 0.04217 mm (0.0017 in) from SIM 5. But it sits 1,991 and 1,988 mm
+  (78 in) from SIM 3, just past the spread, so no cause is claimed for these cases. Here the launch
+  frame's flat axes carry the body far from the pad. So the cases hold the conversion that gives
+  apogee and landing points, to the codes' own agreement ([the report][check-cases]).
 
 **A stricter reading.** The last column takes the model difference at the moment of each
 code's largest difference. Taken at every sample of the 30 s instead, what is left is

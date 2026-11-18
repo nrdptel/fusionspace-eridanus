@@ -1,7 +1,7 @@
 # ADR-356: NASA's check cases 3 and 6 to 10: the test's loads, and the codes' own air (2026-11-17)
 
 - **Status:** accepted; the decision record that [M1.14b4][m1-14b4]'s *done when* asks for ([ADR-351][adr-351], decision 2); amends [ADR-353][adr-353]'s spread rule for a case of three codes ([#1524][i-1524]); no *done when* changed
-- **Summary:** The free body flies NASA/TM-2015-218675's check cases 3 and 6 to 10 under loads the test applies: case 3's damping moments, and the sphere's constant drag along its velocity through the air. Case 3's inertial rates differ from the kept codes past their spread, and the Earth's rate left out of the rotational equations accounts for all but 0.003176, 0.001123 and 0.0007793 deg/s, inside it. The sphere's positions in cases 6 to 8 differ from SIM 1 past the spread, and the gravity past J2 with each code's own air density, as its file gives it, accounts for all but 77.57 to 77.68 mm (3.05 to 3.06 in), inside it. Cases 9 and 10 are within the spread.
+- **Summary:** The free body flies NASA/TM-2015-218675's check cases 3 and 6 to 10 under loads the test applies: case 3's damping moments, and the sphere's constant drag along its velocity through the air. Case 3's inertial rates differ from the kept codes past their spread, and the Earth's rate left out of the rotational equations accounts for all but 0.003176, 0.001123 and 0.0007793 deg/s, inside it. The sphere's positions in cases 6 to 8 differ from SIM 1 past the spread; the gravity past J2 with each code's own air density brings them inside it, to 77.57 to 77.68 mm (3.05 to 3.06 in), without explaining SIM 1's. Cases 9 and 10 are within the spread.
 
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
 [m1-14b4]: ../decisions-and-roadmap.md#m1-14b4
@@ -85,7 +85,8 @@ reading made for this record.
      atmosphere, by RK4 at 1 ms. It uses no flight of HPR Sim's.
    - **What it leaves** of each kept code's largest difference: at most 0.003176, 0.001123 and
      0.0007793 deg/s, inside the spread. The stricter reading, at every sample, leaves at most
-     0.003287, 0.003791 and 0.002631 deg/s: inside too. Against SIM 4, which damps as the test
+     0.003287, 0.003791 and 0.002631 deg/s: inside in roll and yaw, and in pitch the spread
+     itself to its printed digits, a margin the damping rate's choice decides. Against SIM 4, which damps as the test
      does, HPR Sim sits 0.00006587, 0.00006268 and 0.0002691 deg/s from it at every sample;
      at every sample the most is left in roll and pitch against SIM 5 and SIM 6, which damp the
      rate relative to the Earth, and in yaw against SIM 2.
@@ -122,7 +123,8 @@ reading made for this record.
 7. **Cases 9 and 10 are within the spread.** HPR Sim ends 1980 and 1977 mm from the farthest
    kept code, inside spreads of 1989 and 1986 mm; in case 10 SIM 2 is left out, 46.51 m from HPR
    Sim. Nothing needs a trace. The same model difference is reported: less it, HPR Sim sits
-   0.03830 and 0.04217 mm from the nearest kept code. These are the cases where the launch
+   0.03830 and 0.04217 mm from the nearest kept code, SIM 5, but 1991 and 1988 mm from SIM 3,
+   just past the spread, so it is not claimed as their cause. These are the cases where the launch
    frame's flat axes carry a body kilometers downrange, so the conversion HPR Sim uses for apogee
    and landing points is part of what they hold.
 
