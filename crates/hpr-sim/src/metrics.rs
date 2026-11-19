@@ -518,7 +518,9 @@ impl FlightSummary {
 /// spike's peak is a step's end. Nothing is kept on the pad.
 ///
 /// A watcher keeps one flight: [`FlightMetrics::clear`] it before watching another, and
-/// [`FlightMetrics::summary`] refuses a flight whose steps it didn't all see, once each. Like
+/// [`FlightMetrics::summary`] refuses a flight whose steps it didn't all see, once each, its
+/// separated bodies' steps included. An observer that wraps one must hand it every call,
+/// [`Observer::body_step`] too. Like
 /// [`crate::Recorder`], it serializes what it holds for inspection and is built with
 /// [`FlightMetrics::new`], not deserialized.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]

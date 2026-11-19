@@ -1485,7 +1485,7 @@
           }
         },
         "body_max_descent_acceleration_m_s2": {
-          "description": "Each part's own opening shock, m/s², once it flies apart from the rocket, in the parts'\norder: the top drag of its own open recovery devices over its mass at that instant. A\npart that lets a piece go at an ejection keeps its index, and its figure is the larger\nof before and after. A tumble counts as a device: a part that tumbles from a fast split\nhas the tumble's drag there, which can be above its parachute's opening later and is as\nrough as the tumble. A part with no device of its own open has no entry; empty when\nnothing came apart. What a device did while the rocket was still whole is in\n`max_descent_acceleration_m_s2`.",
+          "description": "Each part's own opening shock, m/s², once it flies apart from the rocket, in the parts'\norder: the top drag of its own open recovery devices over its mass at that instant. A\npart that lets a piece go at an ejection keeps its index, and its figure is the larger\nof before and after. A tumble counts as a device: a part that tumbles from a fast split\nhas the tumble's drag there, which can be above its parachute's opening later and is no\nbound either way, and a parachute that opens after such a tumble likely reads low. A\npart with no device of its own open has no entry; empty when nothing came apart. What a\ndevice did while the rocket was still whole is in `max_descent_acceleration_m_s2`.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/BodyPeak"

@@ -1726,6 +1726,15 @@ mod tests {
         fn event(&mut self, event: &crate::flight::FlightEvent) {
             self.metrics.event(event);
         }
+
+        // The watcher needs the dropped booster's steps too: its summary counts them.
+        fn body_step(
+            &mut self,
+            body: usize,
+            step: &dyn crate::recorder::BodyStep,
+        ) -> Result<(), SimError> {
+            self.metrics.body_step(body, step)
+        }
     }
 
     #[test]
