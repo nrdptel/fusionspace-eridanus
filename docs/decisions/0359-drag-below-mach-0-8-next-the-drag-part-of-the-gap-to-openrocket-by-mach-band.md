@@ -111,8 +111,8 @@ collection, and a test holds its section to itself in CI.
 3. **M1.14i, drag below Mach 0.8, in three increments.** M1.14i is met when the three are.
    - **M1.14i1, the drag part by Mach band.** *Done when:*
      - the fixture report splits the drag part of every flight it can into three bands of Mach
-       number, below 0.8, 0.8 to 1.2 and above 1.2, by swapping OpenRocket's drag coefficient
-       for HPR Sim's own in one band after another, on OpenRocket's thrust and mass; the three
+       number, below 0.8, 0.8 to 1.2 and above 1.2, by putting OpenRocket's drag coefficient in
+       place of HPR Sim's own in one band after another, on OpenRocket's thrust and mass; the three
        are held to sum to the drag part on every flight split by band, and the run stops on a
        flight where they don't;
      - over the flights split by band it gives each band's mean, median and mean absolute part,
@@ -124,8 +124,8 @@ collection, and a test holds its section to itself in CI.
      - a flight split that HPR Sim fails with a band swapped is counted, and at least half the
        flights split are split by band;
      - no size is given unless every aggregate is over no flights or at least three
-       ([ADR-349][adr-349] decision 3's floor, under [ADR-151][adr-151]'s aggregates-only
-       terms);
+       ([ADR-349][adr-349] decision 3: an aggregate over one or two flights is a flight's own
+       number, under [ADR-151][adr-151]'s aggregates-only terms);
      - tests hold the swap to OpenRocket's table inside its bands and to HPR Sim's own buildup
        outside them, bit for bit, hold the two public designs' bands to sum to their drag parts
        and pin them, and hold each count and size of the section on flights worked by hand;

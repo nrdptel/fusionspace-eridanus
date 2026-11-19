@@ -1573,8 +1573,8 @@ those ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xta
 `the_public_flights_split_by_band`). From a clone, `cargo test -p xtask drag_bands` runs it,
 with neither OpenRocket nor the private flights.
 
-**What it decided.** The accuracy work's steps by Mach number began at Mach 0.8. A step for
-the band below it now exists, and it goes next:
+**What it decided.** The steps [the accuracy work](decisions-and-roadmap.md#m1-14) takes by
+Mach band began at Mach 0.8. A step for the band below it now exists, and it goes next:
 [M1.14i, drag below Mach 0.8](decisions-and-roadmap.md#m1-14i) ([decision][adr-359]). It first splits that band's part into friction, pressure and
 [base drag](glossary.md#base-drag), then holds the largest of them to a measurement. It does
 not make HPR Sim's drag OpenRocket's.

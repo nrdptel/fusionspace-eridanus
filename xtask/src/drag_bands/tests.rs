@@ -569,6 +569,25 @@ fn the_section_counts_and_averages() {
     }
 }
 
+/// Holds that a section gives no size, on the page or in its fields; its counts stay.
+fn no_sizes(bands: &DragBands) {
+    assert!(!bands.published());
+    assert_eq!((bands.drag, bands.drag_first), (None, None));
+    for band in &bands.bands {
+        assert_eq!(
+            (band.part, band.part_on_its_flights, band.alone),
+            (None, None, None)
+        );
+        assert_eq!((band.dominates, band.large), (None, None));
+    }
+    for row in &bands.logs.rows {
+        assert_eq!((row.error, row.nearer, row.farther), (None, None, None));
+    }
+    let page = bands.to_markdown();
+    assert!(page.contains("The bands' sizes are not given"), "{page}");
+    assert!(!page.contains('%'), "{page}");
+}
+
 /// An aggregate over one or two flights is a flight's own number, so no size is given when a
 /// band, or a row against the logs, holds one or two flights: not that band's, and not the
 /// others', which sum with it to the drag part. Counts stay.
@@ -582,22 +601,33 @@ fn one_or_two_flights_in_a_band_give_no_sizes() {
     assert!(!bands.published());
     assert_eq!(bands.check_consistent(6, 5, REPORTS), Ok(()));
     assert_eq!(bands.logs.flights, 5);
-    assert_eq!(bands.drag, None);
-    assert_eq!(bands.drag_first, None);
-    for band in &bands.bands {
-        assert_eq!(
-            (band.part, band.part_on_its_flights, band.alone),
-            (None, None, None)
-        );
-        assert_eq!((band.dominates, band.large), (None, None));
-    }
-    for row in &bands.logs.rows {
-        assert_eq!((row.error, row.nearer, row.farther), (None, None, None));
-    }
-    let page = bands.to_markdown();
-    assert!(page.contains("| above Mach 1.2 | 2 |"), "{page}");
-    assert!(page.contains("The bands' sizes are not given"), "{page}");
-    assert!(!page.contains('%'), "{page}");
+    no_sizes(&bands);
+    assert!(bands.to_markdown().contains("| above Mach 1.2 | 2 |"));
+    // The band's count alone hides them: two flights in the fastest band, neither compared
+    // with a log, so no row against the logs moves one or two flights.
+    let slow = || by_hand([1.0, 0.0, 0.0], [1.0, 0.0, 0.0], Some(1000.0));
+    let fast = || by_hand([0.5, 0.0, 2.0], [0.5, 0.0, 2.0], None);
+    let bands = DragBands::of(&[slow(), slow(), slow(), fast(), fast()]);
+    assert_eq!(
+        bands
+            .bands
+            .iter()
+            .map(|band| band.flights)
+            .collect::<Vec<_>>(),
+        [5, 0, 2]
+    );
+    assert_eq!(bands.logs.flights, 3);
+    assert_eq!(
+        bands
+            .logs
+            .rows
+            .iter()
+            .map(|row| row.moved)
+            .collect::<Vec<_>>(),
+        [0, 3, 0, 0, 3, 3]
+    );
+    no_sizes(&bands);
+    assert_eq!(bands.check_consistent(5, 3, REPORTS), Ok(()));
 
     // Two flights compared with a log, or a row against the logs that moves two.
     let mut flights = section();
@@ -606,12 +636,45 @@ fn one_or_two_flights_in_a_band_give_no_sizes() {
     }
     let bands = DragBands::of(&flights);
     assert_eq!(bands.logs.flights, 2);
-    assert!(!bands.published());
+    no_sizes(&bands);
     let mut flights = section();
     flights[5].logged_m = None;
     let bands = DragBands::of(&flights);
+    // The row's count alone hides them: every band holds three flights or more.
     assert_eq!((bands.logs.flights, bands.logs.rows[3].moved), (5, 2));
-    assert!(!bands.published());
+    assert_eq!(
+        bands
+            .bands
+            .iter()
+            .map(|band| band.flights)
+            .collect::<Vec<_>>(),
+        [7, 5, 3]
+    );
+    no_sizes(&bands);
+    assert_eq!(bands.check_consistent(7, 5, REPORTS), Ok(()));
+    // The count compared alone hides them: two flights compared that no swap moves, since
+    // their drag and OpenRocket's agree, would still give the first row over two flights.
+    let unmoved = || {
+        let mut flight = by_hand([0.0; 3], [0.0; 3], Some(1000.0));
+        if let Ok(banded) = &mut flight.banded {
+            banded.heights_m.openrocket_m = banded.heights_m.own_m;
+        }
+        flight
+    };
+    let unlogged = || by_hand([1.0, 0.0, 0.0], [1.0, 0.0, 0.0], None);
+    let bands = DragBands::of(&[unlogged(), unlogged(), unlogged(), unmoved(), unmoved()]);
+    assert_eq!(
+        bands
+            .bands
+            .iter()
+            .map(|band| band.flights)
+            .collect::<Vec<_>>(),
+        [3, 0, 0]
+    );
+    assert_eq!(bands.logs.flights, 2);
+    assert!(bands.logs.rows.iter().all(|row| row.moved == 0));
+    no_sizes(&bands);
+    assert_eq!(bands.check_consistent(5, 2, REPORTS), Ok(()));
     // No flight in a band, and none compared, hide nothing.
     let flights: Vec<BandFlight> = section()
         .into_iter()

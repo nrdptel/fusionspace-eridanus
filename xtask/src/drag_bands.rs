@@ -67,7 +67,7 @@ pub(crate) const BANDS: [(&str, &str); 3] = [
 pub(crate) const EDGES: [f64; 2] = [0.8, 1.2];
 
 /// The fewest flights with a part in a band whose sizes are published: an aggregate over one or
-/// two flights is a flight's own number (ADR-349 §3's floor, under ADR-151's terms).
+/// two flights is a flight's own number (ADR-349 decision 3, under ADR-151's terms).
 pub(crate) const FLOOR: usize = 3;
 
 /// The largest difference, per cent of OpenRocket's apogee, between the flight on every band
