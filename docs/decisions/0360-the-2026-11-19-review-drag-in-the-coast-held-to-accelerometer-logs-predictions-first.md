@@ -7,6 +7,8 @@
 [m2-15a]: ../decisions-and-roadmap.md#m2-15a
 [m2-15b]: ../decisions-and-roadmap.md#m2-15b
 [m2-14]: ../decisions-and-roadmap.md#m2-14
+[m2-12a]: ../decisions-and-roadmap.md#m2-12a
+[m2-13a]: ../decisions-and-roadmap.md#m2-13a
 [m2-14a]: ../decisions-and-roadmap.md#m2-14a
 [m2-14b]: ../decisions-and-roadmap.md#m2-14b
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
@@ -181,6 +183,9 @@ the readings and both programs' predictions come first.
 - The readings are coarse where the coast is short and slow; the rows are honest only with the
   readings' width beside them, so [M2.15b][m2-15b]'s *done when* asks for it.
 - The review's new ideas are in [the backlog][ideas], under its date.
+- To keep the roadmap within its byte budget, the [M2.12a][m2-12a], [M2.13a][m2-13a] and
+  [M2.14a][m2-14a] entries no longer restate their records' *done when* after pointing at them;
+  each still points at its record's decision 1, which is unchanged.
 
 **How it was checked.** The two mean errors are [the scoreboard][score]'s `bias.collection` cells
 over 60 flights. The quoted sentence is [ADR-359][adr-359]'s decision 5; the impulse scale of
