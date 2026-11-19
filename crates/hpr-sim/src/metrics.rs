@@ -489,11 +489,11 @@ pub struct FlightMetrics {
     max_q: Option<Peak>,
     max_acceleration: Option<Peak>,
     max_descent_acceleration: Option<Peak>,
-    /// The largest specific force on body 0, a separated body flown as a point mass, over each
-    /// of its steps where a device of its own is open, with the step's start, s. The summary
-    /// takes the largest of those that start before an ejection parts body 0, and only when the
-    /// stack came apart at a separation with no ejection: until then body 0 is the part that
-    /// keeps the nose.
+    /// The running maximum of the specific force on body 0, a separated body flown as a point
+    /// mass, under a device of its own: a step's largest, with the step's start, s, each time it
+    /// beats the last one kept. The summary takes the largest of those that start before an
+    /// ejection parts body 0, and only when the stack came apart at a separation with no
+    /// ejection: until then body 0 is the part that keeps the nose.
     nose_descent_peaks: Vec<(f64, Peak)>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
@@ -565,6 +565,12 @@ impl FlightMetrics {
     /// Forgets what it saw, ready for another flight.
     pub fn clear(&mut self) {
         *self = Self::default();
+    }
+
+    /// How many of body 0's step peaks are kept for the summary.
+    #[cfg(test)]
+    pub(crate) fn nose_peaks_kept(&self) -> usize {
+        self.nose_descent_peaks.len()
     }
 
     /// The stability from the rail exit (or the start of a flight begun in the air) to apogee or
@@ -894,39 +900,55 @@ impl Observer for FlightMetrics {
         }
     }
 
-    /// Body 0's opening shock: the largest of its specific force over each step, from the step's
-    /// start, middle and end and, where the parabola through them tops inside, a search between,
-    /// as a stack's step is read, kept with the step's start for [`Self::summary`] to cut at an
-    /// ejection. With no device of its own open the force is zero, and is not kept. Its steps are
-    /// not the flight's: they don't count toward the summary's check.
+    /// Body 0's opening shock: the largest of its specific force over each step (found as a
+    /// stack's step is read), kept with the step's start for [`Self::summary`] to cut at an
+    /// ejection. With no device of its own open the force is zero, and is not kept; nor is a
+    /// step's peak that doesn't beat the last one kept, since the summary takes the largest
+    /// before a time and the first of equals. Its steps are not the flight's: they don't count
+    /// toward the summary's check.
     fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
         if body != 0 {
             return Ok(());
         }
-        let peak_at = |t_s: f64| -> Result<Peak, SimError> {
-            let sample = step.sample(t_s)?;
-            Ok(Peak {
-                value: step.specific_force_enu_m_s2(t_s)?.length(),
-                time_s: sample.time_s,
-                height_above_ground_m: sample.height_above_ground_m,
-            })
+        let best = body_step_peak(step)?;
+        // A value that is not a number is kept only as the first entry, where the summary would
+        // take it; the next number then counts as beating it, as it does in the summary when the
+        // stack has a shock of its own.
+        let beats = match self.nose_descent_peaks.last() {
+            None => best.value > 0.0 || best.value.is_nan(),
+            Some((_, last)) => best.value > last.value || (last.value.is_nan() && best.value > 0.0),
         };
-        let (a, b) = (step.start_s(), step.end_s());
-        let [start, middle, end] = [peak_at(a)?, peak_at(0.5 * (a + b))?, peak_at(b)?];
-        let mut best = [middle, end]
-            .into_iter()
-            .fold(start, |x, y| if y.value > x.value { y } else { x });
-        if top_inside(start.value, middle.value, end.value) {
-            let found = golden_max(a, b, peak_at)?;
-            if found.value > best.value {
-                best = found;
-            }
-        }
-        if best.value > 0.0 || best.value.is_nan() {
-            self.nose_descent_peaks.push((a, best));
+        if beats {
+            self.nose_descent_peaks.push((step.start_s(), best));
         }
         Ok(())
     }
+}
+
+/// The largest specific force on a separated body over one of its steps: from the step's start,
+/// middle and end and, where the parabola through them tops inside, a search between, as a
+/// stack's step is read.
+pub(crate) fn body_step_peak(step: &dyn BodyStep) -> Result<Peak, SimError> {
+    let peak_at = |t_s: f64| -> Result<Peak, SimError> {
+        let sample = step.sample(t_s)?;
+        Ok(Peak {
+            value: step.specific_force_enu_m_s2(t_s)?.length(),
+            time_s: sample.time_s,
+            height_above_ground_m: sample.height_above_ground_m,
+        })
+    };
+    let (a, b) = (step.start_s(), step.end_s());
+    let [start, middle, end] = [peak_at(a)?, peak_at(0.5 * (a + b))?, peak_at(b)?];
+    let mut best = [middle, end]
+        .into_iter()
+        .fold(start, |x, y| if y.value > x.value { y } else { x });
+    if top_inside(start.value, middle.value, end.value) {
+        let found = golden_max(a, b, peak_at)?;
+        if found.value > best.value {
+            best = found;
+        }
+    }
+    Ok(best)
 }
 
 /// The golden ratio's inverse, `(√5 − 1)/2`.
@@ -1210,6 +1232,7 @@ pub fn optimum_delays_observed(
 mod tests {
     use hpr_aero::{AeroModel, Flow};
     use hpr_atmos::ConstantWind;
+    use hpr_core::DVec3;
     use hpr_design::Rocket;
     use serde_json::json;
 
@@ -2294,6 +2317,91 @@ mod tests {
         assert_eq!(result.termination, Termination::TimeCap);
         assert_eq!(result.final_sample.time_s, cap_s);
         metrics.summary(&result, at_cap.environment()).unwrap();
+    }
+
+    /// A separated body's step with one specific force all through it, straight up.
+    struct LoadStep {
+        span: (f64, f64),
+        force_m_s2: f64,
+    }
+
+    impl crate::recorder::sealed::Sealed for LoadStep {}
+
+    impl BodyStep for LoadStep {
+        fn start_s(&self) -> f64 {
+            self.span.0
+        }
+        fn end_s(&self) -> f64 {
+            self.span.1
+        }
+        fn sample(&self, t_s: f64) -> Result<crate::BodySample, SimError> {
+            Ok(crate::BodySample {
+                time_s: t_s,
+                cg_enu_m: DVec3::ZERO,
+                cg_velocity_enu_m_s: DVec3::ZERO,
+                height_above_ground_m: 1_000.0 - t_s,
+                vertical_speed_m_s: -1.0,
+                airspeed_m_s: 1.0,
+                recovery_drag_area_m2: 1.0,
+                mass_kg: 1.0,
+            })
+        }
+        fn acceleration_enu_m_s2(&self, _t_s: f64) -> Result<DVec3, SimError> {
+            unreachable!("the watcher reads the specific force")
+        }
+        fn specific_force_enu_m_s2(&self, _t_s: f64) -> Result<DVec3, SimError> {
+            Ok(DVec3::new(0.0, 0.0, self.force_m_s2))
+        }
+    }
+
+    #[test]
+    fn body_0s_kept_peaks_are_the_first_of_equals_and_each_larger_one() {
+        // #1533: the summary takes the largest of body 0's step peaks that start before a time,
+        // and the first of equals, so only a step's peak that beats the last one kept is kept.
+        // Steps with no load, an equal load or a smaller one add nothing; another body's never.
+        let kept = |loads: &[f64]| {
+            let mut metrics = FlightMetrics::new();
+            for (i, &force_m_s2) in loads.iter().enumerate() {
+                let span = (i as f64, i as f64 + 1.0);
+                let step = LoadStep { span, force_m_s2 };
+                metrics.body_step(1, &step).unwrap();
+                metrics.body_step(0, &step).unwrap();
+            }
+            metrics.nose_descent_peaks
+        };
+        let starts_and_values = |peaks: &[(f64, Peak)]| -> Vec<(f64, f64)> {
+            peaks
+                .iter()
+                .map(|(start, peak)| (*start, peak.value))
+                .collect()
+        };
+        let peaks = kept(&[0.0, 30.0, 30.0, 12.0, 45.0, 45.0, 9.81, 0.0]);
+        assert_eq!(starts_and_values(&peaks), [(1.0, 30.0), (4.0, 45.0)]);
+        // A kept peak is at its step's start, where the three points first reach it.
+        assert_eq!(peaks[0].1.time_s, 1.0);
+        assert_eq!(peaks[0].1.height_above_ground_m, 999.0);
+        // The summary's rule over every step, cut before each time: the same from the kept ones.
+        let every = [0.0, 30.0, 30.0, 12.0, 45.0, 45.0, 9.81, 0.0];
+        for cut in 0..=every.len() {
+            let mut best: Option<(f64, f64)> = None;
+            for (i, &value) in every.iter().enumerate().take(cut) {
+                if value > 0.0 && best.is_none_or(|(_, top)| value > top) {
+                    best = Some((i as f64, value));
+                }
+            }
+            let from_kept = starts_and_values(&peaks)
+                .into_iter()
+                .take_while(|(start, _)| *start < cut as f64)
+                .last();
+            assert_eq!(from_kept, best, "cut before {cut} s");
+        }
+        // A value that is not a number is kept only first, where the summary would take it for a
+        // flight whose stack has no shock; the numbers after it are kept as if it weren't there.
+        let peaks = kept(&[f64::NAN, f64::NAN, 5.0, f64::NAN, 3.0, 7.0]);
+        assert!(peaks[0].1.value.is_nan());
+        assert_eq!(starts_and_values(&peaks[1..]), [(2.0, 5.0), (5.0, 7.0)]);
+        let peaks = kept(&[5.0, f64::NAN, 7.0]);
+        assert_eq!(starts_and_values(&peaks), [(0.0, 5.0), (2.0, 7.0)]);
     }
 
     /// A free-flight step from `start_s` to `end_s` whose samples copy `template` but for the

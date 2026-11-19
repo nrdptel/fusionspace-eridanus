@@ -210,8 +210,17 @@ pub trait FlightStep {
     fn stability(&self, t_s: f64) -> Result<Stability, SimError>;
 }
 
+/// Keeps [`BodyStep`] the library's to implement.
+pub(crate) mod sealed {
+    /// Implemented only inside this crate, so a trait bounded by it can't be implemented outside.
+    pub trait Sealed {}
+}
+
 /// One accepted integration step of a separated body, flown as a point mass.
-pub trait BodyStep {
+///
+/// Sealed: only the library implements it, so a method added here breaks no outside code. An
+/// [`Observer`] receives it; nothing outside builds one.
+pub trait BodyStep: sealed::Sealed {
     /// When the step starts, s since launch.
     fn start_s(&self) -> f64;
 

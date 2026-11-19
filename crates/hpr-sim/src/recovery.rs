@@ -4324,6 +4324,149 @@ mod tests {
     }
 
     #[test]
+    fn the_nose_parts_kept_peaks_are_a_running_maximum_with_the_same_shock() {
+        // #1533: the watcher keeps a step's peak for the part that keeps the nose only when it
+        // beats the last one kept, not one for every step under a device. The summary's shock,
+        // its time and its height are the same as from every step's peak, on the separation
+        // flights above: a device opening at once, a drogue then a nose cone pushed off (the
+        // count cut at the charge), and a canopy filling in a crosswind.
+        /// Every step's peak for body 0 under a device, with the step's start: what was kept.
+        #[derive(Default)]
+        struct Every(Vec<(f64, crate::metrics::Peak)>);
+        impl crate::recorder::Observer for Every {
+            fn body_step(
+                &mut self,
+                body: usize,
+                step: &dyn crate::recorder::BodyStep,
+            ) -> Result<(), crate::SimError> {
+                if body == 0 {
+                    let peak = crate::metrics::body_step_peak(step)?;
+                    if peak.value > 0.0 || peak.value.is_nan() {
+                        self.0.push((step.start_s(), peak));
+                    }
+                }
+                Ok(())
+            }
+        }
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let split = || Separation::new(Trigger::Time { time_s: split_s }, 0);
+        let aft = || {
+            Device::new(
+                "aft part",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::Apogee,
+            )
+            .on_body(1)
+        };
+        let charge = Trigger::Time {
+            time_s: split_s + 15.0,
+        };
+        let late = Trigger::Time {
+            time_s: split_s + 16.0,
+        };
+        let flights = [
+            // Opens at once, falling: the first step under it is the largest.
+            staged_flight(
+                analytic_environment(air, G),
+                vec![
+                    Device::new("nose part", DeviceDrag::DragArea { cd_s_m2: 0.3 }, late),
+                    aft(),
+                ],
+                split(),
+            ),
+            // A drogue, then the nose cone pushed off under its own canopy: larger peaks after
+            // the charge, which the summary cuts.
+            staged_flight(
+                analytic_environment(air, G),
+                vec![
+                    Device::new(
+                        "drogue",
+                        DeviceDrag::DragArea { cd_s_m2: 0.05 },
+                        Trigger::Time {
+                            time_s: split_s + 12.0,
+                        },
+                    ),
+                    Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, charge),
+                    aft(),
+                    Device::new("airframe", DeviceDrag::DragArea { cd_s_m2: 1.0 }, charge)
+                        .on_body(2),
+                ],
+                split(),
+            )
+            .with_ejections(vec![crate::Ejection::aft_of(charge, "nose")])
+            .unwrap(),
+            // A canopy filling over a second: the load rises through several steps.
+            staged_flight(
+                analytic_wind_environment(air, G, ConstantWind::new(8.0, 1.5).unwrap()),
+                vec![
+                    Device::new("nose part", DeviceDrag::DragArea { cd_s_m2: 0.3 }, late)
+                        .with_inflation(Inflation::FillingTime {
+                            time_s: 1.0,
+                            exponent: 2.0,
+                        }),
+                    aft(),
+                ],
+                split(),
+            ),
+        ];
+        let mut cut = 0;
+        for (i, sim) in flights.iter().enumerate() {
+            let start = dropped(sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let mut every = Every::default();
+            let result = sim
+                .run_free(split_s, start, &mut (&mut metrics, &mut every))
+                .unwrap();
+            assert_eq!(result.termination, Termination::Separated, "flight {i}");
+            // The stack opened nothing and parted at no ejection: the shock is body 0's alone.
+            assert!(!result.events.iter().any(|event| matches!(
+                event.kind,
+                EventKind::Deployment(_) | EventKind::Ejection(_)
+            )));
+            let nose = result.bodies.iter().find(|body| body.body == 0).unwrap();
+            let parted_s = nose
+                .events
+                .iter()
+                .find(|event| matches!(event.kind, EventKind::Ejection(_)))
+                .map_or(f64::INFINITY, |event| event.sample.time_s);
+            // The summary's rule over every step's peak: the largest that starts before the
+            // charge, the first of equals.
+            let mut by_every: Option<crate::metrics::Peak> = None;
+            for (start_s, peak) in &every.0 {
+                if *start_s < parted_s && by_every.is_none_or(|best| peak.value > best.value) {
+                    by_every = Some(*peak);
+                }
+            }
+            cut += every.0.iter().filter(|(s, _)| *s >= parted_s).count();
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            let by_every = by_every.unwrap();
+            assert!(by_every.value > 0.0, "flight {i}");
+            assert_eq!(
+                summary.max_descent_acceleration_m_s2,
+                Some(by_every),
+                "flight {i}"
+            );
+            // Hundreds of steps fly under the device; the kept ones are those where the load
+            // still rose: one for a device that opens at once, one a step while a canopy fills.
+            let (kept, all) = (metrics.nose_peaks_kept(), every.0.len());
+            assert!(all > 100, "flight {i}: {all} steps under a device");
+            assert!(20 * kept <= all, "flight {i}: {kept} kept of {all}");
+            if i == 0 {
+                assert_eq!(kept, 1, "of {all}");
+            }
+        }
+        // The second flight's count is cut: peaks after its charge are among every step's.
+        assert!(cut > 100, "{cut}");
+    }
+
+    #[test]
     fn the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy() {
         // #1519: under a canopy that fills over a time, the nose part's load tops between a
         // step's ends, where the growing drag area meets the falling speed. The summary finds the

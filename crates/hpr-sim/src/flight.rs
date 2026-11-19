@@ -3564,6 +3564,8 @@ struct BodyStepView<'a> {
     step: &'a Step<6>,
 }
 
+impl crate::recorder::sealed::Sealed for BodyStepView<'_> {}
+
 impl BodyStep for BodyStepView<'_> {
     fn start_s(&self) -> f64 {
         self.step.start_s()
