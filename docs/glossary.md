@@ -961,7 +961,7 @@ A library of routines for computing integrals numerically, published by Piessens
 ### Rail button, launch lug and guide
 
 A rail button is a small flanged knob on the airframe that slides in the launch rail's slot. A
-launch lug is a short tube that slides along a rod or rail. Both are guides: the parts that
+launch lug is a short tube that slides along a launch rod. Both are guides: the parts that
 hold the rocket on the rail until it leaves. The flight page says *guide* for either, and
 *button* where it follows RocketPy, which models buttons. See
 [Rigid-body flight](physics/flight.md#tip-off).

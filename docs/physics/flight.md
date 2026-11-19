@@ -898,9 +898,11 @@ with no turning rate.
 
 - **What flies.** RocketPy, at the merge of its
   [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
-  public designs built from its examples, on its own inputs. They are twelve rockets, with
-  Calisto at two motor positions. A Calisto id in the report ends in the motor's position in
-  meters, in the rocket's own coordinates as its RocketPy source sets it. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
+  public designs built from its examples, on its own inputs. They are twelve rockets; Calisto comes
+  twice, from RocketPy's getting-started notebook and from its tests, with different fins. A
+  Calisto id in the report ends in the motor's position in meters, in the rocket's own
+  coordinates as its source sets it. The two sources put their origins 0.118 m (4.6 in) apart,
+  so in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
   in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
 - **Three ways.** With the phase off, RocketPy frees the rocket where its forward button
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
@@ -932,8 +934,8 @@ with no turning rate.
   after the forward one. With the phase on, gravity has it turning nose-down at 2.26 deg/s
   by then, its axis 0.079° off the rail's line; guided, it isn't turning. Guided, it reaches
   2,623.9 m (8,609 ft). With the phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m
-  (300 ft) farther from the pad. Each figure is rounded on its own; unrounded, the apogee moves by
-  10.86 m (35.6 ft).
+  (300 ft) farther from the pad. Each figure is rounded on its own; unrounded, the apogee moves
+  down by 10.86 m (35.6 ft).
 - **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
   a real button has play in its slot. The guided flight frees the rocket at its last
   button's position, and HPR Sim half a button's length later, at the button's aft edge. The

@@ -365,9 +365,11 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **Guided** is the phase off on a rail longer by the distance between the buttons: the \
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
          it.\n\
-         - **Rocket** is the design's id. The two Calisto ids are one rocket at two motor \
-         positions. Each ends in the motor's position in meters, in the rocket's own coordinates \
-         as its RocketPy source sets it: `minus-1.255` is −1.255 m.\n\
+         - **Rocket** is the design's id. The two Calisto ids are two versions of one rocket, \
+         from RocketPy's getting-started notebook and from its tests, with different fins. Each \
+         ends in the motor's position in meters, in the rocket's own coordinates as its source \
+         sets it: `minus-1.255` is −1.255 m. The two sources put their origins 0.118 m (4.6 in) \
+         apart, so in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip.\n\
          - **Rail** is the rail's length and its angle above the horizontal.\n\
          - **Moved** is the phase on less the other flight: the phase-on figure minus the \
          other's. *On less off* takes the phase off from the phase on, and *on less guided* takes \
@@ -727,6 +729,83 @@ mod tests {
         );
     }
 
+    /// The two Calisto designs are two versions of one rocket, not one rocket with its motor
+    /// moved: their fins differ, and every position differs by one offset, so the motor sits the
+    /// same distance behind the nose in both. The page and the flight page say so with the
+    /// fixture's figures.
+    #[test]
+    fn the_two_calistos_differ_in_fins_and_origin_not_motor_place() {
+        let root = crate::designs::root().unwrap();
+        let fixture: Value = serde_json::from_str(
+            &fs::read_to_string(root.join("validation/fixtures/design/rocketpy-rocket-mass.json"))
+                .unwrap(),
+        )
+        .unwrap();
+        let case = |name: &str| -> Value {
+            fixture["cases"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|c| c["name"] == name)
+                .unwrap_or_else(|| panic!("{name} isn't in the fixture"))
+                .clone()
+        };
+        let notebook = case("calisto-getting-started-motor-at-minus-1.255");
+        let tests = case("calisto-tests-motor-at-minus-1.373");
+        let at = |c: &Value, path: &[&str]| -> f64 {
+            path.iter()
+                .fold(c, |v, key| match key.parse::<usize>() {
+                    Ok(i) => &v[i],
+                    Err(_) => &v[*key],
+                })
+                .as_f64()
+                .unwrap()
+        };
+        let motor = ["rocket", "motor_position"];
+        let nose = ["geometry", "nose", "position"];
+        let offset = at(&notebook, &motor) - at(&tests, &motor);
+        assert!((at(&notebook, &nose) - at(&tests, &nose) - offset).abs() < 1e-9);
+        // The notebook gives the fin and tail stations to more digits (−1.04956 and −1.194656
+        // against −1.168 and −1.313), so they move with the origin to within half a millimeter.
+        for path in [
+            &["geometry", "fin_sets", "0", "position"][..],
+            &["geometry", "tails", "0", "position"],
+        ] {
+            assert!(
+                (at(&notebook, path) - at(&tests, path) - offset).abs() < 5e-4,
+                "{path:?} doesn't move with the origin"
+            );
+        }
+        let behind = at(&notebook, &nose) - at(&notebook, &motor);
+        assert!((behind - (at(&tests, &nose) - at(&tests, &motor))).abs() < 1e-9);
+        assert_ne!(
+            at(&notebook, &["geometry", "fin_sets", "0", "span"]),
+            at(&tests, &["geometry", "fin_sets", "0", "span"])
+        );
+        let page = markdown(&committed())
+            .unwrap()
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        let flight = fs::read_to_string(root.join("docs/physics/flight.md"))
+            .unwrap()
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        for text in [&page, &flight] {
+            assert!(
+                text.contains(&format!("{offset:.3} m")),
+                "the offset {offset:.3} m"
+            );
+            assert!(
+                text.contains(&format!("{behind:.3} m")),
+                "the distance {behind:.3} m"
+            );
+            assert!(text.contains("different fins"));
+            assert!(!text.contains("two motor positions"));
+        }
+    }
+
     /// The committed page is the committed report's, so the two can't drift apart.
     #[test]
     fn the_committed_page_is_the_reports() {
@@ -989,7 +1068,7 @@ mod tests {
                 "guided it isn't turning".to_owned()
             },
             format!(
-                "unrounded the apogee moves by {}",
+                "unrounded the apogee moves down by {}",
                 with_feet(-num(&juno["moved_from_guided"], "apogee_m"), 2, 1)
             ),
         ];
