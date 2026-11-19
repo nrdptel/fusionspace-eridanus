@@ -2,6 +2,10 @@ use super::*;
 
 use hpr::hpr_sim::{Channel, Recorder};
 
+/// The note a figure of a flight in the standard atmosphere carries.
+static STANDARD_AIR_NOTE: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| crate::trust::flight(crate::trust::Air::Standard));
+
 /// A flight sample's [`Point`] with only its time and height set.
 fn point(time_s: f64, height_m: f64) -> Point {
     Point {
@@ -71,6 +75,7 @@ fn figure_svg(title: &str, unpredicted: Option<(f64, f64)>) -> String {
         title,
         subtitle: "configuration 1 of 1: [H54-10]",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &points,
         events: &events,
@@ -214,6 +219,7 @@ fn a_grouped_event_keeps_its_time() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &points,
         events: &events,
@@ -377,6 +383,7 @@ fn the_figure_dates_the_motor_catalog_in_its_title_block() {
             title: "Probe",
             subtitle: "s",
             catalog_as_of: "2026-01-02",
+            trust: &STANDARD_AIR_NOTE,
             data_file,
             points: &points,
             events: &[],
@@ -580,6 +587,7 @@ fn a_long_event_line_wraps() {
         title: &title,
         subtitle: &subtitle,
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &points,
         events: &events,
@@ -647,6 +655,7 @@ fn each_panel_gives_its_us_units_on_a_right_scale() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &points,
         events: &[apogee],
@@ -900,6 +909,7 @@ fn the_figure_describes_its_apogee_and_top_speed() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &[],
         events: &[],
@@ -1430,6 +1440,7 @@ fn a_number_keeps_its_unit_on_its_line() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &[],
         events: &[],
@@ -1539,6 +1550,7 @@ fn balloons_hold(events: &[FlightEvent]) -> Vec<Balloon> {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &points,
         events,
@@ -1724,6 +1736,7 @@ fn panels_bank_toward_45_degrees() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        trust: &STANDARD_AIR_NOTE,
         data_file: "probe.csv",
         points: &saw,
         events: &[],

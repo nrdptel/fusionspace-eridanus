@@ -240,7 +240,7 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 dispersion: given,
                 catalog_as_of: crate::motors::catalog_as_of()?,
                 kind: crate::trust::Kind::Simulated,
-                trust: crate::trust::runs(),
+                trust: crate::trust::runs(crate::trust::Air::of(args.flight.weather.as_deref())),
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
@@ -258,7 +258,7 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let summary = nominal.summary();
     let document = McRun {
         kind: crate::trust::Kind::Simulated,
-        trust: crate::trust::runs(),
+        trust: crate::trust::runs(crate::trust::Air::of(args.flight.weather.as_deref())),
         design: crate::output::SimDesign {
             file: sim::file_name(&args.flight.design),
             format: read.format,

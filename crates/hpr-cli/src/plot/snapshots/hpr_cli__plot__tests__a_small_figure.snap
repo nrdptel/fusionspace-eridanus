@@ -2,12 +2,12 @@
 source: crates/hpr-cli/src/plot/tests.rs
 expression: "svg.replace(&program, \"[program]\")"
 ---
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1688" viewBox="0 0 960 1688" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1720" viewBox="0 0 960 1720" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">Probe: altitude, speed and acceleration against time</title>
 <desc id="desc">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</desc>
 <metadata>[stamp]</metadata>
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="3" y1="0" x2="3" y2="6" stroke="#98A1B8" stroke-width="1"/></pattern></defs>
-<rect width="960" height="1688" fill="#F3F4F7"/>
+<rect width="960" height="1720" fill="#F3F4F7"/>
 <text x="76" y="32" font-size="20" font-weight="600" fill="#0B0F1C">Probe</text>
 <text x="76" y="56" fill="#566079">configuration 1 of 1: [H54-10]</text>
 <text x="76" y="80.0" fill="#566079">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</text>
@@ -126,18 +126,20 @@ expression: "svg.replace(&program, \"[program]\")"
 <text x="76" y="1456.0" fill="#566079">attack, so this is not a prediction.</text>
 <text x="76" y="1488.0" fill="#566079">HOW FAR TO TRUST IT</text>
 <text x="76" y="1504.0" fill="#566079">Simulated from the design file, not measured. Against 60 logged flights of fliers&apos; own designs, the simulated apogee</text>
-<text x="76" y="1520.0" fill="#566079">averaged 7.7% above the logged one. Each logged apogee is the height climbed in the day&apos;s air. The simulated apogee</text>
-<text x="76" y="1536.0" fill="#566079">was within 10% on 32 and read low on 15, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this</text>
-<text x="76" y="1552.0" fill="#566079">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1520.0" fill="#566079">averaged 7.7% above the logged one. HPR Sim flew each in its day&apos;s air from ERA5, a weather reanalysis, and each</text>
+<text x="76" y="1536.0" fill="#566079">logged apogee is the height climbed in it. The simulated apogee was within 10% on 32 and read low on 15, by at most</text>
+<text x="76" y="1552.0" fill="#566079">20%. This flight was flown in the standard atmosphere. On a day warmer than it at the site, the rocket can climb</text>
+<text x="76" y="1568.0" fill="#566079">higher than this apogee; --weather flies the day&apos;s air. Plan a waiver or a field&apos;s ceiling with room above this</text>
+<text x="76" y="1584.0" fill="#566079">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
 <g id="title-block">
-<rect x="76" y="1576.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>
-<text x="84.0" y="1592.0" fill="#566079">OWNER</text><text x="84.0" y="1608.0" fill="#0B0F1C">FusionSpace</text>
-<line x1="172.0" y1="1576.0" x2="172.0" y2="1620.0" stroke="#566079" stroke-width="1"/><text x="180.0" y="1592.0" fill="#566079">TITLE</text><text x="180.0" y="1608.0" fill="#0B0F1C">Probe</text>
-<line x1="224.0" y1="1576.0" x2="224.0" y2="1620.0" stroke="#566079" stroke-width="1"/><text x="232.0" y="1592.0" fill="#566079">TYPE</text><text x="232.0" y="1608.0" fill="#0B0F1C">Simulated flight</text>
-<line x1="356.0" y1="1576.0" x2="356.0" y2="1620.0" stroke="#566079" stroke-width="1"/><text x="364.0" y="1592.0" fill="#566079">DESIGNATION</text><text x="364.0" y="1608.0" fill="#0B0F1C">FS-ACHERNAR · SW · TOOL 001</text>
-<line x1="568.0" y1="1576.0" x2="568.0" y2="1620.0" stroke="#566079" stroke-width="1"/><text x="576.0" y="1592.0" fill="#566079">PROGRAM</text><text x="576.0" y="1608.0" fill="#0B0F1C">[program]</text>
-<line x1="76" y1="1620.0" x2="936" y2="1620.0" stroke="#566079" stroke-width="1"/><text x="84.0" y="1636.0" fill="#566079">UNITS</text><text x="84.0" y="1652.0" fill="#0B0F1C">m, m/s, m/s², s [ft, ft/s, g]</text>
-<line x1="304.0" y1="1620.0" x2="304.0" y2="1664.0" stroke="#566079" stroke-width="1"/><text x="312.0" y="1636.0" fill="#566079">DATA</text><text x="312.0" y="1652.0" fill="#0B0F1C">probe.csv</text>
-<line x1="388.0" y1="1620.0" x2="388.0" y2="1664.0" stroke="#566079" stroke-width="1"/><text x="396.0" y="1636.0" fill="#566079">MOTOR CATALOG</text><text x="396.0" y="1652.0" fill="#0B0F1C">as of 2026-01-02</text>
+<rect x="76" y="1608.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>
+<text x="84.0" y="1624.0" fill="#566079">OWNER</text><text x="84.0" y="1640.0" fill="#0B0F1C">FusionSpace</text>
+<line x1="172.0" y1="1608.0" x2="172.0" y2="1652.0" stroke="#566079" stroke-width="1"/><text x="180.0" y="1624.0" fill="#566079">TITLE</text><text x="180.0" y="1640.0" fill="#0B0F1C">Probe</text>
+<line x1="224.0" y1="1608.0" x2="224.0" y2="1652.0" stroke="#566079" stroke-width="1"/><text x="232.0" y="1624.0" fill="#566079">TYPE</text><text x="232.0" y="1640.0" fill="#0B0F1C">Simulated flight</text>
+<line x1="356.0" y1="1608.0" x2="356.0" y2="1652.0" stroke="#566079" stroke-width="1"/><text x="364.0" y="1624.0" fill="#566079">DESIGNATION</text><text x="364.0" y="1640.0" fill="#0B0F1C">FS-ACHERNAR · SW · TOOL 001</text>
+<line x1="568.0" y1="1608.0" x2="568.0" y2="1652.0" stroke="#566079" stroke-width="1"/><text x="576.0" y="1624.0" fill="#566079">PROGRAM</text><text x="576.0" y="1640.0" fill="#0B0F1C">[program]</text>
+<line x1="76" y1="1652.0" x2="936" y2="1652.0" stroke="#566079" stroke-width="1"/><text x="84.0" y="1668.0" fill="#566079">UNITS</text><text x="84.0" y="1684.0" fill="#0B0F1C">m, m/s, m/s², s [ft, ft/s, g]</text>
+<line x1="304.0" y1="1652.0" x2="304.0" y2="1696.0" stroke="#566079" stroke-width="1"/><text x="312.0" y="1668.0" fill="#566079">DATA</text><text x="312.0" y="1684.0" fill="#0B0F1C">probe.csv</text>
+<line x1="388.0" y1="1652.0" x2="388.0" y2="1696.0" stroke="#566079" stroke-width="1"/><text x="396.0" y="1668.0" fill="#566079">MOTOR CATALOG</text><text x="396.0" y="1684.0" fill="#0B0F1C">as of 2026-01-02</text>
 </g>
 </svg>

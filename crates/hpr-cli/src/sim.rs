@@ -221,7 +221,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         configuration: configuration_label.clone(),
         catalog_as_of: catalog_as_of.clone(),
         kind: crate::trust::Kind::Simulated,
-        trust: crate::trust::flight(),
+        trust: crate::trust::flight(crate::trust::Air::of(args.flight.weather.as_deref())),
     };
     for (path, format, meta) in &exports {
         let contents = contents(
@@ -248,7 +248,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 rows: recorder.rows().len(),
                 catalog_as_of: catalog_as_of.clone(),
                 kind: crate::trust::Kind::Simulated,
-                trust: crate::trust::flight(),
+                trust: crate::trust::flight(crate::trust::Air::of(args.flight.weather.as_deref())),
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
@@ -280,7 +280,9 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             "{}, configuration {configuration_label}",
             file_name(&args.flight.design)
         );
+        let trust = crate::trust::flight(crate::trust::Air::of(args.flight.weather.as_deref()));
         let figure = crate::plot::svg(&crate::plot::Figure {
+            trust: &trust,
             title: &design_name,
             subtitle: &configuration_line,
             catalog_as_of: &catalog_as_of,
@@ -319,7 +321,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             rows: trace.points().len(),
             catalog_as_of: catalog_as_of.clone(),
             kind: crate::trust::Kind::Simulated,
-            trust: crate::trust::flight(),
+            trust: crate::trust::flight(crate::trust::Air::of(args.flight.weather.as_deref())),
         };
         let mut text = Vec::new();
         crate::write_json(&mut text, &document)
@@ -345,7 +347,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 
     let document = SimFlight {
         kind: crate::trust::Kind::Simulated,
-        trust: crate::trust::flight(),
+        trust: crate::trust::flight(crate::trust::Air::of(args.flight.weather.as_deref())),
         design: SimDesign {
             file: file_name(&args.flight.design),
             format: read.format,

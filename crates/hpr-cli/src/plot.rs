@@ -274,6 +274,8 @@ pub(crate) struct Figure<'a> {
     pub apogee: Option<Reading>,
     /// The summary's top speed, m/s, and its time.
     pub top_speed: Option<Reading>,
+    /// The note on how far to trust it, as the run prints it ([`crate::trust::flight`]).
+    pub trust: &'a str,
 }
 
 /// One series of a panel: simulated, so dashed in the predicted color, told from the panel's
@@ -447,8 +449,10 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     }
     // The note's label as the figure's other labels are set, in capitals on a line of its own.
     note.push(TRUST_LABEL.to_owned());
-    let trust = crate::trust::flight();
-    let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
+    let body = figure
+        .trust
+        .strip_prefix(crate::trust::LABEL)
+        .unwrap_or(figure.trust);
     note.extend(crate::trust::wrap(body, LIST_WIDTH));
     let note_top = table_bottom + 24.0;
     // The title block, last, where a printed copy shows it, as a drawing's (`principles.md` §1).

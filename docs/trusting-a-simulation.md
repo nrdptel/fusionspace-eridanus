@@ -91,6 +91,16 @@ the logged one makes a negative miss in the report's rows. Of the 60 flights, 15
 lowest of them between 15% and 20% low ([report][fixture-report]). A sample isn't a bound: a
 rocket unlike these may miss by more.
 
+HPR Sim flew those flights in each day's air from ERA5, a [reanalysis](glossary.md#reanalysis) of
+the weather. Without `--weather`, `hpr sim` and `hpr mc` fly
+[the standard atmosphere](physics/atmosphere.md#the-standard-atmosphere) instead. A day warmer
+than it at the site, or at lower pressure, has thinner air. The real rocket then meets less drag
+than the simulated one and can climb higher than a standard-air run's apogee: the side that
+flatters a ceiling. The note under such a run says so. `--weather` flies the day's air, from a
+profile [`hpr weather`](weather.md) writes. On a warm day a barometric altimeter also reads below
+the height climbed, as the [atmosphere page](physics/atmosphere.md#the-standard-atmosphere) works
+through.
+
 Juno III, one of the public flights, shows what the low side looks like. An altimeter riding HPR Sim's flight of Juno III,
 Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top. The
 team's altimeter read 3,151.5 m (10,340 ft), a miss of −7.24% ([report][real-report]). The real
@@ -147,10 +157,12 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.7% above the logged one. Each logged apogee is the height climbed in
-the day's air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a
-waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to log,
-and the RSO decides.
+the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in its day's air from
+ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee
+was within 10% on 32 and read low on 15, by at most 20%. These flights were flown in the standard
+atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;
+--weather flies the day's air. Plan a waiver or a field's ceiling with room above this apogee; the
+altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 

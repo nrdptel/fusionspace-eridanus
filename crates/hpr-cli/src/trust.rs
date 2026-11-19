@@ -57,33 +57,66 @@ pub enum Kind {
     Compared,
 }
 
+/// The air a run flew in, which decides whether its note may quote the report's low side as it
+/// stands (#1256).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Air {
+    /// A weather profile's air, from `--weather`: the day's, as the report's flights were flown.
+    Day,
+    /// The 1976 standard atmosphere, flown without `--weather`. On a day whose air is thinner
+    /// than it, as a warm day's or a low-pressure day's is, the real rocket meets less drag than
+    /// the one simulated, so it climbs higher than the simulated apogee.
+    Standard,
+}
+
+impl Air {
+    /// The air a run with `weather`, its `--weather` file if any, flies in.
+    pub(crate) fn of(weather: Option<&str>) -> Self {
+        if weather.is_some() {
+            Self::Day
+        } else {
+            Self::Standard
+        }
+    }
+}
+
 /// The note's second and third parts: what the apogee was checked against, with the report's
-/// numbers, and what to rely on instead, with where to read more.
-fn checked_and_instead() -> String {
+/// numbers and the air its flights were flown in; in standard air, that `flown` (this flight, or
+/// these flights) weren't, and which way that leans; then what to rely on instead, with where to
+/// read more.
+fn checked_and_instead(air: Air, flown: &str) -> String {
+    let standard = match air {
+        Air::Day => String::new(),
+        Air::Standard => format!(
+            "{flown} in the standard atmosphere. On a day warmer than it at the site, the rocket \
+             can climb higher than this apogee; --weather flies the day's air. "
+        ),
+    };
     format!(
         "Against {FLIGHTS} logged flights of fliers' own designs, the simulated apogee averaged \
-         {MEAN_PERCENT:.1}% above the logged one. Each logged apogee is the height climbed in the \
-         day's air. The simulated apogee was within 10% on {WITHIN_10} and read low on {LOW}, by \
-         at most {LOW_AT_MOST_PERCENT:.0}%. Plan a waiver or a field's ceiling with room \
-         above this apogee; the altimeter's reading is the one to log, and the RSO decides.\
-         {MORE}{ACCURACY_URL}"
+         {MEAN_PERCENT:.1}% above the logged one. HPR Sim flew each in its day's air from ERA5, a \
+         weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee was within 10% on \
+         {WITHIN_10} and read low on {LOW}, by at most {LOW_AT_MOST_PERCENT:.0}%. {standard}Plan \
+         a waiver or a field's ceiling with room above this apogee; the altimeter's reading is \
+         the one to log, and the RSO decides.{MORE}{ACCURACY_URL}"
     )
 }
 
-/// `hpr sim`'s note, and the plot's: one flight.
-pub(crate) fn flight() -> String {
+/// `hpr sim`'s note, and the plot's: one flight, flown in `air`.
+pub(crate) fn flight(air: Air) -> String {
     format!(
         "{LABEL} Simulated from the design file, not measured. {}",
-        checked_and_instead()
+        checked_and_instead(air, "This flight was flown")
     )
 }
 
-/// `hpr mc`'s note: the spread it prints is its inputs', not the model's error.
-pub(crate) fn runs() -> String {
+/// `hpr mc`'s note: the spread it prints is its inputs', not the model's error; its flights
+/// flown in `air`.
+pub(crate) fn runs(air: Air) -> String {
     format!(
         "{LABEL} Simulated from the design file, not measured; the spread above comes from the \
          inputs' scatter alone, not from the model's error. {}",
-        checked_and_instead()
+        checked_and_instead(air, "These flights were flown")
     )
 }
 
@@ -343,15 +376,48 @@ mod tests {
 
     #[test]
     fn each_note_has_its_three_parts_in_order() {
-        for note in [flight(), runs()] {
-            let kind = note.find("not measured").unwrap_or(usize::MAX);
-            let checked = note.find("logged flights").unwrap_or(usize::MAX);
-            let instead = note.find("the one to log").unwrap_or(usize::MAX);
-            assert!(note.starts_with(LABEL), "{note}");
-            assert!(kind < checked && checked < instead, "{note}");
-            assert!(note.ends_with(ACCURACY_URL), "{note}");
+        for air in [Air::Day, Air::Standard] {
+            for note in [flight(air), runs(air)] {
+                let kind = note.find("not measured").unwrap_or(usize::MAX);
+                let checked = note.find("logged flights").unwrap_or(usize::MAX);
+                let instead = note.find("the one to log").unwrap_or(usize::MAX);
+                assert!(note.starts_with(LABEL), "{note}");
+                assert!(kind < checked && checked < instead, "{note}");
+                assert!(note.ends_with(ACCURACY_URL), "{note}");
+            }
+            assert!(runs(air).contains("not from the model's error"));
         }
-        assert!(runs().contains("not from the model's error"));
+    }
+
+    /// Every note says the report's flights were flown in each day's real air. A run in the
+    /// standard atmosphere says so, which way that leans on a warm day, and how to fly the day's
+    /// air, after the low side it qualifies and before the advice that rests on it; a run with
+    /// `--weather` says none of it (#1256).
+    #[test]
+    fn a_standard_air_note_says_its_air_reads_lower_on_a_warm_day() {
+        let flown = "HPR Sim flew each in its day's air from ERA5, a weather reanalysis, and each \
+                     logged apogee is the height climbed in it.";
+        let caveat = "in the standard atmosphere. On a day warmer than it at the site, the rocket \
+                      can climb higher than this apogee; --weather flies the day's air.";
+        for (note, subject) in [
+            (flight(Air::Standard), "This flight was flown "),
+            (runs(Air::Standard), "These flights were flown "),
+        ] {
+            let low = note.find("by at most 20%.").unwrap_or(usize::MAX);
+            let said = note
+                .find(&format!("{subject}{caveat}"))
+                .unwrap_or_else(|| panic!("{note}"));
+            let plan = note.find("Plan a waiver").unwrap_or(usize::MAX);
+            assert!(note.contains(flown), "{note}");
+            assert!(low < said && said < plan, "{note}");
+        }
+        for note in [flight(Air::Day), runs(Air::Day)] {
+            assert!(note.contains(flown), "{note}");
+            assert!(!note.contains("standard atmosphere"), "{note}");
+            assert!(!note.contains("--weather"), "{note}");
+        }
+        assert_eq!(Air::of(None), Air::Standard);
+        assert_eq!(Air::of(Some("profile.json")), Air::Day);
     }
 
     /// The ERA5 note's flights and their mean error are the committed report's.
@@ -387,7 +453,7 @@ mod tests {
 
     #[test]
     fn wrapping_keeps_every_word_within_the_width() {
-        let note = flight();
+        let note = flight(Air::Standard);
         let lines = wrap(&note, 60);
         assert!(lines.len() > 1);
         assert_eq!(lines.join(" "), note);
