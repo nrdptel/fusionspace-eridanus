@@ -2,10 +2,10 @@
 //! holds (M0.14a; ADR-284; the voice section of `docs/writing.md`).
 //!
 //! This crate reads the pages, lists them with `git ls-files` and writes the report; it needs none
-//! of the simulator's crates, so it builds without them. A prose-only change rewrites
-//! `validation/reports/voice.md` with `cargo voice` (this crate's binary) and tests it with
+//! of the simulator's crates, so it builds without them. A prose-only change runs the check with
+//! `cargo voice` (this crate's binary), which prints the report, and tests it with
 //! `cargo test -p xtask-voice`. `cargo xtask voice` runs the same code, and `cargo xtask site`
-//! runs its check.
+//! runs its check and puts the report on the site's page for it (#1495).
 
 #![allow(
     clippy::print_stdout,

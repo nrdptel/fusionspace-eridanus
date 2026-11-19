@@ -26,10 +26,11 @@
 //! their entries
 //! (`docs/research/plain-voice-docs.md`).
 //!
-//! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]) and writes the
-//! per-page report to [`REPORT`]; a test fails when the committed report and the pages disagree,
-//! and `cargo xtask site` fails on a stock phrase in them or a held page that misses
-//! ([`misses`]). Given paths, it reads each file, or each page under a directory (Markdown, HTML
+//! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]), prints the
+//! per-page report, and fails on a stock phrase in them or a held page that misses ([`misses`]);
+//! `cargo xtask site` fails on the same two ([`check`]). The report isn't committed (#1495): the
+//! site's build writes it onto [`PAGE`] each time ([`site_report`]), so no two pull requests
+//! conflict on it. Given paths, it reads each file, or each page under a directory (Markdown, HTML
 //! or text), and prints the report, so fusionspace.co's pages and the design system's are read the
 //! same way; only a stock phrase fails there.
 //!
@@ -52,8 +53,8 @@ pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
                            bold-label items, labels, long sentences, hedges, minimizers and
                            signposts against the writing guide's limits, and the register. With
-                           no path it reads this repository's pages and writes
-                           validation/reports/voice.md; given paths, it reads each file, or each
+                           no path it reads this repository's pages and prints the report the
+                           site's docs/voice-report.md shows; given paths, it reads each file, or each
                            page under a directory (a `.help` file as a command's help, a `.rs`
                            file given as its path as a crate's front page), and
                            prints the report (after `--`, a path may start with `-`). Fails on
@@ -157,8 +158,21 @@ const LONG_SHARE_TARGET: usize = 10;
 /// A sentence longer than this many words is a long one, for the report and for `--long`.
 const LONG_WORDS: usize = 25;
 
-/// The committed per-page report, relative to the workspace root.
-pub const REPORT: &str = "validation/reports/voice.md";
+/// The site's page for the per-page report, relative to the workspace root. Its file is a stub;
+/// the site's build puts [`site_report`] in its place, so the page is always the pages' own.
+pub const PAGE: &str = "docs/voice-report.md";
+
+/// The line on [`PAGE`]'s stub that marks it as one: the site's build refuses a page at that
+/// path without it, so a page written there by hand can't be replaced unseen.
+pub const STUB_MARKER: &str = "<!-- voice-report: the site's build writes this page -->";
+
+/// The writing guide's voice section, as a link from [`PAGE`] (the site's address on GitHub's
+/// copy would be one directory off).
+const GUIDE_VOICE: &str = "writing.md#voice";
+
+/// Where the decision records [`report`] cites are read: on GitHub, as the site links them.
+const DECISIONS_URL: &str =
+    "https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions";
 
 /// The file extensions read under a directory given as a path.
 const EXTENSIONS: [&str; 6] = ["md", "markdown", "html", "htm", "txt", "help"];
@@ -774,8 +788,8 @@ impl Reading {
     }
 }
 
-/// `cargo xtask voice`: with no path, writes [`REPORT`] for the repository's pages; with paths,
-/// prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
+/// `cargo xtask voice`: with no path, prints the report for the repository's pages, as the site's
+/// [`PAGE`] shows it; with paths, prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
 /// path on a held page that misses.
 pub fn run(args: &[String]) -> Result<(), String> {
     let (long, args) = match args.split_first() {
@@ -841,9 +855,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if args.is_empty() {
         let held = held_paths(&root)?;
         let pages = repository_pages(&root, &held)?;
-        fs::write(root.join(REPORT), report(&pages))
-            .map_err(|e| format!("writing {REPORT}: {e}"))?;
-        println!("voice: wrote {REPORT}");
+        print!("{}", report(&pages));
         println!("{}", summary(&pages));
         return failures(&pages, &held);
     }
@@ -851,6 +863,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     print!("{}", report(&pages));
     println!("{}", summary(&pages));
     stock_failure(&pages)
+}
+
+/// The report the site's build puts on [`PAGE`]: the one `cargo xtask voice` prints for this
+/// repository's pages. It doesn't fail on a page that misses; [`check`], which `cargo xtask site`
+/// runs before it builds, does.
+pub fn site_report(root: &Path) -> Result<String, String> {
+    let held = held_paths(root)?;
+    Ok(report(&repository_pages(root, &held)?))
 }
 
 /// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
@@ -2383,10 +2403,10 @@ fn report(pages: &[Page]) -> String {
     let _ = writeln!(
         out,
         "# How the pages read\n\n\
-         `cargo xtask voice` writes this report from the pages. A test fails when the two \
-         disagree, so run it after editing a page. [The writing guide's voice \
-         section](../../docs/writing.md#voice) says what the pattern columns count and why, and \
-         sets the limits.\n\n\
+         The site's build writes this page from the pages each time it runs, and `cargo xtask \
+         voice` prints the same report from a copy of the repository. [The writing guide's voice \
+         section]({GUIDE_VOICE}) says what the pattern columns count and why, and sets the \
+         limits.\n\n\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
@@ -2394,11 +2414,11 @@ fn report(pages: &[Page]) -> String {
          `held` that's over a limit or misses a sentence target. The {} held pages are every page \
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
-         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each \
+         ([ADR-285]({DECISIONS_URL}/0285-the-rest-of-the-site-in-nine.md)), each \
          snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for \
          each crate's `src/` directory, the Python package's README and its docstrings as \
          `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` \
-         ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
+         ([ADR-292]({DECISIONS_URL}/0292-the-programs-words-in-four.md)).\n\n\
          {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
         pages.iter().filter(|page| page.held).count(),
         pages.len()
@@ -2496,7 +2516,7 @@ fn census_table(out: &mut String, pages: &[Page]) {
     let _ = writeln!(
         out,
         "\n## What the commands say\n\n\
-         Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisions/\
+         Each `src/` page above is a crate's message census ([ADR-292]({DECISIONS_URL}/\
          0292-the-programs-words-in-four.md), the plan for the program's words): its `#[error]` \
          texts and the other string literals in its code that read as prose, less its tests \
          and its markup. A forwarded error \
@@ -3477,16 +3497,35 @@ mod tests {
         assert_eq!(held_failure(&pages, &held), Ok(()));
     }
 
+    /// The report isn't committed (#1495): the site's page is a stub the build fills, listed in
+    /// the table of contents, and the report it gets opens with the page's title and links only
+    /// what the site can reach from it.
     #[test]
-    fn the_committed_report_matches_the_pages() {
+    fn the_site_page_is_a_stub_the_build_fills_with_the_report() {
         let root = crate::root().unwrap();
-        let held = held_paths(&root).unwrap();
-        let pages = repository_pages(&root, &held).unwrap();
-        let committed = fs::read_to_string(root.join(REPORT)).unwrap_or_default();
         assert!(
-            committed == report(&pages),
-            "{REPORT} doesn't match the pages: run `cargo voice` (or `cargo xtask voice`)"
+            tracked(&root, &["validation/reports/voice.md"])
+                .unwrap()
+                .is_empty(),
+            "the voice report is tracked again; the site's build writes it (#1495)"
         );
+        let stub = fs::read_to_string(root.join(PAGE)).unwrap();
+        assert!(stub.contains(STUB_MARKER), "{PAGE} lost its marker");
+        let contents = fs::read_to_string(root.join(CONTENTS)).unwrap();
+        let listed = PAGE.strip_prefix("docs/").unwrap();
+        assert!(
+            contents.contains(&format!("]({listed})")),
+            "{CONTENTS} doesn't list {PAGE}"
+        );
+        let report = site_report(&root).unwrap();
+        assert!(report.starts_with("# How the pages read\n"));
+        assert!(
+            !report.contains("../"),
+            "a link the site can't reach from {PAGE}"
+        );
+        assert!(report.contains(&format!("]({GUIDE_VOICE})")));
+        assert!(report.contains(&format!("({DECISIONS_URL}/0285-")));
+        assert!(report.contains(&format!("| `{PAGE}` (`held`) |")));
     }
 
     /// A help screen as clap lays it out, piped: a long help with every part, and a short help's

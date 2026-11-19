@@ -275,11 +275,11 @@ none on the project's reference pages.
 
 ### The check
 
-`cargo xtask voice` reads this repository's pages, writes
-[the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md)
-and fails on a stock phrase. With no path, it also fails when a held page goes over a limit or
-misses a sentence target ([below](#measured-not-gated)). A test fails when the report and the
-pages disagree, so run it after editing a page. The site's build runs the check too.
+`cargo xtask voice` reads this repository's pages, prints the report, and fails on a stock
+phrase. With no path, it also fails when a held page goes over a limit or misses a sentence target
+([below](#measured-not-gated)). The site's build runs the same check, and fails CI on either. It
+also writes the report onto [its page](voice-report.md) from the pages, so the report is never
+stale and isn't committed: when it was, two pull requests that edited pages conflicted on it.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
 and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and
@@ -353,7 +353,7 @@ of the code. It reads `hpr-cli`, `hpr`, the twelve crates under it and the Pytho
 markup. Each crate is one held reference page. A
 placeholder such as `{path}` is one code word. A joined message is read in pieces, so a long one
 can pass. `cargo xtask voice --long --messages` lists each long sentence with its file and line, and
-`--messages` the whole census; the [voice report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/voice.md) counts what it read.
+`--messages` the whole census; the [voice report](voice-report.md) counts what it read.
 
 The Python package's docs and the crates' front pages are held too. A test of the package writes
 its docstrings, as `help()` shows them, to `crates/hpr-py/tests/docstrings.md`. The check holds

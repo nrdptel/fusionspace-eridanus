@@ -51,7 +51,9 @@ runnable = false
 heading-split-level = 2
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
-# renders the page, so the browser draws it in the math face with no script. `cargo xtask site`
-# runs the build's own xtask in place of this command; `mdbook serve` runs this one.
+# renders the page, so the browser draws it in the math face with no script. Before the math it
+# writes the voice check's report onto `docs/voice-report.md`'s stub (`xtask/src/site/voice_page.rs`,
+# #1495). `cargo xtask site` runs the build's own xtask in place of this command; `mdbook serve`
+# runs this one.
 [preprocessor.math]
 command = "cargo xtask site-math"

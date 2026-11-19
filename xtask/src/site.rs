@@ -122,6 +122,7 @@ mod switch;
 pub(crate) mod theme;
 pub(crate) mod units;
 mod vitals;
+mod voice_page;
 mod words;
 
 pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]

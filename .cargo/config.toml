@@ -2,5 +2,6 @@
 [alias]
 xtask = "run --quiet --package xtask --"
 # The voice check alone, without building the simulator, for a prose-only change: `cargo voice`
-# rewrites validation/reports/voice.md as `cargo xtask voice` does (#1459).
+# prints the report and fails as `cargo xtask voice` does (#1459). The report isn't committed; the
+# site's build writes it onto docs/voice-report.md (#1495).
 voice = "run --quiet --package xtask-voice --"
