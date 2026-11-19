@@ -39,23 +39,23 @@ and merging `main` into it moves its fork point, which asks for a new full gate 
 
 **What is lost, and what isn't.** The deleted test compared the committed file with the pages;
 it caught a stale file, not a page that reads badly. The report itself never failed a page: it
-printed rates, and the failures came from the check, which still runs. The mutation run below appended one change at a
-time to a held page (the stub, 59 words, or the glossary for the reference-page limit), ran
-`xtask site` as CI's site jobs do, and restored the page:
+printed rates, and the failures came from the check, which still runs. The mutation run below changed one held page at a time, ran `xtask site` as CI's site jobs do,
+and restored the page. The page was the stub (154 words), the glossary for the reference-page
+limit, or the 404 page (51 words) for the two sentence targets, which a longer page dilutes:
 
 | Mutation | Page | What failed |
 |---|---|---|
 | "It's important to note that…" | stub | a stock phrase |
-| two bold-label list items | stub | bold-label items, 2 in 64 words |
-| two internal labels | stub | labels, 2 in 66 words |
-| one 30-word sentence | stub | sentences over 25 words, 1 in 89 words; both sentence targets |
-| three hedges | stub | hedges, 3 in 67 words |
-| "might possibly" | stub | stacked hedges, 1 in 63 words (and hedges) |
-| "Simply" | stub | minimizers, 1 in 62 words |
-| "As noted above" | stub | signposts, 1 in 66 words |
+| two bold-label list items | stub | bold-label items, 2 in 159 words |
+| two internal labels | stub | labels, 2 in 161 words |
+| one 30-word sentence | stub | sentences over 25 words, 1 in 184 words |
+| three hedges | stub | hedges, 3 in 162 words |
+| "might possibly" | stub | stacked hedges, 1 in 158 words (and hedges) |
+| "Simply" | stub | minimizers, 1 in 157 words |
+| "As noted above" | stub | signposts, 1 in 161 words |
 | "I wrote this glossary." | glossary | first person on a reference page, 1 in 13,385 words |
-| three sentences of 22 to 23 words | stub | the mean words a sentence, 122 words in 6 sentences |
-| one 29-word sentence | stub | the share over 25 words, 1 of 4 sentences; sentences over 25 words; the mean |
+| its text as three sentences of 22 to 23 words | 404 | the mean words a sentence, 67 words in 3 sentences |
+| one 29-word sentence | 404 | the share over 25 words, 1 of 5 sentences (and sentences over 25 words) |
 
 Each run exited 1 with that message. The site's page now shows the report for exactly the pages
 it was built from, where the committed copy could trail them until the next commit refreshed it.

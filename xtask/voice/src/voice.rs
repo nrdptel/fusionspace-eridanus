@@ -166,6 +166,16 @@ pub const PAGE: &str = "docs/voice-report.md";
 /// path without it, so a page written there by hand can't be replaced unseen.
 pub const STUB_MARKER: &str = "<!-- voice-report: the site's build writes this page -->";
 
+/// The report's trust note, after its title, as every site page opens (the stub carries it too).
+pub const TRUST_NOTE: &str = "> **How far to trust it.** The counts find the patterns the writing \
+    guide lists in each page's words. They miss other awkward sentences, so a page within every \
+    limit can still read badly. The build writes them from the pages each time, so they match the \
+    pages the site shows.";
+
+/// The report's `##` sections, in order: [`PAGE`]'s stub carries the same headings, so the site's
+/// checks of a page's sections read the stub as the page it becomes.
+pub const SECTIONS: [&str; 3] = ["The limits", "Each page", "What the commands say"];
+
 /// The writing guide's voice section, as a link from [`PAGE`] (the site's address on GitHub's
 /// copy would be one directory off).
 const GUIDE_VOICE: &str = "writing.md#voice";
@@ -2403,6 +2413,7 @@ fn report(pages: &[Page]) -> String {
     let _ = writeln!(
         out,
         "# How the pages read\n\n\
+         {TRUST_NOTE}\n\n\
          The site's build writes this page from the pages each time it runs, and `cargo xtask \
          voice` prints the same report from a copy of the repository. [The writing guide's voice \
          section]({GUIDE_VOICE}) says what the pattern columns count and why, and sets the \
@@ -2419,7 +2430,8 @@ fn report(pages: &[Page]) -> String {
          each crate's `src/` directory, the Python package's README and its docstrings as \
          `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` \
          ([ADR-292]({DECISIONS_URL}/0292-the-programs-words-in-four.md)).\n\n\
-         {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
+         {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n\n\
+         ## The limits\n",
         pages.iter().filter(|page| page.held).count(),
         pages.len()
     );
@@ -2450,7 +2462,8 @@ fn report(pages: &[Page]) -> String {
         "\nThe register has no limit of its own (first person on a reference page, above, is the one \
          limit on it): \"I\", \"we\", \"you\" and contractions per 100 words, \
          and the guide's sentence targets (at most 20 words a sentence on average, fewer than \
-         10% of sentences over 25 words). A reference page is marked `ref`.\n"
+         10% of sentences over 25 words). A reference page is marked `ref`.\n\n\
+         ## Each page\n"
     );
     let mut header = String::from("| Page | Words | Words a sentence | Over 25 words |");
     let mut rule = String::from("|---|---:|---:|---:|");
@@ -3526,6 +3539,23 @@ mod tests {
         assert!(report.contains(&format!("]({GUIDE_VOICE})")));
         assert!(report.contains(&format!("({DECISIONS_URL}/0285-")));
         assert!(report.contains(&format!("| `{PAGE}` (`held`) |")));
+        let headings = |text: &str| -> Vec<String> {
+            text.lines()
+                .filter_map(|line| line.strip_prefix("## "))
+                .map(str::to_owned)
+                .collect()
+        };
+        assert_eq!(headings(&report), SECTIONS);
+        assert_eq!(
+            headings(&stub),
+            SECTIONS,
+            "{PAGE}'s sections aren't the report's"
+        );
+        assert!(report.contains(TRUST_NOTE));
+        assert!(
+            stub.contains(TRUST_NOTE),
+            "{PAGE}'s trust note isn't the report's"
+        );
     }
 
     /// A help screen as clap lays it out, piped: a long help with every part, and a short help's
