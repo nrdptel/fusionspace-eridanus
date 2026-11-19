@@ -7,12 +7,12 @@ How to read it:
 - **Phase off** is RocketPy as released: the rocket is free where its upper button leaves the rail.
 - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, free to pitch and yaw about its lower button with roll held, until that button leaves too.
 - **Guided** is the phase off on a rail longer by the distance between the buttons: the rocket is held straight until the lower button leaves the real rail, as HPR Sim holds it.
-- **Rocket** is the design's id. The two Calisto ids end in the motor's position in meters, in the rocket's own coordinates as its RocketPy source sets it (`minus-1.255` is −1.255 m): one rocket at two motor positions.
+- **Rocket** is the design's id. The two Calisto ids are one rocket at two motor positions. Each ends in the motor's position in meters, in the rocket's own coordinates as its RocketPy source sets it: `minus-1.255` is −1.255 m.
 - **Rail** is the rail's length and its angle above the horizontal.
-- **Moved** is the phase on less the other flight: the phase-on figure minus the other's. *On less off* takes the phase off from the phase on, and *on less guided* takes the guided flight. A landing point's move is the distance between the two landing points, in meters and as a share of the other flight's apogee. **Farther from the pad** is how much farther from the pad the rocket lands with the phase on, negative when it lands nearer. **Apogee point moved** is the distance across the ground between the two flights' apogee points; their heights are in **Apogee moved**.
+- **Moved** is the phase on less the other flight: the phase-on figure minus the other's. *On less off* takes the phase off from the phase on, and *on less guided* takes the guided flight. A landing point's move is the distance between the two landing points, in meters and as a share of the other flight's apogee. **Farther from the pad** is how much farther from the pad the rocket lands with the phase on, negative when it lands nearer. **Apogee point moved** is the distance across the ground between the two flights' apogee points; the change in height is in **Apogee moved**.
 - **Where the lower button leaves:** the rocket's speed with the phase on, the angle between the rocket's axis and the rail's, its part below the rail's line in the rail's vertical plane (nose down), and the turning rate across the rocket's axis (pitch and yaw together).
 - **The bars** are [the plan's](../../docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md): a tip-off model is called for when the phase moves any apogee by more than 1%, or any landing point by more than 1% of the apogee.
-- **A declared change** is a flight whose RocketPy inputs differ from the other flights', with the change and its reason stated.
+- **A declared change** is a flight flown with one of its design's inputs changed, with the change and its reason stated.
 
 ## The reading
 

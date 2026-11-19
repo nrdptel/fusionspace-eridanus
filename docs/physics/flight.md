@@ -899,7 +899,7 @@ with no turning rate.
 - **What flies.** RocketPy, at the merge of its
   [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
   public designs built from its examples, on its own inputs. They are twelve rockets, with
-  Calisto at two motor positions; a Calisto id in the report ends in the motor's position in
+  Calisto at two motor positions. A Calisto id in the report ends in the motor's position in
   meters, in the rocket's own coordinates as its RocketPy source sets it. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
   in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
 - **Three ways.** With the phase off, RocketPy frees the rocket where its forward button

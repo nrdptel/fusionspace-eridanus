@@ -365,9 +365,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **Guided** is the phase off on a rail longer by the distance between the buttons: the \
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
          it.\n\
-         - **Rocket** is the design's id. The two Calisto ids end in the motor's position in \
-         meters, in the rocket's own coordinates as its RocketPy source sets it (`minus-1.255` is \
-         −1.255 m): one rocket at two motor positions.\n\
+         - **Rocket** is the design's id. The two Calisto ids are one rocket at two motor \
+         positions. Each ends in the motor's position in meters, in the rocket's own coordinates \
+         as its RocketPy source sets it: `minus-1.255` is −1.255 m.\n\
          - **Rail** is the rail's length and its angle above the horizontal.\n\
          - **Moved** is the phase on less the other flight: the phase-on figure minus the \
          other's. *On less off* takes the phase off from the phase on, and *on less guided* takes \
@@ -375,15 +375,15 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          points, in meters and as a share of the other flight's apogee. **Farther from the pad** \
          is how much farther from the pad the rocket lands with the phase on, negative when it \
          lands nearer. **Apogee point moved** is the distance across the ground between the two \
-         flights' apogee points; their heights are in **Apogee moved**.\n\
+         flights' apogee points; the change in height is in **Apogee moved**.\n\
          - **Where the lower button leaves:** the rocket's speed with the phase on, the angle \
          between the rocket's axis and the \
          rail's, its part below the rail's line in the rail's vertical plane (nose down), and \
          the turning rate across the rocket's axis (pitch and yaw together).\n\
          - **The bars** are [the plan's]({PLAN}): a tip-off model is called for when the phase \
          moves any apogee by more than {}%, or any landing point by more than {}% of the apogee.\n\
-         - **A declared change** is a flight whose RocketPy inputs differ from the other \
-         flights', with the change and its reason stated.\n",
+         - **A declared change** is a flight flown with one of its design's inputs changed, with \
+         the change and its reason stated.\n",
         fixed(APOGEE_BAR_PERCENT, 0),
         fixed(LANDING_BAR_PERCENT_OF_APOGEE, 0),
     );
