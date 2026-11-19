@@ -183,8 +183,8 @@ impl Rocket {
     /// default is refused, with their ids, and so is one with none.
     ///
     /// The stages of a design fly as one stack: no stage drops away. A configuration that lights
-    /// a motor at its stage's separation is refused, as `hpr sim` refuses it, in a file of any
-    /// kind: flown whole, that motor would never light.
+    /// a motor at its stage's separation, as a rocket's JSON can, is refused, as `hpr sim`
+    /// refuses it: flown whole, that motor would never light.
     ///
     /// With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
     /// (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
@@ -852,8 +852,9 @@ fn ork_configuration(
 /// Refuses `configuration` of `design` when one of its motors lights at its stage's separation,
 /// as `hpr sim` refuses it (the [decision that `hpr sim` flies the stack][adr-106], §4). The Python
 /// package flies no separation, so the stack would fly whole and that motor would never light:
-/// the apogee would read low, with no warning (#1238). A file of any kind is held to this, a
-/// rocket's JSON among them, which stores no separation at all.
+/// the apogee would read low, with no warning (#1238). A rocket's JSON, which stores no
+/// separation at all, is the file that reaches this; a `.ork` file or an HPR design that
+/// separates is refused before it, in [`ork_configuration`].
 ///
 /// [adr-106]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0106-hpr-sim-flies-the-librarys-flight-the-stack.md
 fn separation_lit(

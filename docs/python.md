@@ -652,7 +652,7 @@ The package covers the Rust builder, not the whole library. Not yet:
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
 - Staging and mass shifts. A configuration that drops a stage under power is refused. So is one
-  that lights a motor at its stage's separation, in a file of any kind. Any other design of
+  that lights a motor at its stage's separation, as a rocket's JSON can. Any other design of
   several stages flies as one stack, and no stage drops away. A motor lit by another's burnout
   lights on the whole stack. `rocket.notes` says so.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.

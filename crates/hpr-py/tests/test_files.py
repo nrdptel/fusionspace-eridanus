@@ -321,7 +321,7 @@ def test_a_powered_separation_is_refused(repo, tmp_path):
         hpr.Rocket.from_file(two_stage_ork(repo, tmp_path))
 
 
-def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_path):
+def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_path, hpr_cli):
     # #1238: the staging page's example, the two-stage test design with its sustainer's I175 lit
     # 0.5 s after the stages come apart. The Python package flies a stack whole, so that motor
     # would never light and the apogee would read low, the side that flatters a waiver. `hpr sim`
@@ -343,6 +343,14 @@ def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_pat
     # Left to the file's only configuration, the same.
     with pytest.raises(hpr.HprError, match=re.escape(message)):
         hpr.Rocket.from_file(staged)
+    # `hpr sim` refuses the same file in the same words, but for who doesn't fly it. It names
+    # the configuration by its name, where Python names it by the id a caller passes.
+    command = [str(hpr_cli), "sim", str(staged), "--offline"]
+    done = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert done.returncode != 0, done.stdout
+    ours = "lights 411I175-14A at its stage's separation, which the Python package doesn't fly yet"
+    assert ours in message
+    assert ours.replace("the Python package", "hpr sim") in done.stderr, done.stderr
     # A separation delay of zero is still a motor lit by the separation.
     sustainer["ignition"] = {"separation": {"delay_s": 0.0}}
     staged.write_text(json.dumps(design), encoding="utf-8")
