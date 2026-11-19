@@ -1156,8 +1156,18 @@ pub struct Summary {
     /// the mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a
     /// separation with no motor left, the part that keeps the nose counts too, under its own
     /// devices, until an ejection parts it. The part dropped aft never counts, nor does any
-    /// piece once an ejection parts the stack or the part that keeps the nose.
+    /// piece once an ejection parts the stack or the part that keeps the nose: each of those
+    /// has its own in `body_max_descent_acceleration_m_s2`.
     pub max_descent_acceleration_m_s2: Option<Peak>,
+    /// Each part's own opening shock, m/s², once it flies apart from the rocket, in the parts'
+    /// order: the top drag of its own open recovery devices over its mass at that instant. A
+    /// part that lets a piece go at an ejection keeps its index, and its figure is the larger
+    /// of before and after. A tumble counts as a device: a part that tumbles from a fast split
+    /// has the tumble's drag there, which can be above its parachute's opening later and is no
+    /// bound either way, and a parachute that opens after such a tumble likely reads low. A
+    /// part with no device of its own open has no entry; empty when nothing came apart. What a
+    /// device did while the rocket was still whole is in `max_descent_acceleration_m_s2`.
+    pub body_max_descent_acceleration_m_s2: Vec<BodyPeak>,
     /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
     /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.
     pub max_deployment_airspeed_m_s: Option<Peak>,
@@ -1222,6 +1232,19 @@ pub struct Peak {
     /// fall is not a prediction: the fall rests on small-angle aerodynamics far outside their
     /// range.
     pub after_apogee: bool,
+}
+
+/// A metric's extreme over the flight of one part that came apart from the rocket.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct BodyPeak {
+    /// The part's index, as in `body_landings`: 0 keeps the nose.
+    pub body: usize,
+    /// The value, in the unit the field's name gives.
+    pub value: f64,
+    /// When, s after launch.
+    pub time_s: f64,
+    /// That part's height above the launch site then, m.
+    pub height_above_ground_m: f64,
 }
 
 /// The highest point.

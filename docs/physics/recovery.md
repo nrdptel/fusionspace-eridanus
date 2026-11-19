@@ -444,8 +444,9 @@ mass. After a [separation](../glossary.md#separation) with nothing left to burn,
 keeps the nose flies on as a point mass (body 0), and its own devices' load counts too: their
 drag alone over its mass, $\tfrac{1}{2}\rho\,(C_D S)\,|\mathbf{v}-\mathbf{w}|^2/m$ ($\rho$ the
 air's density, $\mathbf{v}$ the part's velocity, $\mathbf{w}$ the wind's), with no airframe
-drag, whether they open before the split or after. The part dropped aft is never counted: its
-devices act only once it flies on its own. Two tests pin the nose part's load: at
+drag, whether they open before the split or after. The part dropped aft is never counted in
+the flight's figure: its devices act only once it flies on its own. Two tests pin the nose
+part's load: at
 $q\,(C_D S)/m$ to 1e-9 at an instant opening
 (`the_part_that_keeps_the_nose_has_its_own_opening_shock`), and, under a canopy filling in a
 crosswind, at the top of the load inside a step, which the step's start, middle and end alone
@@ -453,7 +454,46 @@ read low (`the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy`). An
 [ejection](../glossary.md#ejection) that parts the stack, or the part that keeps the nose, ends
 the count: from its charge on, neither the piece ahead of the parted joint (a nose cone pushed
 off is the nose cone alone), which is body 0 from then on, nor the pieces behind it count. An
-ejection in the part dropped aft, after the split, changes nothing.
+ejection in the part dropped aft, after the split, leaves the flight's figure as it was: a test
+flies one, and the figure is the same to the last bit with that charge and without
+(`an_ejection_in_the_part_dropped_aft_leaves_the_flights_shock_alone`).
+
+Each separated body has its own opening shock too, in `body_max_descent_acceleration_m_s2`,
+in m/s²: at most one entry for each body, under the body's number. It is the largest drag of
+that body's own open devices over its mass, by the same formula, over its whole flight as a
+point mass. So the part dropped aft has one, and so has each piece an ejection makes. A
+canopy's steady fall reads 1 g here too. Read it with these in mind:
+
+- **A body that lets a piece go keeps its number.** Its figure is the larger of the one before
+  the charge and the one after, each over the mass the body had at that instant. A device that
+  is already open stays with the piece it is on. A nose cone pushed off under its own canopy is
+  far lighter than the part it left, so it reads far higher. That is why body 0's own figure
+  can be larger than the flight's, which stops counting body 0 at such a charge.
+- **A [tumble](../glossary.md#tumble-recovery) counts as a device.** A part that tumbles from a
+  fast split reads the tumble's drag over its mass at the split. That can be above its canopy's
+  opening later, and then the canopy's own opening is not given. The tumble's drag was fitted
+  to bodies falling at 5.0 to 6.6 m/s (16 to 22 ft/s) ([Tumble](#tumble)). A fast split is far
+  outside that fit, so the figure there is no bound either way.
+- **A canopy that opens after a tumble likely reads low.** The tumble slows the part more than
+  a real booster slows: a real one flies nose-first for a while (issue
+  [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). So a canopy that opens
+  on a timer or at a height on the way down opens at a lower speed in the simulator than it
+  would in the air, and its load follows the speed squared.
+- **A body with no device of its own ever open has no entry.** What a device did while the stack
+  was whole is in the flight's figure only.
+
+Four tests pin a body's own figure at $q\,(C_D S)/m$ to 1e-9 at an instant opening, over that
+body's own mass:
+
+- the part dropped aft at a separation
+  (`the_part_that_keeps_the_nose_has_its_own_opening_shock`);
+- the airframe behind a nose cone's joint, and the cone itself under its canopy and the drogue
+  it kept (`the_nose_parts_shock_stops_counting_where_an_ejection_parts_it`);
+- the two pieces of a dropped part that parts at a charge of its own
+  (`an_ejection_in_the_part_dropped_aft_leaves_the_flights_shock_alone`);
+- the nose cone of a rocket that pushes it off on the climb, with no separation
+  (`a_nose_cone_ejected_before_apogee_leaves_the_summary_with_no_apogee_or_shock`, in
+  `pieces.rs`).
 
 **Don't size recovery hardware from the simulator's opening load.** Use a dedicated opening-load
 method and the hardware's own ratings. Ludtke's law and Pflanz's $X_1$ reduction factor are

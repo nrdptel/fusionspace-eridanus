@@ -77,7 +77,8 @@ impl FlightBuilder<'_> {
     /// each part flies on to its own landing ([`Simulation::with_separation`], which has the
     /// rules). Every part needs a recovery device on the rocket, each on its own part
     /// ([`hpr_sim::Device::on_body`]); for a `.ork` file, [`crate::ork::separated_recovery`]
-    /// makes them. Each separated part's landing is in [`FlightSummary::body_landings`].
+    /// makes them. Each separated part's landing is in [`FlightSummary::body_landings`], and
+    /// its own opening shock in [`FlightSummary::body_max_descent_acceleration_m_s2`].
     #[must_use]
     pub fn separation(mut self, separation: Separation) -> Self {
         self.separations = vec![separation];

@@ -179,6 +179,39 @@
         "height_above_ground_m"
       ]
     },
+    "BodyPeak": {
+      "description": "A metric's extreme over the flight of one part that came apart from the rocket.",
+      "type": "object",
+      "properties": {
+        "body": {
+          "description": "The part's index, as in `body_landings`: 0 keeps the nose.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "height_above_ground_m": {
+          "description": "That part's height above the launch site then, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "value": {
+          "description": "The value, in the unit the field's name gives.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "body",
+        "value",
+        "time_s",
+        "height_above_ground_m"
+      ]
+    },
     "Delay": {
       "description": "One ejection delay setting.",
       "oneOf": [
@@ -1451,6 +1484,13 @@
             "$ref": "#/$defs/Landing"
           }
         },
+        "body_max_descent_acceleration_m_s2": {
+          "description": "Each part's own opening shock, m/s², once it flies apart from the rocket, in the parts'\norder: the top drag of its own open recovery devices over its mass at that instant. A\npart that lets a piece go at an ejection keeps its index, and its figure is the larger\nof before and after. A tumble counts as a device: a part that tumbles from a fast split\nhas the tumble's drag there, which can be above its parachute's opening later and is no\nbound either way, and a parachute that opens after such a tumble likely reads low. A\npart with no device of its own open has no entry; empty when nothing came apart. What a\ndevice did while the rocket was still whole is in `max_descent_acceleration_m_s2`.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BodyPeak"
+          }
+        },
         "landing": {
           "description": "Where and how fast the rocket landed. With no recovery device opened, the fall from apogee\nrests on small-angle aerodynamics far outside their range: not a prediction (the notes say\nso).",
           "anyOf": [
@@ -1504,7 +1544,7 @@
           ]
         },
         "max_descent_acceleration_m_s2": {
-          "description": "The opening shock, m/s²: the top specific force under the recovery devices, `(drag +\nthrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning\nthe mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a\nseparation with no motor left, the part that keeps the nose counts too, under its own\ndevices, until an ejection parts it. The part dropped aft never counts, nor does any\npiece once an ejection parts the stack or the part that keeps the nose.",
+          "description": "The opening shock, m/s²: the top specific force under the recovery devices, `(drag +\nthrust)/m`, the opening load over the mass. Gravity is not in it, so with no motor burning\nthe mass times it is the opening force; a canopy's steady fall alone reads 1 g. After a\nseparation with no motor left, the part that keeps the nose counts too, under its own\ndevices, until an ejection parts it. The part dropped aft never counts, nor does any\npiece once an ejection parts the stack or the part that keeps the nose: each of those\nhas its own in `body_max_descent_acceleration_m_s2`.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"
@@ -1620,6 +1660,7 @@
       },
       "required": [
         "termination",
+        "body_max_descent_acceleration_m_s2",
         "body_landings"
       ]
     },

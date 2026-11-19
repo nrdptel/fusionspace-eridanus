@@ -4084,6 +4084,25 @@ mod tests {
         );
         assert_eq!(shock.time_s, deployed.time_s);
         assert_eq!(shock.height_above_ground_m, deployed.height_above_ground_m);
+        // #1532: each body has its own figure too. Body 0's is the flight's here; the part
+        // dropped aft has `q C_D S / m` over its own mass, where and when its own device opened.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(own.iter().map(|peak| peak.body).collect::<Vec<_>>(), [0, 1]);
+        assert_eq!(
+            (own[0].value, own[0].time_s, own[0].height_above_ground_m),
+            (shock.value, shock.time_s, shock.height_above_ground_m)
+        );
+        let (_, aft_deployed) = opening(1);
+        assert!(
+            (own[1].value / aft_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {aft_per_kg}",
+            own[1].value
+        );
+        assert_eq!(own[1].time_s, aft_deployed.time_s);
+        assert_eq!(
+            own[1].height_above_ground_m,
+            aft_deployed.height_above_ground_m
+        );
     }
 
     #[test]
@@ -4219,6 +4238,181 @@ mod tests {
             shock.value
         );
         assert_eq!(shock.time_s, drogue.time_s);
+        // #1532: each body's own figure. Body 0 keeps its number through the charge, so its own
+        // is the larger of the drogue's on the whole part and, after it, the cone's: the drogue
+        // and the cone's canopy together on the cone alone, over the cone's mass, not the
+        // heavier part's from before.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(
+            own.iter().map(|peak| peak.body).collect::<Vec<_>>(),
+            [0, 1, 2]
+        );
+        let cone_own_per_kg = per_kg(&cone, drogue_m2 + 0.3) * cone.mass_kg / cone_kg;
+        assert!(
+            (own[0].value / cone_own_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {cone_own_per_kg}",
+            own[0].value
+        );
+        assert_eq!(own[0].time_s, ejected.time_s);
+        // The airframe behind the parted joint, body 2, opens its canopy as it starts flying on
+        // its own: `q C_D S / m` there, over its own mass.
+        let airframe = result.bodies.iter().find(|body| body.body == 2).unwrap();
+        let start = airframe.start_sample;
+        assert_eq!(start.time_s, ejected.time_s);
+        assert!(start.mass_kg < drogue.mass_kg - cone_kg + 1e-9, "{start:?}");
+        let airframe_per_kg = per_kg(&start, 1.0);
+        assert!(airframe_per_kg > 5.0 * G, "{airframe_per_kg}");
+        assert!(
+            (own[2].value / airframe_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {airframe_per_kg}",
+            own[2].value
+        );
+        assert_eq!(own[2].time_s, start.time_s);
+        assert_eq!(own[2].height_above_ground_m, start.height_above_ground_m);
+        // The booster opens at its own apogee, at rest in the air, and only speeds up to its
+        // steady fall: its figure is that fall's, one g.
+        assert!((own[1].value / G - 1.0).abs() < 0.01, "{}", own[1].value);
+    }
+
+    #[test]
+    fn an_ejection_in_the_part_dropped_aft_leaves_the_flights_shock_alone() {
+        // #1532, asked in #1530's review: after the split the part dropped aft, body 1, parts at
+        // a charge of its own: the interstage ahead of the joint keeps the number, and the
+        // booster's airframe behind it is body 2. Each opens a canopy at once, falling fast.
+        // Neither is the part that keeps the nose, so the flight's opening shock is what it is
+        // without the charge, body 0's own; each piece has its own figure, `q C_D S / m` over
+        // its own mass.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let charge = Trigger::Time {
+            time_s: split_s + 15.0,
+        };
+        let (nose_m2, interstage_m2, airframe_m2) = (0.3, 0.5, 1.0);
+        let flight = |parted: bool| {
+            let mut devices = vec![
+                Device::new(
+                    "nose part",
+                    DeviceDrag::DragArea { cd_s_m2: nose_m2 },
+                    charge,
+                ),
+                Device::new(
+                    "interstage",
+                    DeviceDrag::DragArea {
+                        cd_s_m2: interstage_m2,
+                    },
+                    charge,
+                )
+                .on_body(1),
+            ];
+            let mut ejections = Vec::new();
+            if parted {
+                devices.push(
+                    Device::new(
+                        "booster airframe",
+                        DeviceDrag::DragArea {
+                            cd_s_m2: airframe_m2,
+                        },
+                        charge,
+                    )
+                    .on_body(2),
+                );
+                ejections.push(crate::Ejection::aft_of(charge, "interstage"));
+            }
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                devices,
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            )
+            .with_ejections(ejections)
+            .unwrap();
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+            assert_eq!(result.termination, Termination::Separated);
+            assert!(result.bodies_landed());
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            (result, summary)
+        };
+        let (whole, whole_summary) = flight(false);
+        let (result, summary) = flight(true);
+        assert_eq!(whole.bodies.len(), 2);
+        assert_eq!(result.bodies.len(), 3);
+        let body = |body: usize| result.bodies.iter().find(|b| b.body == body).unwrap();
+        // The charge is the aft part's own, not the stack's and not body 0's.
+        let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
+        assert!(!result.events.iter().any(|event| ejection(&event.kind)));
+        assert!(!body(0).events.iter().any(|event| ejection(&event.kind)));
+        let ejected = body(1)
+            .events
+            .iter()
+            .find(|event| ejection(&event.kind))
+            .unwrap();
+        let rho = air.0.density_kg_m3;
+        let per_kg = |sample: &BodySample, cd_s_m2: f64, mass_kg: f64| {
+            0.5 * rho * sample.airspeed_m_s.powi(2) * cd_s_m2 / mass_kg
+        };
+        // The flight's: body 0's, the same to the bit with the charge and without.
+        let opened = body(0).event(EventKind::Deployment(0)).unwrap().sample;
+        assert!(opened.vertical_speed_m_s < -40.0, "{opened:?}");
+        let nose_per_kg = per_kg(&opened, nose_m2, opened.mass_kg);
+        let shock = summary.max_descent_acceleration_m_s2.unwrap();
+        assert!(
+            (shock.value / nose_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {nose_per_kg}",
+            shock.value
+        );
+        assert_eq!(
+            summary.max_descent_acceleration_m_s2,
+            whole_summary.max_descent_acceleration_m_s2
+        );
+        // Each piece's own: the interstage alone, far lighter than the part it left (the sample
+        // at the charge is the whole part's, taken as it fires), and the airframe behind it.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(
+            own.iter().map(|peak| peak.body).collect::<Vec<_>>(),
+            [0, 1, 2]
+        );
+        assert_eq!(own[0].value, shock.value);
+        let interstage_kg = body(1).final_sample.mass_kg;
+        let airframe = body(2).start_sample;
+        assert!(
+            (interstage_kg + airframe.mass_kg - ejected.sample.mass_kg).abs() < 1e-9,
+            "{interstage_kg} + {} vs {}",
+            airframe.mass_kg,
+            ejected.sample.mass_kg
+        );
+        let interstage_per_kg = per_kg(&ejected.sample, interstage_m2, interstage_kg);
+        let airframe_per_kg = per_kg(&airframe, airframe_m2, airframe.mass_kg);
+        for (peak, per_kg) in [(own[1], interstage_per_kg), (own[2], airframe_per_kg)] {
+            // Either would have raised the flight's figure had it counted.
+            assert!(per_kg > 1.5 * shock.value, "{per_kg} vs {}", shock.value);
+            assert!(
+                (peak.value / per_kg - 1.0).abs() < 1e-9,
+                "body {}: {} vs {per_kg}",
+                peak.body,
+                peak.value
+            );
+            assert_eq!(peak.time_s, ejected.sample.time_s);
+        }
+        // Without the charge the whole aft part hangs from the interstage's canopy: one figure,
+        // over the whole part's mass.
+        let whole_own = &whole_summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(
+            whole_own.iter().map(|peak| peak.body).collect::<Vec<_>>(),
+            [0, 1]
+        );
+        let whole_per_kg = per_kg(&ejected.sample, interstage_m2, ejected.sample.mass_kg);
+        assert!(
+            (whole_own[1].value / whole_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {whole_per_kg}",
+            whole_own[1].value
+        );
     }
 
     #[test]
@@ -4608,6 +4802,14 @@ mod tests {
             shock.time_s > open_s && shock.time_s < open_s + fill_s,
             "{} in {open_s} + {fill_s}",
             shock.time_s
+        );
+        // #1532: body 0's own figure is that top too, not the steps' ends alone, which would
+        // read it low.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(own[0].body, 0);
+        assert_eq!(
+            (own[0].value, own[0].time_s, own[0].height_above_ground_m),
+            (shock.value, shock.time_s, shock.height_above_ground_m)
         );
     }
 
