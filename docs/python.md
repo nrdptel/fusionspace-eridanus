@@ -237,12 +237,14 @@ design files](format/ork.md)), or a rocket's JSON. It flies the
 one, as `hpr sim` does.
 
 A configuration flies if every motor has a thrust curve, in the file or in the simulator's bundled
-catalog, the reader takes its airframe and stages as written, and no stage separates in it.
+catalog, the reader takes its airframe and stages as written, and the reader finds no stage
+separation to fly in it. A stage set to separate at apogee, or at a height on the way down, is
+not one: that separation belongs to the descent, and the stack flies whole
+([When parachutes open and stages separate](format/ork.md#when-parachutes-open-and-stages-separate)).
 Otherwise `from_file` raises `HprError` and says why. With the file's own curves and the bundled
 catalog, the reader finds 154 of the 170 configurations in the reference library and
 OpenRocket's examples it can fly (`cargo xtask ork` counts them). Python flies those of the 154
-in which no stage separates.
-Python can't yet swap in a motor as `hpr sim --motor` does.
+with no separation to fly. Python can't yet swap in a motor as `hpr sim --motor` does.
 
 A configuration that lights a motor at its stage's separation is refused too. In a rocket's JSON
 or an HPR design, that is a motor with `"ignition": {"separation": …}`
@@ -658,7 +660,7 @@ The package covers the Rust builder, not the whole library. Not yet:
 
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
-- Staging and mass shifts. A configuration in which a stage separates is refused. So is one
+- Staging and mass shifts. A configuration with a stage separation to fly is refused. So is one
   that lights a motor at its stage's separation, as a rocket's JSON or an HPR design can. A
   design of several stages that does fly, flies as one stack, and no stage drops away. A motor
   lit by another's burnout lights on the whole stack. `rocket.notes` says so.
