@@ -1757,6 +1757,29 @@ fn sim_flies_two_powered_separations_as_the_library_does() {
         [Some(1), Some(2)]
     );
     assert_eq!(document["summary"]["body_landings"][1]["body"], 2);
+    // #1532: each dropped part's own opening shock is in the JSON as the library has it. The
+    // booster has no parachute: its figure is its tumble's drag over its mass.
+    let shocks = &flight.summary().body_max_descent_acceleration_m_s2;
+    assert_eq!(
+        shocks.iter().map(|shock| shock.body).collect::<Vec<_>>(),
+        [1, 2]
+    );
+    let printed = document["summary"]["body_max_descent_acceleration_m_s2"]
+        .as_array()
+        .unwrap();
+    assert_eq!(printed.len(), shocks.len());
+    for (printed, shock) in printed.iter().zip(shocks) {
+        assert!(shock.value > 0.0, "{shock:?}");
+        assert_eq!(printed["body"], shock.body);
+        for (key, value) in [
+            ("value", shock.value),
+            ("time_s", shock.time_s),
+            ("height_above_ground_m", shock.height_above_ground_m),
+        ] {
+            assert_eq!(printed[key].as_f64().unwrap().to_bits(), value.to_bits());
+        }
+        assert_eq!(printed.as_object().unwrap().len(), 4);
+    }
 
     // Each device on its part; each dropped part tumbles from its own split, and the middle's
     // parachute releases its tumble.

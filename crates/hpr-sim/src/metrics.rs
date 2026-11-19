@@ -26,6 +26,8 @@
 //! [adr-077]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-077-flight-metrics-peaks-on-the-dense-output-margins-only-where-they-mean-something-and-none-for-what-didnt-happen-2026-09-26
 //! [page]: https://hpr.fusionspace.co/physics/metrics.html
 
+use std::collections::BTreeMap;
+
 use hpr_aero::{AeroModel, Flow};
 use serde::{Deserialize, Serialize};
 
@@ -66,6 +68,19 @@ pub struct Peak {
     /// When it came, s after launch.
     pub time_s: f64,
     /// The center of mass's height above the launch site then, m.
+    pub height_above_ground_m: f64,
+}
+
+/// A peak over one separated body's own flight, with where and when it came.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct BodyPeak {
+    /// Which body, numbered as [`crate::BodyFlight::body`] is: 0 keeps the nose.
+    pub body: usize,
+    /// The peak value, in the quantity's own unit.
+    pub value: f64,
+    /// When it came, s after launch.
+    pub time_s: f64,
+    /// That body's height above the launch site then, m.
     pub height_above_ground_m: f64,
 }
 
@@ -378,8 +393,25 @@ pub struct FlightSummary {
     /// before the split or after, until an ejection parts it. No other body's load counts:
     /// never the part dropped aft at a separation, and no piece from an ejection of the stack
     /// or of body 0 on, where body 0 is the ejection's lead piece (a nose cone pushed off is
-    /// the nose cone alone).
+    /// the nose cone alone). Each of those has its own in
+    /// [`Self::body_max_descent_acceleration_m_s2`].
     pub max_descent_acceleration_m_s2: Option<Peak>,
+    /// Each separated body's own opening shock, m/s², in body order: the largest specific force
+    /// under that body's own devices over its whole flight as a point mass, the drag of its open
+    /// devices over its mass, `½ ρ v² (C_D S) / m` ([`BodyStep::specific_force_enu_m_s2`]), found
+    /// inside its steps as the flight's is. The mass is the body's at that instant: a body that
+    /// lets a piece go at an ejection keeps its number ([`crate::BodyFlight::body`]), so its
+    /// figure is the largest from before the piece left or after, each over the mass it then
+    /// had. Body 0's can therefore be larger than the flight's
+    /// ([`Self::max_descent_acceleration_m_s2`]), which stops counting it at such an ejection. A
+    /// tumble ([`crate::DeviceDrag::tumbling_stages`]) is a device like any other: a part that
+    /// tumbles from a fast split has the tumble's drag there, which can be above its canopy's
+    /// opening later, and is as rough as the tumble (`docs/physics/recovery.md`). A body that
+    /// never had a device of its own open has no entry, and what a body's devices did while it
+    /// was still part of the stack is the flight's, not here. Empty when nothing came apart,
+    /// and in a summary written before this field was.
+    #[serde(default)]
+    pub body_max_descent_acceleration_m_s2: Vec<BodyPeak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
     /// speed the opening load follows, as `q = ½ρv²`. When the stack comes apart with nothing
     /// left to burn, the devices the part that keeps the nose opens in its own flight count too.
@@ -496,6 +528,8 @@ pub struct FlightMetrics {
     /// ejection parts body 0, and only when the stack came apart at a separation with no
     /// ejection: until then body 0 is the part that keeps the nose.
     nose_descent_peaks: Vec<(f64, Peak)>,
+    /// Each separated body's largest specific force under its own devices, by body number.
+    body_descent_peaks: BTreeMap<usize, Peak>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
     last_end_s: Option<f64>,
@@ -726,6 +760,16 @@ impl FlightMetrics {
             .filter(|body| body.termination == Termination::GroundHit)
             .map(|body| Landing::at(Some(body.body), &body.final_sample, environment))
             .collect::<Result<Vec<_>, _>>()?;
+        let body_max_descent_acceleration_m_s2 = self
+            .body_descent_peaks
+            .iter()
+            .map(|(&body, peak)| BodyPeak {
+                body,
+                value: peak.value,
+                time_s: peak.time_s,
+                height_above_ground_m: peak.height_above_ground_m,
+            })
+            .collect();
         Ok(FlightSummary {
             termination: result.termination,
             launch_height_m: self.launch_height_m,
@@ -740,6 +784,7 @@ impl FlightMetrics {
             max_dynamic_pressure_pa: self.max_q,
             max_acceleration_m_s2: self.max_acceleration,
             max_descent_acceleration_m_s2: max_descent_acceleration,
+            body_max_descent_acceleration_m_s2,
             max_deployment_airspeed_m_s: max_deployment_airspeed,
             min_static_margin_cal: self.min_static_margin,
             min_flight_margin_cal: self.min_flight_margin,
@@ -902,17 +947,30 @@ impl Observer for FlightMetrics {
         }
     }
 
-    /// Body 0's opening shock: the largest of its specific force over each step (found as a
-    /// stack's step is read), kept with the step's start for [`Self::summary`] to cut at an
-    /// ejection. With no device of its own open the force is zero, and is not kept; nor is a
-    /// step's peak that doesn't beat the last one kept, since the summary takes the largest
-    /// before a time and the first of equals. Its steps are not the flight's: they don't count
-    /// toward the summary's check.
+    /// Each body's opening shock: the largest of its specific force over each step (found as a
+    /// stack's step is read), and the largest of those over its flight, the first of equals.
+    /// With no device of its own open the force is zero, and is not kept. A value that is not a
+    /// number is kept, and then nothing replaces it, so it can't hide behind a later number.
+    ///
+    /// Body 0's step peaks are also kept with the step's start for [`Self::summary`] to cut at
+    /// an ejection, for the flight's own figure; a step's peak that doesn't beat the last one
+    /// kept is not, since the summary takes the largest before a time and the first of equals.
+    /// A body's steps are not the flight's: they don't count toward the summary's check.
     fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        let best = body_step_peak(step)?;
+        if best.value > 0.0 || best.value.is_nan() {
+            self.body_descent_peaks
+                .entry(body)
+                .and_modify(|peak| {
+                    if !peak.value.is_nan() && (best.value.is_nan() || best.value > peak.value) {
+                        *peak = best;
+                    }
+                })
+                .or_insert(best);
+        }
         if body != 0 {
             return Ok(());
         }
-        let best = body_step_peak(step)?;
         // A value that is not a number is kept only as the first entry, where the summary would
         // take it; the next number then counts as beating it, as it does in the summary when the
         // stack has a shock of its own.
@@ -2353,6 +2411,50 @@ mod tests {
         }
         fn specific_force_enu_m_s2(&self, _t_s: f64) -> Result<DVec3, SimError> {
             Ok(DVec3::new(0.0, 0.0, self.force_m_s2))
+        }
+    }
+
+    #[test]
+    fn each_bodys_own_shock_is_its_largest_step_peak_and_a_nan_stays() {
+        // #1532: each separated body's own figure is the largest of its steps' peaks, the first
+        // of equals, kept by body number whatever order the bodies step in. A body whose steps
+        // carry no load has none.
+        let shocks = |loads: &[(usize, f64)]| -> Vec<(usize, f64, f64)> {
+            let mut metrics = FlightMetrics::new();
+            for (i, &(body, force_m_s2)) in loads.iter().enumerate() {
+                let span = (i as f64, i as f64 + 1.0);
+                metrics
+                    .body_step(body, &LoadStep { span, force_m_s2 })
+                    .unwrap();
+            }
+            metrics
+                .body_descent_peaks
+                .iter()
+                .map(|(&body, peak)| (body, peak.value, peak.time_s))
+                .collect()
+        };
+        assert_eq!(
+            shocks(&[
+                (2, 5.0),
+                (0, 30.0),
+                (2, 40.0),
+                (0, 30.0),
+                (1, 0.0),
+                (2, 40.0),
+                (0, 12.0),
+                (2, 9.81),
+            ]),
+            [(0, 30.0, 1.0), (2, 40.0, 2.0)]
+        );
+        // A value that is not a number is kept, first or later, and then nothing replaces it:
+        // a larger number after it can't hide it.
+        for loads in [
+            &[(1, f64::NAN), (1, 50.0)][..],
+            &[(1, 20.0), (1, f64::NAN), (1, 50.0)][..],
+        ] {
+            let kept = shocks(loads);
+            assert_eq!(kept.len(), 1);
+            assert!(kept[0].1.is_nan(), "{kept:?}");
         }
     }
 

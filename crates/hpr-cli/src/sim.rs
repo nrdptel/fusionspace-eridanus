@@ -26,10 +26,11 @@ use hpr::{Environment, Flight, FlightBuilder, Motor, Rocket};
 use crate::choose::{self, Choice};
 use crate::motors::MotorFile;
 use crate::output::{
-    Apogee, DesignConfiguration, DesignFormat, DeviceEvent, EventKind, Export, ExportFormat,
-    ExportMeta, FileFormat, FlagKind, InputWarning, IssueKind, Landing, Launch, Margin, Peak,
-    PlotData, SimDelayBand, SimDesign, SimDevice, SimEvent, SimFlag, SimFlight, SimHeld, SimIssue,
-    SimMotor, SimMotorSource, Stability, Summary, Termination, ThrustCurveMotor, WarningKind,
+    Apogee, BodyPeak, DesignConfiguration, DesignFormat, DeviceEvent, EventKind, Export,
+    ExportFormat, ExportMeta, FileFormat, FlagKind, InputWarning, IssueKind, Landing, Launch,
+    Margin, Peak, PlotData, SimDelayBand, SimDesign, SimDevice, SimEvent, SimFlag, SimFlight,
+    SimHeld, SimIssue, SimMotor, SimMotorSource, Stability, Summary, Termination, ThrustCurveMotor,
+    WarningKind,
 };
 use crate::{Failure, Out};
 
@@ -3410,6 +3411,16 @@ fn summary(summary: &FlightSummary) -> Summary {
         max_dynamic_pressure_pa: summary.max_dynamic_pressure_pa.map(mark),
         max_acceleration_m_s2: summary.max_acceleration_m_s2.map(mark),
         max_descent_acceleration_m_s2: summary.max_descent_acceleration_m_s2.map(mark),
+        body_max_descent_acceleration_m_s2: summary
+            .body_max_descent_acceleration_m_s2
+            .iter()
+            .map(|peak| BodyPeak {
+                body: peak.body,
+                value: peak.value,
+                time_s: peak.time_s,
+                height_above_ground_m: peak.height_above_ground_m,
+            })
+            .collect(),
         max_deployment_airspeed_m_s: summary.max_deployment_airspeed_m_s.map(mark),
         min_static_margin_cal: summary.min_static_margin_cal.map(mark),
         min_flight_margin_cal: summary.min_flight_margin_cal.map(mark),

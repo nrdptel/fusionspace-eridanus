@@ -80,7 +80,7 @@ pub use integrator::{
     SettingsError, Stats, Step,
 };
 pub use issues::{IssueWarning, KnownIssue};
-pub use metrics::{FlightMetrics, FlightSummary};
+pub use metrics::{BodyPeak, FlightMetrics, FlightSummary};
 pub use pieces::{Ejection, Parting};
 pub use rail::{Guides, Rail};
 pub use recorder::{Channel, FlightStep, Observer, Recorder, Sample};

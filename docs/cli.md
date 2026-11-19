@@ -601,6 +601,15 @@ is true for a tumble the simulator added, and a tumble opened at the split has `
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md)
 says why each part needs a device.
 
+The JSON's summary also gives each dropped part's own
+[opening shock](glossary.md#opening-load), in `body_max_descent_acceleration_m_s2`: one entry for
+each part, with its `body`, the `value` in m/s², and its `time_s` and `height_above_ground_m`. It
+is the largest drag of that part's own open devices over its mass. A tumble counts as a device.
+So a booster that tumbles from a fast split reads the tumble's drag there, which can be far above
+its parachute's opening later, and is as rough as the tumble. The flight's own figure,
+`max_descent_acceleration_m_s2`, is the sustainer's and leaves the dropped parts out
+([how to read each part's figure](physics/recovery.md#the-opening-load)).
+
 **Several separations fly too, one after another, from the tail forward.** At each split the stages
 behind it drop away. The rest flies on as a new sustainer, which must still have a motor to burn.
 The parts are numbered in the order they drop.
