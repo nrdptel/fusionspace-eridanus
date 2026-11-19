@@ -166,7 +166,12 @@ pub const PAGE: &str = "docs/voice-report.md";
 /// path without it, so a page written there by hand can't be replaced unseen.
 pub const STUB_MARKER: &str = "<!-- voice-report: the site's build writes this page -->";
 
-/// The report's trust note, after its title, as every site page opens (the stub carries it too).
+/// The report's lead, the one sentence under its title (the site's pages open so); the stub
+/// carries it too.
+pub const LEAD: &str = "How each page reads against the writing guide's voice limits, written from \
+    the pages by the site's build each time it runs.";
+
+/// The report's trust note, after its lead, as every site page opens (the stub carries it too).
 pub const TRUST_NOTE: &str = "> **How far to trust it.** The counts find the patterns the writing \
     guide lists in each page's words. They miss other awkward sentences, so a page within every \
     limit can still read badly. The build writes them from the pages each time, so they match the \
@@ -2413,11 +2418,11 @@ fn report(pages: &[Page]) -> String {
     let _ = writeln!(
         out,
         "# How the pages read\n\n\
-         The site's build writes this page from the pages each time it runs, and `cargo xtask \
-         voice` prints the same report from a copy of the repository. [The writing guide's voice \
-         section]({GUIDE_VOICE}) says what the pattern columns count and why, and sets the \
-         limits.\n\n\
+         {LEAD}\n\n\
          {TRUST_NOTE}\n\n\
+         `cargo xtask voice` prints the same report from a copy of the repository. [The writing \
+         guide's voice section]({GUIDE_VOICE}) says what the pattern columns count and why, and \
+         sets the limits.\n\n\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
@@ -3552,6 +3557,11 @@ mod tests {
             "{PAGE}'s sections aren't the report's"
         );
         assert!(report.contains(TRUST_NOTE));
+        assert!(report.contains(&format!("\n\n{LEAD}\n\n")));
+        assert!(
+            stub.contains(&format!("\n\n{LEAD}\n\n")),
+            "{PAGE}'s lead isn't the report's"
+        );
         assert!(
             stub.contains(TRUST_NOTE),
             "{PAGE}'s trust note isn't the report's"
