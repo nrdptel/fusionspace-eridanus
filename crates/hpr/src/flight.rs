@@ -430,7 +430,8 @@ impl Flight {
         &self.result
     }
 
-    /// The apogee's height above the launch site, m; `None` if the flight ended before it.
+    /// The apogee's height above the launch site, m; `None` if the flight ended before it, or an
+    /// ejection parted the rocket on its climb (`FlightSummary::apogee` gives the rule).
     #[must_use]
     pub fn apogee_m(&self) -> Option<f64> {
         self.summary

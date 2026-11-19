@@ -672,12 +672,12 @@ after a separation, by the whole part that keeps the nose:
 
 - An ejection at the rocket's apogee, or after it, keeps that apogee.
 - An ejection that parts the rocket while it still climbs leaves the summary with no apogee
-  (`None`). From the charge on, body 0 is the piece ahead of the parted joint, a nose cone pushed
-  off being the nose cone alone. The height that piece coasts to under its own device is not the
-  rocket's.
+  (`None`). From the charge on, body 0 is only what the charge leaves at the nose: the piece
+  ahead of the parted joint (a nose cone pushed off is the nose cone alone), or the airframe
+  without a payload it let out. The height that lighter body coasts to is not the rocket's.
 - After a [separation](../glossary.md#separation) with nothing left to burn, the flight's apogee
   is the apogee of the part that keeps the nose (body 0). The same rule holds for that part: if it
-  pushes a piece off before its own apogee, the summary has none. A test parts it 5 s after the
+  lets a piece go before the part's apogee, the summary has none. A test parts it 5 s after the
   split, still climbing at over 30 m/s (98 ft/s). The nose cone then tops out more than 50 m
   (164 ft) below where the whole part coasts to, and the summary gives no apogee
   (`a_nose_cone_ejected_on_the_climb_after_a_split_leaves_the_summary_no_apogee`). With the

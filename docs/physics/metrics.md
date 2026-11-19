@@ -138,12 +138,11 @@ stands on the rail: 0.94 m (3.1 ft) for Valetudo. So the summary gives both:
   altitude counts this way. A flight started in the air (`Simulation::run_free`) has no launch
   height, and no climb: `None`.
 
-The apogee is the rocket's, reached in one piece. After a
-[separation](../glossary.md#separation) with nothing left to burn it is the apogee of the part
-that keeps the nose (body 0). An [ejection](../glossary.md#ejection) that parts the rocket, or
-that part, before its apogee leaves the summary with none: the piece ahead of the parted joint
-coasts to a height of its own
-([the flight's apogee after an ejection](recovery.md#ejected-pieces)).
+After a [separation](../glossary.md#separation) with nothing left to burn, the summary's apogee
+is the apogee of the part that keeps the nose (body 0). If an
+[ejection](../glossary.md#ejection) parts the rocket, or that part, while it still climbs, the
+summary has no apogee (`None`): what the charge leaves at the nose is lighter, and coasts to a
+height of its own. [Ejected pieces](recovery.md#ejected-pieces) gives each case.
 
 A flight ends when its center of mass comes back down to the site's height, so a landing is at
 height 0 by this measure.

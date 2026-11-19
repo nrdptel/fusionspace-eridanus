@@ -351,9 +351,10 @@ pub struct FlightSummary {
     /// The apogee of the center of mass. A stack that comes apart at a separation before its
     /// apogee ([`Termination::Separated`]) has the apogee of the part that keeps the nose, body 0,
     /// when that part reaches it whole. There is none when an ejection ([`crate::Ejection`]) parts
-    /// the stack before its apogee, or parts body 0 after the split and before its own: from the
-    /// charge on, body 0 is the piece ahead of the parted joint, often the nose cone alone, and
-    /// its apogee is not the rocket's. An ejection at an apogee or after it keeps that apogee.
+    /// the stack before its apogee, or parts body 0 after the split and before body 0's apogee:
+    /// from the charge on, body 0 is only what the charge leaves at the nose (the piece ahead of
+    /// the parted joint, often the nose cone alone, or the airframe without a payload it let out),
+    /// and its apogee is not the rocket's. An ejection at an apogee or after it keeps that apogee.
     pub apogee: Option<Apogee>,
     /// The largest speed of the center of mass relative to the ground after liftoff, m/s.
     pub max_speed_m_s: Option<Peak>,
@@ -623,9 +624,10 @@ impl FlightMetrics {
         // A stack that came apart at a separation on its way up has the apogee of the part that
         // keeps the nose, body 0, which flies on as a point mass ([`Termination::Separated`]).
         // An ejection's body 0 is its lead piece, often the nose cone alone, so a stack that
-        // came apart at one on its way up has none; nor has a flight whose body 0 pushes a piece
-        // off after the split and before its own apogee, since the apogee body 0 then reaches is
-        // the lead piece's (#1531). An apogee reached whole, the charge at it or after, stays.
+        // came apart at one on its way up has none; nor has a flight whose body 0 lets a piece
+        // go after the split and before its own apogee, since the apogee body 0 then reaches is
+        // that of what the charge left of it (#1531). An apogee reached whole, the charge at it
+        // or after, stays.
         let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
         let stack = result
             .event(EventKind::Apogee)
