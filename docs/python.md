@@ -237,23 +237,24 @@ design files](format/ork.md)), or a rocket's JSON. It flies the
 one, as `hpr sim` does.
 
 A configuration flies if every motor has a thrust curve, in the file or in the simulator's bundled
-catalog, the reader takes its airframe and stages as written, and no stage drops away under power.
-Otherwise `from_file` raises `HprError` and says why. Of the 170 configurations in the reference
-library and OpenRocket's examples, `hpr sim` flies 154 with the file and the bundled catalog alone
-(`cargo xtask ork` counts them). Python flies those of the 154 that drop no stage under power.
+catalog, the reader takes its airframe and stages as written, and no stage separates in it.
+Otherwise `from_file` raises `HprError` and says why. With the file's own curves and the bundled
+catalog, the reader finds 154 of the 170 configurations in the reference library and
+OpenRocket's examples it can fly (`cargo xtask ork` counts them). Python flies those of the 154
+in which no stage separates.
 Python can't yet swap in a motor as `hpr sim --motor` does.
 
-One kind of staged file is refused: a configuration that lights a motor at its stage's
-separation. In a rocket's JSON or an HPR design, that is a motor with
-`"ignition": {"separation": …}` ([When a motor lights](physics/staging.md#when-a-motor-lights)).
-Python flies no separation, so that motor would never light, and the apogee would read low.
-`from_file` raises `HprError` and names the motor, as `hpr sim` refuses the same file. To fly
-such a file from Python, pass `configuration=` for a configuration whose motors light without a
-separation, or change that motor's `ignition` in the file. The Rust library flies the staged
-flight ([Staging](physics/staging.md#using-it-today)).
+A configuration that lights a motor at its stage's separation is refused too. In a rocket's JSON
+or an HPR design, that is a motor with `"ignition": {"separation": …}`
+([When a motor lights](physics/staging.md#when-a-motor-lights)). Python flies no separation, so
+that motor would never light, and the apogee would read low. `from_file` raises `HprError` and
+names the motor, as `hpr sim` refuses the same file. To fly such a file from Python, pass
+`configuration=` for a configuration whose motors light without a separation, or change that
+motor's `ignition` in the file. The Rust library flies the staged flight
+([Staging](physics/staging.md#using-it-today)).
 
-Any other design of several stages flies as one stack: no stage drops away, and `rocket.notes`
-says so.
+A design of several stages that does fly, flies as one stack: no stage drops away, and
+`rocket.notes` says so.
 
 A design read from a file flies **without** the parachutes it stores, unless you ask for them
 with `recovery=True`. `Rocket.from_file("validation/fixtures/ork/guides/level-1.ork",
@@ -657,10 +658,10 @@ The package covers the Rust builder, not the whole library. Not yet:
 
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
-- Staging and mass shifts. A configuration that drops a stage under power is refused. So is one
-  that lights a motor at its stage's separation, as a rocket's JSON or an HPR design can. Any
-  other design of several stages flies as one stack, and no stage drops away. A motor lit by
-  another's burnout lights on the whole stack. `rocket.notes` says so.
+- Staging and mass shifts. A configuration in which a stage separates is refused. So is one
+  that lights a motor at its stage's separation, as a rocket's JSON or an HPR design can. A
+  design of several stages that does fly, flies as one stack, and no stage drops away. A motor
+  lit by another's burnout lights on the whole stack. `rocket.notes` says so.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.
 - Separations stored in a design file, as above.
 - Monte Carlo's landing ellipses, which `hpr mc` prints and Rust programs get from
