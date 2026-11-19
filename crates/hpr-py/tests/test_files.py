@@ -321,6 +321,43 @@ def test_a_powered_separation_is_refused(repo, tmp_path):
         hpr.Rocket.from_file(two_stage_ork(repo, tmp_path))
 
 
+def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_path):
+    # #1238: the staging page's example, the two-stage test design with its sustainer's I175 lit
+    # 0.5 s after the stages come apart. The Python package flies a stack whole, so that motor
+    # would never light and the apogee would read low, the side that flatters a waiver. `hpr sim`
+    # refuses the same file; so does `from_file`, naming the motor.
+    source = repo / "validation/designs/synthetic-two-stage-75mm-54mm.json"
+    design = json.loads(source.read_text(encoding="utf-8"))
+    (configuration,) = design["configurations"]
+    (sustainer,) = [m for m in configuration["motors"] if m["mount"] == "sustainer-motor-mount"]
+    assert "ignition" not in sustainer  # lit at launch as the file stands
+    sustainer["ignition"] = {"separation": {"delay_s": 0.5}}
+    staged = tmp_path / "two-stage-separation.json"
+    staged.write_text(json.dumps(design), encoding="utf-8")
+    message = (
+        "two-stage-separation.json: configuration j760-i175 lights 411I175-14A at its stage's "
+        "separation, which the Python package doesn't fly yet"
+    )
+    with pytest.raises(hpr.HprError, match=re.escape(message)):
+        hpr.Rocket.from_file(staged, "j760-i175")
+    # Left to the file's only configuration, the same.
+    with pytest.raises(hpr.HprError, match=re.escape(message)):
+        hpr.Rocket.from_file(staged)
+    # A separation delay of zero is still a motor lit by the separation.
+    sustainer["ignition"] = {"separation": {"delay_s": 0.0}}
+    staged.write_text(json.dumps(design), encoding="utf-8")
+    with pytest.raises(hpr.HprError, match=re.escape(message)):
+        hpr.Rocket.from_file(staged)
+    # As the file stands, every motor lit at launch, it still flies as one stack, with the note.
+    whole = hpr.Rocket.from_file(source)
+    assert any("the stages fly as one stack" in note for note in whole.notes)
+    # A motor lit by another's burnout lights on the whole stack: flown, and the note says so.
+    sustainer["ignition"] = {"burnout": {"mount": "booster-motor-mount", "delay_s": 0.5}}
+    staged.write_text(json.dumps(design), encoding="utf-8")
+    chained = hpr.Rocket.from_file(staged)
+    assert any("lit by another's burnout lights on the whole stack" in n for n in chained.notes)
+
+
 def test_an_ork_configuration_that_is_not_there(repo, tmp_path):
     with pytest.raises(hpr.HprError, match="no motor configuration `nope`; its configurations"):
         hpr.Rocket.from_file(two_stage_ork(repo, tmp_path), "nope")

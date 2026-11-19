@@ -242,6 +242,13 @@ in the simulator's bundled catalog, and the reader takes its airframe and stages
 (`cargo xtask ork` counts them). Otherwise `from_file` raises `HprError` and says why.
 Python can't yet swap in a motor as `hpr sim --motor` does.
 
+A rocket's JSON of several stages flies as one stack. The file stores no separation, so no stage
+drops away, and `rocket.notes` says so. If the configuration flown lights a motor at its stage's
+separation (`"ignition": {"separation": …}` in the file), `from_file` raises `HprError` and names
+the motor, as `hpr sim` refuses the same file. Flown whole, that motor would never light, and the
+apogee would read low with no warning. The Rust library flies the staged flight
+([Staging](physics/staging.md)).
+
 A design read from a file flies **without** the parachutes it stores, unless you ask for them
 with `recovery=True`. `Rocket.from_file("validation/fixtures/ork/guides/level-1.ork",
 recovery=True)` flies the file's devices as `hpr sim` does. Each opens fully at its event, with
@@ -644,10 +651,10 @@ The package covers the Rust builder, not the whole library. Not yet:
 
 - An atmosphere written in Python. Rust programs have one today
   ([Models of your own](custom-models.md#an-atmosphere)).
-- Staging and mass shifts. A configuration that drops a stage under power is refused. Any other
-  design of several stages flies as one stack, and no stage drops away. A motor lit by another's
-  burnout lights on the whole stack, and one lit by a separation never does. `rocket.notes` says
-  so.
+- Staging and mass shifts. A configuration that drops a stage under power is refused. So is one
+  that lights a motor at its stage's separation, in a file of any kind. Any other design of
+  several stages flies as one stack, and no stage drops away. A motor lit by another's burnout
+  lights on the whole stack. `rocket.notes` says so.
 - Swapping a motor into a design read from a file, as `hpr sim --motor` does.
 - Separations stored in a design file, as above.
 - Monte Carlo's landing ellipses, which `hpr mc` prints and Rust programs get from
