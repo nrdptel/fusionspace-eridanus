@@ -258,7 +258,7 @@ pub(crate) fn flight(
             swapped([false, true, false], false)?,
             swapped([false, false, true], false)?,
         ];
-        // A height that isn't a number is a failed flight, not a part.
+        // A height that isn't finite is a failed flight, not a part.
         match flown.iter().find(|climbed_m| !climbed_m.is_finite()) {
             Some(climbed_m) => Err(format!("a flight with a band swapped climbs {climbed_m} m")),
             None => Ok(flown),
@@ -575,8 +575,8 @@ impl DragBands {
             }));
         if given.into_iter().any(|given| given != published) {
             return fail(format!(
-                "a size is {}: they are given when every aggregate is over none or {FLOOR} \
-                 flights or more",
+                "a size is {}: they are given when no count the rule reads is under {FLOOR} \
+                 flights but none (`DragBands::published`)",
                 if published { "missing" } else { "given" }
             ));
         }
@@ -619,7 +619,8 @@ impl DragBands {
                 ));
             }
             // And that sum is one number: each mean absolute value times its flights, to the
-            // 0.005 each is rounded by. A count read from a file is small enough to be exact.
+            // 0.005 each is rounded by. The counts are the collection's, exact as `f64`; one
+            // past 2^53, which only a file made by hand could hold, would round.
             let (its, every) = (band.flights as f64, self.banded as f64);
             let sums = (
                 own.mean_absolute_percent * its,
@@ -627,7 +628,7 @@ impl DragBands {
             );
             if (sums.0 - sums.1).abs() > 0.005 * (its + every) + 1e-9
                 || (band.flights == self.banded && own != part)
-                || (band.flights == 0 && part != Size::default())
+                || (band.flights == 0 && (part, own) != (Size::default(), Size::default()))
                 || (band.alone_flights == 0 && alone != Size::default())
             {
                 return fail(format!(

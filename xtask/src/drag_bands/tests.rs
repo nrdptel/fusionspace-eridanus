@@ -386,34 +386,39 @@ fn a_flight_without_bands_says_why() {
     };
     let error = super::flight(&build, &off, &public.flight, &whole, openrocket_m).unwrap_err();
     assert!(error.contains("don't sum to the drag part"), "{error}");
-    // A later flight that fails is a flight counted, with why.
-    let calls = Cell::new(0);
-    let failing = |simulation: &Simulation| {
-        calls.set(calls.get() + 1);
-        if calls.get() == 3 {
-            Err("the integrator gave up".to_owned())
-        } else {
-            fly(simulation)
-        }
-    };
-    assert_eq!(
-        super::flight(&build, &failing, &public.flight, &whole, openrocket_m),
-        Ok(Some(Err("the integrator gave up".to_owned())))
-    );
-    assert_eq!(calls.get(), 3);
-    // So is one whose height is not a number: it would count as a part in every band.
-    let calls = Cell::new(0);
-    let lost = |simulation: &Simulation| {
-        calls.set(calls.get() + 1);
-        fly(simulation).map(|m| if calls.get() == 5 { f64::NAN } else { m })
-    };
-    assert_eq!(
-        super::flight(&build, &lost, &public.flight, &whole, openrocket_m),
-        Ok(Some(Err(
-            "a flight with a band swapped climbs NaN m".to_owned()
-        )))
-    );
-    assert_eq!(calls.get(), 6);
+    // Any of the five later flights that fails is a flight counted, with why.
+    for at in 2..=6 {
+        let calls = Cell::new(0);
+        let failing = |simulation: &Simulation| {
+            calls.set(calls.get() + 1);
+            if calls.get() == at {
+                Err("the integrator gave up".to_owned())
+            } else {
+                fly(simulation)
+            }
+        };
+        assert_eq!(
+            super::flight(&build, &failing, &public.flight, &whole, openrocket_m),
+            Ok(Some(Err("the integrator gave up".to_owned()))),
+            "flight {at}"
+        );
+        assert_eq!(calls.get(), at);
+        // So is one whose height is not a number: it would count as a part where there is
+        // none.
+        let calls = Cell::new(0);
+        let lost = |simulation: &Simulation| {
+            calls.set(calls.get() + 1);
+            fly(simulation).map(|m| if calls.get() == at { f64::NAN } else { m })
+        };
+        assert_eq!(
+            super::flight(&build, &lost, &public.flight, &whole, openrocket_m),
+            Ok(Some(Err(
+                "a flight with a band swapped climbs NaN m".to_owned()
+            ))),
+            "flight {at}"
+        );
+        assert_eq!(calls.get(), 6);
+    }
     // A split flight whose record has lost its histories stops the run too.
     let error =
         super::flight(&build, &fly, &json!({"lacks": "x"}), &whole, openrocket_m).unwrap_err();
@@ -931,6 +936,15 @@ fn an_inconsistent_section_is_caught() {
         &|b| {
             (b.bands[1].flights, b.bands[1].dominates, b.bands[1].large) = (0, Some(0), Some(0));
             b.bands[0].dominates = Some(5);
+        },
+        "the transonic band's sizes don't fit its flights",
+    );
+    // And with no flights, its size over its own flights is nothing either.
+    broken(
+        &|b| {
+            (b.bands[1].flights, b.bands[1].dominates, b.bands[1].large) = (0, Some(0), Some(0));
+            b.bands[0].dominates = Some(5);
+            b.bands[1].part = size(0.0, 0.0, 0.0);
         },
         "the transonic band's sizes don't fit its flights",
     );

@@ -98,8 +98,8 @@ collection, and a test holds its section to itself in CI.
    The three agree, so no rule is needed to choose among them. Had they disagreed, the third
    would have decided: it is the one measured against the flights, which M1.14's *done when*
    is written on. They are not three independent witnesses. Each is weighted by the
-   collection, where the first swap changes all 68 flights and the last 7, and the third
-   rewards any added drag (decision 5).
+   collection, where the first swap changes all 68 flights and the last 7, and the third, on
+   balance, rewards added drag (decision 5: both codes' means sit above the logs).
 
    The faster bands are not small where they act. Over the flights with a part in them, the
    mean absolute part is 1.21% from Mach 0.8 to 1.2 and 2.21% above Mach 1.2, against 0.87%

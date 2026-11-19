@@ -1492,9 +1492,14 @@ parts are code against code: they don't say which code is nearer a real flight, 
 flights are private, so no table by flight is shown. A second table sets the bands beside the
 logs.
 
-The bands are in [Mach number](glossary.md#mach-number): below 0.8 (subsonic), from 0.8 to 1.2
-(transonic), and above 1.2 (supersonic); a Mach number at an edge is in the faster band
-([report][fixture-report]). With thrust and mass already OpenRocket's, HPR Sim flies three
+The bands are in [Mach number](glossary.md#mach-number): below 0.8, from 0.8 to 1.2, and above
+1.2 ([report][fixture-report]). The report's data names them subsonic, transonic and
+supersonic ([as data][fixture-report-json]); the first stops at Mach 0.8, short of the speed
+of sound, where the second begins
+([transonic and supersonic](glossary.md#transonic-and-supersonic)). A Mach number at an edge
+is in the faster band
+([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_bands/tests.rs),
+`a_mach_number_s_band`). With thrust and mass already OpenRocket's, HPR Sim flies three
 more times. First OpenRocket's [drag coefficient](glossary.md#drag-coefficient) replaces its
 own below Mach 0.8 only. Then it does below Mach 1.2. Then at every Mach number, which is the
 split's drag swap. Outside the bands swapped the drag stays HPR Sim's own.
@@ -1505,7 +1510,7 @@ split's drag swap. Outside the bands swapped the drag stays HPR Sim's own.
 - A flight *has a part in* a band when that part is not zero: the swap changed the flight. A
   swap that changes no drag the flight reads leaves it the same to the last digit, so its part
   there is exactly zero. The flights with a part are the ones that reach the band, or come
-  close enough that a step of the integrator reads the drag inside it.
+  close enough that one of the solver's time steps reads the drag inside it.
 - A band *dominates* a flight when its part's absolute value is the largest of the three. The
   table's last column counts the flights where that absolute value is over 1%
   ([report][fixture-report]).
@@ -1542,7 +1547,8 @@ What the rows say:
 
 Each swap changes the speed the next band is flown at, so a band's part depends on the swaps
 before it. To check that, each band is also swapped alone, first: on HPR Sim's own thrust and
-mass, with its own drag in the other two bands. Over the collection the two ways give sizes within 0.01 points of each other:
+mass, with its own drag in the other two bands.
+ Over the collection the two ways give sizes within 0.01 points of each other:
 alone, the three bands' mean absolute parts are 0.87%, 0.50% and 0.24%
 ([report][fixture-report]).
 
@@ -1551,9 +1557,10 @@ compared: HPR Sim's own, HPR Sim's with one band swapped alone, HPR Sim's on Ope
 drag, and OpenRocket's own. Each row is the apogee less the logged one, over the logged one. A
 row *moves* a flight when its apogee is not that of HPR Sim's own flight. The last two columns
 count the moved flights that come nearer their log than HPR Sim's own flight, and the ones
-that go farther ([report][fixture-report]). Every row but the last flies HPR Sim's own thrust
-and mass. None is a model HPR Sim could fly: the coefficient is read along OpenRocket's own
-flight of the same design.
+that go farther ([report][fixture-report]). The first row is HPR Sim as it flies, and the last
+is OpenRocket's own flight. The four between fly HPR Sim's own thrust and mass, and none of
+them is a model HPR Sim could fly: the coefficient is read, by Mach number, along OpenRocket's
+own flight of the same design.
 
 | [HPR Sim's drag, over 60 flights][fixture-report] | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
 |---|---:|---:|---:|---:|---:|---:|
@@ -1594,8 +1601,10 @@ absolute part, 0.87% against 0.50% and 0.23%, and it dominates the most of them
 flights; they keep the steps they had. The steps
 [the accuracy work](decisions-and-roadmap.md#m1-14) takes by Mach band began at Mach 0.8, so
 this band needed one of its own. That step first splits the band's part into friction, pressure
-and [base drag](glossary.md#base-drag), then checks the largest of the three against a
-measurement from a wind tunnel or a flight. It does not make HPR Sim's drag OpenRocket's.
+and [base drag](glossary.md#base-drag). It then looks for a measurement of the largest of the
+three, from a wind tunnel or a flight, to check HPR Sim's model against; if it finds none to
+add, the step ends there with the gap written down. It does not make HPR Sim's drag
+OpenRocket's.
 
 > **How far to trust it.** The parts are code against code, over the split's 68 flights and
 > with its limits. At a band's edge the coefficient steps from one code's to the other's:
