@@ -103,7 +103,7 @@ Placed with [ADR-360][adr-360], which promotes the first; the other three are SO
   0.94 ([ADR-348][adr-348]), with no reading of the thrust itself. Workflow: over the burn the
   thrust is the mass times the accelerometer's [specific force](../glossary.md#specific-force) plus
   the axial drag; the analyzer sums it, with the plan's mass less the propellant the motor file has
-  burned, and the drag from [M2.15][m2-15]'s coast reading at the same speeds, its base under power
+  burned, and the drag from [M2.15][m2-15]'s coast reading at the same Mach numbers, its base under power
   from a cited source; the fixture report sets that impulse against the motor file's. Moves:
   `bias.collection`, as a diagnosis of its thrust part. *Done when:* the reading holds a synthetic
   boost's impulse in its 90% interval, the sensor's scale and the plan's mass in it, on at least 90%

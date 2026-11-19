@@ -529,7 +529,7 @@ const UNDATED: &str = "YYYY-MM-DD";
 /// bytes that aren't UTF-8 all as they are. So a page whose only change is its date is reused,
 /// and any other change, a date elsewhere in its text among them, still has it checked again.
 ///
-/// A new date changes each date's ten characters, digits for digits. A page reused on that
+/// A new date changes digits within each date's ten characters. A page reused on that
 /// account is not laid out with its new date by the gate; CI checks every page with no cache, so
 /// a layout the date alone moved would be caught there.
 fn undated(bytes: &[u8]) -> Cow<'_, [u8]> {
@@ -774,7 +774,7 @@ mod tests {
             "<span>Issued YYYY-MM-DD</span><span id=\"issue-date\">YYYY-MM-DD</span>"
         );
         // Not a date, a date running on, a date in other markup, the marker last, a character
-        // of more than one byte where the date would start: each as it is.
+        // of more than one byte where the date would end: each as it is.
         for text in [
             "<span>Issued soon</span>",
             "<span>Issued 2026-11-19, late</span>",

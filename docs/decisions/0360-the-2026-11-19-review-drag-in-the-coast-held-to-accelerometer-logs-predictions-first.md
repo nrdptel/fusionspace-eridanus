@@ -166,12 +166,14 @@ SHA-256 fingerprint recorded, before any error is computed.
      - The report gives, as aggregates, for each program over the flights both fly, with the
        rest counted:
        - the flights compared;
-       - the mean absolute and the mean signed error, in percent of the read value;
+       - the mean absolute and the mean signed error, in percent of the read value, over the
+         flights and, beside them, over the readings;
        - the same at each Mach number, with its count;
        - how many predictions are high and how many low;
        - the median half-width of the readings' intervals;
        - how many readings have the prediction inside their interval, out of how many.
-     - It gives, for each program, how many flights' sealed apogee error and coast-drag error
+     - It gives, for each program, how many flights' sealed apogee error, against the logged
+       apogee the fixture report reads, and coast-drag error
        have the signs drag would explain (drag low with the apogee high, or drag high with it
        low), out of the flights compared, and the rank correlation of the two errors with a 95%
        interval.
@@ -192,8 +194,8 @@ SHA-256 fingerprint recorded, before any error is computed.
      - [The guide to trusting a simulation][trust] and [the accuracy page][accuracy] state the
        measured errors, how many flights they rest on, how wide the readings' intervals are and
        what the figures leave out.
-2. **Sixth in the queue,** after [M2.14][m2-14] and before [M2.3d4][m2-3d4], the probe of a
-   stage's mass override. It reads the channels M2.14a teaches the analyzer to read and refuse,
+2. **Sixth in the queue,** after [M2.14][m2-14] and before [M2.3d4][m2-3d4], a stage's override
+   that adds to its parts. It reads the channels M2.14a teaches the analyzer to read and refuse,
    and uses its barometer check unchanged, so it follows it.
 3. **What the rows can't say.** A reading is the axial force over the real mass; a prediction is
    over the mass the plan flies. Where the plan's mass is wrong, the error holds that too, which
@@ -203,7 +205,8 @@ SHA-256 fingerprint recorded, before any error is computed.
    [M1.14i2][m1-14i2]'s, the planned increment that splits the drag below Mach 0.8 by term, and
    a whole rocket's coefficient is not the measured reference of one term its *done when* asks
    for.
-4. **Nothing else moves.** No tolerance changes, no check is added by this record, and no queued
+4. **Nothing else moves.** No tolerance changes, this record adds no check today (M2.15b's rows
+   are held only once it lands), and no queued
    milestone's *done when* is changed, [M1.14i][m1-14i]'s among them. The roadmap's lines for
    three of them are shortened (Consequences); their records are not edited.
 
