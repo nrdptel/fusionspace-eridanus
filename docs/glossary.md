@@ -958,13 +958,23 @@ A test that checks a rule on many randomly generated inputs rather than a few ch
 
 A library of routines for computing integrals numerically, published by Piessens and others in 1983 and in the public domain. HPR Sim's adaptive quadrature uses its 15-point Gauss-Kronrod rule, without its extrapolation. See [Adaptive quadrature](physics/quadrature.md).
 
+### Rail button, launch lug and guide
+
+A rail button is a small flanged knob on the airframe that slides in the launch rail's slot. A
+launch lug is a short tube that slides along a launch rod. Both are guides: the parts that
+hold the rocket on its rod or rail until it leaves. The flight page says *guide* for either, and
+*button* where it follows RocketPy, which models buttons. See
+[Rigid-body flight](physics/flight.md#tip-off).
+
 ### Rail exit and rail-exit velocity
 
 Rail exit is the moment the rocket leaves the launch rail and starts to fly free; the rail-exit
 velocity is its speed then. HPR Sim keeps the rocket guided until the aft edge of its aft-most rail
 button or launch lug passes the top of the rail. RocketPy stops guiding it at the forward button. The rocket
 leaves with no rotation, since [tip-off](#tip-off) is left out unless a flight asks for it;
-with it, the rocket leaves turning slightly. The slower the exit in a
+with it, the rocket leaves turning slightly. Against RocketPy's tip-off phase, leaving tip-off
+out moves the landing point by up to 3.765% of the apogee
+([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)). The slower the exit in a
 crosswind, the larger the [angle of attack](#angle-of-attack) just after it, where HPR Sim's models
 are least trustworthy. See [Rigid-body flight](physics/flight.md#phases).
 
@@ -1269,11 +1279,11 @@ download a motor's files itself
 The unwanted turn a rocket picks up as it is let go. Leaving a launch rail, it pivots about its last
 guide, the aft-most rail button or launch lug. The recovery page uses the word for a separation too. By default HPR Sim models neither: a rocket leaves
 the rail with no rotation, and a separated body starts with no spin of its own. RocketPy's
-tip-off phase puts the cost of the first at up to 3.765% of the apogee in the landing point,
-one code against another with no flight to check it
+tip-off phase puts the cost of leaving the first out at up to 3.765% of the apogee in the
+landing point. That is one code against another, and no flight checks it
 ([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)). The Rust
-library flies [a tip-off phase](physics/flight.md#tip-off) when a flight asks for it, held to
-RocketPy's in still air and, on RocketPy's normal force, in a crosswind. No milestone plans
+library flies [a tip-off phase](physics/flight.md#tip-off) when a flight asks for it. It is
+held to RocketPy's in still air, and in a crosswind on RocketPy's normal force. No milestone plans
 the second yet. See [Rigid-body flight](physics/flight.md#phases) and
 [Recovery](physics/recovery.md#separation).
 
