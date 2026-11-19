@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1844" viewBox="0 0 960 1844" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1876" viewBox="0 0 960 1876" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">Loft Demo 54mm — dual deploy: altitude, speed and acceleration against time</title>
 <desc id="desc">Apogee 324.0 m (1,063 ft) above the launch site at 9.12 s; top speed 65.9 m/s (216 ft/s) at 2.73 s.</desc>
 <metadata>FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001</metadata>
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="3" y1="0" x2="3" y2="6" stroke="#98A1B8" stroke-width="1"/></pattern></defs>
-<rect width="960" height="1844" fill="#F3F4F7"/>
+<rect width="960" height="1876" fill="#F3F4F7"/>
 <text x="76" y="32" font-size="20" font-weight="600" fill="#0B0F1C">Loft Demo 54mm — dual deploy</text>
 <text x="76" y="56" fill="#566079">demo-dual-deploy.ork, configuration [K550W-P] with --motor H54</text>
 <text x="76" y="80.0" fill="#566079">Apogee 324.0 m (1,063 ft) above the launch site at 9.12 s; top speed 65.9 m/s (216 ft/s) at 2.73 s.</text>
@@ -132,18 +132,20 @@
 </g>
 <text x="76" y="1644.0" fill="#566079">HOW FAR TO TRUST IT</text>
 <text x="76" y="1660.0" fill="#566079">Simulated from the design file, not measured. Against 60 logged flights of fliers&apos; own designs, the simulated apogee</text>
-<text x="76" y="1676.0" fill="#566079">averaged 7.7% above the logged one. Each logged apogee is the height climbed in the day&apos;s air. The simulated apogee</text>
-<text x="76" y="1692.0" fill="#566079">was within 10% on 32 and read low on 15, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this</text>
-<text x="76" y="1708.0" fill="#566079">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1676.0" fill="#566079">averaged 7.7% above the logged one. Each was flown in its day&apos;s real air, and each logged apogee is the height climbed</text>
+<text x="76" y="1692.0" fill="#566079">in it. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight is in the standard</text>
+<text x="76" y="1708.0" fill="#566079">atmosphere. On a day warmer than it, the apogee can read lower still; --weather flies the day&apos;s air. Plan a waiver or</text>
+<text x="76" y="1724.0" fill="#566079">a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More:</text>
+<text x="76" y="1740.0" fill="#566079">https://hpr.fusionspace.co/accuracy.html</text>
 <g id="title-block">
-<rect x="76" y="1732.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>
-<text x="84.0" y="1748.0" fill="#566079">OWNER</text><text x="84.0" y="1764.0" fill="#0B0F1C">FusionSpace</text>
-<line x1="172.0" y1="1732.0" x2="172.0" y2="1776.0" stroke="#566079" stroke-width="1"/><text x="180.0" y="1748.0" fill="#566079">TITLE</text><text x="180.0" y="1764.0" fill="#0B0F1C">Loft Demo 54mm — dual deploy</text>
-<line x1="392.0" y1="1732.0" x2="392.0" y2="1776.0" stroke="#566079" stroke-width="1"/><text x="400.0" y="1748.0" fill="#566079">TYPE</text><text x="400.0" y="1764.0" fill="#0B0F1C">Simulated flight</text>
-<line x1="524.0" y1="1732.0" x2="524.0" y2="1776.0" stroke="#566079" stroke-width="1"/><text x="532.0" y="1748.0" fill="#566079">DESIGNATION</text><text x="532.0" y="1764.0" fill="#0B0F1C">FS-ACHERNAR · SW · TOOL 001</text>
-<line x1="736.0" y1="1732.0" x2="736.0" y2="1776.0" stroke="#566079" stroke-width="1"/><text x="744.0" y="1748.0" fill="#566079">PROGRAM</text><text x="744.0" y="1764.0" fill="#0B0F1C">FusionSpace HPR 0.1.0</text>
-<line x1="76" y1="1776.0" x2="936" y2="1776.0" stroke="#566079" stroke-width="1"/><text x="84.0" y="1792.0" fill="#566079">UNITS</text><text x="84.0" y="1808.0" fill="#0B0F1C">m, m/s, m/s², s [ft, ft/s, g]</text>
-<line x1="304.0" y1="1776.0" x2="304.0" y2="1820.0" stroke="#566079" stroke-width="1"/><text x="312.0" y="1792.0" fill="#566079">DATA</text><text x="312.0" y="1808.0" fill="#0B0F1C">sim-plot.plot.csv</text>
-<line x1="444.0" y1="1776.0" x2="444.0" y2="1820.0" stroke="#566079" stroke-width="1"/><text x="452.0" y="1792.0" fill="#566079">MOTOR CATALOG</text><text x="452.0" y="1808.0" fill="#0B0F1C">as of 2026-10-28</text>
+<rect x="76" y="1764.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>
+<text x="84.0" y="1780.0" fill="#566079">OWNER</text><text x="84.0" y="1796.0" fill="#0B0F1C">FusionSpace</text>
+<line x1="172.0" y1="1764.0" x2="172.0" y2="1808.0" stroke="#566079" stroke-width="1"/><text x="180.0" y="1780.0" fill="#566079">TITLE</text><text x="180.0" y="1796.0" fill="#0B0F1C">Loft Demo 54mm — dual deploy</text>
+<line x1="392.0" y1="1764.0" x2="392.0" y2="1808.0" stroke="#566079" stroke-width="1"/><text x="400.0" y="1780.0" fill="#566079">TYPE</text><text x="400.0" y="1796.0" fill="#0B0F1C">Simulated flight</text>
+<line x1="524.0" y1="1764.0" x2="524.0" y2="1808.0" stroke="#566079" stroke-width="1"/><text x="532.0" y="1780.0" fill="#566079">DESIGNATION</text><text x="532.0" y="1796.0" fill="#0B0F1C">FS-ACHERNAR · SW · TOOL 001</text>
+<line x1="736.0" y1="1764.0" x2="736.0" y2="1808.0" stroke="#566079" stroke-width="1"/><text x="744.0" y="1780.0" fill="#566079">PROGRAM</text><text x="744.0" y="1796.0" fill="#0B0F1C">FusionSpace HPR 0.1.0</text>
+<line x1="76" y1="1808.0" x2="936" y2="1808.0" stroke="#566079" stroke-width="1"/><text x="84.0" y="1824.0" fill="#566079">UNITS</text><text x="84.0" y="1840.0" fill="#0B0F1C">m, m/s, m/s², s [ft, ft/s, g]</text>
+<line x1="304.0" y1="1808.0" x2="304.0" y2="1852.0" stroke="#566079" stroke-width="1"/><text x="312.0" y="1824.0" fill="#566079">DATA</text><text x="312.0" y="1840.0" fill="#0B0F1C">sim-plot.plot.csv</text>
+<line x1="444.0" y1="1808.0" x2="444.0" y2="1852.0" stroke="#566079" stroke-width="1"/><text x="452.0" y="1824.0" fill="#566079">MOTOR CATALOG</text><text x="452.0" y="1840.0" fill="#0B0F1C">as of 2026-10-28</text>
 </g>
 </svg>
