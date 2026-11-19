@@ -898,12 +898,15 @@ with no turning rate.
 
 - **What flies.** RocketPy, at the merge of its
   [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
-  public designs built from its examples, on its own inputs. They are twelve rockets; Calisto comes
-  twice, from RocketPy's getting-started notebook and from its tests, with different fins. A
-  Calisto id in the report ends in the motor's position in meters, in the rocket's own
-  coordinates as its source sets it. The two sources put their origins 0.118 m (4.6 in) apart,
-  so in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
-  in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
+  public designs built from its examples and tests, on its own inputs. They are twelve rockets;
+  Calisto comes twice, from RocketPy's getting-started notebook and from its tests. A Calisto id
+  in the report ends in the motor's position in meters, in the rocket's own coordinates as its
+  source sets it. Each source measures from its own zero point, and the two zero points are
+  0.118 m (4.6 in) apart. So in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip.
+  The fins differ, and the notebook's rail buttons and its center of mass without the motor sit
+  0.118 m (4.6 in) farther back. Each design flies from its example's rail on a constant drag
+  coefficient of 0.5. It flies in still air and in a 20 mph (8.94 m/s) wind square across the
+  rail's heading.
 - **Three ways.** With the phase off, RocketPy frees the rocket where its forward button
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
   button, until that button leaves too. Guided, the phase is off on a rail longer by the

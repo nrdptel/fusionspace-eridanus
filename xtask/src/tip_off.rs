@@ -366,10 +366,12 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
          it.\n\
          - **Rocket** is the design's id. The two Calisto ids are two versions of one rocket, \
-         from RocketPy's getting-started notebook and from its tests, with different fins. Each \
-         ends in the motor's position in meters, in the rocket's own coordinates as its source \
-         sets it: `minus-1.255` is −1.255 m. The two sources put their origins 0.118 m (4.6 in) \
-         apart, so in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip.\n\
+         from RocketPy's getting-started notebook and from its tests. Each ends in the motor's \
+         position in meters, in the rocket's own coordinates as its source sets it: \
+         `minus-1.255` is −1.255 m. Each source measures from its own zero point, and the two \
+         zero points are 0.118 m (4.6 in) apart. So in both the nozzle sits 2.533 m (8.31 ft) \
+         behind the nose's tip. The fins differ, and the notebook's rail buttons and its center \
+         of mass without the motor sit 0.118 m (4.6 in) farther back.\n\
          - **Rail** is the rail's length and its angle above the horizontal.\n\
          - **Moved** is the phase on less the other flight: the phase-on figure minus the \
          other's. *On less off* takes the phase off from the phase on, and *on less guided* takes \
@@ -730,9 +732,12 @@ mod tests {
     }
 
     /// The two Calisto designs are two versions of one rocket, not one rocket with its motor
-    /// moved: their fins differ, and every position differs by one offset, so the motor sits the
-    /// same distance behind the nose in both. The page and the flight page say so with the
-    /// fixture's figures.
+    /// moved: their fins differ, and the nose, fin set, tail and motor positions differ by one
+    /// offset, so the motor sits the same distance behind the nose in both. The rail buttons and
+    /// the center of mass without the motor keep their coordinates, so in the notebook's they sit
+    /// that offset farther back. The motor's position is its nozzle (`nozzle_position` 0) and a
+    /// nose's is its tip, as RocketPy's `add_nose` documents. The report page and the flight
+    /// page say so with the fixture's figures.
     #[test]
     fn the_two_calistos_differ_in_fins_and_origin_not_motor_place() {
         let root = crate::designs::root().unwrap();
@@ -782,27 +787,39 @@ mod tests {
             at(&notebook, &["geometry", "fin_sets", "0", "span"]),
             at(&tests, &["geometry", "fin_sets", "0", "span"])
         );
-        let page = markdown(&committed())
-            .unwrap()
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ");
-        let flight = fs::read_to_string(root.join("docs/physics/flight.md"))
-            .unwrap()
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ");
+        // The airframe moves with the zero point; the buttons and the dry center of mass don't.
+        let back = |c: &Value, path: &[&str]| at(c, &nose) - at(c, path);
+        let lower = ["geometry", "rail_buttons", "lower_button_position"];
+        let mass = ["rocket", "center_of_mass_without_motor"];
+        for path in [
+            &lower[..],
+            &["geometry", "rail_buttons", "upper_button_position"],
+            &mass,
+        ] {
+            assert!(
+                (back(&notebook, path) - back(&tests, path) - offset).abs() < 5e-4,
+                "{path:?} doesn't keep its coordinate"
+            );
+        }
+        let one_line = |text: String| text.split_whitespace().collect::<Vec<_>>().join(" ");
+        let page = one_line(markdown(&committed()).unwrap());
+        let flight = one_line(fs::read_to_string(root.join("docs/physics/flight.md")).unwrap());
+        let inches = offset / 0.0254;
         for text in [&page, &flight] {
-            assert!(
-                text.contains(&format!("{offset:.3} m")),
-                "the offset {offset:.3} m"
-            );
-            assert!(
-                text.contains(&format!("{behind:.3} m")),
-                "the distance {behind:.3} m"
-            );
-            assert!(text.contains("different fins"));
-            assert!(!text.contains("two motor positions"));
+            for phrase in [
+                format!("the two zero points are {offset:.3} m ({inches:.1} in) apart."),
+                format!(
+                    "So in both the nozzle sits {behind:.3} m ({:.2} ft) behind the nose's tip.",
+                    behind / 0.3048
+                ),
+                format!(
+                    "The fins differ, and the notebook's rail buttons and its center of mass \
+                     without the motor sit {offset:.3} m ({inches:.1} in) farther back."
+                ),
+            ] {
+                assert!(text.contains(&phrase), "missing: {phrase}");
+            }
+            assert!(!text.to_lowercase().contains("two motor positions"));
         }
     }
 
