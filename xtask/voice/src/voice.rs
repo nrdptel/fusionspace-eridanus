@@ -2413,11 +2413,11 @@ fn report(pages: &[Page]) -> String {
     let _ = writeln!(
         out,
         "# How the pages read\n\n\
-         {TRUST_NOTE}\n\n\
          The site's build writes this page from the pages each time it runs, and `cargo xtask \
          voice` prints the same report from a copy of the repository. [The writing guide's voice \
          section]({GUIDE_VOICE}) says what the pattern columns count and why, and sets the \
          limits.\n\n\
+         {TRUST_NOTE}\n\n\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
