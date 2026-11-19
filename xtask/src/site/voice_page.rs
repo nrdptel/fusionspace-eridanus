@@ -1,5 +1,5 @@
-//! The voice check's report as a site page (#1495). The report isn't committed, since more than
-//! half of the pull requests moved it and any two that edited pages conflicted on it. The site's page,
+//! The voice check's report as a site page (#1495). The report isn't committed, since any two pull
+//! requests that edited pages conflicted on it. The site's page,
 //! [`voice::PAGE`], is a stub in the repository; the build's preprocessor puts the report written
 //! from the pages ([`voice::site_report`]) in its place, so the page is always the pages' own.
 

@@ -3533,7 +3533,7 @@ mod tests {
     }
 
     /// A report on pages given as paths says what read them, links the guide on the site, and
-    /// claims nothing of the site's build.
+    /// opens without the site page's lead and trust note.
     #[test]
     fn a_report_on_given_pages_opens_without_the_sites_words() {
         let text = report(&[markdown("# A page\n\nShort words.\n")], Opening::Given);

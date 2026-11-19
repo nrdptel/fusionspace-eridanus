@@ -1,7 +1,7 @@
 # ADR-361: The voice report is built with the site, not committed (2026-11-19)
 
 - **Status:** accepted; changes how [ADR-284][adr-284]'s voice check keeps its report: the copy under `validation/reports/` and the test that held it to the pages go, and the site's build writes the report onto its own page; the limits, the held set, the stock-phrase list and the rates stay as [ADR-285][adr-285] and [ADR-292][adr-292] set them
-- **Summary:** More than half of the pull requests rewrote the committed voice report, so any two that edited pages conflicted on it, and a conflicting pull request gets no CI run. The report is no longer committed. The site's build writes it onto a stub page, `docs/voice-report.md`, from the pages each time, and CI still fails a stock phrase, or a held page over a limit or missing a sentence target, as before. A mutation run shows each of the eleven failures still failing CI's site command, and two branches that edit neighboring pages now merge cleanly where today they conflict.
+- **Summary:** In the week to 2026-11-15, more than half of the pull requests (37 of 66) rewrote the committed voice report, so any two that edited pages conflicted on it, and a conflicting pull request gets no CI run. The report is no longer committed. The site's build writes it onto a stub page, `docs/voice-report.md`, from the pages each time, and CI still fails a stock phrase, or a held page over a limit or missing a sentence target, as before. A mutation run shows each of the eleven failures still failing CI's site command, and two branches that edit neighboring pages now merge cleanly where today they conflict.
 
 [adr-284]: 0284-the-maintainers-own-voice.md
 [adr-285]: 0285-the-rest-of-the-site-in-nine.md
@@ -17,7 +17,8 @@
 totals line moved with any edit to a page it covers, and each page's row is its own line, so two
 pull requests that edited any pages conflicted on the totals, and two that edited neighboring
 pages conflicted on the rows as well. [Issue #1495][i-1495] measured the cost: 37 of the 66
-commits on `main` from 2026-11-08 to the morning of 2026-11-15 changed the report, and from 11-12 to 11-15 a
+commits on `main` from 2026-11-09 to 2026-11-15 changed the report (`git log origin/main
+--since='2026-11-09 00:00 -0600' --until='2026-11-16 00:00 -0600' -- validation/reports/voice.md`), and from 11-12 to 11-15 a
 pull request that changed it was open 47% of the time. A conflicting pull request gets no CI run,
 and merging `main` into it moves its fork point, which asks for a new full gate and new reviews.
 
