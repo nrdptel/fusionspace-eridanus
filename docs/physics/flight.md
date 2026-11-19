@@ -879,7 +879,7 @@ its tolerances. [Accuracy][accuracy] gives every result.
 ### What leaving tip-off out costs
 
 HPR Sim flies without tip-off unless a flight asks for it ([Tip-off](#tip-off)). RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
-the landing point and 0.414% in the apogee, on thirteen example designs. Both are measured
+the landing point and 0.414% in the apogee. It flew thirteen example designs. Both are measured
 from a rocket held straight to its last guide, as HPR Sim holds it. The landing point moves
 farther from the pad in most flights, and the largest apogee move is down. That is one code
 against another: the phase is in RocketPy's development branch, in no release, and no flight
@@ -896,10 +896,12 @@ with no turning rate.
 `cargo xtask tip-off` flies the comparison and writes [the report][tip-off]
 ([the decision record][adr-357]):
 
-- **What flies.** RocketPy, at the merge of its pull request #920, flies its own inputs for
-  the thirteen public designs built from its examples: twelve rockets, Calisto at two motor
-  positions. Each flies from its example's rail on a constant drag coefficient of 0.5, in
-  still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
+- **What flies.** RocketPy, at the merge of its
+  [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
+  public designs built from its examples, on its own inputs. They are twelve rockets, with
+  Calisto at two motor positions; a Calisto id in the report ends in the motor's position in
+  meters. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
+  in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
 - **Three ways.** With the phase off, RocketPy frees the rocket where its forward button
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
   button, until that button leaves too. Guided, the phase is off on a rail longer by the
@@ -908,14 +910,16 @@ with no turning rate.
 - **What HPR Sim's release leaves out** is the phase on less the guided flight.
   - The apogee moves by at most −0.414%: −10.9 m (−36 ft) for Juno III in still air. None of
     the 26 apogees moves by 1%.
-  - The landing point moves by more than 1% of the apogee in 6 of the 26 flights, on three
-    rockets: Valetudo, Juno III and Prometheus 2022. The largest share is 3.765% of the apogee,
+  - The landing point moves by more than 1% of the apogee in 6 of the 26 flights. They are on
+    three rockets: Valetudo, Juno III and Prometheus 2022. The largest share is 3.765% of the apogee,
     28.5 m (93 ft) for Valetudo in the crosswind. The largest distance is 92.0 m (302 ft), for
     Juno III in the crosswind.
-  - With the phase on, the rocket lands farther from the pad in 23 of the 26 flights, one of
-    them (the vertical rail's, in still air) by 6 mm (0.2 in). In those, a rocket guided to its last
-    button lands nearer the pad than one that pivots. For a landing-area estimate that
-    understates how far the rocket travels: the flattering side.
+  - With the phase on, the rocket lands farther from the pad in 23 of the 26 flights. One of
+    them, the vertical rail's in still air, moves by 6 mm (0.2 in), which the report's table
+    rounds to 0.0 m. In those 23, a rocket guided to its last button lands nearer the pad than
+    one that pivots. For a landing-area estimate that understates how far the rocket travels:
+    the flattering side. In the other three, all in the crosswind, the guided rocket lands
+    0.3 to 3.6 m (1 to 12 ft) farther from the pad.
 - **The pivot itself is small.** With the phase on, a rocket leaves its last button turning
   at up to 2.38 deg/s, its axis at most 0.083° off the rail's.
 - **The plan's rule** set the phase on against the phase off. That moves 9 of the 26 landing
@@ -925,9 +929,11 @@ with no turning rate.
   leaves. With the phase on it turns at 0.60 deg/s.
 - **A worked example.** Juno III leaves a 5.20 m (17.1 ft) rail at 85°, its buttons 1.410 m
   (4.63 ft) apart. In still air its last button leaves at 21.53 m/s (70.6 ft/s), 0.071 s
-  after the forward one. By then gravity has it turning nose-down at 2.26 deg/s, its axis
-  0.079° off the rail's line. Guided, it reaches 2,623.9 m (8,609 ft). With the
-  phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m (300 ft) farther from the pad.
+  after the forward one. With the phase on, gravity has it turning nose-down at 2.26 deg/s
+  by then, its axis 0.079° off the rail's line; guided, it isn't turning. Guided, it reaches
+  2,623.9 m (8,609 ft). With the phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m
+  (300 ft) farther from the pad. Each figure is rounded on its own: the apogee moves by
+  10.86 m, which the report rounds to −10.9 m.
 - **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
   a real button has play in its slot. The guided flight frees the rocket at its last
   button's position, and HPR Sim half a button's length later, at the button's aft edge. The

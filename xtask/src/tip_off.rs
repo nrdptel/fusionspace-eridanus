@@ -28,11 +28,13 @@ use std::path::Path;
 use serde_json::{Value, json};
 
 pub const USAGE: &str = "\
-  tip-off [--check]        Fly RocketPy's example rockets with its tip-off phase off and on
+  tip-off [--check|--page] Fly RocketPy's example rockets with its tip-off phase off and on
                            (validation/oracles/rocketpy/tip_off.py, on the checkout pinned as
                            rocketpy-tip-off under refs/) and write what the phase moves to
                            validation/reports/tip-off.json and .md. --check fails if the
-                           committed report differs instead of writing.";
+                           committed report differs instead of writing. --page writes the .md
+                           from the committed .json alone, with no flight, for a change to
+                           the page's words.";
 
 const ORACLE: &str = "validation/oracles/rocketpy/tip_off.py";
 const REPORT: &str = "validation/reports/tip-off.json";
@@ -212,6 +214,35 @@ pub fn generate(root: &Path) -> Result<Value, String> {
     report(flown, &as_pinned, &lag_probe)
 }
 
+/// The plan whose bars the report reads against: M1.14b's (ADR-351), from the report's folder.
+const PLAN: &str =
+    "../../docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md";
+
+/// `text` with each "pull request #N" linked to RocketPy's pull request N, since the oracle's
+/// strings name RocketPy's pull requests bare.
+fn linked_pulls(text: &str) -> String {
+    const WORDS: &str = "pull request #";
+    let mut out = String::new();
+    let mut rest = text;
+    while let Some(at) = rest.find(WORDS) {
+        let after = &rest[at + WORDS.len()..];
+        let digits = after.len() - after.trim_start_matches(|c: char| c.is_ascii_digit()).len();
+        out.push_str(&rest[..at]);
+        if digits == 0 {
+            out.push_str(WORDS);
+        } else {
+            let number = &after[..digits];
+            let _ = write!(
+                out,
+                "[{WORDS}{number}](https://github.com/RocketPy-Team/RocketPy/pull/{number})"
+            );
+        }
+        rest = &after[digits..];
+    }
+    out.push_str(rest);
+    out
+}
+
 /// `value` to `decimals` places, a value that rounds to zero without its sign.
 pub(crate) fn fixed(value: f64, decimals: usize) -> String {
     let shown = format!("{value:.decimals$}");
@@ -317,8 +348,8 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and \
          site on a declared constant drag coefficient, in still air and in a {} mph ({} m/s) wind \
          {}.\n",
-        text(flown, "oracle")?,
-        text(flown, "equations")?,
+        linked_pulls(text(flown, "oracle")?),
+        linked_pulls(text(flown, "equations")?),
         fixed(number(crosswind, "speed_mph")?, 0),
         fixed(number(crosswind, "speed_m_s")?, 2),
         text(crosswind, "direction")?,
@@ -334,15 +365,24 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **Guided** is the phase off on a rail longer by the distance between the buttons: the \
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
          it.\n\
-         - **Moved** is the phase on less the other flight. A landing point's move is the \
-         distance between the two landing points, given in meters and as a share of the other \
-         flight's apogee; **farther from the pad** is how much farther from the pad the rocket \
-         lands with the phase on, negative when it lands nearer.\n\
+         - **Rocket** is the example's design id. The two Calisto ids end in the motor's position \
+         in meters, as the example places it (`minus-1.255` is −1.255 m): one rocket at two motor \
+         positions.\n\
+         - **Rail** is the rail's length and its angle above the horizontal.\n\
+         - **Moved** is the phase on less the other flight: the phase-on figure minus the \
+         other's. *On less off* takes the phase off from the phase on, and *on less guided* takes \
+         the guided flight. A landing point's move is the distance between the two landing \
+         points, in meters and as a share of the other flight's apogee. **Farther from the pad** \
+         is how much farther from the pad the rocket lands with the phase on, negative when it \
+         lands nearer. **Apogee point moved** is the distance between the two flights' apogee \
+         positions.\n\
          - **Where the lower button leaves:** the angle between the rocket's axis and the \
          rail's, its part below the rail's line in the rail's vertical plane (nose down), and \
          the turning rate across the rocket's axis (pitch and yaw together).\n\
-         - **The bars** are the plan's: a tip-off model is called for when the phase moves any \
-         apogee by more than {}%, or any landing point by more than {}% of the apogee.\n",
+         - **The bars** are [the plan's]({PLAN}): a tip-off model is called for when the phase \
+         moves any apogee by more than {}%, or any landing point by more than {}% of the apogee.\n\
+         - **A declared change** is a flight the oracle flies unlike the others, with the change \
+         and its reason stated.\n",
         fixed(APOGEE_BAR_PERCENT, 0),
         fixed(LANDING_BAR_PERCENT_OF_APOGEE, 0),
     );
@@ -388,14 +428,23 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                     .iter()
                     .find(|probe| probe["case"] == case["name"] && probe["wind"] == wind["wind"])
                     .ok_or("a declared change with no probe")?;
+                let declared = declared.as_str().ok_or("`declared` is not text")?;
+                // The oracle states the change, then its reason, after a colon.
+                let (change, reason) = declared.split_once(": ").unwrap_or((declared, ""));
                 let _ = writeln!(
                     w,
-                    "- **A declared change** ({}, {}): {}. That is the probe's result \
-                     (`tip_off.py --lag-probe`, {} s of wall time): its integration had \
-                     reached {} s, and the apogee is at {} s.",
+                    "- **A declared change** ({}, {}):\n  - The change: {}.",
                     text(case, "name")?,
                     text(wind, "wind")?,
-                    declared.as_str().ok_or("`declared` is not text")?,
+                    change,
+                );
+                if !reason.is_empty() {
+                    let _ = writeln!(w, "  - Why: {reason}.");
+                }
+                let _ = writeln!(
+                    w,
+                    "  - The probe (`tip_off.py --lag-probe`, {} s of wall time) had integrated \
+                     to {} s. The apogee is at {} s.",
                     fixed(number(probe, "wall_s")?, 0),
                     fixed(number(probe, "solver_time_s")?, 1),
                     fixed(number(&wind["phase_off"], "apogee_time_s")?, 1),
@@ -496,10 +545,24 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     Ok(page)
 }
 
+/// `--page`: writes [`REPORT_MD`] from the committed [`REPORT`], with no oracle run, for a change
+/// to the page's words alone. `--check` still holds the JSON to a fresh run.
+fn rewrite_page() -> Result<(), String> {
+    let root = crate::designs::root()?;
+    let committed = fs::read_to_string(root.join(REPORT)).map_err(|e| format!("{REPORT}: {e}"))?;
+    let committed: Value =
+        serde_json::from_str(&committed).map_err(|e| format!("{REPORT}: {e}"))?;
+    fs::write(root.join(REPORT_MD), markdown(&committed)?)
+        .map_err(|e| format!("{REPORT_MD}: {e}"))?;
+    println!("wrote {REPORT_MD} from {REPORT}");
+    Ok(())
+}
+
 pub fn run(args: &[String]) -> Result<(), String> {
     let check = match args {
         [] => false,
         [flag] if flag == "--check" => true,
+        [flag] if flag == "--page" => return rewrite_page(),
         _ => return Err(format!("usage:\n{USAGE}")),
     };
     let root = crate::designs::root()?;
@@ -605,6 +668,60 @@ mod tests {
     fn committed() -> Value {
         let root = crate::designs::root().unwrap();
         serde_json::from_str(&fs::read_to_string(root.join(REPORT)).unwrap()).unwrap()
+    }
+
+    /// RocketPy's pull requests named in the oracle's strings become links, each to its own
+    /// number; a "pull request #" with no number stays as written.
+    #[test]
+    fn pull_requests_are_linked_by_number() {
+        assert_eq!(
+            linked_pulls("develop (pull request #920's merge) with pull request #1196's fix"),
+            "develop ([pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920)'s \
+             merge) with [pull request #1196](https://github.com/RocketPy-Team/RocketPy/pull/1196)'s fix"
+        );
+        assert_eq!(
+            linked_pulls("pull request #x and none"),
+            "pull request #x and none"
+        );
+        assert_eq!(
+            linked_pulls("ends at pull request #"),
+            "ends at pull request #"
+        );
+    }
+
+    /// The committed page states the declared change, its reason and the probe as three lines,
+    /// links RocketPy's pull requests and the plan, and defines every column the reader meets.
+    #[test]
+    fn the_page_splits_the_declared_change_and_defines_its_terms() {
+        let page = markdown(&committed()).unwrap();
+        assert!(
+            page.contains(
+                "  - The change: the parachute that opens at apogee opens with no lag.\n"
+            )
+        );
+        assert!(page.contains("\n  - Why: on a vertical rail in still air"));
+        assert!(page.contains("\n  - The probe (`tip_off.py --lag-probe`"));
+        assert!(page.contains("(https://github.com/RocketPy-Team/RocketPy/pull/920)"));
+        assert!(page.contains("(https://github.com/RocketPy-Team/RocketPy/pull/1196)"));
+        assert!(page.contains(&format!("[the plan's]({PLAN})")));
+        for term in [
+            "**Rocket**",
+            "**Rail**",
+            "**Apogee point moved**",
+            "*On less off*",
+            "**A declared change** is",
+        ] {
+            let defined = page.find(term).unwrap_or(usize::MAX);
+            assert!(
+                defined < page.find("## The reading").unwrap(),
+                "{term} isn't defined first"
+            );
+        }
+        let root = crate::designs::root().unwrap();
+        assert!(
+            root.join("validation/reports").join(PLAN).exists(),
+            "{PLAN} doesn't resolve"
+        );
     }
 
     /// The committed page is the committed report's, so the two can't drift apart.
@@ -722,7 +839,8 @@ mod tests {
                 signed(apogee_m / 0.3048, 0)
             )),
             format!(
-                "in {} of the 26 flights on three rockets: Valetudo Juno III and Prometheus 2022",
+                "in {} of the 26 flights. They are on three rockets: Valetudo Juno III and \
+                 Prometheus 2022",
                 count(guided_reading, "landing_point_past_the_bar")
             ),
             format!("The largest share is {cost}"),
@@ -746,7 +864,7 @@ mod tests {
                     "landing_range_m",
                 );
                 format!(
-                    "in still air) by {} mm ({} in)",
+                    "the vertical rail's in still air moves by {} mm ({} in)",
                     fixed(range_m * 1000.0, 0),
                     fixed(range_m / 0.0254, 1)
                 )
