@@ -138,6 +138,42 @@ of the speed at the rail's end was promoted by the next review ([M2.14][m2-14],
   interval and the held-out half's error with and without it, as aggregates, and says so when the
   interval holds zero.
 
+## From the 2026-11-16 planning review ([ADR-352][adr-352])
+
+That review promoted the rail-exit speed to [M2.14][m2-14]; the three below are SOON.
+
+- SOON: the collection flown as built. User: a flyer whose design file has no rail buttons and the
+  smoothest finish. Another simulator's notes give its apogees on seven weighed, logged kit flights
+  as 13.8% high "as their design files are set up (polished, no rail buttons)" and 3.5% off with
+  regular paint and rail buttons, and say what the rockets really had isn't recorded ([its
+  validation page][prfl], read 2026-11-16). HPR Sim's apogees on the private collection run +7.72%
+  high on average ([scoreboard][score]). Workflow: the fixture report counts the flown designs with
+  no rail guide and those at the smoothest finish, then flies each again with guides sized by a rule
+  fixed beforehand and a named painted finish. Moves: `bias.collection`, as a shown diagnosis, never
+  the scored cell: a changed default is a correction of another form, which [ADR-346][adr-346] makes
+  a new decision, judged on flights predicted first. *Done when:* the guide rule and the finish's
+  roughness are merged with their sources before the second flights are flown; the report gives the
+  two counts and the mean signed and absolute errors both ways, on each half and on the public
+  flights; and it gives the share of the bias the two explain with a paired bootstrap 95% interval.
+- SOON: an accelerometer's climb against its own barometer. User: a flyer reading a top speed
+  or an acceleration from a logger, and a reader weighing [M2.14][m2-14]'s readings. The
+  analyzer takes an accelerometer's scale as known to 10%; the same notes say one logger
+  family's "read 12–21% low against a second recorder on the same flights". Workflow: for
+  each log of the collection with both channels, the analyzer sets the height its summed
+  acceleration gives at burnout against the barometer's, and the report gives that ratio by
+  logger family. Moves: `accuracy.rail-exit`, through the width of its readings: the scale
+  measured, not assumed. *Done when:* a test pins the ratio on a synthetic log with a known
+  scale error; the report gives each family's median ratio and 90% range with its count, for
+  families with five flights or more, and all together; and the analyzer's 10% is kept or
+  changed by a decision record that cites the measured spread.
+- SOON: how fast the thrust comes up. User: a flyer of a heavy rocket on a slow-lighting
+  motor. Workflow: the analyzer reads, from a log sampled at 400 Hz or faster, the time from
+  first motion to half the acceleration's first peak, and the fixture report sets it against
+  the same time in the simulated flight. Moves: `accuracy.rail-exit`, as a diagnosis.
+  *Done when:* the reading is checked on synthetic boosts with a known rise; the report gives
+  the median difference in seconds with its count, overall and for each propellant with five
+  flights or more, and its rank correlation with the rail-exit error with a 95% interval.
+
 [score]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-328]: ../decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [m2-3d]: ../decisions-and-roadmap.md#m2-3d
@@ -161,3 +197,4 @@ of the speed at the rail's end was promoted by the next review ([M2.14][m2-14],
 [adr-352]: ../decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md
 [delay-spread]: motor-delay-spread.md
 [i1474]: https://github.com/nrdptel/fusionspace-eridanus/issues/1474
+[adr-346]: ../decisions/0346-m7-5-in-three-the-rule-before-the-fit.md

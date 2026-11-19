@@ -82,8 +82,9 @@
 //! wider than the window, with text cut off by its box, or with text over text, so nothing a
 //! reader needs is clipped by an edge at any width. Pages built to fail, loaded on every run,
 //! prove the check still finds each problem. With `--cache` ([`cache`]), a run lays out and
-//! measures again only the pages whose HTML changed since its last passing run, and loads the
-//! pages built to fail only when it has no usable cache, or the checker, the browser, the part,
+//! measures again only the pages whose HTML changed since its last passing run (the date of issue
+//! left out), and loads the pages built to fail only when it has no usable cache, or the checker,
+//! the browser, the part,
 //! the operating system or processor, or another file of the built site (all but its pages, the search index and `api/`)
 //! changed.
 
@@ -131,8 +132,9 @@ pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]
                            checks the built pages' layout at part K of N of the widths,
                            for CI to spread over N machines; --cache keeps passing results
                            in target/site-check-cache and checks again only the pages whose
-                           HTML changed, or every page if the checker, Chrome, the part,
-                           the operating system or processor, or a built file other than the
+                           HTML changed (the date of issue left out), or every page if
+                           the checker, Chrome, the part, the operating system or
+                           processor, or a built file other than the
                            pages, the search index and api/ changed (delete the folder to
                            check every page).";
 

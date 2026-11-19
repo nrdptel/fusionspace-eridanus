@@ -388,6 +388,7 @@ until someone rewrites it in plainer words.
 | [ADR-357: Tip-off, measured with RocketPy's: past the plan's bar, the model in two more increments][adr-357] | RocketPy's tip-off phase, at the merge of its pull request #920, flies thirteen example designs in still air and in a 20 mph (8.94 m/s) crosswind. Turned on, it moves 9 of 26 landing points by more than 1% of the apogee and one apogee by more than 1%, so the plan calls for a tip-off model. Against a rocket guided to its last button, as HPR Sim guides it, the phase moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%. The model is [M1.14b9](#m1-14b9)'s, and flying it by default is [M1.14b10](#m1-14b10)'s. |  |
 | [ADR-358: M1.14b9 in two: the tip-off phase on RocketPy's normal force first][adr-358] | HPR Sim's tip-off phase agrees with RocketPy's on all 26 flights when both fly RocketPy's normal force, and on the 13 still-air flights on HPR Sim's own. On its own normal force the 13 crosswind flights are past the bars, because the two codes' normal forces differ at 9.7° to 25.6° angle of attack: HPR Sim's coefficient is 1.23 to 2.71 times RocketPy's, and its moment about the last guide 0.35 to 15.20 times. [M1.14b9](#m1-14b9) stays open on those 13. |  |
 | [ADR-359: Drag below Mach 0.8 next: the drag part of the gap to OpenRocket, by Mach band][adr-359] | Split by the Mach number the drag acts at, the drag part of the gap to OpenRocket 24.12 on the private collection's 68 flights is largest below Mach 0.8: a mean absolute 0.87% of the apogee there, 0.50% from Mach 0.8 to 1.2 and 0.23% above Mach 1.2. Flown on OpenRocket's drag below Mach 0.8 alone, HPR Sim's mean absolute error against the 60 logged apogees falls from 12.04% to 11.65%; on its whole drag, to 11.27%, beside OpenRocket's 11.26%. [M1.14](#m1-14)'s increments by Mach number began at Mach 0.8. [M1.14i](#m1-14i) is the band below it, and goes next. |  |
+| [ADR-360: The 2026-11-19 review: drag in the coast held to accelerometer logs, predictions first][adr-360] | Both simulators' apogees run high on the private collection's logged flights, by +7.72% and +6.72% on average, and the apogee alone can't say why: too little drag and too much thrust read the same way. Coasting, an accelerometer along the rocket's axis reads the air's force along that axis over the mass, with no thrust and no gravity in the reading. The milestone reads that below Mach 0.8 from each log with an acceleration column, merges the readings and both programs' predictions before any error is computed, and then scores both programs on new rows, `accuracy.coast-drag` and `bias.coast-drag`. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -761,6 +762,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-14"></a>[M2.14][phase-1] | Speed off the rail against the accelerometer logs | not yet done |
 | <a id="m2-14a"></a>[M2.14a][phase-1] | The rule, the readings and the predictions | not yet done |
 | <a id="m2-14b"></a>[M2.14b][phase-1] | The errors | not yet done |
+| <a id="m2-15"></a>[M2.15][phase-1] | Drag in the coast against the logs | not yet done |
+| <a id="m2-15a"></a>[M2.15a][phase-1] | The rule, the readings and the predictions | not yet done |
+| <a id="m2-15b"></a>[M2.15b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1453,6 +1457,7 @@ is the milestone that added or will add that test.
 [adr-357]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
 [adr-358]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md
 [adr-359]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0359-drag-below-mach-0-8-next-the-drag-part-of-the-gap-to-openrocket-by-mach-band.md
+[adr-360]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0360-the-2026-11-19-review-drag-in-the-coast-held-to-accelerometer-logs-predictions-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

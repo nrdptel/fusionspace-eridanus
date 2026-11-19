@@ -4,9 +4,10 @@
 //!
 //! The layout check ([`super::pages`]) and the vitals check ([`super::vitals`]) each keep a file
 //! under [`DIR`], outside the site, which each build clears. A file holds its run's key and, for
-//! each page that passed, the SHA-256 of the page's HTML, when it was checked and what the check
+//! each page that passed, the SHA-256 of the page's HTML (its date of issue left out), when it was checked and what the check
 //! measured of it: the lines of its prose, or its vitals. A run reuses a page's result when its key
-//! is the cache's and the page's HTML is the same; it checks the rest. The key ([`key`]) is what
+//! is the cache's and the page's HTML is the same but for its date of issue ([`undated`]); it
+//! checks the rest. The key ([`key`]) is what
 //! every page's result depends on besides its own HTML:
 //!
 //! - **The checker**: the sources of both checks, the harness and the product system's rules they
@@ -31,6 +32,7 @@
 //! run and slows the CPU to match; a reused page's vitals are those of the run that measured them,
 //! and the line the run prints says how much that run slowed the CPU.
 
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -129,7 +131,7 @@ struct Inputs<'a> {
     arch: &'a str,
     part: Part,
     /// Every file of the built site a check may read, by its path relative to the site, to the
-    /// SHA-256 of its bytes ([`snapshot`]); only the shared ones ([`role`]) go in the key.
+    /// SHA-256 of its bytes, a page's with its date of issue left out ([`snapshot`]); only the shared ones ([`role`]) go in the key.
     site: &'a BTreeMap<String, String>,
 }
 
@@ -189,7 +191,7 @@ struct Format {
 /// One page that passed, as the cache keeps it.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub(super) struct Entry<T> {
-    /// The SHA-256 of the page's HTML.
+    /// The SHA-256 of the page's HTML, its date of issue left out ([`undated`]).
     pub html: String,
     /// When it was checked, `YYYY-MM-DD HH:MM UTC`.
     pub checked: String,
@@ -390,7 +392,8 @@ fn dates<'a>(dates: impl Iterator<Item = &'a str>) -> String {
 pub(super) struct Run {
     /// Where the cache files are, [`DIR`] under the workspace root.
     dir: PathBuf,
-    /// Every file of the site a check may read, to the SHA-256 of its bytes ([`snapshot`]).
+    /// Every file of the site a check may read, to the SHA-256 of its bytes, a page's with its
+    /// date of issue left out ([`snapshot`]).
     site: BTreeMap<String, String>,
     chrome: String,
     /// What Chrome says its version is; none when that couldn't be read.
@@ -473,7 +476,8 @@ impl Run {
 }
 
 /// Every file of the site built in `output` that a check may read ([`role`]), by its path
-/// relative to the site, `/` between folders, to the SHA-256 of its bytes.
+/// relative to the site, `/` between folders, to the SHA-256 of its bytes; a page's are read
+/// with its date of issue left out ([`undated`]).
 fn snapshot(output: &Path) -> Result<BTreeMap<String, String>, String> {
     let mut files = BTreeMap::new();
     walk(output, "", &mut files)?;
@@ -499,10 +503,58 @@ fn walk(dir: &Path, prefix: &str, files: &mut BTreeMap<String, String>) -> Resul
         } else if role(&name) != Role::Unread {
             let bytes = fs::read(&path)
                 .map_err(|err| format!("could not read {}: {err}", path.display()))?;
-            files.insert(name, crate::ork_supply::sha256(&bytes));
+            let digest = if role(&name) == Role::Page {
+                crate::ork_supply::sha256(&undated(&bytes))
+            } else {
+                crate::ork_supply::sha256(&bytes)
+            };
+            files.insert(name, digest);
         }
     }
     Ok(())
+}
+
+/// What comes just before a built page's date of issue: the footer's `Issued` entry, which
+/// [`super::frame`] writes on each page with a footer, and the title block's, which
+/// [`super::theme::fill_issue_date`] fills on each page that carries the title block. Both carry the date of the
+/// commit the site is built from, so before this every page's HTML changed with each new date
+/// and the first run on a new date checked every page again (#1417).
+const DATED: [&str; 2] = ["<span>Issued ", "<span id=\"issue-date\">"];
+
+/// What a page's digest reads in place of each date after one of [`DATED`].
+const UNDATED: &str = "YYYY-MM-DD";
+
+/// A page's bytes as its digest reads them: each date of issue, a `YYYY-MM-DD` right after one
+/// of [`DATED`] and right before `</span>`, read as [`UNDATED`]; every other byte as it is, and
+/// bytes that aren't UTF-8 all as they are. So a page whose only change is its date is reused,
+/// and any other change, a date elsewhere in its text among them, still has it checked again.
+///
+/// A new date changes digits within each date's ten characters. A page reused on that
+/// account is not laid out with its new date by the gate; CI checks every page with no cache, so
+/// a layout the date alone moved would be caught there.
+fn undated(bytes: &[u8]) -> Cow<'_, [u8]> {
+    let Ok(text) = std::str::from_utf8(bytes) else {
+        return Cow::Borrowed(bytes);
+    };
+    let mut read = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some((at, marker)) = DATED
+        .iter()
+        .filter_map(|marker| rest.find(marker).map(|at| (at, marker.len())))
+        .min()
+    {
+        read.push_str(&rest[..at + marker]);
+        rest = &rest[at + marker..];
+        if let Some(date) = rest.get(..UNDATED.len())
+            && super::theme::is_date(date)
+            && rest[UNDATED.len()..].starts_with("</span>")
+        {
+            read.push_str(UNDATED);
+            rest = &rest[UNDATED.len()..];
+        }
+    }
+    read.push_str(rest);
+    Cow::Owned(read.into_bytes())
 }
 
 /// What `chrome --version` prints, such as `Google Chrome 142.0.7444.60`; none when it prints
@@ -668,6 +720,74 @@ mod tests {
         // Kept with its new HTML, so the next run reuses it.
         let left = run(&plan, true, None).unwrap();
         assert!(setting.plan(Some(&left)).check.is_empty());
+    }
+
+    /// #1417: the same pages built under two dates of issue are all reused, and a change to
+    /// anything else in a page, a date in its text among them, still has that page checked.
+    #[test]
+    fn a_page_whose_only_change_is_its_date_of_issue_is_reused() {
+        let page = |date: &str, text: &str| {
+            format!(
+                "<main><p>{text}</p></main><footer><span>Version 0.1.0</span>\
+                 <span>Issued {date}</span></footer>"
+            )
+        };
+        let build = |date: &str, aero: &str| {
+            let dir = tempfile::tempdir().unwrap();
+            fs::create_dir(dir.path().join("physics")).unwrap();
+            let landing = format!(
+                "<span id=\"issue-date\">{date}</span>{}",
+                page(date, "home")
+            );
+            fs::write(dir.path().join("index.html"), landing).unwrap();
+            fs::write(dir.path().join("physics/aero.html"), page(date, aero)).unwrap();
+            fs::write(dir.path().join("site.css"), "p { margin: 0 }").unwrap();
+            snapshot(dir.path()).unwrap()
+        };
+        let mut setting = Setting::new();
+        setting.site = build("2026-11-18", "drag");
+        let cached = setting.first();
+
+        setting.site = build("2026-11-19", "drag");
+        let plan = setting.plan(Some(&cached));
+        assert_eq!(plan.basis, Basis::Same);
+        assert!(plan.check.is_empty(), "{:?}", plan.check);
+        assert!(!plan.canaries);
+        assert_eq!(reused(&plan), ["index.html", "physics/aero.html"]);
+
+        // A date in the page's own text is not its date of issue: cached with one, the page is
+        // checked again when that date changes.
+        setting.site = build("2026-11-18", "drag, read 2026-11-18");
+        let cached = run(&setting.plan(Some(&cached)), true, None).unwrap();
+        setting.site = build("2026-11-19", "drag, read 2026-11-19");
+        assert_eq!(setting.plan(Some(&cached)).check, ["physics/aero.html"]);
+        // Nor is a word changed beside a new date.
+        setting.site = build("2026-11-19", "lift");
+        assert_eq!(setting.plan(Some(&cached)).check, ["physics/aero.html"]);
+    }
+
+    #[test]
+    fn only_a_date_right_after_an_issue_marker_and_before_its_span_s_end_is_read_as_undated() {
+        let read = |text: &str| String::from_utf8(undated(text.as_bytes()).into_owned()).unwrap();
+        assert_eq!(
+            read("<span>Issued 2026-11-19</span><span id=\"issue-date\">2026-11-19</span>"),
+            "<span>Issued YYYY-MM-DD</span><span id=\"issue-date\">YYYY-MM-DD</span>"
+        );
+        // Not a date, a date running on, a date in other markup, the marker last, a character
+        // of more than one byte where the date would end: each as it is.
+        for text in [
+            "<span>Issued soon</span>",
+            "<span>Issued 2026-11-19, late</span>",
+            "<span>Read 2026-11-19</span>",
+            "<p>Issued 2026-11-19</p>",
+            "the end: <span>Issued ",
+            "<span>Issued 2026-11-1\u{e9}</span>",
+        ] {
+            assert_eq!(read(text), text);
+        }
+        // Bytes that aren't UTF-8 are read as they are.
+        let raw = [0xff, b'<', 0xfe];
+        assert_eq!(undated(&raw).as_ref(), raw);
     }
 
     #[test]
