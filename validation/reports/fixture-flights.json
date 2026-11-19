@@ -789,6 +789,7 @@
           "median_percent": 0.19,
           "mean_absolute_percent": 0.87
         },
+        "alone_flights": 68,
         "alone": {
           "mean_percent": 0.15,
           "median_percent": 0.19,
@@ -810,6 +811,7 @@
           "median_percent": 0.45,
           "mean_absolute_percent": 1.21
         },
+        "alone_flights": 28,
         "alone": {
           "mean_percent": 0.2,
           "median_percent": 0.0,
@@ -831,6 +833,7 @@
           "median_percent": 1.86,
           "mean_absolute_percent": 2.21
         },
+        "alone_flights": 7,
         "alone": {
           "mean_percent": 0.24,
           "median_percent": 0.0,
@@ -852,6 +855,7 @@
     },
     "logs": {
       "flights": 60,
+      "left_out": 0,
       "rows": [
         {
           "name": "own",

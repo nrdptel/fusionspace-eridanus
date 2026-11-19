@@ -166,7 +166,7 @@ A positive line means HPR Sim climbs higher on its own nose drag than on OpenRoc
 
 ### The drag part by Mach band
 
-For M1.14i1 (ADR-359), the drag part is split by the Mach number the drag acts at. On OpenRocket's thrust and mass, HPR Sim flies with OpenRocket's drag coefficient in place of its own below Mach 0.8 only, then below Mach 1.2 too, then at every Mach number. Outside the bands swapped the drag is HPR Sim's own, so at a band's edge the coefficient steps from one program's to the other's. A band's part is the apogee before its swap less the apogee after it. The three sum to the drag part: the last of these flights is the split's flight on OpenRocket's whole drag, and the run stops on a flight where it isn't. A flight that never reaches a band is the same flight before and after that band's swap, so a flight has a part in a band when its part there is not zero. Like the split, the parts are code against code.
+For M1.14i1 (ADR-359), the drag part is split by the Mach number the drag acts at. On OpenRocket's thrust and mass, HPR Sim flies with OpenRocket's drag coefficient in place of its own below Mach 0.8 only, then below Mach 1.2 too, then at every Mach number. Outside the bands swapped the drag is HPR Sim's own, so at a band's edge the coefficient steps from one program's to the other's. A band's part is the apogee before its swap less the apogee after it. The three sum to the drag part: the last of these flights is the split's flight on OpenRocket's whole drag, and the run stops on a flight where it isn't. A swap that changes no drag the flight reads leaves the flight the same to the last digit, so a flight has a part in a band when its part there is not zero: the swap changed the flight. Those are the flights that reach the band, or come close enough that a step of the integrator reads the drag inside it. Like the split, the parts are code against code.
 
 Of the 68 flights split, 68 are split by band; on 0 HPR Sim failed a flight with a band swapped.
 
@@ -181,12 +181,12 @@ Each percentage is a share of OpenRocket's apogee, over the 68 flights split by 
 
 A band's part depends on the speed the slower bands' swaps leave the flight with. So each band is also swapped alone, first: on HPR Sim's own thrust and mass, with its own drag in the other two bands.
 
-| band, swapped alone | mean | median | mean absolute |
-|---|---:|---:|---:|
-| below Mach 0.8 | +0.15% | +0.19% | 0.87% |
-| Mach 0.8 to 1.2 | +0.20% | +0.00% | 0.50% |
-| above Mach 1.2 | +0.24% | +0.00% | 0.24% |
-| every band: the drag part, swapped first | +0.58% | +0.44% | 1.57% |
+| band, swapped alone | flights it changes | mean | median | mean absolute |
+|---|---:|---:|---:|---:|
+| below Mach 0.8 | 68 | +0.15% | +0.19% | 0.87% |
+| Mach 0.8 to 1.2 | 28 | +0.20% | +0.00% | 0.50% |
+| above Mach 1.2 | 7 | +0.24% | +0.00% | 0.24% |
+| every band: the drag part, swapped first |  | +0.58% | +0.44% | 1.57% |
 
 The flights with a band swapped alone are also set beside the logs. Of the flights compared with a log above, 60 are split by band. Each row is the apogee less the logged one, over the logged one, on those flights: HPR Sim's own flight; HPR Sim on OpenRocket's drag in one band alone; HPR Sim on OpenRocket's whole drag; and OpenRocket's own flight. A row moves a flight when its apogee is not that of HPR Sim's own flight, and the last two columns count the moved flights that come nearer their log than HPR Sim's own flight, and the ones that go farther.
 

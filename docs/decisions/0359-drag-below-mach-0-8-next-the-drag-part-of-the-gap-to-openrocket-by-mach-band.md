@@ -97,12 +97,14 @@ collection, and a test holds its section to itself in CI.
 
    The three agree, so no rule is needed to choose among them. Had they disagreed, the third
    would have decided: it is the one measured against the flights, which M1.14's *done when*
-   is written on.
+   is written on. They are not three independent witnesses. Each is weighted by the
+   collection, where the first swap changes all 68 flights and the last 7, and the third
+   rewards any added drag (decision 5).
 
    The faster bands are not small where they act. Over the flights with a part in them, the
    mean absolute part is 1.21% from Mach 0.8 to 1.2 and 2.21% above Mach 1.2, against 0.87%
-   below Mach 0.8. They rank lower because fewer of the collection's flights reach them: 28
-   and 7 of 68. They stay [M1.14c][m1-14c]'s and [M1.14d][m1-14d]'s, in their places.
+   below Mach 0.8. They rank lower because their swaps change fewer of the collection's
+   flights: 28 and 7 of 68. They stay [M1.14c][m1-14c]'s and [M1.14d][m1-14d]'s, in their places.
 
    The signed means say less than the absolute ones. The drag part's mean of +0.58% is spread
    over the three bands, +0.15%, +0.20% and +0.23%, and below Mach 0.8 the parts are of both
@@ -121,8 +123,9 @@ collection, and a test holds its section to itself in CI.
      - over the flights compared with a log it gives HPR Sim's error against the logs with each
        band swapped alone, beside its own, the whole drag's and OpenRocket's own, each with the
        flights it moves nearer their log and farther;
-     - a flight split that HPR Sim fails with a band swapped is counted, and at least half the
-       flights split are split by band;
+     - a flight split that HPR Sim fails with one or two bands swapped is counted (on all
+       three it is the split's own flight, and a failure stops the run), and at least half
+       the flights split are split by band;
      - no size is given unless every aggregate is over no flights or at least three
        ([ADR-349][adr-349] decision 3: an aggregate over one or two flights is a flight's own
        number, under [ADR-151][adr-151]'s aggregates-only terms);
@@ -142,25 +145,34 @@ collection, and a test holds its section to itself in CI.
      - the fixture report splits the part below Mach 0.8 into friction, pressure, base and a
        rest, the rest being OpenRocket's drag coefficient less its three terms: each of HPR
        Sim's terms is swapped for OpenRocket's below Mach 0.8, one after another in that
-       order, and the four are held to sum to the band's part on every flight so split;
+       order, and the four are held to sum to the band's part on every flight so split. The
+       two codes don't book drag under the same terms: the pull request states which of HPR
+       Sim's buildup terms is set against each of OpenRocket's three (launch lugs, rail
+       buttons and stated coefficients among them), puts what has no match under the rest,
+       and a test holds each code's four to sum to its whole coefficient, power on and power
+       off;
      - it gives each term's mean, median and mean absolute part, the flights it dominates, and
        HPR Sim's error against the logs with each term swapped alone; a flight not split by
-       term is counted under a reason from a fixed list; the floor of three flights holds as
-       in M1.14i1;
+       term is counted under a reason from a fixed list; at least half the flights split by
+       band are split by term, and the floor of three flights holds, both as in M1.14i1;
      - tests on the two public designs hold each swap to replace its own term and nothing
        else, hold the terms to sum, and pin both codes' terms at Mach 0.3 and 0.6;
-     - a measured reference of the term with the largest mean absolute part, from a wind
-       tunnel or a flight and not from another program, is added to the validation set in that
-       pull request: cited, with its stated uncertainty, and with HPR Sim's error on each of
-       its rows below Mach 0.8 in the validation report. If the validation set already holds
+     - a measured reference of the term with the largest mean absolute part among friction,
+       pressure and base, from a wind tunnel or a flight and not from another program, is
+       added to the validation set in that pull request: cited, with its stated uncertainty,
+       and with HPR Sim's error on each of its rows below Mach 0.8 in the validation report.
+       The rest is not a term a measurement can be of: where it is the largest of the four,
+       the pull request says what is in it, and the reference is still for the largest of the
+       three. If the validation set already holds
        every such reference a search finds, a decision record lists the search, and the
        increment then counts as no progress under the stop rule ([ADR-143][adr-143]);
      - the accuracy page and the aerodynamics page say what the terms are, what the reference
        shows and how far to trust both.
    - **M1.14i3, the largest term's model, changed or kept on the measurement.** *Done when:*
      - where HPR Sim's error on M1.14i2's reference is past the reference's stated
-       uncertainty, the term's model is changed to a cited source, and its error on the
-       reference is smaller after than before, row by row or with each row that grows named;
+       uncertainty, the term's model is changed to a cited source, its mean absolute error
+       over the reference's rows below Mach 0.8 is smaller after than before, and each row
+       whose error grows is named;
      - every committed report the change moves is regenerated in that pull request, which
        gives, before and after, the term's part and the band's part of the gap to OpenRocket,
        and HPR Sim's mean and mean absolute error against the collection's logs;
@@ -171,7 +183,9 @@ collection, and a test holds its section to itself in CI.
        probe;
      - where the error is within the reference's uncertainty, a decision record gives the
        numbers and the model stays, and the record says what else below Mach 0.8 the term
-       split points at.
+       split points at;
+     - where M1.14i2 added no reference there is none to change a model on: M1.14i3 is not
+       started, and M1.14i ends under the stop rule (Consequences).
 
 4. **The order.** M1.14i's open increments come next, ahead of [M1.14b10][m1-14b10] and the
    rest of M1.14b's open increments. Those keep the order [ADR-357][adr-357] and
@@ -195,7 +209,9 @@ collection, and a test holds its section to itself in CI.
 - **The stop rule.** M1.14i1 is a measurement that orders the work. It neither shrinks a
   measured error against an independent reference nor adds a reference, so under
   [ADR-143][adr-143]'s stop rule it does not count as progress. M1.14i2's *done when* asks for
-  a measured reference so that it can.
+  a measured reference so that it can. If M1.14i2 finds none to add, that is two increments in
+  a row without progress: M1.14i ends under the rule with its gaps written down, and M1.14i3
+  is not started.
 - The band swap is a tool of the report, in `xtask`. No library crate changes, so no flight a
   user runs does.
 

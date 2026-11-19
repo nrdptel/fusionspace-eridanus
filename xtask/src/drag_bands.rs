@@ -19,13 +19,17 @@
 //! `C_D,OR(M)` is the split's table ([`crate::gap_split::drag_table`]): OpenRocket's coefficient
 //! along its own flight, power on or power off as HPR Sim's motors burn, on the area of a circle
 //! OpenRocket's reference length across, which `A_OR / A_ref` puts on HPR Sim's reference area.
-//! `A_b` flies the same numbers as the split's `A₃`, through this module's swap, and the run
-//! stops unless the two agree ([`SUM_TOLERANCE_PERCENT`]); so the three bands sum to the drag
-//! part.
+//! `A_b` flies the same numbers as the split's `A₃`, through this module's swap. It is flown
+//! first, and the run stops when it fails or the two disagree ([`SUM_TOLERANCE_PERCENT`]); so
+//! the three bands sum to the drag part.
 //!
-//! A band that a flight never enters takes no part in it: the flight before its swap and the
-//! one after it are the same flight, bit for bit. So a flight has a part in a band exactly when
-//! that part is not zero.
+//! A swap that changes no drag the flight reads takes no part in it: the flight before the swap
+//! and the one after it are the same flight, bit for bit. So a flight has a part in a band
+//! exactly when that part is not zero. Those are the flights that reach the band, or come close
+//! enough that a stage of the integrator's step reads the drag inside it.
+//!
+//! No size is published over one or two flights, nor beside a size the report gives over a set
+//! one or two flights larger ([`DragBands::published`]).
 //!
 //! Each band is also swapped alone, first: on HPR Sim's own thrust and mass, with the other two
 //! bands left HPR Sim's ([`Banded::alone`]). That is the flight [`Logs`] sets beside the logged
@@ -66,9 +70,9 @@ pub(crate) const BANDS: [(&str, &str); 3] = [
 /// Where one band ends and the next begins: a Mach number at an edge is in the faster band.
 pub(crate) const EDGES: [f64; 2] = [0.8, 1.2];
 
-/// The fewest flights with a part in a band whose sizes are published: an aggregate over one or
+/// The fewest flights an aggregate is published over, the nose line's: an aggregate over one or
 /// two flights is a flight's own number (ADR-349 decision 3, under ADR-151's terms).
-pub(crate) const FLOOR: usize = 3;
+pub(crate) const FLOOR: usize = crate::nose_line::FLOOR;
 
 /// The largest difference, per cent of OpenRocket's apogee, between the flight on every band
 /// swapped and the split's flight on OpenRocket's whole drag: the two fly the same coefficient.
@@ -93,6 +97,7 @@ pub(crate) struct BandSwap {
 }
 
 impl BandSwap {
+    /// A swap of `table` into the bands of [`BANDS`] that `openrockets` marks.
     pub(crate) fn new(table: DragTable, openrockets: [bool; 3]) -> Self {
         Self { table, openrockets }
     }
@@ -142,9 +147,13 @@ pub(crate) struct Banded {
 /// The heights one flight's rows against its log are taken from, m.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Heights {
+    /// HPR Sim's own flight.
     pub(crate) own_m: f64,
+    /// HPR Sim on OpenRocket's drag in one band alone, in [`BANDS`]' order.
     pub(crate) alone_m: [f64; 3],
+    /// HPR Sim on OpenRocket's whole drag, swapped first.
     pub(crate) drag_first_m: f64,
+    /// OpenRocket's own flight.
     pub(crate) openrocket_m: f64,
 }
 
@@ -193,8 +202,10 @@ pub(crate) struct BandFlight {
 ///
 /// # Errors
 ///
-/// A split flight without its histories, or the flight on every band swapped missing the
-/// split's flight on OpenRocket's whole drag by more than [`SUM_TOLERANCE_PERCENT`].
+/// A split flight without its histories; or the flight on every band swapped failing, or
+/// missing the split's flight on OpenRocket's whole drag by more than
+/// [`SUM_TOLERANCE_PERCENT`]. That flight is the split's own, which flew: either way the swap
+/// no longer agrees with the table, and the run stops.
 pub(crate) fn flight(
     build: &dyn Fn(Air) -> Result<Simulation, String>,
     climbed_m: &dyn Fn(&Simulation) -> Result<f64, String>,
@@ -220,20 +231,14 @@ pub(crate) fn flight(
         }
         climbed_m(&simulation.with_drag_model(BandSwap::new(inputs.drag.clone(), openrockets)))
     };
-    let flown = || -> Result<[f64; 6], String> {
-        Ok([
-            swapped([true, false, false], true)?,
-            swapped([true, true, false], true)?,
-            swapped([true, true, true], true)?,
-            swapped([true, false, false], false)?,
-            swapped([false, true, false], false)?,
-            swapped([false, false, true], false)?,
-        ])
-    };
-    let [slow_m, slow_mid_m, every_m, alone_m @ ..] = match flown() {
-        Ok(flown) => flown,
-        Err(error) => return Ok(Some(Err(error))),
-    };
+    // The flight on every band swapped is the split's flight on OpenRocket's whole drag, which
+    // flew. A failure here is the swap disagreeing with the table, not a flight to count.
+    let every_m = swapped([true, true, true], true).map_err(|error| {
+        format!(
+            "on every band swapped HPR Sim fails the flight it flew on OpenRocket's whole drag: \
+             {error}"
+        )
+    })?;
     let apogees = split.apogees;
     let share = |before_m: f64, after_m: f64| 100.0 * (before_m - after_m) / openrocket_m;
     // A difference that isn't a number fails too.
@@ -245,6 +250,24 @@ pub(crate) fn flight(
             apogees.drag_m
         ));
     }
+    let flown = || -> Result<[f64; 5], String> {
+        let flown = [
+            swapped([true, false, false], true)?,
+            swapped([true, true, false], true)?,
+            swapped([true, false, false], false)?,
+            swapped([false, true, false], false)?,
+            swapped([false, false, true], false)?,
+        ];
+        // A height that isn't a number is a failed flight, not a part.
+        match flown.iter().find(|climbed_m| !climbed_m.is_finite()) {
+            Some(climbed_m) => Err(format!("a flight with a band swapped climbs {climbed_m} m")),
+            None => Ok(flown),
+        }
+    };
+    let [slow_m, slow_mid_m, alone_m @ ..] = match flown() {
+        Ok(flown) => flown,
+        Err(error) => return Ok(Some(Err(error))),
+    };
     Ok(Some(Ok(Banded {
         parts: [
             share(apogees.mass_m, slow_m),
@@ -275,6 +298,8 @@ pub(crate) struct Band {
     pub part: Option<Size>,
     /// Its part over the flights with a part in it.
     pub part_on_its_flights: Option<Size>,
+    /// The flights the band swapped alone changes: those whose part alone is not zero.
+    pub alone_flights: usize,
     /// The band swapped alone, first, over every flight split by band.
     pub alone: Option<Size>,
     /// The flights it dominates: where its part's absolute value is the largest of the three.
@@ -305,14 +330,19 @@ pub(crate) struct LogRow {
     pub moved: usize,
     /// Of those, the flights nearer their log than HPR Sim's own flight, and the ones farther.
     pub nearer: Option<usize>,
+    /// The moved flights farther from their log than HPR Sim's own flight.
     pub farther: Option<usize>,
+    /// The row's error over the flights compared that are split by band.
     pub error: Option<Size>,
 }
 
 /// The flights compared with a log that are split by band, and their rows.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Logs {
+    /// The flights compared with a log that are split by band: the rows are over these.
     pub flights: usize,
+    /// The other flights the report compares with a log: not split, or not split by band.
+    pub left_out: usize,
     /// One per [`LOG_ROWS`], in its order.
     pub rows: Vec<LogRow>,
 }
@@ -332,6 +362,7 @@ pub(crate) struct DragBands {
     pub drag: Option<Size>,
     /// The same with the whole drag swapped first, which the bands alone are set beside.
     pub drag_first: Option<Size>,
+    /// The flights with a band swapped alone, beside the logs.
     pub logs: Logs,
 }
 
@@ -341,14 +372,14 @@ fn none_or_floor(count: usize) -> bool {
 }
 
 impl DragBands {
-    /// The section's numbers from each flight split. The sizes are given only when every
-    /// aggregate is over [`FLOOR`] flights or more (see [`DragBands::published`]).
-    pub(crate) fn of(flights: &[BandFlight]) -> Self {
+    /// The section's numbers from each flight split, of which the report compares `compared`
+    /// with a log. The sizes are given only when the section is published
+    /// ([`DragBands::published`]): the counts are taken first, and the one rule reads them.
+    pub(crate) fn of(flights: &[BandFlight], compared: usize) -> Self {
         let banded: Vec<(&Banded, Option<f64>)> = flights
             .iter()
             .filter_map(|flight| Some((flight.banded.as_ref().ok()?, flight.logged_m)))
             .collect();
-        let entered = |i: usize| banded.iter().filter(|(b, _)| b.parts[i] != 0.0).count();
         // Against the logs: each flight's six errors, per cent of its logged apogee.
         let logged: Vec<[f64; 6]> = banded
             .iter()
@@ -361,76 +392,102 @@ impl DragBands {
                 )
             })
             .collect();
-        let moved = |row: usize| logged.iter().filter(|e| e[row] != e[0]).count();
-        let published = banded.len() >= FLOOR
-            && (0..BANDS.len()).all(|i| none_or_floor(entered(i)))
-            && none_or_floor(logged.len())
-            && (0..LOG_ROWS.len()).all(|row| none_or_floor(moved(row)));
-        let size = |of: &dyn Fn(&Banded) -> f64| {
-            published.then(|| Size::of(banded.iter().map(|(b, _)| of(b))))
-        };
-        let bands = BANDS
-            .iter()
-            .enumerate()
-            .map(|(i, (name, _))| Band {
-                name: (*name).to_owned(),
-                flights: entered(i),
-                part: size(&|b| b.parts[i]),
-                part_on_its_flights: published.then(|| {
-                    Size::of(
-                        banded
-                            .iter()
-                            .map(move |(b, _)| b.parts[i])
-                            .filter(|part| *part != 0.0),
-                    )
-                }),
-                alone: size(&|b| b.alone[i]),
-                dominates: published
-                    .then(|| banded.iter().filter(|(b, _)| b.dominant() == i).count()),
-                large: published.then(|| {
-                    banded
-                        .iter()
-                        .filter(|(b, _)| b.parts[i].abs() > LARGE_PERCENT)
-                        .count()
-                }),
-            })
-            .collect();
-        let rows = LOG_ROWS
-            .iter()
-            .enumerate()
-            .map(|(row, (name, _))| LogRow {
-                name: (*name).to_owned(),
-                moved: moved(row),
-                nearer: published
-                    .then(|| logged.iter().filter(|e| e[row].abs() < e[0].abs()).count()),
-                farther: published
-                    .then(|| logged.iter().filter(|e| e[row].abs() > e[0].abs()).count()),
-                error: published.then(|| Size::of(logged.iter().map(move |e| e[row]))),
-            })
-            .collect();
-        Self {
+        let mut section = Self {
             split: flights.len(),
             banded: banded.len(),
             failed: flights.len() - banded.len(),
-            bands,
-            drag: size(&|b| b.drag),
-            drag_first: size(&|b| b.drag_first),
+            bands: BANDS
+                .iter()
+                .enumerate()
+                .map(|(i, (name, _))| Band {
+                    name: (*name).to_owned(),
+                    flights: banded.iter().filter(|(b, _)| b.parts[i] != 0.0).count(),
+                    alone_flights: banded.iter().filter(|(b, _)| b.alone[i] != 0.0).count(),
+                    ..Band::default()
+                })
+                .collect(),
+            drag: None,
+            drag_first: None,
             logs: Logs {
                 flights: logged.len(),
-                rows,
+                left_out: compared.saturating_sub(logged.len()),
+                rows: LOG_ROWS
+                    .iter()
+                    .enumerate()
+                    .map(|(row, (name, _))| LogRow {
+                        name: (*name).to_owned(),
+                        moved: logged.iter().filter(|e| e[row] != e[0]).count(),
+                        ..LogRow::default()
+                    })
+                    .collect(),
             },
+        };
+        if !section.published() {
+            return section;
         }
+        let size = |of: &dyn Fn(&Banded) -> f64| Some(Size::of(banded.iter().map(|(b, _)| of(b))));
+        for (i, band) in section.bands.iter_mut().enumerate() {
+            band.part = size(&|b| b.parts[i]);
+            band.part_on_its_flights = Some(Size::of(
+                banded
+                    .iter()
+                    .map(move |(b, _)| b.parts[i])
+                    .filter(|part| *part != 0.0),
+            ));
+            band.alone = size(&|b| b.alone[i]);
+            band.dominates = Some(banded.iter().filter(|(b, _)| b.dominant() == i).count());
+            band.large = Some(
+                banded
+                    .iter()
+                    .filter(|(b, _)| b.parts[i].abs() > LARGE_PERCENT)
+                    .count(),
+            );
+        }
+        for (row, log) in section.logs.rows.iter_mut().enumerate() {
+            log.nearer = Some(logged.iter().filter(|e| e[row].abs() < e[0].abs()).count());
+            log.farther = Some(logged.iter().filter(|e| e[row].abs() > e[0].abs()).count());
+            // Summed from the least up, as the report's errors table sums its own, so the two
+            // agree to the last bit over the same flights.
+            let mut errors: Vec<f64> = logged.iter().map(|e| e[row]).collect();
+            errors.sort_by(f64::total_cmp);
+            log.error = Some(Size::of(errors.iter().copied()));
+        }
+        section.drag = size(&|b| b.drag);
+        section.drag_first = size(&|b| b.drag_first);
+        section
     }
 
-    /// Whether the sizes are given: at least [`FLOOR`] flights are split by band, and each
-    /// band's flights, the flights compared with a log, and the flights each row against the
-    /// logs moves are none or at least [`FLOOR`]. It is all or nothing, since the bands sum to
-    /// the drag part: one band held back could be read off the others (ADR-151: aggregates only).
+    /// Whether the sizes are given: at least [`FLOOR`] flights are split by band, and each of
+    /// these is none or at least [`FLOOR`]: a band's flights, the flights a band alone changes,
+    /// the flights compared with a log, and the flights each row against the logs moves. So are
+    /// the flights left out of a set the report gives beside this section's, since two sizes
+    /// over sets one or two flights apart give those flights back: the flights failed (the
+    /// split's drag part is over them too) and the flights compared that are not split by band
+    /// (the errors' table is over them too). It is all or nothing, since the bands sum to the
+    /// drag part: one band held back could be read off the others (ADR-151: aggregates only).
     pub(crate) fn published(&self) -> bool {
         self.banded >= FLOOR
-            && self.bands.iter().all(|band| none_or_floor(band.flights))
+            && none_or_floor(self.failed)
+            && self
+                .bands
+                .iter()
+                .all(|band| none_or_floor(band.flights) && none_or_floor(band.alone_flights))
             && none_or_floor(self.logs.flights)
+            && none_or_floor(self.logs.left_out)
             && self.logs.rows.iter().all(|row| none_or_floor(row.moved))
+    }
+
+    /// Holds the section's drag rows to the split's `drag` and `drag_first`: with no flight
+    /// failed they are over the same flights in the same order, so the same numbers.
+    pub(crate) fn check_against_split(&self, drag: Size, drag_first: Size) -> Result<(), String> {
+        let ours = (self.drag, self.drag_first);
+        if self.failed == 0 && self.published() && ours != (Some(drag), Some(drag_first)) {
+            return Err(format!(
+                "the drag by Mach band: its drag rows are {ours:?} over every flight split, \
+                 where the split has {drag:?} and {drag_first:?}"
+            ));
+        }
+        Ok(())
     }
 
     /// Holds the section to itself and to the report: `split` flights split and `compared`
@@ -469,17 +526,23 @@ impl DragBands {
                 self.banded
             ));
         }
-        if let Some(band) = self.bands.iter().find(|band| band.flights > self.banded) {
+        if let Some(band) = self
+            .bands
+            .iter()
+            .find(|band| band.flights.max(band.alone_flights) > self.banded)
+        {
             return fail(format!(
-                "{} flights have a part in the {} band, more than the {} split by band",
-                band.flights, band.name, self.banded
+                "{} flights have a part in the {} band and {} alone, more than the {} split by \
+                 band",
+                band.flights, band.name, band.alone_flights, self.banded
             ));
         }
         let logs = &self.logs;
-        if logs.flights > compared || logs.flights > self.banded {
+        if logs.flights.saturating_add(logs.left_out) != compared || logs.flights > self.banded {
             return fail(format!(
-                "{} flights against the logs, of {compared} compared and {} split by band",
-                logs.flights, self.banded
+                "{} flights against the logs and {} left out, of {compared} compared and {} \
+                 split by band",
+                logs.flights, logs.left_out, self.banded
             ));
         }
         if let Some(row) = logs.rows.iter().find(|row| row.moved > logs.flights) {
@@ -555,6 +618,24 @@ impl DragBands {
                     band.name, own.mean_absolute_percent, part.mean_absolute_percent
                 ));
             }
+            // And that sum is one number: each mean absolute value times its flights, to the
+            // 0.005 each is rounded by. A count read from a file is small enough to be exact.
+            let (its, every) = (band.flights as f64, self.banded as f64);
+            let sums = (
+                own.mean_absolute_percent * its,
+                part.mean_absolute_percent * every,
+            );
+            if (sums.0 - sums.1).abs() > 0.005 * (its + every) + 1e-9
+                || (band.flights == self.banded && own != part)
+                || (band.flights == 0 && part != Size::default())
+                || (band.alone_flights == 0 && alone != Size::default())
+            {
+                return fail(format!(
+                    "the {} band's sizes don't fit its flights: {part:?} over {} flights, \
+                     {own:?} over its {}, and {alone:?} alone over {} changed",
+                    band.name, self.banded, band.flights, band.alone_flights
+                ));
+            }
             dominated = dominated.saturating_add(dominates);
             sum += part.mean_percent;
         }
@@ -621,9 +702,11 @@ impl DragBands {
              program's to the other's. A band's part is the apogee before its swap less the \
              apogee after it. The three sum to the drag part: the last of these flights is the \
              split's flight on OpenRocket's whole drag, and the run stops on a flight where it \
-             isn't. A flight that never reaches a band is the same flight before and after \
-             that band's swap, so a flight has a part in a band when its part there is not \
-             zero. Like the split, the parts are code against code.\n",
+             isn't. A swap that changes no drag the flight reads leaves the flight the same to \
+             the last digit, so a flight has a part in a band when its part there is not zero: \
+             the swap changed the flight. Those are the flights that reach the band, or come \
+             close enough that a step of the integrator reads the drag inside it. Like the \
+             split, the parts are code against code.\n",
             EDGES[0], EDGES[1]
         );
         let _ = writeln!(
@@ -644,8 +727,11 @@ impl DragBands {
             let _ = writeln!(
                 page,
                 "\nThe bands' sizes are not given: an aggregate over one or two flights is a \
-                 flight's own number, and the flights are private. The bands sum to the drag \
-                 part, so one held back could be read off the others, and none is given."
+                 flight's own number, and the flights are private. That holds for a band's \
+                 flights, the flights a band alone changes, a row's flights against the logs, \
+                 and the flights this section leaves out of a set the report sizes elsewhere. \
+                 The bands sum to the drag part, so one held back could be read off the others, \
+                 and none is given."
             );
             return page;
         };
@@ -702,16 +788,22 @@ impl DragBands {
         );
         let _ = writeln!(
             page,
-            "| band, swapped alone | mean | median | mean absolute |\n|---|---:|---:|---:|"
+            "| band, swapped alone | flights it changes | mean | median | mean absolute \
+             |\n|---|---:|---:|---:|---:|"
         );
         for (band, (_, words)) in self.bands.iter().zip(BANDS) {
             if let Some(alone) = band.alone {
-                let _ = writeln!(page, "| {words} | {} |", sizes(alone));
+                let _ = writeln!(
+                    page,
+                    "| {words} | {} | {} |",
+                    band.alone_flights,
+                    sizes(alone)
+                );
             }
         }
         let _ = writeln!(
             page,
-            "| every band: the drag part, swapped first | {} |",
+            "| every band: the drag part, swapped first |  | {} |",
             sizes(drag_first)
         );
         let logs = &self.logs;

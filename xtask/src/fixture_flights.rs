@@ -1267,6 +1267,7 @@ fn fly_all(
         ));
     }
     let sets = error_sets(&compared)?;
+    let bands = crate::drag_bands::DragBands::of(&bands, counts.compared);
     Ok((
         Report {
             milestone: "M2.3c1, rechecked in M2.3c5, halved in M2.7a".to_owned(),
@@ -1282,7 +1283,7 @@ fn fly_all(
             inputs,
             split: crate::gap_split::GapSplit::of(&splits),
             nose: crate::nose_line::NoseLine::of(&noses),
-            bands: crate::drag_bands::DragBands::of(&bands),
+            bands,
         },
         kept,
     ))
@@ -1661,6 +1662,12 @@ impl Report {
                 (three(&every.hpr), three(&every.openrocket)),
             )
             .or_else(fail)?;
+        // The split's third part is the drag (`gap_split::PARTS`), checked there to be four.
+        if let Some(drag) = self.split.parts.get(2) {
+            self.bands
+                .check_against_split(drag.size(), self.split.drag_first)
+                .or_else(fail)?;
+        }
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
