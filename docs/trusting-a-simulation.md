@@ -91,12 +91,11 @@ the logged one makes a negative miss in the report's rows. Of the 60 flights, 15
 lowest of them between 15% and 20% low ([report][fixture-report]). A sample isn't a bound: a
 rocket unlike these may miss by more.
 
-Those 60 were flown in each day's real air. Without `--weather`, `hpr sim` and `hpr mc` fly
-[the standard atmosphere](physics/atmosphere.md#the-standard-atmosphere) instead: 15 °C (59 °F)
-at sea level, 6.5 °C cooler each kilometer up (3.6 °F per 1,000 ft). A warmer day's air is
-thinner, so the real rocket meets less drag than the one flown. A standard-air run's apogee then
-reads lower still, on the side that flatters a ceiling. The note under such a run says so.
-`--weather` flies the day's air, from a profile [`hpr weather`](weather.md) writes.
+Those flights were flown in each day's real air. Without `--weather`, `hpr sim` and `hpr mc` fly
+[the standard atmosphere](physics/atmosphere.md#the-standard-atmosphere) instead. A day warmer
+than it has thinner air, so the real rocket meets less drag than the one flown. A standard-air
+run's apogee then reads lower still, on the side that flatters a ceiling. The note under such a
+run says so. `--weather` flies the day's air, from a profile [`hpr weather`](weather.md) writes.
 
 Juno III, one of the public flights, shows what the low side looks like. An altimeter riding HPR Sim's flight of Juno III,
 Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top. The
