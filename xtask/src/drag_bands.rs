@@ -67,7 +67,7 @@ pub(crate) const BANDS: [(&str, &str); 3] = [
 pub(crate) const EDGES: [f64; 2] = [0.8, 1.2];
 
 /// The fewest flights with a part in a band whose sizes are published: an aggregate over one or
-/// two flights is a flight's own number (ADR-151).
+/// two flights is a flight's own number (ADR-349 §3's floor, under ADR-151's terms).
 pub(crate) const FLOOR: usize = 3;
 
 /// The largest difference, per cent of OpenRocket's apogee, between the flight on every band
@@ -425,7 +425,7 @@ impl DragBands {
     /// Whether the sizes are given: at least [`FLOOR`] flights are split by band, and each
     /// band's flights, the flights compared with a log, and the flights each row against the
     /// logs moves are none or at least [`FLOOR`]. It is all or nothing, since the bands sum to
-    /// the drag part: one band held back could be read off the others (ADR-151).
+    /// the drag part: one band held back could be read off the others (ADR-151: aggregates only).
     pub(crate) fn published(&self) -> bool {
         self.banded >= FLOOR
             && self.bands.iter().all(|band| none_or_floor(band.flights))
@@ -686,10 +686,11 @@ impl DragBands {
         );
         let _ = writeln!(
             page,
-            "\nEvery number is a share of OpenRocket's apogee, over the {} {} split by band, but \
-             for the column over the flights with a part in the band. A band dominates a flight \
-             when its part's absolute value is the largest of the three, the slower band if two \
-             tie.\n",
+            "\nEach percentage is a share of OpenRocket's apogee, over the {} {} split by band, \
+             but for the column over the flights with a part in the band. A band dominates a \
+             flight when its part's absolute value is the largest of the three, the slower band \
+             if two tie. The last column counts the flights where that absolute value is over \
+             {LARGE_PERCENT}%.\n",
             self.banded,
             flights(self.banded)
         );

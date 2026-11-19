@@ -1485,8 +1485,8 @@ This part goes back to [the gap between the two codes](#the-gap-between-the-two-
 and says at which speeds its drag part arises
 ([M1.14i1, the drag part by Mach band](decisions-and-roadmap.md#m1-14i1), [decision][adr-359]).
 It is for anyone asking where the two codes' drag differs, and it set what the project works
-on next. The largest share is below Mach 0.8. Like the split, the parts are code against
-code; a second table sets the bands beside the logs.
+on next. By mean absolute value, the largest share is below Mach 0.8. Like the split, the
+parts are code against code; a second table sets the bands beside the logs.
 
 The bands are in [Mach number](glossary.md#mach-number): below 0.8, from 0.8 to 1.2, and above
 1.2 ([report][fixture-report]). With thrust and mass already OpenRocket's, HPR Sim flies three
@@ -1500,7 +1500,8 @@ split's drag swap. Outside the bands swapped the drag stays HPR Sim's own.
 - A flight *has a part in* a band when that part is not zero. A flight that never reaches a
   band is the same flight before and after that band's swap, so its part there is exactly
   zero.
-- A band *dominates* a flight when its part's absolute value is the largest of the three.
+- A band *dominates* a flight when its part's absolute value is the largest of the three. The
+  table's last column counts the flights where that absolute value is over 1%.
 
 The three parts sum to the flight's drag part, and the run that writes the report stops on a
 flight where they don't. All 68 flights split are split by band ([report][fixture-report]).
@@ -1523,17 +1524,20 @@ What the rows say:
   them: 28 and 7.
 - **Below Mach 0.8 the sign varies from flight to flight.** The mean is +0.15% against a mean
   absolute 0.87% ([report][fixture-report]).
-- **Above Mach 1.2 HPR Sim's drag is the lower.** The band's mean and its mean absolute value
-  are both 0.23%, so its part is positive on each of the 7 flights, to that rounding
-  ([report][fixture-report]).
+- **Above Mach 1.2 HPR Sim's drag is the lower.** Over the 7 flights with a part in that band,
+  its mean and its mean absolute value are both 2.21%, and each of the 7 is over 1%. So its
+  part is positive on each of the 7 ([report][fixture-report],
+  [as data][fixture-report-json]).
 
 A band's part depends on the speed the slower bands' swaps leave the flight with. So each band
 is also swapped alone, first: on HPR Sim's own thrust and mass, with its own drag in the other
-two bands. The order matters little. Alone, the three bands' mean absolute parts are 0.87%,
-0.50% and 0.24% ([report][fixture-report]).
+two bands. Over the collection the two ways give sizes within 0.01 points of each other:
+alone, the three bands' mean absolute parts are 0.87%, 0.50% and 0.24%
+([report][fixture-report]).
 
-**Beside the logs.** The flights with one band swapped alone are set beside the logged apogees
-of the 60 flights compared. Each row is the apogee less the logged one, over the logged one. A
+**Beside the logs.** Four kinds of flight are set beside the logged apogees of the 60 flights
+compared: HPR Sim's own, HPR Sim's with one band swapped alone, HPR Sim's on OpenRocket's whole
+drag, and OpenRocket's own. Each row is the apogee less the logged one, over the logged one. A
 row *moves* a flight when its apogee is not that of HPR Sim's own flight. The last two columns
 count the moved flights that come nearer their log than HPR Sim's own flight, and the ones
 that go farther ([report][fixture-report]).
@@ -1547,9 +1551,9 @@ that go farther ([report][fixture-report]).
 | [OpenRocket's at every Mach number][fixture-report] | 60 | +6.85% | +6.33% | 11.27% | 33 | 27 |
 | [OpenRocket's own flight, for comparison][fixture-report] | 60 | +6.72% | +6.08% | 11.26% | 36 | 24 |
 
-- **On OpenRocket's whole drag, HPR Sim scores as OpenRocket does.** Its mean absolute error
-  is 11.27% against OpenRocket's own 11.26% ([report][fixture-report]). The difference between
-  the two codes' scores on these flights is in the drag.
+- **On OpenRocket's whole drag, HPR Sim's mean absolute error is OpenRocket's to 0.01
+  points:** 11.27% against 11.26%. Its mean stays above OpenRocket's, +6.85% against +6.72%,
+  and so does its median, +6.33% against +6.08% ([report][fixture-report]).
 - **The band below Mach 0.8 moves the score the most.** Its swap alone takes HPR Sim's mean
   absolute error from 12.04% to 11.65%. The band from Mach 0.8 to 1.2 takes it to 11.79%, and
   the one above Mach 1.2 to 11.86% ([report][fixture-report]).
@@ -1568,9 +1572,9 @@ those ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xta
 `the_public_flights_split_by_band`). From a clone, `cargo test -p xtask drag_bands` runs it,
 with neither OpenRocket nor the private flights.
 
-**What it decided.** No step of the accuracy work owned drag below Mach 0.8. One does now, and
-it goes next: [M1.14i, drag below Mach 0.8](decisions-and-roadmap.md#m1-14i)
-([decision][adr-359]). It first splits that band's part into friction, pressure and
+**What it decided.** The accuracy work's steps by Mach number began at Mach 0.8. A step for
+the band below it now exists, and it goes next:
+[M1.14i, drag below Mach 0.8](decisions-and-roadmap.md#m1-14i) ([decision][adr-359]). It first splits that band's part into friction, pressure and
 [base drag](glossary.md#base-drag), then holds the largest of them to a measurement. It does
 not make HPR Sim's drag OpenRocket's.
 
@@ -1718,6 +1722,7 @@ rest.
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json
 [steps]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one
 [scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md

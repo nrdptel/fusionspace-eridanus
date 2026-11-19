@@ -1,7 +1,7 @@
 # ADR-359: Drag below Mach 0.8 next: the drag part of the gap to OpenRocket, by Mach band (2026-11-19)
 
-- **Status:** accepted; adds [M1.14i][m1-14i] to [M1.14][m1-14] as three increments, [M1.14i1][m1-14i1], [M1.14i2][m1-14i2] and [M1.14i3][m1-14i3], each with its own *done when*; puts M1.14i ahead of [M1.14b][m1-14b]'s open increments, whose order among themselves stays [ADR-357][adr-357]'s and [ADR-358][adr-358]'s; no *done when* of M1.14 or of another increment changes
-- **Summary:** Split by the Mach number the drag acts at, the drag part of the gap to OpenRocket 24.12 on the private collection's 68 flights is largest below Mach 0.8: a mean absolute 0.87% of the apogee there, 0.50% from Mach 0.8 to 1.2 and 0.23% above Mach 1.2. Flown on OpenRocket's drag below Mach 0.8 alone, HPR Sim's mean absolute error against the 60 logged apogees falls from 12.04% to 11.65%; on its whole drag, to 11.27%, beside OpenRocket's 11.26%. No increment of M1.14 owned drag below Mach 0.8. M1.14i does, and goes next.
+- **Status:** accepted; adds [M1.14i][m1-14i] to [M1.14][m1-14] as three increments, [M1.14i1][m1-14i1], [M1.14i2][m1-14i2] and [M1.14i3][m1-14i3], each with its own *done when*; puts M1.14i ahead of [M1.14b][m1-14b]'s open increments, whose order among themselves stays [ADR-357][adr-357]'s and [ADR-358][adr-358]'s; [Release 0.3][m10-3]'s *done when* names M1.14i beside the increments it already names, a condition added; no other *done when* changes
+- **Summary:** Split by the Mach number the drag acts at, the drag part of the gap to OpenRocket 24.12 on the private collection's 68 flights is largest below Mach 0.8: a mean absolute 0.87% of the apogee there, 0.50% from Mach 0.8 to 1.2 and 0.23% above Mach 1.2. Flown on OpenRocket's drag below Mach 0.8 alone, HPR Sim's mean absolute error against the 60 logged apogees falls from 12.04% to 11.65%; on its whole drag, to 11.27%, beside OpenRocket's 11.26%. M1.14's increments by Mach number began at Mach 0.8. M1.14i is the band below it, and goes next.
 
 [m1-14]: ../decisions-and-roadmap.md#m1-14
 [m1-14b]: ../decisions-and-roadmap.md#m1-14b
@@ -14,6 +14,7 @@
 [m1-14i2]: ../decisions-and-roadmap.md#m1-14i2
 [m1-14i3]: ../decisions-and-roadmap.md#m1-14i3
 [m2-3c12]: ../decisions-and-roadmap.md#m2-3c12
+[m10-3]: ../decisions-and-roadmap.md#m10-3
 [m2-3c13]: ../decisions-and-roadmap.md#m2-3c13
 [adr-097]: 0097-a-cause-in-the-drag-sized-by-hpr-flying.md
 [adr-143]: 0143-the-operating-envelope-and-a-stop-rule-for.md
@@ -44,16 +45,18 @@ absolute value of 1.57% of OpenRocket's apogee. [The nose's line][m2-3c13]
 tangent-ogive nose. The rest of the drag part was not located.
 
 M1.14's increments divide the drag by Mach number. [M1.14c][m1-14c] is Mach 0.8 to 1.2 and
-[M1.14d][m1-14d] is Mach 1.2 to 2.5. None is drag below Mach 0.8. [M1.14b][m1-14b]'s open
+[M1.14d][m1-14d] is Mach 1.2 to 2.5. None is the band below Mach 0.8, though
+[M1.14f][m1-14f]'s list holds three drag items that act there: the base under power, laminar
+friction and interference ([ADR-143][adr-143], decision 6). [M1.14b][m1-14b]'s open
 increments, next in the order until this record, are tip-off, wind, a validation uncertainty
 and a second oracle. None of them acts on drag.
 
 The maintainer's plan of 2026-11-18 called for a measurement before any reordering: size the
 drag part by Mach band on the split's flights, and put the step that owns the largest band
 next, by a decision record. This is that record. Every figure below is in
-[the committed report][report] ([as data][report-json]), which `cargo xtask fixture-flights
---check` reproduces on the machine that holds the collection, and whose section a test holds to
-itself in CI.
+[the committed report][report] ([as data][report-json]), or is the difference of two that
+are. `cargo xtask fixture-flights --check` reproduces the report on the machine that holds the
+collection, and a test holds its section to itself in CI.
 
 **Decision.**
 
@@ -121,7 +124,8 @@ itself in CI.
      - a flight split that HPR Sim fails with a band swapped is counted, and at least half the
        flights split are split by band;
      - no size is given unless every aggregate is over no flights or at least three
-       ([ADR-151][adr-151]);
+       ([ADR-349][adr-349] decision 3's floor, under [ADR-151][adr-151]'s aggregates-only
+       terms);
      - tests hold the swap to OpenRocket's table inside its bands and to HPR Sim's own buildup
        outside them, bit for bit, hold the two public designs' bands to sum to their drag parts
        and pin them, and hold each count and size of the section on flights worked by hand;
@@ -183,33 +187,36 @@ itself in CI.
 
 **Consequences.**
 
-- The roadmap gains M1.14i, with M1.14i1 done and M1.14i2 next. M1.14b's tip-off default, wind
-  and uncertainty increments wait for M1.14i.
+- The roadmap gains M1.14i, with M1.14i1 done and M1.14i2 next. M1.14b's open increments wait
+  for M1.14i.
+- [Release 0.3][m10-3]'s *done when* asked for M1.14b to M1.14g, each met or ended by the stop
+  rule. It now asks the same of M1.14i.
 - The fixture report flies six more flights for each flight split.
 - **The stop rule.** M1.14i1 is a measurement that orders the work. It neither shrinks a
   measured error against an independent reference nor adds a reference, so under
   [ADR-143][adr-143]'s stop rule it does not count as progress. M1.14i2's *done when* asks for
   a measured reference so that it can.
-- The band swap is a tool of the report, in `xtask`. No flight a user runs changes, and every
-  other committed report reproduces unchanged.
+- The band swap is a tool of the report, in `xtask`. No library crate changes, so no flight a
+  user runs does.
 
 **What this leaves open.**
 
 - **The parts are code against code,** and the rows against the logs carry the logs' own
   errors. [The accuracy page][page] gives the limits.
 - **A band's edge is a step.** Outside the bands swapped the drag is HPR Sim's own, so the
-  coefficient steps from one program's to the other's at Mach 0.8 or 1.2. The order matters
-  little here: swapped alone, each band's mean absolute part is within 0.01 points of its
+  coefficient steps from one program's to the other's at Mach 0.8 or 1.2. Swapped alone, on
+  HPR Sim's own thrust and mass, each band's mean absolute part is within 0.01 points of its
   part swapped after the slower bands (0.87%, 0.50% and 0.24% against 0.87%, 0.50% and
-  0.23%).
+  0.23%). That is a match of the collection's aggregates, not of each flight.
 - **OpenRocket's coefficient is a table in Mach number** read along its own flight, power on
   and power off. It leaves out how OpenRocket's drag changes with the Reynolds number and the
   angle of attack away from that path, as [the split][m2-3c12] does.
-- **Above Mach 1.2 the 7 flights all have HPR Sim's drag the lower:** the band's mean and
-  its mean absolute part are both 0.23%. That is the opposite sign to
-  [the nose's line][m2-3c13], where HPR Sim's nose drag is the higher. The two are over
-  different flights and Mach numbers; [M1.14d][m1-14d] has both, with
-  [#222][i-222].
+- **Above Mach 1.2 the 7 flights all have HPR Sim's drag the lower:** over the 7, the band's
+  mean and its mean absolute part are both 2.21%, and each of the 7 is over 1%. That is the
+  opposite sign to [the nose's line][m2-3c13], where HPR Sim's nose drag is the higher. The
+  line is taken just past Mach 1: its 5 flights reach Mach 1.06 on average and none passes
+  Mach 1.3. This band starts at Mach 1.2 and holds the whole drag, not the nose alone.
+  [M1.14d][m1-14d] has both, with [#222][i-222].
 - **Candidates below Mach 0.8, none yet sized on these flights:** the base under power, where
   HPR Sim takes the burning motor's cross-section off the base and OpenRocket 24.12 keeps the
   whole base ([ADR-097][adr-097], [#633][i-633]); the base-drag rule itself ([#68][i-68]);

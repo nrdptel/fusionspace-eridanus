@@ -630,7 +630,7 @@ and at least one capability none of them has, checked against its docs with the 
   M7.2 and M7.3; each archive's smoke test reads a log with no design file; and a fit or residual
   of a flight that meets a condition on ADR-163 §4's list carries its warning.
 - [ ] **M10.3 Release 0.3: accuracy and diagnosis.** *Done when:* the checklist holds after M2.3c2,
-  M7.4, M7.5; with M2.7, M2.8 and M2.6 met; M1.14b to M1.14g each met or ended by ADR-143's stop
+  M7.4, M7.5; with M2.7, M2.8 and M2.6 met; M1.14b to M1.14g and M1.14i each met or ended by ADR-143's stop
   rule with its gaps in an ADR; and on the held-out flights all fly, HPR Sim's mean absolute error
   is below 24.12's and that of any OpenRocket release out before M2.7 is met (M2.3c3, ADR-212; a
   paired bootstrap interval reported, resampled by flight and by design, ADR-279), its absolute bias

@@ -177,7 +177,7 @@ Of the 68 flights split, 68 are split by band; on 0 HPR Sim failed a flight with
 | above Mach 1.2 | 7 | +0.23% | +0.00% | 0.23% | 2.21% | 7 | 7 |
 | the drag part | 68 | +0.58% | +0.44% | 1.57% |  |  |  |
 
-Every number is a share of OpenRocket's apogee, over the 68 flights split by band, but for the column over the flights with a part in the band. A band dominates a flight when its part's absolute value is the largest of the three, the slower band if two tie.
+Each percentage is a share of OpenRocket's apogee, over the 68 flights split by band, but for the column over the flights with a part in the band. A band dominates a flight when its part's absolute value is the largest of the three, the slower band if two tie. The last column counts the flights where that absolute value is over 1%.
 
 A band's part depends on the speed the slower bands' swaps leave the flight with. So each band is also swapped alone, first: on HPR Sim's own thrust and mass, with its own drag in the other two bands.
 

@@ -639,7 +639,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   ([the collection rechecked](decisions-and-roadmap.md#m2-3c5)). On the 68 flights both fly, the
   gap between the two codes is split by cause, and drag is the largest part on 59
   ([the split](accuracy.md#the-gap-between-the-two-codes-by-cause)). By Mach number, the
-  largest share of that drag difference is below Mach 0.8
+  largest share of that drag difference, in mean absolute value, is below Mach 0.8
   ([the bands](accuracy.md#the-drag-part-by-mach-band)). On the 5 that only just
   pass Mach 1 (1.06 on average) with a tangent-ogive nose, flying OpenRocket's nose pressure
   drag in HPR Sim lifts its apogee by 1.28% of OpenRocket's on average. That sizes a
