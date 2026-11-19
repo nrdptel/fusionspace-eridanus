@@ -601,13 +601,23 @@ is true for a tumble the simulator added, and a tumble opened at the split has `
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md)
 says why each part needs a device.
 
-The JSON's summary also gives each dropped part's own
-[opening shock](glossary.md#opening-load), in `body_max_descent_acceleration_m_s2`: one entry for
-each part, with its `body`, the `value` in m/s², and its `time_s` and `height_above_ground_m`. It
-is the largest drag of that part's own open devices over its mass. A tumble counts as a device.
-So a booster that tumbles from a fast split reads the tumble's drag there, which can be far above
-its parachute's opening later, and is as rough as the tumble. The flight's own figure,
-`max_descent_acceleration_m_s2`, is the sustainer's and leaves the dropped parts out
+The JSON's summary also gives each part's own [opening shock](glossary.md#opening-load) once it
+flies apart from the rocket, in `body_max_descent_acceleration_m_s2`. Each entry has the part's
+`body` number, the `value` in m/s², and its `time_s` and `height_above_ground_m`. A part with no
+device of its own open has no entry. The value is the largest drag of that part's own open
+devices over its own mass, so a booster's opening shock appears only in its own entry.
+
+The flight's figure, `max_descent_acceleration_m_s2`, is the stack's while it is whole and then
+the sustainer's. It never includes a dropped part. After a separation with no motor left to
+burn, the sustainer flies on as part 0 and has an entry of its own as well, for its flight after
+the split. The flight's figure counts that flight too, until an
+[ejection](glossary.md#ejection) parts the sustainer; part 0's entry goes on past it.
+
+A tumble counts as a device. So a booster that tumbles from a fast split reads the tumble's drag
+there, which can be above its parachute's opening later. That drag is far outside the speeds the
+tumble was fitted at, so it is no bound either way. A parachute that opens after such a tumble
+likely reads low, because the tumble slows the part more than a real booster slows. Like the
+flight's figure, a part's is not for sizing hardware
 ([how to read each part's figure](physics/recovery.md#the-opening-load)).
 
 **Several separations fly too, one after another, from the tail forward.** At each split the stages

@@ -4803,6 +4803,14 @@ mod tests {
             "{} in {open_s} + {fill_s}",
             shock.time_s
         );
+        // #1532: body 0's own figure is that top too, not the steps' ends alone, which would
+        // read it low.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(own[0].body, 0);
+        assert_eq!(
+            (own[0].value, own[0].time_s, own[0].height_above_ground_m),
+            (shock.value, shock.time_s, shock.height_above_ground_m)
+        );
     }
 
     #[test]

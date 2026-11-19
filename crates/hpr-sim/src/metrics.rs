@@ -397,19 +397,26 @@ pub struct FlightSummary {
     /// [`Self::body_max_descent_acceleration_m_s2`].
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// Each separated body's own opening shock, m/s², in body order: the largest specific force
-    /// under that body's own devices over its whole flight as a point mass, the drag of its open
-    /// devices over its mass, `½ ρ v² (C_D S) / m` ([`BodyStep::specific_force_enu_m_s2`]), found
-    /// inside its steps as the flight's is. The mass is the body's at that instant: a body that
-    /// lets a piece go at an ejection keeps its number ([`crate::BodyFlight::body`]), so its
-    /// figure is the largest from before the piece left or after, each over the mass it then
-    /// had. Body 0's can therefore be larger than the flight's
-    /// ([`Self::max_descent_acceleration_m_s2`]), which stops counting it at such an ejection. A
-    /// tumble ([`crate::DeviceDrag::tumbling_stages`]) is a device like any other: a part that
+    /// under that body's own devices over its whole flight as a point mass. That is the drag of
+    /// its open devices over its mass, `½ ρ v² (C_D S) / m` (`ρ` the air's density, `v` the
+    /// body's airspeed, `C_D S` its open devices' drag area, `m` its mass;
+    /// [`BodyStep::specific_force_enu_m_s2`]), found inside its steps as the flight's is.
+    ///
+    /// The mass is the body's at that instant. A body that lets a piece go at an ejection keeps
+    /// its number ([`crate::BodyFlight::body`]), so its figure is the largest from before the
+    /// piece left or after, each over the mass it then had. Body 0's can therefore be larger
+    /// than the flight's ([`Self::max_descent_acceleration_m_s2`]), which stops counting body 0
+    /// at such an ejection.
+    ///
+    /// A tumble ([`crate::DeviceDrag::tumbling_stages`]) is a device like any other. A part that
     /// tumbles from a fast split has the tumble's drag there, which can be above its canopy's
-    /// opening later, and is as rough as the tumble (`docs/physics/recovery.md`). A body that
-    /// never had a device of its own open has no entry, and what a body's devices did while it
-    /// was still part of the stack is the flight's, not here. Empty when nothing came apart,
-    /// and in a summary written before this field was.
+    /// opening later; that drag is far outside the tumble's fit, so it is no bound either way.
+    /// A canopy that opens after such a tumble likely reads low: the tumble slows the part more
+    /// than a real booster slows (`docs/physics/recovery.md`).
+    ///
+    /// A body that never had a device of its own open has no entry, and what a body's devices
+    /// did while it was still part of the stack is the flight's, not here. Empty when nothing
+    /// came apart, and in a summary written before this field was.
     #[serde(default)]
     pub body_max_descent_acceleration_m_s2: Vec<BodyPeak>,
     /// The largest airspeed at which a recovery device opened, m/s, with when and where: the
@@ -530,6 +537,8 @@ pub struct FlightMetrics {
     nose_descent_peaks: Vec<(f64, Peak)>,
     /// Each separated body's largest specific force under its own devices, by body number.
     body_descent_peaks: BTreeMap<usize, Peak>,
+    /// How many steps it saw of each separated body: that body's accepted steps, one each.
+    body_steps: BTreeMap<usize, u64>,
     max_deployment_airspeed: Option<Peak>,
     /// Whether any step was seen, and the last one's end.
     last_end_s: Option<f64>,
@@ -635,7 +644,9 @@ impl FlightMetrics {
     /// # Errors
     ///
     /// [`SimError::Domain`] if it didn't see each of `result`'s accepted steps once, or its last
-    /// step ended after `result` did (it watched another flight, or wasn't cleared between two);
+    /// step ended after `result` did (it watched another flight, or wasn't cleared between two),
+    /// or it didn't see each accepted step of each of `result`'s separated bodies once, or saw
+    /// a body `result` doesn't have;
     /// [`SimError::Core`] if a landing has no geodetic coordinates.
     pub fn summary(
         &self,
@@ -653,6 +664,25 @@ impl FlightMetrics {
                 what: "steps this watcher saw (it must watch each step of the flight it sums up, \
                        and be cleared before another)",
                 value: self.steps as f64,
+            });
+        }
+        // The same for each separated body, whose opening shock is read from its own steps: a
+        // body this watcher saw that the flight doesn't have, or a body's steps not all seen
+        // once, is another flight's.
+        let seen = |body: usize| self.body_steps.get(&body).copied().unwrap_or(0);
+        let stray = self
+            .body_steps
+            .keys()
+            .find(|body| !result.bodies.iter().any(|flown| flown.body == **body));
+        let miscounted = result
+            .bodies
+            .iter()
+            .find(|flown| seen(flown.body) != flown.stats.accepted_steps);
+        if let Some(body) = stray.copied().or(miscounted.map(|flown| flown.body)) {
+            return Err(SimError::Domain {
+                what: "steps this watcher saw of a separated body (it must watch each step of \
+                       every body of the flight it sums up, and be cleared before another)",
+                value: seen(body) as f64,
             });
         }
         // A stack that came apart at a separation on its way up has the apogee of the part that
@@ -949,14 +979,18 @@ impl Observer for FlightMetrics {
 
     /// Each body's opening shock: the largest of its specific force over each step (found as a
     /// stack's step is read), and the largest of those over its flight, the first of equals.
-    /// With no device of its own open the force is zero, and is not kept. A value that is not a
-    /// number is kept, and then nothing replaces it, so it can't hide behind a later number.
+    /// With no device of its own open the force is zero, and is not kept. A step's peak that is
+    /// not a number is kept, and then nothing replaces it. (A step's peak is not a number when
+    /// the force at its start is not one; body 0's list below, for the flight's figure, lets a
+    /// later number replace a first such value, so on one the two figures can differ.)
     ///
     /// Body 0's step peaks are also kept with the step's start for [`Self::summary`] to cut at
     /// an ejection, for the flight's own figure; a step's peak that doesn't beat the last one
     /// kept is not, since the summary takes the largest before a time and the first of equals.
-    /// A body's steps are not the flight's: they don't count toward the summary's check.
+    /// A body's steps are not the flight's: they are counted apart, by body, for the
+    /// summary's check.
     fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        *self.body_steps.entry(body).or_insert(0) += 1;
         let best = body_step_peak(step)?;
         if best.value > 0.0 || best.value.is_nan() {
             self.body_descent_peaks
@@ -2415,6 +2449,83 @@ mod tests {
     }
 
     #[test]
+    fn a_summary_refuses_separated_bodies_steps_from_another_flight() {
+        // #1532, found in review: each body's opening shock is read from that body's own steps,
+        // which the stack's step count doesn't cover. A watcher that saw the steps of a body the
+        // flight doesn't have, or not each step of a body it has, is refused, not summed up
+        // with another flight's figures.
+        let refused = |summary: Result<FlightSummary, SimError>, steps: u64| match summary {
+            Err(SimError::Domain { what, value }) => {
+                assert!(
+                    what.starts_with("steps this watcher saw of a separated body"),
+                    "{what}"
+                );
+                assert_eq!(value, steps as f64);
+            }
+            other => panic!("{other:?}"),
+        };
+        let sim = valetudo(Environment::standard(site()).unwrap(), capped(20.0));
+        let (result, metrics) = fly(&sim);
+        assert!(result.bodies.is_empty());
+        metrics.summary(&result, sim.environment()).unwrap();
+        let step = LoadStep {
+            span: (1.0, 2.0),
+            force_m_s2: 30.0,
+        };
+        // A body the flight doesn't have: one step of it is enough.
+        let mut stray = metrics.clone();
+        stray.body_step(1, &step).unwrap();
+        refused(stray.summary(&result, sim.environment()), 1);
+        // A flight with a body, whose steps the watcher saw none of, then one too few, then
+        // each once, then one twice.
+        let mut flown = result.clone();
+        let at = crate::BodySample {
+            time_s: 1.0,
+            cg_enu_m: DVec3::ZERO,
+            cg_velocity_enu_m_s: DVec3::ZERO,
+            height_above_ground_m: 999.0,
+            vertical_speed_m_s: -1.0,
+            airspeed_m_s: 1.0,
+            recovery_drag_area_m2: 1.0,
+            mass_kg: 1.0,
+        };
+        flown.bodies.push(crate::BodyFlight {
+            body: 1,
+            stages: (1, 1),
+            pieces: vec![1],
+            mass_kg: 1.0,
+            start_sample: at,
+            termination: Termination::TimeCap,
+            events: Vec::new(),
+            final_sample: at,
+            stats: crate::Stats {
+                accepted_steps: 2,
+                ..crate::Stats::default()
+            },
+            impulse_left_n_s: 0.0,
+        });
+        refused(metrics.summary(&flown, sim.environment()), 0);
+        let mut watched = metrics.clone();
+        watched.body_step(1, &step).unwrap();
+        refused(watched.summary(&flown, sim.environment()), 1);
+        watched.body_step(1, &step).unwrap();
+        let summary = watched.summary(&flown, sim.environment()).unwrap();
+        assert_eq!(
+            summary
+                .body_max_descent_acceleration_m_s2
+                .iter()
+                .map(|peak| (peak.body, peak.value))
+                .collect::<Vec<_>>(),
+            [(1, 30.0)]
+        );
+        watched.body_step(1, &step).unwrap();
+        refused(watched.summary(&flown, sim.environment()), 3);
+        // Cleared, the watcher holds no body's steps.
+        watched.clear();
+        assert!(watched.body_steps.is_empty() && watched.body_descent_peaks.is_empty());
+    }
+
+    #[test]
     fn each_bodys_own_shock_is_its_largest_step_peak_and_a_nan_stays() {
         // #1532: each separated body's own figure is the largest of its steps' peaks, the first
         // of equals, kept by body number whatever order the bodies step in. A body whose steps
@@ -2446,8 +2557,8 @@ mod tests {
             ]),
             [(0, 30.0, 1.0), (2, 40.0, 2.0)]
         );
-        // A value that is not a number is kept, first or later, and then nothing replaces it:
-        // a larger number after it can't hide it.
+        // A step's peak that is not a number is kept, first or later, and then nothing replaces
+        // it: a larger number after it can't hide it.
         for loads in [
             &[(1, f64::NAN), (1, 50.0)][..],
             &[(1, 20.0), (1, f64::NAN), (1, 50.0)][..],

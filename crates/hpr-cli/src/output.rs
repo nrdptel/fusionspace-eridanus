@@ -1163,10 +1163,10 @@ pub struct Summary {
     /// order: the top drag of its own open recovery devices over its mass at that instant. A
     /// part that lets a piece go at an ejection keeps its index, and its figure is the larger
     /// of before and after. A tumble counts as a device: a part that tumbles from a fast split
-    /// has the tumble's drag there, which can be above its parachute's opening later and is as
-    /// rough as the tumble. A part with no device of its own open has no entry; empty when
-    /// nothing came apart. What a device did while the rocket was still whole is in
-    /// `max_descent_acceleration_m_s2`.
+    /// has the tumble's drag there, which can be above its parachute's opening later and is no
+    /// bound either way, and a parachute that opens after such a tumble likely reads low. A
+    /// part with no device of its own open has no entry; empty when nothing came apart. What a
+    /// device did while the rocket was still whole is in `max_descent_acceleration_m_s2`.
     pub body_max_descent_acceleration_m_s2: Vec<BodyPeak>,
     /// The top airspeed at which a recovery device on the stack, or on the part that keeps the
     /// nose, opened, m/s: the speed the opening load follows. `null` when none opened.

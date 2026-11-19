@@ -1041,6 +1041,26 @@ mod tests {
             .time_s;
         assert_eq!(opened_s, charge_s);
         assert_eq!(summary.max_descent_acceleration_m_s2, None);
+        // Each piece has its own figure all the same (#1532). The cone's is its canopy's drag
+        // over the cone's own mass as the charge fires, `q C_D S / m`. The airframe's canopy
+        // opens at the airframe's own apogee, at rest in the calm air, so its figure is its
+        // steady fall's, one g.
+        let own = &summary.body_max_descent_acceleration_m_s2;
+        assert_eq!(own.iter().map(|peak| peak.body).collect::<Vec<_>>(), [0, 1]);
+        let fired = result.event(EventKind::Ejection(0)).unwrap().sample;
+        let cone = nose.final_sample;
+        assert!(cone.mass_kg < 0.5 * fired.mass_kg, "{cone:?}");
+        let rho = UniformAir::sea_level().0.density_kg_m3;
+        let cone_per_kg =
+            0.5 * rho * fired.airspeed_m_s.powi(2) * cone.recovery_drag_area_m2 / cone.mass_kg;
+        assert!(cone_per_kg > 5.0 * G, "{cone_per_kg}");
+        assert!(
+            (own[0].value / cone_per_kg - 1.0).abs() < 1e-9,
+            "{} vs {cone_per_kg}",
+            own[0].value
+        );
+        assert_eq!(own[0].time_s, charge_s);
+        assert!((own[1].value / G - 1.0).abs() < 0.01, "{}", own[1].value);
 
         // The nose's canopy, fired by the charge but opening 0.5 s after it, would leave the
         // nose climbing through the lag with no drag: refused at the charge (M4.6a's review).
