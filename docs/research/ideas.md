@@ -66,7 +66,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-14)
+## Earlier planning reviews (2026-10-08 to 2026-11-16)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -85,49 +85,48 @@ review's four ([ADR-319][adr-319]) went to avionics and clubs. The 2026-11-08 re
 promoted, twelve public flights with predictions first, is [M2.3d][m2-3d]. The 2026-11-11 review's
 four ([ADR-338][adr-338]) went there too; the milestone it promoted, descent rates against the
 logs, is [M2.12][m2-12]. The 2026-11-14 review's four ([ADR-347][adr-347]) went there too; the
-milestone it promoted, landing points against the tracked landings, is [M2.13][m2-13].
+milestone it promoted, landing points against the tracked landings, is [M2.13][m2-13]. The
+2026-11-16 review's three ([ADR-352][adr-352]) went there too; its milestone, the speed off the
+rail against the accelerometer logs, is [M2.14][m2-14].
 
-## The 2026-11-16 planning review
+## The 2026-11-19 planning review
 
-Placed with [ADR-352][adr-352], which promotes the first; the other three are SOON.
+Placed with [ADR-360][adr-360], which promotes the first; the other three are SOON.
 
-- PROMOTED ([M2.14][m2-14]): speed off the rail against the accelerometer logs, predictions
-  first. User: a flyer or a range safety officer judging whether a rocket leaves its rail fast
-  enough. Workflow: the analyzer reads each log's speed after the rail's travel; the report
-  sets the prediction merged beforehand against it. Moves: new rows `accuracy.rail-exit`
-  and `bias.rail-exit`, too fast the flattering side. *Done when:* [M2.14][m2-14]'s.
-- SOON: the collection flown as built. User: a flyer whose design file has no rail buttons and
-  the smoothest finish. Another simulator's notes give its apogees on seven weighed, logged
-  kit flights as 13.8% high "as their design files are set up (polished, no rail buttons)"
-  and 3.5% off with regular paint and rail buttons, and say what the rockets really had isn't
-  recorded ([its validation page][prfl-val], read 2026-11-16). HPR Sim's apogees on the
-  private collection run +7.72% high on average ([scoreboard][score]). Workflow: the fixture
-  report counts the flown designs with no rail guide and those at the smoothest finish, then
-  flies each again with guides sized by a rule fixed beforehand and a named painted finish.
-  Moves: `bias.collection`, as a shown diagnosis, never the scored cell: a changed default is
-  a correction of another form, which [ADR-346][adr-346] makes a new decision, judged on
-  flights predicted first. *Done when:* the guide rule and the finish's roughness are merged
-  with their sources before the second flights are flown; the report gives the two counts
-  and the mean signed and absolute errors both ways, on each half and on the public flights;
-  and it gives the share of the bias the two explain with a paired bootstrap 95% interval.
-- SOON: an accelerometer's climb against its own barometer. User: a flyer reading a top speed
-  or an acceleration from a logger, and a reader weighing [M2.14][m2-14]'s readings. The
-  analyzer takes an accelerometer's scale as known to 10%; the same notes say one logger
-  family's "read 12–21% low against a second recorder on the same flights". Workflow: for
-  each log of the collection with both channels, the analyzer sets the height its summed
-  acceleration gives at burnout against the barometer's, and the report gives that ratio by
-  logger family. Moves: `accuracy.rail-exit`, through the width of its readings: the scale
-  measured, not assumed. *Done when:* a test pins the ratio on a synthetic log with a known
-  scale error; the report gives each family's median ratio and 90% range with its count, for
-  families with five flights or more, and all together; and the analyzer's 10% is kept or
-  changed by a decision record that cites the measured spread.
-- SOON: how fast the thrust comes up. User: a flyer of a heavy rocket on a slow-lighting
-  motor. Workflow: the analyzer reads, from a log sampled at 400 Hz or faster, the time from
-  first motion to half the acceleration's first peak, and the fixture report sets it against
-  the same time in the simulated flight. Moves: `accuracy.rail-exit`, as a diagnosis.
-  *Done when:* the reading is checked on synthetic boosts with a known rise; the report gives
-  the median difference in seconds with its count, overall and for each propellant with five
-  flights or more, and its rank correlation with the rail-exit error with a 95% interval.
+- PROMOTED ([M2.15][m2-15]): drag in the coast against the accelerometer logs, predictions
+  first, for HPR Sim and OpenRocket 24.12. User: a flyer, or a team's simulation lead, whose
+  apogee came out high and who asks whether the drag or the motor is off. Workflow: the analyzer
+  reads each log's drag area over mass below Mach 0.8 from the coasting accelerometer; the report
+  sets both programs' predictions, merged beforehand, against it. Moves: new rows
+  `accuracy.coast-drag` and `bias.coast-drag`, drag too low the flattering side. *Done when:*
+  [M2.15][m2-15]'s.
+- SOON: the impulse a motor delivered, read from its boost. User: a flyer whose rocket fell
+  short on a motor they trust. The apogee fit put the collection's bias on the thrust, an
+  impulse scale of 0.94 ([ADR-348][adr-348]), with no reading of the thrust itself. Workflow:
+  over the burn, the thrust is the mass times the accelerometer's specific force plus the drag;
+  the analyzer sums it, with the plan's mass less the propellant the motor file has burned and
+  the drag from [M2.15][m2-15]'s coast reading at the same speeds, and the fixture report sets
+  that impulse against the motor file's. Moves: `bias.collection`, as a diagnosis of its thrust
+  part. *Done when:* the reading holds a synthetic boost's impulse in its 90% interval on at
+  least 90% of a set of 200; the report gives delivered over rated impulse, median and 90% range
+  with counts, for each maker with five flights or more and for all together.
+- SOON: the coast's drag from a barometer alone. User: a flyer whose altimeter logs pressure and
+  no acceleration; 35 of the collection's 83 flights have no acceleration column in the catalog
+  ([ADR-352][adr-352]'s 48 of 83). Workflow: the analyzer reads the drag over the mass from the
+  barometer's height over the coast below Mach 0.8, its second derivative and gravity resolved
+  along the path, with the path's angle in its interval. Moves: `accuracy.coast-drag`, over more
+  flights. *Done when:* the reading passes [M2.15a][m2-15a]'s three lines on synthetic coasts;
+  on the flights with both channels, the share whose barometer reading lies inside the
+  accelerometer's interval is given with its count; the rows give each kind's flights apart.
+- SOON: the collection's errors with each source counted once. User: a reader asking whether
+  the +7.72% bias is the model's or a few clubs' habits. 15 of the 19 flights whose charge fired
+  or that split before the peak come from 2 of 16 sources ([apogee bias](apogee-bias.md)).
+  Workflow: beside each flight-weighted mean, the fixture report gives the mean over sources,
+  each source's flights averaged first, with a 95% interval from a bootstrap that resamples
+  sources, for both programs. Moves: `accuracy.collection` and `bias.collection`, as shown
+  figures beside the held ones. *Done when:* a test pins the weighting on a synthetic set where
+  one source of ten flights carries the flight-weighted mean; the report gives both means and
+  their intervals for both programs; the accuracy page says which one the held cell reads.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -195,6 +194,7 @@ Placed with [ADR-352][adr-352], which promotes the first; the other three are SO
 [m2-13]: ../decisions-and-roadmap.md#m2-13
 [adr-352]: ../decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md
 [m2-14]: ../decisions-and-roadmap.md#m2-14
-[adr-346]: ../decisions/0346-m7-5-in-three-the-rule-before-the-fit.md
-[prfl-val]: https://github.com/dustintlee-blahblah/PocketRocketFlightLab/blob/main/VALIDATION.md
-[score]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
+[adr-360]: ../decisions/0360-the-2026-11-19-review-drag-in-the-coast-held-to-accelerometer-logs-predictions-first.md
+[m2-15]: ../decisions-and-roadmap.md#m2-15
+[m2-15a]: ../decisions-and-roadmap.md#m2-15a
+[adr-348]: ../decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md
