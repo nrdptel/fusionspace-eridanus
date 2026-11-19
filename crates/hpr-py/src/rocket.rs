@@ -183,8 +183,8 @@ impl Rocket {
     /// default is refused, with their ids, and so is one with none.
     ///
     /// The stages of a design fly as one stack: no stage drops away. A configuration that lights
-    /// a motor at its stage's separation, as a rocket's JSON can, is refused, as `hpr sim`
-    /// refuses it: flown whole, that motor would never light.
+    /// a motor at its stage's separation, as a rocket's JSON or an HPR design can, is refused, as
+    /// `hpr sim` refuses it: flown whole, that motor would never light.
     ///
     /// With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
     /// (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
@@ -852,9 +852,9 @@ fn ork_configuration(
 /// Refuses `configuration` of `design` when one of its motors lights at its stage's separation,
 /// as `hpr sim` refuses it (the [decision that `hpr sim` flies the stack][adr-106], §4). The Python
 /// package flies no separation, so the stack would fly whole and that motor would never light:
-/// the apogee would read low, with no warning (#1238). A rocket's JSON, which stores no
-/// separation at all, is the file that reaches this; a `.ork` file or an HPR design that
-/// separates is refused before it, in [`ork_configuration`].
+/// the apogee would read low, with only a line in the notes to say so (#1238). A rocket's JSON
+/// reaches this, and so does an HPR design whose rocket's configurations say so. A `.ork` file's
+/// powered separation is refused before it, in [`ork_configuration`].
 ///
 /// [adr-106]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0106-hpr-sim-flies-the-librarys-flight-the-stack.md
 fn separation_lit(
@@ -874,8 +874,8 @@ fn separation_lit(
     match lit_by_separation {
         Some(motor) => Err(error(format!(
             "{}: configuration {configuration} lights {} at its stage's separation, which the \
-             Python package doesn't fly yet; the Rust library does, as its two-stage examples \
-             show. Name a configuration whose motors all light without a separation",
+             Python package doesn't fly yet; the Rust library does, with a separation given to \
+             the flight. Name a configuration whose motors all light without a separation",
             path.display(),
             motor.designation
         ))),

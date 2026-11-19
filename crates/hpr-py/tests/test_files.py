@@ -322,10 +322,10 @@ def test_a_powered_separation_is_refused(repo, tmp_path):
 
 
 def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_path, hpr_cli):
-    # #1238: the staging page's example, the two-stage test design with its sustainer's I175 lit
-    # 0.5 s after the stages come apart. The Python package flies a stack whole, so that motor
-    # would never light and the apogee would read low, the side that flatters a waiver. `hpr sim`
-    # refuses the same file; so does `from_file`, naming the motor.
+    # #1238: the two-stage test design with its sustainer's I175 lit 0.5 s after the stages come
+    # apart, in the form the staging page's ignition table gives. The Python package flies a
+    # stack whole, so that motor would never light and the apogee would read low, the side that
+    # flatters a waiver. `hpr sim` refuses the same file; so does `from_file`, naming the motor.
     source = repo / "validation/designs/synthetic-two-stage-75mm-54mm.json"
     design = json.loads(source.read_text(encoding="utf-8"))
     (configuration,) = design["configurations"]
@@ -343,8 +343,8 @@ def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_pat
     # Left to the file's only configuration, the same.
     with pytest.raises(hpr.HprError, match=re.escape(message)):
         hpr.Rocket.from_file(staged)
-    # `hpr sim` refuses the same file in the same words, but for who doesn't fly it. It names
-    # the configuration by its name, where Python names it by the id a caller passes.
+    # `hpr sim` refuses the same file, with the same first clause but for who doesn't fly it. It
+    # names the configuration by its name, where Python names it by the id a caller passes.
     command = [str(hpr_cli), "sim", str(staged), "--offline"]
     done = subprocess.run(command, capture_output=True, text=True, check=False)
     assert done.returncode != 0, done.stdout
@@ -364,6 +364,23 @@ def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_pat
     staged.write_text(json.dumps(design), encoding="utf-8")
     chained = hpr.Rocket.from_file(staged)
     assert any("lit by another's burnout lights on the whole stack" in n for n in chained.notes)
+    # An HPR design holds the rocket's configurations too. One edited to light its motor at a
+    # separation is refused the same way, though the design has one stage and nothing to drop.
+    source = repo / "crates/hpr-format/fixtures/embedded-curve-0.1.hpr"
+    document = json.loads(source.read_text(encoding="utf-8"))
+    (configuration,) = document["rocket"]["configurations"]
+    (motor,) = configuration["motors"]
+    assert "ignition" not in motor
+    assert hpr.Rocket.from_file(source).configuration == configuration["id"]
+    motor["ignition"] = {"separation": {"delay_s": 0.5}}
+    edited = tmp_path / "edited.hpr"
+    edited.write_text(json.dumps(document), encoding="utf-8")
+    refusal = (
+        f"edited.hpr: configuration {configuration['id']} lights {motor['designation']} at its "
+        "stage's separation, which the Python package doesn't fly yet"
+    )
+    with pytest.raises(hpr.HprError, match=re.escape(refusal)):
+        hpr.Rocket.from_file(edited)
 
 
 def test_an_ork_configuration_that_is_not_there(repo, tmp_path):
