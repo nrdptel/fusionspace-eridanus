@@ -365,24 +365,25 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - **Guided** is the phase off on a rail longer by the distance between the buttons: the \
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
          it.\n\
-         - **Rocket** is the example's design id. The two Calisto ids end in the motor's position \
-         in meters, as the example places it (`minus-1.255` is −1.255 m): one rocket at two motor \
-         positions.\n\
+         - **Rocket** is the design's id. The two Calisto ids end in the motor's position in \
+         meters, in the rocket's own coordinates as its RocketPy source sets it (`minus-1.255` is \
+         −1.255 m): one rocket at two motor positions.\n\
          - **Rail** is the rail's length and its angle above the horizontal.\n\
          - **Moved** is the phase on less the other flight: the phase-on figure minus the \
          other's. *On less off* takes the phase off from the phase on, and *on less guided* takes \
          the guided flight. A landing point's move is the distance between the two landing \
          points, in meters and as a share of the other flight's apogee. **Farther from the pad** \
          is how much farther from the pad the rocket lands with the phase on, negative when it \
-         lands nearer. **Apogee point moved** is the distance between the two flights' apogee \
-         positions.\n\
-         - **Where the lower button leaves:** the angle between the rocket's axis and the \
+         lands nearer. **Apogee point moved** is the distance across the ground between the two \
+         flights' apogee points; their heights are in **Apogee moved**.\n\
+         - **Where the lower button leaves:** the rocket's speed with the phase on, the angle \
+         between the rocket's axis and the \
          rail's, its part below the rail's line in the rail's vertical plane (nose down), and \
          the turning rate across the rocket's axis (pitch and yaw together).\n\
          - **The bars** are [the plan's]({PLAN}): a tip-off model is called for when the phase \
          moves any apogee by more than {}%, or any landing point by more than {}% of the apogee.\n\
-         - **A declared change** is a flight the oracle flies unlike the others, with the change \
-         and its reason stated.\n",
+         - **A declared change** is a flight whose RocketPy inputs differ from the other \
+         flights', with the change and its reason stated.\n",
         fixed(APOGEE_BAR_PERCENT, 0),
         fixed(LANDING_BAR_PERCENT_OF_APOGEE, 0),
     );
@@ -430,6 +431,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                     .ok_or("a declared change with no probe")?;
                 let declared = declared.as_str().ok_or("`declared` is not text")?;
                 // The oracle states the change, then its reason, after a colon.
+                let declared = declared.trim_end_matches('.');
                 let (change, reason) = declared.split_once(": ").unwrap_or((declared, ""));
                 let _ = writeln!(
                     w,
@@ -690,7 +692,8 @@ mod tests {
     }
 
     /// The committed page states the declared change, its reason and the probe as three lines,
-    /// links RocketPy's pull requests and the plan, and defines every column the reader meets.
+    /// links RocketPy's pull requests and the plan, and defines before its reading the terms a
+    /// reader could not guess: Rocket, Rail, Apogee point moved, on less off and a declared change.
     #[test]
     fn the_page_splits_the_declared_change_and_defines_its_terms() {
         let page = markdown(&committed()).unwrap();
@@ -943,6 +946,51 @@ mod tests {
             format!(
                 "lands {}",
                 with_feet(num(&juno["moved_from_guided"], "landing_range_m"), 1, 0)
+            ),
+            {
+                // The flights where the guided rocket lands farther from the pad: three, all in
+                // the crosswind, by the range the page gives.
+                let nearer: Vec<(f64, &str)> = list(flown, "cases")
+                    .unwrap()
+                    .iter()
+                    .flat_map(|case| list(case, "winds").unwrap())
+                    .map(|wind| {
+                        (
+                            num(&wind["moved_from_guided"], "landing_range_m"),
+                            wind["wind"].as_str().unwrap(),
+                        )
+                    })
+                    .filter(|(range, _)| *range < 0.0)
+                    .collect();
+                assert_eq!(nearer.len(), 3);
+                assert!(nearer.iter().all(|(_, wind)| *wind == "crosswind"));
+                let least = nearer.iter().map(|(r, _)| -r).fold(f64::INFINITY, f64::min);
+                let most = nearer.iter().map(|(r, _)| -r).fold(0.0, f64::max);
+                format!(
+                    "In the other three all in the crosswind the guided rocket lands {} to {} m \
+                     ({} to {} ft) farther from the pad",
+                    fixed(least, 1),
+                    fixed(most, 1),
+                    fixed(least / 0.3048, 0),
+                    fixed(most / 0.3048, 0)
+                )
+            },
+            {
+                let range_m = num(
+                    &wind_of("ndrt-2020-nose-to-tail", "still")["moved_from_guided"],
+                    "landing_range_m",
+                );
+                assert_eq!(fixed(range_m, 1), "0.0");
+                "which the report's table rounds to zero".to_owned()
+            },
+            {
+                let guided_rate = at(&juno["guided_to_lower_button"], "pitch_rate_deg_s");
+                assert_eq!(fixed(guided_rate, 2), "0.00");
+                "guided it isn't turning".to_owned()
+            },
+            format!(
+                "unrounded the apogee moves by {}",
+                with_feet(-num(&juno["moved_from_guided"], "apogee_m"), 2, 1)
             ),
         ];
         for fragment in &expected {

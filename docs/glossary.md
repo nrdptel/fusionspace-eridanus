@@ -972,8 +972,8 @@ Rail exit is the moment the rocket leaves the launch rail and starts to fly free
 velocity is its speed then. HPR Sim keeps the rocket guided until the aft edge of its aft-most rail
 button or launch lug passes the top of the rail. RocketPy stops guiding it at the forward button. The rocket
 leaves with no rotation, since [tip-off](#tip-off) is left out unless a flight asks for it;
-with it, the rocket leaves turning slightly. Leaving it out costs up to 3.765% of the apogee in
-the landing point, against RocketPy's tip-off phase
+with it, the rocket leaves turning slightly. Against RocketPy's tip-off phase, leaving tip-off
+out moves the landing point by up to 3.765% of the apogee
 ([what leaving tip-off out costs](physics/flight.md#what-leaving-tip-off-out-costs)). The slower the exit in a
 crosswind, the larger the [angle of attack](#angle-of-attack) just after it, where HPR Sim's models
 are least trustworthy. See [Rigid-body flight](physics/flight.md#phases).

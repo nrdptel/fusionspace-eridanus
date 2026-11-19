@@ -879,7 +879,7 @@ its tolerances. [Accuracy][accuracy] gives every result.
 ### What leaving tip-off out costs
 
 HPR Sim flies without tip-off unless a flight asks for it ([Tip-off](#tip-off)). RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
-the landing point and 0.414% in the apogee. It flew thirteen example designs. Both are measured
+the landing point and 0.414% in the apogee. RocketPy flew thirteen example designs. Both are measured
 from a rocket held straight to its last guide, as HPR Sim holds it. The landing point moves
 farther from the pad in most flights, and the largest apogee move is down. That is one code
 against another: the phase is in RocketPy's development branch, in no release, and no flight
@@ -900,7 +900,7 @@ with no turning rate.
   [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
   public designs built from its examples, on its own inputs. They are twelve rockets, with
   Calisto at two motor positions; a Calisto id in the report ends in the motor's position in
-  meters. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
+  meters, in the rocket's own coordinates as its RocketPy source sets it. Each flies from its example's rail on a constant drag coefficient of 0.5. It flies
   in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading.
 - **Three ways.** With the phase off, RocketPy frees the rocket where its forward button
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
@@ -916,13 +916,13 @@ with no turning rate.
     Juno III in the crosswind.
   - With the phase on, the rocket lands farther from the pad in 23 of the 26 flights. One of
     them, the vertical rail's in still air, moves by 6 mm (0.2 in), which the report's table
-    rounds to 0.0 m (0.0 ft). In those 23, a rocket guided to its last button lands nearer the pad than
+    rounds to zero. In those 23, a rocket guided to its last button lands nearer the pad than
     one that pivots. For a landing-area estimate that understates how far the rocket travels:
     the flattering side. In the other three, all in the crosswind, the guided rocket lands
     0.3 to 3.6 m (1 to 12 ft) farther from the pad.
 - **The pivot itself is small.** With the phase on, a rocket leaves its last button turning
   at up to 2.38 deg/s, its axis at most 0.083° off the rail's.
-- **The plan's rule** set the phase on against the phase off. That moves 9 of the 26 landing
+- **[The plan's rule][adr-351]** set the phase on against the phase off. That moves 9 of the 26 landing
   points by more than 1% of the apogee, by up to 4.585%, and one apogee by +1.165%. Part of
   that is RocketPy's early release and not the pivot. Bella Lui, freed at its forward button
   in the crosswind, has turned into the wind at 15.78 deg/s by the time its last button
@@ -932,8 +932,8 @@ with no turning rate.
   after the forward one. With the phase on, gravity has it turning nose-down at 2.26 deg/s
   by then, its axis 0.079° off the rail's line; guided, it isn't turning. Guided, it reaches
   2,623.9 m (8,609 ft). With the phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m
-  (300 ft) farther from the pad. Each figure is rounded on its own: the apogee moves by
-  10.86 m (35.6 ft), which the report rounds to −10.9 m (−36 ft).
+  (300 ft) farther from the pad. Each figure is rounded on its own; unrounded, the apogee moves by
+  10.86 m (35.6 ft).
 - **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
   a real button has play in its slot. The guided flight frees the rocket at its last
   button's position, and HPR Sim half a button's length later, at the button's aft edge. The
@@ -1018,6 +1018,7 @@ held and what stays open.
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [adr-021]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md
+[adr-351]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [adr-357]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
 [tip-off]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off.md
 [tip-off-model]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off-model.md
