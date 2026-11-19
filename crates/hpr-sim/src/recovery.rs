@@ -4222,6 +4222,108 @@ mod tests {
     }
 
     #[test]
+    fn a_nose_cone_ejected_on_the_climb_after_a_split_leaves_the_summary_no_apogee() {
+        // #1531: after the split, the part that keeps the nose pushes off its nose cone. From
+        // that charge on, body 0 is the nose cone alone, so an apogee body 0 reaches after it is
+        // the cone's, under its own canopy, not the rocket's: the summary has none, as it has
+        // none when an ejection parts the stack itself on the climb (ADR-165). An apogee the
+        // part reaches whole, at the charge or before it, stays the flight's.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.0;
+        let flight = |charge: Option<Trigger>| {
+            let fires = charge.unwrap_or(Trigger::Apogee);
+            let devices = vec![
+                Device::new("nose cone", DeviceDrag::DragArea { cd_s_m2: 0.3 }, fires),
+                Device::new(
+                    "booster",
+                    DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                    Trigger::Apogee,
+                )
+                .on_body(1),
+                Device::new("airframe", DeviceDrag::DragArea { cd_s_m2: 1.0 }, fires).on_body(2),
+            ];
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                // With no charge the part comes down whole: its third device has no body.
+                devices
+                    .into_iter()
+                    .take(if charge.is_some() { 3 } else { 2 })
+                    .collect(),
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            );
+            let sim = match charge {
+                Some(charge) => sim
+                    .with_ejections(vec![crate::Ejection::aft_of(charge, "nose")])
+                    .unwrap(),
+                None => sim,
+            };
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            let mut metrics = crate::metrics::FlightMetrics::new();
+            let result = sim.run_free(split_s, start, &mut metrics).unwrap();
+            assert_eq!(result.termination, Termination::Separated);
+            // The stack only split, on its way up: an ejection is body 0's own.
+            assert!(result.event(EventKind::Apogee).is_none());
+            assert!(
+                !result
+                    .events
+                    .iter()
+                    .any(|event| matches!(event.kind, EventKind::Ejection(_)))
+            );
+            let summary = metrics.summary(&result, sim.environment()).unwrap();
+            let nose = result.bodies.iter().find(|body| body.body == 0).unwrap();
+            let apogee = nose.event(EventKind::Apogee).unwrap().sample;
+            let ejected = nose.event(EventKind::Ejection(0)).map(|event| event.sample);
+            (summary, apogee, ejected)
+        };
+        // The part that keeps the nose, whole to its apogee: the flight's apogee.
+        let (whole_summary, whole, none) = flight(None);
+        assert!(none.is_none());
+        let whole_apogee = whole_summary.apogee.unwrap();
+        assert_eq!(whole_apogee.time_s, whole.time_s);
+        assert_eq!(
+            whole_apogee.height_above_ground_m,
+            whole.height_above_ground_m
+        );
+
+        // The charge fires 5 s after the split, the part still climbing fast. The nose cone,
+        // light under its canopy, stops well short of where the whole part would have coasted.
+        let (summary, cone, ejected) = flight(Some(Trigger::Time {
+            time_s: split_s + 5.0,
+        }));
+        let ejected = ejected.unwrap();
+        assert!(ejected.vertical_speed_m_s > 30.0, "{ejected:?}");
+        assert!(cone.time_s > ejected.time_s, "{cone:?} {ejected:?}");
+        assert!(
+            cone.height_above_ground_m < whole.height_above_ground_m - 50.0,
+            "{} vs {}",
+            cone.height_above_ground_m,
+            whole.height_above_ground_m
+        );
+        assert_eq!(summary.apogee, None);
+
+        // A charge at the part's own apogee, or 3 s after it, parts it once it has peaked: the
+        // apogee is the whole part's, the same as with no charge.
+        for charge in [
+            Trigger::Apogee,
+            Trigger::Time {
+                time_s: whole.time_s + 3.0,
+            },
+        ] {
+            let (summary, apogee, ejected) = flight(Some(charge));
+            let ejected = ejected.unwrap();
+            assert!(ejected.time_s >= apogee.time_s, "{charge:?}");
+            assert_eq!(apogee.time_s, whole.time_s, "{charge:?}");
+            assert_eq!(summary.apogee, whole_summary.apogee, "{charge:?}");
+        }
+    }
+
+    #[test]
     fn the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy() {
         // #1519: under a canopy that fills over a time, the nose part's load tops between a
         // step's ends, where the growing drag area meets the falling speed. The summary finds the

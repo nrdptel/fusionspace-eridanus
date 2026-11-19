@@ -138,6 +138,13 @@ stands on the rail: 0.94 m (3.1 ft) for Valetudo. So the summary gives both:
   altitude counts this way. A flight started in the air (`Simulation::run_free`) has no launch
   height, and no climb: `None`.
 
+The apogee is the rocket's, reached in one piece. After a
+[separation](../glossary.md#separation) with nothing left to burn it is the apogee of the part
+that keeps the nose (body 0). An [ejection](../glossary.md#ejection) that parts the rocket, or
+that part, before its apogee leaves the summary with none: the piece ahead of the parted joint
+coasts to a height of its own
+([the flight's apogee after an ejection](recovery.md#ejected-pieces)).
+
 A flight ends when its center of mass comes back down to the site's height, so a landing is at
 height 0 by this measure.
 
@@ -587,6 +594,7 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `the_part_that_keeps_the_nose_has_its_own_opening_shock` (in `recovery.rs`, as the next two rows' tests are) | After a separation with nothing left to burn, the stack having opened nothing: the summary's shock is the nose part's $q C_D S / m$ at its instant opening to 1e-9, at that opening's time and height, and not the aft part's, which is more than 1.5 times larger ([#1519](https://github.com/nrdptel/fusionspace-eridanus/issues/1519)) |
 | `the_nose_parts_shock_tops_inside_a_step_under_a_filling_canopy` | The nose part under a canopy that fills over 1 s in an 8 m/s (26 ft/s) crosswind: each step's specific force is the sample's drag area, airspeed and mass by hand to 1e-12; the summary's shock is the top of a scan of the steps that meet the filling, 2,000 intervals each, no lower to 1e-9 and no more than 1e-6 higher, where the steps' starts, middles and ends alone read more than 1e-5 low |
 | `a_split_with_an_ejection_keeps_the_lead_pieces_shock_out`, `the_nose_parts_shock_stops_counting_where_an_ejection_parts_it` | An ejection that parts the stack or the part that keeps the nose ends the count: a nose cone ejected at the split, its device opening at over 50 m/s (164 ft/s), leaves the summary no shock; one ejected after the nose part's drogue opened leaves the drogue's $q C_D S / m$ to 1e-9, though the cone's own shock is more than 5 times larger |
+| `a_nose_cone_ejected_on_the_climb_after_a_split_leaves_the_summary_no_apogee` | After a separation with nothing left to burn, the part that keeps the nose pushes its nose cone off 5 s later, still climbing at over 30 m/s (98 ft/s): the cone tops out more than 50 m (164 ft) below the whole part's apogee, and the summary's apogee is `None`; with the charge at the part's apogee or 3 s after it, the summary keeps the whole part's apogee ([#1531](https://github.com/nrdptel/fusionspace-eridanus/issues/1531)) |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |

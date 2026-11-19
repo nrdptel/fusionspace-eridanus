@@ -349,8 +349,11 @@ pub struct FlightSummary {
     /// The speed as the last rail guide left the rail, m/s, with its time and height.
     pub rail_exit_speed_m_s: Option<Peak>,
     /// The apogee of the center of mass. A stack that comes apart at a separation before its
-    /// apogee ([`Termination::Separated`]) has the apogee of the part that keeps the nose, body 0;
-    /// one that comes apart at an ejection ([`crate::Ejection`]) has none.
+    /// apogee ([`Termination::Separated`]) has the apogee of the part that keeps the nose, body 0,
+    /// when that part reaches it whole. There is none when an ejection ([`crate::Ejection`]) parts
+    /// the stack before its apogee, or parts body 0 after the split and before its own: from the
+    /// charge on, body 0 is the piece ahead of the parted joint, often the nose cone alone, and
+    /// its apogee is not the rocket's. An ejection at an apogee or after it keeps that apogee.
     pub apogee: Option<Apogee>,
     /// The largest speed of the center of mass relative to the ground after liftoff, m/s.
     pub max_speed_m_s: Option<Peak>,
@@ -614,7 +617,10 @@ impl FlightMetrics {
         // A stack that came apart at a separation on its way up has the apogee of the part that
         // keeps the nose, body 0, which flies on as a point mass ([`Termination::Separated`]).
         // An ejection's body 0 is its lead piece, often the nose cone alone, so a stack that
-        // came apart at one has none.
+        // came apart at one on its way up has none; nor has a flight whose body 0 pushes a piece
+        // off after the split and before its own apogee, since the apogee body 0 then reaches is
+        // the lead piece's (#1531). An apogee reached whole, the charge at it or after, stays.
+        let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
         let stack = result
             .event(EventKind::Apogee)
             .map(|event| (event.sample.time_s, event.sample.height_above_ground_m));
@@ -623,17 +629,19 @@ impl FlightMetrics {
                 .bodies
                 .iter()
                 .find(|body| body.body == 0)
-                .and_then(|body| body.event(EventKind::Apogee))
+                .and_then(|body| {
+                    body.events
+                        .iter()
+                        .take_while(|event| !ejection(&event.kind))
+                        .find(|event| event.kind == EventKind::Apogee)
+                })
                 .map(|event| (event.sample.time_s, event.sample.height_above_ground_m))
         };
         let apogee = stack
             .or_else(|| {
                 let separated = result.termination == Termination::Separated
                     && result.event(EventKind::Separation).is_some()
-                    && !result
-                        .events
-                        .iter()
-                        .any(|event| matches!(event.kind, EventKind::Ejection(_)));
+                    && !result.events.iter().any(|event| ejection(&event.kind));
                 separated.then(nose).flatten()
             })
             .map(|(time_s, height)| Apogee {
@@ -666,7 +674,6 @@ impl FlightMetrics {
         // ejection on, body 0 is that ejection's lead piece (a nose cone pushed off is the nose
         // cone alone), whose load is left out.
         let mut max_descent_acceleration = self.max_descent_acceleration;
-        let ejection = |event: &EventKind| matches!(event, EventKind::Ejection(_));
         if result.termination == Termination::Separated
             && result.event(EventKind::Separation).is_some()
             && !result.events.iter().any(|event| ejection(&event.kind))
