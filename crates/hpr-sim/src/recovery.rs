@@ -4327,10 +4327,10 @@ mod tests {
     fn the_nose_parts_kept_peaks_are_a_running_maximum_with_the_same_shock() {
         // #1533: the watcher keeps a step's peak for the part that keeps the nose only when it
         // beats the last one kept, not one for every step under a device. The summary's shock,
-        // its time and its height are the same as from every step's peak, on the separation
-        // flights above: a device opening at once, a drogue then a nose cone pushed off (the
-        // count cut at the charge), and a canopy filling in a crosswind.
-        /// Every step's peak for body 0 under a device, with the step's start: what was kept.
+        // its time and its height are the same as from every step's peak, on three flights
+        // built like the separation tests': a device opening at once, a drogue then a nose cone
+        // pushed off (the count cut at the charge), and a canopy filling in a crosswind.
+        /// Every step's peak for body 0 under a device, with the step's start, none dropped.
         #[derive(Default)]
         struct Every(Vec<(f64, crate::metrics::Peak)>);
         impl crate::recorder::Observer for Every {
@@ -4453,7 +4453,7 @@ mod tests {
                 Some(by_every),
                 "flight {i}"
             );
-            // Hundreds of steps fly under the device; the kept ones are those where the load
+            // Over a hundred steps fly under the device; the kept ones are those where the load
             // still rose: one for a device that opens at once, one a step while a canopy fills.
             let (kept, all) = (metrics.nose_peaks_kept(), every.0.len());
             assert!(all > 100, "flight {i}: {all} steps under a device");

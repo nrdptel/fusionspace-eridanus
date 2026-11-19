@@ -667,7 +667,8 @@ hasn't left yet waits for it, even if its trigger has come. Give a piece a trigg
 its ejection. Suppose a drogue is on the airframe and the nose cone is only ejected at 300 m (984 ft). The
 whole rocket would fall from apogee to 300 m (984 ft) with nothing open.
 
-**The flight's apogee.** The summary's `apogee` is the rocket's, reached in one piece:
+**The flight's apogee.** The summary's `apogee` is reached in one piece, by the whole rocket or,
+after a separation, by the whole part that keeps the nose:
 
 - An ejection at the rocket's apogee, or after it, keeps that apogee.
 - An ejection that parts the rocket while it still climbs leaves the summary with no apogee
@@ -682,7 +683,8 @@ whole rocket would fall from apogee to 300 m (984 ft) with nothing open.
   (`a_nose_cone_ejected_on_the_climb_after_a_split_leaves_the_summary_no_apogee`). With the
   charge at the part's apogee, or 3 s after it, the summary keeps the whole part's apogee.
 
-Each body's own apogee is still in its events (`BodyFlight::event`), whatever the summary gives.
+A body that climbs after its parting has its own apogee in its events (`BodyFlight::event`),
+whatever the summary gives.
 
 **What happens at each parting:**
 
