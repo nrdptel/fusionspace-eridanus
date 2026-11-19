@@ -6,7 +6,7 @@
 [m1-14b3]: ../decisions-and-roadmap.md#m1-14b3
 [guide]: ../writing.md#the-search-index
 [adr-353]: 0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
-[voice]: https://github.com/nrdptel/fusionspace-eridanus/blob/244d5dde915e893ba0bcfaea4f9cc8e06a83dd5f/validation/reports/voice.md
+[voice]: https://github.com/nrdptel/fusionspace-eridanus/blob/fdb60fc2aab9c3aed5b0dc1162e3045b7aff8625/validation/reports/voice.md
 [i-414]: https://github.com/nrdptel/fusionspace-eridanus/issues/414
 [i-1522]: https://github.com/nrdptel/fusionspace-eridanus/issues/1522
 [main-run]: https://github.com/nrdptel/fusionspace-eridanus/actions/runs/44104806244

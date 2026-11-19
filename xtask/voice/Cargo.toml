@@ -1,6 +1,6 @@
 [package]
 name = "xtask-voice"
-description = "The voice check and its report, built apart from the simulator so a prose-only change can rewrite the report cheaply (`cargo voice`)."
+description = "The voice check and its report, built apart from the simulator so a prose-only change can check the pages cheaply (`cargo voice`)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

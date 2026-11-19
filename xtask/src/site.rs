@@ -246,6 +246,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     mdbook_build(&root)?;
     let output = root.join(OUTPUT);
+    voice_page::check_built(&output)?;
     let index = search::rebuild(&output)?;
     println!(
         "site search: {} sections indexed, each field with its own words only (issue #414): {} \

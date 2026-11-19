@@ -278,8 +278,8 @@ none on the project's reference pages.
 `cargo xtask voice` reads this repository's pages, prints the report, and fails on a stock
 phrase. With no path, it also fails when a held page goes over a limit or misses a sentence target
 ([below](#measured-not-gated)). The site's build runs the same check, and fails CI on either. It
-also writes the report onto [its page](voice-report.md) from the pages, so the report is never
-stale and isn't committed: when it was, two pull requests that edited pages conflicted on it.
+also writes the report onto [How the pages read](voice-report.md) from the pages. The report
+isn't committed, so it is never stale.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
 and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and
@@ -289,10 +289,10 @@ system's get checked. In the report, a rate in bold is over its limit, and `ref`
 reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
 
 A change to prose alone can run `cargo voice` in place of `cargo xtask voice`. It's the same check: it takes the same
-paths and `--long`, and with no path writes the same report, which the commit carries. It builds only the check
+paths and `--long`, and with no path prints the same report. Nothing is committed: the site's
+build writes the report onto its page. It builds only the check
 and its Markdown reader. `cargo xtask` builds the simulator's crates first. Then
-`scripts/gate.sh voice` runs the check's tests, the report's among them, without the simulator
-either. The gate runs most of CI's commands locally, as
+`scripts/gate.sh voice` runs the check's tests, without the simulator either. The gate runs most of CI's commands locally, as
 [CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#how-a-change-ships)
 describes. This covers the voice check only. `scripts/gate.sh docs pages` runs the site's other
 checks on a page, and those build the simulator.

@@ -1,5 +1,5 @@
-//! The voice check's report as a site page (#1495). The report isn't committed, since nearly
-//! every pull request moved it and any two that edited pages conflicted on it. The site's page,
+//! The voice check's report as a site page (#1495). The report isn't committed, since more than
+//! half of the pull requests moved it and any two that edited pages conflicted on it. The site's page,
 //! [`voice::PAGE`], is a stub in the repository; the build's preprocessor puts the report written
 //! from the pages ([`voice::site_report`]) in its place, so the page is always the pages' own.
 
@@ -44,6 +44,29 @@ pub(super) fn fill(context: &Value, book: &mut Value) -> Result<(), String> {
     *text = voice::site_report(Path::new(root))?;
     Ok(())
 }
+
+/// Checks the built page: the site's `voice-report.html` under `output` holds the report, not the
+/// stub, so a build that skipped [`fill`] fails rather than publish the placeholder.
+pub(super) fn check_built(output: &Path) -> Result<(), String> {
+    let name = Path::new(voice::PAGE)
+        .with_extension("html")
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .ok_or("the voice report's page has no file name")?;
+    let html = std::fs::read_to_string(output.join(&name))
+        .map_err(|err| format!("the built site has no {name}: {err}"))?;
+    if html.contains(voice::STUB_MARKER) || !html.contains(BUILT_SIGN) {
+        return Err(format!(
+            "the built {name} is {}'s stub, not the voice report: the build's preprocessor \
+             didn't fill it",
+            voice::PAGE
+        ));
+    }
+    Ok(())
+}
+
+/// A header cell of the report's first table, which only the filled page has.
+const BUILT_SIGN: &str = "Limit per 100 words";
 
 /// Collects the `content` of each chapter whose source, under `src`, is [`voice::PAGE`], whatever
 /// the nesting.
@@ -119,6 +142,26 @@ mod tests {
         assert!(filled.starts_with("# How the pages read\n"));
         assert!(!filled.contains(voice::STUB_MARKER));
         assert!(filled.contains("| Pattern | Limit per 100 words |"));
+    }
+
+    #[test]
+    fn the_built_check_refuses_the_stub_and_passes_the_report() {
+        let dir = std::env::temp_dir().join(format!("voice-built-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let page = dir.join("voice-report.html");
+        std::fs::write(&page, format!("<main>{}</main>", voice::STUB_MARKER)).unwrap();
+        let err = check_built(&dir).unwrap_err();
+        assert!(err.contains("stub"), "{err}");
+        std::fs::write(&page, "<main><p>A placeholder page.</p></main>").unwrap();
+        assert!(check_built(&dir).is_err());
+        std::fs::write(&page, format!("<table><th>{BUILT_SIGN}</th></table>")).unwrap();
+        assert_eq!(check_built(&dir), Ok(()));
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(
+            check_built(&dir)
+                .unwrap_err()
+                .contains("no voice-report.html")
+        );
     }
 
     #[test]

@@ -181,9 +181,11 @@ pub const TRUST_NOTE: &str = "> **How far to trust it.** The counts find the pat
 /// checks of a page's sections read the stub as the page it becomes.
 pub const SECTIONS: [&str; 3] = ["The limits", "Each page", "What the commands say"];
 
-/// The writing guide's voice section, as a link from [`PAGE`] (the site's address on GitHub's
-/// copy would be one directory off).
+/// The writing guide's voice section, as a link from [`PAGE`], which sits beside it in `docs/`.
 const GUIDE_VOICE: &str = "writing.md#voice";
+
+/// The writing guide's voice section on the site, for a report on pages given as paths.
+const GUIDE_URL: &str = "https://hpr.fusionspace.co/writing.html#voice";
 
 /// Where the decision records [`report`] cites are read: on GitHub, as the site links them.
 const DECISIONS_URL: &str =
@@ -870,12 +872,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if args.is_empty() {
         let held = held_paths(&root)?;
         let pages = repository_pages(&root, &held)?;
-        print!("{}", report(&pages));
+        print!("{}", report(&pages, Opening::Site));
         println!("{}", summary(&pages));
         return failures(&pages, &held);
     }
     let pages = given_pages(&root, args)?;
-    print!("{}", report(&pages));
+    print!("{}", report(&pages, Opening::Given));
     println!("{}", summary(&pages));
     stock_failure(&pages)
 }
@@ -885,7 +887,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// runs before it builds, does.
 pub fn site_report(root: &Path) -> Result<String, String> {
     let held = held_paths(root)?;
-    Ok(report(&repository_pages(root, &held)?))
+    Ok(report(&repository_pages(root, &held)?, Opening::Site))
 }
 
 /// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
@@ -2406,8 +2408,16 @@ fn rate(count: usize, words: usize) -> f64 {
     (count as f64 * 10_000.0 / words as f64).ceil() / 100.0
 }
 
+/// How the report opens: as the site's page shows it (this repository's pages), or for pages given
+/// as paths, which no build writes and whose guide is on the site, not beside them.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Opening {
+    Site,
+    Given,
+}
+
 /// The report: the patterns and their limits, then a row for each page.
-fn report(pages: &[Page]) -> String {
+fn report(pages: &[Page], opening: Opening) -> String {
     let mut out = String::new();
     let words: usize = pages.iter().map(|page| page.words).sum();
     let stock: usize = pages.iter().map(|page| page.stock.len()).sum();
@@ -2415,14 +2425,21 @@ fn report(pages: &[Page]) -> String {
         .iter()
         .filter(|page| !Pattern::ALL.iter().any(|pattern| pattern.over(page)))
         .count();
+    let opening = match opening {
+        Opening::Site => format!(
+            "{LEAD}\n\n{TRUST_NOTE}\n\n`cargo xtask voice` prints the same report from a copy of \
+             the repository. [The writing guide's voice section]({GUIDE_VOICE}) says what the \
+             pattern columns count and why, and sets the limits.\n\n"
+        ),
+        Opening::Given => format!(
+            "`cargo xtask voice` read the pages given. [The writing guide's voice \
+             section]({GUIDE_URL}) says what the pattern columns count and why, and sets the \
+             limits.\n\n"
+        ),
+    };
     let _ = writeln!(
         out,
-        "# How the pages read\n\n\
-         {LEAD}\n\n\
-         {TRUST_NOTE}\n\n\
-         `cargo xtask voice` prints the same report from a copy of the repository. [The writing \
-         guide's voice section]({GUIDE_VOICE}) says what the pattern columns count and why, and \
-         sets the limits.\n\n\
+        "# How the pages read\n\n{opening}\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
@@ -3043,7 +3060,7 @@ mod tests {
         assert!(Pattern::BoldLabels.over(&empty));
         assert_eq!(rate(1, 0), f64::INFINITY);
         assert_eq!(rate(0, 0), 0.0);
-        assert!(report(&[empty]).contains("| **inf** |"));
+        assert!(report(&[empty], Opening::Given).contains("| **inf** |"));
     }
 
     #[test]
@@ -3057,7 +3074,7 @@ mod tests {
                 long,
                 ..Page::default()
             };
-            let text = report(&[page]);
+            let text = report(&[page], Opening::Given);
             let line = text
                 .lines()
                 .find(|l| l.starts_with("| `p.md`"))
@@ -3513,6 +3530,16 @@ mod tests {
             "a held page isn't read"
         );
         assert_eq!(held_failure(&pages, &held), Ok(()));
+    }
+
+    /// A report on pages given as paths says what read them, links the guide on the site, and
+    /// claims nothing of the site's build.
+    #[test]
+    fn a_report_on_given_pages_opens_without_the_sites_words() {
+        let text = report(&[markdown("# A page\n\nShort words.\n")], Opening::Given);
+        assert!(text.contains(&format!("]({GUIDE_URL})")));
+        assert!(!text.contains(LEAD) && !text.contains(TRUST_NOTE));
+        assert!(!text.contains(&format!("]({GUIDE_VOICE})")));
     }
 
     /// The report isn't committed (#1495): the site's page is a stub the build fills, listed in
