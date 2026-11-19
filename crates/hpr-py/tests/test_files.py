@@ -381,6 +381,15 @@ def test_a_rocket_json_with_a_motor_lit_at_a_separation_is_refused(repo, tmp_pat
     )
     with pytest.raises(hpr.HprError, match=re.escape(refusal)):
         hpr.Rocket.from_file(edited)
+    done = subprocess.run(
+        [str(hpr_cli), "sim", str(edited), "--offline"], capture_output=True, text=True, check=False
+    )
+    assert done.returncode != 0, done.stdout
+    theirs = f"lights {motor['designation']} at its stage's separation, which hpr sim doesn't fly"
+    assert theirs in done.stderr, done.stderr
+    # The message says what to do from Python.
+    with pytest.raises(hpr.HprError, match="Pass configuration= for a configuration"):
+        hpr.Rocket.from_file(edited)
 
 
 def test_an_ork_configuration_that_is_not_there(repo, tmp_path):

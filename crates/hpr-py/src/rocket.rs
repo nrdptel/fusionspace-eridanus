@@ -874,8 +874,9 @@ fn separation_lit(
     match lit_by_separation {
         Some(motor) => Err(error(format!(
             "{}: configuration {configuration} lights {} at its stage's separation, which the \
-             Python package doesn't fly yet; the Rust library does, with a separation given to \
-             the flight. Name a configuration whose motors all light without a separation",
+             Python package doesn't fly yet: flown as one stack, that motor would never light. \
+             Pass configuration= for a configuration whose motors light without a separation, \
+             or change that motor's ignition in the file",
             path.display(),
             motor.designation
         ))),
