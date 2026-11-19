@@ -916,7 +916,7 @@ with no turning rate.
     Juno III in the crosswind.
   - With the phase on, the rocket lands farther from the pad in 23 of the 26 flights. One of
     them, the vertical rail's in still air, moves by 6 mm (0.2 in), which the report's table
-    rounds to 0.0 m. In those 23, a rocket guided to its last button lands nearer the pad than
+    rounds to 0.0 m (0.0 ft). In those 23, a rocket guided to its last button lands nearer the pad than
     one that pivots. For a landing-area estimate that understates how far the rocket travels:
     the flattering side. In the other three, all in the crosswind, the guided rocket lands
     0.3 to 3.6 m (1 to 12 ft) farther from the pad.
@@ -933,7 +933,7 @@ with no turning rate.
   by then, its axis 0.079° off the rail's line; guided, it isn't turning. Guided, it reaches
   2,623.9 m (8,609 ft). With the phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m
   (300 ft) farther from the pad. Each figure is rounded on its own: the apogee moves by
-  10.86 m, which the report rounds to −10.9 m.
+  10.86 m (35.6 ft), which the report rounds to −10.9 m (−36 ft).
 - **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
   a real button has play in its slot. The guided flight frees the rocket at its last
   button's position, and HPR Sim half a button's length later, at the button's aft edge. The
