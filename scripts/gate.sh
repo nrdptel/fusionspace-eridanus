@@ -119,10 +119,10 @@
 # (crates/hpr-analysis/src/optimize/{ego,cmaes,normal,benchmark}.rs, or the bench) against
 # origin/main. Name it to run it anyway (`scripts/gate.sh ego`), or set GATE_EGO=0 to leave it out.
 # Extra step, not in the default set: docs (only xtask's and xtask-voice's tests, which guard
-# ROADMAP, the lessons, the pages and the voice report), for a change to prose alone.
-# Extra step, not in the default set: voice (the xtask-voice crate's tests, among them the one that
-# holds validation/reports/voice.md to the pages; they build no simulator crate), for a change to
-# prose alone: `cargo voice` rewrites the report, then this (#1459).
+# ROADMAP, the lessons, the pages and the voice limits), for a change to prose alone.
+# Extra step, not in the default set: voice (the xtask-voice crate's tests, which build no
+# simulator crate), for a change to prose alone: `cargo voice` checks the pages, then this (#1459).
+# The report isn't committed; the site's build writes it (#1495).
 # Extra step, not in the default set: types (CI's `types` job: the design format's generated
 # TypeScript and Python types checked with tsc and mypy, fetched by npx and uvx; about 2 s once
 # fetched), for a change to the schema or the generator in xtask/src/format_types.rs.
@@ -373,8 +373,8 @@ cmd_for() {
     pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
     docs) echo "cargo test --locked -p xtask -p xtask-voice" ;;
-    # The voice crate's tests, the report's among them, which build no simulator crate: a
-    # prose-only change runs `cargo voice` to rewrite the report, then this (#1459).
+    # The voice crate's tests, which build no simulator crate: a prose-only change runs
+    # `cargo voice` to check the pages, then this (#1459).
     voice) echo "cargo test --locked -p xtask-voice" ;;
     evidence) echo "$XTASK evidence" ;;
     types) echo "$XTASK format --typecheck" ;;

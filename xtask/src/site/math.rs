@@ -19,6 +19,9 @@
 //! ([`super::quotes::closing_quotes`], #932), which mdBook's smart punctuation would turn into
 //! an opening one.
 //!
+//! Before the math, it writes the voice check's report onto its stub page
+//! ([`super::voice_page`], #1495).
+//!
 //! mdBook runs this as `cargo xtask site-math`: `book.toml` names it, and [`super::mdbook_build`]
 //! points mdBook at the running `xtask` itself, so the build never compiles a second copy.
 
@@ -62,7 +65,7 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
             std::io::stdin()
                 .read_to_string(&mut input)
                 .map_err(|err| format!("could not read the book from mdBook: {err}"))?;
-            let output = preprocess(&input)?;
+            let output = preprocess(&input, true)?;
             std::io::stdout()
                 .write_all(output.as_bytes())
                 .map_err(|err| format!("could not hand the book back to mdBook: {err}"))
@@ -129,8 +132,9 @@ fn check_pages(pages: &[String]) -> Result<(), String> {
 }
 
 /// Converts mdBook's `[context, book]` JSON and returns the book's JSON, every chapter's math
-/// typeset, or every problem found across the book.
-fn preprocess(input: &str) -> Result<String, String> {
+/// typeset, or every problem found across the book. With `with_voice_report`, as mdBook runs it,
+/// the voice check's report goes on its page first ([`super::voice_page::fill`]).
+fn preprocess(input: &str, with_voice_report: bool) -> Result<String, String> {
     let value: Value =
         serde_json::from_str(input).map_err(|err| format!("mdBook's input isn't JSON: {err}"))?;
     let Value::Array(mut pair) = value else {
@@ -143,6 +147,11 @@ fn preprocess(input: &str) -> Result<String, String> {
         ));
     }
     let mut book = pair.pop().unwrap_or(Value::Null);
+    if with_voice_report {
+        // The voice check's report goes on its stub page first, so its text is typeset as any
+        // page's is (#1495).
+        super::voice_page::fill(&pair[0], &mut book)?;
+    }
     let converter = converter()?;
     let mut problems = Vec::new();
     convert_chapters(&mut book, &converter, &mut problems);
@@ -575,7 +584,7 @@ mod tests {
     fn the_book_round_trips_with_its_chapters_converted() {
         let input = r#"[{"root":"."},{"items":[{"Chapter":{"name":"A","content":"x $a^2$","source_path":"a.md","sub_items":[{"Chapter":{"name":"B","content":"$b$","source_path":"b.md","sub_items":[]}}]}},"Separator"]}]"#;
         let out: Value =
-            serde_json::from_str(&preprocess(input).expect("converts")).expect("JSON out");
+            serde_json::from_str(&preprocess(input, false).expect("converts")).expect("JSON out");
         let a = &out["items"][0]["Chapter"];
         assert!(
             a["content"]
@@ -594,7 +603,7 @@ mod tests {
     #[test]
     fn a_problem_names_its_page() {
         let input = r#"[{},{"items":[{"Chapter":{"name":"A","content":"$\\nope$","source_path":"physics/a.md","sub_items":[]}}]}]"#;
-        let err = preprocess(input).expect_err("fails");
+        let err = preprocess(input, false).expect_err("fails");
         assert!(err.contains("physics/a.md:1: `\\nope`"), "{err}");
     }
 }

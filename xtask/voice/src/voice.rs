@@ -26,10 +26,11 @@
 //! their entries
 //! (`docs/research/plain-voice-docs.md`).
 //!
-//! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]) and writes the
-//! per-page report to [`REPORT`]; a test fails when the committed report and the pages disagree,
-//! and `cargo xtask site` fails on a stock phrase in them or a held page that misses
-//! ([`misses`]). Given paths, it reads each file, or each page under a directory (Markdown, HTML
+//! With no path it reads this repository's pages ([`SCOPE`], less [`LEFT_OUT`]), prints the
+//! per-page report, and fails on a stock phrase in them or a held page that misses ([`misses`]);
+//! `cargo xtask site` fails on the same two ([`check`]). The report isn't committed (#1495): the
+//! site's build writes it onto [`PAGE`] each time ([`site_report`]), so no two pull requests
+//! conflict on it. Given paths, it reads each file, or each page under a directory (Markdown, HTML
 //! or text), and prints the report, so fusionspace.co's pages and the design system's are read the
 //! same way; only a stock phrase fails there.
 //!
@@ -52,8 +53,8 @@ pub const USAGE: &str =
     "  voice [PATH...]          Report how the pages read (M0.14a): per page and per 100 words,
                            bold-label items, labels, long sentences, hedges, minimizers and
                            signposts against the writing guide's limits, and the register. With
-                           no path it reads this repository's pages and writes
-                           validation/reports/voice.md; given paths, it reads each file, or each
+                           no path it reads this repository's pages and prints the report the
+                           site's docs/voice-report.md shows; given paths, it reads each file, or each
                            page under a directory (a `.help` file as a command's help, a `.rs`
                            file given as its path as a crate's front page), and
                            prints the report (after `--`, a path may start with `-`). Fails on
@@ -157,8 +158,38 @@ const LONG_SHARE_TARGET: usize = 10;
 /// A sentence longer than this many words is a long one, for the report and for `--long`.
 const LONG_WORDS: usize = 25;
 
-/// The committed per-page report, relative to the workspace root.
-pub const REPORT: &str = "validation/reports/voice.md";
+/// The site's page for the per-page report, relative to the workspace root. Its file is a stub;
+/// the site's build puts [`site_report`] in its place, so the page is always the pages' own.
+pub const PAGE: &str = "docs/voice-report.md";
+
+/// The line on [`PAGE`]'s stub that marks it as one: the site's build refuses a page at that
+/// path without it, so a page written there by hand can't be replaced unseen.
+pub const STUB_MARKER: &str = "<!-- voice-report: the site's build writes this page -->";
+
+/// The report's lead, the one sentence under its title (the site's pages open so); the stub
+/// carries it too.
+pub const LEAD: &str = "How each page reads against the writing guide's voice limits, written from \
+    the pages by the site's build each time it runs.";
+
+/// The report's trust note, after its lead, as every site page opens (the stub carries it too).
+pub const TRUST_NOTE: &str = "> **How far to trust it.** The counts find the patterns the writing \
+    guide lists in each page's words. They miss other awkward sentences, so a page within every \
+    limit can still read badly. The build writes them from the pages each time, so they match the \
+    pages the site shows.";
+
+/// The report's `##` sections, in order: [`PAGE`]'s stub carries the same headings, so the site's
+/// checks of a page's sections read the stub as the page it becomes.
+pub const SECTIONS: [&str; 3] = ["The limits", "Each page", "What the commands say"];
+
+/// The writing guide's voice section, as a link from [`PAGE`], which sits beside it in `docs/`.
+const GUIDE_VOICE: &str = "writing.md#voice";
+
+/// The writing guide's voice section on the site, for a report on pages given as paths.
+const GUIDE_URL: &str = "https://hpr.fusionspace.co/writing.html#voice";
+
+/// Where the decision records [`report`] cites are read: on GitHub, as the site links them.
+const DECISIONS_URL: &str =
+    "https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions";
 
 /// The file extensions read under a directory given as a path.
 const EXTENSIONS: [&str; 6] = ["md", "markdown", "html", "htm", "txt", "help"];
@@ -774,8 +805,8 @@ impl Reading {
     }
 }
 
-/// `cargo xtask voice`: with no path, writes [`REPORT`] for the repository's pages; with paths,
-/// prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
+/// `cargo xtask voice`: with no path, prints the report for the repository's pages, as the site's
+/// [`PAGE`] shows it; with paths, prints the report for those. Fails on a stock phrase, a missing path or bad usage, and with no
 /// path on a held page that misses.
 pub fn run(args: &[String]) -> Result<(), String> {
     let (long, args) = match args.split_first() {
@@ -841,16 +872,22 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if args.is_empty() {
         let held = held_paths(&root)?;
         let pages = repository_pages(&root, &held)?;
-        fs::write(root.join(REPORT), report(&pages))
-            .map_err(|e| format!("writing {REPORT}: {e}"))?;
-        println!("voice: wrote {REPORT}");
+        print!("{}", report(&pages, Opening::Site));
         println!("{}", summary(&pages));
         return failures(&pages, &held);
     }
     let pages = given_pages(&root, args)?;
-    print!("{}", report(&pages));
+    print!("{}", report(&pages, Opening::Given));
     println!("{}", summary(&pages));
     stock_failure(&pages)
+}
+
+/// The report the site's build puts on [`PAGE`]: the one `cargo xtask voice` prints for this
+/// repository's pages. It doesn't fail on a page that misses; [`check`], which `cargo xtask site`
+/// runs before it builds, does.
+pub fn site_report(root: &Path) -> Result<String, String> {
+    let held = held_paths(root)?;
+    Ok(report(&repository_pages(root, &held)?, Opening::Site))
 }
 
 /// The check `cargo xtask site` runs: a stock phrase on one of this repository's pages fails it,
@@ -2371,8 +2408,16 @@ fn rate(count: usize, words: usize) -> f64 {
     (count as f64 * 10_000.0 / words as f64).ceil() / 100.0
 }
 
+/// How the report opens: as the site's page shows it (this repository's pages), or for pages given
+/// as paths, which no build writes and whose guide is on the site, not beside them.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Opening {
+    Site,
+    Given,
+}
+
 /// The report: the patterns and their limits, then a row for each page.
-fn report(pages: &[Page]) -> String {
+fn report(pages: &[Page], opening: Opening) -> String {
     let mut out = String::new();
     let words: usize = pages.iter().map(|page| page.words).sum();
     let stock: usize = pages.iter().map(|page| page.stock.len()).sum();
@@ -2380,13 +2425,21 @@ fn report(pages: &[Page]) -> String {
         .iter()
         .filter(|page| !Pattern::ALL.iter().any(|pattern| pattern.over(page)))
         .count();
+    let opening = match opening {
+        Opening::Site => format!(
+            "{LEAD}\n\n{TRUST_NOTE}\n\n`cargo xtask voice` prints the same report from a copy of \
+             the repository. [The writing guide's voice section]({GUIDE_VOICE}) says what the \
+             pattern columns count and why, and sets the limits.\n\n"
+        ),
+        Opening::Given => format!(
+            "`cargo xtask voice` read the pages given. [The writing guide's voice \
+             section]({GUIDE_URL}) says what the pattern columns count and why, and sets the \
+             limits.\n\n"
+        ),
+    };
     let _ = writeln!(
         out,
-        "# How the pages read\n\n\
-         `cargo xtask voice` writes this report from the pages. A test fails when the two \
-         disagree, so run it after editing a page. [The writing guide's voice \
-         section](../../docs/writing.md#voice) says what the pattern columns count and why, and \
-         sets the limits.\n\n\
+        "# How the pages read\n\n{opening}\
          Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows \
          a rate at or under it; a rate over its limit is in bold. Words a sentence and the share \
          of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page \
@@ -2394,12 +2447,13 @@ fn report(pages: &[Page]) -> String {
          `held` that's over a limit or misses a sentence target. The {} held pages are every page \
          the site's table of contents lists, with the README and the 404 page, less the records \
          page \
-         ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each \
+         ([ADR-285]({DECISIONS_URL}/0285-the-rest-of-the-site-in-nine.md)), each \
          snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for \
          each crate's `src/` directory, the Python package's README and its docstrings as \
          `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` \
-         ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).\n\n\
-         {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n",
+         ([ADR-292]({DECISIONS_URL}/0292-the-programs-words-in-four.md)).\n\n\
+         {} pages, {words} words, {stock} stock phrases. {within} pages are within every limit.\n\n\
+         ## The limits\n",
         pages.iter().filter(|page| page.held).count(),
         pages.len()
     );
@@ -2430,7 +2484,8 @@ fn report(pages: &[Page]) -> String {
         "\nThe register has no limit of its own (first person on a reference page, above, is the one \
          limit on it): \"I\", \"we\", \"you\" and contractions per 100 words, \
          and the guide's sentence targets (at most 20 words a sentence on average, fewer than \
-         10% of sentences over 25 words). A reference page is marked `ref`.\n"
+         10% of sentences over 25 words). A reference page is marked `ref`.\n\n\
+         ## Each page\n"
     );
     let mut header = String::from("| Page | Words | Words a sentence | Over 25 words |");
     let mut rule = String::from("|---|---:|---:|---:|");
@@ -2496,7 +2551,7 @@ fn census_table(out: &mut String, pages: &[Page]) {
     let _ = writeln!(
         out,
         "\n## What the commands say\n\n\
-         Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisions/\
+         Each `src/` page above is a crate's message census ([ADR-292]({DECISIONS_URL}/\
          0292-the-programs-words-in-four.md), the plan for the program's words): its `#[error]` \
          texts and the other string literals in its code that read as prose, less its tests \
          and its markup. A forwarded error \
@@ -3005,7 +3060,7 @@ mod tests {
         assert!(Pattern::BoldLabels.over(&empty));
         assert_eq!(rate(1, 0), f64::INFINITY);
         assert_eq!(rate(0, 0), 0.0);
-        assert!(report(&[empty]).contains("| **inf** |"));
+        assert!(report(&[empty], Opening::Given).contains("| **inf** |"));
     }
 
     #[test]
@@ -3019,7 +3074,7 @@ mod tests {
                 long,
                 ..Page::default()
             };
-            let text = report(&[page]);
+            let text = report(&[page], Opening::Given);
             let line = text
                 .lines()
                 .find(|l| l.starts_with("| `p.md`"))
@@ -3477,15 +3532,66 @@ mod tests {
         assert_eq!(held_failure(&pages, &held), Ok(()));
     }
 
+    /// A report on pages given as paths says what read them, links the guide on the site, and
+    /// opens without the site page's lead and trust note.
     #[test]
-    fn the_committed_report_matches_the_pages() {
+    fn a_report_on_given_pages_opens_without_the_sites_words() {
+        let text = report(&[markdown("# A page\n\nShort words.\n")], Opening::Given);
+        assert!(text.contains(&format!("]({GUIDE_URL})")));
+        assert!(!text.contains(LEAD) && !text.contains(TRUST_NOTE));
+        assert!(!text.contains(&format!("]({GUIDE_VOICE})")));
+    }
+
+    /// The report isn't committed (#1495): the site's page is a stub the build fills, listed in
+    /// the table of contents, and the report it gets opens with the page's title and links only
+    /// what the site can reach from it.
+    #[test]
+    fn the_site_page_is_a_stub_the_build_fills_with_the_report() {
         let root = crate::root().unwrap();
-        let held = held_paths(&root).unwrap();
-        let pages = repository_pages(&root, &held).unwrap();
-        let committed = fs::read_to_string(root.join(REPORT)).unwrap_or_default();
         assert!(
-            committed == report(&pages),
-            "{REPORT} doesn't match the pages: run `cargo voice` (or `cargo xtask voice`)"
+            tracked(&root, &["validation/reports/voice.md"])
+                .unwrap()
+                .is_empty(),
+            "the voice report is tracked again; the site's build writes it (#1495)"
+        );
+        let stub = fs::read_to_string(root.join(PAGE)).unwrap();
+        assert!(stub.contains(STUB_MARKER), "{PAGE} lost its marker");
+        let contents = fs::read_to_string(root.join(CONTENTS)).unwrap();
+        let listed = PAGE.strip_prefix("docs/").unwrap();
+        assert!(
+            contents.contains(&format!("]({listed})")),
+            "{CONTENTS} doesn't list {PAGE}"
+        );
+        let report = site_report(&root).unwrap();
+        assert!(report.starts_with("# How the pages read\n"));
+        assert!(
+            !report.contains("../"),
+            "a link the site can't reach from {PAGE}"
+        );
+        assert!(report.contains(&format!("]({GUIDE_VOICE})")));
+        assert!(report.contains(&format!("({DECISIONS_URL}/0285-")));
+        assert!(report.contains(&format!("| `{PAGE}` (`held`) |")));
+        let headings = |text: &str| -> Vec<String> {
+            text.lines()
+                .filter_map(|line| line.strip_prefix("## "))
+                .map(str::to_owned)
+                .collect()
+        };
+        assert_eq!(headings(&report), SECTIONS);
+        assert_eq!(
+            headings(&stub),
+            SECTIONS,
+            "{PAGE}'s sections aren't the report's"
+        );
+        assert!(report.contains(TRUST_NOTE));
+        assert!(report.contains(&format!("\n\n{LEAD}\n\n")));
+        assert!(
+            stub.contains(&format!("\n\n{LEAD}\n\n")),
+            "{PAGE}'s lead isn't the report's"
+        );
+        assert!(
+            stub.contains(TRUST_NOTE),
+            "{PAGE}'s trust note isn't the report's"
         );
     }
 

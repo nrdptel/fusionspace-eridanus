@@ -125,5 +125,6 @@
 - [How a release is built](releasing.md)
 - [Glossary](glossary.md)
 - [Writing these pages](writing.md)
+  - [How the pages read](voice-report.md)
 - [Decisions and the roadmap](decisions-and-roadmap.md)
 - [Plan](plan.md)

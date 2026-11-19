@@ -1,6 +1,6 @@
 # ADR-284: The maintainer's own voice on every page (2026-10-18)
 
-- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget); amended 2026-10-19 for M0.14a and for M0.14b
+- **Status:** accepted; adds [M0.14][m0-14] in four increments at the head of the queue, with [M0.9f][m0-9f] second; extends [the writing guide](../writing.md) (its lead rule and "Measured, not gated", §2 and §4) and, through a PR to the design system, its writing rules ([ADR-164][adr-164]); amends [ADR-147][adr-147] §6 (the roadmap's budget); amended 2026-10-19 for M0.14a and for M0.14b; its report moved from a committed file to the site's build by [ADR-361](0361-the-voice-report-is-built-with-the-site-not-committed.md)
 - **Summary:** The project's pages read as if they came off a template, not from a person. M0.14 rewrites what people read (the README, the docs site, fusionspace.co, the design system's writing rules and README, `hpr`'s own messages and the repositories' About text) in the maintainer's plain voice, with a voice section in the writing guide and a `cargo xtask voice` check. Decision records, the archive and tools due to be replaced stay as they are.
 
 [m0-14]: ../decisions-and-roadmap.md#m0-14
