@@ -43,6 +43,7 @@ mod design_checks;
 mod designs;
 #[cfg(test)]
 mod docs;
+mod drag_bands;
 mod evidence;
 mod examples;
 mod features;

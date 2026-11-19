@@ -411,7 +411,7 @@ linear, and friction is solved with them (below). Source:
   stretch and flies as before. A rail too short to hold both guides pivots the rocket from
   liftoff.
 - A rocket that stops on its last guide returns to the pad phase, at rest, as on the rail.
-- Flying the phase by default is [the next increment](../decisions-and-roadmap.md#m1-14b10).
+- Flying the phase by default is [a later increment](../decisions-and-roadmap.md#m1-14b10).
 
 **For a burnt-out rocket in no air** the three conditions reduce to a pendulum hung from the
 guide. Write $\ell$ for the distance along the axis from the last guide to the center of mass.

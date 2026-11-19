@@ -520,7 +520,8 @@ pub(crate) struct Part {
 pub(crate) const LARGE_PERCENT: f64 = 1.0;
 
 impl Part {
-    fn size(&self) -> Size {
+    /// The part's three sizes.
+    pub(crate) fn size(&self) -> Size {
         Size {
             mean_percent: self.mean_percent,
             median_percent: self.median_percent,

@@ -986,6 +986,7 @@ fn fly_all(
     let nose_columns = crate::nose_line::collection_columns(root, &written)?;
     let mut splits = Vec::new();
     let mut noses = Vec::new();
+    let mut bands: Vec<crate::drag_bands::BandFlight> = Vec::new();
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -1149,6 +1150,25 @@ fn fly_all(
             None => {}
         }
         noses.extend(nose);
+        // And the drag part by Mach band (M1.14i1).
+        let banded = crate::drag_bands::flight(&build, &climbed_m, recorded, &split, openrocket_m)
+            .map_err(|error| format!("{at}: the drag by Mach band: {error}"))?;
+        match &banded {
+            Some(Ok(b)) => println!(
+                "fixture-flights: {at:<48} bands {:+6.2}% {:+6.2}% {:+6.2}% = drag {:+6.2}%; \
+                 alone {:+6.2}% {:+6.2}% {:+6.2}%",
+                b.parts[0], b.parts[1], b.parts[2], b.drag, b.alone[0], b.alone[1], b.alone[2]
+            ),
+            Some(Err(error)) => println!("fixture-flights: {at:<48} bands failed: {error}"),
+            None => {}
+        }
+        let band_at = banded.map(|banded| {
+            bands.push(crate::drag_bands::BandFlight {
+                banded,
+                logged_m: None,
+            });
+            bands.len() - 1
+        });
         splits.push((percent(hpr_m, openrocket_m), split));
         if let Some(class) = &entry.excluded_class {
             *excluded.entry(class.clone()).or_default() += 1;
@@ -1177,6 +1197,9 @@ fn fly_all(
                 height
             }
         };
+        if let Some(band_at) = band_at {
+            bands[band_at].logged_m = Some(logged_m);
+        }
         let early = entry.early_deployment == Some(true);
         counts.early_deployments += usize::from(early);
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
@@ -1244,6 +1267,7 @@ fn fly_all(
         ));
     }
     let sets = error_sets(&compared)?;
+    let bands = crate::drag_bands::DragBands::of(&bands, counts.compared);
     Ok((
         Report {
             milestone: "M2.3c1, rechecked in M2.3c5, halved in M2.7a".to_owned(),
@@ -1259,6 +1283,7 @@ fn fly_all(
             inputs,
             split: crate::gap_split::GapSplit::of(&splits),
             nose: crate::nose_line::NoseLine::of(&noses),
+            bands,
         },
         kept,
     ))
@@ -1329,6 +1354,9 @@ pub(crate) struct Report {
     pub split: crate::gap_split::GapSplit,
     /// Inside the drag part, the tangent-ogive nose's line (M2.3c13).
     pub nose: crate::nose_line::NoseLine,
+    /// Inside the drag part, each band of Mach number's share, and what each does to the
+    /// errors against the logs (M1.14i1).
+    pub bands: crate::drag_bands::DragBands,
 }
 
 /// How many flights went where.
@@ -1618,6 +1646,28 @@ impl Report {
         self.nose
             .check_consistent(c.flown_by_both, self.split.split)
             .or_else(fail)?;
+        // The first set is every flight compared, counted above.
+        let every = &self.sets[0];
+        let three = |stats: &Stats| {
+            [
+                stats.mean_percent,
+                stats.median_percent,
+                stats.mean_absolute_percent,
+            ]
+        };
+        self.bands
+            .check_consistent(
+                self.split.split,
+                c.compared,
+                (three(&every.hpr), three(&every.openrocket)),
+            )
+            .or_else(fail)?;
+        // The split's third part is the drag (`gap_split::PARTS`), checked there to be four.
+        if let Some(drag) = self.split.parts.get(2) {
+            self.bands
+                .check_against_split(drag.size(), self.split.drag_first)
+                .or_else(fail)?;
+        }
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1798,6 +1848,7 @@ impl Report {
         page.push_str(&self.inputs.to_markdown());
         page.push_str(&self.split.to_markdown());
         page.push_str(&self.nose.to_markdown());
+        page.push_str(&self.bands.to_markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");
