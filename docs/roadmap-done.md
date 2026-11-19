@@ -262,6 +262,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14b4 NASA's check cases 3 and 6 to 10 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b5 Tip-off, measured with RocketPy's ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b11 The tip-off phase, held to RocketPy's on RocketPy's normal force ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14i1 The drag part of the gap to OpenRocket, by Mach band ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1448,6 +1449,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - **M1.14b9** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M1.14b11 The tip-off phase, held to RocketPy's on RocketPy's normal force.**
         *Done when:* ADR-358 decision 1's for M1.14b11.
+  - **M1.14i** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+    - [x] **M1.14i1 The drag part of the gap to OpenRocket, by Mach band.** *Done when:* ADR-359
+      decision 3's for M1.14i1.
 - [x] **M2.10 Evidence register** (ADR-278). Each claim the site makes about what backs a reader,
   model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register

@@ -164,6 +164,43 @@ A positive line means HPR Sim climbs higher on its own nose drag than on OpenRoc
 | the design states the nose's drag, so HPR Sim has no pressure drag of its own to swap | 0 |
 | HPR Sim fails the flight with the column swapped in, or the flight leaves the Mach numbers the column covers | 0 |
 
+### The drag part by Mach band
+
+For M1.14i1 (ADR-359), the drag part is split by the Mach number the drag acts at. On OpenRocket's thrust and mass, HPR Sim flies with OpenRocket's drag coefficient in place of its own below Mach 0.8 only, then below Mach 1.2 too, then at every Mach number. Outside the bands swapped the drag is HPR Sim's own, so at a band's edge the coefficient steps from one program's to the other's. A band's part is the apogee before its swap less the apogee after it. The three sum to the drag part: the last of these flights is the split's flight on OpenRocket's whole drag, and the run stops on a flight where it isn't. A flight that never reaches a band is the same flight before and after that band's swap, so a flight has a part in a band when its part there is not zero. Like the split, the parts are code against code.
+
+Of the 68 flights split, 68 are split by band; on 0 HPR Sim failed a flight with a band swapped.
+
+| band | flights with a part in it | mean | median | mean absolute | mean absolute over those flights | flights it dominates | flights where it is over 1% |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| below Mach 0.8 | 68 | +0.15% | +0.19% | 0.87% | 0.87% | 45 | 16 |
+| Mach 0.8 to 1.2 | 28 | +0.20% | +0.00% | 0.50% | 1.21% | 16 | 9 |
+| above Mach 1.2 | 7 | +0.23% | +0.00% | 0.23% | 2.21% | 7 | 7 |
+| the drag part | 68 | +0.58% | +0.44% | 1.57% |  |  |  |
+
+Every number is a share of OpenRocket's apogee, over the 68 flights split by band, but for the column over the flights with a part in the band. A band dominates a flight when its part's absolute value is the largest of the three, the slower band if two tie.
+
+A band's part depends on the speed the slower bands' swaps leave the flight with. So each band is also swapped alone, first: on HPR Sim's own thrust and mass, with its own drag in the other two bands.
+
+| band, swapped alone | mean | median | mean absolute |
+|---|---:|---:|---:|
+| below Mach 0.8 | +0.15% | +0.19% | 0.87% |
+| Mach 0.8 to 1.2 | +0.20% | +0.00% | 0.50% |
+| above Mach 1.2 | +0.24% | +0.00% | 0.24% |
+| every band: the drag part, swapped first | +0.58% | +0.44% | 1.57% |
+
+The flights with a band swapped alone are also set beside the logs. Of the flights compared with a log above, 60 are split by band. Each row is the apogee less the logged one, over the logged one, on those flights: HPR Sim's own flight; HPR Sim on OpenRocket's drag in one band alone; HPR Sim on OpenRocket's whole drag; and OpenRocket's own flight. A row moves a flight when its apogee is not that of HPR Sim's own flight, and the last two columns count the moved flights that come nearer their log than HPR Sim's own flight, and the ones that go farther.
+
+| HPR Sim's drag | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
+|---|---:|---:|---:|---:|---:|---:|
+| its own |  | +7.72% | +6.69% | 12.04% |  |  |
+| OpenRocket's below Mach 0.8, its own above | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
+| OpenRocket's from Mach 0.8 to 1.2, its own elsewhere | 25 | +7.44% | +6.78% | 11.79% | 14 | 11 |
+| OpenRocket's above Mach 1.2, its own below | 7 | +7.44% | +5.99% | 11.86% | 6 | 1 |
+| OpenRocket's at every Mach number | 60 | +6.85% | +6.33% | 11.27% | 33 | 27 |
+| OpenRocket's own flight, for comparison | 60 | +6.72% | +6.08% | 11.26% | 36 | 24 |
+
+A row nearer the logs doesn't show that OpenRocket's drag is the truer one in that band. Both simulators climb above the logs on average, so more drag from any cause moves the mean toward them, and a wrong mass or thrust would read the same way. The rows aren't a model HPR Sim could fly either: the coefficient is read along OpenRocket's own flight of the same design. They say which band's difference the comparison with the logs feels.
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.

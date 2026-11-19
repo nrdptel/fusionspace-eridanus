@@ -770,5 +770,156 @@
     },
     "hpr_mean_top_mach": 1.06,
     "hpr_top_mach_over_1_3": 0
+  },
+  "bands": {
+    "split": 68,
+    "banded": 68,
+    "failed": 0,
+    "bands": [
+      {
+        "name": "subsonic",
+        "flights": 68,
+        "part": {
+          "mean_percent": 0.15,
+          "median_percent": 0.19,
+          "mean_absolute_percent": 0.87
+        },
+        "part_on_its_flights": {
+          "mean_percent": 0.15,
+          "median_percent": 0.19,
+          "mean_absolute_percent": 0.87
+        },
+        "alone": {
+          "mean_percent": 0.15,
+          "median_percent": 0.19,
+          "mean_absolute_percent": 0.87
+        },
+        "dominates": 45,
+        "large": 16
+      },
+      {
+        "name": "transonic",
+        "flights": 28,
+        "part": {
+          "mean_percent": 0.2,
+          "median_percent": 0.0,
+          "mean_absolute_percent": 0.5
+        },
+        "part_on_its_flights": {
+          "mean_percent": 0.49,
+          "median_percent": 0.45,
+          "mean_absolute_percent": 1.21
+        },
+        "alone": {
+          "mean_percent": 0.2,
+          "median_percent": 0.0,
+          "mean_absolute_percent": 0.5
+        },
+        "dominates": 16,
+        "large": 9
+      },
+      {
+        "name": "supersonic",
+        "flights": 7,
+        "part": {
+          "mean_percent": 0.23,
+          "median_percent": 0.0,
+          "mean_absolute_percent": 0.23
+        },
+        "part_on_its_flights": {
+          "mean_percent": 2.21,
+          "median_percent": 1.86,
+          "mean_absolute_percent": 2.21
+        },
+        "alone": {
+          "mean_percent": 0.24,
+          "median_percent": 0.0,
+          "mean_absolute_percent": 0.24
+        },
+        "dominates": 7,
+        "large": 7
+      }
+    ],
+    "drag": {
+      "mean_percent": 0.58,
+      "median_percent": 0.44,
+      "mean_absolute_percent": 1.57
+    },
+    "drag_first": {
+      "mean_percent": 0.58,
+      "median_percent": 0.44,
+      "mean_absolute_percent": 1.57
+    },
+    "logs": {
+      "flights": 60,
+      "rows": [
+        {
+          "name": "own",
+          "moved": 0,
+          "nearer": 0,
+          "farther": 0,
+          "error": {
+            "mean_percent": 7.72,
+            "median_percent": 6.69,
+            "mean_absolute_percent": 12.04
+          }
+        },
+        {
+          "name": "subsonic",
+          "moved": 60,
+          "nearer": 39,
+          "farther": 21,
+          "error": {
+            "mean_percent": 7.42,
+            "median_percent": 6.7,
+            "mean_absolute_percent": 11.65
+          }
+        },
+        {
+          "name": "transonic",
+          "moved": 25,
+          "nearer": 14,
+          "farther": 11,
+          "error": {
+            "mean_percent": 7.44,
+            "median_percent": 6.78,
+            "mean_absolute_percent": 11.79
+          }
+        },
+        {
+          "name": "supersonic",
+          "moved": 7,
+          "nearer": 6,
+          "farther": 1,
+          "error": {
+            "mean_percent": 7.44,
+            "median_percent": 5.99,
+            "mean_absolute_percent": 11.86
+          }
+        },
+        {
+          "name": "every",
+          "moved": 60,
+          "nearer": 33,
+          "farther": 27,
+          "error": {
+            "mean_percent": 6.85,
+            "median_percent": 6.33,
+            "mean_absolute_percent": 11.27
+          }
+        },
+        {
+          "name": "openrocket",
+          "moved": 60,
+          "nearer": 36,
+          "farther": 24,
+          "error": {
+            "mean_percent": 6.72,
+            "median_percent": 6.08,
+            "mean_absolute_percent": 11.26
+          }
+        }
+      ]
+    }
   }
 }

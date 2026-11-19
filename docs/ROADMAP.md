@@ -254,6 +254,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   the same real flights, and on the private collection's flights all three fly its mean absolute
   apogee error is below OpenRocket 24.12's and its newest release's (ADR-212), its mean bias
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
+  - [ ] **M1.14i Drag below Mach 0.8,** next, ahead of M1.14b's open increments (ADR-359 gives
+    each *done when*). Met when its three increments are.
+    - [ ] **M1.14i2 The part below Mach 0.8, by term.** *Done when:* ADR-359's for M1.14i2.
+    - [ ] **M1.14i3 Its largest term, held to a measurement.** *Done when:* ADR-359's for M1.14i3.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
     Met when its ten increments are (ADR-351's decision 2 and ADR-357's decision 4 give each
     *done when*; ADR-358 splits M1.14b9).
