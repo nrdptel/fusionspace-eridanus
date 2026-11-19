@@ -182,6 +182,10 @@ impl Rocket {
     /// design mark a default; a rocket's JSON doesn't. A file with several configurations and no
     /// default is refused, with their ids, and so is one with none.
     ///
+    /// The stages of a design fly as one stack: no stage drops away. A configuration that lights
+    /// a motor at its stage's separation, as a rocket's JSON or an HPR design can, is refused, as
+    /// `hpr sim` refuses it: flown whole, that motor would never light.
+    ///
     /// With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
     /// (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
     /// OpenRocket's own. Once one opens, the rocket descends as a point under the open devices'
@@ -220,6 +224,7 @@ impl Rocket {
                 },
             },
         };
+        separation_lit(&path, &design, &configuration)?;
         let devices = match stored.filter(|_| recovery) {
             Some(stored) => file_recovery(&path, &design, &configuration, &stored, &mut notes)?,
             None => Vec::new(),
@@ -844,12 +849,48 @@ fn ork_configuration(
     Ok(chosen.id.clone())
 }
 
-/// The note that a design of several stages flies as one stack.
+/// Refuses `configuration` of `design` when one of its motors lights at its stage's separation,
+/// as `hpr sim` refuses it (the [decision that `hpr sim` flies the stack][adr-106], §4). The Python
+/// package flies no separation, so the stack would fly whole and that motor would never light:
+/// the apogee would read low, with only a line in the notes to say so (#1238). A rocket's JSON
+/// reaches this, and so does an HPR design whose rocket's configurations say so. A `.ork` file's
+/// powered separation is refused before it, in [`ork_configuration`].
+///
+/// [adr-106]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0106-hpr-sim-flies-the-librarys-flight-the-stack.md
+fn separation_lit(
+    path: &Path,
+    design: &hpr::hpr_design::Rocket,
+    configuration: &str,
+) -> PyResult<()> {
+    let lit_by_separation = design
+        .configurations
+        .iter()
+        .find(|flown| flown.id == configuration)
+        .and_then(|flown| {
+            flown.motors.iter().find(|motor| {
+                matches!(motor.ignition, hpr::hpr_design::Ignition::Separation { .. })
+            })
+        });
+    match lit_by_separation {
+        Some(motor) => Err(error(format!(
+            "{}: configuration {configuration} lights {} at its stage's separation, which the \
+             Python package doesn't fly yet: flown as one stack, that motor would never light. \
+             Pass configuration= for a configuration whose motors light without a separation, \
+             or change that motor's ignition in the file",
+            path.display(),
+            motor.designation
+        ))),
+        None => Ok(()),
+    }
+}
+
+/// The note that a design of several stages flies as one stack. A motor lit by a separation
+/// isn't among what it covers: [`separation_lit`] refuses that configuration.
 fn stack_note(rocket: &hpr::hpr_design::Rocket, notes: &mut Vec<String>) {
     if rocket.stages.len() > 1 {
         notes.push(
-            "the stages fly as one stack: no stage drops away, a motor lit by another's burnout \
-             lights on the whole stack, and one lit by a separation never lights"
+            "the stages fly as one stack: no stage drops away, and a motor lit by another's \
+             burnout lights on the whole stack"
                 .to_owned(),
         );
     }

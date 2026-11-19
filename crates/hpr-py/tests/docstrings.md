@@ -625,6 +625,10 @@ Left out, the configuration is the file's default, or its only one. A `.ork` fil
 design mark a default; a rocket's JSON doesn't. A file with several configurations and no
 default is refused, with their ids, and so is one with none.
 
+The stages of a design fly as one stack: no stage drops away. A configuration that lights
+a motor at its stage's separation, as a rocket's JSON or an HPR design can, is refused, as
+`hpr sim` refuses it: flown whole, that motor would never light.
+
 With `recovery=True`, the file's recovery devices fly as `hpr sim` flies them
 (`hpr::ork::recovery`). Each opens fully at its event, with the file's drag coefficient or
 OpenRocket's own. Once one opens, the rocket descends as a point under the open devices'

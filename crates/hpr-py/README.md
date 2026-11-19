@@ -28,7 +28,8 @@ use made of it.
 The package covers the Rust library's builder, not the whole library. These, among others, don't
 work from Python yet:
 
-- staging: a design that drops a stage under power is refused
+- staging: a design with a stage separation to fly, or a motor lit at its stage's separation,
+  is refused
 - swapping a motor into a design read from a file
 - Monte Carlo's landing ellipses
 - the built-in winds that change with height, and weather files (write any of them as a wind
