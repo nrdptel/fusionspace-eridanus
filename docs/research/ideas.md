@@ -93,40 +93,40 @@ rail against the accelerometer logs, is [M2.14][m2-14].
 
 Placed with [ADR-360][adr-360], which promotes the first; the other three are SOON.
 
-- PROMOTED ([M2.15][m2-15]): drag in the coast against the accelerometer logs, predictions
-  first, for HPR Sim and OpenRocket 24.12. User: a flyer, or a team's simulation lead, whose
-  apogee came out high and who asks whether the drag or the motor is off. Workflow: the analyzer
-  reads each log's drag area over mass below Mach 0.8 from the coasting accelerometer; the report
-  sets both programs' predictions, merged beforehand, against it. Moves: new rows
-  `accuracy.coast-drag` and `bias.coast-drag`, drag too low the flattering side. *Done when:*
-  [M2.15][m2-15]'s.
-- SOON: the impulse a motor delivered, read from its boost. User: a flyer whose rocket fell
-  short on a motor they trust. The apogee fit put the collection's bias on the thrust, an
-  impulse scale of 0.94 ([ADR-348][adr-348]), with no reading of the thrust itself. Workflow:
-  over the burn, the thrust is the mass times the accelerometer's specific force plus the drag;
-  the analyzer sums it, with the plan's mass less the propellant the motor file has burned and
-  the drag from [M2.15][m2-15]'s coast reading at the same speeds, and the fixture report sets
-  that impulse against the motor file's. Moves: `bias.collection`, as a diagnosis of its thrust
-  part. *Done when:* the reading holds a synthetic boost's impulse in its 90% interval on at
-  least 90% of a set of 200; the report gives delivered over rated impulse, median and 90% range
-  with counts, for each maker with five flights or more and for all together.
-- SOON: the coast's drag from a barometer alone. User: a flyer whose altimeter logs pressure and
-  no acceleration; 35 of the collection's 83 flights have no acceleration column in the catalog
-  ([ADR-352][adr-352]'s 48 of 83). Workflow: the analyzer reads the drag over the mass from the
-  barometer's height over the coast below Mach 0.8, its second derivative and gravity resolved
-  along the path, with the path's angle in its interval. Moves: `accuracy.coast-drag`, over more
-  flights. *Done when:* the reading passes [M2.15a][m2-15a]'s three lines on synthetic coasts;
-  on the flights with both channels, the share whose barometer reading lies inside the
-  accelerometer's interval is given with its count; the rows give each kind's flights apart.
-- SOON: the collection's errors with each source counted once. User: a reader asking whether
-  the +7.72% bias is the model's or a few clubs' habits. 15 of the 19 flights whose charge fired
-  or that split before the peak come from 2 of 16 sources ([apogee bias](apogee-bias.md)).
-  Workflow: beside each flight-weighted mean, the fixture report gives the mean over sources,
-  each source's flights averaged first, with a 95% interval from a bootstrap that resamples
-  sources, for both programs. Moves: `accuracy.collection` and `bias.collection`, as shown
-  figures beside the held ones. *Done when:* a test pins the weighting on a synthetic set where
-  one source of ten flights carries the flight-weighted mean; the report gives both means and
-  their intervals for both programs; the accuracy page says which one the held cell reads.
+- PROMOTED ([M2.15][m2-15]): drag in the coast against the accelerometer logs, predictions first,
+  for both programs. User: a flyer whose apogee came out high, asking whether the drag or the motor
+  is off. Workflow: the analyzer reads the coast's axial force over mass below Mach 0.8; the report
+  sets both programs' sealed predictions against it. Moves: new rows `accuracy.coast-drag` and
+  `bias.coast-drag`. *Done when:* [M2.15][m2-15]'s.
+- SOON: the impulse a motor delivered, read from its boost. User: a flyer whose rocket fell short on
+  a motor they trust. The apogee fit put the collection's bias on the thrust, an impulse scale of
+  0.94 ([ADR-348][adr-348]), with no reading of the thrust itself. Workflow: over the burn the
+  thrust is the mass times the accelerometer's [specific force](../glossary.md#specific-force) plus
+  the axial drag; the analyzer sums it, with the plan's mass less the propellant the motor file has
+  burned, and the drag from [M2.15][m2-15]'s coast reading at the same speeds, its base under power
+  from a cited source; the fixture report sets that impulse against the motor file's. Moves:
+  `bias.collection`, as a diagnosis of its thrust part. *Done when:* the reading holds a synthetic
+  boost's impulse in its 90% interval, the sensor's scale and the plan's mass in it, on at least 90%
+  of a set of 200; the report gives delivered over rated impulse, median and 90% range with counts,
+  by maker (five flights or more), all together and on the weighed-mass flights.
+- SOON: the coast's drag from a barometer alone. User: a flyer whose altimeter logs pressure but no
+  acceleration; 35 of the collection's 83 flights list none ([ADR-352][adr-352] counts 48 with one).
+  Workflow: the analyzer reads the drag over the mass along the path from the barometer's height
+  over the coast below Mach 0.8, by the vertical equation, the height's second derivative plus
+  gravity over the cosine of the path's angle from vertical (heights from the day's air, the angle
+  in the interval). Moves: `accuracy.coast-drag`, over more flights, once turned from drag along the
+  path to axial force. *Done when:* the reading passes [M2.15a][m2-15a]'s three lines on synthetic
+  coasts; on the flights with both channels, the share whose barometer reading lies inside the
+  accelerometer's interval is given with its count and the rows show each kind apart.
+- SOON: the collection's errors with each source counted once. User: a reader asking whether the
+  +7.72% bias is the model's or a few teams' and flyers' habits. In an earlier count of 53 flights,
+  15 of the 19 whose charge fired or that split before the peak came from 2 of 16 sources ([apogee
+  bias](apogee-bias.md)). Workflow: beside each flight-weighted mean, the fixture report gives the
+  mean over sources, each source's flights averaged first, with a 95% interval from a bootstrap that
+  resamples sources, for both programs. Moves: `accuracy.collection` and `bias.collection`, as shown
+  figures beside the held ones. *Done when:* a test pins the weighting on a synthetic set where one
+  source of ten flights carries the flight-weighted mean; the report gives both means and their
+  intervals for both programs; the accuracy page says which one the held cell reads.
 
 ## MAINTAINER'S CALL (money, outreach)
 

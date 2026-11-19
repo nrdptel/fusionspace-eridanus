@@ -4,7 +4,7 @@
 //!
 //! The layout check ([`super::pages`]) and the vitals check ([`super::vitals`]) each keep a file
 //! under [`DIR`], outside the site, which each build clears. A file holds its run's key and, for
-//! each page that passed, the SHA-256 of the page's HTML, when it was checked and what the check
+//! each page that passed, the SHA-256 of the page's HTML (its date of issue left out), when it was checked and what the check
 //! measured of it: the lines of its prose, or its vitals. A run reuses a page's result when its key
 //! is the cache's and the page's HTML is the same but for its date of issue ([`undated`]); it
 //! checks the rest. The key ([`key`]) is what
@@ -131,7 +131,7 @@ struct Inputs<'a> {
     arch: &'a str,
     part: Part,
     /// Every file of the built site a check may read, by its path relative to the site, to the
-    /// SHA-256 of its bytes ([`snapshot`]); only the shared ones ([`role`]) go in the key.
+    /// SHA-256 of its bytes, a page's with its date of issue left out ([`snapshot`]); only the shared ones ([`role`]) go in the key.
     site: &'a BTreeMap<String, String>,
 }
 
@@ -191,7 +191,7 @@ struct Format {
 /// One page that passed, as the cache keeps it.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub(super) struct Entry<T> {
-    /// The SHA-256 of the page's HTML.
+    /// The SHA-256 of the page's HTML, its date of issue left out ([`undated`]).
     pub html: String,
     /// When it was checked, `YYYY-MM-DD HH:MM UTC`.
     pub checked: String,
@@ -392,7 +392,8 @@ fn dates<'a>(dates: impl Iterator<Item = &'a str>) -> String {
 pub(super) struct Run {
     /// Where the cache files are, [`DIR`] under the workspace root.
     dir: PathBuf,
-    /// Every file of the site a check may read, to the SHA-256 of its bytes ([`snapshot`]).
+    /// Every file of the site a check may read, to the SHA-256 of its bytes, a page's with its
+    /// date of issue left out ([`snapshot`]).
     site: BTreeMap<String, String>,
     chrome: String,
     /// What Chrome says its version is; none when that couldn't be read.
@@ -475,7 +476,8 @@ impl Run {
 }
 
 /// Every file of the site built in `output` that a check may read ([`role`]), by its path
-/// relative to the site, `/` between folders, to the SHA-256 of its bytes.
+/// relative to the site, `/` between folders, to the SHA-256 of its bytes; a page's are read
+/// with its date of issue left out ([`undated`]).
 fn snapshot(output: &Path) -> Result<BTreeMap<String, String>, String> {
     let mut files = BTreeMap::new();
     walk(output, "", &mut files)?;
@@ -513,8 +515,8 @@ fn walk(dir: &Path, prefix: &str, files: &mut BTreeMap<String, String>) -> Resul
 }
 
 /// What comes just before a built page's date of issue: the footer's `Issued` entry, which
-/// [`super::frame`] writes on every page, and the title block's, which
-/// [`super::theme::fill_issue_date`] fills on the landing page. Both carry the date of the
+/// [`super::frame`] writes on each page with a footer, and the title block's, which
+/// [`super::theme::fill_issue_date`] fills on each page that carries the title block. Both carry the date of the
 /// commit the site is built from, so before this every page's HTML changed with each new date
 /// and the first run on a new date checked every page again (#1417).
 const DATED: [&str; 2] = ["<span>Issued ", "<span id=\"issue-date\">"];
@@ -527,7 +529,7 @@ const UNDATED: &str = "YYYY-MM-DD";
 /// bytes that aren't UTF-8 all as they are. So a page whose only change is its date is reused,
 /// and any other change, a date elsewhere in its text among them, still has it checked again.
 ///
-/// A new date changes ten characters of the footer, digits for digits. A page reused on that
+/// A new date changes each date's ten characters, digits for digits. A page reused on that
 /// account is not laid out with its new date by the gate; CI checks every page with no cache, so
 /// a layout the date alone moved would be caught there.
 fn undated(bytes: &[u8]) -> Cow<'_, [u8]> {
@@ -753,8 +755,11 @@ mod tests {
         assert!(!plan.canaries);
         assert_eq!(reused(&plan), ["index.html", "physics/aero.html"]);
 
-        // A date in the page's own text is not its date of issue.
-        setting.site = build("2026-11-19", "drag, read 2026-11-18");
+        // A date in the page's own text is not its date of issue: cached with one, the page is
+        // checked again when that date changes.
+        setting.site = build("2026-11-18", "drag, read 2026-11-18");
+        let cached = run(&setting.plan(Some(&cached)), true, None).unwrap();
+        setting.site = build("2026-11-19", "drag, read 2026-11-19");
         assert_eq!(setting.plan(Some(&cached)).check, ["physics/aero.html"]);
         // Nor is a word changed beside a new date.
         setting.site = build("2026-11-19", "lift");
@@ -776,7 +781,7 @@ mod tests {
             "<span>Read 2026-11-19</span>",
             "<p>Issued 2026-11-19</p>",
             "the end: <span>Issued ",
-            "<span>Issued \u{e9}2026-11-1</span>",
+            "<span>Issued 2026-11-1\u{e9}</span>",
         ] {
             assert_eq!(read(text), text);
         }
