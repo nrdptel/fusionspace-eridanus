@@ -1501,7 +1501,8 @@ split's drag swap. Outside the bands swapped the drag stays HPR Sim's own.
   band is the same flight before and after that band's swap, so its part there is exactly
   zero.
 - A band *dominates* a flight when its part's absolute value is the largest of the three. The
-  table's last column counts the flights where that absolute value is over 1%.
+  table's last column counts the flights where that absolute value is over 1%
+  ([report][fixture-report]).
 
 The three parts sum to the flight's drag part, and the run that writes the report stops on a
 flight where they don't. All 68 flights split are split by band ([report][fixture-report]).
