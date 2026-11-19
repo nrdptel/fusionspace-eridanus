@@ -733,7 +733,10 @@ mod tests {
         let build = |date: &str, aero: &str| {
             let dir = tempfile::tempdir().unwrap();
             fs::create_dir(dir.path().join("physics")).unwrap();
-            let landing = format!("<span id=\"issue-date\">{date}</span>{}", page(date, "home"));
+            let landing = format!(
+                "<span id=\"issue-date\">{date}</span>{}",
+                page(date, "home")
+            );
             fs::write(dir.path().join("index.html"), landing).unwrap();
             fs::write(dir.path().join("physics/aero.html"), page(date, aero)).unwrap();
             fs::write(dir.path().join("site.css"), "p { margin: 0 }").unwrap();
