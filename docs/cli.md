@@ -119,11 +119,13 @@ checked"
 ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0213-units-and-trust-notes-on-every-readout.md)).
 A forecast's winds are one such figure: nothing has compared them with measured ones.
 
-The numbers cover the apogee only, on 60 logged flights of fliers' own designs. Each logged apogee
-is the height climbed in the day's air. The simulated apogee averaged 7.7% above the logged one. It
-was within 10% on 32 and read low on 15, by at most 20%
+The numbers cover the apogee only, on 60 logged flights of fliers' own designs, each flown in its
+day's air from ERA5. Each logged apogee is the height climbed in that air. The simulated apogee
+averaged 7.7% above the logged one. It was within 10% on 32 and read low on 15, by at most 20%
 ([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
-Speed, drift and the margin have no measured spread yet.
+A run without `--weather` flies the standard atmosphere, and its note adds that on a warmer day
+the rocket can climb higher than its apogee; a run with `--weather` doesn't. Speed, drift and the
+margin have no measured spread yet.
 
 The note asks for room above the apogee when planning a waiver, the permission to fly above a height
 limit. It leaves the call to the RSO, the range safety officer.
@@ -403,12 +405,12 @@ top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each was flown in its
-day's real air, and each logged apogee is the height climbed in it. The simulated apogee was within
-10% on 32 and read low on 15, by at most 20%. This flight is in the standard atmosphere. On a day
-warmer than it, the apogee can read lower still; --weather flies the day's air. Plan a waiver or a
-field's ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO
-decides.
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
+The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
+this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
+apogee; the altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -550,12 +552,12 @@ top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each was flown in its
-day's real air, and each logged apogee is the height climbed in it. The simulated apogee was within
-10% on 32 and read low on 15, by at most 20%. This flight is in the standard atmosphere. On a day
-warmer than it, the apogee can read lower still; --weather flies the day's air. Plan a waiver or a
-field's ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO
-decides.
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
+The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
+this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
+apogee; the altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -796,12 +798,12 @@ top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each was flown in its
-day's real air, and each logged apogee is the height climbed in it. The simulated apogee was within
-10% on 32 and read low on 15, by at most 20%. This flight is in the standard atmosphere. On a day
-warmer than it, the apogee can read lower still; --weather flies the day's air. Plan a waiver or a
-field's ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO
-decides.
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
+The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
+this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
+apogee; the altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -1126,11 +1128,12 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.7% above the logged one. Each was flown in its day's real air, and
-each logged apogee is the height climbed in it. The simulated apogee was within 10% on 32 and read
-low on 15, by at most 20%. These flights are in the standard atmosphere. On a day warmer than it,
-the apogee can read lower still; --weather flies the day's air. Plan a waiver or a field's ceiling
-with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
+the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in its day's air from
+ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee
+was within 10% on 32 and read low on 15, by at most 20%. These flights were flown in the standard
+atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;
+--weather flies the day's air. Plan a waiver or a field's ceiling with room above this apogee; the
+altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -1217,11 +1220,12 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.7% above the logged one. Each was flown in its day's real air, and
-each logged apogee is the height climbed in it. The simulated apogee was within 10% on 32 and read
-low on 15, by at most 20%. These flights are in the standard atmosphere. On a day warmer than it,
-the apogee can read lower still; --weather flies the day's air. Plan a waiver or a field's ceiling
-with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
+the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in its day's air from
+ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee
+was within 10% on 32 and read low on 15, by at most 20%. These flights were flown in the standard
+atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;
+--weather flies the day's air. Plan a waiver or a field's ceiling with room above this apogee; the
+altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 

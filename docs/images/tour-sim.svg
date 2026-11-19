@@ -60,12 +60,12 @@
 <text x="52" y="967" xml:space="preserve" fill="#0B0F1C">top Mach number       0.842</text>
 <text x="52" y="983" xml:space="preserve" fill="#0B0F1C">landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)</text>
 <text x="52" y="1015" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of</text>
-<text x="52" y="1031" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 7.7% above the logged one. Each was flown in its</text>
-<text x="52" y="1047" xml:space="preserve" fill="#0B0F1C">day&apos;s real air, and each logged apogee is the height climbed in it. The simulated apogee was within</text>
-<text x="52" y="1063" xml:space="preserve" fill="#0B0F1C">10% on 32 and read low on 15, by at most 20%. This flight is in the standard atmosphere. On a day</text>
-<text x="52" y="1079" xml:space="preserve" fill="#0B0F1C">warmer than it, the apogee can read lower still; --weather flies the day&apos;s air. Plan a waiver or a</text>
-<text x="52" y="1095" xml:space="preserve" fill="#0B0F1C">field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log, and the RSO</text>
-<text x="52" y="1111" xml:space="preserve" fill="#0B0F1C">decides.</text>
+<text x="52" y="1031" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in</text>
+<text x="52" y="1047" xml:space="preserve" fill="#0B0F1C">its day&apos;s air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.</text>
+<text x="52" y="1063" xml:space="preserve" fill="#0B0F1C">The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown</text>
+<text x="52" y="1079" xml:space="preserve" fill="#0B0F1C">in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than</text>
+<text x="52" y="1095" xml:space="preserve" fill="#0B0F1C">this apogee; --weather flies the day&apos;s air. Plan a waiver or a field&apos;s ceiling with room above this</text>
+<text x="52" y="1111" xml:space="preserve" fill="#0B0F1C">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides.</text>
 <text x="52" y="1127" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
 <line x1="27" y1="67.3" x2="40" y2="67.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="67.3" r="9" fill="#0B0F1C"/><text x="18" y="71.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">A</text>
 <line x1="27" y1="131.3" x2="40" y2="131.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="131.3" r="9" fill="#0B0F1C"/><text x="18" y="135.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">B</text>

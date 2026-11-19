@@ -2279,6 +2279,21 @@ fn sim_flies_the_profile_hpr_weather_writes() {
         text.contains("in the air and winds of profile.json"),
         "{text}"
     );
+    // Flown in the profile's air, the trust note says what the report's flights flew in and
+    // leaves out the standard-air caveat, in the JSON and the text, as `hpr mc` does (#1256).
+    let mut runs = vec!["mc", path.as_str(), "--runs", "2", "--seed", "1"];
+    runs.extend(site);
+    runs.extend(["--weather", written]);
+    let mc_text = String::from_utf8(hpr(&runs).stdout).unwrap();
+    for note in [document["trust"].as_str().unwrap(), &text, &mc_text] {
+        let note = note.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(
+            note.contains("HPR Sim flew each in its day's air from ERA5"),
+            "{note}"
+        );
+        assert!(!note.contains("standard atmosphere"), "{note}");
+        assert!(!note.contains("--weather flies"), "{note}");
+    }
 
     // A site below the profile's lowest level is refused, its range shown rounded inward to
     // 0.1 m (the top level is 24,212.504 m).

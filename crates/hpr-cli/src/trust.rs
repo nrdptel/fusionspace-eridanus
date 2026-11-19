@@ -64,8 +64,8 @@ pub(crate) enum Air {
     /// A weather profile's air, from `--weather`: the day's, as the report's flights were flown.
     Day,
     /// The 1976 standard atmosphere, flown without `--weather`. On a day whose air is thinner
-    /// than it, as a warm day's is, the real rocket meets less drag than the one flown, so the
-    /// simulated apogee reads lower than it would in the day's air.
+    /// than it, as a warm day's or a low-pressure day's is, the real rocket meets less drag than
+    /// the one simulated, so it climbs higher than the simulated apogee.
     Standard,
 }
 
@@ -88,14 +88,14 @@ fn checked_and_instead(air: Air, flown: &str) -> String {
     let standard = match air {
         Air::Day => String::new(),
         Air::Standard => format!(
-            "{flown} in the standard atmosphere. On a day warmer than it, the apogee can read \
-             lower still; --weather flies the day's air. "
+            "{flown} in the standard atmosphere. On a day warmer than it at the site, the rocket \
+             can climb higher than this apogee; --weather flies the day's air. "
         ),
     };
     format!(
         "Against {FLIGHTS} logged flights of fliers' own designs, the simulated apogee averaged \
-         {MEAN_PERCENT:.1}% above the logged one. Each was flown in its day's real air, and each \
-         logged apogee is the height climbed in it. The simulated apogee was within 10% on \
+         {MEAN_PERCENT:.1}% above the logged one. HPR Sim flew each in its day's air from ERA5, a \
+         weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee was within 10% on \
          {WITHIN_10} and read low on {LOW}, by at most {LOW_AT_MOST_PERCENT:.0}%. {standard}Plan \
          a waiver or a field's ceiling with room above this apogee; the altimeter's reading is \
          the one to log, and the RSO decides.{MORE}{ACCURACY_URL}"
@@ -106,7 +106,7 @@ fn checked_and_instead(air: Air, flown: &str) -> String {
 pub(crate) fn flight(air: Air) -> String {
     format!(
         "{LABEL} Simulated from the design file, not measured. {}",
-        checked_and_instead(air, "This flight is")
+        checked_and_instead(air, "This flight was flown")
     )
 }
 
@@ -116,7 +116,7 @@ pub(crate) fn runs(air: Air) -> String {
     format!(
         "{LABEL} Simulated from the design file, not measured; the spread above comes from the \
          inputs' scatter alone, not from the model's error. {}",
-        checked_and_instead(air, "These flights are")
+        checked_and_instead(air, "These flights were flown")
     )
 }
 
@@ -395,13 +395,13 @@ mod tests {
     /// `--weather` says none of it (#1256).
     #[test]
     fn a_standard_air_note_says_its_air_reads_lower_on_a_warm_day() {
-        let flown = "Each was flown in its day's real air, and each logged apogee is the height \
-                     climbed in it.";
-        let caveat = "in the standard atmosphere. On a day warmer than it, the apogee can read \
-                      lower still; --weather flies the day's air.";
+        let flown = "HPR Sim flew each in its day's air from ERA5, a weather reanalysis, and each \
+                     logged apogee is the height climbed in it.";
+        let caveat = "in the standard atmosphere. On a day warmer than it at the site, the rocket \
+                      can climb higher than this apogee; --weather flies the day's air.";
         for (note, subject) in [
-            (flight(Air::Standard), "This flight is "),
-            (runs(Air::Standard), "These flights are "),
+            (flight(Air::Standard), "This flight was flown "),
+            (runs(Air::Standard), "These flights were flown "),
         ] {
             let low = note.find("by at most 20%.").unwrap_or(usize::MAX);
             let said = note
