@@ -61,8 +61,9 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   Stoney's free-flight body of d_B/d 0.44 shows a base pressure above ambient from Mach 0.6 to 0.85 without its sting
   (NACA RM L51L03, Fig. 4). Each would read the relief above as high, as the Hermes flight does.
 - **The relief tried in the code** (not committed; the factor behind a boattail below Mach 0.8 set to d_B/d₁, the
-  transonic ramp starting there). Of `hpr-aero`'s tests, two hand pins of the old base drag fail, and the
-  code-to-code checks against RASAero II curves (ADR-009, ADR-029) move:
+  transonic ramp starting there). Of `hpr-aero`'s tests, one hand pin of the old base drag fails, one fixture's
+  informational base column goes stale, and the code-to-code checks against RASAero II curves (ADR-009, ADR-029)
+  move:
   - At Mach 0.3, two more of RocketPy's example rockets fall outside 10% of their curves: Calisto's getting-started
     variant and Juno III, both power off, beside the three ADR-009 explains.
   - Rows within 10%: Calisto's own export, the one real RASAero II file, goes from 3 to 5 of 7 transonic and keeps
