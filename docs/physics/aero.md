@@ -490,7 +490,7 @@ angles, without crossflow), HPR Sim's body gives $C_N$ 1.632 there; the tunnel m
 0.82 at fineness 10, 0.90 at 20, 0.95 at 30, against Galejs's 1.1. A slow rocket leaving the rail
 in wind feels it most ([Validity and open questions](#validity-and-open-questions)). The tunnel
 points where HPR Sim reads high, the air crossing the body faster than sound, are at 12° to 21° from
-Mach 2.3 up. A flight meets such angles that fast only if it is unstable or hit by a strong gust.
+Mach 2.96 up. A flight meets such angles that fast only if it is unstable or hit by a strong gust.
 
 **How it was checked.** The Arcas Robin wind tunnel measured the body alone from −5° to 21° at six
 Mach numbers ([TN D-4014](#code-and-sources)). The points above +4° were read for this milestone
@@ -532,7 +532,7 @@ Galejs's constant stays available for comparison
 [M1.8e1](../decisions-and-roadmap.md#m1-8e1)'s method, the second-order shock-expansion method as a
 tested library model. Against its report's wind-tunnel data, 117 of
 120 slopes are within 0.2 per radian. On the Arcas Robin's body it reads from 16% high at Mach 1.5
-to 27% low past Mach 3 at $\alpha \to 0$. That comparison leaves out the [body
+to 26% low past Mach 3 at $\alpha \to 0$. That comparison leaves out the [body
 lift](../glossary.md#body-lift) a flight adds. Compared the way the tunnel measures, the
 body reads high
 ([Checking the shock-expansion method](#checking-the-shock-expansion-method), under
@@ -691,8 +691,8 @@ this much. The first four rows use two test bodies. The flare behind a boattail 
 | a lip longer than its boattail's drop in diameter, however little it rises | −33.0% | 1.77 calibers, forward | queued: [M1.14d: supersonic accuracy](../decisions-and-roadmap.md#m1-14d), after the four switches above, since it reads *less* stable; [issue #120: a lip longer than its wake](https://github.com/nrdptel/fusionspace-eridanus/issues/120) |
 | a near-flat flare, 0.03816° to 0.05882° at the table's top rows, which the march used to refuse | −8.3% | 1.16 calibers | no longer a switch: the element is read by the generalized method, [ADR-050][adr-050] |
 
-In the first four rows the center of pressure moves **aft** when the method is lost. So a rocket that trips one reads *more* stable than one that doesn't. The two lip rows and the near-flat-flare
-row go the other way. Their tails take lift off: a boattail's wake, or a flare the method reads lower than slender-body theory does. There slender-body theory puts the center of pressure **forward** of the method's, so losing the method there reads *less* stable. Which way it goes
+In the first four rows the center of pressure moves **aft** when the method is lost. So a rocket that trips one reads *more* stable than one that doesn't. The near-flat-flare row goes the same way: its test pins the center of pressure 1.16 calibers aft on
+slender-body theory. The two lip rows go the other way. Their tails take lift off in a boattail's wake. There slender-body theory puts the center of pressure **forward** of the method's, so losing the method there reads *less* stable. Which way it goes
 depends on the body; what is reliable is the size.
 
 The lip row about length is a switch the wake's grading does not cover. The length limit is a threshold, not a ramp. It is the one this page's measurements use to take a rocket off the method
@@ -829,7 +829,7 @@ Every piece is a straight line in Mach, so nothing jumps. The test
 `the_supersonic_join_has_no_jump` looks at ±1e-9 in Mach on each side of the join's ends, of table rows, between rows and at Mach 4.999. `a_blunter_cone_joins_where_the_method_starts_to_hold` does the same for the 20° cone, whose join starts higher.
 `the_joins_start_moves_with_the_nose_not_in_steps` pins that cone's start and the 20.5° cone's to 1e-6. It checks the start is off the grid, and that the cylinder's share at the start is under 1e-5 per radian (about 1e-7). It also checks the start moves by less than 1e-7 when the cone steepens by a
 millionth of a degree (2.7e-8). `a_boattailed_body_flies_the_method_without_a_jump` does the same
-±1e-9 probe for the finned rocket with its boattail and tail tube. Mach 1.2 to 1.5 is a judgment. Below Mach 1.2 the flow over the nose is transonic, which the method doesn't cover. Mach 1.5 is the lowest Mach at which NASA measured the Arcas Robin
+±1e-9 probe for the finned rocket with its boattail and tail tube. Mach 1.2 to 1.5 is a judgment. Below Mach 1.2 the flow over the nose is transonic, which the method doesn't cover. Mach 1.5 is the lowest Mach of NASA's supersonic tests of the Arcas Robin, in TN D-4014
 ([ADR-034](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0034-the-bodys-supersonic-normal-force-in-flight.md),
 the decision behind it). Small changes in shape can still switch a body between the two models. An example is a nose so steep that the method never holds at any Mach up to 5. The rocket then keeps slender-body theory throughout
 ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
@@ -892,7 +892,7 @@ is spread over the band. On that rocket, at Mach 3 and 4°:
 
 | drawn from | to | normal force | center of pressure |
 |---|---|--:|--:|
-| a lip rising a quarter of the boattail's drop | rising a half (1.25 mm (0.049 in) of radius) | −29.1% | 0.93 calibers |
+| a lip rising a quarter of the boattail's drop | rising a half (2.5 mm (0.098 in) of radius) | −29.1% | 0.93 calibers |
 | a lip flush behind the boattail | one a boattail's drop in diameter behind it (10 mm (0.39 in)) | −33.8% | 1.97 calibers |
 
 That table is a **design** sensitivity: how the printed answer moves as you draw the lip
@@ -1260,7 +1260,7 @@ The decision record is [ADR-048][adr-048].
 
 **The body.** Two things about it bear on the comparison. Its nose is blunter and more compound than model 1's. So HPR Sim had to learn to hand a blunt tip's cap over on a later piece of a nose.
 The report's own drawing also does not quite close, so which printed numbers to keep had to
-be chosen. Neither is worth much (the closure is worth 0.64 points at most, measured three ways),
+be chosen. Neither is worth much (the closure is worth 0.76 points at most, measured three ways),
 but both are choices.
 
 Fig. 3(b) (printed p. 91) draws model 2 in base diameters, $d$ = 0.583 ft (0.178 m). Its nose is
@@ -1310,7 +1310,7 @@ flare. That puts the juncture 0.0146 diameters aft of the printed one, at diamet
 Two other closures are computed and published beside it, so the choice can be checked. Keeping the printed lengths and scaling the whole body to a 1.000 base moves the error by
 −0.12 to −0.17 points. Points here and below are percentage points of error. Keeping the printed
 lengths **and** the base, and giving up the flare's stated angle instead (18.5° becomes 18.0864°),
-moves it by +0.06 to +0.64 points. Over all three the spread is **0.64 points or less** in the
+moves it by +0.06 to +0.64 points. Over all three the spread is **0.76 points or less** in the
 slope and **0.0043 calibers or less** in the center of pressure. Mach 1.50 is refused in every one
 of them, so nothing below turns on which closure is flown.
 
@@ -1376,7 +1376,7 @@ boundary layer separating *ahead* of the juncture and reattaching behind it (pri
 *pressures* at the high Mach numbers (printed p. 10). It blames the same flow for its over-prediction of *axial* force
 (printed p. 12). It says nothing about what separation does to the normal force or the
 pitching moment. Nor does its method carry a separation signature on this body. It reads +24.8% at
-Mach 1.90 and +31.6% at 2.30, both attached rows, against +28.8% and +20.3% at the separated ones.
+Mach 1.90 and +31.6% at 2.30, both attached rows, against +12.1%, +28.8% and +20.3% at the three separated ones.
 The report's method is uniformly high on model 2 and near the tunnel on model 1. This is a large offset this milestone has not explained. So read the separation as **consistent with** the two fast
 rows rather than measured by them. Nothing here settles why separation costs 0.9 points at Mach 2.96, where the report says it has already begun, or twenty times that at 3.95.
 
@@ -1419,7 +1419,7 @@ the crossing moves with that flow. Below that a flared body takes [slender-body
 theory](../glossary.md#slender-body-theory) instead, carried up over 0.3 Mach by the
 [join](#bodies-faster-than-sound). The join is continuous, but it means the method is not used at
 the low end of what a flight flies. The report says the same about its own method: *"at $M_\infty = 1.50$, the shock wave produced by the flare is not theoretically attached"*
-(printed p. 10). Its method reads +28.6% there against +2.0% on model 1.
+(printed p. 10). Its method reads +28.6% there against −3.3% on model 1.
 
 The rows above are in
 [`validation/fixtures/aero/marched-flare.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/marched-flare.json),
@@ -1455,7 +1455,7 @@ rule itself would be in both and pass.
   method reads it high where the flare separates. HPR Sim's supersonic drag is a different model
   with its own [checks](#drag-verification); this milestone did not touch it.
 - **The drawing is 1% inconsistent and one closure had to be chosen.** The spread over the three
-  closures is small (0.64 points, 0.0043 calibers), and the flare's own angle is inside it. It is
+  closures is small (0.76 points, 0.0043 calibers), and the flare's own angle is inside it. It is
   the drawing's disagreement with itself, not an error bar on the measurement.
 - **No target was set, and none is met or missed here.**
   [M1.8e18](../decisions-and-roadmap.md#m1-8e18) asked what a marched flare is worth, not that it
@@ -1869,7 +1869,7 @@ the nose's length and of its base radius:
 | TN D-4865's sphere-cone (model 1) | past the sphere: the method doesn't hold | 7.8% / 0.34 | 6.0% / 0.32 | 5.9% / 0.32 |
 
 Near the join's start a slender nose leans on Newtonian pressures over far more of itself than anything the report checked. By Mach 2 the cap is a percent or so of the nose, less than the
-report's own. The join's weight rises from 0 at its start to 1 a third of a Mach number later,
+report's own. The join's weight rises from 0 at its start to 1 over the next 0.3 Mach,
 which damps that. But read a vertical tip's numbers between the join's ends as the blend they are.
 
 A power-series nose meets its base at a slope of $n/(2f)$, with $f$ its length over its diameter. The cap can't end on the nose while that slope is steeper than the handover's angle. So such a nose
@@ -2008,7 +2008,7 @@ model's cylinder, nothing aft. The values are $C_{N\alpha}$ per radian on its cr
 | 4.63 | 3.030 | 3.034 (2 of 160 reduced) | 3.047 (5 of 10 reduced, 2 crossings) | 3.260 (109 of 160 reduced, 2 crossings) |
 | 5 | 2.980 | 2.984 (2 of 160 reduced) | 3.400 (9 of 10 reduced, 1 crossing) | 3.454 (145 of 160 reduced, 1 crossing) |
 
-Through Mach 3.96, cutting the nose into sixteen times as many elements moves the answer by under 0.01 per radian under the flown cap. Under the 30° cap it moves by under 0.013. So the answer is the model's, not the mesh's. Above Mach 3.96 the 30° cap's march crosses its tangent cone twice. It reduces most of the nose too: 5 of 10 elements at Mach 4.63 and 9 of 10 at Mach 5. The 10-element counts are what HPR Sim would fly; at 160 they are 109 and 145. The answer follows the element count instead, and not even in order. It is 3.047 at 10 elements, 2.928 at the 40 the fixture also holds, and 3.260 at 160. That is a spread of 0.33 per radian, 11%, where the flown cap moves by 0.1%. The crossing is the cause and the
+Through Mach 3.96, cutting the nose into sixteen times as many elements moves the answer by under 0.01 per radian under the flown cap. Under the 30° cap it moves by under 0.013. So the answer is the model's, not the mesh's. Above Mach 3.96 the 30° cap's march crosses its tangent cone, twice at Mach 4.63 and once at Mach 5. It reduces most of the nose too: 5 of 10 elements at Mach 4.63 and 9 of 10 at Mach 5. The 10-element counts are what HPR Sim would fly; at 160 they are 109 and 145. The answer follows the element count instead, and not even in order. It is 3.047 at 10 elements, 2.928 at the 40 the fixture also holds, and 3.260 at 160. That is a spread of 0.33 per radian, 11%, where the flown cap moves by 0.1%. The crossing is the cause and the
 reductions travel with it, which the next section takes apart.
 
 ##### What a crossing is, and what it costs
@@ -2432,9 +2432,9 @@ the air at.
 >
 > - The forcing is within 5.3% of NASA's measured roll effectiveness from Mach 2.3 to 4.63, and
 >   reads 14% to 48% high at Mach 1.5 and 1.8.
-> - The damping reads 12% to 27% high against NOL's wind tunnel (Mach 1.53 to 2.76), up to 12.4%
+> - The damping reads 12% to 28% high against NOL's wind tunnel (Mach 1.53 to 2.76), up to 12.4%
 >   against DREV's range (Mach 1.83 to 3.15).
-> - Below Mach 1.5, where most hobby flights stay, no committed comparison checks either (below).
+> - Below Mach 1.5, where most hobby flights stay, no committed measurement checks either (below).
 > - The spin rate is forcing over damping, measured on two bodies: near Mach 1.5 the forcing's
 >   larger excess puts it about 16% high; from Mach 2.3 it reads low or about right.
 
@@ -2555,7 +2555,7 @@ What it leaves out:
   and the Arcas Robin's measured forcing doesn't. Barrowman found the same for the Tomahawk
   sounding rocket ("the theoretical value at $M = 1.5$ is no good", [B67] p. 66).
 - The damping reads high faster than sound, most near Mach 1.5 (+27.5% against NOL's wind tunnel). Near Mach 1.5 the likely cause (an inference, not shown) is that linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as the forcing does. The fins' thickness, 8% of the diameter, is unlikely to be the cause: what evidence there is says a thickness term would raise the damping.
-- No committed comparison checks roll below Mach 1.5. Measured sets there put the damping 24.5% to 200% high ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-roll-damping-below-mach-1-5.md), §3); [#1033](https://github.com/nrdptel/fusionspace-eridanus/issues/1033) adds one at Mach 0.22.
+- No committed measurement checks roll below Mach 1.5. Measured sets there put the damping 24.5% to 200% high ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-roll-damping-below-mach-1-5.md), §3); [#1033](https://github.com/nrdptel/fusionspace-eridanus/issues/1033) adds one at Mach 0.22.
 - A fast spin at low airspeed meets the fins at angles past stall, where the linear damping no longer holds. Valetudo spinning at 17 rad/s at 5 m/s (16 ft/s) meets the air 23° off at its fin tips.
 - The angle of attack: the measured roll effectiveness changes by up to 13% between 0° and ±4°
   (TN D-4014 Fig. 14). HPR Sim's is the same at every angle. A single fin's roll from its normal
@@ -3106,7 +3106,7 @@ What it leaves out:
 - **Past the export's largest angle**, the split continuation is HPR Sim's assumption. In a 5 m/s (16 ft/s)
   crosswind Calisto flies past 4° for about 0.3 s just after leaving the rail (up to 7.9°). In that crosswind it flies past 4° again for the last 1.9 s before apogee, as it slows below 30 m/s (98 ft/s). Its export has no viscous part below
   Mach 0.91, so Calisto's flights use only the linear share. The flights on tables of HPR Sim's own normal force are the ones that grow a rest as $\sin^2\alpha$. From Mach 3, where RASAero II's viscous part
-  hardly grows between 2° and 4°, the $\sin^2\alpha$ share probably gives too much force.
+  grows far less than $\sin^2\alpha$ does between 2° and 4° (1.73 times at Mach 3, 1.05 at Mach 4), the $\sin^2\alpha$ share probably gives too much force.
 - **The nose tip** can't be checked from the export beyond the refusal above. A design that
   starts somewhere else gets a shifted center of pressure, with no warning.
 - **Only RASAero II's layout is read.** A table from anywhere else can be built in code with
@@ -3209,7 +3209,7 @@ $$
 - **Roughness.** `hpr_design::Finish` names the fifteen rows of [B67] Table 4-1 (0 to 1,000 µm;
   [N09] Table 3.2 reprints ten) or takes a custom height. The default is "paint in aircraft mass
   production", 20 µm. Each component has its own finish; the Reynolds number and $R_s/L$ use the
-  whole rocket's length, as [N09] does ([Loft lesson L12](../decisions-and-roadmap.md#l12)). Loft cited none of its values. Its 60 µm is OpenRocket's "regular paint" ([N09] p. 83), and its 2 µm isn't in either table. Its $1 + 60/f^3 + 0.0025f$ is Raymer's aircraft fuselage form factor, not [N09]'s.
+  whole rocket's length, as [N09] does ([Loft lesson L12](../decisions-and-roadmap.md#l12)). Loft cited none of its values. Its 60 µm is OpenRocket's "regular paint" ([N09] p. 83), and its 2 µm is [B67]'s sheet-metal row, which [N09] leaves out. Its $1 + 60/f^3 + 0.0025f$ is Raymer's aircraft fuselage form factor, not [N09]'s.
 - **Fully turbulent.** The boundary layer (the thin layer of air the skin drags along) is taken as
   turbulent everywhere, never laminar (smooth and layered). [N09] p. 43 found laminar runs changed
   apogee by under 5% and dropped them.
@@ -3227,7 +3227,7 @@ $$
   stay about $C_{fc}\,\Delta A/A_{\mathrm{ref}}$ above it. The OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will measure the
   difference.
 - **Steps in radius.** Where one body component meets the next with a different radius, a step up
-  is a zero-length shoulder. It is a flat face ($0.8\,\Delta A$ at rest, rising with Mach as under *Drag
+  is a zero-length shoulder. It is a flat face ($0.85\,\Delta A$ at rest, rising with Mach as under *Drag
   through Mach 1*). A step down is a zero-length boattail, the base drag of the uncovered area. A
   body with no nose cone gets the same flat face on its front. Each is the limit of the
   transition it replaces ([Loft lesson L15](../decisions-and-roadmap.md#l15)), and it is reported with the aft component.
@@ -4233,8 +4233,8 @@ pitching moment and the normal force at the plotted angles up to ±4.5°, calibe
 tip. The measured ones carry about ±0.5 calibers from the readings. The measured boattail share,
 which takes lift off at the tail, moves HPR Sim's center of pressure forward, toward the tunnel's.
 Before [M1.8e6](../decisions-and-roadmap.md#m1-8e6) HPR Sim put it 0.90 to 3.85 calibers aft of the tunnel's on the short model and 0.59 to
-1.94 on the long. Now it is −0.19 to +1.59 and −0.88 to −0.18. Two rows still miss by more than the
-readings' half a caliber, the short model at Mach 1.5 and 1.8. The slope misses most there too.
+1.94 on the long. Now it is −0.19 to +1.59 and −0.88 to −0.18. Five rows still miss by more than the
+readings' half a caliber. The largest are the short model at Mach 1.5 (+1.59), where the slope misses most too, and the long one at 3.96 (−0.88). The other three are the short model at Mach 1.8 and 2.96 and the long one at 2.96.
 
 | model | Mach | measured, calibers from the tip | before, calibers | current, calibers |
 |---|--:|--:|--:|--:|
@@ -4544,8 +4544,8 @@ Six of twelve rows are within 10%. HPR Sim reads +12.3% to +31.9% high from Mach
   0.250 at Mach 1.0 where the handbook reads 0.183 from measured bases. Faster than sound HPR Sim's is the lower: 0.125 against 0.147 at Mach 2.
 - **Friction** reads 10.4% to 15.9% lower in HPR Sim. The handbook takes a smooth flat plate's friction and adds 15% on the body. HPR Sim's body factor ([N09] eq. 3.85) adds 2% for this slender body, which accounts for about 11 points. The rest is unexplained; the two methods correct friction for Mach number differently.
 
-So HPR Sim's body reads high through Mach 1, from the nose and the base. It reads 6% to 10% low faster than sound, from friction and the base. That is the same sign as Calisto's gap to RASAero II, a
-third of its size. This rocket has no boattail, so it says nothing about a boattail's own drag.
+So HPR Sim's body reads high through Mach 1, from the nose and the base. It reads 6% to 10% low faster than sound, from friction and the base. That is the same sign as Calisto's gap to RASAero II, which is −14.9% to −5.1%
+from Mach 1.2 to 2. This rocket has no boattail, so it says nothing about a boattail's own drag.
 
 #### A tangent ogive past Mach 1, beside OpenRocket 24.12
 

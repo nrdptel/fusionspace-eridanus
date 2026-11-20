@@ -141,7 +141,7 @@ The readers were written for these milestones, each as the decision record besid
 |---|---|---|---|
 | PerfectFlite `.pf2` | Pnut, StratoLogger, StratoLoggerCF | names PerfectFlite | [`.pf2` files](pf2.md) |
 | PerfectFlite CSV export | the same, through PerfectFlite's software | `Time,Altitude,` and more of the export's own column names | [below](#perfectflites-exports) |
-| PerfectFlite text export | the same | the same names, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, `F` or `C`, such as `71.5F` | [below](#perfectflites-exports) |
+| PerfectFlite text export | the same | `Time`, `Altitude`, `Temp.` and `Voltage`, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, `F` or `C`, such as `71.5F` | [below](#perfectflites-exports) |
 | PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | a full export: `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,`. A table cut from an export: a header of AltOS's own names that includes `time`, `state` and `state_name`, where at least one of the first 100 rows pairs a state number with its AltOS name | `hpr_flightdata::altos` ([below](#altoss-csv-after-a-spreadsheet)) |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
@@ -365,7 +365,7 @@ flights, not logs.
 ### R-DAS raw text
 
 HPR Sim reads the R-DAS's raw export but converts nothing in it. The record holds the file's
-counts, no altitude and no events. Only the Rust library reads it so far. The R-DAS is a flight
+counts, no altitude and no events. The R-DAS is a flight
 computer AED Electronics sold in the early 2000s. It reads its accelerometer, its barometer and,
 as its owner chooses, four digital and six analog inputs, up to 200 times a second. It keeps the
 2 s before liftoff (*R-DAS User Manual*, V1.5, 2001, p. 6, p. 7, p. 14). Its Windows software
@@ -424,7 +424,7 @@ no altitude or pressure in a unit, the record gives no reading (`no_height_track
 ### AltOS telemetry
 
 HPR Sim reads the telemetry an Altus Metrum flight computer sends by radio, as AltosUI, Altus
-Metrum's ground software, saves it. Only the Rust library reads it so far. It is checked on two
+Metrum's ground software, saves it. It is checked on two
 sample files, two flights of one team's TeleMetrum. One of them has AltosUI's export (its CSV) of
 the board's own log of the same flight beside it. The reader follows the maker's published
 description of the packets (*AltOS Telemetry*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025,
@@ -468,8 +468,8 @@ CRC is noise and is left out, counted: 13.6% and 4.1% of the two files' packets
   speed's change to the acceleration in the climb is 0.939 to 1.021. A wrong unit would be 3.28 or
   16 times off. The survey fails a file outside 0.8 to 1.25. The highest height is 0.996 of the
   export's.
-- **The temperature**, in hundredths of a °C, agrees with the export within 0.05 K, its print
-  step. **GPS** positions, in ten-millionths of a degree, agree within 0.000 06° at the 39
+- **The temperature**, in hundredths of a °C, agrees with the export within 0.05 K, half its
+  print step. **GPS** positions, in ten-millionths of a degree, agree within 0.000 06° at the 39
   values compared, and altitudes within 3 m (9.8 ft). The survey fails a file past 0.01° or
   100 m (328 ft). A GPS packet without its valid bit holds no fix, and its position is a gap.
 - **Kept as written:** the converters' counts (raw accelerometer, battery, continuity,
@@ -1696,7 +1696,7 @@ is read as a quantity. No line of the file is an event, so the record has none.
 This is a table of AltOS's radio telemetry, one packet a row under a header of the packet's fields.
 The packets are the ones an [AltOS `.telem` file](#altos-telemetry) logs, decoded. The table is read
 from one sample file and the maker's description of the packets. Only the TeleMega's `0x09` packet
-is read, one board and one packet type to a table. Only the Rust library reads such a table. An
+is read, one board and one packet type to a table. An
 Altus Metrum board's radio packet opens with its serial number, its clock in ticks of 10 ms and the
 packet's type. The type lays out the rest (*AltOS Telemetry*, Bdale Garbee and Keith Packard,
 v1.9.22.2, 2025, §2.1, p. 2). The sample file holds a TeleMega's type `0x09` packets, "TeleMega
@@ -1919,7 +1919,7 @@ Most units come from the file's own column names or from the maker's manual. A f
   manual names tesla, but the sample files' values are 17 to 34 times the Earth's field read so
   ([below](#units-the-file-decides)).
 - A Featherweight summary's four pad accelerations and offsets (`Pad Low-G Accel`, `Pad Hi-G
-  accel`, `Low-G accel pad offset`, `Hi-G accel pad offset`) are kept as written. They are three
+  accel`, `Low-G accel pad offset`, `Hi-G accel pad offset`) are kept as written. Each is three
   numbers with no unit, which no source states ([below](#featherweights-summaries)).
 
 ### Units the file decides
@@ -1975,8 +1975,8 @@ decisions over the sample logs:
   model. In a terminal download, plain or saved as RTF, they are read in feet only where a condition
   holds. The condition is that the coast before apogee also slows at about g in feet (below). A speed
   is read in feet per second only where it matches the altitude's change over the step on at least
-  90% of rows. On the sample logs, the match is on 95.9% or more of rows. Otherwise the speed is
-  kept as written.
+  90% of rows. On the sample CSV downloads, the match is on 95.9% or more of rows. Otherwise the speed
+  is kept as written, as the one RTF sample's speeds are (below).
 - **An Eggtimer's filtered altitude, held to `Alt`.** The filtered altitude must scale to `Alt`
   as a filter of it can. The one multiplier that best takes `Alt` to it, with no offset (a
   least-squares fit through zero), must lie from 0.1 to 2. Otherwise the file is refused. A filter
@@ -1985,7 +1985,7 @@ decisions over the sample logs:
   1 s and a climb to 600 ft, the multiplier is 0.75. A decimal place lost writes a value 10 times
   over, two places 100 times. A refused file's numbers can't be trusted, its clock's among them. A
   seconds clock written without its decimal point reads as milliseconds. The check doesn't catch a
-  column off by less than a factor of 2, such as a filtered altitude in meters (0.3048 times). On
+  column off by a factor inside that range, such as a filtered altitude in meters (0.3048 times). On
   the 44 sample files read, the multiplier is 0.900 to 1.000 (the
   [survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md)
   prints the range). A 45th, a download a spreadsheet saved with its decimal points taken out
@@ -2374,8 +2374,8 @@ Direction of 1st motion,-1.0000,0.0000,0.0000
 
 > **How far to trust it.** These are the logger's own figures, copied as the file states them, not
 > HPR Sim's readings. Two are checked: the maximum altitude and the pad's altitude. Each is
-> checked against the file of samples beside the summary. Of the 33 Blue Raven summaries with such
-> a file, 32 agree in both ([checked against the files beside](#checked-against-the-files-beside)).
+> checked against the file of samples beside the summary. Of the 36 Blue Raven summaries with such
+> a file, 35 agree in both ([checked against the files beside](#checked-against-the-files-beside)).
 > The speeds, accelerations, times and the rest are converted from the unit the file writes. They
 > are checked against nothing ([evidence row G7](../evidence.md#g7)). Where a number matters, set
 > it beside the samples the app exported with it.
@@ -2433,7 +2433,7 @@ A name the reader doesn't know is kept as written too. So is a known figure whos
 the numbers it needs, such as a direction with two components. Each of these has a note. A zero
 is kept as the file states it. What a zero means is a reading, which HPR Sim doesn't take from a
 summary. The [survey's report](#how-it-was-checked) counts each figure kept as written by the
-catalog's family. The main's descent rate, for one, is kept in 23 files filed as
+catalog's family. The main's descent rate, for one, is kept in 26 files filed as
 `blueraven-summary-csv` and 13 filed as `featherweight-summary-csv`.
 
 **Cells and rows.** Cells are separated by commas and trimmed of spaces. Empty cells at a row's
@@ -2471,7 +2471,7 @@ first 16 hex digits of its SHA-256:
 
 | Logger | Summaries | Summaries with a file beside | Summaries with a file beside and an apogee stated | Apogee agrees | Apogee ratio, range | Pad agrees | Pad ratio, range | Agreeing in neither | Contradicted |
 |---|---:|---:|---:|---:|---:|---:|---:|---|---|
-| Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | `cd1bfe19ff70e17d` | none |
+| Featherweight Blue Raven | 39 | 36 | 36 | 35 | 0.9698 to 1.0091 | 35 | 0.9770 to 1.0032 | `cd1bfe19ff70e17d` | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | `413de085a44f4872` | none |
 
 No summary agrees only as meters. Of the tracker summaries, 5 of the 5 that state an apogee
@@ -3022,8 +3022,7 @@ export checks their values.
 ### AltOS's `.eeprom`
 
 HPR Sim reads the log an Altus Metrum flight computer keeps in its own memory. It reads that log as
-AltosUI, Altus Metrum's ground software, downloads it and saves it to an `.eeprom` file. So far
-only the Rust library reads it. Altus Metrum publishes no layout for these records. So the reader's
+AltosUI, Altus Metrum's ground software, downloads it and saves it to an `.eeprom` file. Altus Metrum publishes no layout for these records. So the reader's
 layout was worked out from the 14 sample files and the AltosUI exports (CSV) of the same flights
 beside 9 of them. That work was done without AltOS's or AltosUI's source code. Each unit the reader
 converts rests on a sensor's data sheet and a second check. A count with no source is kept as
@@ -3223,8 +3222,7 @@ bears their units out. Also left out is any log format not listed above, which n
 
 HPR Sim reads an Ozark Aerospace ARTS2's flight from two files. One is the `.odf` file.
 DataAnalyzer, the board's PC software, saves a downloaded flight to it. The other is the sensors'
-[counts](#raw-downloads), their readings as whole numbers, as DataAnalyzer exports them to CSV. Only
-the Rust library reads them so far. The *ARTS2 User Manual* (V1.0.0, Ozark Aerospace, 2007)
+[counts](#raw-downloads), their readings as whole numbers, as DataAnalyzer exports them to CSV. The *ARTS2 User Manual* (V1.0.0, Ozark Aerospace, 2007)
 describes neither file. So the layout was worked out from the 3 sample flights that hold both. Each
 has DataAnalyzer's interpreted export of the same flight beside it ([an ARTS2's unit
 system](#units-the-file-decides)). The work used no other program's source code. The `.odf` carries
