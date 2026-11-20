@@ -330,8 +330,8 @@ of the Arcas Robin sounding rocket, from Mach 0.6 to 4.63, it reads high at most
 highest with fins past Mach 1
 ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). So for a rocket that
 goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its base drag, on the
-flat aft end, has been compared with three references. One is
-MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The other is Love's
+flat aft end, has been compared with three references. The first is
+MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The second is Love's
 correlation of measured bases. The base drag reads high from Mach 0.8 to 1.2 against the first,
 and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured
 ([issue 68, the base drag's error](https://github.com/nrdptel/fusionspace-eridanus/issues/68);
@@ -644,8 +644,10 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   largest share of that drag difference, in mean absolute value, is below Mach 0.8
   ([the bands](accuracy.md#the-drag-part-by-mach-band)). The largest term in that share is the
   base drag, almost all of it while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)).
-  On that missile model's flight HPR Sim's rule leaves too little base drag under power and
-  OpenRocket's too much ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
+  On a NACA missile model's measured flight below Mach 0.8, HPR Sim's rule leaves no base drag
+  under power, too little. Kept on the whole base, its coefficient gives too much, but coasting
+  that coefficient is itself 5.0 to 8.4 times the measured
+  ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
   On the 5 that only just pass Mach 1 (1.06 on average) with a tangent-ogive nose, flying OpenRocket's nose pressure
   drag in HPR Sim lifts its apogee by 1.28% of OpenRocket's on average. That sizes a
   difference between the codes, not which is right

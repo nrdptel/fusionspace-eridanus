@@ -35,7 +35,8 @@ and, less certainly, supersonic.
   - *Base drag under power is checked against one measured flight, and HPR Sim's reads low.* HPR
     Sim takes the burning motor case's area off the base (Niskanen); OpenRocket keeps the whole
     base. On a NACA missile model's flight below Mach 0.8, whose motor case is wider than its
-    base, HPR Sim's rule leaves no base drag under power: too little drag, the flattering side.
+    base, HPR Sim's rule leaves no base drag under power: too little drag, so too high an apogee
+    ([which error flatters](../drag-through-mach-1.md#which-error-flatters)).
     The whole base reads high, and the jet raised the base drag where either rule lowers or keeps
     it
     ([Base drag under power against the Hermes A-3A's flight](#base-drag-under-power-against-the-hermes-a-3as-flight)).
@@ -4343,8 +4344,9 @@ blast tube carries the jet to a 3.0 in nozzle exit at the base, past fixed vanes
 
 - **Under power, HPR Sim's rule as it flies reads low.** It takes the motor case's area off the
   base, down to zero, and this case is wider than the base: it leaves no base drag, where the
-  flight measured 0.0204 to 0.0270 on the model's largest cross-section. Too little drag is the
-  flattering side.
+  flight measured 0.0204 to 0.0270 on the model's largest cross-section. Too little drag gives
+  too high an apogee, the optimistic side for a target altitude
+  ([which error flatters](../drag-through-mach-1.md#which-error-flatters)).
 - **Given only the nozzle exit, the same rule reads high**, by 0.0114 to 0.0237, and the whole
   base, OpenRocket 24.12's rule, by 0.0360 to 0.0520.
 - **Coasting, HPR Sim reads high**: 5.0 to 8.4 times the measured base drag. Below Mach 0.8 HPR

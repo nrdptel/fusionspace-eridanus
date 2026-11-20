@@ -359,7 +359,7 @@ def main() -> None:
                 "one_sided": bool(xs[sel].min() > xt - 2 or xs[sel].max() < xt + 2),
             }
         out["curves"][name] = {
-            "label": "A(1), power on (solid)" if name == "a1_power_on" else "Power off (dash-dot)",
+            "label": "A(1), power on (solid)" if name == "a1_power_on" else "Power off (one long dash and two short dashes)",
             "line_width_px_median": width,
             "first_column_mach": round(float(m["a"] * xs.min() + m["b"]), 4),
             "first_column_cd_b": round(cd(xs.min(), ys[0]), 4),

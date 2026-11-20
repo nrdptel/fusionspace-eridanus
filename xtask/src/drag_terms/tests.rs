@@ -277,14 +277,20 @@ fn the_rest_is_openrockets_only_when_swapped() {
     }
 }
 
-/// Every choice of terms swapped, at Mach numbers inside the band and past it, power on and
-/// off: inside, the coefficient is HPR Sim's own less its terms swapped plus OpenRocket's,
-/// scaled to HPR Sim's area; past it, and with no term swapped, HPR Sim's own bit for bit.
-/// With every term swapped it is the band swap's below Mach 0.8.
+/// Every choice of terms swapped, on both public designs, at Mach numbers inside the band and
+/// past it, power on and off: inside, the coefficient is HPR Sim's own less its terms swapped
+/// plus OpenRocket's, scaled to HPR Sim's area; past it, and with no term swapped, HPR Sim's own
+/// bit for bit. With every term swapped it is the band swap's below Mach 0.8. Held only while a
+/// motor burns, the swap is HPR Sim's own drag coasting and the same swap thrusting, bit for
+/// bit.
 #[test]
 fn each_swap_replaces_its_own_term_and_nothing_else() {
-    let flights = public_flights();
-    let public = &flights[1];
+    for public in &public_flights() {
+        each_swap_replaces_its_own_term_on(public);
+    }
+}
+
+fn each_swap_replaces_its_own_term_on(public: &Public) {
     let inputs = OpenRocketInputs::of(&public.flight).unwrap().unwrap();
     let tables = term_tables(&public.flight).unwrap().unwrap();
     let simulation = public.build().unwrap();
@@ -304,6 +310,9 @@ fn each_swap_replaces_its_own_term_and_nothing_else() {
                 tables.clone(),
                 openrockets,
             ));
+        let powered = AeroModel::new(layout).unwrap().with_drag_model(
+            TermSwap::new(inputs.drag.clone(), tables.clone(), openrockets).powered_only(),
+        );
         for mach in [0.05, 0.3, 0.6, 0.79, 0.8, 1.0, 1.5] {
             for conditions in [
                 DragConditions::coasting(1.0e7),
@@ -318,8 +327,21 @@ fn each_swap_replaces_its_own_term_and_nothing_else() {
                 };
                 let got = drag(&swapped);
                 let mine = own.buildup_drag(&flow, &conditions).unwrap();
+                let file = &public.file;
+                if conditions.thrusting {
+                    assert_eq!(drag(&powered), got, "{file}: Mach {mach}, {choice}");
+                } else {
+                    assert_eq!(
+                        drag(&powered),
+                        mine.zero_lift_coefficient,
+                        "{file}: Mach {mach}, {choice}"
+                    );
+                }
                 if mach >= 0.8 || choice == 0 {
-                    assert_eq!(got, mine.zero_lift_coefficient, "Mach {mach}, {choice}");
+                    assert_eq!(
+                        got, mine.zero_lift_coefficient,
+                        "{file}: Mach {mach}, {choice}"
+                    );
                     continue;
                 }
                 let mut expected = mine.zero_lift_coefficient;
@@ -332,12 +354,12 @@ fn each_swap_replaces_its_own_term_and_nothing_else() {
                 }
                 assert!(
                     (got - expected).abs() < 1e-12,
-                    "Mach {mach}, {choice}: {got} {expected}"
+                    "{file}: Mach {mach}, {choice}: {got} {expected}"
                 );
                 // With friction, pressure and base swapped, the rest unswapped too on these
                 // designs, it is the band swap's, bit for bit.
                 if choice & 7 == 7 {
-                    assert_eq!(got, drag(&band_swap), "Mach {mach}, {choice}");
+                    assert_eq!(got, drag(&band_swap), "{file}: Mach {mach}, {choice}");
                 }
             }
         }
@@ -425,6 +447,62 @@ fn the_public_flights_split_by_term() {
         for (i, (part, expected)) in termed.parts.iter().zip(expected).enumerate() {
             assert!((part - expected).abs() <= 0.001, "{file}: term {i}: {part}");
         }
+    }
+}
+
+/// What each term swapped alone, and the base swapped alone only while a motor burns, come to
+/// on the two public designs, per cent of OpenRocket's apogee, held within 0.001, the half unit
+/// of their last digit rounded outward: `(design, alone in [`TERMS`]' order, base under thrust
+/// alone)`.
+const PUBLIC_ALONE: [(&str, [f64; 4], f64); 2] = [
+    ("pods-none.ork", [-0.374, 0.042, 1.115, 0.0], 1.114),
+    ("mach-probe.ork", [-0.162, 0.023, 0.057, 0.0], 0.057),
+];
+
+/// The flights the report's "alone" rows and its base under thrust come from, flown again here
+/// outside [`super::flight`]: each term alone on HPR Sim's own thrust and mass, with HPR Sim's
+/// own drag in the other terms, and the base alone only while a motor burns. Each climbs to the
+/// same height, bit for bit, and the parts are pinned ([`PUBLIC_ALONE`]). On both designs the
+/// base under thrust climbs to a different height from the base alone, the swap being held off
+/// while coasting.
+#[test]
+fn each_term_alone_flies_on_hpr_sims_own_thrust_and_mass() {
+    for (public, (file, alone, powered)) in public_flights().iter().zip(PUBLIC_ALONE) {
+        assert!(public.file.ends_with(file), "{}", public.file);
+        let (_, termed) = termed_public(public);
+        let inputs = OpenRocketInputs::of(&public.flight).unwrap().unwrap();
+        let tables = term_tables(&public.flight).unwrap().unwrap();
+        let openrocket_m = public.flight["apogee_m"].as_f64().unwrap();
+        let swap = |openrockets: [bool; 4]| {
+            TermSwap::new(inputs.drag.clone(), tables.clone(), openrockets)
+        };
+        let climbed = |swap: TermSwap| fly(&public.build().unwrap().with_drag_model(swap)).unwrap();
+        for i in 0..4 {
+            let climbed_m = climbed(swap(std::array::from_fn(|j| j == i)));
+            assert_eq!(termed.heights_m.alone_m[i], climbed_m, "{file}: term {i}");
+        }
+        let powered_m = climbed(swap([false, false, true, false]).powered_only());
+        assert_ne!(powered_m, termed.heights_m.alone_m[2], "{file}");
+        assert_eq!(
+            termed.base_powered_alone,
+            100.0 * (termed.heights_m.own_m - powered_m) / openrocket_m,
+            "{file}"
+        );
+        eprintln!(
+            "{file}: alone {:?}; base under thrust {}",
+            termed.alone, termed.base_powered_alone
+        );
+        for (i, (got, expected)) in termed.alone.iter().zip(alone).enumerate() {
+            assert!(
+                (got - expected).abs() <= 0.001,
+                "{file}: term {i} alone: {got}"
+            );
+        }
+        assert!(
+            (termed.base_powered_alone - powered).abs() <= 0.001,
+            "{file}: base under thrust: {}",
+            termed.base_powered_alone
+        );
     }
 }
 
@@ -764,4 +842,37 @@ fn the_committed_report_splits_the_band_by_term() {
     assert!(page.contains("to 2.1 to 2.4 times its power-off value"));
     assert!(page.contains("gives 0.61 of its power-off value"));
     assert!(page.contains("power-on less power-off: 0.0118 to 0.0143."));
+}
+
+/// The base reference refuses a row the report's text can't state: a value that isn't a finite
+/// number, a measured power-off drag at or below zero, a power-on drag not above it, and HPR
+/// Sim's power-off drag at or below zero, which the text divides by. Each is caught by its own
+/// check.
+#[test]
+fn the_base_reference_refuses_what_its_text_cant_state() {
+    let root = crate::designs::root().unwrap();
+    let fixture: Value = serde_json::from_str(
+        &std::fs::read_to_string(root.join(crate::aero_base_power::FIXTURE)).unwrap(),
+    )
+    .unwrap();
+    assert!(base_reference(&fixture).is_ok());
+    for (key, value, refusal) in [
+        ("hpr_power_off", json!(0.0), "HPR Sim's power-off drag is 0"),
+        (
+            "measured_power_off",
+            json!(0.0),
+            "the measured drag is 0 power off",
+        ),
+        ("measured_power_on", json!(0.001), "and 0.001 under power"),
+        (
+            "hpr_power_on",
+            json!(null),
+            "hpr_power_on is not a finite number",
+        ),
+    ] {
+        let mut broken = fixture.clone();
+        broken["rows"][0][key] = value;
+        let error = base_reference(&broken).unwrap_err();
+        assert!(error.contains(refusal), "{key}: {error}");
+    }
 }
