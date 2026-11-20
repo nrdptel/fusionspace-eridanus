@@ -52,6 +52,16 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   largest cross-section where HPR Sim's is (d_B/d)², leaves flat bases as they are and multiplies a boattailed base's
   value by d_B/d (`hpr_relief_power_off`). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean
   absolute error of 0.0303 against HPR Sim's 0.0574 and Hoerner's 0.0144 (Inference: the fixture's rows).
+- **The relief tried in the code** (not committed; the factor behind a boattail below Mach 0.8 set to d_B/d₁, the
+  transonic ramp starting there). Of `hpr-aero`'s tests, two hand pins of the old base drag fail, and the
+  code-to-code checks against RASAero II curves (ADR-009, ADR-029) move:
+  - At Mach 0.3, two more of RocketPy's example rockets fall outside 10% of their curves: Calisto's getting-started
+    variant and Juno III, both power off, beside the three ADR-009 explains.
+  - Rows within 10%: Calisto's own export, the one real RASAero II file, goes from 3 to 5 of 7 transonic and keeps
+    15 of 15 subsonic; the getting-started variant falls from 12 to 8 of 15 subsonic, and Juno III from 15 to 12.
+  - The Arcas Robin tunnel comparison holds the forebody, the drag less its base, and does not move.
+  - Whether RASAero II relieves a boattailed base below Mach 0.8 is not known here: these checks size a difference
+    between codes, not which is right.
 - **No Mach number.** HPR Sim's 0.13 M² rise has no counterpart in eq. 35; the Hermes curve falls with Mach number
   below 0.8 where both rules rise or stay level.
 - **Under power** the measured base drag is 2.1 to 2.4 times its power-off value; neither rule here covers the jet.
