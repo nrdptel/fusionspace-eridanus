@@ -149,8 +149,9 @@ so the pad sits between two of them. That day was warm for February, and the pre
 the air at the pad was 1.2% denser than the standard's. The wind was light at the pad and grew to
 10 m/s (33 ft/s) by 2 km (1.2 mi).
 
-**Reading your own file.** The simulator reads ERA5 from Rust only for now; there is no
-command-line tool yet. Copy the example and change three things:
+**Reading your own file.** On the command line, give [`hpr weather era5`](../cli.md#hpr-weather)
+your file, your site's latitude and longitude, and your launch time in UTC. From Rust, copy the
+example and change three things:
 
 - Read your file from disk (`let bytes = std::fs::read("my-file.nc")?;` then
   `NetCdf::parse(&bytes)`) instead of the bundled one.

@@ -1109,8 +1109,9 @@ unless the caller sets
     rocket's end (no warning), this page's JSON, and each refused tree.
   - `a_pod_s_nose_is_not_the_reference_nose`: a pod's nose is never the reference nose.
 
-  The aerodynamics, the tumble model, a mass shift and an ejection each refuse a pod, or a pod's
-  body component, by name ([above](#pods)).
+  The aerodynamics refuses canted fins on a pod and a pod's tube of no length with a radius. A
+  mass shift and an ejection each refuse a part inside several pods, and a pod's body component is
+  never a joint or an ejected payload ([above](#pods)).
 
 - Overrides, in `overrides_rescale_move_and_replace` and `nested_overrides_apply_deepest_first`:
   each step, the scopes, a stage override and deeper overrides first. They also check the

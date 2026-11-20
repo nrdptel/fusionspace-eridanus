@@ -1893,7 +1893,7 @@ rest.
   ([Aerodynamics](physics/aero.md#verification)).
 - **Tumbling** is −10 to +19% off its source's own drop tests. It's used far outside the fit
   behind it. That fit comes from small models falling at 5.0 to 6.6 m/s (16 to 22 ft/s). If Valetudo came down
-  tumbling, with nothing deployed, HPR Sim would bring it down at 36 m/s (118 ft/s). The default streamer model
+  tumbling, with nothing deployed, HPR Sim would bring it down at 36.4 m/s (119 ft/s). The default streamer model
   reads +58% fast on a pleated streamer ([Recovery](physics/recovery.md)).
 - **Opening loads,** the force on the rocket as a canopy opens, are no safe bound either way. With
   a [filling time](glossary.md#inflation-and-filling-time), HPR Sim leaves out the brief rise of
