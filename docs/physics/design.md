@@ -30,7 +30,7 @@ measured overrides, mounts motors and flags impossible designs.
   [pod](../glossary.md#pod)'s mass, center and inertia match the hand-worked parallel-axis sum to
   1e-15 ([Pods](#pods)). They match OpenRocket's on eighteen probe designs
   ([`.ork`: Pods](../format/ork.md#pods)). On whole flights, six probe designs, five with pods of
-  bodies, fins and motors, are within 0.91% of OpenRocket's apogee. Their launch masses are within
+  bodies, fins and motors, are within 0.92% of OpenRocket's apogee. Their launch masses are within
   0.0001% ([aerodynamics: Pods](aero.md#pods)). OpenRocket's cluster example flies within 5% of
   OpenRocket's apogee and largest speed. Its parachute opened before apogee, so three of its
   apogees are compared with OpenRocket's flight with no parachute

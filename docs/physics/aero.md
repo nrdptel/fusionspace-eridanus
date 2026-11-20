@@ -94,7 +94,7 @@ and, less certainly, supersonic.
     ([The normal force from RASAero II](#the-normal-force-from-rasaero-ii)).
   - *[Pods](../glossary.md#pod)* take each pod's parts on Barrowman's rules, once per pod. They
     are checked against hand-worked numbers, and against OpenRocket on six probe designs, within
-    0.81% of its apogee below Mach 0.81. No measured flight checks them. Both codes leave out the
+    0.92% of its apogee below Mach 0.81. No measured flight checks them. Both codes leave out the
     pods' and the body's effect on each other's flow, and HPR Sim a single pod's off-axis moments
     ([Pods](#pods)).
   - *[Tube fins](../glossary.md#tube-fin)*, each tube a ring wing below Mach 0.8: the slope is
@@ -2570,7 +2570,7 @@ A [pod](../glossary.md#pod) is a body beside the airframe: a side pod, or an out
 on the airframe, once per pod, and adds them to the airframe's. **No measured flight checks it.**
 The formulas are checked against hand-worked numbers. They are also checked against OpenRocket
 24.12 on six *probe designs*, small designs written only to test pods ([pod designs against OpenRocket](../decisions-and-roadmap.md#m1-13c2)). Five carry pods of bodies, fins, a tail cone, winglets or motors, and one is the same airframe without pods. Below Mach
-0.81, HPR Sim's apogee is within 0.91% of OpenRocket's, and its
+0.81, HPR Sim's apogee is within 0.92% of OpenRocket's, and its
 [stability margin](../glossary.md#stability-margin) within 0.0014
 [calibers](../glossary.md#caliber). What the pods change agrees to 0.32 percentage points
 of apogee (table below). That shows the two codes compute the same thing, not that either is right. Both leave out how the pods and the body disturb each other's flow, whose size is given
