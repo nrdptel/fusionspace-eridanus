@@ -1727,17 +1727,18 @@ other than another code. It stops at Mach 0.8 because that is the band the term 
 > [boattail](glossary.md#boattail) and a motor unlike a hobby motor. It tests the rules on that
 > vehicle; it doesn't say which one fits a hobby rocket.
 
-**The reference.** In 1955 NACA flew rocket-propelled models of the Hermes A-3A from Wallops
-Island with the sustainer motor burning and then coasting, and measured the pressure on the
-base during both ([Jackson 1955, NACA RM SL55F15](https://ntrs.nasa.gov/citations/20010057623),
+**The reference.** A 1955 NACA report gives free flights of rocket-propelled models of the
+Hermes A-3A from Wallops Island, with the sustainer motor burning and then coasting, and the
+pressure on the base measured during both ([Jackson 1955, NACA RM SL55F15](https://ntrs.nasa.gov/citations/20010057623),
 a US government work in the public domain). Its figure 20 gives the base drag coefficient on
 the model's largest cross-section, from Mach 0.6 to 1.8, with the motor burning and (from
 about Mach 0.65) coasting. The report believes the error of these faired curves to be less than
 ±0.005 (printed p. 10). The curves are read off the figure by pixels to ±0.001 more
 ([the reading script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/naca/hermes_base_drag.py),
 [the readings and the model's sizes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
-The report's own base pressures, in its figure 22, give base drag that differs from figure 20 by
-up to about the stated error, and the figures don't settle which is right
+At Mach 0.7 the report's own base pressures, in its figure 22, read by eye
+([a research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/power-on-base-drag.md)), give base drag 0.0042 above figure 20 under power and 0.0057 above
+it coasting, about the stated error. The figures don't settle which is right
 ([the readings' notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
 
 The model is 8 in across, with a 4.5° cone narrowing to a 4.8 in base. Its motor, a nominal
@@ -1774,8 +1775,10 @@ test
 `the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag`):
 
 - **Under power, HPR Sim's rule as it flies reads low**, by 0.0204 to 0.0270: it leaves no base
-  drag where the flight measured some. That is the flattering side: too little drag, so too high
-  an apogee ([fixture report][fixture-report]).
+  drag where the flight measured some. Too little drag gives too high an apogee: the optimistic
+  side for a flier aiming at a target altitude, not the side that flatters a flight near a
+  waiver's ceiling ([which error flatters](drag-through-mach-1.md#which-error-flatters);
+  [fixture report][fixture-report]).
 - **Given the nozzle exit instead, the same rule reads high,** by 0.0114 to 0.0237, and the whole
   base by 0.0360 to 0.0520. No row is within the stated error and the reading together, ±0.006
   ([fixture report][fixture-report]).

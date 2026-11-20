@@ -561,7 +561,8 @@ pub(crate) struct ReferenceRow {
 
 /// The reference from [`crate::aero_base_power::generate`]'s fixture. Every value must be a
 /// finite number, the measured power-off drag above zero and the measured power-on drag above
-/// it: the report's text says the jet raises it.
+/// it, as the report's text says the jet raises it, and HPR Sim's power-off drag above zero, as
+/// the text divides by it.
 pub(crate) fn base_reference(fixture: &Value) -> Result<BaseReference, String> {
     let fail = |what: String| format!("the base reference's fixture: {what}");
     let number = |value: &Value, key: &str| {
@@ -586,7 +587,14 @@ pub(crate) fn base_reference(fixture: &Value) -> Result<BaseReference, String> {
                 whole_base_under_power: number(row, "whole_base_under_power")?,
             };
             if r.measured_power_off > 0.0 && r.measured_power_on > r.measured_power_off {
-                Ok(r)
+                if r.hpr_power_off > 0.0 {
+                    Ok(r)
+                } else {
+                    Err(fail(format!(
+                        "at Mach {} HPR Sim's power-off drag is {}",
+                        r.mach, r.hpr_power_off
+                    )))
+                }
             } else {
                 Err(fail(format!(
                     "at Mach {} the measured drag is {} power off and {} under power",

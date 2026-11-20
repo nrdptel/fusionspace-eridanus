@@ -61,7 +61,7 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
 /// - power off, HPR Sim's base drag is high by more than 0.04, past the stated error and the
 ///   reading: on this long-boattailed base HPR Sim's value is 5.0 to 8.4 times the measured;
 /// - under power, HPR Sim's rule as it flies, the motor case off the base, leaves no base drag
-///   and reads low past the stated error and the reading: the flattering side, too little drag;
+///   and reads low past the stated error and the reading: too little drag, so too high an apogee;
 /// - given only the nozzle exit, the same rule reads high past them, by less than the whole
 ///   base, which reads high too;
 /// - the jet more than doubles the measured base drag, where HPR Sim's rule lowers it to the
