@@ -41,6 +41,10 @@ use serde_json::{Value, json};
 pub const FIXTURE: &str = "validation/fixtures/aero/base-drag-under-power.json";
 pub const REFERENCE: &str = "validation/fixtures/aero/hermes-a3a-base-drag.json";
 const IN: f64 = 0.0254;
+/// Hoerner's constant in his subsonic base drag of a body of revolution, `C_DB = 0.029 /
+/// sqrt(C_DfB)` on the base's area (*Fluid-Dynamic Drag*, 1965, p. 3-19, eq. 34), which on the
+/// largest cross-section is `0.029 (d_B/d)^3 / sqrt(C_Df)` (p. 3-20, eq. 35).
+const HOERNER_K: f64 = 0.029;
 
 /// The fixture, from the reference's geometry and rows.
 pub fn generate(root: &Path) -> Result<Value, String> {
@@ -56,6 +60,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         Ok(0.25 * std::f64::consts::PI * (num(geometry, key)? * IN).powi(2))
     };
     let exit_m2 = circle("nozzle_exit_diameter_in")?;
+    let base_over_max = num(geometry, "base_diameter_in")? / num(geometry, "diameter_in")?;
     let case_m2 = circle("motor_case_diameter_in")?;
     let stated = num(&reference["accuracy"], "base_drag_coefficient")?;
     let reading = num(&reference["digitization"], "reading_uncertainty")?;
@@ -73,10 +78,17 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                 .map_err(|e| fail(&e.to_string()))?
                 .base)
         };
-        let off = base(DragConditions::coasting(reynolds_per_m))?;
+        let coasting = model
+            .buildup_drag(&flow, &DragConditions::coasting(reynolds_per_m))
+            .map_err(|e| fail(&e.to_string()))?;
+        let off = coasting.base;
+        // Hoerner's subsonic base drag on the largest cross-section (1965, p. 3-20, eq. 35):
+        // 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the forebody's drag on that area, here HPR Sim's
+        // own skin friction coasting.
+        let hoerner = HOERNER_K * base_over_max.powi(3) / coasting.friction.sqrt();
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
         let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
-        let mut out = json!({ "mach": mach });
+        let mut out = json!({ "mach": mach, "hpr_friction": coasting.friction });
         // HPR Sim's own power off and power on, and the whole base under power, each against
         // its measured curve.
         for (name, hpr, key) in [
@@ -84,6 +96,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             ("hpr_power_on", on, "power_on"),
             ("hpr_power_on_case", on_case, "power_on"),
             ("whole_base_under_power", off, "power_on"),
+            ("hoerner_power_off", hoerner, "power_off"),
         ] {
             out[name] = json!(hpr);
             let Some(measured) = row[key].as_f64() else {
@@ -109,7 +122,10 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off \
                  the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, \
                  so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's \
-                 rule, the power-off value. Each _difference is the rule's \
+                 rule, the power-off value. hoerner_power_off: Hoerner's subsonic base drag \
+                 (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35), 0.029 (d_B/d)^3 / sqrt(C_Df), \
+                 with C_Df HPR Sim's own skin friction coasting (hpr_friction), on the same \
+                 area. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",

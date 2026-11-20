@@ -1,13 +1,18 @@
 {
   "generator": "cargo xtask aero",
   "motor_case_area_m2": 0.012667686977437444,
-  "note": "HPR Sim's base drag coefficient on the model's maximum cross-section, its buildup's base term, against the Hermes A-3A drag model A(1)'s measured base drag (NACA RM SL55F15 Fig. 20) below Mach 0.8. hpr_power_off: coasting. hpr_power_on: thrusting, HPR Sim's rule with the nozzle exit's area, what the base holds of the burning motor, off the base: the annulus the report measured on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's rule, the power-off value. Each _difference is the rule's less the measured; _within_stated is |difference| no more than the report's stated error of the faired curves, and _within_stated_and_reading adds the reading's own uncertainty.",
+  "note": "HPR Sim's base drag coefficient on the model's maximum cross-section, its buildup's base term, against the Hermes A-3A drag model A(1)'s measured base drag (NACA RM SL55F15 Fig. 20) below Mach 0.8. hpr_power_off: coasting. hpr_power_on: thrusting, HPR Sim's rule with the nozzle exit's area, what the base holds of the burning motor, off the base: the annulus the report measured on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's rule, the power-off value. hoerner_power_off: Hoerner's subsonic base drag (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df HPR Sim's own skin friction coasting (hpr_friction), on the same area. Each _difference is the rule's less the measured; _within_stated is |difference| no more than the report's stated error of the faired curves, and _within_stated_and_reading adds the reading's own uncertainty.",
   "nozzle_exit_area_m2": 0.004560367311877479,
   "reading_uncertainty": 0.001,
   "reference": "validation/fixtures/aero/hermes-a3a-base-drag.json",
   "reference_area_m2": 0.03242927866223985,
   "rows": [
     {
+      "hoerner_power_off": 0.024651833218751917,
+      "hoerner_power_off_difference": 0.011951833218751918,
+      "hoerner_power_off_within_stated": false,
+      "hoerner_power_off_within_stated_and_reading": false,
+      "hpr_friction": 0.06456617462594835,
       "hpr_power_off": 0.06297299999999997,
       "hpr_power_off_difference": 0.05027299999999997,
       "hpr_power_off_within_stated": false,
@@ -29,6 +34,11 @@
       "whole_base_under_power_within_stated_and_reading": false
     },
     {
+      "hoerner_power_off": 0.024739165316312654,
+      "hoerner_power_off_difference": 0.014239165316312653,
+      "hoerner_power_off_within_stated": false,
+      "hoerner_power_off_within_stated_and_reading": false,
+      "hpr_friction": 0.06411112719318914,
       "hpr_power_off": 0.06613199999999997,
       "hpr_power_off_difference": 0.055631999999999966,
       "hpr_power_off_within_stated": false,
@@ -50,6 +60,11 @@
       "whole_base_under_power_within_stated_and_reading": false
     },
     {
+      "hoerner_power_off": 0.024834008124856383,
+      "hoerner_power_off_difference": 0.015234008124856384,
+      "hoerner_power_off_within_stated": false,
+      "hoerner_power_off_within_stated_and_reading": false,
+      "hpr_friction": 0.06362237254318848,
       "hpr_power_off": 0.06952499999999999,
       "hpr_power_off_difference": 0.05992499999999999,
       "hpr_power_off_within_stated": false,
@@ -71,6 +86,11 @@
       "whole_base_under_power_within_stated_and_reading": false
     },
     {
+      "hoerner_power_off": 0.02491545473008335,
+      "hoerner_power_off_difference": 0.01631545473008335,
+      "hoerner_power_off_within_stated": false,
+      "hoerner_power_off_within_stated_and_reading": false,
+      "hpr_friction": 0.06320709962677414,
       "hpr_power_off": 0.07240787999999998,
       "hpr_power_off_difference": 0.06380787999999998,
       "hpr_power_off_within_stated": false,

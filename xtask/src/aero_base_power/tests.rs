@@ -53,6 +53,13 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
         close("hpr_power_on", rule * (base_m2 - exit_m2) / reference_m2);
         close("hpr_power_on_case", 0.0);
         close("whole_base_under_power", rule * base_m2 / reference_m2);
+        // Hoerner 1965, p. 3-20, eq. 35, written out: 0.029 (d_B/d)^3 / sqrt(C_Df).
+        let friction = row["hpr_friction"].as_f64().unwrap();
+        assert!(friction > 0.0, "Mach {mach}: {friction}");
+        close(
+            "hoerner_power_off",
+            0.029 * (base_m2 / reference_m2).powf(1.5) / friction.sqrt(),
+        );
     }
 }
 
@@ -81,6 +88,15 @@ fn the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag() {
         let times = n("hpr_power_off") / n("measured_power_off");
         assert!((4.95..8.45).contains(&times), "Mach {mach}: {times}");
         assert_eq!(n("hpr_power_on_case"), 0.0, "Mach {mach}");
+        // Hoerner's rule, which takes the boattail and the forebody's friction into account,
+        // reads high too, past the stated error and the reading, but by less than a third of
+        // HPR Sim's rule's.
+        let hoerner = n("hoerner_power_off_difference");
+        assert!(hoerner > margin, "Mach {mach}: {hoerner}");
+        assert!(
+            hoerner < n("hpr_power_off_difference") / 3.0,
+            "Mach {mach}: {hoerner}"
+        );
         assert!(n("hpr_power_on_case_difference") < -margin, "Mach {mach}");
         assert!(n("hpr_power_on_difference") > margin, "Mach {mach}");
         assert!(
@@ -98,6 +114,7 @@ fn the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag() {
             "hpr_power_on",
             "hpr_power_on_case",
             "whole_base_under_power",
+            "hoerner_power_off",
         ] {
             assert_eq!(row[format!("{key}_within_stated_and_reading")], false);
         }
