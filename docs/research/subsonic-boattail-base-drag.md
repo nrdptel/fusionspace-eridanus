@@ -52,6 +52,14 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   largest cross-section where HPR Sim's is (d_B/d)², leaves flat bases as they are and multiplies a boattailed base's
   value by d_B/d (`hpr_relief_power_off`). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean
   absolute error of 0.0303 against HPR Sim's 0.0574 and Hoerner's 0.0144 (Inference: the fixture's rows).
+- **A source for the relief.** Stoney's NASA TR R-100 (1961, printed p. 11) gives, from wind-tunnel data on conical
+  afterbodies, C_D,b = C_D,cylinder base (r_b/R)³ on the largest cross-section: the relief above, exactly. He warns
+  that it "does not account for the possibility of negative base drags" at subsonic speeds. Missile DATCOM's manual
+  names "NASA method, NASA-TR-R-100" for a boattail's base drag below Mach 1.2 (1998, Table 27, printed p. 97).
+- **Measured relief may be larger.** Read by eye in a research pass and not yet reduced: behind 5.6° cones of d_B/d
+  0.42 to 0.75 held from upstream, Salmi's jet-off base pressures at Mach 0.9 are near zero (NACA RM E54I13, Fig. 8);
+  Stoney's free-flight body of d_B/d 0.44 shows a base pressure above ambient from Mach 0.6 to 0.85 without its sting
+  (NACA RM L51L03, Fig. 4). Each would read the relief above as high, as the Hermes flight does.
 - **The relief tried in the code** (not committed; the factor behind a boattail below Mach 0.8 set to d_B/d₁, the
   transonic ramp starting there). Of `hpr-aero`'s tests, two hand pins of the old base drag fail, and the
   code-to-code checks against RASAero II curves (ADR-009, ADR-029) move:
