@@ -426,7 +426,7 @@ south.
 
 Every result of the report, as HPR Sim's difference from RocketPy:
 
-| case | descent time (`descent_time_s`) | impact speed (`impact_speed_m_s`) | mean descent rate (`mean_descent_rate_m_s`) | drift (`drift_m`) | east drift (`drift_east_m`) | north drift (`drift_north_m`) |
+| case | descent time, % (`descent_time_s`) | impact speed, % (`impact_speed_m_s`) | mean descent rate, % (`mean_descent_rate_m_s`) | drift, % (`drift_m`) | east drift, % (`drift_east_m`) | north drift, % (`drift_north_m`) |
 |---|--:|--:|--:|--:|--:|--:|
 | [`descent-calisto-tests-motor-at-minus-1.373`][report] | +0.077% | −0.029% | −0.077% | +0.075% | +0.074% | +0.080% |
 | [`descent-valetudo`][report] | −0.019% | +0.004% | +0.019% | −0.889% | −0.889% | −1.766% |
@@ -563,7 +563,7 @@ case file (below). Every result of the report, as HPR Sim's difference from Rock
 | [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | +0.045% | +0.099% | +0.118% | +0.022% | −0.105% |
 | [`flight-bella-lui-calm`][report] | +0.038% | +0.020% | −0.012% | +0.020% | −0.018% |
 
-| case | rail-exit speed (`rail_exit_speed_m_s`) | rail-exit time (`rail_exit_time_s`) | burnout height (`burnout_altitude_agl_m`) | burnout speed (`burnout_speed_m_s`) | impact speed (`impact_speed_m_s`) |
+| case | rail-exit speed, % (`rail_exit_speed_m_s`) | rail-exit time, % (`rail_exit_time_s`) | burnout height, % (`burnout_altitude_agl_m`) | burnout speed, % (`burnout_speed_m_s`) | impact speed, % (`impact_speed_m_s`) |
 |---|--:|--:|--:|--:|--:|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | −0.010% | −0.072% | +0.019% | +0.019% | −0.020% |
 | [`flight-valetudo`][report] | −0.002% | −0.100% | +0.048% | +0.042% | +0.009% |
@@ -575,7 +575,7 @@ case file (below). Every result of the report, as HPR Sim's difference from Rock
 | [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | −0.001% | −0.074% | +0.023% | +0.025% | −0.003% |
 | [`flight-bella-lui-calm`][report] | −0.000% | −0.032% | +0.012% | +0.024% | +0.021% |
 
-| case | peak acceleration, burning (`max_acceleration_power_on_m_s2`) | peak acceleration (`max_acceleration_m_s2`) | peak acceleration time (`max_acceleration_time_s`) | apogee drift (`apogee_drift_m`) | landing drift (`landing_drift_m`) |
+| case | peak acceleration, burning, % (`max_acceleration_power_on_m_s2`) | peak acceleration, % (`max_acceleration_m_s2`) | peak acceleration time, % (`max_acceleration_time_s`) | apogee drift, % (`apogee_drift_m`) | landing drift, % (`landing_drift_m`) |
 |---|--:|--:|--:|--:|--:|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | +0.099% | +0.099% | −96.811% | −0.902% | +1.257% |
 | [`flight-valetudo`][report] | +0.248% | +0.248% | +0.006% | −0.931% | −1.811% |
@@ -731,7 +731,7 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 | [`predicted-juno-iii`][report] | +2.097% | +1.046% | +1.686% | +1.006% | +0.737% |
 | [`predicted-bella-lui`][report] | +0.971% | +0.536% | +0.748% | +0.241% | +0.154% |
 
-| case | rail-exit speed (`rail_exit_speed_m_s`) | rail-exit time (`rail_exit_time_s`) | burnout height (`burnout_altitude_agl_m`) | burnout speed (`burnout_speed_m_s`) | impact speed (`impact_speed_m_s`) |
+| case | rail-exit speed, % (`rail_exit_speed_m_s`) | rail-exit time, % (`rail_exit_time_s`) | burnout height, % (`burnout_altitude_agl_m`) | burnout speed, % (`burnout_speed_m_s`) | impact speed, % (`impact_speed_m_s`) |
 |---|--:|--:|--:|--:|--:|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.009% | −0.071% | +0.240% | +0.526% | −0.020% |
 | [`predicted-valetudo`][report] | +0.029% | −0.109% | +1.326% | +2.883% | +0.009% |
@@ -740,7 +740,7 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 | [`predicted-juno-iii`][report] | −0.001% | −0.143% | +0.772% | +1.129% | −0.003% |
 | [`predicted-bella-lui`][report] | −0.011% | −0.029% | +0.270% | +0.296% | +0.021% |
 
-| case | peak acceleration, burning (`max_acceleration_power_on_m_s2`) | peak acceleration (`max_acceleration_m_s2`) | peak acceleration time (`max_acceleration_time_s`) | apogee drift (`apogee_drift_m`) | landing drift (`landing_drift_m`) |
+| case | peak acceleration, burning, % (`max_acceleration_power_on_m_s2`) | peak acceleration, % (`max_acceleration_m_s2`) | peak acceleration time, % (`max_acceleration_time_s`) | apogee drift, % (`apogee_drift_m`) | landing drift, % (`landing_drift_m`) |
 |---|--:|--:|--:|--:|--:|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +0.123% | +0.123% | +0.002% | −2.233% | +0.901% |
 | [`predicted-valetudo`][report] | +0.250% | +0.250% | −0.030% | +12.215% | +10.437% |
