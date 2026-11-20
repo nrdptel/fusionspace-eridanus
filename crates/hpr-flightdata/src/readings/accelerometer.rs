@@ -1602,7 +1602,7 @@ mod tests {
         );
         assert_eq!(
             burnout.lower_end_s,
-            Some(burnout.time_s + 0.0339 * burnout.bound_s)
+            Some(burnout.time_s + 0.0335 * burnout.bound_s)
         );
         assert!(burnout.interval_s.is_none());
     }

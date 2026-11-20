@@ -323,8 +323,8 @@ It counts each set's flights by design and logger. It also gives the ranges of e
 apogee, top Mach number and speed, flight time, wind, rail angle, site elevation and the air's
 offset.
 
-**What the census shows.** Every one of the 2,200 draws flew. Apogees above the pad run from 411
-to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to under 1.18. Values are kept
+**What the census shows.** Every one of the 2,200 draws flew. Apogees above the pad run from 412
+to 4,810 m (1,352 to 15,781 ft), and top speeds from Mach 0.269 to under 1.18. Values are kept
 to three significant figures, the digits every platform shares, each range's ends rounded
 outward.
 Each night CI flies every flight again on macOS, Windows and Linux and holds the census to them.

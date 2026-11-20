@@ -238,7 +238,7 @@ flights](physics/synthetic-flights.md)). In the library, twelve readings also st
 liftoff, the apogee's height and time, the top speed, landing, the flight time, the mean descent rate,
 the top acceleration, burnout, each canopy's rate and the main's opening. Each passes a two-sided test
 on synthetic flights held apart from the 2,000 its points were fitted on; the top speed only below
-227.7 m/s (747 ft/s), on 287 and 286 readings, where the height's have 820 and 845. A floor, whose truth
+227.7 m/s (747 ft/s), on 286 readings on each set, where the height's have 820 and 845. A floor, whose truth
 may lie any amount above it, states a lower end in its place, tested on that test's lower tail; a
 clipped top's on tops written near a clip imposed on the log. The misses of the
 height, the top speed and the rates of descent fall on the coldest and warmest days, a warm day reading
@@ -248,8 +248,8 @@ bound, unless the reading is a floor, which has no upper figure ([The
 90% intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer
 and GNSS receiver into the height and vertical speed at every sample, each with a 90% interval. At
-four moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.3%
-and 99.4% of the truths, and two logger cells 89.2% and 89.7%, which the check allows. Those sets
+four moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.2%
+and 99.4% of the truths, and two logger cells 88.7% and 89.2%, which the check allows. Those sets
 were seen while its rules were set. It isn't yet checked against a real flight's ([The
 smoother](physics/smoother.md)).
 
