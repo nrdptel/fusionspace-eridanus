@@ -426,7 +426,7 @@ south.
 
 Every result of the report, as HPR Sim's difference from RocketPy:
 
-| case | descent time (`descent_time_s`) | impact speed (`impact_speed_m_s`) | mean descent rate (`mean_descent_rate_m_s`) | drift (`drift_m`) | east drift (`drift_east_m`) | north drift (`drift_north_m`) |
+| case | descent time, % (`descent_time_s`) | impact speed, % (`impact_speed_m_s`) | mean descent rate, % (`mean_descent_rate_m_s`) | drift, % (`drift_m`) | east drift, % (`drift_east_m`) | north drift, % (`drift_north_m`) |
 |---|--:|--:|--:|--:|--:|--:|
 | [`descent-calisto-tests-motor-at-minus-1.373`][report] | +0.077% | −0.029% | −0.077% | +0.075% | +0.074% | +0.080% |
 | [`descent-valetudo`][report] | −0.019% | +0.004% | +0.019% | −0.889% | −0.889% | −1.766% |
@@ -563,7 +563,7 @@ case file (below). Every result of the report, as HPR Sim's difference from Rock
 | [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | +0.045% | +0.099% | +0.118% | +0.022% | −0.105% |
 | [`flight-bella-lui-calm`][report] | +0.038% | +0.020% | −0.012% | +0.020% | −0.018% |
 
-| case | rail-exit speed (`rail_exit_speed_m_s`) | rail-exit time (`rail_exit_time_s`) | burnout height (`burnout_altitude_agl_m`) | burnout speed (`burnout_speed_m_s`) | impact speed (`impact_speed_m_s`) |
+| case | rail-exit speed, % (`rail_exit_speed_m_s`) | rail-exit time, % (`rail_exit_time_s`) | burnout height, % (`burnout_altitude_agl_m`) | burnout speed, % (`burnout_speed_m_s`) | impact speed, % (`impact_speed_m_s`) |
 |---|--:|--:|--:|--:|--:|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | −0.010% | −0.072% | +0.019% | +0.019% | −0.020% |
 | [`flight-valetudo`][report] | −0.002% | −0.100% | +0.048% | +0.042% | +0.009% |
@@ -575,7 +575,7 @@ case file (below). Every result of the report, as HPR Sim's difference from Rock
 | [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | −0.001% | −0.074% | +0.023% | +0.025% | −0.003% |
 | [`flight-bella-lui-calm`][report] | −0.000% | −0.032% | +0.012% | +0.024% | +0.021% |
 
-| case | peak acceleration, burning (`max_acceleration_power_on_m_s2`) | peak acceleration (`max_acceleration_m_s2`) | peak acceleration time (`max_acceleration_time_s`) | apogee drift (`apogee_drift_m`) | landing drift (`landing_drift_m`) |
+| case | peak acceleration, burning, % (`max_acceleration_power_on_m_s2`) | peak acceleration, % (`max_acceleration_m_s2`) | peak acceleration time, % (`max_acceleration_time_s`) | apogee drift, % (`apogee_drift_m`) | landing drift, % (`landing_drift_m`) |
 |---|--:|--:|--:|--:|--:|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | +0.099% | +0.099% | −96.811% | −0.902% | +1.257% |
 | [`flight-valetudo`][report] | +0.248% | +0.248% | +0.006% | −0.931% | −1.811% |
@@ -731,7 +731,7 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 | [`predicted-juno-iii`][report] | +2.951% | +1.584% | +2.424% | +1.064% | +0.795% |
 | [`predicted-bella-lui`][report] | +1.278% | +0.732% | +1.011% | +0.273% | +0.185% |
 
-| case | rail-exit speed (`rail_exit_speed_m_s`) | rail-exit time (`rail_exit_time_s`) | burnout height (`burnout_altitude_agl_m`) | burnout speed (`burnout_speed_m_s`) | impact speed (`impact_speed_m_s`) |
+| case | rail-exit speed, % (`rail_exit_speed_m_s`) | rail-exit time, % (`rail_exit_time_s`) | burnout height, % (`burnout_altitude_agl_m`) | burnout speed, % (`burnout_speed_m_s`) | impact speed, % (`impact_speed_m_s`) |
 |---|--:|--:|--:|--:|--:|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.009% | −0.071% | +0.328% | +0.729% | −0.020% |
 | [`predicted-valetudo`][report] | +0.029% | −0.109% | +1.326% | +2.883% | +0.009% |
@@ -740,7 +740,7 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 | [`predicted-juno-iii`][report] | −0.001% | −0.143% | +0.799% | +1.195% | −0.003% |
 | [`predicted-bella-lui`][report] | −0.010% | −0.029% | +0.288% | +0.336% | +0.021% |
 
-| case | peak acceleration, burning (`max_acceleration_power_on_m_s2`) | peak acceleration (`max_acceleration_m_s2`) | peak acceleration time (`max_acceleration_time_s`) | apogee drift (`apogee_drift_m`) | landing drift (`landing_drift_m`) |
+| case | peak acceleration, burning, % (`max_acceleration_power_on_m_s2`) | peak acceleration, % (`max_acceleration_m_s2`) | peak acceleration time, % (`max_acceleration_time_s`) | apogee drift, % (`apogee_drift_m`) | landing drift, % (`landing_drift_m`) |
 |---|--:|--:|--:|--:|--:|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +0.190% | +0.190% | +0.002% | −0.644% | +1.597% |
 | [`predicted-valetudo`][report] | +0.250% | +0.250% | −0.030% | +12.215% | +10.437% |
@@ -784,8 +784,8 @@ Why the misses, largest first:
   Juno III's fin slope. They act as in same-drag mode ([the wind-path decision][adr-026]).
 - **Prometheus 2022 flies low: the drag again, the other way.** Since
   [the drag through Mach 1](decisions-and-roadmap.md#m1-8b1), it passes Mach 1 on HPR Sim's own
-  drag. It peaks at Mach 1.060 against RocketPy's 1.048. Its coasting drag rises to about 0.49 at
-  Mach 0.8, where the example's falls to 0.30. So HPR Sim peaks −7.280% low and sooner, and its
+  drag. It peaks at Mach 1.060 against RocketPy's 1.048. Its coasting drag rises toward Mach 0.8,
+  where the example's falls. So HPR Sim peaks −7.280% low and sooner, and its
   drifts and times follow ([report][report], [case file][prometheus-predicted-case]).
 - **NDRT 2020's and Prometheus 2022's peak deceleration** at their main openings, +83.059% and
   +19.062%, are the added-mass difference explained above. Their times move +9.646% and −6.903%

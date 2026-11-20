@@ -8,7 +8,7 @@ any page can link straight to one; a site search jumps to it. Headings show as w
 in each name's own spelling. Where HPR Sim uses a term in a particular way (a
 sign, a frame, a reference point), the entry says so.
 
-> **How far to trust it.** These are definitions, not results: each of the 193 terms follows the
+> **How far to trust it.** These are definitions, not results: each of the 194 terms follows the
 > model page it links. The site's build checks that every link here, and every link other pages
 > make to a term's heading, leads somewhere. The spelling check reads every entry. If this page
 > and a model page ever disagree, the model page is the authority.
@@ -709,6 +709,13 @@ It turns with the Earth, so the equations add the
 [Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so $z_L$ is not altitude. At
 10 km (6.2 mi) east of the pad the plane is 7.8 m (26 ft) higher above the ellipsoid than the pad. See
 [Frames](physics/frames.md#launch-frame-l-east-north-up).
+
+### Lay out
+
+To turn a design's parts into a rocket: check how they fit together, fill in the
+[automatic dimensions](physics/design.md#automatic-dimensions), place every part, and weigh each
+stage with its overrides. A design that can't be laid out is refused, and the message says where
+and why. See [Building the tree](physics/design.md#building-the-tree).
 
 ### Liftoff
 

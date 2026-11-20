@@ -34,9 +34,12 @@ author wrote that "we won't really know until we can find a wind tunnel" (openro
    - Its slope per tube is the same, to 1e-15, for 3, 4, 5, 6 and 8 tubes of 6 mm. So it
      models no interference that changes with the count. Slender-body theory with the body
      included does predict one, and it falls as the count rises. A 2D apparent-mass solve run
-     during review, not kept here and not checked (#234), puts three such tubes at 1.96 times as
+     during review, not kept here (#234), puts three such tubes at 1.96 times as
      many isolated rings, four at 1.86, five at 1.72, six at 1.57, eight at 1.30, and six touching
-     each other at 1.13, each at a gap of 0.005 radii and still rising as the gap closes.
+     each other at 1.13, each at a gap of 0.005 radii and still rising as the gap closes. That
+     estimate is reproduced by an independent solve, not measured: a source-panel solve gives the same six
+     factors within 1% ([ring-body interference](../research/ring-body-interference.md), section 4),
+     and no measurement of a tube set beside a body was found ([#679](https://github.com/nrdptel/fusionspace-eridanus/issues/679) asks for one).
      OpenRocket's slope is 1.73 times the long-ring limit on the 6 mm probes, and 1.62 on the
      touching one. So it is below that estimate for three to five tubes, and above it for six,
      eight and the touching tubes. At five the two are close: a finer solve, at 0.0005 radii, gives

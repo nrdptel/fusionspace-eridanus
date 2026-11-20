@@ -663,8 +663,8 @@ moves their times and drifts. Juno III's and Bella Lui's drifts in wind differ a
 
 Since HPR Sim's drag [reached past Mach 1](decisions-and-roadmap.md#m1-8b1) ([its sources](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md)), Prometheus 2022
 flies through Mach 1 on it. Its peak Mach is +1.069% from RocketPy's ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)), with 9
-of its 17 metrics within target. HPR Sim's coasting drag rises to about 0.49 at Mach 0.8, where the
-example's falls to 0.30, so it coasts lower. HPR Sim's drag is for the designs as transcribed,
+of its 17 metrics within target. HPR Sim's coasting drag rises toward Mach 0.8, where the
+example's falls, so it coasts lower ([case file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/predicted-prometheus-2022-generic-motor.toml)). HPR Sim's drag is for the designs as transcribed,
 whose fin edges and finishes are placeholders where the examples record none. Predicted mode flies
 at rtol = atol = 1e-11, so its report reproduces across platforms ([predicted mode](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)).
 

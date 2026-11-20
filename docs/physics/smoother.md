@@ -21,7 +21,11 @@ sensors, and how well its 90% intervals hold.
   logger cells fall under 90%: 88.7% on set B and 89.2% on set A, which the check's rule allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
-  ([evidence row G33](../evidence.md#g33)).
+  ([evidence row G33](../evidence.md#g33)). Tracking from the ground can't stand in for one: a
+  contest's optical track gives one height and no speed. Its apogee scatters about 2% (one
+  standard deviation) from a calibrated altimeter at best, and 3% to 5% typically. So it can expose
+  a gross bias but can't test the 90% intervals ([the note on truth flights][truth]). A test
+  range's best tracking is good enough, but no public hobby log was found with a range's track.
 - **What it leaves out:** the horizontal track and the rocket's attitude. A log that starts at
   launch has no pad to zero the barometer on, so the pad is assumed, the card says so, and its
   accelerometer is set aside ([A log written from launch](#a-log-written-from-launch), and
@@ -164,5 +168,6 @@ the [GNSS note][gnss]. The rest are HPR Sim's choices, recorded in
 [noise]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-sensor-noise.md
 [mach]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-mach-error.md
 [gnss]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md
+[truth]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/smoother-truth-flights.md
 [adr-300]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0300-the-smoother-and-its-check.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#the-smoother-against-the-truth

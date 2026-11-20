@@ -2648,7 +2648,7 @@ only through the margin, which both codes take as the rocket leaves the rod. *Po
 change* is the difference from `pods-none`, the same airframe with no pods, so it shows the pods'
 own share in each code:
 
-| probe | its pods | apogee, OpenRocket | HPR Sim | pods' change, OpenRocket | HPR Sim | margin, OpenRocket | HPR Sim |
+| probe | its pods | apogee, OpenRocket | HPR Sim's apogee, % from OpenRocket | pods' change of apogee in OpenRocket, % | pods' change of apogee in HPR Sim, % | margin, OpenRocket | margin, HPR Sim |
 |---|---|---:|---:|---:|---:|---:|---:|
 | `pods-none` | none | 776.1 m (2,546 ft) | +0.81% |  |  | 2.757 cal | 2.759 cal |
 | `pods-bodies-3` | three: a cone and a tube | 663.3 m (2,176 ft) | +0.48% | −14.53% | −14.81% | 2.360 cal | 2.362 cal |
@@ -2887,12 +2887,25 @@ reads the same probes with HPR Sim and pins all 70 gaps. The record shows:
 - OpenRocket's tubes lift 1.26 to 1.86 times what HPR Sim's ring wings do, at every Mach number.
 - Its lift per tube is the same whatever the number of tubes, so it models no interference that
   changes with the count. Slender-body theory with the body included predicts one, and it falls
-  as tubes are added. An unchecked estimate is taken 0.005 radii from the body and still rises as that gap closes. It gives at least 1.96 times the lift of the same number of isolated rings for three tubes of 6 mm (0.24 in) radius. Six tubes of that radius give at least 1.57 times the lift of six isolated rings. Six touching each other give at least 1.13
-  ([#234](https://github.com/nrdptel/fusionspace-eridanus/issues/234))
+  as tubes are added. An estimate is taken 0.005 tube radii from the body and still rises as that
+  gap closes. The theory gives at least 1.96 times the lift of the same number of isolated
+  rings for three tubes of 6 mm (0.24 in) radius. Six tubes of that radius give at least 1.57
+  times the lift of six isolated rings. Six touching each other give at least 1.13
+  ([the estimate, #234](https://github.com/nrdptel/fusionspace-eridanus/issues/234))
   ([evidence row G27](../evidence.md#g27)). OpenRocket's lift on the 6 mm (0.24 in) probes is
   1.73 times the long-ring limit of isolated rings: below the estimate for three tubes. For six,
   the same estimate taken closer, and carried on to contact, is about 1.65, a little below
-  OpenRocket's. HPR Sim leaves the interference out.
+  OpenRocket's.
+- An independent solve reproduces that estimate, but nothing has measured it. A source-panel
+  solve gives 1.971 for the three 6 mm (0.24 in) tubes against the estimate's 1.96, and is
+  within 1% on all six tube sets the estimate gives
+  ([the research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/ring-body-interference.md)).
+  No measured tube set beside a body was found, so the size isn't bounded. For the three tubes,
+  the solve's factor falls from 1.971 at a gap of 0.005 tube radii to 1.40 at 0.25. HPR Sim
+  leaves the interference out. If the rise is real, that keeps the stability margin cautious:
+  applying it would move the center of pressure aft and raise the margin.
+  [Evidence row G27](../evidence.md#g27) waits on a measured tube fin
+  ([#679](https://github.com/nrdptel/fusionspace-eridanus/issues/679)).
 - OpenRocket puts the tubes' center a quarter of their length aft of the leading edge up to Mach
   0.5. Its maintainers describe that as the subsonic rule its flat fins and tube fins share
   ([openrocket#3262](https://github.com/openrocket/openrocket/pull/3262)).

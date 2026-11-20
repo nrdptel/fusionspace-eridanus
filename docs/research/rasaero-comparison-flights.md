@@ -8,8 +8,10 @@ Machs come from the peak speed RASAero II stored in each file, divided by the sp
 for these four the Rocket Flight Database's predicted values agree to within 0.02 [S4]. Raven sits within 0.1 of the
 Mach 1 cut. The other 19 flights fall out for three reasons, all from the page and the installer: 6 ship no design
 at all, 6 ship only as an older RASAero (I) `.ALX1` file, and 7 ship a `.CDX1` but fly a team, experimental or
-historical motor. The two flights with the best measured supersonic data, Violent Agreement (CTI I216) and its SS
-sustainer (CTI J530), use COTS motors, but no design ships for either [S2, S3].
+historical motor. The two flights with the best published supersonic data, Violent Agreement (CTI I216) and its SS
+sustainer (CTI J530), use COTS motors, but no design ships for either [S2, S3]. The J530's Mach and drag curve
+don't reconcile with its published mass and motor
+([violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)).
 
 The page's predicted-apogee column needs care. In all 26 rows that ship an `.ALX1`, it equals the "RASAero
 Prediction" in that older file's comments. In 19 of the 24 shipped `.CDX1` files, it differs from the apogee
@@ -90,16 +92,24 @@ fits well (**Inference**).
 
 | Cause | Flights | Count | Past Mach 1 |
 |---|---|---|---|
-| No design, COTS motor | Violent Agreement (I216), its SS (J530), ThreeCarbYen (CTI N/N/M) | 3 | 2 measured, 1 likely |
+| No design, COTS motor | Violent Agreement (I216), its SS (J530), ThreeCarbYen (CTI N/N/M) | 3 | 2 measured (the J530's unreconciled), 1 likely |
 | No design, team motor | MESOS (KIP-EX), Project R (R class), Proteus 6.5 (Loki-EX) | 3 | all; MESOS 4.18 measured |
 | `.ALX1` only | Laser/LOC-2.1 ×2 and EZI-65 (J125), EZI-65 J100, McGarvey, Hubbub | 6 | Hubbub unknown, rest unlikely |
 | `.CDX1`, team motor | Qu8k (Q18000), Proteus 6 (P9381), A-601 (P4935) | 3 | all 3 |
 | `.CDX1`, motor not listed | Full Metal Jacket ×2 (O10000), L500 rocket (Ace), AeroPac 104K (N1048) | 4 | all 4 |
 
-- **Violent Agreement and its SS sustainer.** Their measured peak Mach is at least 1.5 and 2.4. Each per-flight page
-  plots drag coefficient from the coast to those Machs, and the altitude is baro corrected to a balloon's pressure
-  [S1 Note 9, S3]. With these two, the count past Mach 1 would be 6. Each page shows a RASAero II scale drawing
-  with part lengths, weight and CP, but no design file ships and no full dimension list is given [S2, S3].
+- **Violent Agreement and its SS sustainer.** The pages give their peak Mach as at least 1.5 and 2.4. Each
+  per-flight page plots drag coefficient from the coast to those Machs, and the altitude is baro corrected to a
+  balloon's pressure [S1 Note 9, S3]. With these two, the count past Mach 1 would be 6. Each page shows a RASAero II
+  scale drawing with part lengths, weight and CP, but no design file ships [S2, S3]. The full dimension list is
+  published, though, on input-screen images the pages don't link
+  ([violent-agreement-geometry §2](violent-agreement-geometry.md#2-what-the-pages-publish)).
+- **The J530's Mach 2.4 and supersonic C_D are unreconciled.** With the published 3.9 lb lift-off weight and the
+  certified J530, the motor adds at most 742 m/s with no drag, and Mach 2.44 needs 802–830 m/s. So the weight, the
+  motor as flown or the accelerometer is not as published, and the speed and drag curve rest on it. A point-mass
+  rebuild on the published mass gives Mach 1.93–2.01, still past 1, so the count of 6 stands either way
+  (**Inference**, [violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)). The
+  I216's numbers agree.
 - **The motors.** ThrustCurve's search refuses classes P and above, so Proteus 6, A-601 and Qu8k can't be COTS
   entries there. It lists no O10000, L500, J100 or N1048 [S5]. The J125 rows name no maker; AeroTech's J125W, out
   of production, is ThrustCurve's only J125. ThreeCarbYen's three CTI motors are on ThrustCurve, but its measured
@@ -112,7 +122,8 @@ fits well (**Inference**).
 
 These counts use the page's measured Mach where it gives one (MESOS, Proteus 6 and the two Violent Agreement
 flights). Otherwise they use the pad-temperature Mach from the stored peak speed, or "unknown" when no
-`.CDX1` ships.
+`.CDX1` ships. The SS sustainer's 2.4 is unreconciled ([§3](#3-the-19-that-fall-out-by-cause)), but the rebuild's
+1.93–2.01 falls in the same 1–2.5 band, so the table still counts it there.
 
 | Set | Below 1 | 1–2.5 | 2.5–3.5 | Beyond 3.5 | Unknown |
 |---|---|---|---|---|---|
@@ -120,11 +131,11 @@ flights). Otherwise they use the pad-temperature Mach from the stored peak speed
 | COTS solid, with or without a file (25) | 13 | 5 | 1 | 0 | 6 |
 | COTS solid with a `.CDX1` (17) | 13 | 3 | 1 | 0 | 0 |
 
-- **Near a cut.** Full Metal Jacket's Black Rock flight sits at 2.41 and Violent Agreement SS at "at least" 2.4, both
-  within 0.1 of 2.5; Raven sits within 0.1 of 1. Using the cold standard stratosphere (216.65 K) instead of the pad's
-  air raises every Mach by 16 to 20%. That would push Don't Debate This to 3.58 and Qu8k to 3.88, past 3.5. A peak at
-  burnout a few thousand feet up is far warmer than that, so the pad values stand (**Inference**). Flying the files
-  settles it.
+- **Near a cut.** Full Metal Jacket's Black Rock flight sits at 2.41 and Violent Agreement SS at "at least" 2.4,
+  both within 0.1 of 2.5; Raven sits within 0.1 of 1. The SS's 2.4 is the page's claim, not a checked value. Using
+  the cold standard stratosphere (216.65 K) instead of the pad's air raises every Mach by 16 to 20%. That would push
+  Don't Debate This to 3.58 and Qu8k to 3.88, past 3.5. A peak at burnout a few thousand feet up is far warmer than
+  that, so the pad values stand (**Inference**). Flying the files settles it.
 - **The unknowns.** Of the 9, ThreeCarbYen, Project R and Proteus 6.5 are almost surely past 2.5: they reach
   72,000 to 175,000 ft, and Proteus 6.5 flies the same motor as Proteus 6 (measured 2.94). The J125, J100 and
   McGarvey flights are likely subsonic. Hubbub flies Rabia's motor on a wider body and reaches a lower apogee, so
@@ -146,9 +157,12 @@ flights). Otherwise they use the pad-temperature Mach from the stored peak speed
 4. **Read units from the file.** The importer must convert `LaunchSite` (feet, °F) and its results (feet, ft/s).
    Its first check can compare the parsed launch conditions and motor string against the comments in the same
    file, which repeat them.
-5. **The best supersonic flights are not flyable.** The Violent Agreement pair would be the strongest public
-   references above Mach 1: COTS motors, measured Mach and a drag curve. Without a design file they stay out of the
-   count.
+5. **The best supersonic flights are not flyable.** This note first called the Violent Agreement pair the
+   strongest public references above Mach 1: COTS motors, measured Mach and a drag curve. That held for the I216
+   only. The J530's Mach and supersonic C_D don't reconcile with its published mass and motor, so it can't serve as a
+   Mach 2.4 reference until they do
+   ([violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)). Without a design
+   file both stay out of the count.
 
 ## Open questions
 
