@@ -2646,7 +2646,7 @@ only through the margin, which both codes take as the rocket leaves the rod. *Po
 change* is the difference from `pods-none`, the same airframe with no pods, so it shows the pods'
 own share in each code:
 
-| probe | its pods | apogee, OpenRocket | HPR Sim | pods' change, OpenRocket | HPR Sim | margin, OpenRocket | HPR Sim |
+| probe | its pods | apogee, OpenRocket | HPR Sim's apogee, % from OpenRocket | pods' change of apogee in OpenRocket, % | pods' change of apogee in HPR Sim, % | margin, OpenRocket | margin, HPR Sim |
 |---|---|---:|---:|---:|---:|---:|---:|
 | `pods-none` | none | 776.1 m (2,546 ft) | +0.81% |  |  | 2.757 cal | 2.759 cal |
 | `pods-bodies-3` | three: a cone and a tube | 663.3 m (2,176 ft) | +0.48% | −14.53% | −14.81% | 2.360 cal | 2.362 cal |
