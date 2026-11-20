@@ -1,18 +1,17 @@
 # How far flight-measured drag of hobby rockets sits from simulator estimates
 
-Flyers often say that a C_D taken from a flight log comes out above OpenRocket's or RockSim's. This note collects
-every public case found with both numbers for one rocket: a flight-derived C_D and a code's C_D over the same speeds.
-Is there a shared factor, how big, and does it depend on Mach or on build? **In short: the answer depends on the
-method, and no shared factor shows.** Fourteen fits to the coast's deceleration put flight C_D at a median 1.02 times
-the code's (quartiles 0.89–1.11, range 0.84–1.16, 8 of 14 above 1). Twelve fits that tune C_D until the simulated
-apogee matches give a median 1.27 (0.58–1.92): that one number also absorbs mass, motor, boost, wind and launch-angle
-errors. Where one team ran both methods on two flights, they differ by 0.23 and 0.37. Every OpenRocket and RockSim
-coast pair is subsonic; two rockets the page puts at Mach 1.5 and 2.4 read below RASAero II, but the 2.4 doesn't
-reconcile with its published mass and motor. Finishing one nose cone moved one rocket's fitted C_D by 20%.
-**Inference:** through [apogee-bias](apogee-bias.md)'s elasticities, the coast median puts 0.6–1.1% of apogee on
-missed drag (3–5% if the masses ran light): a tenth to a half of the private collection's +8.73% mean. How far to
-trust this: 26 pairs from six student teams, one paper and one builder; most don't say whether the mass was weighed,
-and half the coast fits differentiate altitude for velocity.
+Flyers often say that a C_D taken from a flight log comes out above OpenRocket's or RockSim's. This note collects every
+public case found with both numbers for one rocket: a flight-derived C_D and a code's C_D over the same speeds. Is there
+a shared factor, how big, and does it depend on Mach or on build? **In short: the answer depends on the method, and no
+shared factor shows.** Fourteen fits to the coast's deceleration put flight C_D at a median 1.02 times the code's
+(quartiles 0.89–1.11, range 0.84–1.16, 8 of 14 above 1). Twelve fits that tune C_D until the simulated apogee matches
+give a median 1.27 (0.58–1.92): that one number also absorbs mass, motor, boost, wind and launch-angle errors. Where one
+team ran both methods on two flights, they differ by 0.23 and 0.37. Every OpenRocket and RockSim coast pair is subsonic;
+two rockets flown to Mach 1.5 and an unreconciled 2.4 read below RASAero II. Finishing one nose cone moved one rocket's
+fitted C_D by 20%. **Inference:** through [apogee-bias](apogee-bias.md)'s elasticities, the coast median puts 0.6–1.1%
+of apogee on missed drag (3–5% if the masses ran light): a tenth to a half of the private collection's +8.73% mean. How
+far to trust this: 26 pairs from six student teams, one paper and one builder; most don't say whether the mass was
+weighed, and half the coast fits differentiate altitude for velocity.
 
 ## 1. How a flight gives a C_D, and what each method folds in
 
@@ -50,15 +49,12 @@ vertical components only. OR = OpenRocket, RS = RockSim, RAS = RASAero II. Pages
 
 - **Statistics** (this note's arithmetic, OpenRocket where a report gives both codes): n = 14, median 1.02,
   quartiles 0.89–1.11, range 0.84–1.16. Hobby codes other than RASAero (n = 12): median 1.04, quartiles 0.94–1.13.
-- **The two RASAero rockets** come from one builder, published by the code's author. They are read from plots,
-  about ±0.01 in C_D, so their ratios are **Inference**. Their supersonic ratios are 0.91–0.95 (I216, Mach 1.1–1.4)
-  and 0.85–0.97 (J530, Mach 1.1–2.3) [S1, S2]. The J530's are unreconciled. With its published 3.9 lb lift-off weight
-  and the certified motor, it can't reach the page's Mach 2.44 even with no drag. So its speed, Mach axis and C_D
-  rest on a weight, motor or accelerometer that is not as published
-  ([violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)). The statistics
-  above still count its subsonic ratio, about 0.88, which rests on the same mass and speed (**Inference**). The
-  J530's coast C_D matched, yet its simulated apogee ran 8.35% high (24,784 ft against 22,874 ft); the page blames
-  early angle-of-attack oscillations [S2].
+- **The two RASAero rockets** come from one builder, published by the code's author. They are read from plots, about
+  ±0.01 in C_D, so their ratios are **Inference**. Their supersonic ratios are 0.91–0.95 (I216, Mach 1.1–1.4) and
+  0.85–0.97 (J530, Mach 1.1–2.3) [S1, S2]. The J530's are
+  [unreconciled](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close); the statistics above still count its
+  subsonic 0.88, which rests on the same mass and speed (**Inference**). The J530's coast C_D matched, yet its simulated
+  apogee ran 8.35% high (24,784 ft against 22,874 ft); the page blames early angle-of-attack oscillations [S2].
 - **Mass** enters C_D linearly. FAMU-FSU weighed all hardware after flight 1: 4.5 lb over its file [R18] §5.1.16.
   NC State 2023 and Notre Dame 2022 ran measured masses [R6] p. 34, [R14] p. 26. The rest don't say.
 - **Reference area.** NC State 2024 used body tube area plus fin area [R7] p. 49. **Inference:** a larger A gives a
@@ -101,18 +97,15 @@ vertical components only. OR = OpenRocket, RS = RockSim, RAS = RASAero II. Pages
 ## 4. Does it depend on Mach or on build?
 
 - **Mach.** Every OpenRocket and RockSim coast pair is subsonic: quoted speeds put the coasts at about Mach 0.6 or
-  less. Only the two RASAero rockets pass Mach 1. Their ranges overlap, but typical ratios are about 0.84–0.88
-  subsonic and 0.90–0.95 supersonic [S1, S2]. Both ranges still count the J530, whose speed is unreconciled
-  ([violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)); the I216 alone
-  gives about 0.84 and 0.91–0.95. **Inference:** nothing public shows a bias that grows with Mach. On these two
-  rockets RASAero reads high subsonic, the opposite of the folklore. A transonic or supersonic coast fit against
-  OpenRocket or RockSim with numbers was not found.
-- **Finish.** FAMU-FSU's fit fell from 0.75 to 0.60 (−20%) once the nose cone was finished [R18] §5.1.17, §5.2.16.
-  Notre Dame 2021 flew unpainted against an OpenRocket "smooth paint" file: coast fit 0.31, OpenRocket's apogee
-  1.7% high [R13] pp. 85, 88. On Niskanen's airbrushed, weighed 29 mm model, OpenRocket read 7% high (C6-3) and
-  RockSim 8 read 19% high [S7] pp. 83–85, Table 6.1. **Inference:** through §6's elasticities, 7% alone would take
-  12–23% more C_D, and a file's finish can sit on either side of the built one
-  ([hobby-finish-roughness](hobby-finish-roughness.md)).
+  less. Only the two RASAero rockets pass Mach 1. Their ranges overlap, but typical ratios are about 0.84–0.88 subsonic
+  and 0.90–0.95 supersonic [S1, S2], both still counting the unreconciled J530. **Inference:** nothing public shows a
+  bias that grows with Mach. On these two rockets RASAero reads high subsonic, the opposite of the folklore. A transonic
+  or supersonic coast fit against OpenRocket or RockSim with numbers was not found.
+- **Finish.** FAMU-FSU's fit fell from 0.75 to 0.60 (−20%) once the nose cone was finished [R18] §5.1.17, §5.2.16. Notre
+  Dame 2021 flew unpainted against an OpenRocket "smooth paint" file: coast fit 0.31, OpenRocket's apogee 1.7% high
+  [R13] pp. 85, 88. On Niskanen's airbrushed, weighed 29 mm model, OpenRocket read 7% high (C6-3) and RockSim 8 read 19%
+  high [S7] pp. 83–85, Table 6.1. **Inference:** through §6's elasticities, 7% alone would take 12–23% more C_D, and a
+  file's finish can sit on either side of the built one ([hobby-finish-roughness](hobby-finish-roughness.md)).
 - **Material.** Toledo's cardboard vehicles fitted 1.06–1.38 × OpenRocket in 2024 and 1.32 in 2026 [R27] p. 16,
   [R31] p. 50. Its 2026 fiberglass full scale overflew a prediction carried over from the subscale fit, and the team
   names the material [R32] p. 107. That is one team's evidence.
@@ -188,9 +181,8 @@ reserved or unstated, cited only. NC State's reports: <https://ncsurocketry.org/
 - **S15.** Van Milligan, NARAM-54 R&D (2012).
   <https://www.apogeerockets.com/downloads/Cd_determination_using_Coast_Data.pdf>
 - **R2–R11, R33–R41, R50.** NC State, by season on the archive: R2 2019 FRR, R3 its addendum; R4 2021 FRR, R5 its
-  addendum; R6 2023 CDR; R7 2024 CDR; R8 2023 FRR; R9 2025 CDR; R10 2025 FRR, R11 its addendum; R33 2025 PLAR; R34
-  2026 CDR; R35 2026 FRR, R36 its addendum; R37 2026 PLAR; R38 2024 FRR addendum; R39 2024 FRR; R41 2017
-  FRR; R50 2014 CDR.
+  addendum; R6 2023 CDR; R7 2024 CDR; R8 2023 FRR; R9 2025 CDR; R10 2025 FRR, R11 its addendum; R33 2025 PLAR; R34 2026
+  CDR; R35 2026 FRR, R36 its addendum; R37 2026 PLAR; R38 2024 FRR addendum; R39 2024 FRR; R41 2017 FRR; R50 2014 CDR.
 - **R12–R16.** Notre Dame, <https://seniordesign.ee.nd.edu/>: R12 2021 CDR and R13 2021 FRR
   (`2021/Design%20Teams/rocketpay/`), R14 2022 FRR (`2022/Design%20Teams/NDRT/sliFrr.pdf`), R15 2023 CDR and R16 2023
   FRR (`2023/DesignTeams/rocket/NDRT_CDR_2022_2023.pdf`, `NDRT_FRR_2022_2023.pdf`).

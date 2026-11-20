@@ -2,18 +2,17 @@
 
 This note collects every public case found where one rocket has a flight-measured coast C_D and a code's C_D over the
 same Mach range above 0.8. It asks whether their ratio moves through Mach 1: can one scale correct a code's airframe
-drag, or does the correction need a Mach term? It builds on [flight-derived-cd](flight-derived-cd.md), whose coast
-pairs against OpenRocket and RockSim were all subsonic. **In short: against RASAero II the ratio moves by less than
-0.1 through Mach 1, and the one flight against OpenRocket says it rises by about 45%.** Eight flights were fitted
-against RASAero II above Mach 1.2, to 2.94. Their supersonic ratios run 0.85–1.08, or 0.91–1.08 without one J530
-flight whose speed doesn't reconcile with its published mass and motor. Through Mach 1 the level steps by about zero
-on one 38 mm rocket and by +0.09 on another; the J530's +0.03 rests on that unreconciled speed. What moves is the
-shape: on the 38 mm rocket the flight's drag rise ends at Mach 0.98–1.00 against RASAero's 1.04–1.06, so the ratio
-swings from about 0.92 to 1.08 (±0.03) over Mach 0.92–1.00. One J825R flight to Mach 1.5 (Bawa and Michalski) reads
-0.69–0.79 of OpenRocket subsonic and 1.03–1.10 supersonic. That flight's mass wasn't weighed, and its velocity
-drifted. A finish setting moved one Mach 2.8 flight's code curve by 15–40%, more than any Mach term. No public pair
-against RockSim, and none against OpenRocket with a weighed mass, passes Mach 0.8. **How sure:** medium on the
-RASAero side, four sources by three groups; low on the OpenRocket side, one flight read off a plot.
+drag, or does the correction need a Mach term? It builds on [flight-derived-cd](flight-derived-cd.md), whose coast pairs
+against OpenRocket and RockSim were all subsonic. **In short: against RASAero II the ratio moves by less than 0.1
+through Mach 1, and the one flight against OpenRocket says it rises by about 45%.** Eight flights were fitted against
+RASAero II above Mach 1.2, to 2.94. Their supersonic ratios run 0.85–1.08 (0.91–1.08 without one unreconciled J530
+flight). Through Mach 1 the level steps by about zero on one 38 mm rocket and by +0.03 (that J530) and +0.09 on two
+others. What moves is the shape: on the 38 mm rocket the flight's drag rise ends at Mach 0.98–1.00 against RASAero's
+1.04–1.06, so the ratio swings from about 0.92 to 1.08 (±0.03) over Mach 0.92–1.00. One J825R flight to Mach 1.5 (Bawa
+and Michalski) reads 0.69–0.79 of OpenRocket subsonic and 1.03–1.10 supersonic. That flight's mass wasn't weighed, and
+its velocity drifted. A finish setting moved one Mach 2.8 flight's code curve by 15–40%, more than any Mach term. No
+public pair against RockSim, and none against OpenRocket with a weighed mass, passes Mach 0.8. **How sure:** medium on
+the RASAero side, four sources by three groups; low on the OpenRocket side, one flight read off a plot.
 
 ## 1. How the cases were found and read
 
@@ -37,7 +36,7 @@ apogee, where drag per mass is smallest. That is the slow end of a coast, so it 
 | Rebuilt; J1026 and K627, 2024; 2.66 [S5] #122–#130 | accel; weighed | 0.96–1.04 | 0.94–1.13 | 0.97–1.06 |
 | 3 in; CTI M2020; 2.84 [S6] #1 | accel, 2 units; wet weight | n/a | n/a | ≈1.0 rough; 1.15–1.4 smooth |
 | Proteus 6, 6 in; P9381; 2.94 [S7] | accel velocity; design mass | n/a | n/a | ≈1.08 (effective) |
-| Violent Agreement I216 and J530 SS; 1.5; 2.4 (J530) unreconciled [S14] | accel | 0.84–0.88 | n/a | 0.91–0.95 I216; 0.85–0.97 J530 |
+| Violent Agreement I216 and J530 SS; 1.5; 2.4, [unreconciled](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close) [S14] | accel | 0.84–0.88 | n/a | 0.91–0.95 I216; 0.85–0.97 J530 |
 
 - **J1026, 2023.** The source gives 0.347 measured against RASAero's 0.369 power-off at Mach 2.60 [S5] #71. Mass
   was weighed: 907 g after boost. Density came from the nearest weather balloon, and the high-g data were scaled
@@ -67,18 +66,13 @@ apogee, where drag per mass is smallest. That is the slow end of a coast, so it 
 - **Proteus 6** [S7]. The page shows velocity, not C_D. **Inference, read off the plot (±10 ft/s):** from 10 s to
   30 s RASAero loses 1,316 ft/s and the two accelerometers 1,367 and 1,372 ft/s. Taking gravity's share as 600–644
   ft/s, the drag share flown is 1.07–1.08 times the simulated (±0.04). It carries the design file's mass.
-- **Violent Agreement**: already in [flight-derived-cd §2](flight-derived-cd.md), not counted twice. The J530's
-  Mach 2.4 and supersonic C_D are the page's claim, not checked values. With the published 3.9 lb lift-off weight
-  and the certified J530, the motor adds at most 742 m/s with no drag, and Mach 2.44 needs 802–830 m/s. So the
-  weight, the motor as flown or the accelerometer is not as published, and the drag curve rests on it
-  ([violent-agreement-geometry §3](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)).
-  The I216's numbers agree.
+- **Violent Agreement**: already in [flight-derived-cd §2](flight-derived-cd.md), not counted twice.
 
-**Inference, by band.** Against RASAero II the supersonic ratio spans 0.85–1.08 on smooth-finish settings, and 1.0 on
-the stripped rocket with the rough setting. The span still counts the unreconciled J530, which sets its low end;
-without it the span is 0.91–1.08. On the rockets with both sides of Mach 1, the level steps by about zero on the J510
-(band means +0.005; cell by cell −0.05 to +0.06) and by +0.09 (I216) and +0.03 (J530, unreconciled). The 2024 flights
-against the older file climb about +0.1 from Mach 0.5 to 2.6. That is a different build, so it is a weak sign.
+**Inference, by band.** Against RASAero II the supersonic ratio spans 0.85–1.08 on smooth-finish settings (0.91–1.08
+without the J530), and 1.0 on the stripped rocket with the rough setting. On the rockets with both sides of Mach 1, the
+level steps by about zero on the J510 (band means +0.005; cell by cell −0.05 to +0.06) and by +0.09 (I216) and +0.03
+(J530, [unreconciled](violent-agreement-geometry.md#3-the-j530-flight-doesnt-close)). The 2024 flights against the older
+file climb about +0.1 from Mach 0.5 to 2.6. That is a different build, so it is a weak sign.
 
 **The rise's position, not its size.** On both 38 mm builds the flight stays flat to Mach 0.91–0.94 and levels off
 by 0.98–1.00. RASAero bends upward at 0.90 and peaks at 1.04–1.06 [S5] #87. Scaling a code curve by one
@@ -138,10 +132,9 @@ C_D high, which would make the true rise larger. The mass error moves every band
   The rise ends 0.05–0.08 in Mach earlier in flight than in the code, so a ratio taken near Mach 1 swings ±8%.
 - **Against OpenRocket: one flight says yes, by about +45%**, from an unweighed mass and a drifting velocity.
   Against a semi-empirical method, one flight of unknown method says +15–20%.
-- **The finish setting is the larger term.** Smooth against rough camouflage moved one Mach 2.8 flight's code curve
-  by 15–40% [S6] #1. RASAero's author reports single-stage Mach 3+ flights and the AeroPac 104K two-stage
-  matching rough camouflage, and Three Carb Yen and MESOS smooth paint; on MESOS the switch is worth about 10% of
-  apogee [S10] #9, #12.
+- **The finish setting is the larger term.** Smooth against rough camouflage moved one Mach 2.8 flight's code curve by
+  15–40% [S6] #1. RASAero's author reports single-stage Mach 3+ flights and the AeroPac 104K two-stage matching rough
+  camouflage, and Three Carb Yen and MESOS smooth paint; on MESOS the switch is worth about 10% of apogee [S10] #9, #12.
 - **What it means for HPR Sim.** No pair is against HPR Sim. Its drag is compared with RASAero II curves through Mach
   2, code to code ([ADR-029](../decisions/0029-drag-against-rasaero-ii-through-mach-2-the-gap.md)). Its formulas read
   19–38% high through Mach 0.8–1.2 on the most HPR-like tunnel set, peaking at Mach 1.08 where flight peaks at
