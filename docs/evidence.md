@@ -265,7 +265,7 @@ The register holds 40 rows, as of November 19, 2026.
   - NACA and NASA reports on subsonic base drag with a rocket jet, on the NASA Technical Reports Server
   - the project's research notes on power-on and hot-jet base drag
 
-  It found one free flight with a burning motor below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found.
+  It found one free flight whose base drag curves, power on and power off, run below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 

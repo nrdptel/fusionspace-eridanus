@@ -330,15 +330,15 @@ of the Arcas Robin sounding rocket, from Mach 0.6 to 4.63, it reads high at most
 highest with fins past Mach 1
 ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). So for a rocket that
 goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its base drag, on the
-flat aft end, has been compared with two references. One is
+flat aft end, has been compared with three references. One is
 MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The other is Love's
 correlation of measured bases. The base drag reads high from Mach 0.8 to 1.2 against the first,
 and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured
 ([issue 68, the base drag's error](https://github.com/nrdptel/fusionspace-eridanus/issues/68);
 [the handbook's calculation](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation)).
-Below Mach 0.8 a third, a NACA missile model's measured flight, checks it coasting and with the
-motor burning
-([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
+Below Mach 0.8 the third, one long-boattailed NACA missile model's measured flight, checks it
+coasting and with the motor burning: coasting it reads high, and under power the rule as flown
+reads low ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
 
 It's also been compared with [RASAero II](glossary.md#rasaero-ii)'s drag near Mach 1, and that
 comparison isn't within the 10% target everywhere. [Accuracy](accuracy.md) has the cases and

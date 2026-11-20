@@ -702,6 +702,15 @@ fn the_section_is_held_to_the_bands() {
             .unwrap_err()
             .contains("row against")
     );
+    // The bands set another count of flights beside the logs than the section was given.
+    let mut other = bands.clone();
+    other.logs.flights = 4;
+    assert!(
+        terms
+            .check_against_bands(&other)
+            .unwrap_err()
+            .contains("beside the logs")
+    );
     bands.banded = 9;
     bands.split = 4;
     assert!(

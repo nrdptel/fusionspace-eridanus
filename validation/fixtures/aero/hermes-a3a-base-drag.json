@@ -33,7 +33,7 @@
     "method": "rendered at 300 dpi; both axes calibrated from the labelled grid lines (Mach 0.6, 0.7 and 0.8; C_D 0 and 0.1, per column for the scan's half-degree turn); each curve tracked column by column and read by a least-squares line within ±0.0125 Mach of each target",
     "reading_uncertainty": 0.001,
     "reading_note": "fit residuals 0.3 to 0.6 px at 0.0005 per px; the power-on curve at Mach 0.70 lies on a grid line and is read from its edge; the power-off curve starts at Mach 0.65; no row at Mach 0.60: the power-off curve isn't drawn there, and the power-on curve reaches it only at the plot's frame, read from one side",
-    "cross_check": "the report's base pressures (Fig. 22) times its own areas give power on 15% to 23% above Fig. 20 and power off about 0.014: differences up to about the stated ±0.005, which the figures don't settle; Fig. 20, the drag with the stated error, is the reference"
+    "cross_check": "the report's base pressures (Fig. 22) times its own areas, read by eye and not committed, differ from Fig. 20 by up to about the stated ±0.005, which the figures don't settle; Fig. 20, the drag with the stated error, is the reference"
   },
   "rows": [
     { "mach": 0.65, "power_on": 0.0270, "power_off": 0.0127 },
