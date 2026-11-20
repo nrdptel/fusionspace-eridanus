@@ -2887,16 +2887,16 @@ reads the same probes with HPR Sim and pins all 70 gaps. The record shows:
   changes with the count. Slender-body theory with the body included predicts one, and it falls
   as tubes are added. An estimate is taken 0.005 tube radii from the body and still rises as that
   gap closes. The theory gives at least 1.96 times the lift of the same number of isolated
-  rings for three tubes of 6 mm (0.24 in) radius. Six tubes of that radius give at least 1.57 times the lift of
-  six isolated rings. Six touching each other give at least 1.13
+  rings for three tubes of 6 mm (0.24 in) radius. Six tubes of that radius give at least 1.57
+  times the lift of six isolated rings. Six touching each other give at least 1.13
   ([the estimate, #234](https://github.com/nrdptel/fusionspace-eridanus/issues/234))
   ([evidence row G27](../evidence.md#g27)). OpenRocket's lift on the 6 mm (0.24 in) probes is
   1.73 times the long-ring limit of isolated rings: below the estimate for three tubes. For six,
   the same estimate taken closer, and carried on to contact, is about 1.65, a little below
   OpenRocket's.
 - An independent solve reproduces that estimate, but nothing has measured it. A source-panel
-  solve gives 1.971 for the three 6 mm tubes against the estimate's 1.96, and is within 1% on
-  all six tube sets the estimate gives
+  solve gives 1.971 for the three 6 mm (0.24 in) tubes against the estimate's 1.96, and is
+  within 1% on all six tube sets the estimate gives
   ([the research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/ring-body-interference.md)).
   No measured tube set beside a body was found, so the size isn't bounded. For the three tubes,
   the solve's factor falls from 1.971 at a gap of 0.005 tube radii to 1.40 at 0.25. HPR Sim
