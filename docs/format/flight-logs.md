@@ -3422,7 +3422,7 @@ pressure with an AltOS board's, flown beside it on each flight. The flights are 
 order of the [survey's report](#how-it-was-checked), which lists them under anonymized ids with the
 same climb ratios:
 
-| Flight | Climb ratio | `pAlt` from the standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |
+| Flight number | Climb ratio | `pAlt` from the standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |
 |---:|---:|---:|---:|---:|
 | 1 | 0.754 | 151.2 | −1.08 | −0.48 |
 | 2 | 1.032 | 3.1 | −0.42 | +0.02 |
@@ -3431,13 +3431,13 @@ same climb ratios:
 Two exports' `pAlt` lies within 3.3 m (11 ft) of the standard atmosphere. Flight 1's departs by up
 to 151.2 m (496 ft), worked by some other formula.
 
-The ARTS2's pad pressure reads 0.42 to 1.08 kPa
-below the AltOS board's. Near sea level that is about 35 to 90 m of height, and more at a higher
-site. Its least pressure reads from 0.48 kPa below (about 40 m) to 0.11 kPa above (about 9 m).
-All fall inside the MPX4100A's ±1.5 kPa error band.
+The ARTS2's pad pressure reads 0.42 to 1.08 kPa below the AltOS board's. Near sea level that is
+about 35 to 90 m (115 to 295 ft) of height, and more at a higher site. Its least pressure reads from
+0.48 kPa below, about 40 m (131 ft), to 0.11 kPa above, about 9 m (30 ft). All fall inside the
+MPX4100A's ±1.5 kPa error band.
 
-Flight 1 stands out three ways. It has the largest pad difference, the 151.2 m departure of `pAlt`
-and the least climb ratio.
+Flight 1 stands out three ways. It has the largest pad difference, the 151.2 m (496 ft) departure of
+`pAlt` and the least climb ratio.
 
 [ADR-266, the ARTS2's raw data](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
 gives the evidence for the layout.
