@@ -191,6 +191,68 @@ fn both_codes_terms_are_pinned_at_mach_0_3_and_0_6() {
     }
 }
 
+/// A stated coefficient, OpenRocket's rest, is the one term the public designs leave at zero, so
+/// here OpenRocket's rest and its whole coefficient are both raised by 0.2. With friction,
+/// pressure and base swapped and the rest not, the coefficient drops OpenRocket's rest for HPR
+/// Sim's own (zero on this design); with the rest swapped too, it keeps OpenRocket's.
+#[test]
+fn the_rest_is_openrockets_only_when_swapped() {
+    let flights = public_flights();
+    let public = &flights[1];
+    let inputs = OpenRocketInputs::of(&public.flight).unwrap().unwrap();
+    let tables = term_tables(&public.flight).unwrap().unwrap();
+    let simulation = public.build().unwrap();
+    let layout = &simulation.assembly().layout;
+    let own = AeroModel::new(layout).unwrap();
+    let diameter = tables[0].reference_diameter_m.unwrap();
+    let scale = 0.25 * std::f64::consts::PI * diameter * diameter / own.reference_area_m2();
+    let raise = |table: &DragTable| -> DragTable {
+        let mut value = serde_json::to_value(table).unwrap();
+        for key in ["power_off", "power_on"] {
+            for y in value[key]["y"].as_array_mut().unwrap() {
+                *y = json!(y.as_f64().unwrap() + 0.2);
+            }
+        }
+        serde_json::from_value(value).unwrap()
+    };
+    let mut raised = tables.clone();
+    raised[3] = raise(&tables[3]);
+    let whole = raise(&inputs.drag);
+    let every = AeroModel::new(layout)
+        .unwrap()
+        .with_drag_model(TermSwap::new(inputs.drag.clone(), tables, [true; 4]));
+    for rest in [false, true] {
+        let swapped = AeroModel::new(layout)
+            .unwrap()
+            .with_drag_model(TermSwap::new(
+                whole.clone(),
+                raised.clone(),
+                [true, true, true, rest],
+            ));
+        for mach in [0.3, 0.6] {
+            for conditions in [
+                DragConditions::coasting(1.0e7),
+                DragConditions::thrusting(1.0e7, 0.0),
+            ] {
+                let flow = Flow::new(mach, 0.0, 0.0);
+                let drag = |model: &AeroModel| {
+                    model
+                        .drag(&flow, &conditions)
+                        .unwrap()
+                        .zero_lift_coefficient
+                };
+                assert_eq!(own.buildup_drag(&flow, &conditions).unwrap().stated, 0.0);
+                let expected = drag(&every) + if rest { 0.2 * scale } else { 0.0 };
+                let got = drag(&swapped);
+                assert!(
+                    (got - expected).abs() < 1e-12,
+                    "Mach {mach}, rest {rest}: {got} {expected}"
+                );
+            }
+        }
+    }
+}
+
 /// Every choice of terms swapped, at Mach numbers inside the band and past it, power on and
 /// off: inside, the coefficient is HPR Sim's own less its terms swapped plus OpenRocket's,
 /// scaled to HPR Sim's area; past it, and with no term swapped, HPR Sim's own bit for bit.
