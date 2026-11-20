@@ -423,8 +423,9 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 
 Every pull request but one that changes only research notes (under `docs/research/`) runs
 `cargo xtask validate --check` on macOS, Windows and Linux, in continuous
-integration (CI). It's the `validate` job in `.github/workflows/ci.yml`
-([its milestone](decisions-and-roadmap.md#m2-1c1)). It flies every locked case, compares each
+integration (CI). It's the `reports` job in `.github/workflows/ci.yml`
+([its milestone](decisions-and-roadmap.md#m2-1c1)); the `validate` job beside it runs the checks
+that need the optimized build, below. It flies every locked case, compares each
 result with the stored RocketPy numbers, and writes nothing. RocketPy itself isn't run. The job
 fails if a scored metric is outside its tolerance, or if the committed report differs from this
 run's.
@@ -543,7 +544,7 @@ and on. A change that moves only fits outside it, and by less than the night's a
 by 5 flights or fewer), is found only by the check by hand
 ([issue #1177](https://github.com/nrdptel/fusionspace-eridanus/issues/1177)).
 
-Then the `validate` job holds the committed reports to the accuracy census accepted last
+Then the `reports` job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).
 Each number the harness's report, the real flights' and both OpenRocket reports hold HPR Sim to is a
