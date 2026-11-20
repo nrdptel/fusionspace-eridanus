@@ -223,9 +223,13 @@ the sources' guidance, not the simulator's judgment.**
   less than 2.0 calibers for transonic and supersonic flights".
 - NASA's [Student Launch handbook](https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf)
   for 2027 asks for "a minimum static stability margin of 2.0 while sitting on the pad".
-- The Spaceport America Cup's [design guide](https://www.esrarocket.org/s/2026-IREC-DTEG-V11.pdf)
-  (2026, version 1.1) states its limits as a share of the rocket's length instead. They're at least
-  7.5% through a subsonic flight, and at most 18% at launch.
+- The Spaceport America Cup's [design guide](https://www.esrarocket.org/s/2027-IREC-DTEG-REV-P1.pdf)
+  (2027 REV P1, effective October 15, 2026) states its limits as a share of the rocket's length
+  instead. Its section 10.2.1 (page 43) asks for a margin of at least 7.5% on a subsonic flight.
+  The minimum rises to 10% if the flight is supersonic at any point. Both hold from launch through
+  motor burnout. Section 10.3.1 (page 44) allows at most 18% at launch. The 2026 guide held the
+  minimum longer, until the first recovery deployment. HPR Sim's least margin runs on past burnout
+  to apogee, so it can read below the guide's.
 
 **A large margin isn't free.** A very stable rocket turns into a crosswind as it leaves the rail
 ([weathercocking](glossary.md#weathercocking)), and so flies off the vertical.
