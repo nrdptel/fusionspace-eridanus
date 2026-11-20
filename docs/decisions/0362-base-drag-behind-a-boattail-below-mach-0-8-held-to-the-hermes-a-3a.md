@@ -109,6 +109,11 @@ boattailed base the whole flat-base value, $0.12 + 0.13\,M^2$ on the base's area
    - **The census.** 52 rows moved, 38 for the worse, accepted with the reason in
      `validation/reports/census.json`: the rows against OpenRocket on three boattailed public
      examples and on two calm flights of one private design, and the four public flights above.
+   - **The synthetic flights.** HPR Sim flies them, so they move too. The shares that make the
+     log readings' 90% intervals and the flight fit's, both fitted on the calibration set, are
+     fitted again, and the library holds the new ones at three figures, as `cargo xtask
+     synthetic` and `cargo xtask fit` require. Test sets A and B, which the shares never see,
+     still pass both commands' tests.
    - **Code against code.** Against the RASAero II curves of RocketPy's examples (ADR-009) at
      Mach 0.3, Calisto's own export comes to +0.2% from +4.4%, and two more examples fall
      outside 10%: Calisto's getting-started fins (−11.5%, from −7.3%) and Juno III (−10.3%,
