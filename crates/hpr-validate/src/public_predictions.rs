@@ -167,14 +167,27 @@ pub struct Revision {
     pub because: &'static str,
 }
 
-/// The revisions: none. Every prediction flies today as it was merged.
+/// The revisions: one. Erebus 11's apogee rose 46.0 m with M1.14i3's base drag behind a
+/// boattail ([ADR-362][adr-362]); the other eleven fly as they were merged.
 ///
 /// An entry here is the only way a prediction may differ from [`MERGED`] by more than 0.05 m
 /// (`MERGED_WITHIN_M`): the real-flights
 /// report then prints both numbers and both errors, and its summary gives the means over the
 /// merged predictions beside the means over the revised ones. A revision is added in the pull
 /// request that changes the number, by hand, with its reason; nothing writes one.
-pub const REVISIONS: [Revision; 0] = [];
+///
+/// [adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
+pub const REVISIONS: [Revision; 1] = [Revision {
+    id: "erebus-11",
+    apogee_m: 2760.1,
+    height_apogee_m: 2856.5,
+    catalog_apogee_m: None,
+    because: "M1.14i3 (ADR-362) changed HPR Sim's base drag below Mach 0.8: behind a boattail \
+              the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the \
+              Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 \
+              to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus \
+              11 has a boattail; nothing in its design or inputs changed.",
+}];
 
 /// The apogee a flight's log is read at: the rule, never the value.
 #[derive(Debug, Clone, Copy, PartialEq)]

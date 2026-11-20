@@ -102,12 +102,12 @@
       "flights": 60,
       "hpr": {
         "n": 60,
-        "mean_percent": 7.72,
-        "median_percent": 6.69,
-        "mean_absolute_percent": 12.04,
-        "rms_percent": 15.4,
-        "within_5_percent": 14,
-        "within_10_percent": 32,
+        "mean_percent": 8.01,
+        "median_percent": 7.6,
+        "mean_absolute_percent": 12.09,
+        "rms_percent": 15.42,
+        "within_5_percent": 12,
+        "within_10_percent": 31,
         "histogram": [
           0,
           0,
@@ -116,9 +116,9 @@
           4,
           6,
           4,
-          10,
-          12,
-          10,
+          8,
+          13,
+          11,
           2,
           5,
           4,
@@ -152,12 +152,12 @@
       },
       "hpr_in_openrocket_air": {
         "n": 60,
-        "mean_percent": 7.87,
-        "median_percent": 6.5,
-        "mean_absolute_percent": 12.14,
-        "rms_percent": 15.5,
-        "within_5_percent": 14,
-        "within_10_percent": 31,
+        "mean_percent": 8.15,
+        "median_percent": 7.6,
+        "mean_absolute_percent": 12.19,
+        "rms_percent": 15.52,
+        "within_5_percent": 12,
+        "within_10_percent": 30,
         "histogram": [
           0,
           0,
@@ -166,9 +166,9 @@
           4,
           6,
           4,
+          8,
+          12,
           10,
-          11,
-          9,
           4,
           6,
           3,
@@ -177,10 +177,10 @@
       },
       "hpr_over_openrocket": {
         "n": 60,
-        "mean_percent": 0.9,
-        "median_percent": 0.53,
-        "mean_absolute_percent": 1.63,
-        "rms_percent": 2.34,
+        "mean_percent": 1.18,
+        "median_percent": 0.95,
+        "mean_absolute_percent": 1.73,
+        "rms_percent": 2.35,
         "within_5_percent": 59,
         "within_10_percent": 60,
         "histogram": [
@@ -190,8 +190,8 @@
           0,
           0,
           0,
-          17,
-          42,
+          13,
+          46,
           1,
           0,
           0,
@@ -206,12 +206,12 @@
       "flights": 41,
       "hpr": {
         "n": 41,
-        "mean_percent": 3.33,
-        "median_percent": 4.72,
-        "mean_absolute_percent": 9.42,
-        "rms_percent": 11.11,
-        "within_5_percent": 10,
-        "within_10_percent": 26,
+        "mean_percent": 3.7,
+        "median_percent": 5.69,
+        "mean_absolute_percent": 9.46,
+        "rms_percent": 11.07,
+        "within_5_percent": 8,
+        "within_10_percent": 25,
         "histogram": [
           0,
           0,
@@ -220,9 +220,9 @@
           4,
           6,
           3,
-          7,
-          10,
-          7,
+          5,
+          11,
+          8,
           0,
           1,
           2,
@@ -256,12 +256,12 @@
       },
       "hpr_in_openrocket_air": {
         "n": 41,
-        "mean_percent": 3.48,
-        "median_percent": 4.86,
-        "mean_absolute_percent": 9.51,
-        "rms_percent": 11.18,
-        "within_5_percent": 10,
-        "within_10_percent": 25,
+        "mean_percent": 3.85,
+        "median_percent": 6.07,
+        "mean_absolute_percent": 9.54,
+        "rms_percent": 11.14,
+        "within_5_percent": 8,
+        "within_10_percent": 24,
         "histogram": [
           0,
           0,
@@ -270,9 +270,9 @@
           4,
           6,
           3,
-          7,
+          5,
+          10,
           9,
-          8,
           0,
           2,
           1,
@@ -281,9 +281,9 @@
       },
       "hpr_over_openrocket": {
         "n": 41,
-        "mean_percent": 0.87,
-        "median_percent": 0.6,
-        "mean_absolute_percent": 1.66,
+        "mean_percent": 1.25,
+        "median_percent": 1.1,
+        "mean_absolute_percent": 1.79,
         "rms_percent": 2.41,
         "within_5_percent": 40,
         "within_10_percent": 41,
@@ -294,8 +294,8 @@
           0,
           0,
           0,
-          12,
-          28,
+          9,
+          31,
           1,
           0,
           0,
@@ -310,12 +310,12 @@
       "flights": 49,
       "hpr": {
         "n": 49,
-        "mean_percent": 6.96,
-        "median_percent": 6.27,
-        "mean_absolute_percent": 11.54,
-        "rms_percent": 14.11,
-        "within_5_percent": 11,
-        "within_10_percent": 27,
+        "mean_percent": 7.3,
+        "median_percent": 7.1,
+        "mean_absolute_percent": 11.6,
+        "rms_percent": 14.12,
+        "within_5_percent": 9,
+        "within_10_percent": 26,
         "histogram": [
           0,
           0,
@@ -324,9 +324,9 @@
           4,
           6,
           4,
-          7,
-          10,
-          7,
+          5,
+          11,
+          8,
           2,
           4,
           4,
@@ -360,12 +360,12 @@
       },
       "hpr_in_openrocket_air": {
         "n": 49,
-        "mean_percent": 7.09,
-        "median_percent": 6.48,
-        "mean_absolute_percent": 11.64,
-        "rms_percent": 14.2,
-        "within_5_percent": 11,
-        "within_10_percent": 27,
+        "mean_percent": 7.43,
+        "median_percent": 7.08,
+        "mean_absolute_percent": 11.69,
+        "rms_percent": 14.22,
+        "within_5_percent": 9,
+        "within_10_percent": 26,
         "histogram": [
           0,
           0,
@@ -374,9 +374,9 @@
           4,
           6,
           4,
-          7,
-          10,
           5,
+          11,
+          6,
           4,
           5,
           3,
@@ -385,9 +385,9 @@
       },
       "hpr_over_openrocket": {
         "n": 49,
-        "mean_percent": 0.79,
-        "median_percent": 0.41,
-        "mean_absolute_percent": 1.63,
+        "mean_percent": 1.13,
+        "median_percent": 0.94,
+        "mean_absolute_percent": 1.74,
         "rms_percent": 2.4,
         "within_5_percent": 48,
         "within_10_percent": 49,
@@ -398,8 +398,8 @@
           0,
           0,
           0,
-          16,
-          32,
+          12,
+          36,
           1,
           0,
           0,
@@ -414,12 +414,12 @@
       "flights": 37,
       "hpr": {
         "n": 37,
-        "mean_percent": 4.22,
+        "mean_percent": 4.56,
         "median_percent": 4.21,
-        "mean_absolute_percent": 9.42,
-        "rms_percent": 11.56,
-        "within_5_percent": 11,
-        "within_10_percent": 23,
+        "mean_absolute_percent": 9.45,
+        "rms_percent": 11.59,
+        "within_5_percent": 10,
+        "within_10_percent": 22,
         "histogram": [
           0,
           0,
@@ -428,9 +428,9 @@
           2,
           6,
           2,
-          9,
+          8,
           6,
-          7,
+          8,
           1,
           1,
           2,
@@ -464,12 +464,12 @@
       },
       "hpr_in_openrocket_air": {
         "n": 37,
-        "mean_percent": 4.36,
+        "mean_percent": 4.7,
         "median_percent": 3.8,
-        "mean_absolute_percent": 9.53,
-        "rms_percent": 11.7,
-        "within_5_percent": 11,
-        "within_10_percent": 23,
+        "mean_absolute_percent": 9.56,
+        "rms_percent": 11.73,
+        "within_5_percent": 10,
+        "within_10_percent": 22,
         "histogram": [
           0,
           0,
@@ -478,9 +478,9 @@
           2,
           6,
           2,
-          9,
+          8,
           6,
-          6,
+          7,
           2,
           1,
           2,
@@ -489,10 +489,10 @@
       },
       "hpr_over_openrocket": {
         "n": 37,
-        "mean_percent": 0.55,
-        "median_percent": 0.52,
-        "mean_absolute_percent": 1.64,
-        "rms_percent": 2.25,
+        "mean_percent": 0.89,
+        "median_percent": 0.94,
+        "mean_absolute_percent": 1.71,
+        "rms_percent": 2.2,
         "within_5_percent": 37,
         "within_10_percent": 37,
         "histogram": [
@@ -502,8 +502,8 @@
           0,
           0,
           0,
-          12,
-          25,
+          10,
+          27,
           0,
           0,
           0,
@@ -518,11 +518,11 @@
       "flights": 23,
       "hpr": {
         "n": 23,
-        "mean_percent": 13.36,
+        "mean_percent": 13.56,
         "median_percent": 12.69,
-        "mean_absolute_percent": 16.26,
+        "mean_absolute_percent": 16.34,
         "rms_percent": 20.1,
-        "within_5_percent": 3,
+        "within_5_percent": 2,
         "within_10_percent": 9,
         "histogram": [
           0,
@@ -532,8 +532,8 @@
           2,
           0,
           2,
-          1,
-          6,
+          0,
+          7,
           3,
           1,
           4,
@@ -568,11 +568,11 @@
       },
       "hpr_in_openrocket_air": {
         "n": 23,
-        "mean_percent": 13.52,
+        "mean_percent": 13.71,
         "median_percent": 13.03,
-        "mean_absolute_percent": 16.34,
+        "mean_absolute_percent": 16.43,
         "rms_percent": 20.16,
-        "within_5_percent": 3,
+        "within_5_percent": 2,
         "within_10_percent": 8,
         "histogram": [
           0,
@@ -582,8 +582,8 @@
           2,
           0,
           2,
-          1,
-          5,
+          0,
+          6,
           3,
           2,
           5,
@@ -593,10 +593,10 @@
       },
       "hpr_over_openrocket": {
         "n": 23,
-        "mean_percent": 1.45,
-        "median_percent": 0.77,
-        "mean_absolute_percent": 1.6,
-        "rms_percent": 2.48,
+        "mean_percent": 1.65,
+        "median_percent": 1.09,
+        "mean_absolute_percent": 1.76,
+        "rms_percent": 2.56,
         "within_5_percent": 22,
         "within_10_percent": 23,
         "histogram": [
@@ -606,8 +606,8 @@
           0,
           0,
           0,
-          5,
-          17,
+          3,
+          19,
           1,
           0,
           0,
@@ -667,14 +667,14 @@
       }
     ],
     "whole_on_split": {
-      "mean_percent": 0.71,
-      "median_percent": 0.5,
-      "mean_absolute_percent": 1.61
+      "mean_percent": 0.98,
+      "median_percent": 0.85,
+      "mean_absolute_percent": 1.68
     },
     "whole_on_both": {
-      "mean_percent": 0.71,
-      "median_percent": 0.5,
-      "mean_absolute_percent": 1.61
+      "mean_percent": 0.98,
+      "median_percent": 0.85,
+      "mean_absolute_percent": 1.68
     },
     "parts": [
       {
@@ -690,23 +690,23 @@
         "mean_percent": 0.1,
         "median_percent": 0.0,
         "mean_absolute_percent": 0.1,
-        "dominates": 0,
+        "dominates": 1,
         "large": 1
       },
       {
         "name": "drag",
-        "mean_percent": 0.58,
-        "median_percent": 0.44,
-        "mean_absolute_percent": 1.57,
-        "dominates": 59,
-        "large": 31
+        "mean_percent": 0.85,
+        "median_percent": 0.76,
+        "mean_absolute_percent": 1.64,
+        "dominates": 61,
+        "large": 39
       },
       {
         "name": "other",
         "mean_percent": 0.03,
         "median_percent": 0.01,
         "mean_absolute_percent": 0.26,
-        "dominates": 9,
+        "dominates": 6,
         "large": 4
       }
     ],
@@ -721,9 +721,9 @@
       "mean_absolute_percent": 0.33
     },
     "drag_first": {
-      "mean_percent": 0.58,
-      "median_percent": 0.44,
-      "mean_absolute_percent": 1.57
+      "mean_percent": 0.85,
+      "median_percent": 0.76,
+      "mean_absolute_percent": 1.64
     },
     "largest_own_history_percent": 0.018,
     "mass_opposed_by_rest": 1
@@ -759,14 +759,14 @@
       "mean_absolute_percent": 1.28
     },
     "rest": {
-      "mean_percent": -0.68,
+      "mean_percent": -0.43,
       "median_percent": 0.9,
-      "mean_absolute_percent": 2.27
+      "mean_absolute_percent": 2.02
     },
     "drag": {
-      "mean_percent": -1.96,
+      "mean_percent": -1.71,
       "median_percent": 0.51,
-      "mean_absolute_percent": 2.65
+      "mean_absolute_percent": 2.4
     },
     "hpr_mean_top_mach": 1.06,
     "hpr_top_mach_over_1_3": 0
@@ -780,44 +780,44 @@
         "name": "subsonic",
         "flights": 68,
         "part": {
-          "mean_percent": 0.15,
-          "median_percent": 0.19,
-          "mean_absolute_percent": 0.87
+          "mean_percent": 0.39,
+          "median_percent": 0.29,
+          "mean_absolute_percent": 0.94
         },
         "part_on_its_flights": {
-          "mean_percent": 0.15,
-          "median_percent": 0.19,
-          "mean_absolute_percent": 0.87
+          "mean_percent": 0.39,
+          "median_percent": 0.29,
+          "mean_absolute_percent": 0.94
         },
         "alone_flights": 68,
         "alone": {
-          "mean_percent": 0.15,
-          "median_percent": 0.19,
-          "mean_absolute_percent": 0.87
+          "mean_percent": 0.38,
+          "median_percent": 0.29,
+          "mean_absolute_percent": 0.94
         },
-        "dominates": 45,
-        "large": 16
+        "dominates": 50,
+        "large": 24
       },
       {
         "name": "transonic",
         "flights": 28,
         "part": {
-          "mean_percent": 0.2,
+          "mean_percent": 0.24,
           "median_percent": 0.0,
-          "mean_absolute_percent": 0.5
+          "mean_absolute_percent": 0.48
         },
         "part_on_its_flights": {
-          "mean_percent": 0.49,
+          "mean_percent": 0.58,
           "median_percent": 0.45,
-          "mean_absolute_percent": 1.21
+          "mean_absolute_percent": 1.16
         },
         "alone_flights": 28,
         "alone": {
-          "mean_percent": 0.2,
+          "mean_percent": 0.23,
           "median_percent": 0.0,
-          "mean_absolute_percent": 0.5
+          "mean_absolute_percent": 0.48
         },
-        "dominates": 16,
+        "dominates": 11,
         "large": 9
       },
       {
@@ -844,14 +844,14 @@
       }
     ],
     "drag": {
-      "mean_percent": 0.58,
-      "median_percent": 0.44,
-      "mean_absolute_percent": 1.57
+      "mean_percent": 0.85,
+      "median_percent": 0.76,
+      "mean_absolute_percent": 1.64
     },
     "drag_first": {
-      "mean_percent": 0.58,
-      "median_percent": 0.44,
-      "mean_absolute_percent": 1.57
+      "mean_percent": 0.85,
+      "median_percent": 0.76,
+      "mean_absolute_percent": 1.64
     },
     "logs": {
       "flights": 60,
@@ -863,31 +863,31 @@
           "nearer": 0,
           "farther": 0,
           "error": {
-            "mean_percent": 7.72,
-            "median_percent": 6.69,
-            "mean_absolute_percent": 12.04
+            "mean_percent": 8.01,
+            "median_percent": 7.6,
+            "mean_absolute_percent": 12.09
           }
         },
         {
           "name": "subsonic",
           "moved": 60,
-          "nearer": 39,
-          "farther": 21,
+          "nearer": 38,
+          "farther": 22,
           "error": {
-            "mean_percent": 7.42,
-            "median_percent": 6.7,
-            "mean_absolute_percent": 11.65
+            "mean_percent": 7.45,
+            "median_percent": 6.77,
+            "mean_absolute_percent": 11.68
           }
         },
         {
           "name": "transonic",
           "moved": 25,
-          "nearer": 14,
-          "farther": 11,
+          "nearer": 16,
+          "farther": 9,
           "error": {
-            "mean_percent": 7.44,
-            "median_percent": 6.78,
-            "mean_absolute_percent": 11.79
+            "mean_percent": 7.68,
+            "median_percent": 7.46,
+            "mean_absolute_percent": 11.81
           }
         },
         {
@@ -896,16 +896,16 @@
           "nearer": 6,
           "farther": 1,
           "error": {
-            "mean_percent": 7.44,
-            "median_percent": 5.99,
-            "mean_absolute_percent": 11.86
+            "mean_percent": 7.72,
+            "median_percent": 6.66,
+            "mean_absolute_percent": 11.91
           }
         },
         {
           "name": "every",
           "moved": 60,
-          "nearer": 33,
-          "farther": 27,
+          "nearer": 38,
+          "farther": 22,
           "error": {
             "mean_percent": 6.85,
             "median_percent": 6.33,
@@ -915,8 +915,8 @@
         {
           "name": "openrocket",
           "moved": 60,
-          "nearer": 36,
-          "farther": 24,
+          "nearer": 40,
+          "farther": 20,
           "error": {
             "mean_percent": 6.72,
             "median_percent": 6.08,
@@ -965,35 +965,35 @@
         "name": "pressure",
         "flights": 68,
         "part": {
-          "mean_percent": -0.63,
+          "mean_percent": -0.64,
           "median_percent": -0.11,
-          "mean_absolute_percent": 0.65
+          "mean_absolute_percent": 0.66
         },
         "alone_flights": 68,
         "alone": {
-          "mean_percent": -0.63,
+          "mean_percent": -0.64,
           "median_percent": -0.11,
-          "mean_absolute_percent": 0.65
+          "mean_absolute_percent": 0.66
         },
-        "dominates": 18,
+        "dominates": 17,
         "large": 12
       },
       {
         "name": "base",
         "flights": 68,
         "part": {
-          "mean_percent": 0.95,
-          "median_percent": 0.55,
-          "mean_absolute_percent": 0.95
+          "mean_percent": 1.2,
+          "median_percent": 0.91,
+          "mean_absolute_percent": 1.2
         },
         "alone_flights": 68,
         "alone": {
-          "mean_percent": 0.93,
-          "median_percent": 0.57,
-          "mean_absolute_percent": 0.93
+          "mean_percent": 1.17,
+          "median_percent": 0.9,
+          "mean_absolute_percent": 1.17
         },
-        "dominates": 50,
-        "large": 22
+        "dominates": 51,
+        "large": 33
       },
       {
         "name": "rest",
@@ -1014,20 +1014,20 @@
       }
     ],
     "band": {
-      "mean_percent": 0.15,
-      "median_percent": 0.19,
-      "mean_absolute_percent": 0.87
+      "mean_percent": 0.39,
+      "median_percent": 0.29,
+      "mean_absolute_percent": 0.94
     },
     "band_alone": {
-      "mean_percent": 0.15,
-      "median_percent": 0.19,
-      "mean_absolute_percent": 0.87
+      "mean_percent": 0.38,
+      "median_percent": 0.29,
+      "mean_absolute_percent": 0.94
     },
     "base_powered_flights": 68,
     "base_powered_alone": {
-      "mean_percent": 0.92,
-      "median_percent": 0.57,
-      "mean_absolute_percent": 0.92
+      "mean_percent": 0.94,
+      "median_percent": 0.6,
+      "mean_absolute_percent": 0.94
     },
     "logs": {
       "flights": 60,
@@ -1039,9 +1039,9 @@
           "nearer": 0,
           "farther": 0,
           "error": {
-            "mean_percent": 7.72,
-            "median_percent": 6.69,
-            "mean_absolute_percent": 12.04
+            "mean_percent": 8.01,
+            "median_percent": 7.6,
+            "mean_absolute_percent": 12.09
           }
         },
         {
@@ -1050,9 +1050,9 @@
           "nearer": 15,
           "farther": 45,
           "error": {
-            "mean_percent": 7.9,
-            "median_percent": 6.82,
-            "mean_absolute_percent": 12.12
+            "mean_percent": 8.19,
+            "median_percent": 7.74,
+            "mean_absolute_percent": 12.18
           }
         },
         {
@@ -1061,9 +1061,9 @@
           "nearer": 23,
           "farther": 37,
           "error": {
-            "mean_percent": 8.34,
-            "median_percent": 7.73,
-            "mean_absolute_percent": 12.16
+            "mean_percent": 8.63,
+            "median_percent": 8.23,
+            "mean_absolute_percent": 12.21
           }
         },
         {
@@ -1072,9 +1072,9 @@
           "nearer": 45,
           "farther": 15,
           "error": {
-            "mean_percent": 6.64,
-            "median_percent": 6.4,
-            "mean_absolute_percent": 11.45
+            "mean_percent": 6.67,
+            "median_percent": 6.63,
+            "mean_absolute_percent": 11.49
           }
         },
         {
@@ -1083,20 +1083,20 @@
           "nearer": 0,
           "farther": 0,
           "error": {
-            "mean_percent": 7.72,
-            "median_percent": 6.69,
-            "mean_absolute_percent": 12.04
+            "mean_percent": 8.01,
+            "median_percent": 7.6,
+            "mean_absolute_percent": 12.09
           }
         },
         {
           "name": "subsonic",
           "moved": 60,
-          "nearer": 39,
-          "farther": 21,
+          "nearer": 38,
+          "farther": 22,
           "error": {
-            "mean_percent": 7.42,
-            "median_percent": 6.7,
-            "mean_absolute_percent": 11.65
+            "mean_percent": 7.45,
+            "median_percent": 6.77,
+            "mean_absolute_percent": 11.68
           }
         }
       ]
@@ -1109,38 +1109,38 @@
         {
           "mach": 0.65,
           "measured_power_off": 0.0127,
-          "hpr_power_off": 0.06297299999999997,
+          "hpr_power_off": 0.03778379999999998,
           "measured_power_on": 0.027,
-          "hpr_power_on": 0.03837417187499998,
+          "hpr_power_on": 0.023024503124999984,
           "hpr_power_on_case": 0.0,
-          "whole_base_under_power": 0.06297299999999997
+          "whole_base_under_power": 0.03778379999999998
         },
         {
           "mach": 0.7,
           "measured_power_off": 0.0105,
-          "hpr_power_off": 0.06613199999999997,
+          "hpr_power_off": 0.03967919999999998,
           "measured_power_on": 0.0244,
-          "hpr_power_on": 0.04029918749999998,
+          "hpr_power_on": 0.024179512499999983,
           "hpr_power_on_case": 0.0,
-          "whole_base_under_power": 0.06613199999999997
+          "whole_base_under_power": 0.03967919999999998
         },
         {
           "mach": 0.75,
           "measured_power_off": 0.0096,
-          "hpr_power_off": 0.06952499999999999,
+          "hpr_power_off": 0.04171499999999998,
           "measured_power_on": 0.0221,
-          "hpr_power_on": 0.04236679687499998,
+          "hpr_power_on": 0.02542007812499998,
           "hpr_power_on_case": 0.0,
-          "whole_base_under_power": 0.06952499999999999
+          "whole_base_under_power": 0.04171499999999998
         },
         {
           "mach": 0.79,
           "measured_power_off": 0.0086,
-          "hpr_power_off": 0.07240787999999998,
+          "hpr_power_off": 0.04344472799999998,
           "measured_power_on": 0.0204,
-          "hpr_power_on": 0.04412355187499998,
+          "hpr_power_on": 0.026474131124999984,
           "hpr_power_on_case": 0.0,
-          "whole_base_under_power": 0.07240787999999998
+          "whole_base_under_power": 0.04344472799999998
         }
       ]
     }

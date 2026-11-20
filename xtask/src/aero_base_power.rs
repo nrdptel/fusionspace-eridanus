@@ -18,8 +18,8 @@
 //!   blast tube carries the nozzle to the base, so what the base holds is the nozzle exit. The
 //!   same rule given the nozzle exit's area leaves the annulus the report measured on: that
 //!   tests the coefficient on the annulus, not the area HPR Sim flies. Beside both, the whole
-//!   base under power, OpenRocket 24.12's rule
-//!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it), which is the power-off
+//!   base under power, the area OpenRocket 24.12 keeps, on HPR Sim's coefficient
+//!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it): HPR Sim's power-off
 //!   value. All are on the model's maximum cross-section, as the report's coefficients are.
 //!   Below Mach 0.8 the base term depends on the body ahead of the base only through the base's
 //!   diameter over the largest (M1.14i3: a boattailed base is `d_B/d` of the flat-base value
@@ -133,8 +133,8 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  base holds of the burning motor, off the base: the annulus the report measured \
                  on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off \
                  the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, \
-                 so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's \
-                 rule, the power-off value. hoerner_power_off: Hoerner's subsonic base drag \
+                 so nothing is left. whole_base_under_power: nothing off, the area OpenRocket \
+                 24.12 keeps, on HPR Sim's coefficient: hpr_power_off. hoerner_power_off: Hoerner's subsonic base drag \
                  (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35; USAF DATCOM 1978, eq. \
                  4.2.3.1-b), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df the body's drag less its \
                  base, HPR Sim's own friction and pressure drag coasting (hpr_forebody_drag), \

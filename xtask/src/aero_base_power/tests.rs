@@ -38,8 +38,8 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
     );
     assert!(exit_m2 < base_m2 && base_m2 < reference_m2 && base_m2 < case_m2);
     // d_B/d, from the diameters as given.
-    let relief = geometry["base_diameter_in"].as_f64().unwrap()
-        / geometry["diameter_in"].as_f64().unwrap();
+    let relief =
+        geometry["base_diameter_in"].as_f64().unwrap() / geometry["diameter_in"].as_f64().unwrap();
     assert!((relief - 0.6).abs() < 1e-12, "{relief}");
     let rows = fixture["rows"].as_array().unwrap();
     assert!(!rows.is_empty());
@@ -60,7 +60,10 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
             relief * rule * (base_m2 - exit_m2) / reference_m2,
         );
         close("hpr_power_on_case", 0.0);
-        close("whole_base_under_power", relief * rule * base_m2 / reference_m2);
+        close(
+            "whole_base_under_power",
+            relief * rule * base_m2 / reference_m2,
+        );
         close("flat_base_rule_power_off", rule * base_m2 / reference_m2);
         // Hoerner 1965, p. 3-20, eq. 35, written out: 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the
         // body's drag less its base.
@@ -108,7 +111,10 @@ fn the_power_off_rule_reads_high_the_flown_power_on_rule_low() {
         let times = n("hpr_power_off") / n("measured_power_off");
         assert!((2.95..5.1).contains(&times), "Mach {mach}: {times}");
         // Between Hoerner's rule and the rule before M1.14i3, each high too.
-        assert!(hoerner > margin && hoerner < hpr && hpr < flat, "Mach {mach}");
+        assert!(
+            hoerner > margin && hoerner < hpr && hpr < flat,
+            "Mach {mach}"
+        );
         assert!(hpr.abs() < flat.abs(), "Mach {mach}: the error grows");
         before += flat.abs() / 4.0;
         after += hpr.abs() / 4.0;

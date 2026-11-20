@@ -55,69 +55,69 @@
         }
       ],
       "log_apogee_m": 458.971,
-      "forward_apogee_m": 462.9051903863798,
-      "forward_error_percent": 0.8571762456407447,
-      "forward_max_mach": 0.2639183474659623,
+      "forward_apogee_m": 464.03171278207265,
+      "forward_error_percent": 1.102621468910376,
+      "forward_max_mach": 0.26466856122133925,
       "same_flight_m": 0.0,
       "burn_time_s": 2.43,
       "liftoff_s": 0.21,
       "log_past_transonic": false,
       "stated_wind_m_s": [
-        0.6658797130678186,
-        1.0902055455847104
+        0.6661103102601118,
+        1.0911182518569336
       ],
-      "stated_apogee_m": 462.869343509533,
+      "stated_apogee_m": 463.9940405949194,
       "whole": {
         "fitted": true,
         "converged": true,
         "drift": false,
-        "rms_m": 2.0588972035290225,
-        "misfit_share": 0.013190928838837322,
+        "rms_m": 2.062102870136893,
+        "misfit_share": 0.01321146688222918,
         "flown": 51,
         "parameters": [
           {
             "name": "drag scale",
-            "value": 1.0162355954560487,
-            "standard_error": 0.10256323196888782,
+            "value": 1.0201082714147593,
+            "standard_error": 0.10285099771570347,
             "interval_90": [
-              0.8695701737405391,
-              1.1464909000565362
+              0.8730313446813034,
+              1.1507290385137028
             ]
           },
           {
             "name": "impulse scale",
-            "value": 0.9961156260968705,
-            "standard_error": 0.020988523835682525,
+            "value": 0.9951979306616511,
+            "standard_error": 0.02094537090040247,
             "interval_90": [
-              0.9652624960584172,
-              1.0282280675654647
+              0.9644082354380594,
+              1.0272443481392668
             ]
           },
           {
             "name": "burn time scale",
-            "value": 0.9864669746814257,
-            "standard_error": 0.045985967340562824,
+            "value": 0.9853852594681405,
+            "standard_error": 0.046013742373906284,
             "interval_90": null
           },
           {
             "name": "wind toward the east (m/s)",
-            "value": 0.8211897985550989,
-            "standard_error": 3.839301552520023,
+            "value": 0.8483140509048354,
+            "standard_error": 3.8377742075760013,
             "interval_90": null
           },
           {
             "name": "wind toward the north (m/s)",
-            "value": 1.3075829971987336,
-            "standard_error": 3.797673763907709,
+            "value": 1.3464184513200481,
+            "standard_error": 3.7943883822423254,
             "interval_90": null
           },
           {
             "name": "structure mass scale",
-            "value": 1.0002754331996646,
-            "standard_error": 0.01059826690237131,
+            "value": 1.0003400209738447,
+            "standard_error": 0.010598618933474788,
             "interval_90": [
-              0.9825763274727045,
-              1.017868556257601
+              0.9826403273549418,
+              1.017933728403413
             ]
           }
         ]
@@ -135,51 +135,51 @@
             "fitted": true,
             "converged": true,
             "drift": false,
-            "rms_m": 3.0378358202442475,
-            "misfit_share": 0.03804212280941827,
+            "rms_m": 3.037341087294015,
+            "misfit_share": 0.038035927381895436,
             "flown": 37,
             "parameters": [
               {
                 "name": "drag scale",
-                "value": 0.9989801888677375,
-                "standard_error": 0.10918509101490544,
+                "value": 0.9991436668743721,
+                "standard_error": 0.10919673166610383,
                 "interval_90": null
               },
               {
                 "name": "impulse scale",
-                "value": 1.0001081134004783,
-                "standard_error": 0.021425842086344765,
+                "value": 0.9997087249917986,
+                "standard_error": 0.021417826999081045,
                 "interval_90": null
               },
               {
                 "name": "burn time scale",
-                "value": 0.9930664859928174,
-                "standard_error": 0.04785282363508614,
+                "value": 0.993091838452645,
+                "standard_error": 0.047858598453763,
                 "interval_90": null
               },
               {
                 "name": "wind toward the east (m/s)",
-                "value": 0.6527422284486342,
-                "standard_error": 3.853915174975198,
+                "value": 0.6596252173861672,
+                "standard_error": 3.8535567004103344,
                 "interval_90": null
               },
               {
                 "name": "wind toward the north (m/s)",
-                "value": 1.0707852272133922,
-                "standard_error": 3.827454039591922,
+                "value": 1.0816048379767287,
+                "standard_error": 3.826655849705662,
                 "interval_90": null
               },
               {
                 "name": "structure mass scale",
-                "value": 0.9999979921398298,
-                "standard_error": 0.010610614435562526,
+                "value": 1.0000404495199888,
+                "standard_error": 0.010610392962761823,
                 "interval_90": null
               }
             ]
           },
-          "apogee_above_pad_m": 464.3472462639672,
-          "apogee_reading_m": 463.64792356742277,
-          "error_percent": 1.0190019777769754
+          "apogee_above_pad_m": 465.0568912191094,
+          "apogee_reading_m": 464.3564958907952,
+          "error_percent": 1.173384787011641
         }
       }
     },
@@ -465,18 +465,18 @@
         }
       ],
       "log_apogee_m": 3151.507,
-      "forward_apogee_m": 2923.3555414853654,
-      "forward_error_percent": -7.239440004881304,
-      "forward_max_mach": 0.732813703648889,
+      "forward_apogee_m": 2950.192561612711,
+      "forward_error_percent": -6.387878509782435,
+      "forward_max_mach": 0.7332497973070888,
       "same_flight_m": 0.0,
       "burn_time_s": 5.68969571230982,
       "liftoff_s": 0.55,
       "log_past_transonic": null,
       "stated_wind_m_s": [
-        13.042902651471163,
-        7.0595894249827165
+        13.047985426367811,
+        7.0701609593047845
       ],
-      "stated_apogee_m": 2862.1324642712934,
+      "stated_apogee_m": 2888.0630644434486,
       "whole": {
         "fitted": false,
         "converged": false,
@@ -505,13 +505,13 @@
           },
           {
             "name": "wind toward the east (m/s)",
-            "value": 13.042902651471163,
+            "value": 13.047985426367811,
             "standard_error": 3.8751841894698664,
             "interval_90": null
           },
           {
             "name": "wind toward the north (m/s)",
-            "value": 7.0595894249827165,
+            "value": 7.0701609593047845,
             "standard_error": 3.8751841894698664,
             "interval_90": null
           },
@@ -768,69 +768,69 @@
         }
       ],
       "log_apogee_m": 3587.7236328125,
-      "forward_apogee_m": 3709.240012233322,
-      "forward_error_percent": 3.3870050164806718,
-      "forward_max_mach": 0.9928882606614836,
+      "forward_apogee_m": 3732.507832821265,
+      "forward_error_percent": 4.03554495347974,
+      "forward_max_mach": 0.9935521807758948,
       "same_flight_m": 0.0,
       "burn_time_s": 4.668,
       "liftoff_s": 0.18,
       "log_past_transonic": true,
       "stated_wind_m_s": [
-        1.7056783738423855,
-        2.8663595900675825
+        1.7110452026496872,
+        2.8662448119597235
       ],
-      "stated_apogee_m": 3715.58914690055,
+      "stated_apogee_m": 3738.971841499366,
       "whole": {
         "fitted": true,
         "converged": true,
         "drift": false,
-        "rms_m": 11.846822812815988,
-        "misfit_share": 0.010098059219924788,
-        "flown": 128,
+        "rms_m": 11.856956997039411,
+        "misfit_share": 0.010273738309450966,
+        "flown": 93,
         "parameters": [
           {
             "name": "drag scale",
-            "value": 1.3272197942652053,
-            "standard_error": 0.059237914200360405,
+            "value": 1.3369611162610453,
+            "standard_error": 0.05920824182911764,
             "interval_90": [
-              1.24250957695869,
-              1.402451945299663
+              1.2522933304454071,
+              1.4121555833840247
             ]
           },
           {
             "name": "impulse scale",
-            "value": 1.1144603862812865,
-            "standard_error": 0.017791597593217905,
+            "value": 1.1125323828455052,
+            "standard_error": 0.017846681005663202,
             "interval_90": [
-              1.0883067378192561,
-              1.1416815305989099
+              1.0862977617671803,
+              1.13983780478417
             ]
           },
           {
             "name": "burn time scale",
-            "value": 0.9385360456862325,
-            "standard_error": 0.040145224645271045,
+            "value": 0.9392134377108655,
+            "standard_error": 0.03987360031596758,
             "interval_90": null
           },
           {
             "name": "wind toward the east (m/s)",
-            "value": 1.629476555099066,
-            "standard_error": 3.854269677437265,
+            "value": 1.4996632734014406,
+            "standard_error": 3.8523107790261655,
             "interval_90": null
           },
           {
             "name": "wind toward the north (m/s)",
-            "value": 3.0057633910489243,
-            "standard_error": 3.753537940299004,
+            "value": 3.3356393027847675,
+            "standard_error": 3.7418644267118504,
             "interval_90": null
           },
           {
             "name": "structure mass scale",
-            "value": 0.9811725635941381,
-            "standard_error": 0.010326317878165516,
+            "value": 0.9812676828077938,
+            "standard_error": 0.010330044792731986,
             "interval_90": [
-              0.9639276127376016,
-              0.9983142512718928
+              0.9640165080039313,
+              0.9984155571637289
             ]
           }
         ]
@@ -855,13 +855,13 @@
         "bella-lui",
         "ndrt-2020"
       ],
-      "prediction_mean_absolute_percent": 2.2996439490464025,
-      "prediction_mean_percent": -1.2806419712694272,
-      "forward_mean_absolute_percent": 5.627317958956944,
-      "forward_mean_percent": 5.627317958956944,
-      "stated_mean_absolute_percent": 3.7091652152495187,
-      "stated_mean_percent": 3.7091652152495187,
-      "difference_points": -3.3276740099105413,
+      "prediction_mean_absolute_percent": 2.3768353536637354,
+      "prediction_mean_percent": -1.2034505666520943,
+      "forward_mean_absolute_percent": 5.75004057059176,
+      "forward_mean_percent": 5.75004057059176,
+      "stated_mean_absolute_percent": 3.8316889787755803,
+      "stated_mean_percent": 3.8316889787755803,
+      "difference_points": -3.3732052169280244,
       "difference_interval": [
         null,
         null
@@ -872,13 +872,13 @@
         "bella-lui",
         "ndrt-2020"
       ],
-      "prediction_mean_absolute_percent": 2.2996439490464025,
-      "prediction_mean_percent": -1.2806419712694272,
-      "forward_mean_absolute_percent": 5.627317958956944,
-      "forward_mean_percent": 5.627317958956944,
-      "stated_mean_absolute_percent": 3.7091652152495187,
-      "stated_mean_percent": 3.7091652152495187,
-      "difference_points": -3.3276740099105413,
+      "prediction_mean_absolute_percent": 2.3768353536637354,
+      "prediction_mean_percent": -1.2034505666520943,
+      "forward_mean_absolute_percent": 5.75004057059176,
+      "forward_mean_percent": 5.75004057059176,
+      "stated_mean_absolute_percent": 3.8316889787755803,
+      "stated_mean_percent": 3.8316889787755803,
+      "difference_points": -3.3732052169280244,
       "difference_interval": [
         null,
         null
@@ -894,7 +894,7 @@
     "top_speed_unread": [
       "juno-iii"
     ],
-    "forward_all_mean_absolute_percent": 6.058556042176514,
-    "forward_all_mean_percent": -0.2238079674144153
+    "forward_all_mean_absolute_percent": 6.064616565772206,
+    "forward_all_mean_percent": 0.025555840495237625
   }
 }

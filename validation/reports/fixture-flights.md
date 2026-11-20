@@ -54,28 +54,28 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +7.72% | +6.69% | 12.04% | 15.40% | 14 | 32 | 0 0 0 1 4 6 4 10 12 10 2 5 4 2 |
+| hpr | +8.01% | +7.60% | 12.09% | 15.42% | 12 | 31 | 0 0 0 1 4 6 4 8 13 11 2 5 4 2 |
 | OpenRocket | +6.72% | +6.08% | 11.26% | 14.25% | 13 | 31 | 0 0 0 1 6 6 3 10 12 8 5 6 1 2 |
-| hpr in OpenRocket's air | +7.87% | +6.50% | 12.14% | 15.50% | 14 | 31 | 0 0 0 1 4 6 4 10 11 9 4 6 3 2 |
-| hpr against OpenRocket | +0.90% | +0.53% | 1.63% | 2.34% | 59 | 60 | 0 0 0 0 0 0 17 42 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +8.15% | +7.60% | 12.19% | 15.52% | 12 | 30 | 0 0 0 1 4 6 4 8 12 10 4 6 3 2 |
+| hpr against OpenRocket | +1.18% | +0.95% | 1.73% | 2.35% | 59 | 60 | 0 0 0 0 0 0 13 46 1 0 0 0 0 0 |
 
 ### without the early deployments (41 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +3.33% | +4.72% | 9.42% | 11.11% | 10 | 26 | 0 0 0 1 4 6 3 7 10 7 0 1 2 0 |
+| hpr | +3.70% | +5.69% | 9.46% | 11.07% | 8 | 25 | 0 0 0 1 4 6 3 5 11 8 0 1 2 0 |
 | OpenRocket | +2.41% | +4.26% | 8.81% | 10.22% | 9 | 25 | 0 0 0 1 6 5 3 6 11 6 1 2 0 0 |
-| hpr in OpenRocket's air | +3.48% | +4.86% | 9.51% | 11.18% | 10 | 25 | 0 0 0 1 4 6 3 7 9 8 0 2 1 0 |
-| hpr against OpenRocket | +0.87% | +0.60% | 1.66% | 2.41% | 40 | 41 | 0 0 0 0 0 0 12 28 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +3.85% | +6.07% | 9.54% | 11.14% | 8 | 24 | 0 0 0 1 4 6 3 5 10 9 0 2 1 0 |
+| hpr against OpenRocket | +1.25% | +1.10% | 1.79% | 2.41% | 40 | 41 | 0 0 0 0 0 0 9 31 1 0 0 0 0 0 |
 
 ### without the flights the catalog proposes below tier A (49 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +6.96% | +6.27% | 11.54% | 14.11% | 11 | 27 | 0 0 0 0 4 6 4 7 10 7 2 4 4 1 |
+| hpr | +7.30% | +7.10% | 11.60% | 14.12% | 9 | 26 | 0 0 0 0 4 6 4 5 11 8 2 4 4 1 |
 | OpenRocket | +6.09% | +5.84% | 10.84% | 13.08% | 10 | 26 | 0 0 0 0 6 6 2 8 10 5 5 5 1 1 |
-| hpr in OpenRocket's air | +7.09% | +6.48% | 11.64% | 14.20% | 11 | 27 | 0 0 0 0 4 6 4 7 10 5 4 5 3 1 |
-| hpr against OpenRocket | +0.79% | +0.41% | 1.63% | 2.40% | 48 | 49 | 0 0 0 0 0 0 16 32 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +7.43% | +7.08% | 11.69% | 14.22% | 9 | 26 | 0 0 0 0 4 6 4 5 11 6 4 5 3 1 |
+| hpr against OpenRocket | +1.13% | +0.94% | 1.74% | 2.40% | 48 | 49 | 0 0 0 0 0 0 12 36 1 0 0 0 0 0 |
 
 ## The halves
 
@@ -85,19 +85,19 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +4.22% | +4.21% | 9.42% | 11.56% | 11 | 23 | 0 0 0 1 2 6 2 9 6 7 1 1 2 0 |
+| hpr | +4.56% | +4.21% | 9.45% | 11.59% | 10 | 22 | 0 0 0 1 2 6 2 8 6 8 1 1 2 0 |
 | OpenRocket | +3.64% | +3.41% | 8.95% | 11.02% | 11 | 23 | 0 0 0 1 4 4 3 8 8 4 2 2 1 0 |
-| hpr in OpenRocket's air | +4.36% | +3.80% | 9.53% | 11.70% | 11 | 23 | 0 0 0 1 2 6 2 9 6 6 2 1 2 0 |
-| hpr against OpenRocket | +0.55% | +0.52% | 1.64% | 2.25% | 37 | 37 | 0 0 0 0 0 0 12 25 0 0 0 0 0 0 |
+| hpr in OpenRocket's air | +4.70% | +3.80% | 9.56% | 11.73% | 10 | 22 | 0 0 0 1 2 6 2 8 6 7 2 1 2 0 |
+| hpr against OpenRocket | +0.89% | +0.94% | 1.71% | 2.20% | 37 | 37 | 0 0 0 0 0 0 10 27 0 0 0 0 0 0 |
 
 ### the held-out half (23 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +13.36% | +12.69% | 16.26% | 20.10% | 3 | 9 | 0 0 0 0 2 0 2 1 6 3 1 4 2 2 |
+| hpr | +13.56% | +12.69% | 16.34% | 20.10% | 2 | 9 | 0 0 0 0 2 0 2 0 7 3 1 4 2 2 |
 | OpenRocket | +11.68% | +11.69% | 14.98% | 18.28% | 2 | 8 | 0 0 0 0 2 2 0 2 4 4 3 4 0 2 |
-| hpr in OpenRocket's air | +13.52% | +13.03% | 16.34% | 20.16% | 3 | 8 | 0 0 0 0 2 0 2 1 5 3 2 5 1 2 |
-| hpr against OpenRocket | +1.45% | +0.77% | 1.60% | 2.48% | 22 | 23 | 0 0 0 0 0 0 5 17 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +13.71% | +13.03% | 16.43% | 20.16% | 2 | 8 | 0 0 0 0 2 0 2 0 6 3 2 5 1 2 |
+| hpr against OpenRocket | +1.65% | +1.09% | 1.76% | 2.56% | 22 | 23 | 0 0 0 0 0 0 3 19 1 0 0 0 0 0 |
 
 ## OpenRocket's inputs along its flights
 
@@ -121,14 +121,14 @@ Of the 68 flights both simulators fly, 68 are split. These include the flights l
 | part | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|
 | thrust | +0.00% | +0.00% | 0.00% | 0 | 0 |
-| mass | +0.10% | +0.00% | 0.10% | 0 | 1 |
-| drag | +0.58% | +0.44% | 1.57% | 59 | 31 |
-| other | +0.03% | +0.01% | 0.26% | 9 | 4 |
+| mass | +0.10% | +0.00% | 0.10% | 1 | 1 |
+| drag | +0.85% | +0.76% | 1.64% | 61 | 39 |
+| other | +0.03% | +0.01% | 0.26% | 6 | 4 |
 | other: the air | -0.15% | -0.17% | 0.25% |  |  |
 | other: the rest | +0.18% | +0.19% | 0.33% |  |  |
-| the whole, on the flights split | +0.71% | +0.50% | 1.61% |  |  |
-| the whole, on every flight both fly | +0.71% | +0.50% | 1.61% |  |  |
-| drag, swapped first | +0.58% | +0.44% | 1.57% |  |  |
+| the whole, on the flights split | +0.98% | +0.85% | 1.68% |  |  |
+| the whole, on every flight both fly | +0.98% | +0.85% | 1.68% |  |  |
+| drag, swapped first | +0.85% | +0.76% | 1.64% |  |  |
 
 The parts depend on the order. The last row is the drag part with the drag swapped first, on HPR Sim's own thrust and mass, beside the drag row's, which comes after thrust and mass. The drag swap is a table in Mach number, power on and power off, read from OpenRocket's own flight, so it leaves out how OpenRocket's drag depends on the Reynolds number and the angle of attack away from that flight's path. The mass swap leaves HPR Sim's inertia and its center of pressure in place, and no swap replaces its normal force, its center of pressure or its damping of a turn: those are in the rest. So where the two simulators put the center of mass apart, HPR Sim flies OpenRocket's center of mass against its own center of pressure from the mass swap on, which moves its stability margin. What that does to the apogee is in the mass row, and no later swap undoes it: the last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the rest can take back what the mass row holds. Of the 1 flight where the mass part is over 1%, the rest is over 1% with the other sign on 1, which fits that reading and doesn't prove it. The air's line is taken with the drag table already in place, so it holds the air's density and speed of sound and not what the air does to friction. Each flight split also passed M2.3c11's test: flown on its own thrust and mass sampled at OpenRocket's times, it came back to its own apogee within 0.05%; the largest miss was 0.018%.
 
@@ -149,8 +149,8 @@ The line's flights are those whose own HPR Sim flight passes Mach 1 with a tange
 | over the 5 flights swapped | mean | median | mean absolute |
 |---|---:|---:|---:|
 | the nose's pressure drag above Mach 1 | -1.28% | -1.33% | 1.28% |
-| the rest of the drag | -0.68% | +0.90% | 2.27% |
-| the drag part | -1.96% | +0.51% | 2.65% |
+| the rest of the drag | -0.43% | +0.90% | 2.02% |
+| the drag part | -1.71% | +0.51% | 2.40% |
 
 Each is per cent of OpenRocket's apogee. The top Mach numbers of these flights, by HPR Sim's own flights, average 1.06, and 0 of the 5 pass Mach 1.3, from which the public probe shows OpenRocket giving the nose almost no pressure drag. The line is measured that far past Mach 1, and says nothing of a faster flight.
 
@@ -172,10 +172,10 @@ Of the 68 flights split, 68 are split by band; on 0 HPR Sim failed a flight with
 
 | band | flights with a part in it | mean | median | mean absolute | mean absolute over those flights | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| below Mach 0.8 | 68 | +0.15% | +0.19% | 0.87% | 0.87% | 45 | 16 |
-| Mach 0.8 to 1.2 | 28 | +0.20% | +0.00% | 0.50% | 1.21% | 16 | 9 |
+| below Mach 0.8 | 68 | +0.39% | +0.29% | 0.94% | 0.94% | 50 | 24 |
+| Mach 0.8 to 1.2 | 28 | +0.24% | +0.00% | 0.48% | 1.16% | 11 | 9 |
 | above Mach 1.2 | 7 | +0.23% | +0.00% | 0.23% | 2.21% | 7 | 7 |
-| the drag part | 68 | +0.58% | +0.44% | 1.57% |  |  |  |
+| the drag part | 68 | +0.85% | +0.76% | 1.64% |  |  |  |
 
 Each percentage is a share of OpenRocket's apogee, over the 68 flights split by band, but for the column over the flights with a part in the band. A band dominates a flight when its part's absolute value is the largest of the three, the slower band if two tie. The last column counts the flights where that absolute value is over 1%.
 
@@ -183,21 +183,21 @@ A band's part depends on the speed the slower bands' swaps leave the flight with
 
 | band, swapped alone | flights it changes | mean | median | mean absolute |
 |---|---:|---:|---:|---:|
-| below Mach 0.8 | 68 | +0.15% | +0.19% | 0.87% |
-| Mach 0.8 to 1.2 | 28 | +0.20% | +0.00% | 0.50% |
+| below Mach 0.8 | 68 | +0.38% | +0.29% | 0.94% |
+| Mach 0.8 to 1.2 | 28 | +0.23% | +0.00% | 0.48% |
 | above Mach 1.2 | 7 | +0.24% | +0.00% | 0.24% |
-| every band: the drag part, swapped first |  | +0.58% | +0.44% | 1.57% |
+| every band: the drag part, swapped first |  | +0.85% | +0.76% | 1.64% |
 
 The flights with a band swapped alone are also set beside the logs. Of the flights compared with a log above, 60 are split by band. Each row is the apogee less the logged one, over the logged one, on those flights: HPR Sim's own flight; HPR Sim on OpenRocket's drag in one band alone; HPR Sim on OpenRocket's whole drag; and OpenRocket's own flight. A row moves a flight when its apogee is not that of HPR Sim's own flight, and the last two columns count the moved flights that come nearer their log than HPR Sim's own flight, and the ones that go farther.
 
 | HPR Sim's drag | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
 |---|---:|---:|---:|---:|---:|---:|
-| its own |  | +7.72% | +6.69% | 12.04% |  |  |
-| OpenRocket's below Mach 0.8, its own above | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
-| OpenRocket's from Mach 0.8 to 1.2, its own elsewhere | 25 | +7.44% | +6.78% | 11.79% | 14 | 11 |
-| OpenRocket's above Mach 1.2, its own below | 7 | +7.44% | +5.99% | 11.86% | 6 | 1 |
-| OpenRocket's at every Mach number | 60 | +6.85% | +6.33% | 11.27% | 33 | 27 |
-| OpenRocket's own flight, for comparison | 60 | +6.72% | +6.08% | 11.26% | 36 | 24 |
+| its own |  | +8.01% | +7.60% | 12.09% |  |  |
+| OpenRocket's below Mach 0.8, its own above | 60 | +7.45% | +6.77% | 11.68% | 38 | 22 |
+| OpenRocket's from Mach 0.8 to 1.2, its own elsewhere | 25 | +7.68% | +7.46% | 11.81% | 16 | 9 |
+| OpenRocket's above Mach 1.2, its own below | 7 | +7.72% | +6.66% | 11.91% | 6 | 1 |
+| OpenRocket's at every Mach number | 60 | +6.85% | +6.33% | 11.27% | 38 | 22 |
+| OpenRocket's own flight, for comparison | 60 | +6.72% | +6.08% | 11.26% | 40 | 20 |
 
 A row nearer the logs doesn't show that OpenRocket's drag is the truer one in that band. Both simulators climb above the logs on average, so more drag from any cause moves the mean toward them, and a wrong mass or thrust would read the same way. The rows aren't a model HPR Sim could fly either: the coefficient is read along OpenRocket's own flight of the same design. They say which band's difference the comparison with the logs feels.
 
@@ -210,10 +210,10 @@ Of the 68 flights split, 68 are split by term.
 | term | flights with a part in it | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|---:|
 | friction | 68 | -0.17% | -0.16% | 0.17% | 0 | 0 |
-| pressure, launch lugs and rail buttons among it | 68 | -0.63% | -0.11% | 0.65% | 18 | 12 |
-| base | 68 | +0.95% | +0.55% | 0.95% | 50 | 22 |
+| pressure, launch lugs and rail buttons among it | 68 | -0.64% | -0.11% | 0.66% | 17 | 12 |
+| base | 68 | +1.20% | +0.91% | 1.20% | 51 | 33 |
 | the rest: stated drag coefficients | 0 | +0.00% | +0.00% | 0.00% | 0 | 0 |
-| the part below Mach 0.8 | 68 | +0.15% | +0.19% | 0.87% |  |  |
+| the part below Mach 0.8 | 68 | +0.39% | +0.29% | 0.94% |  |  |
 
 Each percentage is a share of OpenRocket's apogee, over the 68 flights split by term. A term dominates a flight when its part's absolute value is the largest of the four, the earlier term if two tie. A positive part means HPR Sim climbs higher on its own term than on OpenRocket's: its term is the lower of the two.
 
@@ -224,35 +224,35 @@ Each term is also swapped alone, first: on HPR Sim's own thrust and mass, with i
 | term, swapped alone | flights it changes | mean | median | mean absolute |
 |---|---:|---:|---:|---:|
 | friction | 68 | -0.17% | -0.16% | 0.17% |
-| pressure, launch lugs and rail buttons among it | 68 | -0.63% | -0.11% | 0.65% |
-| base | 68 | +0.93% | +0.57% | 0.93% |
+| pressure, launch lugs and rail buttons among it | 68 | -0.64% | -0.11% | 0.66% |
+| base | 68 | +1.17% | +0.90% | 1.17% |
 | the rest: stated drag coefficients | 0 | +0.00% | +0.00% | 0.00% |
-| base, only while a motor burns | 68 | +0.92% | +0.57% | 0.92% |
-| every term: the band below Mach 0.8, swapped alone |  | +0.15% | +0.19% | 0.87% |
+| base, only while a motor burns | 68 | +0.94% | +0.60% | 0.94% |
+| every term: the band below Mach 0.8, swapped alone |  | +0.38% | +0.29% | 0.94% |
 
 The flights with a term swapped alone are also set beside the logs: of the flights compared with a log, 60 are split by term. Each row is the apogee less the logged one, over the logged one, and counts the flights it moves nearer their log than HPR Sim's own flight and farther from it, as the bands' rows do.
 
 | HPR Sim's drag | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
 |---|---:|---:|---:|---:|---:|---:|
-| its own |  | +7.72% | +6.69% | 12.04% |  |  |
-| OpenRocket's friction below Mach 0.8 | 60 | +7.90% | +6.82% | 12.12% | 15 | 45 |
-| OpenRocket's pressure below Mach 0.8 | 60 | +8.34% | +7.73% | 12.16% | 23 | 37 |
-| OpenRocket's base below Mach 0.8 | 60 | +6.64% | +6.40% | 11.45% | 45 | 15 |
-| OpenRocket's rest below Mach 0.8 | 0 | +7.72% | +6.69% | 12.04% | 0 | 0 |
-| OpenRocket's below Mach 0.8, its own above | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
+| its own |  | +8.01% | +7.60% | 12.09% |  |  |
+| OpenRocket's friction below Mach 0.8 | 60 | +8.19% | +7.74% | 12.18% | 15 | 45 |
+| OpenRocket's pressure below Mach 0.8 | 60 | +8.63% | +8.23% | 12.21% | 23 | 37 |
+| OpenRocket's base below Mach 0.8 | 60 | +6.67% | +6.63% | 11.49% | 45 | 15 |
+| OpenRocket's rest below Mach 0.8 | 0 | +8.01% | +7.60% | 12.09% | 0 | 0 |
+| OpenRocket's below Mach 0.8, its own above | 60 | +7.45% | +6.77% | 11.68% | 38 | 22 |
 
 As with the bands, a row nearer the logs doesn't show that OpenRocket's term is the truer one: both simulators climb above the logs on average, so more drag from any cause moves the mean toward them. The terms say where to look for a measurement; a measured reference says which code is nearer it.
 
-The measured reference of the base term below Mach 0.8 is the base drag of the Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM SL55F15, Fig. 20, its faired curves' error believed to be less than ±0.005), read off the figure to ±0.001 more (validation/fixtures/aero/base-drag-under-power.json). Each coefficient is on the model's largest cross-section. HPR Sim's rule as it flies takes the motor case's area off the base, down to zero; the model's nominal 5 in case is wider than its 4.8 in base. Given the nozzle exit's area instead, which is what the base holds of the motor, the same rule leaves the annulus the report measured on. The whole base under power, OpenRocket 24.12's rule, is the power-off value.
+The measured reference of the base term below Mach 0.8 is the base drag of the Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM SL55F15, Fig. 20, its faired curves' error believed to be less than ±0.005), read off the figure to ±0.001 more (validation/fixtures/aero/base-drag-under-power.json). Each coefficient is on the model's largest cross-section. HPR Sim's rule as it flies takes the motor case's area off the base, down to zero; the model's nominal 5 in case is wider than its 4.8 in base. Given the nozzle exit's area instead, which is what the base holds of the motor, the same rule leaves the annulus the report measured on. The whole base under power, the area OpenRocket 24.12 keeps, on HPR Sim's coefficient, is HPR Sim's power-off value.
 
 | Mach | measured power off | HPR Sim power off | difference | measured under power | HPR Sim under power, case off | difference | HPR Sim under power, nozzle exit off | difference | the whole base under power | difference |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 0.65 | 0.0127 | 0.0630 | +0.0503 | 0.0270 | 0.0000 | -0.0270 | 0.0384 | +0.0114 | 0.0630 | +0.0360 |
-| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0000 | -0.0244 | 0.0403 | +0.0159 | 0.0661 | +0.0417 |
-| 0.75 | 0.0096 | 0.0695 | +0.0599 | 0.0221 | 0.0000 | -0.0221 | 0.0424 | +0.0203 | 0.0695 | +0.0474 |
-| 0.79 | 0.0086 | 0.0724 | +0.0638 | 0.0204 | 0.0000 | -0.0204 | 0.0441 | +0.0237 | 0.0724 | +0.0520 |
+| 0.65 | 0.0127 | 0.0378 | +0.0251 | 0.0270 | 0.0000 | -0.0270 | 0.0230 | -0.0040 | 0.0378 | +0.0108 |
+| 0.70 | 0.0105 | 0.0397 | +0.0292 | 0.0244 | 0.0000 | -0.0244 | 0.0242 | -0.0002 | 0.0397 | +0.0153 |
+| 0.75 | 0.0096 | 0.0417 | +0.0321 | 0.0221 | 0.0000 | -0.0221 | 0.0254 | +0.0033 | 0.0417 | +0.0196 |
+| 0.79 | 0.0086 | 0.0434 | +0.0348 | 0.0204 | 0.0000 | -0.0204 | 0.0265 | +0.0061 | 0.0434 | +0.0230 |
 
-Power off, HPR Sim's value is 5.0 to 8.4 times the measured. The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule given the nozzle exit gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
+Power off, HPR Sim's value is 3.0 to 5.1 times the measured. The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule given the nozzle exit gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
 
 ## Sources
 

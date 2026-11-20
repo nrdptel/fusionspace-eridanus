@@ -44,9 +44,13 @@
 //!   correlation (Fig. 5-139, printed p. 5-208; NACA TN 3819) and scales its own base drag by the
 //!   ratio of the two coefficients, `k = C_p,bt/C_p,cyl`. Below Mach 2.5, where the correlation
 //!   over-predicts the relief of the measured bases, `k` is held at its Mach 2.5 value, which
-//!   matches Cortright and Schroeder's at Mach 1.91 and de Moraes and Nowitzky's at 1.59; below
-//!   Mach 1 it returns to 1 by Mach 0.8, where the base drag is Niskanen's again. A separated
-//!   boattail gives no relief (weight as above).
+//!   matches Cortright and Schroeder's at Mach 1.91 and de Moraes and Nowitzky's at 1.59. Up to
+//!   Mach 0.8, `k = d_B/d₁ = √a_b` (M1.14i3, ADR-362): the base drag of a conical afterbody
+//!   scales with `(r_b/R)³` on the largest cross-section (Stoney, NASA TR R-100, 1961, p. 11,
+//!   from wind-tunnel data; Hoerner's eq. 35 has the same dependence), where Niskanen's rule on
+//!   the base's area scales with its square, so the rule keeps `d_B/d₁` of its value. From Mach
+//!   0.8 to 1, `k` runs on a straight line between the two. A separated boattail gives no relief
+//!   (weight as above).
 //!
 //! Narrowing parts of one smooth surface drag as one cone ([`crate::drag::BoattailTerm`]), and a
 //! lip behind a boattail sits in its wake ([`crate::drag::WakeTerm`]); every part between a
@@ -355,13 +359,16 @@ fn love_base_pressure(mach: f64) -> f64 {
 ///   `k = (1 − p_bt/p)/(1 − p_cyl/p)`, not below 0 (no measured base pressure is above the free
 ///   stream's).
 /// - From Mach 1 to 2.5, `k` at Mach 2.5.
-/// - Up to Mach 0.8, `k = d_B/d₁ = √a_b`: Hoerner's subsonic base drag scales with the base's
-///   diameter cubed on the largest cross-section (*Fluid-Dynamic Drag*, 1965, p. 3-20, eq. 35;
-///   USAF DATCOM 1978, eq. 4.2.3.1-b), where the flat-base rule on the base's area scales with
-///   its square. Behind the same forebody that is `d_B/d₁` of the flat-base value: 1 at a flat
-///   base. On the Hermes A-3A's measured flight below Mach 0.8 it reads high by 0.025 to 0.035
-///   on the largest cross-section, where 1 read high by 0.050 to 0.064 (M1.14i3,
-///   `validation/fixtures/aero/base-drag-under-power.json`).
+/// - Up to Mach 0.8, `k = d_B/d₁ = √a_b` (M1.14i3, ADR-362): Stoney's empirical base drag of a
+///   conical afterbody, from wind-tunnel data, is `C_D,b = C_D,b,cylinder (r_b/R)³` on the
+///   largest cross-section (NASA TR R-100, 1961, printed p. 11; Missile DATCOM's manual names
+///   the method for a boattail's base drag below Mach 1.2), where the flat-base rule on the
+///   base's area scales with `(r_b/R)²`. Hoerner's subsonic base drag has the same `(d_B/d)³`
+///   (*Fluid-Dynamic Drag*, 1965, p. 3-20, eq. 35). So the base keeps `d_B/d₁` of the flat-base
+///   value: 1 at a flat base. Stoney warns that the rule does not allow for the negative base
+///   drags seen at subsonic speeds. On the Hermes A-3A's measured flight below Mach 0.8 (NACA RM
+///   SL55F15, Fig. 20) it reads high by 0.025 to 0.035 on the largest cross-section, power off,
+///   where 1 read high by 0.050 to 0.064 (`validation/fixtures/aero/base-drag-under-power.json`).
 /// - From Mach 0.8 to 1, a straight line from `√a_b` to the value at Mach 1.
 ///
 /// # Errors
@@ -795,9 +802,9 @@ mod tests {
         );
     }
 
-    /// The base pressure ratio: `√a_b` up to Mach 0.8 (Hoerner's eq. 35), held below 2.5, Fig. 5-141's line in pressure
-    /// from 2.5 (at Mach 3, `p_cyl/p_bt = 0.442 + 0.558 a_b` exactly), 1 for a base as large as the
-    /// cylinder, and none below 0.
+    /// The base pressure ratio: `√a_b` up to Mach 0.8 (NASA TR R-100), held below 2.5, Fig.
+    /// 5-141's line in pressure from 2.5 (at Mach 3, `p_cyl/p_bt = 0.442 + 0.558 a_b` exactly), 1
+    /// for a base as large as the cylinder, and none below 0.
     #[test]
     fn base_pressure_ratio_follows_fig_5_141() {
         let k = |m: f64, a: f64| boattail_base_pressure_ratio(m, a).unwrap();

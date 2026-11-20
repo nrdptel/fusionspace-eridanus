@@ -555,7 +555,8 @@ pub(crate) struct ReferenceRow {
     pub hpr_power_on: f64,
     /// HPR Sim's rule as it flies, the motor case's area off the base, down to zero.
     pub hpr_power_on_case: f64,
-    /// The whole base under power, OpenRocket 24.12's rule: the power-off value.
+    /// The whole base under power, the area OpenRocket 24.12 keeps, on HPR Sim's coefficient:
+    /// HPR Sim's power-off value.
     pub whole_base_under_power: f64,
 }
 
@@ -988,7 +989,8 @@ impl DragTerms {
              down to zero; the model's nominal 5 in case is wider than its 4.8 in base. Given \
              the nozzle exit's area instead, which is what the base holds of the motor, the \
              same rule leaves the annulus the report measured on. The whole base under power, \
-             OpenRocket 24.12's rule, is the power-off value.\n",
+             the area OpenRocket 24.12 keeps, on HPR Sim's coefficient, is HPR Sim's power-off \
+             value.\n",
             reference.stated_error,
             reference.reading_uncertainty,
             crate::aero_base_power::FIXTURE

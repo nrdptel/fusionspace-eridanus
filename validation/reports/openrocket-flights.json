@@ -8792,8 +8792,8 @@
       "aborted": false,
       "apogee_position_m": {
         "hpr": {
-          "east": -0.24232998670820483,
-          "north": -7.616507123817723e-6
+          "east": -0.24442963995053718,
+          "north": -7.668064520828044e-6
         },
         "openrocket": {
           "east": -0.24884555707830722,
@@ -8833,34 +8833,34 @@
       "max_mach_openrocket": 0.5949677681526869,
       "metrics": {
         "apogee_m": {
-          "difference": 2.1803773743346255,
-          "hpr": 535.4982672589332,
+          "difference": 4.859653649524034,
+          "hpr": 538.1775435341226,
           "openrocket": 533.3178898845986,
           "outcome": {
             "definition": {
               "kind": "peak_height",
               "point": "unstated"
             },
-            "measured": 535.4982672589332,
+            "measured": 538.1775435341226,
             "outcome": "scored",
             "reference": 533.3178898845986
           },
-          "relative_percent": 0.4088325960350635
+          "relative_percent": 0.9112114447493193
         },
         "max_speed_m_s": {
-          "difference": 1.193055519564382,
-          "hpr": 203.43203835153233,
+          "difference": 1.5611321338586492,
+          "hpr": 203.8001149658266,
           "openrocket": 202.23898283196795,
           "outcome": {
             "definition": {
               "kind": "peak_speed",
               "point": "unstated"
             },
-            "measured": 203.43203835153233,
+            "measured": 203.8001149658266,
             "outcome": "scored",
             "reference": 202.23898283196795
           },
-          "relative_percent": 0.589923615545299
+          "relative_percent": 0.7719244390957651
         },
         "rod_clearance_margin_cal": {
           "difference": 0.0010827256885836967,
