@@ -10,9 +10,9 @@ library. It's open source and works offline, and I built it to fit inside other 
 checked against independent simulators and real flights, and the results are published, misses
 included.
 
-**Status: RELEASED.** Version 0.1.0, the first release, came out on October 8, 2026, and I'm
-working toward 0.2 here. The documentation is at <https://hpr.fusionspace.co/>: a searchable
-guide, with the API reference (rustdoc) beside it.
+**Status: RELEASED.** Version 0.1.0, the first release, came out on October 8, 2026, but HPR Sim
+isn't ready to rely on yet. I'm working toward 0.2 here. The documentation is at
+<https://hpr.fusionspace.co/>: a searchable guide, with the API reference (rustdoc) beside it.
 
 ## What works today
 
@@ -31,7 +31,7 @@ model cites its source and has tests.
   1,004 solid motors are bundled, the 924 with a curve file fly offline, and a newer one is
   fetched from there once.
 - Online data is optional: weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's
-  GFS and RAP), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
+  GFS and RAP forecast models), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
   [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html). The elevation is
   Open-Meteo's, or from a GeoTIFF terrain file of your own. Stock and prices come from
   [motor.fusionspace.co](https://motor.fusionspace.co), matched to ThrustCurve.org's thrust
@@ -51,13 +51,13 @@ model cites its source and has tests.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
 go/no-go verdict. Against 60 logged flights of fliers' own designs, the simulated apogee missed by
-12.04% on average (mean absolute), outside the 5% target. On average it read high, by 7.72%. It
+12.04% on average without signs (the mean absolute miss), outside the 5% target. On average it read high, by 7.72%. It
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
 safety officer (RSO) are authoritative.
 
-The 60 flights' weather is ERA5, generated using Copernicus Climate Change Service information
+The 60 flights' weather is ERA5, a reanalysis of past weather, generated using Copernicus Climate Change Service information
 2026, and contains modified Copernicus Climate Change Service information 2026; neither the
 European Commission nor ECMWF is responsible for any use made of it.
 
@@ -77,37 +77,6 @@ European Commission nor ECMWF is responsible for any use made of it.
   [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you're most likely to meet,
   and [the roadmap](docs/ROADMAP.md) the order of the work.
 
-## Accuracy at a glance
-
-Here's what HPR Sim has been compared with, and how it came out. A "code-to-code" line says how
-closely HPR Sim agrees with another simulator, not which of the two is right. Only the real
-flights are measurements, and on those HPR Sim misses its target. Each number behind this table is
-also a check. CI fails when one moves, better or worse, until the change is accepted with a
-written reason. CI flies the RocketPy comparisons again on every change. The OpenRocket and
-real-flight ones need files CI doesn't have, so it holds their committed numbers
-([the census](docs/accuracy.md#the-census)).
-
-<!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
-
-| compared with | kind | held to | flights (speed) | result |
-|---|---|---|---|---|
-| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, 0.1% to 3% | 5 descents | 30 of 30 gated metrics pass |
-| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, 0.05% to 3% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
-| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
-| [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
-| [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
-
-<!-- census: end -->
-
-The census doesn't count 60 more real flights, from a private collection. On those, HPR Sim's
-apogees are +7.72% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
-([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
-
-"Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which
-correct the point it takes the burn's turning moments about
-([why](docs/accuracy.md#whole-flights-against-rocketpy)).
-
 ## Install and first flight
 
 Release 0.1.0 is out, four ways:
@@ -116,7 +85,9 @@ Release 0.1.0 is out, four ways:
   [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), or run
   `cargo install fusionspace-hpr-cli --locked`. Either one gives you the `hpr` command.
 - **The command line from a package manager:** `brew install nrdptel/tap/fusionspace-hpr` with
-  Homebrew, or Scoop on Windows
+  Homebrew, or on Windows with Scoop,
+  `scoop bucket add fusionspace https://github.com/nrdptel/scoop-bucket` once, then
+  `scoop install fusionspace/fusionspace-hpr`
   ([Install a release](https://hpr.fusionspace.co/getting-started.html#install-a-release)).
 - **Python:** `pip install fusionspace-hpr`, then `from fusionspace import hpr`.
 - **A Rust program:** `cargo add fusionspace-hpr`, then `use hpr::…`.
@@ -196,12 +167,48 @@ More: https://hpr.fusionspace.co/accuracy.html
 <!-- cli: end -->
 
 The `help:`, `note:` and `warning:` lines go to standard error and the flight alone to standard
-output. So `> flight.txt` saves the flight and leaves them on the terminal. Then fly your own:
+output. So `> flight.txt` saves the flight and leaves them on the terminal. The static margin is
+how far the center of pressure lies behind the center of gravity, in
+[calibers](https://hpr.fusionspace.co/glossary.html#caliber), or body diameters. Then fly your own:
 `hpr sim my-rocket.ork`. A motor HPR Sim doesn't carry is fetched from ThrustCurve.org once, then
 flies offline. Three guides go further:
 [Fly your .ork](https://hpr.fusionspace.co/fly-your-ork.html),
 [Pick a motor](https://hpr.fusionspace.co/pick-a-motor.html) and
 [Check stability for a certification flight](https://hpr.fusionspace.co/stability-for-certification.html).
+
+## Accuracy at a glance
+
+Here's what HPR Sim has been compared with, and how it came out. A "code-to-code" line says how
+closely HPR Sim agrees with another simulator, not which of the two is right. Only the real
+flights are measurements, and on those HPR Sim misses its target.
+
+The table sums up the census: the numbers the validation reports hold HPR Sim to, counted once
+each ([the census](docs/accuracy.md#the-census)). Each is also a check. CI (continuous
+integration), the checks that run on every change, fails when one moves, better or worse, until the
+change is accepted with a written reason. A gate fails the run when a number falls outside it, and
+a target is reported but never fails it. CI flies the RocketPy comparisons again on every change.
+The OpenRocket and real-flight ones need files CI doesn't have, so it holds their committed numbers.
+
+<!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
+
+| compared with | kind | held to | flights (speed) | result |
+|---|---|---|---|---|
+| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, 0.1% to 3% | 5 descents | 30 of 30 gated metrics pass |
+| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, 0.05% to 3% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
+| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
+| [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
+| [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
+| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
+
+<!-- census: end -->
+
+The census doesn't count 60 more real flights, from a private collection. On those, HPR Sim's
+apogees are +7.72% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
+([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
+
+"Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which
+correct the point it takes the burn's turning moments about
+([why](docs/accuracy.md#whole-flights-against-rocketpy)).
 
 ## Python
 
@@ -285,8 +292,9 @@ done.
 
 HPR Sim is part of FusionSpace, my family of rocketry tools. It follows FusionSpace's
 [product system](https://github.com/nrdptel/fusionspace-design/blob/main/product/README.md): the
-rules for how its tools look, word things and show how far to trust a result. The system is pinned
-at revision E, its November 10, 2026 commit `dd7552f`. It changes how HPR Sim presents numbers, not
+rules for how its tools look, word things and show how far to trust a result. The product system
+is versioned apart from the brand system, which is at Rev C. HPR Sim pins the product system at
+revision E, its November 10, 2026 commit `dd7552f`. It changes how HPR Sim presents numbers, not
 how it computes them. [The decision record](docs/decisions/0164-the-fusionspace-product-system.md)
 says what's adopted. The product system milestone ([M0.6](docs/decisions-and-roadmap.md#m0-6))
 brought the site, the command line, the plot and the exports in line with it.

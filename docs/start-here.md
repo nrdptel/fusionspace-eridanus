@@ -4,8 +4,8 @@ What FusionSpace HPR and its flight simulator, FusionSpace HPR · Sim, do today,
 this site.
 
 **FusionSpace HPR is a suite of open-source tools I'm building for hobby and high-power rockets.
-Its first product, FusionSpace HPR · Sim (HPR Sim for short), is a flight simulator, and it isn't
-ready to rely on yet.** A flight analyzer, a competition kit and an app are planned
+Its first product, FusionSpace HPR · Sim (HPR Sim for short), is a flight simulator. The first
+release is out, but HPR Sim isn't ready to rely on yet.** A flight analyzer, a competition kit and an app are planned
 ([Decisions and the roadmap](decisions-and-roadmap.md)). This site explains what the simulator
 models, where each model comes from, and how well each one has been checked. I wrote it for a
 rocketeer who knows some physics and some code, but not this project.
@@ -200,12 +200,12 @@ payload's drop are [below](#staging-two-stage-rockets-clusters-and-air-starts).
 
 HPR Sim opens an OpenRocket `.ork` file, zipped, gzipped or plain XML, and reads the whole design.
 That's the stages, the parts on and inside them, the motor configurations, when parachutes open,
-and the simulations OpenRocket stored. The airframe's shape is cross-checked against a second
-reader and against OpenRocket, and the parts' positions against OpenRocket alone
-([`.ork` design files](format/ork.md)). Its mass and center of gravity are checked against
-OpenRocket 24.12 ([Mass properties](physics/mass.md#checked-against-openrocket)). Pods, fins on a
-nose cone, and parallel stages on a rocket of one stage on the axis are read, weighed and flown
-([Pods](physics/aero.md#pods)). Three results on OpenRocket's examples with them stand apart. A pod
+and the simulations OpenRocket stored. The airframe's shape is cross-checked against
+OpenRocket and against RocketSerializer, a second program that reads `.ork` files. The parts'
+positions are checked against OpenRocket alone ([`.ork` design files](format/ork.md)). Its mass and center of gravity are checked against
+OpenRocket 24.12 ([Mass properties](physics/mass.md#checked-against-openrocket)). Pods and fins on a
+nose cone are read, weighed and flown ([Pods](physics/aero.md#pods)). So are parallel stages on a
+rocket of one stage on the axis ([Parallel stages](physics/design.md#parallel-stages)). Three results on OpenRocket's examples with these parts stand apart. A pod
 example's sustainer reads 37.93% below OpenRocket's apogee; it turns over before apogee in both
 programs. OpenRocket aborts its own flight of that example's first configuration, so that one is
 compared only up to the abort. And on two pod examples the stability margin reads about 0.07

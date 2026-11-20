@@ -37,8 +37,8 @@ It comes three ways, all from one code base, and none needs a network to fly a r
   ([Getting started](getting-started.md)).
 
 Every model cites a published source, and tests pin each one. The results against RocketPy,
-OpenRocket and real flights are committed to the repository ([Accuracy](accuracy.md)). It's early:
-the first release is out, and [Start here](start-here.md) lists what works today and what doesn't
+OpenRocket and real flights are committed to the repository ([Accuracy](accuracy.md)). The first
+release is out, but HPR Sim isn't ready to rely on yet. [Start here](start-here.md) lists what works today and what doesn't
 yet.
 
 ## Who it is for
