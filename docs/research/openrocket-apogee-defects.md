@@ -57,20 +57,15 @@ defect's size on HPR Sim's comparisons is known only by flying OpenRocket with a
   OpenRocket's drag; −10.71% with OpenRocket's base rule alone [S14, S21]. **Inference:** about 11.8 points sit in
   drag other than the base (nose, fins, and the pressure drag OpenRocket gives no part). #3391 is the nose's share;
   no public number splits it from the fins'.
-- **The collection.** By the Mach numbers HPR Sim's own flights reach, 5 of the 68 flights both codes fly pass
-  Mach 1 on a tangent-ogive nose, and none passes Mach 1.3 [S23]. Flown again with OpenRocket's nose pressure drag
-  above Mach 1, HPR Sim climbs 1.28% of OpenRocket's apogee higher on average: OpenRocket's low nose drag makes its
-  apogee high, as #3391 says. This is [M2.3c13, the nose's line](../decisions-and-roadmap.md#m2-3c13), code
-  against code on the collection's designs. It holds between Mach 1 and 1.3 only, so it doesn't size OpenRocket's
-  near-zero drag from Mach 1.3 up, nor #222's nose and fin split above.
+- **The collection.** In S15's tangent-ogive nose's line, 5 of the 68 flights both codes fly pass Mach 1 on a tangent
+  ogive, none Mach 1.3; OpenRocket's nose drag lifts HPR Sim's apogee a mean 1.28% of OpenRocket's (code against code).
 
 ### #3318 (open pull request): stubby noses get almost no subsonic pressure drag
 
-- **What it says.** Ellipsoid, power, parabolic and Haack noses take their drag from fineness-3 tables, scaled.
-  Where the table is zero, a stubby nose keeps about 0 subsonic pressure drag, and an ellipsoid's fit is
-  "unrealistically small" at low Mach [S3]. The fix adds a floor below fineness 1.8,
-  (1/3) × 0.8/(1 + 4f²) × (1 − (f/1.8)²), tested at 0.123 for a Haack nose at f = 0.5. Conical and ogive noses
-  are left out.
+- **What it says.** Ellipsoid, power, parabolic and Haack noses take their drag from fineness-3 tables, scaled. Where
+  the table is zero, a stubby nose keeps about 0 subsonic pressure drag, and an ellipsoid's fit is "unrealistically
+  small" at low Mach [S3]. The fix adds a floor below fineness 1.8, (1/3) × 0.8/(1 + 4f²) × (1 − (f/1.8)²), tested at
+  0.123 for a Haack nose at f = 0.5. Conical and ogive noses are left out.
 - **State.** Open against the development line, labeled "next release" on 2026-09-14; two commenters asked on
   09-12 and 09-14 how the floor will be validated, unanswered on 2026-10-17 [S3]. No version named.
 - **Sign.** Drag low on such noses, so OpenRocket's apogee high; the fix lowers it. **Inference:** 24.12 has it.
@@ -89,11 +84,10 @@ defect's size on HPR Sim's comparisons is known only by flying OpenRocket with a
 - **What it says.** Filed by a maintainer on 2024-05-31 from a forum comparison in 23.09: in a steady crosswind,
   OpenRocket lost little apogee and drifted little upwind while RockSim and RASAero agreed with each other; by 25 mph
   OpenRocket's rocket went downwind [S4, S5]. The forum's tables are images, so no number is in text.
-- **State.** Open. Merged #3220 (fin–body interference) links to it, and its author did not want to close it yet
-  [S4]; the fin normal-force slope it adds is 20% to 50% (**Inference**, in
-  [what changed after 24.12](openrocket-after-24-12.md)). The documentation calls OpenRocket's normal-force slope
-  "notably lower than the experimental values", with an effect on altitude "considered to be small for typical
-  stable rockets" [S11, p. 93].
+- **State.** Open. Merged #3220 (fin–body interference) links to it, and its author did not want to close it yet [S4];
+  the fin normal-force slope it adds is 20% to 50% (**Inference**, in [what changed after
+  24.12](openrocket-after-24-12.md)). The documentation calls OpenRocket's normal-force slope "notably lower than the
+  experimental values", with an effect on altitude "considered to be small for typical stable rockets" [S11, p. 93].
 - **Sign.** Too little apogee lost into the wind, so OpenRocket's apogee in wind is high. **Size:** none in text.
   The thread does show how far inertia reaches: at 20 mph, moving 118 g from the CG to two 59 g masses 15 in fore
   and aft took the apogee from 6,760 ft to 6,709 ft (−0.75%) [S5, post #20].
@@ -156,11 +150,10 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 - **Terms.** OpenRocket is GPL-3.0; only issue, pull-request and forum text is cited, nothing copied. Its motor
   database states no terms, so cite impulses only. Its curves come from ThrustCurve.org, which grants no license.
 - **M2.9's OpenRocket cells.** No open defect has an own-report size above 0.5% of apogee, so the list ADR-246 asks
-  for holds only rows unsized in OpenRocket's own reports: #3391 (fix unreleased; supersonic flights, OpenRocket
-  high; unsized in its issue and on 24.12's example flights, which
-  [#733](https://github.com/nrdptel/fusionspace-eridanus/issues/733) is to size; sized on the collection's 5 flights,
-  none past Mach 1.3, at a mean 1.28% of OpenRocket's apogee, §2 [S23]), #3318 (pending fix, OpenRocket high on
-  stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
+  for holds only rows unsized in OpenRocket's own reports: #3391 (fix unreleased; supersonic flights, OpenRocket high;
+  unsized in its issue and 24.12's examples, which [#733](https://github.com/nrdptel/fusionspace-eridanus/issues/733)
+  is to size; sized on the collection's 5 flights, a mean 1.28% of OpenRocket's apogee, §2), #3318 (pending fix,
+  OpenRocket high on stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
 - **M2.3c6.** A fineness-0.58 ellipsoid beside ADR-273's fineness-3 nose probe would show a #3318 merge as its own
   row. 24.12's component drag on *Base drag hack (short-wide)* and *Dual parachute deployment* would turn this
   note's two upper bounds into measurements.
@@ -169,8 +162,7 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 ## Open questions
 
 - J570W-P's time above Mach 1; if its nose reads like the probe's [S22]; 24.12's drag on the fineness-0.58 ellipsoid.
-- How many collection flights carry a stubby stored-table nose. The tangent-ogive count is answered: 5 pass Mach 1,
-  none Mach 1.3, and OpenRocket's nose drag lifts HPR Sim's apogee by 1.28% of OpenRocket's on average [S23].
+- How many collection flights carry a stubby stored-table nose (on a tangent ogive, 5 pass Mach 1: §2, 1.28%, [S15]).
 - #2489's and #2892's numbers, which exist only in images; whether #1062 and #3399 hold in 24.12 itself.
 
 ## Sources
@@ -206,5 +198,3 @@ All read 2026-10-17 unless dated; issue texts are cached in the gitignored `refs
 20. **S20.** #3041, #2639 (fixed by #2667), #3342. <https://github.com/openrocket/openrocket/issues/2639>
 21. **S21.** [`openrocket-library-flights.md`](../../validation/reports/openrocket-library-flights.md).
 22. **S22.** [Nose probe tables, 2026-11-16](../physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412).
-23. **S23.** [The tangent-ogive nose's line, 2026-11-20](../accuracy.md#the-tangent-ogive-noses-line) and
-    [`validation/reports/fixture-flights.md`](../../validation/reports/fixture-flights.md).
