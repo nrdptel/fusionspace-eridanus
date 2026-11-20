@@ -62,32 +62,32 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 40 rows, as of November 19, 2026.
+The register holds 41 rows, as of November 20, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
-| Surface | Real · rows | Code to code · rows | Spec · rows | Calibration · rows | Reasoning · rows | None · rows | Rows |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Flight-log readers | 0 | 3 | 2 | 0 | 3 | 3 | 11 |
-| The flight analyzer | 0 | 0 | 1 | 1 | 0 | 0 | 2 |
-| Flight models | 0 | 0 | 1 | 0 | 3 | 1 | 5 |
-| Aerodynamics | 0 | 3 | 2 | 0 | 2 | 0 | 7 |
-| `.ork` import | 0 | 0 | 1 | 0 | 1 | 0 | 2 |
-| Accuracy against real flights | 0 | 0 | 0 | 1 | 1 | 0 | 2 |
-| Fin flutter | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
-| The motor finder | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
-| Design export | 0 | 1 | 0 | 0 | 0 | 0 | 1 |
-| The synthetic flights | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| The smoother | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| Flight-log readings' 90% intervals | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| Two logs of one flight on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| One logger to a stage on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| Ghost files | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
-| The least-squares fit | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| Public flights predicted first | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| All | 2 | 7 | 8 | 7 | 12 | 4 | 40 |
+| Surface | Real · rows | Sibling · rows | Code to code · rows | Spec · rows | Calibration · rows | Reasoning · rows | None · rows | Rows |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Flight-log readers | 0 | 0 | 3 | 2 | 0 | 3 | 3 | 11 |
+| The flight analyzer | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 2 |
+| Flight models | 0 | 0 | 0 | 1 | 0 | 3 | 1 | 5 |
+| Aerodynamics | 0 | 1 | 3 | 2 | 0 | 2 | 0 | 8 |
+| `.ork` import | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 2 |
+| Accuracy against real flights | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 2 |
+| Fin flutter | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
+| The motor finder | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+| Design export | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 |
+| The synthetic flights | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
+| The smoother | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| Flight-log readings' 90% intervals | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| Two logs of one flight on one timeline | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| One logger to a stage on one timeline | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| Ghost files | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+| The least-squares fit | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| Public flights predicted first | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
+| All | 2 | 1 | 7 | 8 | 7 | 12 | 4 | 41 |
 
-**Short of what's wanted.** 38 of the 40 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 39 of the 41 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -133,9 +133,11 @@ The register holds 40 rows, as of November 19, 2026.
 | <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | 2026-11-02 |
 | <a id="g39"></a>G39 | Public flights predicted first | Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way. **Not checked:** each of the three altimeters' make and sensor. | reasoning | real | [#1403](https://github.com/nrdptel/fusionspace-eridanus/issues/1403) | 2026-11-10 |
 | <a id="g40"></a>G40 | Aerodynamics | A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1 to 2 and on the designs of 5 logged flights just past Mach 1. **Not checked:** a measured pressure drag of a tangent ogive past Mach 1, including between Mach 1 and 1.3, committed as data with a test that scores HPR Sim's nose against it. | code to code | real | [#616](https://github.com/nrdptel/fusionspace-eridanus/issues/616) | 2026-10-16 |
+| <a id="g41"></a>G41 | Aerodynamics | Below Mach 0.8 a base behind a boattail keeps d_B/d of the flat-base drag, changed on one missile model's measured free flight. **Not checked:** a measured base drag behind a hobby rocket's boattail below Mach 0.8; the one flight checked, the Hermes A-3A drag model's, has a long 4.5° cone and is not a hobby rocket. | sibling | real | [#1572](https://github.com/nrdptel/fusionspace-eridanus/issues/1572) | 2026-11-20 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 19, 2026:
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 20, 2026:
 
+- [G1](#g1)
 - [G2](#g2)
 - [G3](#g3)
 - [G5](#g5)
@@ -162,6 +164,7 @@ The register holds 40 rows, as of November 19, 2026.
 - [G28](#g28)
 - [G29](#g29)
 - [G30](#g30)
+- [G31](#g31)
 - [G32](#g32)
 - [G40](#g40)
 
@@ -441,6 +444,11 @@ The register holds 40 rows, as of November 19, 2026.
   - NACA Report 1306, NACA TN 2250 and NACA TN 2399
 
   It found four NACA and Air Force reports that give a tangent ogive's pressure drag past Mach 1.3, one of them, NACA Report 1386, with a point at Mach 1.24 too; TR R-100 holds no ogive. They are read in docs/research/ogive-wave-drag.md, with the note's own arithmetic to take friction out, and none is committed as data yet.
+- [G41](#g41), November 20, 2026, looked at:
+  - NASA TR R-100 (Stoney, 1961) and Hoerner's Fluid-Dynamic Drag (1965), for a subsonic rule for the base behind a boattail
+  - NACA RM E54I13 (Salmi) and NACA RM L51L03 (Stoney), for measured base pressures behind cones held without a rear sting
+
+  It found a rule and three measurements. TR R-100 gives the base drag of a conical afterbody as the cylinder's times (r_b/R) cubed on the largest cross-section, and Hoerner's eq. 35 has the same dependence. Salmi's jet-off base pressures behind 5.6° cones at Mach 0.9 and Stoney's free-flight body from Mach 0.6 to 0.85, read by eye, both put the base drag below that rule, as the Hermes A-3A's flight does. None is a hobby rocket.
 
 **Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test that reads it:
 

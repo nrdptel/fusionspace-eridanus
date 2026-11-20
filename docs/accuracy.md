@@ -104,7 +104,7 @@ to the code that would move them is caught only when someone runs them again and
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
+| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 8.88% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
 
 <!-- census: end -->
 
@@ -1747,24 +1747,31 @@ the base. The jet leaves below the outside air's pressure, past fixed vanes in i
 ([the model's sizes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
 
 **HPR Sim's rule and OpenRocket's.** Below Mach 0.8, HPR Sim's base drag coefficient on the
-base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base. In a
+base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base, and
+behind a boattail it keeps $d_B/d_1$ of that, the base's diameter over the largest: a conical
+afterbody's base drag scales with that ratio cubed on the largest cross-section where the
+rule on the base's area scales with its square (Stoney, NASA TR R-100, 1961, p. 11, from
+tunnel data; [ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md),
+which this reference decided). In a
 flight, with the motor burning, HPR Sim takes the motor case's area off the base, down to zero.
 Here the case is wider than the base, so as HPR Sim flies it there is no base drag under power.
 Given only the nozzle exit's area, which is what this base holds of the motor, the same rule
 leaves the ring of base around the exit, the area the report measured on: that tests the
 coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power,
 which is the coasting value. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
-on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, so coasting HPR Sim
-gives 0.0661. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle
-exit HPR Sim gives 0.0403, and with the case off 0. The flight measured 0.0105 coasting and
-0.0244 under power ([fixture report][fixture-report]).
+on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, and behind the cone
+it keeps $4.8/8 = 0.6$ of the rule, so coasting HPR Sim gives $0.1837 \times 0.36 \times 0.6 =
+0.0397$. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle exit
+HPR Sim gives 0.0242, and with the case off 0. The flight measured 0.0105 coasting and 0.0244
+under power ([fixture report][fixture-report]). Before ADR-362 the base kept the whole rule
+behind a boattail: 0.0661 coasting.
 
-| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole-base rule's base drag coefficient, under power |
-|---:|---:|---:|---:|---:|---:|---:|
-| [0.65][fixture-report] | 0.0127 | 0.0630 | 0.0270 | 0.0000 | 0.0384 | 0.0630 |
-| [0.70][fixture-report] | 0.0105 | 0.0661 | 0.0244 | 0.0000 | 0.0403 | 0.0661 |
-| [0.75][fixture-report] | 0.0096 | 0.0695 | 0.0221 | 0.0000 | 0.0424 | 0.0695 |
-| [0.79][fixture-report] | 0.0086 | 0.0724 | 0.0204 | 0.0000 | 0.0441 | 0.0724 |
+| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | HPR Sim's before ADR-362, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| [0.65][fixture-report] | 0.0127 | 0.0378 | 0.0630 | 0.0270 | 0.0000 | 0.0230 | 0.0378 |
+| [0.70][fixture-report] | 0.0105 | 0.0397 | 0.0661 | 0.0244 | 0.0000 | 0.0242 | 0.0397 |
+| [0.75][fixture-report] | 0.0096 | 0.0417 | 0.0695 | 0.0221 | 0.0000 | 0.0254 | 0.0417 |
+| [0.79][fixture-report] | 0.0086 | 0.0434 | 0.0724 | 0.0204 | 0.0000 | 0.0265 | 0.0434 |
 
 ([fixture](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json),
 written by `cargo xtask aero`; the same rows are in the [fixture report][fixture-report])
@@ -1772,19 +1779,24 @@ written by `cargo xtask aero`; the same rows are in the [fixture report][fixture
 What the rows say. Which way each rule errs, past the stated error and the reading, is held by a
 test
 ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/aero_base_power/tests.rs),
-`the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag`):
+`the_power_off_rule_reads_high_the_flown_power_on_rule_low`, with two mutation probes in
+[ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)):
 
 - **Under power, HPR Sim's rule as it flies reads low**, by 0.0204 to 0.0270: it leaves no base
   drag where the flight measured some. Too little drag gives too high an apogee: the optimistic
   side for a flier aiming at a target altitude, not the side that flatters a flight near a
   waiver's ceiling ([which error flatters](drag-through-mach-1.md#which-error-flatters);
   [fixture report][fixture-report]).
-- **Given the nozzle exit instead, the same rule reads high,** by 0.0114 to 0.0237, and the whole
-  base by 0.0360 to 0.0520. No row is within the stated error and the reading together, ±0.006
+- **Given the nozzle exit instead, the same rule comes within 0.007,** from 0.0040 low to
+  0.0061 high: within the stated error and the reading together, ±0.006, at Mach 0.65 to 0.75.
+  The whole base kept under power reads high by 0.0108 to 0.0230
   ([fixture report][fixture-report]).
-- **Coasting, HPR Sim reads high:** its value is 5.0 to 8.4 times the measured. Behind this long
-  cone the base drag is far lower than the flat-base rule gives, and below Mach 0.8 HPR Sim gives
-  a boattail no relief on its base ([fixture report][fixture-report]).
+- **Coasting, HPR Sim reads high,** by 0.025 to 0.035: its value is 3.0 to 5.1 times the
+  measured. Before ADR-362 it read high by 0.050 to 0.064, 5.0 to 8.4 times: the mean absolute
+  error over the four rows fell from 0.0574 to 0.0303, and no row's grew. Hoerner's rule, which
+  also lowers the base for a thinner boundary layer, reads high by 0.012 to 0.016
+  ([fixture report][fixture-report];
+  [the rules side by side](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/subsonic-boattail-base-drag.md)).
 - **The jet raised the measured base drag**, to 2.1 to 2.4 times its coasting value, as the
   report says in its own words: "more than twice". HPR Sim's rule given the nozzle exit lowers
   it, to 0.61 of coasting, and the whole base keeps it. Neither moves the way the flight did.
@@ -1793,8 +1805,11 @@ test
 
 What it leaves out: one vehicle and one motor, whose jet left through a blast tube, past fixed
 vanes, below the outside air's pressure. How far the result carries to another motor and base
-is not measured. Deciding the base model on this reference is the next step in the drag work
-([M1.14i3](decisions-and-roadmap.md#m1-14i3); [evidence row G14](evidence.md#g14)).
+is not measured. The base model was changed on this reference for a boattailed base, power off
+([M1.14i3](decisions-and-roadmap.md#m1-14i3), ADR-362), and what that moved is below
+([the relief's effect on the flights](#the-relief-behind-a-boattail-on-the-flights)). Nothing
+here covers the jet ([evidence row G14](evidence.md#g14)), and no hobby rocket's base behind a
+boattail has been measured ([evidence row G41](evidence.md#g41)).
 
 ## Known gaps
 

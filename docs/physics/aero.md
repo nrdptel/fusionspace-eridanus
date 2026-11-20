@@ -188,7 +188,8 @@ Sources:
   Projectile at Supersonic Velocities*, DREV-TM-9703, DREV (Valcartier, Canada), 1997
   (DTIC ADA636861).
 - **[S61]** W. E. Stoney. *Collection of Zero-Lift Drag Data on Bodies of Revolution from
-  Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`).
+  Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`); p. 11, the
+  base drag of a conical afterbody.
 - **[J53]** J. R. Jack. *Theoretical Pressure Distributions and Wave Drags for Conical Boattails*,
   NACA TN 2972, 1953.
 - **[CS51]** E. M. Cortright Jr. and A. H. Schroeder. *Investigation at Mach Number 1.91 of Side
@@ -229,8 +230,9 @@ Sources:
   Flight Simulation Program Users Manual*, version 1.0.2.0, 2019.
 - **[F57]** H. S. Fletcher. *Experimental Investigation of Lift, Drag, and Pitching Moment of Five
   Annular Airfoils*, NACA TN 4117, 1957 (`naca-tn-4117-fletcher-1957-annular-airfoils`).
-- **[H65]** S. F. Hoerner. *Fluid-Dynamic Drag*, 1965, p. 7-13, *Ring Foil*, and p. 3-12,
-  Fig. 20, the forebody pressure drag of blunt heads (`hoerner-1965-fluid-dynamic-drag`).
+- **[H65]** S. F. Hoerner. *Fluid-Dynamic Drag*, 1965, p. 7-13, *Ring Foil*; p. 3-12,
+  Fig. 20, the forebody pressure drag of blunt heads; and p. 3-20, eq. 35, the subsonic base
+  drag of a body of revolution (`hoerner-1965-fluid-dynamic-drag`).
 - **[HB85]** S. F. Hoerner and H. V. Borst. *Fluid-Dynamic Lift*, 1985, p. 19-16, *Ducted Body*
   (`hoerner-borst-1985-fluid-dynamic-lift`).
 - **[W21]** N. Wagner. *Theoretical and Experimental Investigation into the Flight of an X-Zylo*,
@@ -3170,7 +3172,7 @@ The axial coefficient is $C_A = C_{D0}\, f(\alpha)$.
 | friction drag | below the table | body: $\pi A_{\mathrm{plan}}$; fins: both sides | [N09] eq. 3.85 |
 | nose, shoulder | $0.8\sin^2\varphi$ at rest, $\varphi$ the joint angle at the aft end; through Mach 1 as under *Drag through Mach 1* | base area; increase in area | [N09] eq. 3.86–3.87, appendix B |
 | boattail | to Mach 0.8, $(C_{D\bullet})_{\mathrm{base}}$ × 1 ($\gamma \le 1$), $(3 - \gamma)/2$, 0 ($\gamma \ge 3$); $\gamma = l/(d_1 - d_2)$; faster, as under *Boattails faster than sound* | decrease in area | [N09] eq. 3.88; [762] Fig. 5-122 |
-| base | $0.12 + 0.13\,M^2$ below Mach 1, $0.25/M$ above; behind a boattail, from Mach 0.8, times its base-pressure ratio (*Boattails faster than sound*) | aft base less thrusting motors | [N09] eq. 3.94, p. 50; [762] Fig. 5-141 |
+| base | $0.12 + 0.13\,M^2$ below Mach 1, $0.25/M$ above; behind a boattail, times its base-pressure ratio: $d_B/d_1$ to Mach 0.8, then *Boattails faster than sound* | aft base less thrusting motors | [N09] eq. 3.94, p. 50; [S61] p. 11; [762] Fig. 5-141 |
 | fin leading edge | square: $0.85\,q_{\mathrm{stag}}/q$; rounded, airfoil: $(1 - M^2)^{-0.417} - 1$ (to 0.9), $1 - 1.785(M - 0.9)$ (to 1), $1.214 - 0.502/M^2 + 0.1095/M^4$; times $\cos^2\Gamma_L$ | $N t s$ | [N09] eq. 3.89–3.91, B.2 |
 | fin trailing edge | square: base; rounded: half base; airfoil: 0 | $N t s$ | [N09] eq. 3.92–3.93 |
 | stagnation pressure | $q_{\mathrm{stag}}/q = 1 + M^2/4 + M^4/40$ below Mach 1; above, below the table | | [N09] eq. B.1 |
@@ -3608,7 +3610,7 @@ were made with no motor exhaust.
 | its upper limit | never more than the pressure after a two-dimensional Prandtl-Meyer turn through $\theta$ over the whole annulus, $-C_{p,\mathrm{PM}}(M, \theta)(1 - a)$; past the chart's end at $x = 1.4$ the drag approaches that limit, the gap shrinking as $1/x$ | [R1135] eq. 44, 171c |
 | separation | between 16° and 30°, a straight-line blend in $\theta$ from the attached value to the base drag on the annulus, $(C_{D\bullet})_{\mathrm{base}}(1 - a)$, where [flow separates](../glossary.md#flow-separation) | [C57] pp. 6, 8 |
 | through Mach 1 | the rule to Mach 0.8, where the buildup's other transonic terms start; a straight line to Mach 1; from there the attached drag held at its Mach 1.2 value to Mach 1.2 | [N09] p. 47, [762] p. 5-47 |
-| base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; back to 1 between Mach 1 and 0.8; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210 |
+| base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; to Mach 0.8, $k = d_B/d_1 = \sqrt{a_b}$, a conical afterbody's base drag scaling with $(d_B/d_1)^3$ on the largest cross-section where the rule on the base's area scales with its square; a straight line between Mach 0.8 and 1; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210; [S61] p. 11; [H65] p. 3-20, eq. 35 |
 | a lip in its wake | a lip behind a boattail or a step down (a boattail of no length), drawn as a shoulder, a step up or both, in one part or several, loses its pressure drag while its top rises up to a quarter of the boattail's drop in diameter above the boattail's end, keeps all of it from half, and a straight-line share between; a lip in parts takes at each part the smallest share any top so far leaves; the base behind it takes the same share of the relief, less the lip's length's fade. A lip's rise is its top diameter less the boattail's aft diameter. | [D4014] p. 6, [R22] slide 2; the quarter and half are a judgment |
 | a boattail in parts | a narrowing part after another drags, as its share of the boattail it continues, as the cone from that boattail's start through its aft end less the cone through its fore end (below 0 where extending the boattail lowers its drag); so parts of one straight cone add up to one cone. Its drag is that share for a turn of up to 3° between the parts, its own drag as a boattail from 10° (a corner), and a straight-line blend of the two between (the *turn* is the difference of the two parts' half-angles) | a judgment |
 | gaps and steps | whatever lies between a boattail and what follows weakens its effect in a straight line, gone once the gaps add up to one of the boattail's drops in diameter; gaps add: the lengths of tubes, lips and parts, and the drops in diameter of steps down and narrowing parts. | a judgment |
@@ -3731,8 +3733,15 @@ and Cubbage's long, gentle boattails 0 to 0.009, where they measure 0.011 to 0.0
 - The 1° below which a part merges only in part, and the fade of a step's corner over one drop in
   diameter, are judgments too. Flow behind a backward-facing step reattaches farther downstream, so the fade likely
   understates a lip's shelter.
-- Nothing models the jet. Fig. 5-141 is measured with the motor off, as is the base drag it
-  scales. Under power HPR Sim applies both to what the motors leave of the base.
+- Nothing models the jet. Fig. 5-141 is measured with the motor off, as are the base drag it
+  scales and Stoney's subsonic rule. Under power HPR Sim applies them to what the motors leave
+  of the base.
+- Below Mach 0.8 the relief rests on one measured flight, the Hermes A-3A's long 4.5° cone, and
+  on Stoney's tunnel rule, which gives no range of cone angles and does not allow for the
+  negative base drags measured at subsonic speeds ([S61] p. 11). Measured bases behind cones
+  read lower still ([subsonic boattail base drag](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/subsonic-boattail-base-drag.md)),
+  so the rule likely reads high behind a long attached boattail
+  ([evidence row G41](../evidence.md#g41)).
 
 ### Drag limits
 
@@ -4326,7 +4335,7 @@ readings' half a caliber. The largest are the short model at Mach 1.5 (+1.59), w
   - Calisto's boattail by hand (the guide's worked example) with the joins at Mach 0.9, 1 and 1.2.
   - The drag past the chart continuous at its end and closing on the 2D limit.
   - Separation from 16° to 30°.
-  - The base-pressure ratio on Fig. 5-141's line.
+  - The base-pressure ratio on Fig. 5-141's line, and $d_B/d_1$ to Mach 0.8.
   - Every boattail from 1° to 89° finite and non-negative to Mach 5.
   - The comparison with measured boattails and Jack's theory is `tests::boattails_against_measurements`.
 - **Boattails in parts, wakes and gaps** (`drag::tests`): a boattail split in two drags as one (`a_boattail_split_in_two_drags_as_one`). So does a straight cone of 0.5° to 7° in 2, 4 or 8 parts, where a part's share is below 0 too (`a_straight_cone_in_parts_is_one_cone`). A corner keeps two parts apart and the merge is continuous in the turn (`a_sharp_corner_keeps_its_boattails_apart`). A pair drags between its two limits (`soft_merges_stay_between_their_limits`). A partial merge shares the flow (`a_partial_merge_shares_the_flow`). A change of $\varepsilon$ in any radius or length behind 2° to 14° boattails moves the drag in proportion to $\varepsilon$ (`a_part_narrowing_by_nothing_is_a_tube_and_one_of_no_length_a_step`). A lip's wake is tested by its rise and its gaps (`a_lip_in_a_boattails_wake_fades_with_its_rise`, `a_lip_drawn_as_a_step_up_is_a_lip`, `a_hairline_step_before_a_lip_changes_nothing`). A retainer behind a step down is in its wake (`a_retainer_behind_a_step_down_is_in_its_wake`). A 40-part zigzag keeps its tails few (`a_zigzag_boattail_keeps_its_tails_few`).
@@ -4347,11 +4356,13 @@ blast tube carries the jet to a 3.0 in nozzle exit at the base, past fixed vanes
   flight measured 0.0204 to 0.0270 on the model's largest cross-section. Too little drag gives
   too high an apogee, the optimistic side for a target altitude
   ([which error flatters](../drag-through-mach-1.md#which-error-flatters)).
-- **Given only the nozzle exit, the same rule reads high**, by 0.0114 to 0.0237, and the whole
-  base, OpenRocket 24.12's rule, by 0.0360 to 0.0520.
-- **Coasting, HPR Sim reads high**: 5.0 to 8.4 times the measured base drag. Below Mach 0.8 HPR
-  Sim gives a boattail no relief on its base, and behind this long cone the measured base drag
-  is far lower.
+- **Given only the nozzle exit, the same rule comes within 0.007**, from 0.0040 low to 0.0061
+  high, and the whole base, OpenRocket 24.12's rule, reads high by 0.0108 to 0.0230.
+- **Coasting, HPR Sim reads high**: 3.0 to 5.1 times the measured base drag, high by 0.025 to
+  0.035. Behind a boattail below Mach 0.8 HPR Sim keeps $d_B/d_1$ of the flat-base value, here
+  0.6 ([S61] p. 11; since M1.14i3, [ADR-362][adr-362]); before, it gave no relief and read high
+  by 0.050 to 0.064, 5.0 to 8.4 times the measured. Hoerner's rule, which also takes the
+  forebody's friction into account, reads high by 0.012 to 0.016 ([H65] eq. 35).
 - **The jet more than doubled the measured base drag**, where HPR Sim's rule lowers it and the
   whole base keeps it. Neither rule moves the way the flight did.
 
@@ -5067,6 +5078,7 @@ ellipse's integrals ([N09] eq. 3.70–3.71). Supersonic forcing and damping with
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [adr-351]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
+[adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 [wind-tunnel]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/arcas-robin-wind-tunnel.json
 [drag-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/drag-vs-mach.json
 [curves-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/rocketpy-drag-curves.json
