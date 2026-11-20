@@ -15,7 +15,9 @@ layer as C_DB = 0.029 / √C_DfB on the base area (eq. 34), with C_DfB the foreb
 to the largest cross-section, with C_Df the forebody's drag on that area, it becomes ΔC_D = 0.029 (d_B/d)³ / √C_Df
 (p. 3-20, eq. 35). There Hoerner adds that a moderate boattail (d_B/d about 0.9, about 5°) lowers a projectile's drag
 somewhat, and that for larger taper angles or thick boundary layers "the maximum cross-section area of the body must
-be considered as base". The rule has no Mach number in it: it is a low-speed correlation.
+be considered as base". The rule has no Mach number in it: it is a low-speed correlation. USAF DATCOM (1978,
+§4.2.3.1, eq. 4.2.3.1-b) gives the same rule for a body's subsonic base drag, citing Hoerner, with C_Df the body's
+zero-lift drag less its base (its eq. 4.2.3.1-a's first term).
 
 HPR Sim's rule below Mach 1 is (0.12 + 0.13 M²) on the base area (Niskanen 2009, eq. 3.94), so on the largest
 cross-section it scales with (d_B/d)², and it takes no account of the forebody. Below Mach 0.8 HPR Sim gives a
@@ -23,8 +25,9 @@ boattail no relief on its base.
 
 ## 2. On the Hermes A-3A
 
-The model is 8 in across, with a 4.5° cone to a 4.8 in base: d_B/d = 0.6. C_Df is HPR Sim's own skin friction on the
-model, coasting, 0.0632 to 0.0646 on the largest cross-section (`hpr_friction`), so the rule gives 0.0247 to 0.0249.
+The model is 8 in across, with a 4.5° cone to a 4.8 in base: d_B/d = 0.6. C_Df is HPR Sim's own drag of the body less
+its base, coasting, 0.0632 to 0.0646 on the largest cross-section (`hpr_forebody_drag`; its pressure part is zero
+here), so the rule gives 0.0247 to 0.0249.
 
 | Mach | measured, power off | HPR Sim | Hoerner | HPR Sim less measured | Hoerner less measured |
 |--:|--:|--:|--:|--:|--:|
@@ -40,9 +43,11 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
 ## 3. What is open for M1.14i3
 
 - **Straight bases.** With d_B/d = 1 the rule gives 0.029 / √C_Df: 0.065 at C_Df = 0.2 and 0.046 at 0.4, below HPR
-  Sim's 0.12 to 0.20 from Mach 0 to 0.8 (Inference: the two rules' arithmetic).
-  Changing every base on one boattailed vehicle's flight would move every flight's apogee up, and the collection
-  already climbs above its logs on average. A change limited to the boattail's relief, (d_B/d)³ against (d_B/d)²,
+  Sim's 0.12 to 0.20 from Mach 0 to 0.8 (Inference: the two rules' arithmetic). Flat bases measured with no sting
+  read 0.12 to 0.16 on the base area from Mach 0.6 to 0.9 ([cylinder base drag](cylinder-base-drag.md)); for eq. 34 to
+  give that, C_DfB would be 0.033 to 0.058 (Inference: (0.029/0.16)² to (0.029/0.12)²), too low for a forebody
+  several diameters long. So on flat bases the rule reads low there. Changing every base on one boattailed
+  vehicle's flight would move every flight's apogee up, and the collection already climbs above its logs on average. A change limited to the boattail's relief, (d_B/d)³ against (d_B/d)²,
   leaves straight bases as they are; on this model it gives 0.6 of HPR Sim's value, 0.0378 to 0.0434, still high.
 - **No Mach number.** HPR Sim's 0.13 M² rise has no counterpart in eq. 35; the Hermes curve falls with Mach number
   below 0.8 where both rules rise or stay level.

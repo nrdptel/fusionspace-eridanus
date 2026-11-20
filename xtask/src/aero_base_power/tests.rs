@@ -53,12 +53,13 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
         close("hpr_power_on", rule * (base_m2 - exit_m2) / reference_m2);
         close("hpr_power_on_case", 0.0);
         close("whole_base_under_power", rule * base_m2 / reference_m2);
-        // Hoerner 1965, p. 3-20, eq. 35, written out: 0.029 (d_B/d)^3 / sqrt(C_Df).
-        let friction = row["hpr_friction"].as_f64().unwrap();
-        assert!(friction > 0.0, "Mach {mach}: {friction}");
+        // Hoerner 1965, p. 3-20, eq. 35, written out: 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the
+        // body's drag less its base.
+        let forebody = row["hpr_forebody_drag"].as_f64().unwrap();
+        assert!(forebody > 0.0, "Mach {mach}: {forebody}");
         close(
             "hoerner_power_off",
-            0.029 * (base_m2 / reference_m2).powf(1.5) / friction.sqrt(),
+            0.029 * (base_m2 / reference_m2).powf(1.5) / forebody.sqrt(),
         );
     }
 }

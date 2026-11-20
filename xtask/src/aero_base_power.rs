@@ -43,7 +43,9 @@ pub const REFERENCE: &str = "validation/fixtures/aero/hermes-a3a-base-drag.json"
 const IN: f64 = 0.0254;
 /// Hoerner's constant in his subsonic base drag of a body of revolution, `C_DB = 0.029 /
 /// sqrt(C_DfB)` on the base's area (*Fluid-Dynamic Drag*, 1965, p. 3-19, eq. 34), which on the
-/// largest cross-section is `0.029 (d_B/d)^3 / sqrt(C_Df)` (p. 3-20, eq. 35).
+/// largest cross-section is `0.029 (d_B/d)^3 / sqrt(C_Df)` (p. 3-20, eq. 35), `C_Df` the body's
+/// drag less its base on that area. USAF DATCOM (1978, section 4.2.3.1, eq. 4.2.3.1-b) gives the
+/// same rule.
 const HOERNER_K: f64 = 0.029;
 
 /// The fixture, from the reference's geometry and rows.
@@ -82,13 +84,14 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             .buildup_drag(&flow, &DragConditions::coasting(reynolds_per_m))
             .map_err(|e| fail(&e.to_string()))?;
         let off = coasting.base;
-        // Hoerner's subsonic base drag on the largest cross-section (1965, p. 3-20, eq. 35):
-        // 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the forebody's drag on that area, here HPR Sim's
-        // own skin friction coasting.
-        let hoerner = HOERNER_K * base_over_max.powi(3) / coasting.friction.sqrt();
+        // Hoerner's subsonic base drag on the largest cross-section (1965, p. 3-20, eq. 35;
+        // USAF DATCOM 1978, eq. 4.2.3.1-b): 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the body's drag
+        // less its base on that area, here HPR Sim's own friction and pressure drag coasting.
+        let forebody = coasting.friction + coasting.pressure;
+        let hoerner = HOERNER_K * base_over_max.powi(3) / forebody.sqrt();
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
         let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
-        let mut out = json!({ "mach": mach, "hpr_friction": coasting.friction });
+        let mut out = json!({ "mach": mach, "hpr_forebody_drag": forebody });
         // HPR Sim's own power off and power on, and the whole base under power, each against
         // its measured curve.
         for (name, hpr, key) in [
@@ -123,9 +126,10 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, \
                  so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's \
                  rule, the power-off value. hoerner_power_off: Hoerner's subsonic base drag \
-                 (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35), 0.029 (d_B/d)^3 / sqrt(C_Df), \
-                 with C_Df HPR Sim's own skin friction coasting (hpr_friction), on the same \
-                 area. Each _difference is the rule's \
+                 (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35; USAF DATCOM 1978, eq. \
+                 4.2.3.1-b), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df the body's drag less its \
+                 base, HPR Sim's own friction and pressure drag coasting (hpr_forebody_drag), \
+                 on the same area. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",
