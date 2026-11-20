@@ -1,0 +1,113 @@
+{
+ "command": "drag_terms.py validation/fixtures/ork/openrocket-drag-terms.json validation/fixtures/ork/history-flights/mach-probe.ork",
+ "design": "validation/fixtures/ork/history-flights/mach-probe.ork",
+ "design_sha256": "3e6e0be09099922b4e14d69daebc5ed3b703692b4984bfafe1eb400c50641e3a",
+ "inputs_sha256": {
+  "validation/oracles/openrocket/automatic_radius.py": "71c7eaafeebb0d076714f773ad72aa2ca8484dbd5b0a596c4e270aca82836da3",
+  "validation/oracles/openrocket/drag_terms.py": "7ea4fb62b6579eb8f4e71bbfa3149512293c12c26852264df902ff8352469517",
+  "validation/oracles/openrocket/events.py": "313b72db4daae061e476be01cd429db7c2f34432ae45d314f1bbb1586e1f585d",
+  "validation/oracles/openrocket/flights.py": "73b0dd1fd62bcaca0803fd5634b569cffc34a6172e964c8e97be3a24c61a4c82",
+  "validation/oracles/openrocket/histories.py": "744c13c28626fcfcfa1d5bbde12e5f9077240722d19b7895ef1f15ba26e794a3",
+  "validation/oracles/rocketserializer/geometry.py": "d410d9327f1fec89911cf3f597d7cde62559ccc2936106a48f1fc3c4184cc072"
+ },
+ "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
+ "openrocket": "24.12",
+ "source": "validation/oracles/openrocket/drag_terms.py",
+ "variants": {
+  "as_is": {
+   "at_mach": [
+    {
+     "base": 0.13170028947253104,
+     "drag_coefficient": 0.6276121614628288,
+     "friction": 0.3030967100796075,
+     "mach": 0.3,
+     "pressure": 0.19281516191069037
+    },
+    {
+     "base": 0.16680011476084586,
+     "drag_coefficient": 0.6738429042735659,
+     "friction": 0.29483881676307366,
+     "mach": 0.6,
+     "pressure": 0.21220397274964642
+    }
+   ],
+   "reference_length_m": 0.06
+  },
+  "launch_lug": {
+   "at_mach": [
+    {
+     "base": 0.1317003377794904,
+     "drag_coefficient": 0.6397867918268799,
+     "friction": 0.30309669871448774,
+     "mach": 0.3,
+     "pressure": 0.20498975533290176
+    },
+    {
+     "base": 0.16680301056103308,
+     "drag_coefficient": 0.68614825934205,
+     "friction": 0.2948381354716764,
+     "mach": 0.6,
+     "pressure": 0.22450711330934048
+    }
+   ],
+   "reference_length_m": 0.06
+  },
+  "rail_buttons": {
+   "at_mach": [
+    {
+     "base": 0.13170018000576295,
+     "drag_coefficient": 0.6396260191152148,
+     "friction": 0.3027305619256987,
+     "mach": 0.3,
+     "pressure": 0.20519527718375308
+    },
+    {
+     "base": 0.16680048101790682,
+     "drag_coefficient": 0.6912446332062308,
+     "friction": 0.29448253325701884,
+     "mach": 0.6,
+     "pressure": 0.22996161893130512
+    }
+   ],
+   "reference_length_m": 0.06
+  },
+  "stated_body": {
+   "at_mach": [
+    {
+     "base": 0.0,
+     "drag_coefficient": 0.6043518539953807,
+     "friction": 0.1115367615889001,
+     "mach": 0.3,
+     "pressure": 0.19281509240648062
+    },
+    {
+     "base": 0.0,
+     "drag_coefficient": 0.620715782275896,
+     "friction": 0.10849782259859386,
+     "mach": 0.6,
+     "pressure": 0.21221795967730206
+    }
+   ],
+   "reference_length_m": 0.06
+  },
+  "stated_fins": {
+   "at_mach": [
+    {
+     "base": 0.13170052929964782,
+     "drag_coefficient": 1.2752499579228596,
+     "friction": 0.2259449543542771,
+     "mach": 0.3,
+     "pressure": 0.017604474268934647
+    },
+    {
+     "base": 0.16680383032664048,
+     "drag_coefficient": 1.3048890536958022,
+     "friction": 0.21978845586257423,
+     "mach": 0.6,
+     "pressure": 0.018296767506587805
+    }
+   ],
+   "reference_length_m": 0.06
+  }
+ }
+}
