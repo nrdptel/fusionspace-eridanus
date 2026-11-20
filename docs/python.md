@@ -29,8 +29,10 @@ On two of RocketPy's example rockets, HPR Sim's drift and RocketPy's differ by 1
 ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 The package is new and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). If you
-bring a design file, the gap that matters most is that most `.ork` configurations are refused
-([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
+bring a design file, the gap that matters most is that a `.ork` configuration with a stage
+separation to fly is refused. The package also doesn't fetch a missing thrust curve from
+ThrustCurve.org, as `hpr sim` does. So a configuration whose motor has no curve in the file or the
+bundled catalog is refused too ([A design from a file](#a-design-from-a-file)). The package is built and tested on Linux, macOS
 and Windows. It's published on PyPI, Python's package index, as `fusionspace-hpr`.
 
 ## First steps
