@@ -517,7 +517,7 @@ mod tests {
         let nu = air.kinematic_viscosity_m2_s();
         for (design, quoted) in [
             ("rocketpy-ndrt-2020-nose-to-tail", 0.318),
-            ("rocketpy-bella-lui", 0.424),
+            ("rocketpy-bella-lui", 0.411),
         ] {
             let text =
                 std::fs::read_to_string(root.join(format!("validation/designs/{design}.json")))

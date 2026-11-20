@@ -9,8 +9,8 @@ already have.
 
 > **How far to trust it.** HPR Sim's flights here are estimates from a model. A motor's data, as
 > `hpr motors show` says, is copied from its curve file, not measured. Against 60 logged flights of
-> fliers' own designs, HPR Sim's apogee averaged 7.7% above the logged one. It was within 10% on
-> 32 and read low on 15, by at most 20%.
+> fliers' own designs, HPR Sim's apogee averaged 8.0% above the logged one. It was within 10% on
+> 31 and read low on 15, by at most 20%.
 >
 > `hpr sim` gives these figures under each flight below. [Accuracy](accuracy.md) says how close it
 > comes elsewhere. The outputs on this page are made by running each command, and CI checks that
@@ -157,9 +157,9 @@ top Mach number       0.639
 landing               0.7 m (2 ft) from the pad at 202.71 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -216,9 +216,9 @@ top Mach number       1.095
 landing               0.8 m (3 ft) from the pad at 269.86 s, at 5.0 m/s (16 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -341,9 +341,9 @@ top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.

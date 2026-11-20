@@ -128,7 +128,7 @@ Flight 140 of set A flies the Calisto design (one of the
 [example rockets](../glossary.md#example-rockets)) in its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
-Its heights fit to 0.97 m (3.2 ft), in 84 simulated flights. The table is the least-squares fit's;
+Its heights fit to 0.98 m (3.2 ft), in 84 simulated flights. The table is the least-squares fit's;
 21 of those flights are the Bayesian option's, finding where to start its draws. A factor is times the simulator's
 value; the mass's, times the weighed mass:
 
@@ -389,11 +389,11 @@ scales may.
 [The same report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)
 splits each flight's forward error at the cut. The numbers below are from it. The prediction's error is the share made
 after the cut. The forward error less the prediction's is the share made up to it. There the motor's thrust, the
-rocket's mass and the boost's own drag set the climb. On the calibration half that share averages +8.92 percentage
+rocket's mass and the boost's own drag set the climb. On the calibration half that share averages +8.94 percentage
 points of the logged apogee: the forward simulation's climb up to the cut put its apogee that much too high. It is
 the larger share on 11 of the 12 flights. On the held-out half it averages +14.39 points and is the larger share on all 9. Without the flights
-that deployed something before apogee it is +10.44 and +11.93 points. The prediction's own mean error is near zero,
-−0.08% and +1.34%, so the share up to the cut is nearly the whole forward error. This is a split of two simulations'
+that deployed something before apogee it is +10.48 and +11.93 points. The prediction's own mean error is near zero,
+−0.05% and +1.34%, so the share up to the cut is nearly the whole forward error. This is a split of two simulations'
 errors, not a measurement of the motor. The fit also moves the drag, the mass and the wind within what it was told,
 and those carry into the coast.
 
@@ -425,23 +425,24 @@ rounded to two decimals.
 
 Without the flagged flight, the drag's interval holds 1, so the drag stays as the model has it. The impulse scale
 is 0.94: the boosts, on the files' masses, climb as if every motor gave 94% of its rated impulse. That correction
-takes the held-out half's mean absolute error from 16.26% to 10.91%, and its mean error from +13.36% to +5.84%.
-On the 12 public flights it takes the mean absolute error from 9.00% to 12.16%, and the mean error from −4.91%
-to −12.01%. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
+takes the held-out half's mean absolute error from 16.34% to 10.89%, and its mean error from +13.56% to +6.04%.
+On the 12 public flights it takes the mean absolute error from 8.88% to 11.91%, and the mean error from −4.64%
+to −11.76%. These are the report's figures on the simulator as it is now: the report flies the correction again
+whenever the model changes, and ADR-348 keeps those of the day it was judged. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
 records it. No correction ships, so the simulator's flight results are unchanged. The collection reads high and the
 public flights read low, and one scale didn't serve both. The 12 public flights are few. For the fit without the
-flagged flight, the bootstrap interval of their error's growth, −0.31 to 6.30 points, holds 0, so the harm is not
-shown with confidence; for the fit over every calibration flight it is 0.51 to 7.52 points and excludes 0, though the
-exact sign-flip interval, −0.03 to 8.44 points, just holds it. Either way they give no support to one bias shared by
+flagged flight, the bootstrap interval of their error's growth, −0.43 to 6.22 points, holds 0, so the harm is not
+shown with confidence; for the fit over every calibration flight it is 0.40 to 7.45 points and excludes 0, though the
+exact sign-flip interval, −0.15 to 8.39 points, just holds it. Either way they give no support to one bias shared by
 both sets of flights. It doesn't say where the collection's high reading comes from. The report keeps the measurement
 for the work on causes. Some of its numbers are held back: the terms the owners shared these flights under allow only
 aggregates, figures over several flights, and two figures over sets that differ by one or two flights would give
 those flights' own values by subtraction.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
-calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
+calibration half's 3.17% as `accuracy.from-boost`, with which flights it counts
 ([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md), the row).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of

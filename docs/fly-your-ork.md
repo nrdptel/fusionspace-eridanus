@@ -8,8 +8,8 @@ from the command line, and says how to read what it prints.** It's for a flier w
 file and wants a second simulator's view of it.
 
 > **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 60
-> logged flights of fliers' own designs, HPR Sim's apogee averaged 7.7% above the logged one. It
-> was within 10% on 32 and read low on 15, by at most 20%. `hpr sim` says so under each result
+> logged flights of fliers' own designs, HPR Sim's apogee averaged 8.0% above the logged one. It
+> was within 10% on 31 and read low on 15, by at most 20%. `hpr sim` says so under each result
 > below.
 >
 > [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
@@ -86,9 +86,9 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -185,9 +185,9 @@ top Mach number       0.874
 landing               755.8 m (2480 ft) from the pad at 246.17 s, at 6.3 m/s (21 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.

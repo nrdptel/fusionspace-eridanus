@@ -659,7 +659,7 @@ default settings. The numbers were measured on September 17, 2026.
   goes from 782.7197 m (2,567.978 ft) to 782.7214 m (2,567.984 ft), +0.00022%. On `mach-probe`, a
   567-sample flight to Mach 1.73, it goes from 2,030.4623 m (6,661.622 ft) to 2,030.4496 m
   (6,661.580 ft), −0.00063%. The bound is 0.05%, about a
-  thirtieth of the 1.63% mean absolute gap between the two programs' apogees on 60 real flights
+  thirty-fifth of the 1.73% mean absolute gap between the two programs' apogees on 60 real flights
   ([accuracy](../accuracy.md#real-flights-of-the-private-collection)). On the same
   flights, 5% more thrust raises the apogee by 2.8% and 3.0%, and 20% more mass delays the rail
   exit by 7.9% and 7.2%: both histories are flown.

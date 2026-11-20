@@ -12,9 +12,9 @@ rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 60 logged flights of fliers' own designs, its
-> apogee missed the logged one by 12.04% on average, either way. That's the mean absolute miss,
+> apogee missed the logged one by 12.09% on average, either way. That's the mean absolute miss,
 > outside the 5% target ([the register's row on these misses](evidence.md#g24)). With signs kept, it
-> averaged 7.72% above the logged one. It was within 10% on 32 and read low on 15, by at
+> averaged 8.01% above the logged one. It was within 10% on 31 and read low on 15, by at
 > most 20%
 > ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)),
 > and [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your
@@ -624,7 +624,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   drag is well below the example's for two rockets. It's above it at high speed for Prometheus
   2022, which flies through Mach 1
   ([Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)).
-- **Against 12 public real flights, HPR Sim's apogees miss by 9.00% on average,** outside the 5%
+- **Against 12 public real flights, HPR Sim's apogees miss by 8.88% on average,** outside the 5%
   target ([the register's row on these misses](evidence.md#g24)). One by one they miss by
   −29.16% to +10.40%. HPR Sim's
   height is read the way each log's barometric altimeter reads the air. Seven of the 12
@@ -635,18 +635,19 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   ([real flights](accuracy.md#real-flights),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 - **Against 60 more real flights, from a private collection, HPR Sim and OpenRocket both
-  over-predict the logged apogee.** HPR Sim does by 7.72% on average and OpenRocket by 6.72%, and
+  over-predict the logged apogee.** HPR Sim does by 8.01% on average and OpenRocket by 6.72%, and
   they agree with each other within 5% on 59 of them. Neither meets the 5% target. Each flight was
   rechecked against the collection's own catalog of its sources
   ([the collection rechecked](decisions-and-roadmap.md#m2-3c5)). On the 68 flights both fly, the
-  gap between the two codes is split by cause, and drag is the largest part on 59
+  gap between the two codes is split by cause, and drag is the largest part on 61
   ([the split](accuracy.md#the-gap-between-the-two-codes-by-cause)). By Mach number, the
   largest share of that drag difference, in mean absolute value, is below Mach 0.8
   ([the bands](accuracy.md#the-drag-part-by-mach-band)). The largest term in that share is the
-  base drag, almost all of it while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)).
+  base drag, four fifths of it while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)).
   On a NACA missile model's measured flight below Mach 0.8, HPR Sim's rule leaves no base drag
-  under power, too little. Kept on the whole base, its coefficient gives too much, but coasting
-  that coefficient is itself 5.0 to 8.4 times the measured
+  under power, too little. Coasting, behind its long boattail, HPR Sim read the base 5 to 8 times
+  the measured; it now keeps $d_B/d_1$ of the flat-base value behind a boattail, on Stoney's rule,
+  and reads 3.0 to 5.1 times
   ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
   On the 5 that only just pass Mach 1 (1.06 on average) with a tangent-ogive nose, flying OpenRocket's nose pressure
   drag in HPR Sim lifts its apogee by 1.28% of OpenRocket's on average. That sizes a

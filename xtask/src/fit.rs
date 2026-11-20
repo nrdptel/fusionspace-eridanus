@@ -2189,11 +2189,12 @@ mod tests {
         )
         .unwrap();
         assert!(page.contains("Calisto"));
-        assert!(page.contains(&format!(
+        let quoted = format!(
             "{:.2} m (3.2 ft), in {} simulated flights",
             made[0].rms_m.unwrap(),
             made[0].flown
-        )));
+        );
+        assert!(page.contains(&quoted), "the page doesn't say `{quoted}`");
         assert!(
             hpr_forensics::synthetic::designs::DESIGNS[made[0].design]
                 .name

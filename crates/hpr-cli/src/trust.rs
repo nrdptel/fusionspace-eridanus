@@ -7,7 +7,7 @@
 //! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 60 logged flights of
 //! fliers' own designs, flown as drawn (M2.3c1, ADR-184; rechecked in M2.3c5, ADR-238). That is
 //! the largest comparison with real flights the project has, and the least flattering: on it the
-//! simulated apogee averages 7.7% above the logged apogee, each the height climbed in the day's
+//! simulated apogee averages 8.0% above the logged apogee, each the height climbed in the day's
 //! air. A test holds each figure here to the report, so a regenerated report that moves one fails
 //! until the note is updated.
 
@@ -29,9 +29,9 @@ pub(crate) const LABEL: &str = "How far to trust it.";
 pub(crate) const FLIGHTS: usize = 60;
 /// The mean of the apogee errors, percent, to a tenth: simulated less logged, over logged, so
 /// positive is a simulated apogee above the logged one.
-pub(crate) const MEAN_PERCENT: f64 = 7.7;
+pub(crate) const MEAN_PERCENT: f64 = 8.0;
 /// The flights whose error is strictly smaller than 10% either way.
-pub(crate) const WITHIN_10: usize = 32;
+pub(crate) const WITHIN_10: usize = 31;
 /// The flights whose error is below zero: a simulated apogee under the logged one.
 pub(crate) const LOW: usize = 15;
 /// How far below the logged apogee the lowest simulated apogee read, at most, percent: the lower
@@ -165,7 +165,7 @@ pub(crate) fn sounding() -> String {
 /// The report's other two flights are flown as stored simulations, in no weather of their day.
 pub(crate) const ERA5_FLIGHTS: usize = 10;
 /// Their mean absolute apogee error, percent, to a hundredth, as the report's summary gives it.
-pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.27;
+pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.12;
 
 /// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`). The flights it quotes test the
 /// simulation and the weather together, so they bound neither alone.
@@ -448,7 +448,7 @@ mod tests {
             format!("{ERA5_MEAN_ABSOLUTE_PERCENT:.2}")
         );
         assert!(reanalysis().contains("10 public flights flown in ERA5 weather missed"));
-        assert!(reanalysis().contains("by 6.27% on average"));
+        assert!(reanalysis().contains("by 6.12% on average"));
     }
 
     #[test]

@@ -294,7 +294,7 @@ example: apogee 2807 m, landing at 5.2 m/s
 ```
 
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with
-HPR Sim's own drag too, in a wind and in RocketPy's atmosphere. There its apogee is 0.609% below
+HPR Sim's own drag too, in a wind and in RocketPy's atmosphere. There its apogee is 0.601% above
 RocketPy's, the closest of the suite's six rockets. HPR Sim's own drag puts the others' apogees
 from 7.280% below RocketPy's to 10.302% above
 ([Whole flights with each code's own drag](accuracy.md#whole-flights-with-each-codes-own-drag),

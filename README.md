@@ -51,7 +51,7 @@ model cites its source and has tests.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
 go/no-go verdict. Against 60 logged flights of fliers' own designs, the simulated apogee missed by
-12.04% on average without signs (the mean absolute miss), outside the 5% target. On average it read high, by 7.72%. It
+12.09% on average without signs (the mean absolute miss), outside the 5% target. On average it read high, by 8.01%. It
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
@@ -155,9 +155,9 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -203,7 +203,7 @@ The OpenRocket and real-flight ones need files CI doesn't have, so it holds thei
 <!-- census: end -->
 
 The census doesn't count 60 more real flights, from a private collection. On those, HPR Sim's
-apogees are +7.72% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
+apogees are +8.01% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
 "Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which

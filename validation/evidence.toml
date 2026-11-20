@@ -541,7 +541,7 @@ found = "the three answers, of 307, 296 and 60 records, now committed unchanged 
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss 12 public real flights by 9.00% on average and 60 private ones by 12.04%, both outside the 5% target"
+claim = "The simulation's apogees miss 12 public real flights by 8.88% on average and 60 private ones by 12.09%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",

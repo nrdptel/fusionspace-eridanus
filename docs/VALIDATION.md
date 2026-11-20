@@ -393,7 +393,7 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
   seven around zero, so the −0.0301% is on the flattering side, with no traced cause.
 - The largest Mach number of all nine flights: 1%. The largest acceleration under power, and the
   whole flight's where it is scored, 1% in the seven flights that aren't Bella Lui's; Bella Lui's
-  keep 3% for the rail's variable-mass terms at its ignition spike (+1.78%)
+  keep 3% for the rail's variable-mass terms at its ignition spike (+1.783%)
   ([ADR-303](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md);
   largest differences −0.235% in Mach number, Prometheus 2022's, and +0.248% in acceleration,
   Valetudo's).
@@ -655,8 +655,8 @@ Each predicted metric keeps [the RocketPy comparisons'](decisions-and-roadmap.md
 report's own *Predicted mode* section and never fails the run. Neither code's drag is the truth,
 so a miss is a measurement to explain. Each case file explains its own.
 
-Of the 102 predicted metrics, 75 are within target. The apogees are −7.280% (Prometheus 2022), −0.609% (Calisto),
-+0.971% (Bella Lui), +2.097% (Juno III), +10.113% (Valetudo) and +10.302% (NDRT 2020)
+Of the 102 predicted metrics, 75 are within target. The apogees are −7.280% (Prometheus 2022), +0.601% (Calisto),
++1.278% (Bella Lui), +2.951% (Juno III), +10.113% (Valetudo) and +10.302% (NDRT 2020)
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)). In the last two, HPR Sim's drag is well below the example's, which also
 moves their times and drifts. Juno III's and Bella Lui's drifts in wind differ as in same-drag mode
 ([the path in wind](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md)).
@@ -703,12 +703,12 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean absolute error is 9.00% over 12 flights, outside the target, and 6.06% over the
+Today the mean absolute error is 8.88% over 12 flights, outside the target, and 6.06% over the
 seven compared first. Five of the seven are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
 impulse. Four of the five predicted first are outside 5% too, with no explanation claimed. Seven
 of the 12 altimeters' kinds are assumed barometric (evidence rows [G21](evidence.md#g21) and
-[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 9.14%.
+[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 9.01%.
 
 ### Public flights predicted first
 
@@ -843,9 +843,13 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   reference for the base term of
   [the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2). `cargo xtask aero` writes
   HPR Sim's base drag on it to `validation/fixtures/aero/base-drag-under-power.json`. Its tests
-  (`xtask/src/aero_base_power/tests.rs`) hold which way each rule errs: HPR Sim's as it flies
-  low, the others high
+  (`xtask/src/aero_base_power/tests.rs`) hold which way each rule errs: under power HPR Sim's as
+  it flies low, power off its rule high, by less than before
+  [M1.14i3](decisions-and-roadmap.md#m1-14i3) changed the base behind a boattail on this reference
   ([the base under power, against a measured flight](accuracy.md#the-base-under-power-against-a-measured-flight)).
+- **Stoney's base drag of a conical afterbody:** NASA TR R-100 (1961), printed p. 11: the
+  cylinder's base drag times $(r_b/R)^3$ on the largest cross-section, from tunnel data. HPR Sim's
+  base behind a boattail below Mach 0.8 keeps $d_B/d_1$ of the flat-base value by it (M1.14i3).
 - **Stoney, zero-lift drag of bodies of revolution:** NASA TR R-100 (1961), NTRS 19630004995.
   Figure 12's nose pressure-drag curves at fineness 3 are read into `hpr_aero::nose_drag` as the
   model's own data, not as a reference. Niskanen's appendix B uses them the same way. The figure's

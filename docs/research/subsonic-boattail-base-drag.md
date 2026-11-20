@@ -2,8 +2,9 @@
 
 **In short: on the Hermes A-3A's measured power-off base drag below Mach 0.8, Hoerner's subsonic rule, which scales
 with the base diameter cubed and with the forebody's friction, reads high by 0.0120 to 0.0163 on the largest
-cross-section, where HPR Sim's rule reads high by 0.0503 to 0.0638. Both are past the report's stated error and the
-reading together, ±0.006.** The numbers are the `hoerner_power_off` rows of
+cross-section, where HPR Sim's rule before M1.14i3 read high by 0.0503 to 0.0638. Both are past the report's stated
+error and the reading together, ±0.006. M1.14i3 took Stoney's relief behind a boattail (§3; ADR-362): HPR Sim now reads
+high by 0.0251 to 0.0348.** The numbers are the `hoerner_power_off` rows of
 `validation/fixtures/aero/base-drag-under-power.json` (`cargo xtask aero`). This note is for
 [M1.14i3](../decisions-and-roadmap.md#m1-14i3) (ADR-359 decision 3): which cited rule the base term below Mach 0.8
 changes to, if any. Source read 2026-11-20.
@@ -29,7 +30,7 @@ The model is 8 in across, with a 4.5° cone to a 4.8 in base: d_B/d = 0.6. C_Df 
 its base, coasting, 0.0632 to 0.0646 on the largest cross-section (`hpr_forebody_drag`; its pressure part is zero
 here), so the rule gives 0.0247 to 0.0249.
 
-| Mach | measured, power off | HPR Sim | Hoerner | HPR Sim less measured | Hoerner less measured |
+| Mach | measured, power off | HPR Sim before M1.14i3 | Hoerner | HPR Sim before less measured | Hoerner less measured |
 |--:|--:|--:|--:|--:|--:|
 | 0.65 | 0.0127 | 0.0630 | 0.0247 | +0.0503 | +0.0120 |
 | 0.70 | 0.0105 | 0.0661 | 0.0247 | +0.0556 | +0.0142 |
@@ -38,7 +39,7 @@ here), so the rule gives 0.0247 to 0.0249.
 
 Its mean absolute error over the four rows is 0.0144, against HPR Sim's 0.0574 (Inference: the means of the table's
 columns). A test holds that Hoerner's rule reads high past ±0.006 on every row, by less than a third of HPR Sim's
-(`the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag`).
+(`the_power_off_rule_reads_high_the_flown_power_on_rule_low`; the old rule's column is `flat_base_rule_power_off`).
 
 ## 3. What is open for M1.14i3
 
@@ -50,7 +51,7 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   vehicle's flight would move every flight's apogee up, and the collection already climbs above its logs on average.
 - **The relief alone.** HPR Sim's flat-base rule with Hoerner's dependence on the base's diameter, (d_B/d)³ on the
   largest cross-section where HPR Sim's is (d_B/d)², leaves flat bases as they are and multiplies a boattailed base's
-  value by d_B/d (`hpr_relief_power_off`). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean
+  value by d_B/d (`hpr_power_off` since M1.14i3). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean
   absolute error of 0.0303 against HPR Sim's 0.0574 and Hoerner's 0.0144 (Inference: the fixture's rows).
 - **A source for the relief.** Stoney's NASA TR R-100 (1961, printed p. 11) gives, from wind-tunnel data on conical
   afterbodies, C_D,b = C_D,cylinder base (r_b/R)³ on the largest cross-section: the relief above, exactly. He warns
@@ -60,7 +61,7 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   0.42 to 0.75 held from upstream, Salmi's jet-off base pressures at Mach 0.9 are near zero (NACA RM E54I13, Fig. 8);
   Stoney's free-flight body of d_B/d 0.44 shows a base pressure above ambient from Mach 0.6 to 0.85 without its sting
   (NACA RM L51L03, Fig. 4). Each would read the relief above as high, as the Hermes flight does.
-- **The relief tried in the code** (not committed; the factor behind a boattail below Mach 0.8 set to d_B/d₁, the
+- **The relief in the code,** since M1.14i3 (ADR-362; the factor behind a boattail below Mach 0.8 set to d_B/d₁, the
   transonic ramp starting there). Of `hpr-aero`'s tests, one hand pin of the old base drag fails, one fixture's
   informational base column goes stale, and the code-to-code checks against RASAero II curves (ADR-009, ADR-029)
   move:

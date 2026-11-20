@@ -813,14 +813,17 @@ fn the_committed_report_splits_the_band_by_term() {
     assert!(terms.published());
     assert_eq!(terms.termed, report.bands.banded);
     // The base is the largest of friction, pressure and base: the reference is of it
-    // (`crate::aero_base_power`). Its part is nearly all under power.
+    // (`crate::aero_base_power`). Most of its part is under power: four fifths since M1.14i3
+    // (ADR-362), where HPR Sim relieves a coasting base behind a boattail and OpenRocket 24.12
+    // doesn't; before, more than 0.95 of it.
     assert_eq!(terms.largest_measurable(), Some(2));
     let base = &terms.terms[2];
     let dominates = |i: usize| terms.terms[i].dominates.unwrap();
     assert!(dominates(2) > dominates(0) + dominates(1) + dominates(3));
     let alone = base.alone.unwrap().mean_absolute_percent;
     let powered = terms.base_powered_alone.unwrap().mean_absolute_percent;
-    assert!(powered > 0.95 * alone, "{powered} {alone}");
+    let share = powered / alone;
+    assert!((0.75..0.85).contains(&share), "{powered} {alone}");
     assert_eq!(terms.check_consistent(report.counts.compared), Ok(()));
     assert_eq!(terms.check_against_bands(&report.bands), Ok(()));
     // The base's measured reference is in the report, row by row below Mach 0.8, as the
@@ -836,9 +839,9 @@ fn the_committed_report_splits_the_band_by_term() {
     let page = std::fs::read_to_string(root.join(crate::fixture_flights::REPORT_MD)).unwrap();
     assert!(page.contains(&terms.to_markdown()));
     assert!(page.contains(
-        "| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0000 | -0.0244 | 0.0403 | +0.0159 |"
+        "| 0.70 | 0.0105 | 0.0397 | +0.0292 | 0.0244 | 0.0000 | -0.0244 | 0.0242 | -0.0002 |"
     ));
-    assert!(page.contains("Power off, HPR Sim's value is 5.0 to 8.4 times the measured."));
+    assert!(page.contains("Power off, HPR Sim's value is 3.0 to 5.1 times the measured."));
     assert!(page.contains("to 2.1 to 2.4 times its power-off value"));
     assert!(page.contains("gives 0.61 of its power-off value"));
     assert!(page.contains("power-on less power-off: 0.0118 to 0.0143."));

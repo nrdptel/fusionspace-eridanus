@@ -262,8 +262,10 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14b4 NASA's check cases 3 and 6 to 10 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b5 Tip-off, measured with RocketPy's ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b11 The tip-off phase, held to RocketPy's on RocketPy's normal force ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14i Drag below Mach 0.8 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14i1 The drag part of the gap to OpenRocket, by Mach band ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14i2 The part below Mach 0.8, by term ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14i3 Its largest term, held to a measurement ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1450,10 +1452,13 @@ One line per milestone or increment, in the order it was archived within its pha
     - **M1.14b9** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M1.14b11 The tip-off phase, held to RocketPy's on RocketPy's normal force.**
         *Done when:* ADR-358 decision 1's for M1.14b11.
-  - **M1.14i** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+  - [x] **M1.14i Drag below Mach 0.8,** next, ahead of M1.14b's open increments (ADR-359 gives
+    each *done when*). Met when its three increments are.
     - [x] **M1.14i1 The drag part of the gap to OpenRocket, by Mach band.** *Done when:* ADR-359
       decision 3's for M1.14i1.
     - [x] **M1.14i2 The part below Mach 0.8, by term.** *Done when:* ADR-359's for M1.14i2.
+    - [x] **M1.14i3 Its largest term, held to a measurement.** *Done when:* ADR-359's for M1.14i3.
+      Met (ADR-362): behind a boattail the base keeps d_B/d₁ of the flat-base drag.
 - [x] **M2.10 Evidence register** (ADR-278). Each claim the site makes about what backs a reader,
   model or check is a row of `validation/evidence.toml` with the kind of evidence (real, sibling,
   code-to-code, spec, calibration, reasoning, none) and the kind wanted. *Done when:* the register
