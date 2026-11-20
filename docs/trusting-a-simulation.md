@@ -50,10 +50,10 @@ have read 2,946 m (9,665 ft). The miss is (2,946 − 2,785) / 2,785 = +5.78%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
-Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +7.72% above the logged
+Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +8.01% above the logged
 one ([report][fixture-report]). Each flight was flown as drawn in its day's air. Each logged
 apogee there is the altimeter's reading turned into the height climbed in that day's air, so the
-comparison leans on that conversion too. Without their signs, the misses averaged 12.04%, and 32
+comparison leans on that conversion too. Without their signs, the misses averaged 12.09%, and 31
 were within 10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
@@ -71,8 +71,8 @@ checks how the first is coded, not what the two share.
 The 12 public flights are university teams' rockets and one other rocket that flew twice
 ([report][real-report]), 10 of them flown in a [reanalysis](glossary.md#reanalysis) of their
 days' weather, one of those in another year's. That rocket's two are flown as the
-simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 9.00% on
-average without signs, from −29.16% to +10.40% one by one. With signs the misses averaged −4.91%,
+simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 8.88% on
+average without signs, from −29.16% to +10.40% one by one. With signs the misses averaged −4.64%,
 low on 7 of the 12. The average without signs is still outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 60,
 the larger set and the less flattering one ([the trust note's decision record][adr-211]).
@@ -102,9 +102,9 @@ the height climbed, as the [atmosphere page](physics/atmosphere.md#the-standard-
 through.
 
 Juno III, one of the public flights, shows what the low side looks like. An altimeter riding HPR Sim's flight of Juno III,
-Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top. The
-team's altimeter read 3,151.5 m (10,340 ft), a miss of −7.24% ([report][real-report]). The real
-altimeter read 228.1 m (748 ft) higher than the simulated one, and its log ends just short of the
+Projeto Jupiter, Spaceport America Cup 2023 would have read 2,950.2 m (9,679 ft) at the top. The
+team's altimeter read 3,151.5 m (10,340 ft), a miss of −6.39% ([report][real-report]). The real
+altimeter read 201.3 m (660 ft) higher than the simulated one, and its log ends just short of the
 top. The report finds this miss consistent with the motor's impulse, as the example sets it.
 
 So plan a ceiling with room above the simulated apogee. How much room is the flier's and the
@@ -157,9 +157,9 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in its day's air from
+the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in its day's air from
 ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee
-was within 10% on 32 and read low on 15, by at most 20%. These flights were flown in the standard
+was within 10% on 31 and read low on 15, by at most 20%. These flights were flown in the standard
 atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;
 --weather flies the day's air. Plan a waiver or a field's ceiling with room above this apogee; the
 altimeter's reading is the one to log, and the RSO decides.

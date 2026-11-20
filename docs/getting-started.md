@@ -11,8 +11,8 @@ variations. It needs some Rust, but no knowledge of this project.
 > **How far to trust it.** A simulation, not validated
 > ([the evidence register's row on real flights](evidence.md#g24)): this rocket left no flight
 > log to check it against. On 12 public logged flights of other rockets, HPR Sim's apogees missed
-> by 9.00% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
-> from a private collection, they were +7.72% above the logs, and OpenRocket's were +6.72%
+> by 8.88% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
+> from a private collection, they were +8.01% above the logs, and OpenRocket's were +6.72%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)).
 >
 > Given the same drag, its heights, speeds and times match RocketPy's. On its own drag it flies this
@@ -310,7 +310,7 @@ Below the table:
     simulator's apogee is from the truth.
   - Three values don't fence in the true drag: it could lie outside them.
   - HPR Sim's drag has been checked against reference drag curves at Mach 0.3 only. It's within 10%
-    in four of seven cases, 18% low for another rocket with its motor burning, and 47% to 50% low
+    in two of seven cases, 10.3% and 11.5% low for two boattailed ones, 18% low for another rocket with its motor burning, and 47% to 50% low
     against this rocket's own curve, the 1.05 above
     ([Accuracy](accuracy.md#results-by-model)).
   - Another rocket, or this one on another motor, has its own spread.

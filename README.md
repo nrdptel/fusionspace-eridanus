@@ -51,7 +51,7 @@ model cites its source and has tests.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
 go/no-go verdict. Against 60 logged flights of fliers' own designs, the simulated apogee missed by
-12.04% on average without signs (the mean absolute miss), outside the 5% target. On average it read high, by 7.72%. It
+12.09% on average without signs (the mean absolute miss), outside the 5% target. On average it read high, by 8.01%. It
 can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
 Plan a waiver or a field's ceiling with room above the simulated apogee
 ([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
@@ -155,9 +155,9 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -198,12 +198,12 @@ The OpenRocket and real-flight ones need files CI doesn't have, so it holds thei
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
+| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 8.88% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
 
 <!-- census: end -->
 
 The census doesn't count 60 more real flights, from a private collection. On those, HPR Sim's
-apogees are +7.72% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
+apogees are +8.01% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
 "Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which

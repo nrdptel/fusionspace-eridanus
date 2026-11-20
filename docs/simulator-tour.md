@@ -16,7 +16,7 @@ the page that covers it in full.
 > The guide rocket's flights are simulations, not measurements: it has no flight log.
 >
 > The tour ends on a public flight. It's one of 12 public logged flights, where HPR
-> Sim's apogee missed by 9.00% on average without signs ([report][real-report]). Those flights check
+> Sim's apogee missed by 8.88% on average without signs ([report][real-report]). Those flights check
 > apogee alone. The tour gives ranges, not verdicts. The safety code and the range safety officer
 > (the RSO) decide whether a rocket flies.
 
@@ -99,9 +99,9 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in
+fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
 its day's air from ERA5, a weather reanalysis, and each logged apogee is the height climbed in it.
-The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. This flight was flown
+The simulated apogee was within 10% on 31 and read low on 15, by at most 20%. This flight was flown
 in the standard atmosphere. On a day warmer than it at the site, the rocket can climb higher than
 this apogee; --weather flies the day's air. Plan a waiver or a field's ceiling with room above this
 apogee; the altimeter's reading is the one to log, and the RSO decides.
@@ -179,9 +179,9 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.7% above the logged one. HPR Sim flew each in its day's air from
+the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in its day's air from
 ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee
-was within 10% on 32 and read low on 15, by at most 20%. These flights were flown in the standard
+was within 10% on 31 and read low on 15, by at most 20%. These flights were flown in the standard
 atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;
 --weather flies the day's air. Plan a waiver or a field's ceiling with room above this apogee; the
 altimeter's reading is the one to log, and the RSO decides.
@@ -287,12 +287,12 @@ apogee missed by −0.08% ([report][real-report]). The example records no fin ed
 the design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 12 public flights HPR Sim's
-apogee missed by −29.16% to +10.40% one by one. It missed by 9.00% on average without signs, and
-by −4.91% with them. The average without signs is outside the project's own 5% target
+apogee missed by −29.16% to +10.40% one by one. It missed by 8.88% on average without signs, and
+by −4.64% with them. The average without signs is outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)).
 
 On these flights the misses go both ways and lean low, 7 of the 12 that way. On 60 logged flights
-of fliers' own designs they lean high, averaging +7.72% above the logged ones: no side can be
+of fliers' own designs they lean high, averaging +8.01% above the logged ones: no side can be
 assumed.
 [Trusting a simulation](trusting-a-simulation.md) sets the two beside each other and says which
 miss to plan for.

@@ -2447,10 +2447,9 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             "{id}"
         );
     }
-    // No prediction has been revised, so none carries a reason and the summary has no second
-    // set of means.
     // Each row's reason is its revision's in the code's list, and the means on the merged
-    // predictions are given exactly when that list holds one. Today it holds none.
+    // predictions are given exactly when that list holds one. Today it holds one: Erebus 11,
+    // revised by M1.14i3's base drag behind a boattail (ADR-362).
     for row in &report.predicted_first {
         let listed = REVISIONS.iter().find(|revision| revision.id == row.id);
         assert_eq!(
@@ -2468,9 +2467,10 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
         page.contains("No merged prediction has been revised"),
         REVISIONS.is_empty()
     );
-    assert!(
-        REVISIONS.is_empty(),
-        "this record: none revised when written"
+    assert_eq!(
+        REVISIONS.map(|revision| revision.id),
+        ["erebus-11"],
+        "this record: one revised when written"
     );
 
     // The means, worked here from the rows: over all 12, and over each part.
@@ -2658,14 +2658,20 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
 #[test]
 fn a_revised_prediction_gives_the_means_on_the_merged_ones_beside_todays() {
     // ADR-328 §1b's last clause: where any prediction was revised, the means are also given over
-    // the predictions as first merged. None has been, so this revises one in a copy of the
-    // committed report: Astra's flown apogee moved 100 m up, with a reason. (Whether a revision
-    // may stand at all is `held_to`'s, tested in the predictions' module.)
+    // the predictions as first merged. Erebus 11's has been (ADR-362); this revises one more in
+    // a copy of the committed report: Astra's flown apogee moved 100 m up, with a reason.
+    // (Whether a revision may stand at all is `held_to`'s, tested in the predictions' module.)
     use crate::real_flight::{REPORT_JSON, RealFlightReport, summarize};
     let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
     let mut report: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
     let same = crate::report::same_but_for_platform_rounding;
     let before = report.summary.mean_apogee_error_percent;
+    let before_on_merged = report
+        .summary
+        .on_merged_predictions
+        .as_ref()
+        .expect("Erebus 11's revision gives the means on the merged predictions")
+        .mean_apogee_error_percent;
 
     let astra = &mut report.predicted_first[0];
     assert_eq!(astra.id, "astra");
@@ -2723,7 +2729,7 @@ fn a_revised_prediction_gives_the_means_on_the_merged_ones_beside_todays() {
         on_merged.mean_absolute_apogee_error_percent,
         mean_absolute(&merged)
     ));
-    assert!((on_merged.mean_apogee_error_percent - before).abs() < 0.01);
+    assert!((on_merged.mean_apogee_error_percent - before_on_merged).abs() < 0.01);
 
     // The page says so, and keeps both numbers and both errors on the flight's row.
     report.summary = summary;
@@ -3106,12 +3112,15 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
         error.contains("astra") && error.contains("merged prediction is 3037.1 m"),
         "{error}"
     );
+    // Erebus 11 is held to its revision's height (ADR-362), not the one first merged.
     let lower = altered(&|report| report.flights[2].predicted_height_apogee_m -= 0.2);
     assert!(
         lower
             .check_consistent(&lower.to_markdown())
             .unwrap_err()
-            .contains("merged prediction is 2808.7 m")
+            .contains("its revision says 2856.5 m"),
+        "{}",
+        lower.check_consistent(&lower.to_markdown()).unwrap_err()
     );
     let recurved = altered(&|report| {
         report.flights[1]

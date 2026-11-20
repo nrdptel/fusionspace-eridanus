@@ -108,14 +108,14 @@ pub const Z_90: f64 = 1.644_853_626_951_472_2;
 
 /// The apogee height's shares of its bound (`Apogee::bound_m`), fitted on the calibration set.
 pub const APOGEE_HEIGHT_SHARES: Shares = Shares {
-    low: -0.63,
+    low: -0.631,
     high: 0.637,
 };
 
 /// The apogee time's shares of its bound (`Apogee::time_bound_s`), fitted on the calibration set.
 pub const APOGEE_TIME_SHARES: Shares = Shares {
-    low: -0.337,
-    high: 0.225,
+    low: -0.331,
+    high: 0.227,
 };
 
 /// Liftoff's shares of its bound (`Liftoff::bound_s`), fitted on the calibration set.
@@ -126,27 +126,27 @@ pub const LIFTOFF_SHARES: Shares = Shares {
 
 /// The top speed's shares of its bound (`MaxSpeed::bound_m_s`), fitted on the calibration set.
 pub const TOP_SPEED_SHARES: Shares = Shares {
-    low: -0.216,
+    low: -0.218,
     high: 0.265,
 };
 
 /// Landing's shares of its bound (`Landing::bound_s`), fitted on the calibration set.
 pub const LANDING_SHARES: Shares = Shares {
-    low: -0.332,
-    high: 0.157,
+    low: -0.335,
+    high: 0.156,
 };
 
 /// The flight time's shares of its bound (`FlightTime::bound_s`), fitted on the calibration set.
 pub const FLIGHT_TIME_SHARES: Shares = Shares {
-    low: -0.381,
-    high: -0.133,
+    low: -0.379,
+    high: -0.132,
 };
 
 /// The mean descent rate's shares of its bound (`Landing::mean_descent_rate_bound_m_s`), fitted
 /// on the calibration set.
 pub const DESCENT_RATE_SHARES: Shares = Shares {
-    low: -0.473,
-    high: 0.493,
+    low: -0.475,
+    high: 0.495,
 };
 
 /// The top acceleration's shares of its bound (`MaxAcceleration::bound_m_s2`), where it isn't a
@@ -159,7 +159,7 @@ pub const TOP_ACCELERATION_SHARES: Shares = Shares {
 /// Burnout's shares of its bound (`Burnout::bound_s`), where it isn't a floor, fitted on the
 /// calibration set.
 pub const BURNOUT_SHARES: Shares = Shares {
-    low: -0.0653,
+    low: -0.065,
     high: 0.0689,
 };
 
@@ -172,19 +172,19 @@ pub const DROGUE_RATE_SHARES: Shares = Shares {
 /// The main's opening's shares of its bound (`Opening::bound_s`), fitted on the calibration set.
 pub const MAIN_OPENING_SHARES: Shares = Shares {
     low: 0.138,
-    high: 0.566,
+    high: 0.567,
 };
 
 /// The main's rate's shares of its bound (`Descent::bound_m_s`), fitted on the calibration set.
 pub const MAIN_RATE_SHARES: Shares = Shares {
-    low: -0.572,
-    high: 0.583,
+    low: -0.574,
+    high: 0.586,
 };
 
 /// A burnout floor's shares of its bound (`Burnout::bound_s`), fitted on the calibration set.
 pub const BURNOUT_FLOOR_SHARES: FloorShares = FloorShares {
-    high: -0.0339,
-    median: -0.195,
+    high: -0.0335,
+    median: -0.194,
 };
 
 /// A top acceleration floor's shares of its bound (`MaxAcceleration::bound_m_s2`), fitted on the

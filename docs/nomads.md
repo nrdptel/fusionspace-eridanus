@@ -257,9 +257,9 @@ RAP   level (hPa)   height (m)   temperature (°C)   humidity (%)   wind (m/s)  
               100        16739              -70.8             10         13.0        211
 
 Calisto to apogee      apogee (m above the pad)   east of the pad (m)   north (m)
-GFS                                        2842.8                -253.0      -131.7
-RAP                                        2841.3                -204.3       -83.9
-standard, calm                             2826.9                  -5.1         0.0
+GFS                                        2875.5                -258.0      -133.9
+RAP                                        2874.1                -208.6       -85.2
+standard, calm                             2860.0                  -5.2         0.0
 ```
 
 `freshness: Fetched` means the answer came from the transport, not the cache. A second call within
@@ -276,10 +276,10 @@ west-southwest (242° and 246°). A rocket just off the rail, still slow, turns 
 ([weathercocking](glossary.md#weathercocking)) and flies that way.
 
 GFS's stronger wind near the ground turns Calisto further into the wind. Calisto ends 49 m (161 ft)
-further west and 48 m (157 ft) further south than in RAP's forecast. How much of that comes from
+further west and 49 m (161 ft) further south than in RAP's forecast. How much of that comes from
 the ground's wind and how much from the winds aloft isn't separated.
 
-The calm flight's 5.1 m (17 ft) west is Earth's rotation, as on the
+The calm flight's 5.2 m (17 ft) west is Earth's rotation, as on the
 [Launch-day weather](weather.md#an-example) page. A climbing rocket is pushed west (the Coriolis
 effect). Which model is nearer the air Calisto would have met isn't measured.
 

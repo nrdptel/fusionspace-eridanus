@@ -16,7 +16,7 @@ With each code's own drag ([predicted](glossary.md#same-drag-and-predicted-mode)
 differ from RocketPy's by −7.280% to +10.302% ([report][report]). The larger gaps are where its drag
 differs most from the example's.
 
-**Against the logs of 12 public real flights, HPR Sim's apogees miss by 9.00% on average, outside
+**Against the logs of 12 public real flights, HPR Sim's apogees miss by 8.88% on average, outside
 the 5% target ([evidence row G24](evidence.md#g24)). One by one they miss by −29.16% to +10.40%,
 and 7 of the 12 read low** ([real flights](#real-flights), [report][real-report]). Seven were
 compared as soon as they were flown. Of their five misses past 5%, four are consistent with HPR
@@ -25,8 +25,8 @@ Sim's drag, and one with the motor's impulse. Five were
 claimed for them. Seven of the 12 altimeters' kinds are assumed, and none is calibrated
 (evidence rows [G21](evidence.md#g21) and [G39](evidence.md#g39)).
 
-**Against 60 more flights from a private collection, HPR Sim's apogees are +7.72% above the logs on
-average. They miss by 12.04% (mean absolute), also outside the target. OpenRocket's are +6.72%
+**Against 60 more flights from a private collection, HPR Sim's apogees are +8.01% above the logs on
+average. They miss by 12.09% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
@@ -104,7 +104,7 @@ to the code that would move them is caught only when someone runs them again and
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
+| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 8.88% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
 
 <!-- census: end -->
 
@@ -267,7 +267,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [Mass properties](physics/mass.md) | ✓ | no | ✓ OpenRocket, the structure without motors, and the parts of its parts catalog | no |
 | [Solid motors](physics/motor.md) | ✓ | no | ✓ RocketPy, ThrustCurve.org; OpenRocket for a curve file's own numbers | no |
 | [Aerodynamics](physics/aero.md) | ✓ | ✓ Barrowman's examples; MIL-HDBK-762's drag example, fins left out: 6 of 12 within 10%, the body reading 6% to 10% low faster than sound | partial: drag and the normal force against RASAero II to Mach 2, the drag with the fins and finish guessed and 5% to 15% low faster than sound; and in whole flights, against a target | partial: in the seven flights compared first, four of the five apogees past 5% are consistent with its drag ([real flights](#real-flights), [report][real-report]); wind tunnel ✓: normal force, drag and boattails; the Arcas Robin's drag reads high at every speed |
-| [Rigid-body flight](physics/flight.md) | ✓ | no | ✓ RocketPy, with the drag given; and on each code's own drag, against a target; OpenRocket on 53 configurations of its examples ([results](format/ork.md#the-simulators-flights-against-openrockets)); the codes of NASA's check cases 1 to 3 and 6 to 10, on a free body under the cases' damping and drag ([results](physics/flight.md#a-free-body-against-nasas-check-cases)) | partial: 12 public logged flights, as a whole: apogees 9.00% off on average, outside the 5% target ([evidence row G24](evidence.md#g24)) ([real flights](#real-flights), [report][real-report]) |
+| [Rigid-body flight](physics/flight.md) | ✓ | no | ✓ RocketPy, with the drag given; and on each code's own drag, against a target; OpenRocket on 53 configurations of its examples ([results](format/ork.md#the-simulators-flights-against-openrockets)); the codes of NASA's check cases 1 to 3 and 6 to 10, on a free body under the cases' damping and drag ([results](physics/flight.md#a-free-body-against-nasas-check-cases)) | partial: 12 public logged flights, as a whole: apogees 8.88% off on average, outside the 5% target ([evidence row G24](evidence.md#g24)) ([real flights](#real-flights), [report][real-report]) |
 | [Time integration](physics/integration.md) | ✓ | no | partial: NASA's check case 2, together with the rigid-body equations, against the two of its codes that agree with each other | no |
 | [Recovery](physics/recovery.md) | ✓ | ✓ | ✓ RocketPy | no (drop tests ✓) |
 | [Staging](physics/staging.md) | ✓ ignition times, the mass step and momentum, against hand sums | no | ✓ OpenRocket: its two-stage, three-stage, cluster and air-start examples, every flight within 5% (three cluster apogees against OpenRocket's flight with no parachute, because its parachute opened before apogee) ([results](format/ork.md#staged-clustered-and-air-start-flights)) | no |
@@ -281,7 +281,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [A log against its simulation](comparing-a-flight.md) | ✓ the sign, a barometer's reading on a warm day and the clock on constructed flights; a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft) | no | partial: [each of the 7 public flights compared along the climb](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md) is reported, and its simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event; this reports residuals, and checks no claim about them | no |
 | [Ghost files](format/ghost-files.md) | ✓ each format read back by outside readers and held to the others within 1 cm (0.39 in) | no | ✓ [all 22 real flight logs in RocketPy's repository](evidence.md#g37) with an altitude or a GNSS track: of the 16 logs with a barometer's or a filtered height, 13 peak within 2% of a recorded apogee in RocketPy's notebooks and 3 about 0.3% from its simulated one; the two with only a receiver's altitude 4.9% and 5.9% over | no |
 | [The least-squares fit](physics/flight-fit.md) | ✓ each parameter's 90% interval passes on sets A and B of the synthetic flights, the wind's on logs with a track, sets seen while its model was chosen | no | no | no: no real flight with its inputs measured apart from its log yet ([evidence row G38](evidence.md#g38)) |
-| [The smoother](physics/smoother.md) | ✓ at burnout, the top speed, apogee and a drawn moment, the three sets' cells hold between 94.3% and 99.4% of the synthetic flights' truths inside its 90% intervals; two logger cells fall under 90%, 89.2% on set B and 89.7% on set A, which the check's rule allows; the test sets were seen while its rules were set ([how well](physics/smoother.md#how-well-it-holds)) | no | no | no: no real log with a truth taken apart from it yet ([evidence row G33](evidence.md#g33)) |
+| [The smoother](physics/smoother.md) | ✓ at burnout, the top speed, apogee and a drawn moment, the three sets' cells hold between 94.2% and 99.4% of the synthetic flights' truths inside its 90% intervals; two logger cells fall under 90%, 88.7% on set B and 89.2% on set A, which the check's rule allows; the test sets were seen while its rules were set ([how well](physics/smoother.md#how-well-it-holds)) | no | no | no: no real log with a truth taken apart from it yet ([evidence row G33](evidence.md#g33)) |
 | [Interpolation](physics/interpolation.md) | ✓ | no | no | no |
 | [Quadrature](physics/quadrature.md) | ✓ | no | no | no |
 
@@ -335,9 +335,9 @@ its reference and still pass.
 | [Solid motors](physics/motor.md#validation) | [OpenRocket](glossary.md#openrocket) 24.12's own reading of the same 32 curve files (total impulse, peak thrust, the 5%-of-peak burn-time window and the curve's duration) | every one bit for bit equal. Its average thrust divides the window's own impulse by the window where HPR Sim divides the whole curve's, so HPR Sim's is +0.0107% to +0.3147% higher (median +0.0965%). Nothing else in the motor model is compared with OpenRocket |
 | [Solid motors](physics/motor.md) | RocketPy's solid-motor model, on three bundled motors, at 203 times each | total mass and inertias within 7.9e-5 relative; the propellant's own mass and inertias within 1e-4 of their values at ignition |
 | [Aerodynamics](physics/aero.md) | [Barrowman's](glossary.md#barrowmans-method) five worked examples, at Mach 0 (low speed): each rocket's [normal-force slope](glossary.md#normal-force-slope) and [center of pressure](glossary.md#center-of-pressure-cp) | every center of pressure within 1%. Every slope within 1% too, except the six-fin Recruiter's: +2.87% (+3.42% on its fins alone) |
-| [Aerodynamics](physics/aero.md) | drag curves labeled [RASAero](glossary.md#rasaero-ii) in RocketPy's examples, at [Mach](glossary.md#mach-number) 0.3, with the fins and surface finish guessed because the curves don't record them | within 10% in four of seven cases; −18.3% for Cavour [power-on](glossary.md#power-on-and-power-off-drag) (motor burning), cause open |
+| [Aerodynamics](physics/aero.md) | drag curves labeled [RASAero](glossary.md#rasaero-ii) in RocketPy's examples, at [Mach](glossary.md#mach-number) 0.3, with the fins and surface finish guessed because the curves don't record them | within 10% in two of seven cases; two boattailed ones −10.3% and −11.5%; −18.3% for Cavour [power-on](glossary.md#power-on-and-power-off-drag) (motor burning), cause open |
 | [Aerodynamics](physics/aero.md) | Valetudo's drag table, which is 1.44 times the drag in the [OpenRocket](glossary.md#openrocket) export for the same rocket | −47.0% power-off and −50.4% power-on. Against the OpenRocket export, HPR Sim is 23.5% under as designed here, and 1.9% under with the export's own surface finish and launch lugs |
-| [Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2) | the same curves every 0.05 from Mach 0.1 to 2.0, as far as each reaches; Calisto's, the one real RASAero II export, to Mach 2 | Calisto within 10% at 15 of 15 subsonic Mach numbers, 3 of 7 transonic and 8 of 17 supersonic, where HPR Sim reads −14.9% to −5.1%, lowest at Mach 2 (−29.8% to −24.4% before the boattail's supersonic wave drag) ([evidence row G26](evidence.md#g26)). Other plausible fins put 14 to 17 of the 17 within 10%, though none puts every row within it, so most of what is left is within the unrecorded inputs; part of it is HPR Sim's body, which reads low faster than sound against MIL-HDBK-762 too |
+| [Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2) | the same curves every 0.05 from Mach 0.1 to 2.0, as far as each reaches; Calisto's, the one real RASAero II export, to Mach 2 | Calisto within 10% at 15 of 15 subsonic Mach numbers, 5 of 7 transonic and 8 of 17 supersonic, where HPR Sim reads −14.9% to −5.1%, lowest at Mach 2 (−29.8% to −24.4% before the boattail's supersonic wave drag) ([evidence row G26](evidence.md#g26)). Other plausible fins put 14 to 17 of the 17 within 10%, though none puts every row within it, so most of what is left is within the unrecorded inputs; part of it is HPR Sim's body, which reads low faster than sound against MIL-HDBK-762 too |
 | [Aerodynamics](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation) | MIL-HDBK-762's worked drag example, a rocket whose every term the handbook calculates, from Mach 0.5 to 3.2: a calculation with every input known, not a measurement. Its fins are sharp-edged wedges, which HPR Sim can't represent, so their pressure drag is left out on both sides | 6 of 12 within 10%. From Mach 0.9 to 1.2, +12.3% to +31.9%, mostly the nose and the base; from Mach 1.6, −6.0% to −9.6%, friction and the base |
 | [Rigid-body flight](physics/flight.md) | the exact motion of a tumbling, spinning rocket in a vacuum, over 22 s | the center of mass within 1.7e-6 m of the exact parabola |
 | [Rigid-body flight](physics/flight.md) | NASA's check case 2, a brick of three unequal moments of inertia tumbling for 30 s with no aerodynamics, against four codes' published histories, a fifth left out ([a free body against them](physics/flight.md#a-free-body-against-nasas-check-cases), [report][check-cases]) | the inertial body rates differ by up to 0.01077, 0.01633 and 0.005500 deg/s in roll, pitch and yaw, past the codes' spreads of 0.0008991, 0.001242 and 0.0003532 deg/s. HPR Sim's rotational equations leave the Earth's rate out ([#1521](https://github.com/nrdptel/fusionspace-eridanus/issues/1521)); that accounts for all but 0.0008818, 0.001005 and 0.0001268 deg/s at each code's largest difference, each inside the spread. Read at every sample instead, what is left is past the spread by up to 0.0000001701 deg/s |
@@ -705,8 +705,8 @@ drag curve for Calisto, Valetudo and Juno III, and a function of Mach for Promet
 ([case file][prometheus-predicted-case]). It's a constant for NDRT 2020 (0.44,
 [case file][ndrt-predicted-case]) and Bella Lui (0.43, [case file][bella-predicted-case]).
 
-**In short: HPR Sim's heights are within 3% of RocketPy's for Calisto (−0.609%), Bella Lui
-(+0.971%) and Juno III (+2.097%).** They're well above for Valetudo (+10.113%) and NDRT 2020
+**In short: HPR Sim's heights are within 3% of RocketPy's for Calisto (+0.601%), Bella Lui
+(+1.278%) and Juno III (+2.951%).** They're well above for Valetudo (+10.113%) and NDRT 2020
 (+10.302%), where HPR Sim's drag is well below the example's. They're below for Prometheus 2022
 (−7.280%), where its drag is above the example's through the coast ([report][report]). These are
 results, not a pass or fail.
@@ -724,47 +724,47 @@ Every predicted result of the report, as HPR Sim's difference from RocketPy:
 
 | case | apogee, % (`apogee_agl_m`) | apogee time, % (`apogee_time_s`) | flight time, % (`flight_time_s`) | top speed, % (`max_speed_m_s`) | top Mach, % (`max_mach`) |
 |---|--:|--:|--:|--:|--:|
-| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.609% | −0.567% | −0.288% | +0.363% | +0.232% |
+| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +0.601% | +0.209% | +0.411% | +0.500% | +0.371% |
 | [`predicted-valetudo`][report] | +10.113% | +6.179% | +8.916% | +2.292% | +2.237% |
 | [`predicted-ndrt-2020-nose-to-tail`][report] | +10.302% | +6.534% | +6.870% | +1.378% | +1.351% |
 | [`predicted-prometheus-2022-generic-motor`][report] | −7.280% | −4.920% | −4.978% | +1.280% | +1.069% |
-| [`predicted-juno-iii`][report] | +2.097% | +1.046% | +1.686% | +1.006% | +0.737% |
-| [`predicted-bella-lui`][report] | +0.971% | +0.536% | +0.748% | +0.241% | +0.154% |
+| [`predicted-juno-iii`][report] | +2.951% | +1.584% | +2.424% | +1.064% | +0.795% |
+| [`predicted-bella-lui`][report] | +1.278% | +0.732% | +1.011% | +0.273% | +0.185% |
 
 | case | rail-exit speed, % (`rail_exit_speed_m_s`) | rail-exit time, % (`rail_exit_time_s`) | burnout height, % (`burnout_altitude_agl_m`) | burnout speed, % (`burnout_speed_m_s`) | impact speed, % (`impact_speed_m_s`) |
 |---|--:|--:|--:|--:|--:|
-| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.009% | −0.071% | +0.240% | +0.526% | −0.020% |
+| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | −0.009% | −0.071% | +0.328% | +0.729% | −0.020% |
 | [`predicted-valetudo`][report] | +0.029% | −0.109% | +1.326% | +2.883% | +0.009% |
 | [`predicted-ndrt-2020-nose-to-tail`][report] | +0.000% | −0.087% | +0.723% | +1.532% | +0.022% |
 | [`predicted-prometheus-2022-generic-motor`][report] | +0.001% | −0.036% | +1.227% | +1.778% | −0.013% |
-| [`predicted-juno-iii`][report] | −0.001% | −0.143% | +0.772% | +1.129% | −0.003% |
-| [`predicted-bella-lui`][report] | −0.011% | −0.029% | +0.270% | +0.296% | +0.021% |
+| [`predicted-juno-iii`][report] | −0.001% | −0.143% | +0.799% | +1.195% | −0.003% |
+| [`predicted-bella-lui`][report] | −0.010% | −0.029% | +0.288% | +0.336% | +0.021% |
 
 | case | peak acceleration, burning, % (`max_acceleration_power_on_m_s2`) | peak acceleration, % (`max_acceleration_m_s2`) | peak acceleration time, % (`max_acceleration_time_s`) | apogee drift, % (`apogee_drift_m`) | landing drift, % (`landing_drift_m`) |
 |---|--:|--:|--:|--:|--:|
-| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +0.123% | +0.123% | +0.002% | −2.233% | +0.901% |
+| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +0.190% | +0.190% | +0.002% | −0.644% | +1.597% |
 | [`predicted-valetudo`][report] | +0.250% | +0.250% | −0.030% | +12.215% | +10.437% |
 | [`predicted-ndrt-2020-nose-to-tail`][report] | +0.656% | +83.059% | +9.646% | +12.259% | +12.648% |
 | [`predicted-prometheus-2022-generic-motor`][report] | +0.848% | +19.062% | −6.903% | −17.642% | −6.167% |
-| [`predicted-juno-iii`][report] | +0.105% | +0.105% | +0.002% | −36.078% | +40.482% |
-| [`predicted-bella-lui`][report] | +1.797% | +1.797% | −0.029% | −9.390% | −20.805% |
+| [`predicted-juno-iii`][report] | +0.119% | +0.119% | +0.002% | −35.049% | +41.058% |
+| [`predicted-bella-lui`][report] | +1.797% | +1.797% | −0.029% | −8.940% | −20.255% |
 
 The whole-trace numbers, in meters and meters per second, are defined as for the same-drag
 flights. [Valetudo's][valetudo-predicted-case], [NDRT 2020's][ndrt-predicted-case] and
 [Prometheus 2022's][prometheus-predicted-case] height RMS are outside the target. So is NDRT
 2020's speed RMS. They miss for the reason their apogees do: HPR Sim's own drag differs from those
 examples' drag. Each bound is 3% of that case's own RocketPy apogee or top speed, so it differs
-from the same-drag bound. Juno III's height RMS, 54.7 m (179 ft), is inside its 83.9 m (275 ft) here,
-at about two thirds of it ([report][report]).
+from the same-drag bound. Juno III's height RMS, 78.4 m (257 ft), is inside its 83.9 m (275 ft) here,
+at about nine tenths of it ([report][report]).
 
 | case | height RMS, m (`series_height_rms_m`) | height bound, m | speed RMS, m/s (`series_speed_rms_m_s`) | speed bound, m/s |
 |---|--:|--:|--:|--:|
-| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +12.4 | 84.6 | +0.331 | 7.4 |
+| [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +12.3 | 84.6 | +0.340 | 7.4 |
 | [`predicted-valetudo`][report] | +75.4 | 20.9 | +2.79 | 3.2 |
 | [`predicted-ndrt-2020-nose-to-tail`][report] | +116 | 38.1 | +6.78 | 5.5 |
 | [`predicted-prometheus-2022-generic-motor`][report] | +264 | 128.8 | +7.20 | 10.3 |
-| [`predicted-juno-iii`][report] | +54.7 | 83.9 | +0.927 | 6.8 |
-| [`predicted-bella-lui`][report] | +5.26 | 16.2 | +0.279 | 2.9 |
+| [`predicted-juno-iii`][report] | +78.4 | 83.9 | +1.13 | 6.8 |
+| [`predicted-bella-lui`][report] | +7.07 | 16.2 | +0.308 | 2.9 |
 
 Why the misses, largest first:
 
@@ -798,15 +798,15 @@ which drag is right. The [real flights](#real-flights) below start to, one rocke
 
 **In short: HPR Sim has flown 12 public real flights and compared each with its altitude log.
 Read the way each log's altimeter reads the air, HPR Sim's [apogees](glossary.md#apogee) miss the
-logs' by 9.00% on average. That's outside the 5% target ([evidence row G24](evidence.md#g24)).
-With its sign the mean is −4.91%, and 7 of the 12 read low ([report][real-report]).**
+logs' by 8.88% on average. That's outside the 5% target ([evidence row G24](evidence.md#g24)).
+With its sign the mean is −4.64%, and 7 of the 12 read low ([report][real-report]).**
 
 **Seven are RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b), flown in ERA5 weather
 and compared as soon as they were flown ([the decision][adr-082]). Their mean is 6.06%,
-and −0.22% with its sign. Five of them miss by more than 5%. Each has an explanation checked
+and +0.03% with its sign. Five of them miss by more than 5%. Each has an explanation checked
 against the report's numbers: four are consistent with HPR Sim's drag, and one with the motor's
 impulse. The other five flights were [predicted first](#predicted-before-compared). They miss by
-13.12% on average, and no explanation is claimed for them ([report][real-report]).**
+12.82% on average, and no explanation is claimed for them ([report][real-report]).**
 
 Seven of the 12 altimeters' kinds are assumed and none is calibrated (evidence rows
 [G21](evidence.md#g21) and [G39](evidence.md#g39)). In the ten designs built from
@@ -865,9 +865,9 @@ The kind of four of these seven altimeters is assumed rather than known
 ([evidence row G21](evidence.md#g21)), and so is the kind of the three EuRoC 2022 ones among the
 flights predicted first ([evidence row G39](evidence.md#g39)). Each row of the
 [report][real-report] gives its evidence. Reading all 12 logs as heights would give a mean of
-7.88%, but five logs are known to be barometric. Reading only the seven assumed ones as heights
-gives 9.14%: the target is missed either way. Read that way, among the seven compared first,
-Lince (+7.99%) would miss by more than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
+7.90%, but five logs are known to be barometric. Reading only the seven assumed ones as heights
+gives 9.01%: the target is missed either way. Read that way, among the seven compared first,
+Lince, read as a height at 3,898.7 m (12,791 ft) against its log's 3,587.7 m (11,771 ft), would miss by more than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
 [decision][adr-082]).
 
 Two logs also carry satellite (GNSS) heights, a geometric reference. Their barometric apogees are
@@ -901,20 +901,20 @@ repository. `cargo xtask real-flights` reads them from pinned copies of RocketPy
 
 | flight | log apogee (m) | HPR Sim apogee (m) | apogee error | HPR Sim as a height (m) | climb RMS (m) | error on the team's drag |
 |---|---:|---:|---:|---:|---:|---:|
-| [Bella Lui, EPFL, 2020][real-report] | 459.0 | 462.9 | +0.86% | 463.6 | 3.2 | +0.24% |
+| [Bella Lui, EPFL, 2020][real-report] | 459.0 | 464.0 | +1.10% | 464.7 | 3.7 | +0.24% |
 | [NDRT 2020, Notre Dame][real-report] | 1,320.4 | 1,457.6 | **+10.40%** | 1,432.8 | 89.9 | +0.17% |
 | [Prometheus, Western Engineering, 2022][real-report] ¹ | 3,895.8 | 3,549.3 | **−8.90%** | 3,809.9 | 190.9 | +0.45% |
-| [Juno III, Projeto Jupiter, 2023][real-report] | 3,151.5 | 2,923.4 | **−7.24%** | 3,174.5 | 228.8 | −9.05% |
+| [Juno III, Projeto Jupiter, 2023][real-report] | 3,151.5 | 2,950.2 | **−6.39%** | 3,203.1 | 219.2 | −9.05% |
 | [Cavour, Politecnico di Torino, 2023][real-report] | 2,785.0 | 2,946.0 | **+5.78%** | 3,052.1 | 124.6 | −2.15% |
 | [Genesis, EuRoC 2023][real-report] | 2,916.7 | 2,746.0 | **−5.85%** | 2,875.3 | 95.2 | −0.08% |
-| [Lince, EuRoC 2023][real-report] | 3,587.7 | 3,709.2 | +3.39% | 3,874.3 | 63.9 | −12.20% |
+| [Lince, EuRoC 2023][real-report] | 3,587.7 | 3,732.5 | +4.04% | 3,898.7 | 69.9 | −12.20% |
 
 ¹ Flown in the weather of the same day a year later, 2023, as RocketPy's example flies it. No
 file of the flight's day is available ([report][real-report]).
 
-Over these seven the mean absolute apogee error is 6.06%, and over all 12 it is 9.00%, against
+Over these seven the mean absolute apogee error is 6.06%, and over all 12 it is 8.88%, against
 the 5% target of the [validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
-Juno III's, 7.26% of its apogee ([report][real-report]). No target is set on the climb. The
+Juno III's, 6.95% of its apogee ([report][real-report]). No target is set on the climb. The
 [census](#the-census) counts each climb against a bar of 3% of its apogee, the bound three RocketPy
 comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
 
@@ -941,9 +941,9 @@ runs only where the pinned copies are. CI checks each claim against the committe
   a year after the flight. Against the satellite heights, HPR Sim's conversion reads 1 to 2 points
   below the altimeter, both here and on Juno III. Juno III flew in its own day's weather, so the
   wrong day's share of the miss can't be told apart.
-- Juno III is −7.24%, consistent with the motor's impulse. The notebook reshapes the team's
+- Juno III is −6.39%, consistent with the motor's impulse. The notebook reshapes the team's
   own motor curve to 8,800 N s, 4.9% less than the file. On the file as recorded (9,251.7 N s, its
-  negative end read as zero) the apogee is +1.13%. On the team's drag it's −9.05%
+  negative end read as zero) the apogee is +2.16%. On the team's drag it's −9.05%
   ([report][real-report]).
 - Cavour is +5.78%, consistent with HPR Sim's drag. On the curves the team labels RASAero II the
   apogee is −2.15% ([report][real-report]). HPR Sim's drag is below those curves, 8.3% at Mach 0.3
@@ -969,9 +969,9 @@ simulations saved in that design file, in standard air: no record gives the day'
 predicted [apogees](glossary.md#apogee) were merged, that is, committed to the project's public
 history, before any of them was compared with its log
 ([the predictions][predictions]; decisions: [the three][adr-334], [the two][adr-337]). Against
-their logs they miss by −6.53%, +4.14%, −9.58%, −16.20% and −29.16%. That is 13.12% on average,
-and −11.47% with its sign ([report][real-report], [the decision][adr-342]). No prediction was
-changed after it merged.**
+their logs they miss by −6.53%, +4.14%, −8.05%, −16.20% and −29.16%. That is 12.82% on average,
+and −11.16% with its sign ([report][real-report], [the decision][adr-342]). One prediction was
+revised after it merged, Erebus 11's, by a change to the base drag; both numbers are kept.**
 
 The seven flights above were compared as soon as they were flown. A number published only after
 its comparison could have been tuned to its own miss, even without meaning to. These five went the
@@ -980,17 +980,19 @@ predictions went onto `main` first. The comparison came in a later change, which
 prediction below beside its error
 ([twelve public flights, predictions first](decisions-and-roadmap.md#m2-3d)).
 
-| flight | impulse flown (N·s) | merged prediction (m) | log apogee (m) | apogee error | as a height climbed (m) | every input traced |
-|---|---:|---:|---:|---:|---:|---|
-| [Astra][real-report] ([Cesaroni 4263L1350-P][predictions]) | 4,280.2 | 3,037.1 | 3,249.5 | **−6.53%** | 3,155.4 | yes |
-| [Andromeda][real-report] ([its team's thrust file][predictions]) | 9,866.7 | 3,581.0 | 3,438.5 | +4.14% | 3,729.5 | no |
-| [Erebus 11][real-report] ([a Cesaroni Pro54 K, the example's thrust file][predictions]) | 2,418.2 | 2,714.1 | 3,001.8 | **−9.58%** | 2,808.7 | yes |
-| [Macie XL, flight 1][real-report] ([AeroTech I284W][predictions]) | 599.5 | 706.2 | 842.8 | **−16.20%** | 706.3 | no |
-| [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
+| flight | impulse flown (N·s) | merged prediction (m) | flown today (m) | log apogee (m) | apogee error | as a height climbed (m) | every input traced |
+|---|---:|---:|---:|---:|---:|---:|---|
+| [Astra][real-report] ([Cesaroni 4263L1350-P][predictions]) | 4,280.2 | 3,037.1 | 3,037.1 | 3,249.5 | **−6.53%** | 3,155.4 | yes |
+| [Andromeda][real-report] ([its team's thrust file][predictions]) | 9,866.7 | 3,581.0 | 3,581.0 | 3,438.5 | +4.14% | 3,729.5 | no |
+| [Erebus 11][real-report] ([a Cesaroni Pro54 K, the example's thrust file][predictions]) | 2,418.2 | 2,714.1 | 2,760.1 | 3,001.8 | **−8.05%** | 2,856.5 | yes |
+| [Macie XL, flight 1][real-report] ([AeroTech I284W][predictions]) | 599.5 | 706.2 | 706.2 | 842.8 | **−16.20%** | 706.3 | no |
+| [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
 
-The error is of the apogee flown today, which is the merged prediction to the digit printed.
-Worked from the printed numbers, the errors are −6.54%, −16.21% and −29.17% for Astra and the
-two Macie XL flights, and the same for the other two ([report][real-report]).
+The error is of the apogee flown today, which for four of the five is the merged prediction to
+the digit printed. Worked from the printed numbers, the errors are −6.54%, −16.21% and −29.17%
+for Astra and the two Macie XL flights, and the same for the other two. Erebus 11 flies 46.0 m (151 ft)
+higher than its merged prediction since [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) relieved the base behind a boattail below Mach
+0.8; its merged prediction missed by −9.58% ([report][real-report]).
 
 **What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
 [report][real-report] claims no explanation for them. The two diagnostics it flies among the seven, each team's drag
@@ -999,9 +1001,9 @@ and Juno III's thrust file as recorded, aren't flown for these five, and their c
 does give is each flight's tags, written before the comparison.
 
 Astra and Erebus 11 are the two tagged as having every input traced. Over those two the mean is
-8.06%, and −8.06% with its sign. The seven compared first carry no tag, because they were compared
+7.29%, and −7.29% with its sign. The seven compared first carry no tag, because they were compared
 before tags existed, so they are counted in neither tagged group. Over
-the 10 flights flown in ERA5 weather the mean is 6.27%, and −1.35% with its sign
+the 10 flights flown in ERA5 weather the mean is 6.12%, and −1.03% with its sign
 ([report][real-report], [the decision][adr-342]).
 
 **How each log is read.** By the rule merged with its prediction, which a test holds the reader
@@ -1014,8 +1016,9 @@ whose [digest](glossary.md#digest) was committed with its prediction.
 **A prediction that changes.** A merged prediction is never edited. If a later change to HPR Sim
 or to an input moves one, `cargo xtask real-flights` fails until the code lists a revision for
 it: the number flown now, and the reason. The report then prints both numbers and both errors,
-and gives the means over the merged predictions too. No prediction has been revised
-([the decision][adr-342]).
+and gives the means over the merged predictions too. One has been: Erebus 11, by [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md).
+On the predictions as first merged, the 12 flights miss by 9.01% on average, and by −4.76%
+with the sign ([report][real-report]).
 
 The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
 read in the air the flight is flown in: the day's for the three EuRoC 2022 flights, the stored
@@ -1112,9 +1115,9 @@ maintainer's statement; no check can show it.
 
 RocketPy and the Macie XL repository had published the measured apogees before the predictions
 were made. Each log was also looked at, for its columns and for a spike near its peak, before its
-rule was fixed. The code keeps the merged apogees as first merged, to the digit the page prints. A
-test that CI runs fails a committed report whose prediction has moved from them with no revision
-listed.
+rule was fixed. The code keeps the merged apogees as first merged, to the digit the page prints,
+and Erebus 11's revision beside its own ([report][real-report]). A test that CI runs fails a committed report whose
+prediction has moved from them with no revision listed.
 
 **Flying them again** needs RocketPy's files and the Macie XL repository's, which CI doesn't
 have. After `cargo xtask refs fetch rocketpy rocketry-files` and the weather file's
@@ -1130,7 +1133,7 @@ These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c
 ([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
 catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
 60 real flights in the weather of their day. Both over-predict: HPR Sim's
-[apogees](glossary.md#apogee) are +7.72% above the logs on average (mean absolute 12.04%),
+[apogees](glossary.md#apogee) are +8.01% above the logs on average (mean absolute 12.09%),
 OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
@@ -1145,7 +1148,7 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
-On them HPR Sim misses by 16.26% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.42%
+On them HPR Sim misses by 16.34% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.45%
 and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
 the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
 compared only once its prediction, made with no logged apogee, has its hash merged first.
@@ -1194,10 +1197,10 @@ figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 
 | [over 60 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.72% | +6.69% | 12.04% | 14 | 32 |
+| [HPR Sim][fixture-report] | +8.01% | +7.60% | 12.09% | 12 | 31 |
 | [OpenRocket 24.12][fixture-report] | +6.72% | +6.08% | 11.26% | 13 | 31 |
-| [HPR Sim in OpenRocket's air][fixture-report] | +7.87% | +6.50% | 12.14% | 14 | 31 |
-| [HPR Sim against OpenRocket][fixture-report] | +0.90% | +0.53% | 1.63% | 59 | 60 |
+| [HPR Sim in OpenRocket's air][fixture-report] | +8.15% | +7.60% | 12.19% | 12 | 30 |
+| [HPR Sim against OpenRocket][fixture-report] | +1.18% | +0.95% | 1.73% | 59 | 60 |
 
 Each error is the simulated apogee less the logged one, over the logged one, in percent. So a
 positive error is a prediction above the log. The mean absolute error averages the errors without
@@ -1211,7 +1214,7 @@ strictly smaller than that, either way ([report][fixture-report]).
 
 The last row above is over the 60 flights compared with a log. Both codes fly 68: those 60 and
 the 8 left out of the errors above, which the split can use because it needs no log. Over the
-68, HPR Sim's apogee is +0.71% above OpenRocket's on average (mean absolute 1.61%,
+68, HPR Sim's apogee is +0.98% above OpenRocket's on average (mean absolute 1.68%,
 [report][fixture-report]). [The split](decisions-and-roadmap.md#m2-3c12) ([decision][adr-349])
 sizes how much of that gap each input carries. HPR Sim flies each flight again with OpenRocket's
 own inputs in place of its own, one after another, each added to the ones before:
@@ -1239,13 +1242,13 @@ The last column counts the flights where a part's absolute value is over 1%
 | [over 68 flights][fixture-report] | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|
 | [thrust][fixture-report] | +0.00% | +0.00% | 0.00% | 0 | 0 |
-| [mass][fixture-report] | +0.10% | +0.00% | 0.10% | 0 | 1 |
-| [drag][fixture-report] | +0.58% | +0.44% | 1.57% | 59 | 31 |
-| [other][fixture-report] | +0.03% | +0.01% | 0.26% | 9 | 4 |
+| [mass][fixture-report] | +0.10% | +0.00% | 0.10% | 1 | 1 |
+| [drag][fixture-report] | +0.85% | +0.76% | 1.64% | 61 | 39 |
+| [other][fixture-report] | +0.03% | +0.01% | 0.26% | 6 | 4 |
 | [other: the air][fixture-report] | −0.15% | −0.17% | 0.25% | | |
 | [other: the rest][fixture-report] | +0.18% | +0.19% | 0.33% | | |
-| [the whole][fixture-report] | +0.71% | +0.50% | 1.61% | | |
-| [drag, swapped first][fixture-report] | +0.58% | +0.44% | 1.57% | | |
+| [the whole][fixture-report] | +0.98% | +0.85% | 1.68% | | |
+| [drag, swapped first][fixture-report] | +0.85% | +0.76% | 1.64% | | |
 
 All 68 flights are split. None lacks an input in OpenRocket's record, none is refused by
 HPR Sim, and none fails the check on the thrust and mass swaps
@@ -1253,9 +1256,9 @@ HPR Sim, and none fails the check on the thrust and mass swaps
 
 What the rows say:
 
-- **Drag is most of the gap.** It is the largest part on 59 of the 68 flights, and its mean
-  absolute value, 1.57%, is nearly the whole's 1.61% ([report][fixture-report]). Its sign varies from flight to flight:
-  its mean is +0.58%. Swapped first instead of third, its mean, median and mean absolute value
+- **Drag is most of the gap.** It is the largest part on 61 of the 68 flights, and its mean
+  absolute value, 1.64%, is nearly the whole's 1.68% ([report][fixture-report]). Its sign varies from flight to flight:
+  its mean is +0.85%. Swapped first instead of third, its mean, median and mean absolute value
   are the drag row's to the report's two decimals. The report takes no other order.
 - **Thrust is nil.** Both codes fly the same thrust curve for each motor. Swapping in the
   thrust OpenRocket made of it moves the apogee by 0.00% on average, to the report's two
@@ -1306,8 +1309,8 @@ tangent-ogive noses above Mach 1. And the drag part is split
 
 > **How far to trust it.** The split is code against code. It sizes where the two simulators
 > differ, and says nothing about which is nearer a real flight. Over the 60 compared, each
-> code's mean absolute miss from the logs (12.04% and 11.26%) is about seven times the mean
-> absolute gap between the two (1.63%, [report][fixture-report]). The thrust and mass swaps are
+> code's mean absolute miss from the logs (12.09% and 11.26%) is about seven times the mean
+> absolute gap between the two (1.73%, [report][fixture-report]). The thrust and mass swaps are
 > checked on every flight: flown on its own thrust and mass, sampled at OpenRocket's times, each
 > flight must come back to its own apogee within 0.05%. The largest miss was 0.018%
 > ([report][fixture-report]). The paragraph above gives the split's limits.
@@ -1315,7 +1318,7 @@ tangent-ogive noses above Mach 1. And the drag part is split
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
-([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.33% (mean absolute 9.42%) and
+([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.70% (mean absolute 9.46%) and
 OpenRocket +2.41% (8.81%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
@@ -1343,7 +1346,7 @@ keeps in tier A ([report][fixture-report]):
 
 | [over 49 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +6.96% | +6.27% | 11.54% | 11 | 27 |
+| [HPR Sim][fixture-report] | +7.30% | +7.10% | 11.60% | 9 | 26 |
 | [OpenRocket 24.12][fixture-report] | +6.09% | +5.84% | 10.84% | 10 | 26 |
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 68, and each cause of the rest has an open
@@ -1430,8 +1433,8 @@ tangent-ogive nose: 5 of the 68. All 5 are swapped ([report][fixture-report]).
 | [over the 5 flights swapped][fixture-report] | mean | median | mean absolute |
 |---|---:|---:|---:|
 | [the nose's pressure drag above Mach 1][fixture-report] | −1.28% | −1.33% | 1.28% |
-| [the rest of the drag][fixture-report] | −0.68% | +0.90% | 2.27% |
-| [the drag part][fixture-report] | −1.96% | +0.51% | 2.65% |
+| [the rest of the drag][fixture-report] | −0.43% | +0.90% | 2.02% |
+| [the drag part][fixture-report] | −1.71% | +0.51% | 2.40% |
 
 What the rows say:
 
@@ -1445,10 +1448,10 @@ What the rows say:
   ([the probe](physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412)). So the line sizes how the two codes' noses
   differ just past Mach 1, not the near-zero drag OpenRocket gives from Mach 1.3 up. It says
   nothing of a faster flight.
-- **The rest of the drag is larger in mean absolute value, and of either sign.** It is 2.27%
-  against the nose's 1.28%, with a mean of −0.68% and a median of +0.90%
+- **The rest of the drag is larger in mean absolute value, and of either sign.** It is 2.02%
+  against the nose's 1.28%, with a mean of −0.43% and a median of +0.90%
   ([report][fixture-report]). In the means the nose is most of the drag part, −1.28% of
-  −1.96%, because the rest's positive and negative flights partly cancel.
+  −1.71%, because the rest's positive and negative flights partly cancel.
 
 A flight of the line that can't be swapped is counted under a reason. *The column* here is
 OpenRocket's pressure drag for the nose against Mach number, as recorded for that design. The
@@ -1520,10 +1523,10 @@ flight where they don't. All 68 flights split are split by band ([report][fixtur
 
 | [over 68 flights][fixture-report] | flights with a part in it | mean | median | mean absolute | mean absolute over those flights | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| [below Mach 0.8][fixture-report] | 68 | +0.15% | +0.19% | 0.87% | 0.87% | 45 | 16 |
-| [Mach 0.8 to 1.2][fixture-report] | 28 | +0.20% | +0.00% | 0.50% | 1.21% | 16 | 9 |
+| [below Mach 0.8][fixture-report] | 68 | +0.39% | +0.29% | 0.94% | 0.94% | 50 | 24 |
+| [Mach 0.8 to 1.2][fixture-report] | 28 | +0.24% | +0.00% | 0.48% | 1.16% | 11 | 9 |
 | [above Mach 1.2][fixture-report] | 7 | +0.23% | +0.00% | 0.23% | 2.21% | 7 | 7 |
-| [the drag part][fixture-report] | 68 | +0.58% | +0.44% | 1.57% | | | |
+| [the drag part][fixture-report] | 68 | +0.85% | +0.76% | 1.64% | | | |
 
 The mean, the median and the mean absolute value are over all 68 flights, zeros included, so
 the two faster bands' medians are +0.00%: most flights have no part there. The next column is
@@ -1531,15 +1534,15 @@ over the band's own flights only ([report][fixture-report]).
 
 What the rows say:
 
-- **Below Mach 0.8 is the largest band.** Its mean absolute part is 0.87% of the apogee,
-  against 0.50% and 0.23%, and it dominates 45 of the 68 flights ([report][fixture-report]).
+- **Below Mach 0.8 is the largest band.** Its mean absolute part is 0.94% of the apogee,
+  against 0.48% and 0.23%, and it dominates 50 of the 68 flights ([report][fixture-report]).
   Every flight has a part in it.
 - **The faster bands are larger where they act.** Over the flights with a part in them, the
-  mean absolute part is 1.21% from Mach 0.8 to 1.2 and 2.21% above Mach 1.2
+  mean absolute part is 1.16% from Mach 0.8 to 1.2 and 2.21% above Mach 1.2
   ([report][fixture-report]). They rank lower over the collection because their swaps change
   fewer flights: 28 and 7.
-- **Below Mach 0.8 the sign varies from flight to flight.** The mean is +0.15% against a mean
-  absolute 0.87% ([report][fixture-report]).
+- **Below Mach 0.8 the sign varies from flight to flight.** The mean is +0.39% against a mean
+  absolute 0.94% ([report][fixture-report]).
 - **Above Mach 1.2 HPR Sim's drag is the lower.** Over the 7 flights with a part in that band,
   its mean and its mean absolute value are both 2.21%, and each of the 7 is over 1%. So its
   part is positive on each of the 7 ([report][fixture-report],
@@ -1549,7 +1552,7 @@ Each swap changes the speed the next band is flown at, so a band's part depends 
 before it. To check that, each band is also swapped alone, first: on HPR Sim's own thrust and
 mass, with its own drag in the other two bands.
  Over the collection the two ways give sizes within 0.01 points of each other:
-alone, the three bands' mean absolute parts are 0.87%, 0.50% and 0.24%
+alone, the three bands' mean absolute parts are 0.94%, 0.48% and 0.24%
 ([report][fixture-report]).
 
 **Beside the logs.** Four kinds of flight are set beside the logged apogees of the 60 flights
@@ -1564,22 +1567,22 @@ own flight of the same design.
 
 | [HPR Sim's drag, over 60 flights][fixture-report] | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
 |---|---:|---:|---:|---:|---:|---:|
-| [its own][fixture-report] | | +7.72% | +6.69% | 12.04% | | |
-| [OpenRocket's below Mach 0.8, its own above][fixture-report] | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
-| [OpenRocket's from Mach 0.8 to 1.2, its own elsewhere][fixture-report] | 25 | +7.44% | +6.78% | 11.79% | 14 | 11 |
-| [OpenRocket's above Mach 1.2, its own below][fixture-report] | 7 | +7.44% | +5.99% | 11.86% | 6 | 1 |
-| [OpenRocket's at every Mach number][fixture-report] | 60 | +6.85% | +6.33% | 11.27% | 33 | 27 |
-| [OpenRocket's own flight, for comparison][fixture-report] | 60 | +6.72% | +6.08% | 11.26% | 36 | 24 |
+| [its own][fixture-report] | | +8.01% | +7.60% | 12.09% | | |
+| [OpenRocket's below Mach 0.8, its own above][fixture-report] | 60 | +7.45% | +6.77% | 11.68% | 38 | 22 |
+| [OpenRocket's from Mach 0.8 to 1.2, its own elsewhere][fixture-report] | 25 | +7.68% | +7.46% | 11.81% | 16 | 9 |
+| [OpenRocket's above Mach 1.2, its own below][fixture-report] | 7 | +7.72% | +6.66% | 11.91% | 6 | 1 |
+| [OpenRocket's at every Mach number][fixture-report] | 60 | +6.85% | +6.33% | 11.27% | 38 | 22 |
+| [OpenRocket's own flight, for comparison][fixture-report] | 60 | +6.72% | +6.08% | 11.26% | 40 | 20 |
 
 - **On OpenRocket's whole drag, HPR Sim's mean absolute error is OpenRocket's to 0.01
   points:** 11.27% against 11.26%. Its mean stays above OpenRocket's, +6.85% against +6.72%,
   and so does its median, +6.33% against +6.08% ([report][fixture-report]).
 - **The band below Mach 0.8 moves the score the most.** Its swap alone takes HPR Sim's mean
-  absolute error from 12.04% to 11.65%. The band from Mach 0.8 to 1.2 takes it to 11.79%, and
-  the one above Mach 1.2 to 11.86%. Part of that is reach: the first swap moves all 60
+  absolute error from 12.09% to 11.68%. The band from Mach 0.8 to 1.2 takes it to 11.81%, and
+  the one above Mach 1.2 to 11.91%. Part of that is reach: the first swap moves all 60
   flights, the others 25 and 7 ([report][fixture-report]).
-- **Not every flight comes nearer.** With OpenRocket's drag below Mach 0.8, 39 flights come
-  nearer their log and 21 go farther ([report][fixture-report]).
+- **Not every flight comes nearer.** With OpenRocket's drag below Mach 0.8, 38 flights come
+  nearer their log and 22 go farther ([report][fixture-report]).
 
 As a worked example on designs anyone can run, take the two public test rockets of
 [the split](#the-gap-between-the-two-codes-by-cause).
@@ -1593,10 +1596,10 @@ those ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xta
 `the_public_flights_split_by_band`). From a clone, `cargo test -p xtask drag_bands` runs it,
 with neither OpenRocket nor the private flights.
 
-**What it decided.** The band below Mach 0.8 is worked on next:
+**What it decided.** The band below Mach 0.8 was worked on next:
 [M1.14i, drag below Mach 0.8](decisions-and-roadmap.md#m1-14i)
 ([the decision that orders the work][adr-359]). Over these flights it has the largest mean
-absolute part, 0.87% against 0.50% and 0.23%, and it dominates the most of them
+absolute part, 0.94% against 0.48% and 0.23%, and it dominates the most of them
 ([report][fixture-report]). The faster bands are larger where they act, but on 28 and 7
 flights; they keep the steps they had. The steps
 [the accuracy work](decisions-and-roadmap.md#m1-14) takes by Mach band began at Mach 0.8, so
@@ -1621,7 +1624,7 @@ the drag difference by the term of the drag it comes from: friction, pressure an
 [base drag](glossary.md#base-drag), over the same 68 flights
 ([report][fixture-report]; [M1.14i2, the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2),
 [decision][adr-359]). It is for anyone asking which of HPR Sim's drag models to check first.
-The largest term is the base drag, almost all of it while the motor burns; the pressure term,
+The largest term is the base drag, four fifths of it while the motor burns; the pressure term,
 of the other sign, cancels part of it. Like the bands, the parts are code against code. A measured reference of that term is then the check
 ([below](#the-base-under-power-against-a-measured-flight)).
 
@@ -1658,10 +1661,10 @@ are split by term ([report][fixture-report]).
 | [over 68 flights][fixture-report] | flights with a part in it | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|---:|
 | [friction][fixture-report] | 68 | −0.17% | −0.16% | 0.17% | 0 | 0 |
-| [pressure, launch lugs and rail buttons among it][fixture-report] | 68 | −0.63% | −0.11% | 0.65% | 18 | 12 |
-| [base][fixture-report] | 68 | +0.95% | +0.55% | 0.95% | 50 | 22 |
+| [pressure, launch lugs and rail buttons among it][fixture-report] | 68 | −0.64% | −0.11% | 0.66% | 17 | 12 |
+| [base][fixture-report] | 68 | +1.20% | +0.91% | 1.20% | 51 | 33 |
 | [the rest: stated drag coefficients][fixture-report] | 0 | +0.00% | +0.00% | 0.00% | 0 | 0 |
-| [the part below Mach 0.8][fixture-report] | 68 | +0.15% | +0.19% | 0.87% | | |
+| [the part below Mach 0.8][fixture-report] | 68 | +0.39% | +0.29% | 0.94% | | |
 
 A term dominates a flight when its part is the largest of the four in absolute value, and the
 last column counts the flights where its part is over 1% of the apogee
@@ -1669,19 +1672,22 @@ last column counts the flights where its part is over 1% of the apogee
 
 What the rows say:
 
-- **The base is the largest term.** Its mean absolute part is 0.95% of the apogee, against
-  0.65% for pressure and 0.17% for friction, and it dominates 50 of the 68 flights
+- **The base is the largest term.** Its mean absolute part is 1.20% of the apogee, against
+  0.66% for pressure and 0.17% for friction, and it dominates 51 of the 68 flights
   ([report][fixture-report]). It is positive: HPR Sim's base drag is the lower of the two.
-- **The base difference is the base under power.** Coasting, the two codes' base drag agree:
-  0.13170 against 0.13170 at Mach 0.3 on the public test rocket, a test's pinned numbers
+- **Most of the base difference is the base under power.** On a flat base, coasting, the two
+  codes' base drag agree: 0.13170 against 0.13170 at Mach 0.3 on the public test rocket, a test's
+  pinned numbers
   ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_terms/tests.rs),
   `both_codes_terms_are_pinned_at_mach_0_3_and_0_6`). While a motor burns, HPR Sim takes the
-  burning motor's cross-section off the base, and OpenRocket 24.12 keeps the whole base. Swapped
-  alone, the base moves HPR Sim's apogee by a mean absolute 0.93%; swapped only while a motor
-  burns, by 0.92% ([report][fixture-report]).
+  burning motor's cross-section off the base, and OpenRocket 24.12 keeps the whole base. Behind a
+  boattail below Mach 0.8, HPR Sim keeps $d_B/d_1$ of the flat-base value and OpenRocket all of it,
+  since [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) ([below](#the-base-under-power-against-a-measured-flight)). Swapped alone, the base
+  moves HPR Sim's apogee by a mean absolute 1.17%; swapped only while a motor burns, by 0.94%
+  ([report][fixture-report]).
 - **Pressure and the base partly cancel.** The pressure term is negative, HPR Sim's the higher.
-  Its mean, −0.63%, is far from its median, −0.11%, and it is over 1% on 12 flights. That is
-  why the band's mean, +0.15%, is much smaller than its mean absolute part, 0.87%
+  Its mean, −0.64%, is far from its median, −0.11%, and it is over 1% on 12 flights. That is
+  why the band's mean, +0.39%, is smaller than its mean absolute part, 0.94%
   ([report][fixture-report]).
 - **Friction is small.** Its part never dominates a flight ([report][fixture-report]). On the
   public test rocket HPR Sim's friction is the higher: 0.30690 against OpenRocket's 0.30310 at
@@ -1696,14 +1702,14 @@ the bands' ([report][fixture-report]).
 
 | [HPR Sim's drag, over 60 flights][fixture-report] | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
 |---|---:|---:|---:|---:|---:|---:|
-| [its own][fixture-report] | | +7.72% | +6.69% | 12.04% | | |
-| [OpenRocket's friction below Mach 0.8][fixture-report] | 60 | +7.90% | +6.82% | 12.12% | 15 | 45 |
-| [OpenRocket's pressure below Mach 0.8][fixture-report] | 60 | +8.34% | +7.73% | 12.16% | 23 | 37 |
-| [OpenRocket's base below Mach 0.8][fixture-report] | 60 | +6.64% | +6.40% | 11.45% | 45 | 15 |
-| [OpenRocket's rest below Mach 0.8][fixture-report] | 0 | +7.72% | +6.69% | 12.04% | 0 | 0 |
-| [OpenRocket's whole drag below Mach 0.8][fixture-report] | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
+| [its own][fixture-report] | | +8.01% | +7.60% | 12.09% | | |
+| [OpenRocket's friction below Mach 0.8][fixture-report] | 60 | +8.19% | +7.74% | 12.18% | 15 | 45 |
+| [OpenRocket's pressure below Mach 0.8][fixture-report] | 60 | +8.63% | +8.23% | 12.21% | 23 | 37 |
+| [OpenRocket's base below Mach 0.8][fixture-report] | 60 | +6.67% | +6.63% | 11.49% | 45 | 15 |
+| [OpenRocket's rest below Mach 0.8][fixture-report] | 0 | +8.01% | +7.60% | 12.09% | 0 | 0 |
+| [OpenRocket's whole drag below Mach 0.8][fixture-report] | 60 | +7.45% | +6.77% | 11.68% | 38 | 22 |
 
-On OpenRocket's base alone, HPR Sim's mean absolute error falls from 12.04% to 11.45%, more
+On OpenRocket's base alone, HPR Sim's mean absolute error falls from 12.09% to 11.49%, more
 than on OpenRocket's whole drag below Mach 0.8, and 45 of the 60 flights come nearer their log
 ([report][fixture-report]). Its friction and its pressure alone each take HPR Sim farther from
 the logs. That doesn't show OpenRocket's base rule is the truer one: both codes climb above
@@ -1747,24 +1753,33 @@ the base. The jet leaves below the outside air's pressure, past fixed vanes in i
 ([the model's sizes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
 
 **HPR Sim's rule and OpenRocket's.** Below Mach 0.8, HPR Sim's base drag coefficient on the
-base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base. In a
+base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base, and
+behind a boattail it keeps $d_B/d_1$ of that, the base's diameter over the boattail's fore diameter
+(the largest, where the boattail starts at it): a conical
+afterbody's base drag scales with that ratio cubed on the largest cross-section where the
+rule on the base's area scales with its square (Stoney, NASA TR R-100, 1961, p. 11, from
+tunnel data; [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md),
+which this reference decided). In a
 flight, with the motor burning, HPR Sim takes the motor case's area off the base, down to zero.
 Here the case is wider than the base, so as HPR Sim flies it there is no base drag under power.
 Given only the nozzle exit's area, which is what this base holds of the motor, the same rule
 leaves the ring of base around the exit, the area the report measured on: that tests the
-coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power,
-which is the coasting value. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
-on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, so coasting HPR Sim
-gives 0.0661. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle
-exit HPR Sim gives 0.0403, and with the case off 0. The flight measured 0.0105 coasting and
-0.0244 under power ([fixture report][fixture-report]).
+coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power, on
+the flat-base rule with no relief behind a boattail: $1/0.6$ times the table's last column,
+which is the whole base on HPR Sim's coefficient. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
+on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, and behind the cone
+it keeps $4.8/8 = 0.6$ of the rule, so coasting HPR Sim gives $0.1837 \times 0.36 \times 0.6 =
+0.0397$. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle exit
+HPR Sim gives 0.0242, and with the case off 0. The flight measured 0.0105 coasting and 0.0244
+under power ([fixture report][fixture-report]). Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) the base kept the
+whole rule behind a boattail, $1/0.6$ times as much coasting.
 
-| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole-base rule's base drag coefficient, under power |
+| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power, on HPR Sim's coefficient |
 |---:|---:|---:|---:|---:|---:|---:|
-| [0.65][fixture-report] | 0.0127 | 0.0630 | 0.0270 | 0.0000 | 0.0384 | 0.0630 |
-| [0.70][fixture-report] | 0.0105 | 0.0661 | 0.0244 | 0.0000 | 0.0403 | 0.0661 |
-| [0.75][fixture-report] | 0.0096 | 0.0695 | 0.0221 | 0.0000 | 0.0424 | 0.0695 |
-| [0.79][fixture-report] | 0.0086 | 0.0724 | 0.0204 | 0.0000 | 0.0441 | 0.0724 |
+| [0.65][fixture-report] | 0.0127 | 0.0378 | 0.0270 | 0.0000 | 0.0230 | 0.0378 |
+| [0.70][fixture-report] | 0.0105 | 0.0397 | 0.0244 | 0.0000 | 0.0242 | 0.0397 |
+| [0.75][fixture-report] | 0.0096 | 0.0417 | 0.0221 | 0.0000 | 0.0254 | 0.0417 |
+| [0.79][fixture-report] | 0.0086 | 0.0434 | 0.0204 | 0.0000 | 0.0265 | 0.0434 |
 
 ([fixture](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json),
 written by `cargo xtask aero`; the same rows are in the [fixture report][fixture-report])
@@ -1772,19 +1787,25 @@ written by `cargo xtask aero`; the same rows are in the [fixture report][fixture
 What the rows say. Which way each rule errs, past the stated error and the reading, is held by a
 test
 ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/aero_base_power/tests.rs),
-`the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag`):
+`the_power_off_rule_reads_high_the_flown_power_on_rule_low`, with two mutation probes in
+[ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)):
 
 - **Under power, HPR Sim's rule as it flies reads low**, by 0.0204 to 0.0270: it leaves no base
   drag where the flight measured some. Too little drag gives too high an apogee: the optimistic
   side for a flier aiming at a target altitude, not the side that flatters a flight near a
   waiver's ceiling ([which error flatters](drag-through-mach-1.md#which-error-flatters);
   [fixture report][fixture-report]).
-- **Given the nozzle exit instead, the same rule reads high,** by 0.0114 to 0.0237, and the whole
-  base by 0.0360 to 0.0520. No row is within the stated error and the reading together, ±0.006
-  ([fixture report][fixture-report]).
-- **Coasting, HPR Sim reads high:** its value is 5.0 to 8.4 times the measured. Behind this long
-  cone the base drag is far lower than the flat-base rule gives, and below Mach 0.8 HPR Sim gives
-  a boattail no relief on its base ([fixture report][fixture-report]).
+- **Given the nozzle exit instead, the same rule comes within 0.007,** from 0.0040 low to
+  0.0061 high: within the stated error and the reading together, ±0.006, at Mach 0.65 to 0.75.
+  The whole base kept under power reads high by 0.0108 to 0.0230 on HPR Sim's coefficient; on
+  OpenRocket 24.12's, the flat-base rule with no relief behind the boattail, by 0.036 to 0.052
+  (the fixture's flat-base column less the measured; [fixture report][fixture-report]).
+- **Coasting, HPR Sim reads high,** by 0.025 to 0.035: its value is 3.0 to 5.1 times the
+  measured. Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) it read high by 0.050 to 0.064, 5.0 to 8.4 times: the mean absolute
+  error over the four rows fell from 0.0574 to 0.0303, and no row's grew. Hoerner's rule, which
+  also lowers the base for a thicker boundary layer, reads high by 0.012 to 0.016
+  ([fixture report][fixture-report];
+  [the rules side by side](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/subsonic-boattail-base-drag.md)).
 - **The jet raised the measured base drag**, to 2.1 to 2.4 times its coasting value, as the
   report says in its own words: "more than twice". HPR Sim's rule given the nozzle exit lowers
   it, to 0.61 of coasting, and the whole base keeps it. Neither moves the way the flight did.
@@ -1793,8 +1814,11 @@ test
 
 What it leaves out: one vehicle and one motor, whose jet left through a blast tube, past fixed
 vanes, below the outside air's pressure. How far the result carries to another motor and base
-is not measured. Deciding the base model on this reference is the next step in the drag work
-([M1.14i3](decisions-and-roadmap.md#m1-14i3); [evidence row G14](evidence.md#g14)).
+is not measured. The base model was changed on this reference for a boattailed base, power off
+([M1.14i3](decisions-and-roadmap.md#m1-14i3), [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)), and what that moved is
+above ([the slowest band, by term](#the-slowest-band-by-term)). Nothing
+here covers the jet ([evidence row G14](evidence.md#g14)), and no hobby rocket's base behind a
+boattail has been measured ([evidence row G41](evidence.md#g41)).
 
 ## Known gaps
 
@@ -1885,8 +1909,9 @@ rest.
   probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228); [tube
   fins](physics/aero.md#tube-fins-against-openrocket)). Check a tube-fin design in both programs and
   treat the smaller margin as the more cautious estimate, not a bound.
-- **Drag against the RASAero curves** at Mach 0.3 is within 10% in four of seven cases, with the
-  fins and finish guessed, as the curves don't record them. Cavour power-on is −18.3%, cause open. Valetudo's −47.0% and −50.4% are
+- **Drag against the RASAero curves** at Mach 0.3 is within 10% in two of seven cases, with the
+  fins and finish guessed, as the curves don't record them. Two boattailed cases, Juno III and
+  Calisto's getting-started fins, are −10.3% and −11.5%. Cavour power-on is −18.3%, cause open. Valetudo's −47.0% and −50.4% are
   against a table 1.44 times the OpenRocket export's ([Aerodynamics](physics/aero.md#verification)).
 - **Six fins.** The [normal-force slope](glossary.md#normal-force-slope) of Barrowman's six-fin
   Recruiter is +2.87% above his printed value, mostly from HPR Sim's different six-fin rule

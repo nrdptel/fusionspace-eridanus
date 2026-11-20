@@ -3,12 +3,12 @@
   "shares": {
     "drag-scale": [
       {
-        "low": -1.27,
+        "low": -1.26,
         "high": 1.43
       },
       {
-        "low": -1.28,
-        "high": 2.15
+        "low": -1.29,
+        "high": 2.12
       }
     ],
     "impulse-scale": [
@@ -18,22 +18,22 @@
       },
       {
         "low": -1.5,
-        "high": 1.83
+        "high": 1.84
       }
     ],
     "wind-east": [
       {
-        "low": -0.369,
+        "low": -0.374,
         "high": 3.25
       },
       {
-        "low": -1.36,
+        "low": -1.4,
         "high": 1.29
       }
     ],
     "wind-north": [
       {
-        "low": -1.73,
+        "low": -1.71,
         "high": 1.74
       },
       {
@@ -47,7 +47,7 @@
         "high": 1.67
       },
       {
-        "low": -1.69,
+        "low": -1.68,
         "high": 1.7
       }
     ]
@@ -59,8 +59,8 @@
       "drawn": 1216,
       "said_nothing": 216,
       "said_nothing_gnss_alone": 216,
-      "not_converged": 2,
-      "largest_misfit": 0.0209,
+      "not_converged": 3,
+      "largest_misfit": 0.0208,
       "checks": [
         {
           "asked": "drag-scale",
@@ -68,41 +68,41 @@
             "counts": {
               "given": 1000,
               "below": 34,
-              "inside": 905,
-              "above": 61
+              "inside": 903,
+              "above": 63
             },
             "below": {
               "low": 0.01814933317255324,
               "high": 0.05710115985573183
             },
             "inside": {
-              "low": 0.8708852584167377,
-              "high": 0.9328845713615275
+              "low": 0.8686182163937606,
+              "high": 0.9311835087220015
             },
             "above": {
-              "low": 0.03894562610319613,
-              "high": 0.08983680660656335
+              "low": 0.040554984159339724,
+              "high": 0.09219422774706953
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 55,
-                "inside": 837,
-                "above": 108
+                "below": 58,
+                "inside": 835,
+                "above": 107
               },
               "below": {
-                "low": 0.03416405079242962,
-                "high": 0.08271889035352853
+                "low": 0.03654577403713105,
+                "high": 0.08628674382383195
               },
               "inside": {
-                "low": 0.7955557094583432,
-                "high": 0.8732815503790408
+                "low": 0.7933836998678625,
+                "high": 0.8714846068293405
               },
               "above": {
-                "low": 0.07824077000500412,
-                "high": 0.14378283824733207
+                "low": 0.07737947577669507,
+                "high": 0.1426599629847114
               }
             },
             "widened": {
@@ -128,30 +128,30 @@
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 3,
-                "inside": 724,
-                "above": 273
+                "below": 4,
+                "inside": 722,
+                "above": 274
               },
               "below": {
-                "low": 0.00014984252804345344,
-                "high": 0.01385806926679245
+                "low": 0.0003556602238959372,
+                "high": 0.015618197205665485
               },
               "inside": {
-                "low": 0.6753988450932713,
-                "high": 0.7691793306867827
+                "low": 0.6733111070117523,
+                "high": 0.7672977246259669
               },
               "above": {
-                "low": 0.22800043521469376,
-                "high": 0.3214673794003473
+                "low": 0.22894022194016367,
+                "high": 0.32251226164995694
               }
             }
           },
           "by_design": {
             "rocketpy-bella-lui": {
               "given": 92,
-              "below": 4,
+              "below": 3,
               "inside": 76,
-              "above": 12
+              "above": 13
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 96,
@@ -167,8 +167,8 @@
             },
             "rocketpy-cavour": {
               "given": 100,
-              "below": 5,
-              "inside": 95,
+              "below": 6,
+              "inside": 94,
               "above": 0
             },
             "rocketpy-genesis": {
@@ -204,39 +204,39 @@
             "rocketpy-valetudo": {
               "given": 99,
               "below": 2,
-              "inside": 90,
-              "above": 7
+              "inside": 89,
+              "above": 8
             }
           },
           "by_drift": {
             "height alone": {
               "given": 776,
-              "below": 29,
-              "inside": 701,
-              "above": 46
+              "below": 28,
+              "inside": 700,
+              "above": 48
             },
             "with a horizontal track": {
               "given": 224,
-              "below": 5,
-              "inside": 204,
+              "below": 6,
+              "inside": 203,
               "above": 15
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
-              "below": 14,
-              "inside": 305,
-              "above": 38
+              "given": 354,
+              "below": 16,
+              "inside": 301,
+              "above": 37
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 20,
-              "inside": 600,
-              "above": 23
+              "given": 646,
+              "below": 18,
+              "inside": 602,
+              "above": 26
             }
           },
-          "mean_error": -0.00169,
+          "mean_error": -0.00173,
           "identification": {
             "median_width": 0.115,
             "stated_width": 0.36,
@@ -248,58 +248,58 @@
           "test": {
             "counts": {
               "given": 1000,
-              "below": 35,
-              "inside": 908,
-              "above": 57
+              "below": 34,
+              "inside": 910,
+              "above": 56
             },
             "below": {
-              "low": 0.01887875261005706,
-              "high": 0.05835338938513379
+              "low": 0.01814933317255324,
+              "high": 0.05710115985573183
             },
             "inside": {
-              "low": 0.8742934451712134,
-              "high": 0.9354284514402278
+              "low": 0.8765708234397676,
+              "high": 0.9371190539960288
             },
             "above": {
-              "low": 0.03574978655527977,
-              "high": 0.08509949948369089
+              "low": 0.0349558615632834,
+              "high": 0.08391023169780176
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 87,
+                "below": 88,
                 "inside": 813,
-                "above": 100
+                "above": 99
               },
               "below": {
-                "low": 0.060353339000838,
-                "high": 0.12000491472247266
+                "low": 0.06119474601704861,
+                "high": 0.12114744985133052
               },
               "inside": {
                 "low": 0.7696183135509611,
                 "high": 0.8515907351885927
               },
               "above": {
-                "low": 0.07137551810913972,
-                "high": 0.1347749982351658
+                "low": 0.07052153602685146,
+                "high": 0.13364488892605908
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 7,
-                "inside": 967,
+                "below": 6,
+                "inside": 968,
                 "above": 26
               },
               "below": {
-                "low": 0.0013515103174792098,
-                "high": 0.02051343749045409
+                "low": 0.0009691440937563134,
+                "high": 0.0189306886358227
               },
               "inside": {
-                "low": 0.9441552289995387,
-                "high": 0.9825758015696775
+                "low": 0.9454159550807213,
+                "high": 0.9832964651760703
               },
               "above": {
                 "low": 0.01248591591580045,
@@ -310,20 +310,20 @@
               "counts": {
                 "given": 1000,
                 "below": 0,
-                "inside": 739,
-                "above": 261
+                "inside": 737,
+                "above": 263
               },
               "below": {
                 "low": 0.0,
                 "high": 0.007572088649967501
               },
               "inside": {
-                "low": 0.6910942558151971,
-                "high": 0.7832538840339851
+                "low": 0.6889976565716514,
+                "high": 0.7813811672733664
               },
               "above": {
-                "low": 0.21674611596601495,
-                "high": 0.3089057441848029
+                "low": 0.21861883272663368,
+                "high": 0.31100234342834865
               }
             }
           },
@@ -331,8 +331,8 @@
             "rocketpy-bella-lui": {
               "given": 92,
               "below": 1,
-              "inside": 87,
-              "above": 4
+              "inside": 88,
+              "above": 3
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 96,
@@ -366,8 +366,8 @@
             },
             "rocketpy-lince": {
               "given": 92,
-              "below": 4,
-              "inside": 79,
+              "below": 3,
+              "inside": 80,
               "above": 9
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
@@ -392,34 +392,34 @@
           "by_drift": {
             "height alone": {
               "given": 776,
-              "below": 28,
-              "inside": 712,
+              "below": 27,
+              "inside": 713,
               "above": 36
             },
             "with a horizontal track": {
               "given": 224,
               "below": 7,
-              "inside": 196,
-              "above": 21
+              "inside": 197,
+              "above": 20
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
+              "given": 354,
               "below": 22,
-              "inside": 313,
+              "inside": 310,
               "above": 22
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 13,
-              "inside": 595,
-              "above": 35
+              "given": 646,
+              "below": 12,
+              "inside": 600,
+              "above": 34
             }
           },
-          "mean_error": 0.000363,
+          "mean_error": 0.000364,
           "identification": {
-            "median_width": 0.0399,
+            "median_width": 0.04,
             "stated_width": 0.108,
             "identified": true
           }
@@ -429,58 +429,58 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 89,
-              "inside": 1343,
-              "above": 65
+              "below": 90,
+              "inside": 1346,
+              "above": 61
             },
             "below": {
-              "low": 0.04124900910871837,
-              "high": 0.08218861141087541
+              "low": 0.041808611407865126,
+              "high": 0.08295767170099122
             },
             "inside": {
-              "low": 0.8689338988814734,
-              "high": 0.9212532639120568
+              "low": 0.8711504474871403,
+              "high": 0.9230236249634296
             },
             "above": {
-              "low": 0.028063260794392975,
-              "high": 0.06348992694896993
+              "low": 0.02592042732431815,
+              "high": 0.060319563688086664
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 135,
-                "inside": 1248,
-                "above": 114
+                "below": 133,
+                "inside": 1259,
+                "above": 105
               },
               "below": {
-                "low": 0.06758912958139979,
-                "high": 0.11697370951892894
+                "low": 0.06642263709614998,
+                "high": 0.11548237310582299
               },
               "inside": {
-                "low": 0.8000000783708354,
-                "high": 0.8639269323488223
+                "low": 0.8078787611128391,
+                "high": 0.8706683992844937
               },
               "above": {
-                "low": 0.05542785071789841,
-                "high": 0.10122857571679211
+                "low": 0.05028125032213532,
+                "high": 0.09441592915363795
               }
             },
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 39,
-                "inside": 1421,
+                "below": 40,
+                "inside": 1420,
                 "above": 37
               },
               "below": {
-                "low": 0.014546211458245029,
-                "high": 0.04247958844496691
+                "low": 0.015044119904860154,
+                "high": 0.04330915105864053
               },
               "inside": {
-                "low": 0.9278775347915662,
-                "high": 0.9659565235114072
+                "low": 0.9270983688179326,
+                "high": 0.9654071684304335
               },
               "above": {
                 "low": 0.013557412109173106,
@@ -491,20 +491,20 @@
               "counts": {
                 "given": 1497,
                 "below": 11,
-                "inside": 1164,
-                "above": 322
+                "inside": 1179,
+                "above": 307
               },
               "below": {
                 "low": 0.0021439739923874712,
                 "high": 0.017768237859710156
               },
               "inside": {
-                "low": 0.7404925864395608,
-                "high": 0.8117870730824333
+                "low": 0.7510425109586341,
+                "high": 0.8211744386732165
               },
               "above": {
-                "low": 0.18132588417224554,
-                "high": 0.2517737678344323
+                "low": 0.17196116317395144,
+                "high": 0.24120126904868244
               }
             }
           },
@@ -512,14 +512,14 @@
             "rocketpy-bella-lui": {
               "given": 146,
               "below": 10,
-              "inside": 125,
-              "above": 11
+              "inside": 126,
+              "above": 10
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 154,
-              "below": 7,
+              "below": 8,
               "inside": 140,
-              "above": 7
+              "above": 6
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 141,
@@ -542,8 +542,8 @@
             "rocketpy-juno-iii": {
               "given": 148,
               "below": 5,
-              "inside": 134,
-              "above": 9
+              "inside": 136,
+              "above": 7
             },
             "rocketpy-lince": {
               "given": 150,
@@ -573,28 +573,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 89,
-              "inside": 1343,
-              "above": 65
+              "below": 90,
+              "inside": 1346,
+              "above": 61
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 315,
+              "given": 316,
               "below": 33,
-              "inside": 246,
-              "above": 36
+              "inside": 250,
+              "above": 33
             },
             "heights fit within 1 m": {
-              "given": 1182,
-              "below": 56,
-              "inside": 1097,
-              "above": 29
+              "given": 1181,
+              "below": 57,
+              "inside": 1096,
+              "above": 28
             }
           },
           "mean_error": -0.00706,
           "identification": {
-            "median_width": 0.345,
+            "median_width": 0.348,
             "stated_width": 12.7,
             "identified": true
           }
@@ -604,38 +604,38 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 67,
+              "below": 66,
               "inside": 1366,
-              "above": 64
+              "above": 65
             },
             "below": {
-              "low": 0.029141440018758347,
-              "high": 0.06506846354065732
+              "low": 0.028601807328158257,
+              "high": 0.06427972911081947
             },
             "inside": {
               "low": 0.8860105877943529,
               "high": 0.9347422166804522
             },
             "above": {
-              "low": 0.027525824265360044,
-              "high": 0.06269903387098208
+              "low": 0.028063260794392975,
+              "high": 0.06348992694896993
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 136,
-                "inside": 1239,
+                "below": 137,
+                "inside": 1238,
                 "above": 122
               },
               "below": {
-                "low": 0.06817298008465128,
-                "high": 0.11771877864261837
+                "low": 0.06875722810744683,
+                "high": 0.11846345361789345
               },
               "inside": {
-                "low": 0.7935703414405892,
-                "high": 0.8583946569263192
+                "low": 0.7928568105577083,
+                "high": 0.857779071605782
               },
               "above": {
                 "low": 0.06003716070286841,
@@ -645,17 +645,17 @@
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 29,
-                "inside": 1440,
+                "below": 30,
+                "inside": 1439,
                 "above": 28
               },
               "below": {
-                "low": 0.009710958931251457,
-                "high": 0.03404423343389107
+                "low": 0.010180954742616322,
+                "high": 0.03490088286278836
               },
               "inside": {
-                "low": 0.9428699101967946,
-                "high": 0.9762029408563766
+                "low": 0.9420706504104119,
+                "high": 0.9756740264378978
               },
               "above": {
                 "low": 0.009244506085147874,
@@ -665,21 +665,21 @@
             "shifted-down": {
               "counts": {
                 "given": 1497,
-                "below": 7,
-                "inside": 1165,
-                "above": 325
+                "below": 8,
+                "inside": 1170,
+                "above": 319
               },
               "below": {
-                "low": 0.000902113198828769,
-                "high": 0.013734152423058532
+                "low": 0.001183033154112556,
+                "high": 0.014770600343994689
               },
               "inside": {
-                "low": 0.741194981462207,
-                "high": 0.8124138335428477
+                "low": 0.7447089367555202,
+                "high": 0.8155456497833149
               },
               "above": {
-                "low": 0.18320255866454155,
-                "high": 0.25388454898284896
+                "low": 0.17945043602341665,
+                "high": 0.24966176411427088
               }
             }
           },
@@ -722,9 +722,9 @@
             },
             "rocketpy-lince": {
               "given": 150,
-              "below": 13,
+              "below": 12,
               "inside": 128,
-              "above": 9
+              "above": 10
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 146,
@@ -748,28 +748,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 67,
+              "below": 66,
               "inside": 1366,
-              "above": 64
+              "above": 65
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 315,
-              "below": 23,
-              "inside": 261,
+              "given": 316,
+              "below": 22,
+              "inside": 263,
               "above": 31
             },
             "heights fit within 1 m": {
-              "given": 1182,
+              "given": 1181,
               "below": 44,
-              "inside": 1105,
-              "above": 33
+              "inside": 1103,
+              "above": 34
             }
           },
-          "mean_error": 0.00439,
+          "mean_error": 0.00584,
           "identification": {
-            "median_width": 0.374,
+            "median_width": 0.372,
             "stated_width": 12.7,
             "identified": true
           }
@@ -800,17 +800,17 @@
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 101,
-                "inside": 772,
+                "below": 102,
+                "inside": 771,
                 "above": 127
               },
               "below": {
-                "low": 0.0722304560812092,
-                "high": 0.13590416221986934
+                "low": 0.0730863373999458,
+                "high": 0.1370323931789421
               },
               "inside": {
-                "low": 0.7258712829072897,
-                "high": 0.813969912588109
+                "low": 0.7248121179227791,
+                "high": 0.8130444600809514
               },
               "above": {
                 "low": 0.09475860222468141,
@@ -821,20 +821,20 @@
               "counts": {
                 "given": 1000,
                 "below": 3,
-                "inside": 990,
-                "above": 7
+                "inside": 989,
+                "above": 8
               },
               "below": {
                 "low": 0.00014984252804345344,
                 "high": 0.01385806926679245
               },
               "inside": {
-                "low": 0.9749365668608228,
-                "high": 0.9972924244005623
+                "low": 0.9734705070138117,
+                "high": 0.9967868270293463
               },
               "above": {
-                "low": 0.0013515103174792098,
-                "high": 0.02051343749045409
+                "low": 0.001772545666608949,
+                "high": 0.022059404200154953
               }
             },
             "shifted-down": {
@@ -936,19 +936,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
-              "below": 16,
-              "inside": 317,
-              "above": 24
+              "given": 354,
+              "below": 19,
+              "inside": 312,
+              "above": 23
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 24,
-              "inside": 594,
-              "above": 25
+              "given": 646,
+              "below": 21,
+              "inside": 599,
+              "above": 26
             }
           },
-          "mean_error": -0.000394,
+          "mean_error": -0.000398,
           "identification": {
             "median_width": 0.035,
             "stated_width": 0.036,
@@ -963,57 +963,57 @@
             "counts": {
               "given": 1000,
               "below": 30,
-              "inside": 887,
-              "above": 83
+              "inside": 885,
+              "above": 85
             },
             "below": {
               "low": 0.015276440043628992,
               "high": 0.05204880053403449
             },
             "inside": {
-              "low": 0.8506154046692596,
-              "high": 0.9174400111213947
+              "low": 0.8483804096785588,
+              "high": 0.9157065590705133
             },
             "above": {
-              "low": 0.0569994151661492,
-              "high": 0.11542322053048637
+              "low": 0.05867399914724086,
+              "high": 0.11771641462562132
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 65,
+                "below": 63,
                 "inside": 781,
-                "above": 154
+                "above": 156
               },
               "below": {
-                "low": 0.042171519000293756,
-                "high": 0.09454459619993494
+                "low": 0.040554984159339724,
+                "high": 0.09219422774706953
               },
               "inside": {
                 "low": 0.7354196650053506,
                 "high": 0.8222830207632077
               },
               "above": {
-                "low": 0.11865805453860873,
-                "high": 0.19464456614165226
+                "low": 0.12044551360210304,
+                "high": 0.19682599742213602
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 9,
-                "inside": 956,
+                "below": 8,
+                "inside": 957,
                 "above": 35
               },
               "below": {
-                "low": 0.002226135413302799,
-                "high": 0.023574568146069952
+                "low": 0.001772545666608949,
+                "high": 0.022059404200154953
               },
               "inside": {
-                "low": 0.9305396018302525,
-                "high": 0.9743888694192373
+                "low": 0.9317607139949298,
+                "high": 0.9751502507230556
               },
               "above": {
                 "low": 0.01887875261005706,
@@ -1023,42 +1023,42 @@
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 2,
+                "below": 3,
                 "inside": 625,
-                "above": 373
+                "above": 372
               },
               "below": {
-                "low": 0.000031976503547526125,
-                "high": 0.011991007078900218
+                "low": 0.00014984252804345344,
+                "high": 0.01385806926679245
               },
               "inside": {
                 "low": 0.5733181339325766,
                 "high": 0.674774388832934
               },
               "above": {
-                "low": 0.3232947583425271,
-                "high": 0.4246432652988874
+                "low": 0.32232967491111275,
+                "high": 0.4236236224430805
               }
             }
           },
           "by_design": {
             "rocketpy-bella-lui": {
               "given": 92,
-              "below": 7,
+              "below": 6,
               "inside": 80,
-              "above": 5
+              "above": 6
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 96,
               "below": 4,
-              "inside": 81,
-              "above": 11
+              "inside": 79,
+              "above": 13
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 102,
-              "below": 0,
+              "below": 1,
               "inside": 96,
-              "above": 6
+              "above": 5
             },
             "rocketpy-cavour": {
               "given": 100,
@@ -1106,29 +1106,29 @@
           "by_drift": {
             "height alone": {
               "given": 776,
-              "below": 20,
-              "inside": 686,
-              "above": 70
+              "below": 19,
+              "inside": 685,
+              "above": 72
             },
             "with a horizontal track": {
               "given": 224,
-              "below": 10,
-              "inside": 201,
+              "below": 11,
+              "inside": 200,
               "above": 13
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
-              "below": 12,
+              "given": 354,
+              "below": 11,
               "inside": 295,
-              "above": 50
+              "above": 48
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 18,
-              "inside": 592,
-              "above": 33
+              "given": 646,
+              "below": 19,
+              "inside": 590,
+              "above": 37
             }
           },
           "mean_error": -0.0106,
@@ -1144,37 +1144,37 @@
             "counts": {
               "given": 1000,
               "below": 72,
-              "inside": 878,
-              "above": 50
+              "inside": 875,
+              "above": 53
             },
             "below": {
               "low": 0.04788170140142095,
               "high": 0.10271943498253688
             },
             "inside": {
-              "low": 0.8405822967229144,
-              "high": 0.9096148757778355
+              "low": 0.837251361771419,
+              "high": 0.9069929390672327
             },
             "above": {
-              "low": 0.030238692038907777,
-              "high": 0.07672916232085747
+              "low": 0.032586990594469734,
+              "high": 0.08032977527395957
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 137,
-                "inside": 780,
+                "below": 138,
+                "inside": 779,
                 "above": 83
               },
               "below": {
-                "low": 0.10355722466866085,
-                "high": 0.17601049307325156
+                "low": 0.10444068398725131,
+                "high": 0.17711140348220744
               },
               "inside": {
-                "low": 0.7343573003917747,
-                "high": 0.8213607815209034
+                "low": 0.7332952981104446,
+                "high": 0.820438178361319
               },
               "above": {
                 "low": 0.0569994151661492,
@@ -1184,61 +1184,61 @@
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 21,
+                "below": 20,
                 "inside": 955,
-                "above": 24
+                "above": 25
               },
               "below": {
-                "low": 0.009143081182127644,
-                "high": 0.0403616224633907
+                "low": 0.008498071292930953,
+                "high": 0.039027981222604424
               },
               "inside": {
                 "low": 0.929321388895392,
                 "high": 0.973624518456947
               },
               "above": {
-                "low": 0.011127150687952503,
-                "high": 0.04431549497897369
+                "low": 0.01180320903064841,
+                "high": 0.04561931828870236
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 5,
-                "inside": 758,
-                "above": 237
+                "below": 4,
+                "inside": 761,
+                "above": 235
               },
               "below": {
-                "low": 0.0006335584778611181,
-                "high": 0.017302917235141546
+                "low": 0.0003556602238959372,
+                "high": 0.015618197205665485
               },
               "inside": {
-                "low": 0.7110740180203305,
-                "high": 0.8009824077831293
+                "low": 0.7142393136373801,
+                "high": 0.8037710132061862
               },
               "above": {
-                "low": 0.19437158186328746,
-                "high": 0.28364883033147636
+                "low": 0.19251552271353595,
+                "high": 0.28153563376736757
               }
             }
           },
           "by_design": {
             "rocketpy-bella-lui": {
               "given": 92,
-              "below": 7,
-              "inside": 82,
-              "above": 3
+              "below": 8,
+              "inside": 80,
+              "above": 4
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 96,
-              "below": 5,
-              "inside": 84,
+              "below": 4,
+              "inside": 85,
               "above": 7
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 102,
-              "below": 3,
-              "inside": 94,
+              "below": 4,
+              "inside": 93,
               "above": 5
             },
             "rocketpy-cavour": {
@@ -1255,15 +1255,15 @@
             },
             "rocketpy-juno-iii": {
               "given": 93,
-              "below": 11,
+              "below": 10,
               "inside": 80,
-              "above": 2
+              "above": 3
             },
             "rocketpy-lince": {
               "given": 92,
               "below": 5,
-              "inside": 80,
-              "above": 7
+              "inside": 79,
+              "above": 8
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 123,
@@ -1288,8 +1288,8 @@
             "height alone": {
               "given": 776,
               "below": 62,
-              "inside": 681,
-              "above": 33
+              "inside": 678,
+              "above": 36
             },
             "with a horizontal track": {
               "given": 224,
@@ -1300,19 +1300,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
-              "below": 34,
-              "inside": 305,
-              "above": 18
+              "given": 354,
+              "below": 33,
+              "inside": 301,
+              "above": 20
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 38,
-              "inside": 573,
-              "above": 32
+              "given": 646,
+              "below": 39,
+              "inside": 574,
+              "above": 33
             }
           },
-          "mean_error": 0.00132,
+          "mean_error": 0.00133,
           "identification": {
             "median_width": 0.0391,
             "stated_width": 0.108,
@@ -1324,82 +1324,82 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 59,
-              "inside": 1380,
-              "above": 58
+              "below": 57,
+              "inside": 1381,
+              "above": 59
             },
             "below": {
-              "low": 0.024856193856227782,
-              "high": 0.058727328339247986
+              "low": 0.023797059143623345,
+              "high": 0.05713008980320544
             },
             "inside": {
-              "low": 0.8965097733980023,
-              "high": 0.9428472882108208
+              "low": 0.8972631665974269,
+              "high": 0.9434227372782937
             },
             "above": {
-              "low": 0.024325973562102143,
-              "high": 0.057929349589588064
+              "low": 0.024856193856227782,
+              "high": 0.058727328339247986
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 111,
-                "inside": 1278,
-                "above": 108
+                "below": 112,
+                "inside": 1273,
+                "above": 112
               },
               "below": {
-                "low": 0.05370753831524816,
-                "high": 0.09896242226841978
+                "low": 0.05428046012546223,
+                "high": 0.09971831710580692
               },
               "inside": {
-                "low": 0.8215430337766814,
-                "high": 0.8822568532201043
+                "low": 0.8179400369270016,
+                "high": 0.8792144303827305
               },
               "above": {
-                "low": 0.0519919443560764,
-                "high": 0.09669159948074424
+                "low": 0.05428046012546223,
+                "high": 0.09971831710580692
               }
             },
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 27,
-                "inside": 1436,
-                "above": 34
+                "below": 25,
+                "inside": 1437,
+                "above": 35
               },
               "below": {
-                "low": 0.008781780393408989,
-                "high": 0.032320485097361296
+                "low": 0.007868333274756723,
+                "high": 0.030581557998742293
               },
               "inside": {
-                "low": 0.9396804363119133,
-                "high": 0.9740795726756819
+                "low": 0.9404759433985215,
+                "high": 0.9746123114829528
               },
               "above": {
-                "low": 0.012093171718226492,
-                "high": 0.03829627106490463
+                "low": 0.012578587490184756,
+                "high": 0.03913797967049937
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1497,
                 "below": 13,
-                "inside": 1146,
-                "above": 338
+                "inside": 1142,
+                "above": 342
               },
               "below": {
                 "low": 0.0028590784025410154,
                 "high": 0.019696320785646204
               },
               "inside": {
-                "low": 0.7278714881396104,
-                "high": 0.8004833095729793
+                "low": 0.7250723321776162,
+                "high": 0.7979658142357062
               },
               "above": {
-                "low": 0.19134869196123033,
-                "high": 0.2630174316479732
+                "low": 0.19385963457614713,
+                "high": 0.2658231222283962
               }
             }
           },
@@ -1407,20 +1407,20 @@
             "rocketpy-bella-lui": {
               "given": 146,
               "below": 4,
-              "inside": 130,
-              "above": 12
+              "inside": 129,
+              "above": 13
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 154,
-              "below": 4,
-              "inside": 144,
-              "above": 6
+              "below": 3,
+              "inside": 146,
+              "above": 5
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 141,
-              "below": 7,
+              "below": 6,
               "inside": 132,
-              "above": 2
+              "above": 3
             },
             "rocketpy-cavour": {
               "given": 171,
@@ -1436,14 +1436,14 @@
             },
             "rocketpy-juno-iii": {
               "given": 148,
-              "below": 2,
-              "inside": 142,
+              "below": 3,
+              "inside": 141,
               "above": 4
             },
             "rocketpy-lince": {
               "given": 150,
-              "below": 10,
-              "inside": 137,
+              "below": 9,
+              "inside": 138,
               "above": 3
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
@@ -1468,28 +1468,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 59,
-              "inside": 1380,
-              "above": 58
+              "below": 57,
+              "inside": 1381,
+              "above": 59
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 315,
-              "below": 21,
-              "inside": 274,
-              "above": 20
+              "given": 316,
+              "below": 20,
+              "inside": 277,
+              "above": 19
             },
             "heights fit within 1 m": {
-              "given": 1182,
-              "below": 38,
-              "inside": 1106,
-              "above": 38
+              "given": 1181,
+              "below": 37,
+              "inside": 1104,
+              "above": 40
             }
           },
-          "mean_error": -0.0077,
+          "mean_error": -0.00861,
           "identification": {
-            "median_width": 0.364,
+            "median_width": 0.36,
             "stated_width": 12.7,
             "identified": true
           }
@@ -1499,82 +1499,82 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 55,
-              "inside": 1384,
-              "above": 58
+              "below": 56,
+              "inside": 1382,
+              "above": 59
             },
             "below": {
-              "low": 0.022743280892962348,
-              "high": 0.05552759828238307
+              "low": 0.023269483477704023,
+              "high": 0.05632951711886469
             },
             "inside": {
-              "low": 0.8995263004689211,
-              "high": 0.9451461003122992
+              "low": 0.8980170482967986,
+              "high": 0.9439976929321054
             },
             "above": {
-              "low": 0.024325973562102143,
-              "high": 0.057929349589588064
+              "low": 0.024856193856227782,
+              "high": 0.058727328339247986
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 110,
-                "inside": 1274,
-                "above": 113
+                "below": 108,
+                "inside": 1278,
+                "above": 111
               },
               "below": {
-                "low": 0.05313514067994579,
-                "high": 0.09820600870933016
+                "low": 0.0519919443560764,
+                "high": 0.09669159948074424
               },
               "inside": {
-                "low": 0.8186602174253543,
-                "high": 0.8798233359105987
+                "low": 0.8215430337766814,
+                "high": 0.8822568532201043
               },
               "above": {
-                "low": 0.05485389968770077,
-                "high": 0.10047369953107887
+                "low": 0.05370753831524816,
+                "high": 0.09896242226841978
               }
             },
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 17,
-                "inside": 1454,
-                "above": 26
+                "below": 19,
+                "inside": 1453,
+                "above": 25
               },
               "below": {
-                "low": 0.004415730676257612,
-                "high": 0.023432643630445282
+                "low": 0.005243023936640501,
+                "high": 0.025254198103392245
               },
               "inside": {
-                "low": 0.9542148806154886,
-                "high": 0.9834491000059882
+                "low": 0.9533935624803311,
+                "high": 0.9829427332747143
               },
               "above": {
-                "low": 0.008322982811420132,
-                "high": 0.03145302081601287
+                "low": 0.007868333274756723,
+                "high": 0.030581557998742293
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1497,
                 "below": 6,
-                "inside": 1149,
-                "above": 342
+                "inside": 1143,
+                "above": 348
               },
               "below": {
                 "low": 0.00064695629951389,
                 "high": 0.012673199905222532
               },
               "inside": {
-                "low": 0.7299721555436152,
-                "high": 0.8023701271168437
+                "low": 0.7257719364813773,
+                "high": 0.7985953732531761
               },
               "above": {
-                "low": 0.19385963457614713,
-                "high": 0.2658231222283962
+                "low": 0.1976298728831563,
+                "high": 0.27002784445638484
               }
             }
           },
@@ -1582,20 +1582,20 @@
             "rocketpy-bella-lui": {
               "given": 146,
               "below": 7,
-              "inside": 133,
-              "above": 6
+              "inside": 134,
+              "above": 5
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 154,
-              "below": 7,
-              "inside": 143,
+              "below": 8,
+              "inside": 142,
               "above": 4
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 141,
               "below": 4,
-              "inside": 130,
-              "above": 7
+              "inside": 129,
+              "above": 8
             },
             "rocketpy-cavour": {
               "given": 171,
@@ -1612,8 +1612,8 @@
             "rocketpy-juno-iii": {
               "given": 148,
               "below": 3,
-              "inside": 143,
-              "above": 2
+              "inside": 142,
+              "above": 3
             },
             "rocketpy-lince": {
               "given": 150,
@@ -1643,28 +1643,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 55,
-              "inside": 1384,
-              "above": 58
+              "below": 56,
+              "inside": 1382,
+              "above": 59
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 315,
+              "given": 316,
               "below": 19,
               "inside": 279,
-              "above": 17
+              "above": 18
             },
             "heights fit within 1 m": {
-              "given": 1182,
-              "below": 36,
-              "inside": 1105,
+              "given": 1181,
+              "below": 37,
+              "inside": 1103,
               "above": 41
             }
           },
-          "mean_error": 0.00909,
+          "mean_error": 0.00981,
           "identification": {
-            "median_width": 0.36,
+            "median_width": 0.357,
             "stated_width": 12.7,
             "identified": true
           }
@@ -1695,61 +1695,61 @@
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 126,
-                "inside": 743,
-                "above": 131
+                "below": 129,
+                "inside": 736,
+                "above": 135
               },
               "below": {
-                "low": 0.09388247811439437,
-                "high": 0.16385752423693534
+                "low": 0.09651294291815132,
+                "high": 0.16718000527346444
               },
               "inside": {
-                "low": 0.6952911164950135,
-                "high": 0.7869956430301792
+                "low": 0.687949810799378,
+                "high": 0.7804443535384296
               },
               "above": {
-                "low": 0.09827002773517274,
-                "high": 0.16939158014079192
+                "low": 0.10179221890613915,
+                "high": 0.17380677451623527
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 10,
-                "inside": 970,
-                "above": 20
+                "below": 12,
+                "inside": 969,
+                "above": 19
               },
               "below": {
-                "low": 0.0027075755994377393,
-                "high": 0.02506343313917725
+                "low": 0.0037399730627331595,
+                "high": 0.027975523431049032
               },
               "inside": {
-                "low": 0.9479511994659655,
-                "high": 0.9847235599563711
+                "low": 0.9466812097800634,
+                "high": 0.9840124568720614
               },
               "above": {
-                "low": 0.008498071292930953,
-                "high": 0.039027981222604424
+                "low": 0.007862205295311397,
+                "high": 0.03768558555066703
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
                 "below": 1,
-                "inside": 688,
-                "above": 311
+                "inside": 689,
+                "above": 310
               },
               "below": {
                 "low": 5.001249166469712e-7,
                 "high": 0.009953814340859957
               },
               "inside": {
-                "low": 0.6379894456331787,
-                "high": 0.735140059019087
+                "low": 0.639023893270688,
+                "high": 0.7360903089465355
               },
               "above": {
-                "low": 0.2639096910534645,
-                "high": 0.360976106729312
+                "low": 0.2629597019968234,
+                "high": 0.3599413988476876
               }
             }
           },
@@ -1762,14 +1762,14 @@
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 96,
-              "below": 4,
-              "inside": 85,
+              "below": 3,
+              "inside": 86,
               "above": 7
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 102,
-              "below": 2,
-              "inside": 94,
+              "below": 3,
+              "inside": 93,
               "above": 6
             },
             "rocketpy-cavour": {
@@ -1831,19 +1831,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 357,
-              "below": 21,
-              "inside": 307,
-              "above": 29
+              "given": 354,
+              "below": 22,
+              "inside": 304,
+              "above": 28
             },
             "heights fit within 1 m": {
-              "given": 643,
-              "below": 35,
-              "inside": 575,
-              "above": 33
+              "given": 646,
+              "below": 34,
+              "inside": 578,
+              "above": 34
             }
           },
-          "mean_error": -0.000164,
+          "mean_error": -0.000173,
           "identification": {
             "median_width": 0.034,
             "stated_width": 0.036,
@@ -1854,12 +1854,12 @@
       "draws": {
         "posteriors": 2276,
         "without": 0,
-        "too_few": 563,
+        "too_few": 559,
         "least_effective": 1.0,
-        "tenth_effective": 47.3,
+        "tenth_effective": 46.8,
         "median_effective": 153.0,
         "made": 1138000,
-        "failed": 126
+        "failed": 129
       }
     },
     {
@@ -1868,25 +1868,25 @@
       "drawn": 1193,
       "said_nothing": 193,
       "said_nothing_gnss_alone": 193,
-      "not_converged": 7,
-      "largest_misfit": 0.0251,
+      "not_converged": 8,
+      "largest_misfit": 0.0265,
       "checks": [
         {
           "asked": "drag-scale",
           "test": {
             "counts": {
               "given": 1000,
-              "below": 70,
-              "inside": 901,
+              "below": 71,
+              "inside": 900,
               "above": 29
             },
             "below": {
-              "low": 0.04624230805977664,
-              "high": 0.10039155358024976
+              "low": 0.04706124458800093,
+              "high": 0.1015562426662977
             },
             "inside": {
-              "low": 0.8663551110739409,
-              "high": 0.9294784639731486
+              "low": 0.8652250017648342,
+              "high": 0.9286244818908602
             },
             "above": {
               "low": 0.014570460027666321,
@@ -1897,17 +1897,17 @@
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 100,
-                "inside": 849,
+                "below": 102,
+                "inside": 847,
                 "above": 51
               },
               "below": {
-                "low": 0.07137551810913972,
-                "high": 0.1347749982351658
+                "low": 0.0730863373999458,
+                "high": 0.1370323931789421
               },
               "inside": {
-                "low": 0.8086316862136369,
-                "high": 0.8840190000324688
+                "low": 0.806446966239448,
+                "high": 0.8822348525942276
               },
               "above": {
                 "low": 0.031019069005920386,
@@ -1917,17 +1917,17 @@
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 41,
-                "inside": 944,
+                "below": 44,
+                "inside": 941,
                 "above": 15
               },
               "below": {
-                "low": 0.02333629470664872,
-                "high": 0.06578798022193011
+                "low": 0.025611130580762642,
+                "high": 0.06946039816974747
               },
               "inside": {
-                "low": 0.9160897683021982,
-                "high": 0.9650441384367165
+                "low": 0.9125279872627055,
+                "high": 0.9626562255395255
               },
               "above": {
                 "low": 0.0054255612562778555,
@@ -1937,21 +1937,21 @@
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 20,
-                "inside": 772,
-                "above": 208
+                "below": 19,
+                "inside": 782,
+                "above": 199
               },
               "below": {
-                "low": 0.008498071292930953,
-                "high": 0.039027981222604424
+                "low": 0.007862205295311397,
+                "high": 0.03768558555066703
               },
               "inside": {
-                "low": 0.7258712829072897,
-                "high": 0.813969912588109
+                "low": 0.736482393723308,
+                "high": 0.8232048942978969
               },
               "above": {
-                "low": 0.16759689353774904,
-                "high": 0.25286988828703016
+                "low": 0.15935153718000367,
+                "high": 0.24325406297745178
               }
             }
           },
@@ -1970,15 +1970,15 @@
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
-              "below": 10,
-              "inside": 102,
+              "below": 11,
+              "inside": 101,
               "above": 5
             },
             "rocketpy-cavour": {
               "given": 93,
               "below": 7,
-              "inside": 84,
-              "above": 2
+              "inside": 85,
+              "above": 1
             },
             "rocketpy-genesis": {
               "given": 107,
@@ -1995,8 +1995,8 @@
             "rocketpy-lince": {
               "given": 95,
               "below": 8,
-              "inside": 83,
-              "above": 4
+              "inside": 82,
+              "above": 5
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 83,
@@ -2020,28 +2020,28 @@
           "by_drift": {
             "height alone": {
               "given": 796,
-              "below": 59,
-              "inside": 712,
-              "above": 25
+              "below": 60,
+              "inside": 710,
+              "above": 26
             },
             "with a horizontal track": {
               "given": 204,
               "below": 11,
-              "inside": 189,
-              "above": 4
+              "inside": 190,
+              "above": 3
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
-              "below": 49,
-              "inside": 377,
+              "given": 450,
+              "below": 52,
+              "inside": 370,
               "above": 28
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 21,
-              "inside": 524,
+              "given": 550,
+              "below": 19,
+              "inside": 530,
               "above": 1
             }
           },
@@ -2058,57 +2058,57 @@
             "counts": {
               "given": 1000,
               "below": 54,
-              "inside": 910,
-              "above": 36
+              "inside": 909,
+              "above": 37
             },
             "below": {
               "low": 0.033374408295206714,
               "high": 0.08152542311348543
             },
             "inside": {
-              "low": 0.8765708234397676,
-              "high": 0.9371190539960288
+              "low": 0.8754315987501973,
+              "high": 0.9362742948650684
             },
             "above": {
-              "low": 0.01961228324183356,
-              "high": 0.0596016252962861
+              "low": 0.020349763281452604,
+              "high": 0.060846022246960896
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 111,
-                "inside": 804,
-                "above": 85
+                "below": 108,
+                "inside": 802,
+                "above": 90
               },
               "below": {
-                "low": 0.08082979218371261,
-                "high": 0.1471463766722274
+                "low": 0.07824077000500412,
+                "high": 0.14378283824733207
               },
               "inside": {
-                "low": 0.7599584119803868,
-                "high": 0.8433896793416575
+                "low": 0.7578163545533125,
+                "high": 0.8415626111837737
               },
               "above": {
-                "low": 0.05867399914724086,
-                "high": 0.11771641462562132
+                "low": 0.06288094600397126,
+                "high": 0.12342917656023245
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 24,
-                "inside": 964,
+                "below": 23,
+                "inside": 965,
                 "above": 12
               },
               "below": {
-                "low": 0.011127150687952503,
-                "high": 0.04431549497897369
+                "low": 0.010458140424825013,
+                "high": 0.04300489018048137
               },
               "inside": {
-                "low": 0.9403983747037139,
-                "high": 0.9803877167581665
+                "low": 0.9416466106148662,
+                "high": 0.9811212473899429
               },
               "above": {
                 "low": 0.0037399730627331595,
@@ -2118,21 +2118,21 @@
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 6,
-                "inside": 750,
-                "above": 244
+                "below": 7,
+                "inside": 742,
+                "above": 251
               },
               "below": {
-                "low": 0.0009691440937563134,
-                "high": 0.0189306886358227
+                "low": 0.0013515103174792098,
+                "high": 0.02051343749045409
               },
               "inside": {
-                "low": 0.7026475662689771,
-                "high": 0.7935317363211478
+                "low": 0.6942414407036759,
+                "high": 0.786060665470818
               },
               "above": {
-                "low": 0.20087831138646978,
-                "high": 0.29103453641014654
+                "low": 0.20740104528527764,
+                "high": 0.29840429779781275
               }
             }
           },
@@ -2152,8 +2152,8 @@
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
               "below": 2,
-              "inside": 108,
-              "above": 7
+              "inside": 107,
+              "above": 8
             },
             "rocketpy-cavour": {
               "given": 93,
@@ -2170,14 +2170,14 @@
             "rocketpy-juno-iii": {
               "given": 103,
               "below": 3,
-              "inside": 96,
-              "above": 4
+              "inside": 97,
+              "above": 3
             },
             "rocketpy-lince": {
               "given": 95,
               "below": 14,
-              "inside": 77,
-              "above": 4
+              "inside": 76,
+              "above": 5
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 83,
@@ -2208,27 +2208,27 @@
             "with a horizontal track": {
               "given": 204,
               "below": 7,
-              "inside": 193,
-              "above": 4
+              "inside": 192,
+              "above": 5
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
-              "below": 39,
-              "inside": 394,
-              "above": 21
+              "given": 450,
+              "below": 40,
+              "inside": 392,
+              "above": 18
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 15,
-              "inside": 516,
-              "above": 15
+              "given": 550,
+              "below": 14,
+              "inside": 517,
+              "above": 19
             }
           },
-          "mean_error": 0.00165,
+          "mean_error": 0.00164,
           "identification": {
-            "median_width": 0.0408,
+            "median_width": 0.0409,
             "stated_width": 0.108,
             "identified": true
           }
@@ -2238,82 +2238,82 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 75,
-              "inside": 1349,
-              "above": 73
+              "below": 76,
+              "inside": 1352,
+              "above": 69
             },
             "below": {
-              "low": 0.03349501070092559,
-              "high": 0.07134242321200168
+              "low": 0.034043476488592794,
+              "high": 0.0721224652084338
             },
             "inside": {
-              "low": 0.8733700830797779,
-              "high": 0.9247908753588414
+              "low": 0.8755928886894659,
+              "high": 0.9265549309105401
             },
             "above": {
-              "low": 0.032400814768958563,
-              "high": 0.069779645071957
+              "low": 0.030223872804454988,
+              "high": 0.0666428177733338
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 114,
-                "inside": 1270,
-                "above": 113
+                "below": 115,
+                "inside": 1277,
+                "above": 105
               },
               "below": {
-                "low": 0.05542785071789841,
-                "high": 0.10122857571679211
+                "low": 0.05600230706789461,
+                "high": 0.10198295170320137
               },
               "inside": {
-                "low": 0.8157807337178242,
-                "high": 0.8773864694246454
+                "low": 0.8208220131988908,
+                "high": 0.8816487919722205
               },
               "above": {
-                "low": 0.05485389968770077,
-                "high": 0.10047369953107887
+                "low": 0.05028125032213532,
+                "high": 0.09441592915363795
               }
             },
             "widened": {
               "counts": {
                 "given": 1497,
                 "below": 47,
-                "inside": 1409,
-                "above": 41
+                "inside": 1410,
+                "above": 40
               },
               "below": {
                 "low": 0.018587770181951513,
                 "high": 0.04905925979406822
               },
               "inside": {
-                "low": 0.9185811519360318,
-                "high": 0.9593098809619176
+                "low": 0.9193516294476813,
+                "high": 0.9598680474483359
               },
               "above": {
-                "low": 0.015544255312363864,
-                "high": 0.044136544632682906
+                "low": 0.015044119904860154,
+                "high": 0.04330915105864053
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1497,
                 "below": 23,
-                "inside": 1176,
-                "above": 298
+                "inside": 1181,
+                "above": 293
               },
               "below": {
                 "low": 0.0069724690806406975,
                 "high": 0.028825699977025554
               },
               "inside": {
-                "low": 0.7489300969539914,
-                "high": 0.8192994020867517
+                "low": 0.7524514746695605,
+                "high": 0.8224237732008179
               },
               "above": {
-                "low": 0.16635773350090394,
-                "high": 0.2348424170952299
+                "low": 0.16324988784654887,
+                "high": 0.23130456834709112
               }
             }
           },
@@ -2339,8 +2339,8 @@
             "rocketpy-cavour": {
               "given": 134,
               "below": 11,
-              "inside": 112,
-              "above": 11
+              "inside": 114,
+              "above": 9
             },
             "rocketpy-genesis": {
               "given": 133,
@@ -2356,9 +2356,9 @@
             },
             "rocketpy-lince": {
               "given": 148,
-              "below": 11,
-              "inside": 124,
-              "above": 13
+              "below": 12,
+              "inside": 121,
+              "above": 15
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 134,
@@ -2369,41 +2369,41 @@
             "rocketpy-prometheus-2022-generic-motor": {
               "given": 161,
               "below": 17,
-              "inside": 129,
-              "above": 15
+              "inside": 131,
+              "above": 13
             },
             "rocketpy-valetudo": {
               "given": 159,
               "below": 3,
-              "inside": 150,
-              "above": 6
+              "inside": 152,
+              "above": 4
             }
           },
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 75,
-              "inside": 1349,
-              "above": 73
+              "below": 76,
+              "inside": 1352,
+              "above": 69
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 516,
-              "below": 46,
-              "inside": 431,
-              "above": 39
+              "given": 517,
+              "below": 47,
+              "inside": 433,
+              "above": 37
             },
             "heights fit within 1 m": {
-              "given": 981,
+              "given": 980,
               "below": 29,
-              "inside": 918,
-              "above": 34
+              "inside": 919,
+              "above": 32
             }
           },
-          "mean_error": -0.021,
+          "mean_error": -0.0224,
           "identification": {
-            "median_width": 0.407,
+            "median_width": 0.411,
             "stated_width": 12.7,
             "identified": true
           }
@@ -2413,17 +2413,17 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 71,
-              "inside": 1362,
+              "below": 73,
+              "inside": 1360,
               "above": 64
             },
             "below": {
-              "low": 0.03131038507566125,
-              "high": 0.06821315902106106
+              "low": 0.032400814768958563,
+              "high": 0.069779645071957
             },
             "inside": {
-              "low": 0.8830262904810711,
-              "high": 0.9324108704186003
+              "low": 0.8815365463821065,
+              "high": 0.9312427718925531
             },
             "above": {
               "low": 0.027525824265360044,
@@ -2434,61 +2434,61 @@
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 117,
+                "below": 116,
                 "inside": 1277,
-                "above": 103
+                "above": 104
               },
               "below": {
-                "low": 0.05715271178917919,
-                "high": 0.10349022660199769
+                "low": 0.05657726272170632,
+                "high": 0.10273683340257311
               },
               "inside": {
                 "low": 0.8208220131988908,
                 "high": 0.8816487919722205
               },
               "above": {
-                "low": 0.04914360522294431,
-                "high": 0.09289602887902237
+                "low": 0.049712141046678926,
+                "high": 0.09365626256247639
               }
             },
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 36,
-                "inside": 1425,
-                "above": 36
+                "below": 33,
+                "inside": 1426,
+                "above": 38
               },
               "below": {
-                "low": 0.013066703495783039,
-                "high": 0.03997706611587426
+                "low": 0.011610571614091125,
+                "high": 0.03745183005215824
               },
               "inside": {
-                "low": 0.9310031254936286,
-                "high": 0.9681448800636963
+                "low": 0.9317868409789389,
+                "high": 0.9686896149243387
               },
               "above": {
-                "low": 0.013066703495783039,
-                "high": 0.03997706611587426
+                "low": 0.014050612792367134,
+                "high": 0.04164777736165837
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1497,
                 "below": 10,
-                "inside": 1225,
-                "above": 262
+                "inside": 1223,
+                "above": 264
               },
               "below": {
                 "low": 0.001806767388734587,
                 "high": 0.016784972588889113
               },
               "inside": {
-                "low": 0.7835964535630688,
-                "high": 0.8497608549532882
+                "low": 0.7821742860807772,
+                "high": 0.8485247704490879
               },
               "above": {
-                "low": 0.14406872883752536,
-                "high": 0.20928274189313645
+                "low": 0.1453014583457623,
+                "high": 0.21070825115049807
               }
             }
           },
@@ -2496,19 +2496,19 @@
             "rocketpy-bella-lui": {
               "given": 144,
               "below": 4,
-              "inside": 134,
-              "above": 6
+              "inside": 133,
+              "above": 7
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 172,
-              "below": 3,
-              "inside": 166,
+              "below": 4,
+              "inside": 165,
               "above": 3
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 156,
-              "below": 3,
-              "inside": 151,
+              "below": 2,
+              "inside": 152,
               "above": 2
             },
             "rocketpy-cavour": {
@@ -2525,15 +2525,15 @@
             },
             "rocketpy-juno-iii": {
               "given": 156,
-              "below": 10,
-              "inside": 141,
+              "below": 11,
+              "inside": 140,
               "above": 5
             },
             "rocketpy-lince": {
               "given": 148,
-              "below": 14,
+              "below": 15,
               "inside": 122,
-              "above": 12
+              "above": 11
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 134,
@@ -2557,28 +2557,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 71,
-              "inside": 1362,
+              "below": 73,
+              "inside": 1360,
               "above": 64
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 516,
-              "below": 39,
-              "inside": 437,
-              "above": 40
+              "given": 517,
+              "below": 41,
+              "inside": 435,
+              "above": 41
             },
             "heights fit within 1 m": {
-              "given": 981,
+              "given": 980,
               "below": 32,
               "inside": 925,
-              "above": 24
+              "above": 23
             }
           },
-          "mean_error": -0.00532,
+          "mean_error": -0.00695,
           "identification": {
-            "median_width": 0.449,
+            "median_width": 0.445,
             "stated_width": 12.7,
             "identified": true
           }
@@ -2588,90 +2588,90 @@
           "test": {
             "counts": {
               "given": 1000,
-              "below": 42,
+              "below": 41,
               "inside": 900,
-              "above": 58
+              "above": 59
             },
             "below": {
-              "low": 0.02409143595400004,
-              "high": 0.06701518004048901
+              "low": 0.02333629470664872,
+              "high": 0.06578798022193011
             },
             "inside": {
               "low": 0.8652250017648342,
               "high": 0.9286244818908602
             },
             "above": {
-              "low": 0.03654577403713105,
-              "high": 0.08628674382383195
+              "low": 0.0373437744604746,
+              "high": 0.08747201273729455
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 116,
-                "inside": 739,
-                "above": 145
+                "below": 118,
+                "inside": 736,
+                "above": 146
               },
               "below": {
-                "low": 0.08516136459914142,
-                "high": 0.1527359016505827
+                "low": 0.0868995627077816,
+                "high": 0.1549661957259969
               },
               "inside": {
-                "low": 0.6910942558151971,
-                "high": 0.7832538840339851
+                "low": 0.687949810799378,
+                "high": 0.7804443535384296
               },
               "above": {
-                "low": 0.11064222417986597,
-                "high": 0.1848005848309353
+                "low": 0.11153056875215367,
+                "high": 0.18589664717300436
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
                 "below": 6,
-                "inside": 987,
-                "above": 7
+                "inside": 988,
+                "above": 6
               },
               "below": {
                 "low": 0.0009691440937563134,
                 "high": 0.0189306886358227
               },
               "inside": {
-                "low": 0.9705962263295767,
-                "high": 0.995714427267185
+                "low": 0.972024476568951,
+                "high": 0.9962600269372668
               },
               "above": {
-                "low": 0.0013515103174792098,
-                "high": 0.02051343749045409
+                "low": 0.0009691440937563134,
+                "high": 0.0189306886358227
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
                 "below": 2,
-                "inside": 665,
-                "above": 333
+                "inside": 666,
+                "above": 332
               },
               "below": {
                 "low": 0.000031976503547526125,
                 "high": 0.011991007078900218
               },
               "inside": {
-                "low": 0.6142674911284836,
-                "high": 0.713213809723347
+                "low": 0.6152961284346947,
+                "high": 0.7141698828480535
               },
               "above": {
-                "low": 0.28487429066709946,
-                "high": 0.38367498812131884
+                "low": 0.28391871137770364,
+                "high": 0.38264585798939477
               }
             }
           },
           "by_design": {
             "rocketpy-bella-lui": {
               "given": 97,
-              "below": 5,
-              "inside": 89,
+              "below": 4,
+              "inside": 90,
               "above": 3
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
@@ -2683,8 +2683,8 @@
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
               "below": 4,
-              "inside": 102,
-              "above": 11
+              "inside": 101,
+              "above": 12
             },
             "rocketpy-cavour": {
               "given": 93,
@@ -2732,32 +2732,32 @@
           "by_drift": {
             "height alone": {
               "given": 796,
-              "below": 35,
-              "inside": 712,
+              "below": 34,
+              "inside": 713,
               "above": 49
             },
             "with a horizontal track": {
               "given": 204,
               "below": 7,
-              "inside": 188,
-              "above": 9
+              "inside": 187,
+              "above": 10
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
+              "given": 450,
               "below": 22,
-              "inside": 407,
-              "above": 25
+              "inside": 404,
+              "above": 24
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 20,
-              "inside": 493,
-              "above": 33
+              "given": 550,
+              "below": 19,
+              "inside": 496,
+              "above": 35
             }
           },
-          "mean_error": -0.000146,
+          "mean_error": -0.000138,
           "identification": {
             "median_width": 0.035,
             "stated_width": 0.036,
@@ -2771,17 +2771,17 @@
           "test": {
             "counts": {
               "given": 1000,
-              "below": 69,
-              "inside": 877,
+              "below": 74,
+              "inside": 872,
               "above": 54
             },
             "below": {
-              "low": 0.04542492183273589,
-              "high": 0.09922533849530613
+              "low": 0.04952706088189923,
+              "high": 0.10504144133702487
             },
             "inside": {
-              "low": 0.8394712649005289,
-              "high": 0.9087416234854755
+              "low": 0.8339267991723371,
+              "high": 0.9043645738488411
             },
             "above": {
               "low": 0.033374408295206714,
@@ -2792,61 +2792,61 @@
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 106,
-                "inside": 795,
-                "above": 99
+                "below": 103,
+                "inside": 797,
+                "above": 100
               },
               "below": {
-                "low": 0.07651905564226563,
-                "high": 0.14153622263762733
+                "low": 0.07394314982393951,
+                "high": 0.13815970311694326
               },
               "inside": {
-                "low": 0.7503318460264239,
-                "high": 0.8351551165942297
+                "low": 0.752468288391595,
+                "high": 0.8369878277796716
               },
               "above": {
-                "low": 0.07052153602685146,
-                "high": 0.13364488892605908
+                "low": 0.07137551810913972,
+                "high": 0.1347749982351658
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
-                "below": 49,
+                "below": 47,
                 "inside": 921,
-                "above": 30
+                "above": 32
               },
               "below": {
-                "low": 0.02946079410801622,
-                "high": 0.07552419207797456
+                "low": 0.027912725423080265,
+                "high": 0.07310669258355151
               },
               "inside": {
                 "low": 0.8891778691868701,
                 "high": 0.9463348511941083
               },
               "above": {
-                "low": 0.015276440043628992,
-                "high": 0.05204880053403449
+                "low": 0.016703534823929667,
+                "high": 0.05458404491927871
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 21,
-                "inside": 730,
-                "above": 249
+                "below": 26,
+                "inside": 723,
+                "above": 251
               },
               "below": {
-                "low": 0.009143081182127644,
-                "high": 0.0403616224633907
+                "low": 0.01248591591580045,
+                "high": 0.046916737537651354
               },
               "inside": {
-                "low": 0.681669021736071,
-                "high": 0.7748171651094662
+                "low": 0.6743548321368793,
+                "high": 0.7682386720072212
               },
               "above": {
-                "low": 0.20553580074069927,
-                "high": 0.2963002521383944
+                "low": 0.20740104528527764,
+                "high": 0.29840429779781275
               }
             }
           },
@@ -2859,14 +2859,14 @@
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 101,
-              "below": 3,
+              "below": 4,
               "inside": 92,
-              "above": 6
+              "above": 5
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
-              "below": 8,
-              "inside": 104,
+              "below": 9,
+              "inside": 103,
               "above": 5
             },
             "rocketpy-cavour": {
@@ -2883,15 +2883,15 @@
             },
             "rocketpy-juno-iii": {
               "given": 103,
-              "below": 8,
-              "inside": 83,
-              "above": 12
+              "below": 10,
+              "inside": 82,
+              "above": 11
             },
             "rocketpy-lince": {
               "given": 95,
-              "below": 11,
-              "inside": 76,
-              "above": 8
+              "below": 12,
+              "inside": 73,
+              "above": 10
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 83,
@@ -2915,34 +2915,34 @@
           "by_drift": {
             "height alone": {
               "given": 796,
-              "below": 56,
-              "inside": 691,
-              "above": 49
+              "below": 61,
+              "inside": 685,
+              "above": 50
             },
             "with a horizontal track": {
               "given": 204,
               "below": 13,
-              "inside": 186,
-              "above": 5
+              "inside": 187,
+              "above": 4
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
-              "below": 47,
-              "inside": 368,
-              "above": 39
+              "given": 450,
+              "below": 53,
+              "inside": 357,
+              "above": 40
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 22,
-              "inside": 509,
-              "above": 15
+              "given": 550,
+              "below": 21,
+              "inside": 515,
+              "above": 14
             }
           },
-          "mean_error": -0.00348,
+          "mean_error": -0.00324,
           "identification": {
-            "median_width": 0.0968,
+            "median_width": 0.0982,
             "stated_width": 0.36,
             "identified": true
           }
@@ -2952,82 +2952,82 @@
           "test": {
             "counts": {
               "given": 1000,
-              "below": 85,
-              "inside": 881,
-              "above": 34
+              "below": 84,
+              "inside": 883,
+              "above": 33
             },
             "below": {
-              "low": 0.05867399914724086,
-              "high": 0.11771641462562132
+              "low": 0.05783610313038251,
+              "high": 0.11657041365566245
             },
             "inside": {
-              "low": 0.8439198045736025,
-              "high": 0.9122301801024582
+              "low": 0.8461485660696719,
+              "high": 0.9139699252363782
             },
             "above": {
-              "low": 0.01814933317255324,
-              "high": 0.05710115985573183
+              "low": 0.017424198430322557,
+              "high": 0.05584477100046126
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 148,
-                "inside": 781,
-                "above": 71
+                "below": 141,
+                "inside": 792,
+                "above": 67
               },
               "below": {
-                "low": 0.1133090141613437,
-                "high": 0.18808702844856362
+                "low": 0.10709481853866737,
+                "high": 0.18041040735587188
               },
               "inside": {
-                "low": 0.7354196650053506,
-                "high": 0.8222830207632077
+                "low": 0.7471301117129698,
+                "high": 0.832403106462251
               },
               "above": {
-                "low": 0.04706124458800093,
-                "high": 0.1015562426662977
+                "low": 0.04379492576707594,
+                "high": 0.09688820817942378
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
                 "below": 35,
-                "inside": 953,
-                "above": 12
+                "inside": 952,
+                "above": 13
               },
               "below": {
                 "low": 0.01887875261005706,
                 "high": 0.05835338938513379
               },
               "inside": {
-                "low": 0.9268933074164485,
-                "high": 0.9720872745769198
+                "low": 0.92568327362528,
+                "high": 0.971314553189669
               },
               "above": {
-                "low": 0.0037399730627331595,
-                "high": 0.027975523431049032
+                "low": 0.004285572732815102,
+                "high": 0.02940377367042335
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
-                "below": 8,
-                "inside": 771,
-                "above": 221
+                "below": 9,
+                "inside": 767,
+                "above": 224
               },
               "below": {
-                "low": 0.001772545666608949,
-                "high": 0.022059404200154953
+                "low": 0.002226135413302799,
+                "high": 0.023574568146069952
               },
               "inside": {
-                "low": 0.7248121179227791,
-                "high": 0.8130444600809514
+                "low": 0.7205789150771797,
+                "high": 0.8093391787925888
               },
               "above": {
-                "low": 0.179561821638681,
-                "high": 0.2667047018895554
+                "low": 0.18233179703625718,
+                "high": 0.2698885521423797
               }
             }
           },
@@ -3046,8 +3046,8 @@
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
-              "below": 4,
-              "inside": 110,
+              "below": 5,
+              "inside": 109,
               "above": 3
             },
             "rocketpy-cavour": {
@@ -3070,9 +3070,9 @@
             },
             "rocketpy-lince": {
               "given": 95,
-              "below": 17,
-              "inside": 71,
-              "above": 7
+              "below": 15,
+              "inside": 74,
+              "above": 6
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 83,
@@ -3096,34 +3096,34 @@
           "by_drift": {
             "height alone": {
               "given": 796,
-              "below": 73,
-              "inside": 698,
-              "above": 25
+              "below": 71,
+              "inside": 701,
+              "above": 24
             },
             "with a horizontal track": {
               "given": 204,
-              "below": 12,
-              "inside": 183,
+              "below": 13,
+              "inside": 182,
               "above": 9
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
-              "below": 52,
-              "inside": 384,
-              "above": 18
+              "given": 450,
+              "below": 53,
+              "inside": 383,
+              "above": 14
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 33,
-              "inside": 497,
-              "above": 16
+              "given": 550,
+              "below": 31,
+              "inside": 500,
+              "above": 19
             }
           },
-          "mean_error": 0.00244,
+          "mean_error": 0.00241,
           "identification": {
-            "median_width": 0.0401,
+            "median_width": 0.0402,
             "stated_width": 0.108,
             "identified": true
           }
@@ -3154,17 +3154,17 @@
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 102,
-                "inside": 1265,
+                "below": 101,
+                "inside": 1266,
                 "above": 130
               },
               "below": {
-                "low": 0.04857565056891994,
-                "high": 0.09213522053196188
+                "low": 0.04800828498947346,
+                "high": 0.09137382976746755
               },
               "inside": {
-                "low": 0.8121859563296372,
-                "high": 0.8743357868762132
+                "low": 0.8129045107251047,
+                "high": 0.8749463263858162
               },
               "above": {
                 "low": 0.06467598149157944,
@@ -3174,17 +3174,17 @@
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 31,
-                "inside": 1417,
+                "below": 32,
+                "inside": 1416,
                 "above": 49
               },
               "below": {
-                "low": 0.010654324201942511,
-                "high": 0.03575426831274342
+                "low": 0.011130911236873875,
+                "high": 0.03660453825786014
               },
               "inside": {
-                "low": 0.9247659708397413,
-                "high": 0.9637539275234257
+                "low": 0.9239901551576657,
+                "high": 0.963201172891351
               },
               "above": {
                 "low": 0.01961703030391998,
@@ -3194,21 +3194,21 @@
             "shifted-down": {
               "counts": {
                 "given": 1497,
-                "below": 18,
-                "inside": 1131,
-                "above": 348
+                "below": 17,
+                "inside": 1135,
+                "above": 345
               },
               "below": {
-                "low": 0.004825857652618393,
-                "high": 0.024346780196045525
+                "low": 0.004415730676257612,
+                "high": 0.023432643630445282
               },
               "inside": {
-                "low": 0.7173846951217708,
-                "high": 0.7910326336842881
+                "low": 0.720178513207705,
+                "high": 0.7935554809311203
               },
               "above": {
-                "low": 0.1976298728831563,
-                "high": 0.27002784445638484
+                "low": 0.19574418417184752,
+                "high": 0.2679260513173549
               }
             }
           },
@@ -3216,8 +3216,8 @@
             "rocketpy-bella-lui": {
               "given": 144,
               "below": 3,
-              "inside": 136,
-              "above": 5
+              "inside": 137,
+              "above": 4
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 172,
@@ -3228,8 +3228,8 @@
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 156,
               "below": 0,
-              "inside": 150,
-              "above": 6
+              "inside": 149,
+              "above": 7
             },
             "rocketpy-cavour": {
               "given": 134,
@@ -3245,14 +3245,14 @@
             },
             "rocketpy-juno-iii": {
               "given": 156,
-              "below": 1,
-              "inside": 149,
+              "below": 3,
+              "inside": 147,
               "above": 6
             },
             "rocketpy-lince": {
               "given": 148,
-              "below": 15,
-              "inside": 117,
+              "below": 13,
+              "inside": 119,
               "above": 16
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
@@ -3284,19 +3284,19 @@
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 516,
-              "below": 27,
-              "inside": 445,
-              "above": 44
+              "given": 517,
+              "below": 25,
+              "inside": 449,
+              "above": 43
             },
             "heights fit within 1 m": {
-              "given": 981,
-              "below": 31,
-              "inside": 908,
-              "above": 42
+              "given": 980,
+              "below": 33,
+              "inside": 904,
+              "above": 43
             }
           },
-          "mean_error": -0.035,
+          "mean_error": -0.0362,
           "identification": {
             "median_width": 0.427,
             "stated_width": 12.7,
@@ -3308,38 +3308,38 @@
           "test": {
             "counts": {
               "given": 1497,
-              "below": 71,
-              "inside": 1345,
-              "above": 81
+              "below": 70,
+              "inside": 1348,
+              "above": 79
             },
             "below": {
-              "low": 0.03131038507566125,
-              "high": 0.06821315902106106
+              "low": 0.030766629401128898,
+              "high": 0.06742847990030909
             },
             "inside": {
-              "low": 0.8704112589372566,
-              "high": 0.9224338462026804
+              "low": 0.8726298565095112,
+              "high": 0.9242021426328395
             },
             "above": {
-              "low": 0.03679882710864907,
-              "high": 0.0760098448423343
+              "low": 0.035694145069728844,
+              "high": 0.07445739802582318
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1497,
-                "below": 118,
-                "inside": 1250,
+                "below": 116,
+                "inside": 1252,
                 "above": 129
               },
               "below": {
-                "low": 0.057728648506786995,
-                "high": 0.10424313696791532
+                "low": 0.05657726272170632,
+                "high": 0.10273683340257311
               },
               "inside": {
-                "low": 0.8014308911973613,
-                "high": 0.8651543359842759
+                "low": 0.8028624399308413,
+                "high": 0.8663810004872656
               },
               "above": {
                 "low": 0.06409460215338408,
@@ -3349,41 +3349,41 @@
             "widened": {
               "counts": {
                 "given": 1497,
-                "below": 43,
+                "below": 44,
                 "inside": 1412,
-                "above": 42
+                "above": 41
               },
               "below": {
-                "low": 0.01655089999401188,
-                "high": 0.04578511938451135
+                "low": 0.01705726672528579,
+                "high": 0.046606437519668864
               },
               "inside": {
                 "low": 0.9208947729782009,
                 "high": 0.9609821626258104
               },
               "above": {
-                "low": 0.01604653979436349,
-                "high": 0.04496184392203162
+                "low": 0.015544255312363864,
+                "high": 0.044136544632682906
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1497,
-                "below": 29,
+                "below": 31,
                 "inside": 1105,
-                "above": 363
+                "above": 361
               },
               "below": {
-                "low": 0.009710958931251457,
-                "high": 0.03404423343389107
+                "low": 0.010654324201942511,
+                "high": 0.03575426831274342
               },
               "inside": {
                 "low": 0.69927030550837,
                 "high": 0.7745885865759603
               },
               "above": {
-                "low": 0.20707505109917407,
-                "high": 0.28052012063399756
+                "low": 0.20581410745428458,
+                "high": 0.27912273284572997
               }
             }
           },
@@ -3391,20 +3391,20 @@
             "rocketpy-bella-lui": {
               "given": 144,
               "below": 5,
-              "inside": 135,
-              "above": 4
+              "inside": 136,
+              "above": 3
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 172,
               "below": 4,
-              "inside": 166,
-              "above": 2
+              "inside": 165,
+              "above": 3
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 156,
               "below": 3,
-              "inside": 150,
-              "above": 3
+              "inside": 149,
+              "above": 4
             },
             "rocketpy-cavour": {
               "given": 134,
@@ -3421,14 +3421,14 @@
             "rocketpy-juno-iii": {
               "given": 156,
               "below": 6,
-              "inside": 143,
-              "above": 7
+              "inside": 144,
+              "above": 6
             },
             "rocketpy-lince": {
               "given": 148,
-              "below": 15,
-              "inside": 118,
-              "above": 15
+              "below": 14,
+              "inside": 121,
+              "above": 13
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
               "given": 134,
@@ -3452,28 +3452,28 @@
           "by_drift": {
             "with a horizontal track": {
               "given": 1497,
-              "below": 71,
-              "inside": 1345,
-              "above": 81
+              "below": 70,
+              "inside": 1348,
+              "above": 79
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 516,
+              "given": 517,
               "below": 40,
-              "inside": 439,
-              "above": 37
+              "inside": 441,
+              "above": 36
             },
             "heights fit within 1 m": {
-              "given": 981,
-              "below": 31,
-              "inside": 906,
-              "above": 44
+              "given": 980,
+              "below": 30,
+              "inside": 907,
+              "above": 43
             }
           },
-          "mean_error": -0.0287,
+          "mean_error": -0.0302,
           "identification": {
-            "median_width": 0.447,
+            "median_width": 0.443,
             "stated_width": 12.7,
             "identified": true
           }
@@ -3483,103 +3483,103 @@
           "test": {
             "counts": {
               "given": 1000,
-              "below": 61,
-              "inside": 870,
-              "above": 69
+              "below": 63,
+              "inside": 869,
+              "above": 68
             },
             "below": {
-              "low": 0.03894562610319613,
-              "high": 0.08983680660656335
+              "low": 0.040554984159339724,
+              "high": 0.09219422774706953
             },
             "inside": {
-              "low": 0.8317138704912626,
-              "high": 0.902608854316443
+              "low": 0.8306084198592081,
+              "high": 0.9017299722648273
             },
             "above": {
-              "low": 0.04542492183273589,
-              "high": 0.09922533849530613
+              "low": 0.04460911699575715,
+              "high": 0.09805756714614833
             }
           },
           "probes": {
             "narrowed": {
               "counts": {
                 "given": 1000,
-                "below": 132,
-                "inside": 717,
-                "above": 151
+                "below": 136,
+                "inside": 709,
+                "above": 155
               },
               "below": {
-                "low": 0.09914958248647848,
-                "high": 0.17049636365312892
+                "low": 0.10267440101053554,
+                "high": 0.17490895201947176
               },
               "inside": {
-                "low": 0.6680967659192036,
-                "high": 0.7625886904368508
+                "low": 0.6597684531809367,
+                "high": 0.7550395604850251
               },
               "above": {
-                "low": 0.11598099996753125,
-                "high": 0.1913683137863631
+                "low": 0.11955151138231684,
+                "high": 0.19573555260305242
               }
             },
             "widened": {
               "counts": {
                 "given": 1000,
                 "below": 16,
-                "inside": 966,
-                "above": 18
+                "inside": 967,
+                "above": 17
               },
               "below": {
                 "low": 0.0060168885149520235,
                 "high": 0.033598916180409555
               },
               "inside": {
-                "low": 0.9428988401442682,
-                "high": 0.9818506668274467
+                "low": 0.9441552289995387,
+                "high": 0.9825758015696775
               },
               "above": {
-                "low": 0.007236176476906719,
-                "high": 0.036333784877467634
+                "low": 0.0066207714299260645,
+                "high": 0.034971842042506696
               }
             },
             "shifted-down": {
               "counts": {
                 "given": 1000,
                 "below": 3,
-                "inside": 661,
-                "above": 336
+                "inside": 660,
+                "above": 337
               },
               "below": {
                 "low": 0.00014984252804345344,
                 "high": 0.01385806926679245
               },
               "inside": {
-                "low": 0.6101553924658751,
-                "high": 0.7093870617323167
+                "low": 0.6091279777827017,
+                "high": 0.7084297635438149
               },
               "above": {
-                "low": 0.287742509492645,
-                "high": 0.3867609005848207
+                "low": 0.28869907425452157,
+                "high": 0.38778904724414853
               }
             }
           },
           "by_design": {
             "rocketpy-bella-lui": {
               "given": 97,
-              "below": 6,
-              "inside": 87,
+              "below": 7,
+              "inside": 86,
               "above": 4
             },
             "rocketpy-calisto-getting-started-motor-at-minus-1.255": {
               "given": 101,
               "below": 9,
-              "inside": 83,
-              "above": 9
+              "inside": 82,
+              "above": 10
             },
             "rocketpy-calisto-tests-motor-at-minus-1.373": {
               "given": 117,
-              "below": 5,
-              "inside": 100,
-              "above": 12
+              "below": 7,
+              "inside": 99,
+              "above": 11
             },
             "rocketpy-cavour": {
               "given": 93,
@@ -3595,14 +3595,14 @@
             },
             "rocketpy-juno-iii": {
               "given": 103,
-              "below": 7,
+              "below": 8,
               "inside": 84,
-              "above": 12
+              "above": 11
             },
             "rocketpy-lince": {
               "given": 95,
-              "below": 9,
-              "inside": 79,
+              "below": 7,
+              "inside": 81,
               "above": 7
             },
             "rocketpy-ndrt-2020-nose-to-tail": {
@@ -3627,32 +3627,32 @@
           "by_drift": {
             "height alone": {
               "given": 796,
-              "below": 51,
-              "inside": 689,
-              "above": 56
+              "below": 54,
+              "inside": 687,
+              "above": 55
             },
             "with a horizontal track": {
               "given": 204,
-              "below": 10,
-              "inside": 181,
+              "below": 9,
+              "inside": 182,
               "above": 13
             }
           },
           "by_residual": {
             "heights fit to 1 m or worse": {
-              "given": 454,
-              "below": 33,
-              "inside": 387,
-              "above": 34
+              "given": 450,
+              "below": 36,
+              "inside": 384,
+              "above": 30
             },
             "heights fit within 1 m": {
-              "given": 546,
-              "below": 28,
-              "inside": 483,
-              "above": 35
+              "given": 550,
+              "below": 27,
+              "inside": 485,
+              "above": 38
             }
           },
-          "mean_error": -0.000106,
+          "mean_error": -0.000115,
           "identification": {
             "median_width": 0.034,
             "stated_width": 0.036,
@@ -3663,12 +3663,12 @@
       "draws": {
         "posteriors": 2296,
         "without": 0,
-        "too_few": 711,
+        "too_few": 712,
         "least_effective": 1.0,
-        "tenth_effective": 28.7,
+        "tenth_effective": 28.6,
         "median_effective": 138.0,
         "made": 1148000,
-        "failed": 149
+        "failed": 152
       }
     }
   ],
@@ -3987,7 +3987,7 @@
       "how": "bins",
       "size_m": 5.0,
       "track_m": 5.0,
-      "smallest_misfit": 0.981,
+      "smallest_misfit": 0.982,
       "flights": 200,
       "said_nothing": 200,
       "identified": {
@@ -4049,7 +4049,7 @@
       "how": "bins",
       "size_m": 1000.0,
       "track_m": 5.0,
-      "smallest_misfit": 0.971,
+      "smallest_misfit": 0.957,
       "flights": 200,
       "said_nothing": 200,
       "identified": {

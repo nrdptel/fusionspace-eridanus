@@ -45,8 +45,8 @@ and, less certainly, supersonic.
     ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222), [Drag](#drag)).
   - *A boattail's own drag faster than sound* against 58 readings of 20 measured boattails of 3° to 10°, Mach 1.2 to 3.12: −21.9% to +28.3%. It is within 0.0123 in drag coefficient. Through Mach 1 it reads low, and under Niskanen's subsonic rule long boattails get almost nothing. Steeper ones in a thick [boundary layer](../glossary.md#boundary-layer) read high: +26.4% to +54.2% for 16°. The drag of the base behind a boattail is within 0.0102 of 12 measured bases. Behind a small base, that difference can be 40% of the base's own drag ([Boattails faster than sound](#boattails-faster-than-sound)).
   - *Drag reads high against a wind tunnel.* NASA's wind-tunnel tests of the Arcas Robin sounding rocket, Mach 0.6 to 4.63, measured the [forebody](../glossary.md#forebody) only (the models' bases sat on a [sting](../glossary.md#sting)). Against them every reading is high, and 2 of 44 are within 10%, both at Mach 1.0 with the fins on. With the fins on, from Mach 1.5 up, HPR Sim reads +39.4% to +154.0% high: the fins take a blunt edge's formula. With the fins off it reads +13.5% to +24.1% from Mach 1.5 and +12.0% to +54.1% below. Most of that fins-off excess is the models' 15° boattail. HPR Sim over-predicts that boattail's drag in a [boundary layer](../glossary.md#boundary-layer) thicker than the boattail is deep. HPR Sim's base drag behind a plain cylinder has been checked against no measurement faster than Mach 0.3 ([Drag against the Arcas Robin wind tunnel](#drag-against-the-arcas-robin-wind-tunnel)).
-  - *Drag reads low against [RASAero II](../glossary.md#rasaero-ii) past Mach 1.6*, missing [M1.8](../decisions-and-roadmap.md#m1-8)'s 10% there. The curves labeled RASAero in [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) don't record their fins or surface finish, so HPR Sim uses stated guesses. Against Calisto's, the one real RASAero II export, HPR Sim is within 10% at every Mach number up to 0.8. It is within 10% at 3 of the 7 between and at 8 of 17 from 1.2 to 2.0. There it reads −14.9% to −5.1%, lowest at Mach 2 ([evidence row G26](../evidence.md#g26)). Other plausible fins bring 14 to 17 of the 17 within 10%, though none puts every row of every band within it. Before HPR Sim modeled the boattail's wave drag, it read −29.8% to −24.4% there ([Drag against RASAero II through Mach 2](#drag-against-rasaero-ii-through-mach-2)).
-  - *Drag at Mach 0.3* against the same curves: four of seven cases within 10%. Cavour [under power](../glossary.md#power-on-and-power-off-drag) (motor burning) is −18.3%, cause open, and Valetudo's table is 1.44 times its own [OpenRocket](../glossary.md#openrocket) export.
+  - *Drag reads low against [RASAero II](../glossary.md#rasaero-ii) past Mach 1.6*, missing [M1.8](../decisions-and-roadmap.md#m1-8)'s 10% there. The curves labeled RASAero in [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) don't record their fins or surface finish, so HPR Sim uses stated guesses. Against Calisto's, the one real RASAero II export, HPR Sim is within 10% at every Mach number up to 0.8. It is within 10% at 5 of the 7 between and at 8 of 17 from 1.2 to 2.0. There it reads −14.9% to −5.1%, lowest at Mach 2 ([evidence row G26](../evidence.md#g26)). Other plausible fins bring 14 to 17 of the 17 within 10%, though none puts every row of every band within it. Before HPR Sim modeled the boattail's wave drag, it read −29.8% to −24.4% there ([Drag against RASAero II through Mach 2](#drag-against-rasaero-ii-through-mach-2)).
+  - *Drag at Mach 0.3* against the same curves: two of seven cases within 10%; two boattailed ones fell just outside when the base behind a boattail was relieved ([ADR-362][adr-362]). Cavour [under power](../glossary.md#power-on-and-power-off-drag) (motor burning) is −18.3%, cause open, and Valetudo's table is 1.44 times its own [OpenRocket](../glossary.md#openrocket) export.
   - *Against [MIL-HDBK-762](../glossary.md#mil-hdbk-762)'s worked example*, a rocket whose drag the U.S. Army's handbook calculates term by term with every input known. With the fins left out, HPR Sim is within 10% at 6 of 12 Mach numbers. It reads +12.3% to +31.9% from Mach 0.9 to 1.2 (the nose and the base). From Mach 1.6 it reads −6.0% to −9.6% (friction and the base) ([Drag against MIL-HDBK-762's sample calculation](#drag-against-mil-hdbk-762s-sample-calculation)).
   - *The normal force and center of pressure* at Mach 0 against Barrowman's worked examples (rockets
     he calculated by hand). Every center of pressure agrees within 1%, and so does every
@@ -94,7 +94,7 @@ and, less certainly, supersonic.
     ([The normal force from RASAero II](#the-normal-force-from-rasaero-ii)).
   - *[Pods](../glossary.md#pod)* take each pod's parts on Barrowman's rules, once per pod. They
     are checked against hand-worked numbers, and against OpenRocket on six probe designs, within
-    0.81% of its apogee below Mach 0.81. No measured flight checks them. Both codes leave out the
+    0.92% of its apogee below Mach 0.81. No measured flight checks them. Both codes leave out the
     pods' and the body's effect on each other's flow, and HPR Sim a single pod's off-axis moments
     ([Pods](#pods)).
   - *[Tube fins](../glossary.md#tube-fin)*, each tube a ring wing below Mach 0.8: the slope is
@@ -188,7 +188,8 @@ Sources:
   Projectile at Supersonic Velocities*, DREV-TM-9703, DREV (Valcartier, Canada), 1997
   (DTIC ADA636861).
 - **[S61]** W. E. Stoney. *Collection of Zero-Lift Drag Data on Bodies of Revolution from
-  Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`).
+  Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`); p. 11, the
+  base drag of a conical afterbody.
 - **[J53]** J. R. Jack. *Theoretical Pressure Distributions and Wave Drags for Conical Boattails*,
   NACA TN 2972, 1953.
 - **[CS51]** E. M. Cortright Jr. and A. H. Schroeder. *Investigation at Mach Number 1.91 of Side
@@ -229,8 +230,9 @@ Sources:
   Flight Simulation Program Users Manual*, version 1.0.2.0, 2019.
 - **[F57]** H. S. Fletcher. *Experimental Investigation of Lift, Drag, and Pitching Moment of Five
   Annular Airfoils*, NACA TN 4117, 1957 (`naca-tn-4117-fletcher-1957-annular-airfoils`).
-- **[H65]** S. F. Hoerner. *Fluid-Dynamic Drag*, 1965, p. 7-13, *Ring Foil*, and p. 3-12,
-  Fig. 20, the forebody pressure drag of blunt heads (`hoerner-1965-fluid-dynamic-drag`).
+- **[H65]** S. F. Hoerner. *Fluid-Dynamic Drag*, 1965, p. 7-13, *Ring Foil*; p. 3-12,
+  Fig. 20, the forebody pressure drag of blunt heads; and p. 3-20, eq. 35, the subsonic base
+  drag of a body of revolution (`hoerner-1965-fluid-dynamic-drag`).
 - **[HB85]** S. F. Hoerner and H. V. Borst. *Fluid-Dynamic Lift*, 1985, p. 19-16, *Ducted Body*
   (`hoerner-borst-1985-fluid-dynamic-lift`).
 - **[W21]** N. Wagner. *Theoretical and Experimental Investigation into the Flight of an X-Zylo*,
@@ -2568,7 +2570,7 @@ A [pod](../glossary.md#pod) is a body beside the airframe: a side pod, or an out
 on the airframe, once per pod, and adds them to the airframe's. **No measured flight checks it.**
 The formulas are checked against hand-worked numbers. They are also checked against OpenRocket
 24.12 on six *probe designs*, small designs written only to test pods ([pod designs against OpenRocket](../decisions-and-roadmap.md#m1-13c2)). Five carry pods of bodies, fins, a tail cone, winglets or motors, and one is the same airframe without pods. Below Mach
-0.81, HPR Sim's apogee is within 0.81% of OpenRocket's, and its
+0.81, HPR Sim's apogee is within 0.92% of OpenRocket's, and its
 [stability margin](../glossary.md#stability-margin) within 0.0014
 [calibers](../glossary.md#caliber). What the pods change agrees to 0.32 percentage points
 of apogee (table below). That shows the two codes compute the same thing, not that either is right. Both leave out how the pods and the body disturb each other's flow, whose size is given
@@ -2651,12 +2653,12 @@ own share in each code:
 | `pods-none` | none | 776.1 m (2,546 ft) | +0.81% |  |  | 2.757 cal | 2.759 cal |
 | `pods-bodies-3` | three: a cone and a tube | 663.3 m (2,176 ft) | +0.48% | −14.53% | −14.81% | 2.360 cal | 2.362 cal |
 | `pods-fins-2` | two: a cone, a tube, three fins | 613.7 m (2,013 ft) | +0.49% | −20.93% | −21.18% | 2.653 cal | 2.654 cal |
-| `pods-fins-tail-4` | four: a cone, a tube, four fins, a tail cone | 533.3 m (1,750 ft) | +0.41% | −31.28% | −31.56% | 2.470 cal | 2.471 cal |
+| `pods-fins-tail-4` | four: a cone, a tube, four fins, a tail cone | 533.3 m (1,750 ft) | +0.91% | −31.28% | −31.21% | 2.470 cal | 2.471 cal |
 | `pods-winglets-2` | two of no length, two fins each | 699.8 m (2,296 ft) | +0.71% | −9.84% | −9.92% | 2.622 cal | 2.623 cal |
 | `pods-motors-2` | two: a cone, a tube, three fins and an H128W each | 876.9 m (2,877 ft) | +0.53% | +12.98% | +12.66% | 2.990 cal | 2.991 cal |
 
 `pods-motors-2` flies an H128W in each of its two pods and none in the airframe, twice the impulse. It has 0.35 kg of nose ballast instead of 0.15 kg, so its change is not its pods' alone. HPR Sim's
-largest speed is 0.59% to 1.24% above OpenRocket's, its margin 0.0011 to 0.0014 calibers larger. The pods' change of margin agrees to 0.0004 calibers. The launch masses agree within 0.0001%.
+largest speed is 0.73% to 1.24% above OpenRocket's, its margin 0.0011 to 0.0014 calibers larger. The pods' change of margin agrees to 0.0004 calibers. The launch masses agree within 0.0001%.
 The test `pod_designs_are_within_5_percent_of_openrocket` holds every probe within 5% of
 OpenRocket's apogee and largest speed, the bar every flight against OpenRocket is held to
 ([ADR-076][adr-076]). It also holds each margin within 0.005 calibers, and the pods' change within
@@ -3101,7 +3103,7 @@ gives no side force: RASAero II's rockets are symmetric.
 | [Valetudo](../glossary.md#example-rockets) at 100 m/s (328 ft/s) on a table of 1.5 times HPR Sim's slope with the center of pressure 5 cm (2.0 in) further aft, against the small-angle equations of motion, in pitch and in yaw | period 1.104077 s against 1.104073 s, within the test's 3e-5 (1.44965 s on HPR Sim's own); the decay within 0.03%, the test's bound 1% | `hpr_sim::tests::pitch_oscillation_follows_a_normal_force_table` |
 | Tables of HPR Sim's own normal force flown in a crosswind: every 0.5° and every Mach 0.01, and at 0°, 2° and 4° only, where the flight uses the continuation past 4° | apogee within 7.8 mm (0.31 in) and 5.5 cm (2.2 in) of HPR Sim's own flight, the test's bounds 5 cm (2.0 in) and 10 cm (3.9 in) | `hpr_sim::tests::a_table_of_hpr_s_own_normal_force_flies_as_hpr_does` |
 | The continuation past the last angle: a table shaped as RASAero II's (a part linear in the angle, one as $\sin^2\alpha$), and random tables | the $\sin^2\alpha$ part continues to 1e-12; the force never turns round, the center of pressure stays within the rocket, and nothing jumps as the table's values change with Mach number | `hpr_aero::table::tests` |
-| Calisto from a 5.2 m (17 ft) rail at 85° in a 5 m/s (16 ft/s) crosswind, up to Mach 0.746: on the export, on HPR Sim's own normal force, and on HPR Sim's own as a table at the export's angles | the export: apogee 2,793.09 m (9,163.7 ft) against 2,794.21 m (9,167.4 ft), 12.4 m (41 ft) further into the wind. HPR Sim's own as a table moves it 0.02 m (0.066 ft): the table's method, apart from its numbers. Each flight spends 2.1 to 2.2 s past 4° before apogee | [`normal-force-override.json`][override-fixture] |
+| Calisto from a 5.2 m (17 ft) rail at 85° in a 5 m/s (16 ft/s) crosswind, up to Mach 0.747: on the export, on HPR Sim's own normal force, and on HPR Sim's own as a table at the export's angles | the export: apogee 2,827.09 m (9,275.2 ft) against 2,828.21 m (9,278.9 ft), 12.6 m (41 ft) further into the wind. HPR Sim's own as a table moves it 0.02 m (0.066 ft): the table's method, apart from its numbers. Each flight spends 2.2 to 2.3 s past 4° before apogee | [`normal-force-override.json`][override-fixture] |
 
 The Calisto flights show how much the change matters. They are not a check of accuracy: nothing
 measured flew. `cargo xtask aero` writes the fixture from the export, which isn't committed, and
@@ -3183,7 +3185,7 @@ The axial coefficient is $C_A = C_{D0}\, f(\alpha)$.
 | friction drag | below the table | body: $\pi A_{\mathrm{plan}}$; fins: both sides | [N09] eq. 3.85 |
 | nose, shoulder | $0.8\sin^2\varphi$ at rest, $\varphi$ the joint angle at the aft end; through Mach 1 as under *Drag through Mach 1* | base area; increase in area | [N09] eq. 3.86–3.87, appendix B |
 | boattail | to Mach 0.8, $(C_{D\bullet})_{\mathrm{base}}$ × 1 ($\gamma \le 1$), $(3 - \gamma)/2$, 0 ($\gamma \ge 3$); $\gamma = l/(d_1 - d_2)$; faster, as under *Boattails faster than sound* | decrease in area | [N09] eq. 3.88; [762] Fig. 5-122 |
-| base | $0.12 + 0.13\,M^2$ below Mach 1, $0.25/M$ above; behind a boattail, from Mach 0.8, times its base-pressure ratio (*Boattails faster than sound*) | aft base less thrusting motors | [N09] eq. 3.94, p. 50; [762] Fig. 5-141 |
+| base | $0.12 + 0.13\,M^2$ below Mach 1, $0.25/M$ above; behind a boattail, times its base-pressure ratio: $d_B/d_1$ to Mach 0.8, then *Boattails faster than sound* | aft base less thrusting motors | [N09] eq. 3.94, p. 50; [S61] p. 11; [762] Fig. 5-141 |
 | fin leading edge | square: $0.85\,q_{\mathrm{stag}}/q$; rounded, airfoil: $(1 - M^2)^{-0.417} - 1$ (to 0.9), $1 - 1.785(M - 0.9)$ (to 1), $1.214 - 0.502/M^2 + 0.1095/M^4$; times $\cos^2\Gamma_L$ | $N t s$ | [N09] eq. 3.89–3.91, B.2 |
 | fin trailing edge | square: base; rounded: half base; airfoil: 0 | $N t s$ | [N09] eq. 3.92–3.93 |
 | stagnation pressure | $q_{\mathrm{stag}}/q = 1 + M^2/4 + M^4/40$ below Mach 1; above, below the table | | [N09] eq. B.1 |
@@ -3587,7 +3589,11 @@ von Kármán noses ([ADR-028][adr-028]).
 
 A [boattail](../glossary.md#boattail) narrows the body toward the tail, usually to shrink the flat
 base behind it. Below Mach 0.8 HPR Sim keeps Niskanen's boattail rule from the table above, a share
-of the base drag. Faster than sound two more things happen. The air turns inward around the
+of the base drag, and the base behind an attached boattail keeps $d_B/d_1$ of the flat-base drag,
+the base's diameter over the boattail's fore diameter: 0.6 for a 4.8 in base behind an 8 in body
+(Stoney's rule from tunnel data, held to one measured flight; [ADR-362][adr-362] and
+[the base against a measured flight](../accuracy.md#the-base-under-power-against-a-measured-flight)).
+Faster than sound two more things happen. The air turns inward around the
 boattail's shoulder and expands, as in a [Prandtl-Meyer expansion](../glossary.md#prandtl-meyer-expansion).
 It speeds up, its pressure falls below the free stream's, and it pulls back on the boattail. That
 is a [wave drag](../glossary.md#wave-drag), and on a short, steep boattail it can be the largest
@@ -3621,7 +3627,7 @@ were made with no motor exhaust.
 | its upper limit | never more than the pressure after a two-dimensional Prandtl-Meyer turn through $\theta$ over the whole annulus, $-C_{p,\mathrm{PM}}(M, \theta)(1 - a)$; past the chart's end at $x = 1.4$ the drag approaches that limit, the gap shrinking as $1/x$ | [R1135] eq. 44, 171c |
 | separation | between 16° and 30°, a straight-line blend in $\theta$ from the attached value to the base drag on the annulus, $(C_{D\bullet})_{\mathrm{base}}(1 - a)$, where [flow separates](../glossary.md#flow-separation) | [C57] pp. 6, 8 |
 | through Mach 1 | the rule to Mach 0.8, where the buildup's other transonic terms start; a straight line to Mach 1; from there the attached drag held at its Mach 1.2 value to Mach 1.2 | [N09] p. 47, [762] p. 5-47 |
-| base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; back to 1 between Mach 1 and 0.8; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210 |
+| base behind a boattail | from Mach 2.5, $p_{\mathrm{cyl}}/p_{\mathrm{bt}} = 0.442 + 0.558\,a_b$, with the cylinder's pressure from Love's correlation of measured bases, turned into the ratio of the two base-pressure coefficients, $k = (1 - p_{\mathrm{bt}}/p)/(1 - p_{\mathrm{cyl}}/p)$, which multiplies HPR Sim's own base drag; below Mach 2.5, $k$ at Mach 2.5; to Mach 0.8, $k = d_B/d_1 = \sqrt{a_b}$, a conical afterbody's base drag scaling with $(d_B/d_1)^3$ on the largest cross-section where the rule on the base's area scales with its square; a straight line between Mach 0.8 and 1; none for a separated boattail | [762] Figs. 5-139, 5-141, pp. 5-208, 5-210; [S61] p. 11; [H65] p. 3-20, eq. 35 |
 | a lip in its wake | a lip behind a boattail or a step down (a boattail of no length), drawn as a shoulder, a step up or both, in one part or several, loses its pressure drag while its top rises up to a quarter of the boattail's drop in diameter above the boattail's end, keeps all of it from half, and a straight-line share between; a lip in parts takes at each part the smallest share any top so far leaves; the base behind it takes the same share of the relief, less the lip's length's fade. A lip's rise is its top diameter less the boattail's aft diameter. | [D4014] p. 6, [R22] slide 2; the quarter and half are a judgment |
 | a boattail in parts | a narrowing part after another drags, as its share of the boattail it continues, as the cone from that boattail's start through its aft end less the cone through its fore end (below 0 where extending the boattail lowers its drag); so parts of one straight cone add up to one cone. Its drag is that share for a turn of up to 3° between the parts, its own drag as a boattail from 10° (a corner), and a straight-line blend of the two between (the *turn* is the difference of the two parts' half-angles) | a judgment |
 | gaps and steps | whatever lies between a boattail and what follows weakens its effect in a straight line, gone once the gaps add up to one of the boattail's drops in diameter; gaps add: the lengths of tubes, lips and parts, and the drops in diameter of steps down and narrowing parts. | a judgment |
@@ -3744,8 +3750,15 @@ and Cubbage's long, gentle boattails 0 to 0.009, where they measure 0.011 to 0.0
 - The 1° below which a part merges only in part, and the fade of a step's corner over one drop in
   diameter, are judgments too. Flow behind a backward-facing step reattaches farther downstream, so the fade likely
   understates a lip's shelter.
-- Nothing models the jet. Fig. 5-141 is measured with the motor off, as is the base drag it
-  scales. Under power HPR Sim applies both to what the motors leave of the base.
+- Nothing models the jet. Fig. 5-141 is measured with the motor off, as are the base drag it
+  scales and Stoney's subsonic rule. Under power HPR Sim applies them to what the motors leave
+  of the base.
+- Below Mach 0.8 the relief rests on one measured flight, the Hermes A-3A's long 4.5° cone, and
+  on Stoney's tunnel rule, which gives no range of cone angles and does not allow for the
+  negative base drags measured at subsonic speeds ([S61] p. 11). Measured bases behind cones
+  read lower still ([subsonic boattail base drag](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/subsonic-boattail-base-drag.md)),
+  so the rule likely reads high behind a long attached boattail
+  ([evidence row G41](../evidence.md#g41)).
 
 ### Drag limits
 
@@ -4267,29 +4280,34 @@ readings' half a caliber. The largest are the short model at Mach 1.5 (+1.59), w
 
 - **RocketPy's drag curves at Mach 0.3** (`tests::rocketpy_drag_curves_at_mach_0_3`, fixture [`validation/fixtures/aero/rocketpy-drag-curves.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/rocketpy-drag-curves.json), written by `cargo xtask aero` from `refs/rocketpy`). Every RocketPy example whose curve is labeled RASAero, at sea level in the 1976 [standard atmosphere](../glossary.md#standard-atmosphere) (USSA76). RASAero II computes its exports' Reynolds numbers there. [Tolerance](../glossary.md#tolerance) 10%. The fixture holds only derived numbers: each curve's value at Mach 0.3, HPR Sim's $C_{D0}$ and the error. The test recomputes HPR Sim's $C_{D0}$ and the errors from the committed designs, and `cargo test -p xtask` reruns the comparison when `refs/rocketpy` is present.
 
-  | case | curve | HPR Sim drag coefficient $C_{D0}$ | error | range over inputs |
-  |---|---|--:|--:|--:|
-  | Calisto, 2018 fins | RASAero II export, power-off | 0.3982 | +4.4% | −14.0% to +12.8% |
-  | Calisto, getting-started fins (variant) | the same | 0.3537 | −7.3% | −12.9% to +19.3% |
-  | Juno III | labeled RASAero II, 3-decimal table | 0.3525 | −6.0% | −10.5% to +24.1% |
-  | Cavour, power-off | labeled RASAero II, 3-decimal table | 0.5034 | −8.3% | −22.3% to −0.4% |
-  | **Cavour, power-on (outside 10%)** | the same, power-on | 0.4487 | **−18.3%** | −32.2% to −10.3% |
-  | **Valetudo, power-off (outside 10%)** | labeled RASAero, 3-decimal table | 0.5566 | **−47.0%** | −59.4% to −42.5% |
-  | **Valetudo, power-on (outside 10%)** | the same, power-on | 0.5189 | **−50.4%** | −62.8% to −45.9% |
+  | case | curve | HPR Sim drag coefficient $C_{D0}$ | error |
+  |---|---|--:|--:|
+  | Calisto, 2018 fins | RASAero II export, power-off | 0.3821 | +0.2% |
+  | **Calisto, getting-started fins (variant) (outside 10%)** | the same | 0.3376 | **−11.5%** |
+  | **Juno III (outside 10%)** | labeled RASAero II, 3-decimal table | 0.3364 | **−10.3%** |
+  | Cavour, power-off | labeled RASAero II, 3-decimal table | 0.5034 | −8.3% |
+  | **Cavour, power-on (outside 10%)** | the same, power-on | 0.4487 | **−18.3%** |
+  | **Valetudo, power-off (outside 10%)** | labeled RASAero, 3-decimal table | 0.5566 | **−47.0%** |
+  | **Valetudo, power-on (outside 10%)** | the same, power-on | 0.5189 | **−50.4%** |
+
+  Calisto, the getting-started variant and Juno III are boattailed: since
+  [ADR-362, the base held to the Hermes A-3A][adr-362], their base keeps $d_B/d_1$ of the
+  flat-base value below Mach 0.8, which took Calisto from +4.4% to +0.2% and the other two from
+  −7.3% and −6.0% to outside 10%. One code against another sizes the difference; it doesn't say
+  which code is right.
 
   - **Inputs ([ADR-009][adr-009], the drag decision).** The exports record none, so the designs follow one declared rule:
     - RASAero II's default smooth finish.
     - A NACA 00xx airfoil file in the example gives an airfoil section that thick at the mean aerodynamic chord (Calisto's getting-started fins).
     - A published section is used. Juno III's team placed second for a technical award, cited for "análise de aletas com perfil de aerofólio truncado" (an analysis of truncated-airfoil fins). It is taken as rounded at the placeholder thickness, since the citation gives no thickness.
     - Otherwise the placeholder, square 3 mm (0.12 in, Calisto's 2018 fins, Cavour, Valetudo).
-    - Rail buttons are as RocketPy defines them (without them, Calisto is +1.8%).
-  - **Sensitivity.** The range is over square, rounded and airfoil fins (3 mm (0.12 in), or 12% for the airfoil). It is also over 0 or 20 µm, and with or without rail buttons. Before the published-section rule, square fins gave Juno III +14.6% and the getting-started Calisto +10.7%. The check places HPR Sim near RASAero's subsonic drag under a declared rule; without the inputs it can't show agreement to 10%.
+    - Rail buttons are as RocketPy defines them.
+  - **Sensitivity.** The fins' section (square, rounded or airfoil), their thickness and the finish move Calisto's rows within 10% by band as `tests::calistos_rows_by_fin_and_finish` pins ([below](#drag-against-rasaero-ii-through-mach-2)); the rail buttons move a case too, not re-measured since [ADR-362][adr-362]. The check places HPR Sim near RASAero's subsonic drag under a declared rule; without the inputs it can't show agreement to 10%.
   - **Power-on.** Separate power-on curves are compared (Cavour's and Valetudo's). Subtracting the motor's area ([N09] pp. 50–51) removes 42% of Cavour's base drag and 29% of Valetudo's at Mach 0.3. Cavour's power-on table is within its 0.001 rounding of power-off from Mach 0.16 up (0.0001 at 0.3). Below Mach 0.16 it is 0.001 to 0.013 lower. Valetudo's is 0.004 lower, about a ninth of HPR Sim's relief. The designs' motor diameter is the larger of the grain and nozzle exit diameters, since RocketPy gives no case. Cavour's result depends on it: −8.3% with no relief and −14.8% at 54 mm (2.1 in). It is −18.3% at the design's 67 mm (2.6 in) nozzle exit and −20.8% with the example's 75 mm motor. The cause of that miss stays open. One candidate is Niskanen's rule of taking the motor's area off the base. Others are a RASAero run with little or no nozzle exit diameter, or tables sampled along a flight. Their uneven Mach spacing suggests the last (unconfirmed).
   - **Valetudo.** Its table (1.05) is 1.44 times the OpenRocket export for the same rocket (0.728). With that file's own inputs (60 µm, two 14 mm × 30 mm lugs, 3 mm (0.12 in) square fins), HPR Sim gives 0.714. That is 1.9% under the OpenRocket export and 32% under the table. As designed for this comparison, its 0.5566 is 23.5% under the export.
   - **Not compared.**
     - Calisto's power-on curve, which equals its power-off curve (no nozzle exit diameter in RASAero).
     - Juno III's power-on drag, which RocketPy takes from the same file.
-    - Calisto's power-on result would be −5.0%.
     - The other examples, whose drag is a constant, CFD or of unknown origin.
 - **[Loft lessons](../glossary.md#loft-lesson)**, each with what it concerns:
   - [L11](../decisions-and-roadmap.md#l11), drag that changed with the order of the fin sets:
@@ -4339,7 +4357,7 @@ readings' half a caliber. The largest are the short model at Mach 1.5 (+1.59), w
   - Calisto's boattail by hand (the guide's worked example) with the joins at Mach 0.9, 1 and 1.2.
   - The drag past the chart continuous at its end and closing on the 2D limit.
   - Separation from 16° to 30°.
-  - The base-pressure ratio on Fig. 5-141's line.
+  - The base-pressure ratio on Fig. 5-141's line, and $d_B/d_1$ to Mach 0.8.
   - Every boattail from 1° to 89° finite and non-negative to Mach 5.
   - The comparison with measured boattails and Jack's theory is `tests::boattails_against_measurements`.
 - **Boattails in parts, wakes and gaps** (`drag::tests`): a boattail split in two drags as one (`a_boattail_split_in_two_drags_as_one`). So does a straight cone of 0.5° to 7° in 2, 4 or 8 parts, where a part's share is below 0 too (`a_straight_cone_in_parts_is_one_cone`). A corner keeps two parts apart and the merge is continuous in the turn (`a_sharp_corner_keeps_its_boattails_apart`). A pair drags between its two limits (`soft_merges_stay_between_their_limits`). A partial merge shares the flow (`a_partial_merge_shares_the_flow`). A change of $\varepsilon$ in any radius or length behind 2° to 14° boattails moves the drag in proportion to $\varepsilon$ (`a_part_narrowing_by_nothing_is_a_tube_and_one_of_no_length_a_step`). A lip's wake is tested by its rise and its gaps (`a_lip_in_a_boattails_wake_fades_with_its_rise`, `a_lip_drawn_as_a_step_up_is_a_lip`, `a_hairline_step_before_a_lip_changes_nothing`). A retainer behind a step down is in its wake (`a_retainer_behind_a_step_down_is_in_its_wake`). A 40-part zigzag keeps its tails few (`a_zigzag_boattail_keeps_its_tails_few`).
@@ -4360,11 +4378,15 @@ blast tube carries the jet to a 3.0 in nozzle exit at the base, past fixed vanes
   flight measured 0.0204 to 0.0270 on the model's largest cross-section. Too little drag gives
   too high an apogee, the optimistic side for a target altitude
   ([which error flatters](../drag-through-mach-1.md#which-error-flatters)).
-- **Given only the nozzle exit, the same rule reads high**, by 0.0114 to 0.0237, and the whole
-  base, OpenRocket 24.12's rule, by 0.0360 to 0.0520.
-- **Coasting, HPR Sim reads high**: 5.0 to 8.4 times the measured base drag. Below Mach 0.8 HPR
-  Sim gives a boattail no relief on its base, and behind this long cone the measured base drag
-  is far lower.
+- **Given only the nozzle exit, the same rule comes within 0.007**, from 0.0040 low to 0.0061
+  high. The whole base kept under power, the area OpenRocket 24.12 keeps, reads high by 0.0108
+  to 0.0230 on HPR Sim's coefficient; on OpenRocket's own, the flat-base rule with no relief
+  behind a boattail, by 0.036 to 0.052 (the fixture's flat-base column less the measured).
+- **Coasting, HPR Sim reads high**: 3.0 to 5.1 times the measured base drag, high by 0.025 to
+  0.035. Behind a boattail below Mach 0.8 HPR Sim keeps $d_B/d_1$ of the flat-base value, here
+  0.6 ([S61] p. 11; since [ADR-362, the base held to this flight][adr-362]); before, it gave no relief and read high
+  by 0.050 to 0.064, 5.0 to 8.4 times the measured. Hoerner's rule, which also takes the
+  forebody's friction into account, reads high by 0.012 to 0.016 ([H65] eq. 35).
 - **The jet more than doubled the measured base drag**, where HPR Sim's rule lowers it and the
   whole base keeps it. Neither rule moves the way the flight did.
 
@@ -4474,9 +4496,9 @@ Rows within 10%, and the range of the errors, by band:
 
 | case | to Mach | subsonic, to 0.8 | transonic | supersonic, from 1.2 |
 |---|--:|---|---|---|
-| Calisto, 2018 fins | 2 | 15 of 15: +3.9% to +8.9% | 3 of 7: −10.1% to +16.4% | 8 of 17: −14.9% to −5.1% |
-| Calisto, getting-started fins (variant) | 2 | 12 of 15: −8.2% to +30.7% | 0 of 7: +13.5% to +65.4% | 0 of 17: +22.6% to +31.7% |
-| Juno III | 0.9 | 15 of 15: −6.2% to +9.1% | 0 of 2: +19.3% to +32.0% | n/a |
+| Calisto, 2018 fins | 2 | 15 of 15: −1.7% to +3.3% | 5 of 7: −10.1% to +13.4% | 8 of 17: −14.9% to −5.1% |
+| Calisto, getting-started fins (variant) | 2 | 8 of 15: −12.1% to +24.5% | 0 of 7: +13.5% to +62.3% | 0 of 17: +22.6% to +31.7% |
+| Juno III | 0.9 | 12 of 15: −10.7% to +2.4% | 0 of 2: +14.0% to +28.3% | n/a |
 | Cavour, power-off | 0.85 | 6 of 15: −12.6% to −2.2% | 0 of 1: −12.6% | n/a |
 | Cavour, power-on | 0.9 | 1 of 15: −26.2% to −9.2% | 0 of 2: −27.0% to −26.7% | n/a |
 | Valetudo, power-off | 1.5 | 0 of 15: −51.4% to −43.5% | 0 of 7: −53.3% to −50.9% | 0 of 7: −54.6% to −52.9% |
@@ -4485,12 +4507,12 @@ Rows within 10%, and the range of the errors, by band:
 The getting-started fins are a variant. RocketPy's getting-started example gives Calisto larger
 fins with a thick NACA 0012 airfoil. But the export was made for the 2018 fins, whose normal
 force it matches. So the variant's rows show how much the fins move drag, not a second agreement. Its thick fins now read 23% to 32% high faster than sound. Calisto on its 2018 fins is
-within 10% up to Mach 0.8, at 1.0 and from 1.1 to 1.55. It reads +13.0%, +16.4% and +10.5% at
-Mach 0.85, 0.9 and 0.95, where its boattail's rise starts sooner than RASAero II's. It reads −10.1% at Mach 1.05. It falls below the curve from Mach 1.6, to −14.9% at 2.0. Valetudo's curve is
+within 10% up to Mach 0.85, at 0.95 and 1.0, and from 1.1 to 1.55. It reads +13.4% at Mach 0.9,
+where its boattail's rise starts sooner than RASAero II's. It reads −10.1% at Mach 1.05. It falls below the curve from Mach 1.6, to −14.9% at 2.0. Valetudo's curve is
 1.44 times its own OpenRocket export, as the Mach 0.3 check found, and Cavour's power-on miss is
 the same open question. Two misses are unexplained. Cavour's power-off curve rises faster than
-HPR Sim's through subsonic flow, from −8.3% at Mach 0.3 to −12.6% at 0.85. Juno III's curve stays flat up to Mach 0.91. There HPR Sim's has begun its rise, its nose's and its boattail's, +19.3% at Mach
-0.85 and +32.0% at 0.9.
+HPR Sim's through subsonic flow, from −8.3% at Mach 0.3 to −12.6% at 0.85. Juno III's curve stays flat up to Mach 0.91. There HPR Sim's has begun its rise, its nose's and its boattail's, +14.0% at Mach
+0.85 and +28.3% at 0.9.
 
 **What the boattail's wave drag changed.** Calisto ends in a short, steep conical
 [boattail](../glossary.md#boattail): 0.47 calibers long, narrowing to 69% of the diameter, a
@@ -4505,8 +4527,8 @@ which reads 6% to 10% low faster than sound against a worked example with every 
 ([below](#drag-against-mil-hdbk-762s-sample-calculation)).
 
 **The unrecorded inputs now span most of the rest.** Calisto's fins could be square, rounded or an
-airfoil, 2 to 6.35 mm (0.079 to 0.25 in) thick, smooth or painted (`tests::calistos_rows_by_fin_and_finish`). The committed inputs are square, 3 mm (0.12 in) and smooth by the rule of the Mach 0.3 check. They have 15, 3 and 8 rows within 10% by band. Rounded fins 4.76 mm (0.19 in) thick, smooth, have 15, 4 and 14. Airfoil fins
-6.35 mm (0.25 in) thick, smooth, have 11, 4 and 17. No combination has every row within 10%. Before the
+airfoil, 2 to 6.35 mm (0.079 to 0.25 in) thick, smooth or painted (`tests::calistos_rows_by_fin_and_finish`). The committed inputs are square, 3 mm (0.12 in) and smooth by the rule of the Mach 0.3 check. They have 15, 5 and 8 rows within 10% by band. Rounded fins 4.76 mm (0.19 in) thick, smooth, have 6, 5 and 14. Airfoil fins
+6.35 mm (0.25 in) thick, smooth, have 3, 4 and 17. No combination has every row within 10%. Before the
 wave drag no combination had rows within 10% both below Mach 0.8 and from Mach 1.2.  HPR Sim keeps the stated rule rather than
 picking the inputs that fit.
 
@@ -5080,6 +5102,7 @@ ellipse's integrals ([N09] eq. 3.70–3.71). Supersonic forcing and damping with
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [adr-351]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
+[adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 [wind-tunnel]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/arcas-robin-wind-tunnel.json
 [drag-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/drag-vs-mach.json
 [curves-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/rocketpy-drag-curves.json

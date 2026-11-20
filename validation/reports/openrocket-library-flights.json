@@ -10,11 +10,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": -0.359999,
+      "apogee_percent": -0.044105,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.077568,
+        "flight_time_percent": 0.245913,
         "in_scope": true,
         "landing_speed_percent": 0.039714,
         "meets_targets": true,
@@ -30,7 +30,7 @@
       "margin_cal": -0.016633,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.284865,
+      "max_speed_percent": 0.313924,
       "nose_column": null,
       "nose_column_skipped": null,
       "nose_column_whole_base": null,
@@ -46,11 +46,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.042453,
+      "apogee_percent": 0.375353,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.349668,
+        "flight_time_percent": 0.553495,
         "in_scope": true,
         "landing_speed_percent": 0.038263,
         "meets_targets": true,
@@ -66,7 +66,7 @@
       "margin_cal": 0.002532,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.557372,
+      "max_speed_percent": 0.609124,
       "nose_column": null,
       "nose_column_skipped": null,
       "nose_column_whole_base": null,
@@ -1339,8 +1339,8 @@
         "flight_time_percent": {
           "count": 34,
           "max": 3.716487,
-          "mean_absolute": 1.5200271470588234,
-          "median": 0.14390150000000002,
+          "mean_absolute": 1.530973382352941,
+          "median": 0.228074,
           "min": -4.975282
         },
         "flights": 34,
@@ -1409,8 +1409,8 @@
           "no named cause": {
             "count": 28,
             "max": 1.167291,
-            "mean_absolute": 1.3164762500000002,
-            "median": -0.308323,
+            "mean_absolute": 1.317083607142857,
+            "median": -0.253242,
             "min": -4.844469
           },
           "reference parachute open before apogee": {
@@ -1442,7 +1442,7 @@
           "no named cause": {
             "count": 34,
             "max": 2.281658,
-            "mean_absolute": 0.48417155882352936,
+            "mean_absolute": 0.48654835294117654,
             "median": 0.266802,
             "min": -0.65326
           }

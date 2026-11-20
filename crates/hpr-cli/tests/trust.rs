@@ -76,9 +76,9 @@ fn sim_says_its_figures_are_simulated_and_ends_with_how_far_to_trust_them() {
     // The three parts, in order: the kind, what it was checked against, what to rely on instead.
     let parts = [
         "Simulated from the design file, not measured.",
-        "Against 60 logged flights of fliers' own designs, the simulated apogee averaged 7.7% \
+        "Against 60 logged flights of fliers' own designs, the simulated apogee averaged 8.0% \
          above the logged one. HPR Sim flew each in its day's air from ERA5, a weather \
-         reanalysis, and each logged apogee is the height climbed in it. The simulated apogee was within 10% on 32 and read low on 15, \
+         reanalysis, and each logged apogee is the height climbed in it. The simulated apogee was within 10% on 31 and read low on 15, \
          by at most 20%.",
         // Flown without --weather, so in the standard atmosphere, which the note says (#1256).
         "This flight was flown in the standard atmosphere. On a day warmer than it at the site, \

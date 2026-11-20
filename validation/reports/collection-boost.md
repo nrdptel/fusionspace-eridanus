@@ -47,25 +47,25 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … with another log of the flight on a barometer's track | 6 | 7 |
 | … … the logs' apogees more than 2% apart | 0 | 0 |
 | **every flight predicted** | **12** | **9** |
-| prediction from the boost: mean absolute error | 3.19% | 3.60% |
-| … mean error with its sign | -0.08% | +1.34% |
-| forward simulation, same flights: mean absolute error | 9.32% | 16.75% |
-| … mean error with its sign | +8.84% | +15.73% |
-| forward error made up to the cut, forward less prediction (points) | +8.92 | +14.39 |
+| prediction from the boost: mean absolute error | 3.17% | 3.60% |
+| … mean error with its sign | -0.05% | +1.34% |
+| forward simulation, same flights: mean absolute error | 9.37% | 16.75% |
+| … mean error with its sign | +8.89% | +15.73% |
+| forward error made up to the cut, forward less prediction (points) | +8.94 | +14.39 |
 | … flights where it is the larger share | 11 | 9 |
-| absolute errors' difference, prediction less forward (points) | -6.13 | -13.16 |
-| … paired bootstrap 95% interval | -10.08 to -2.71 | -18.77 to -7.93 |
-| … exact sign-flip 95% interval | -10.64 to -2.08 | -20.29 to -6.49 |
+| absolute errors' difference, prediction less forward (points) | -6.21 | -13.16 |
+| … paired bootstrap 95% interval | -10.14 to -2.81 | -18.77 to -7.93 |
+| … exact sign-flip 95% interval | -10.65 to -2.22 | -20.29 to -6.49 |
 | **without a deployment before apogee** | **8** | **3** |
-| prediction from the boost: mean absolute error | 3.03% | 3.08% |
-| … mean error with its sign | -1.12% | -1.54% |
-| forward simulation, same flights: mean absolute error | 10.05% | 10.40% |
-| … mean error with its sign | +9.33% | +10.40% |
-| forward error made up to the cut, forward less prediction (points) | +10.44 | +11.93 |
+| prediction from the boost: mean absolute error | 3.00% | 3.08% |
+| … mean error with its sign | -1.08% | -1.54% |
+| forward simulation, same flights: mean absolute error | 10.12% | 10.40% |
+| … mean error with its sign | +9.40% | +10.40% |
+| forward error made up to the cut, forward less prediction (points) | +10.48 | +11.93 |
 | … flights where it is the larger share | 7 | 3 |
-| absolute errors' difference, prediction less forward (points) | -7.02 | -7.32 |
-| … paired bootstrap 95% interval | -12.65 to -2.29 | too few flights to resample |
-| … exact sign-flip 95% interval | -13.76 to -0.80 | unbounded |
+| absolute errors' difference, prediction less forward (points) | -7.13 | -7.32 |
+| … paired bootstrap 95% interval | -12.75 to -2.46 | too few flights to resample |
+| … exact sign-flip 95% interval | -13.76 to -0.87 | unbounded |
 
 Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center. On 3 flights or fewer the bootstrap's 95% points are only the smallest and largest difference, so the page gives none. On 5 flights or fewer no pattern of signs is rare enough at 95%, so the sign-flip interval is the whole line: "unbounded".
 
@@ -143,14 +143,14 @@ The test. Each set's last rows give each flight's absolute error corrected less 
 | | without the flagged flights | every calibration flight |
 |---|---:|---:|
 | **held-out flights the forward report compares** | **23** | **23** |
-| forward simulation: mean absolute error | 16.26% | held back |
-| corrected: mean absolute error | 10.91% | held back |
-| forward simulation: mean error with its sign | +13.36% | held back |
-| corrected: mean error with its sign | +5.84% | held back |
+| forward simulation: mean absolute error | 16.34% | held back |
+| corrected: mean absolute error | 10.89% | held back |
+| forward simulation: mean error with its sign | +13.56% | held back |
+| corrected: mean error with its sign | +6.04% | held back |
 | corrected flights that failed to fly | 0 | held back |
 | passes | yes | yes |
-| absolute errors' difference, corrected less forward (points) | -5.35 | held back |
-| … paired bootstrap 95% interval | -7.40 to -2.95 | held back |
+| absolute errors' difference, corrected less forward (points) | -5.46 | held back |
+| … paired bootstrap 95% interval | -7.49 to -3.06 | held back |
 | … exact sign-flip 95% interval | not counted past 20 flights | held back |
 | flights whose error grew | 4 | held back |
 | **held-out flights the forward report compares, less their flagged flights** | **22** | **22** |
@@ -165,15 +165,15 @@ The test. Each set's last rows give each flight's absolute error corrected less 
 | … exact sign-flip 95% interval | held back | held back |
 | flights whose error grew | held back | held back |
 | **… without a deployment before apogee** | **13** | **13** |
-| forward simulation: mean absolute error | 11.30% | held back |
-| corrected: mean absolute error | 6.84% | held back |
-| forward simulation: mean error with its sign | +6.88% | held back |
-| corrected: mean error with its sign | -0.05% | held back |
+| forward simulation: mean absolute error | 11.43% | held back |
+| corrected: mean absolute error | 6.79% | held back |
+| forward simulation: mean error with its sign | +7.21% | held back |
+| corrected: mean error with its sign | +0.28% | held back |
 | corrected flights that failed to fly | 0 | held back |
 | passes | yes | yes |
-| absolute errors' difference, corrected less forward (points) | -4.46 | held back |
-| … paired bootstrap 95% interval | -7.06 to -1.52 | held back |
-| … exact sign-flip 95% interval | -7.75 to -1.09 | held back |
+| absolute errors' difference, corrected less forward (points) | -4.64 | held back |
+| … paired bootstrap 95% interval | -7.25 to -1.67 | held back |
+| … exact sign-flip 95% interval | -7.83 to -1.26 | held back |
 | flights whose error grew | 3 | held back |
 | **… without a deployment before apogee, less their flagged flights** | **13** | **13** |
 | forward simulation: mean absolute error | held back | held back |
@@ -187,35 +187,35 @@ The test. Each set's last rows give each flight's absolute error corrected less 
 | … exact sign-flip 95% interval | held back | held back |
 | flights whose error grew | held back | held back |
 | **public flights the public report compares** | **12** | **12** |
-| forward simulation: mean absolute error | 9.00% | 9.00% |
-| corrected: mean absolute error | 12.16% | 13.21% |
-| forward simulation: mean error with its sign | -4.91% | -4.91% |
-| corrected: mean error with its sign | -12.01% | -13.21% |
+| forward simulation: mean absolute error | 8.88% | 8.88% |
+| corrected: mean absolute error | 11.91% | 12.97% |
+| forward simulation: mean error with its sign | -4.64% | -4.64% |
+| corrected: mean error with its sign | -11.76% | -12.97% |
 | corrected flights that failed to fly | 0 | 0 |
 | passes | no | no |
-| absolute errors' difference, corrected less forward (points) | +3.16 | +4.21 |
-| … paired bootstrap 95% interval | -0.31 to 6.30 | 0.51 to 7.52 |
-| … exact sign-flip 95% interval | -0.87 to 7.18 | -0.03 to 8.44 |
-| flights whose error grew | 8 | 9 |
+| absolute errors' difference, corrected less forward (points) | +3.03 | +4.09 |
+| … paired bootstrap 95% interval | -0.43 to 6.22 | 0.40 to 7.45 |
+| … exact sign-flip 95% interval | -0.99 to 7.15 | -0.15 to 8.39 |
+| flights whose error grew | 8 | 8 |
 | **public flights the public report compares, less their flagged flights** | **12** | **12** |
-| forward simulation: mean absolute error | 9.00% | 9.00% |
-| corrected: mean absolute error | 12.16% | 13.21% |
-| forward simulation: mean error with its sign | -4.91% | -4.91% |
-| corrected: mean error with its sign | -12.01% | -13.21% |
+| forward simulation: mean absolute error | 8.88% | 8.88% |
+| corrected: mean absolute error | 11.91% | 12.97% |
+| forward simulation: mean error with its sign | -4.64% | -4.64% |
+| corrected: mean error with its sign | -11.76% | -12.97% |
 | corrected flights that failed to fly | 0 | 0 |
 | passes | no | no |
-| absolute errors' difference, corrected less forward (points) | +3.16 | +4.21 |
-| … paired bootstrap 95% interval | -0.31 to 6.30 | 0.51 to 7.52 |
-| … exact sign-flip 95% interval | -0.87 to 7.18 | -0.03 to 8.44 |
-| flights whose error grew | 8 | 9 |
+| absolute errors' difference, corrected less forward (points) | +3.03 | +4.09 |
+| … paired bootstrap 95% interval | -0.43 to 6.22 | 0.40 to 7.45 |
+| … exact sign-flip 95% interval | -0.99 to 7.15 | -0.15 to 8.39 |
+| flights whose error grew | 8 | 8 |
 | **calibration flights the forward report compares (fitted on these: not a test)** | **37** | **37** |
-| forward simulation: mean absolute error | 9.42% | held back |
-| corrected: mean absolute error | 8.13% | held back |
-| forward simulation: mean error with its sign | +4.22% | held back |
-| corrected: mean error with its sign | -2.22% | held back |
+| forward simulation: mean absolute error | 9.45% | held back |
+| corrected: mean absolute error | 8.09% | held back |
+| forward simulation: mean error with its sign | +4.56% | held back |
+| corrected: mean error with its sign | -1.89% | held back |
 | corrected flights that failed to fly | 0 | held back |
-| absolute errors' difference, corrected less forward (points) | -1.28 | held back |
-| … paired bootstrap 95% interval | -3.12 to 0.54 | held back |
+| absolute errors' difference, corrected less forward (points) | -1.36 | held back |
+| … paired bootstrap 95% interval | -3.19 to 0.48 | held back |
 | … exact sign-flip 95% interval | not counted past 20 flights | held back |
 | flights whose error grew | 16 | held back |
 

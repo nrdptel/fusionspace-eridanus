@@ -36,14 +36,14 @@
       "altimeter": "barometric, assumed",
       "altimeter_evidence": "the team's own avionics, filtered by a method the example doesn't record: barometric assumed, as hobby altimeters are",
       "log_apogee_m": 458.971,
-      "hpr_apogee_m": 462.9051903863798,
-      "hpr_height_apogee_m": 463.60338571857926,
-      "apogee_error_percent": 0.8571762456407447,
+      "hpr_apogee_m": 464.03171278207265,
+      "hpr_height_apogee_m": 464.7316168038643,
+      "apogee_error_percent": 1.102621468910376,
       "log_time_to_apogee_s": 9.45849567723343,
-      "hpr_time_to_apogee_s": 9.481158820409753,
-      "trace_rms_m": 3.19316785301846,
-      "trace_rms_percent": 0.6957232271795953,
-      "hpr_max_mach": 0.2639183474659623,
+      "hpr_time_to_apogee_s": 9.497722479349312,
+      "trace_rms_m": 3.687933699088513,
+      "trace_rms_percent": 0.8035221613323091,
+      "hpr_max_mach": 0.26466856122133925,
       "trace_rows": 161,
       "total_impulse_ns": 2070.992004545454,
       "negative_thrust_zeroed_ns": 0.0,
@@ -212,14 +212,14 @@
       "altimeter": "barometric",
       "altimeter_evidence": "a Missile Works RRC3 (juno3/README.txt:21): its height column is the standard atmosphere's altitude of its pressure column less the first row's (the gap is below)",
       "log_apogee_m": 3151.507,
-      "hpr_apogee_m": 2923.3555414853654,
-      "hpr_height_apogee_m": 3174.474784117322,
-      "apogee_error_percent": -7.239440004881304,
+      "hpr_apogee_m": 2950.192561612711,
+      "hpr_height_apogee_m": 3203.1180440140406,
+      "apogee_error_percent": -6.387878509782435,
       "log_time_to_apogee_s": 23.624469738141922,
-      "hpr_time_to_apogee_s": 25.47642548486254,
-      "trace_rms_m": 228.77030738878153,
-      "trace_rms_percent": 7.259076606486406,
-      "hpr_max_mach": 0.732813703648889,
+      "hpr_time_to_apogee_s": 25.632337341320287,
+      "trace_rms_m": 219.17806078658185,
+      "trace_rms_percent": 6.954706455882276,
+      "hpr_max_mach": 0.7332497973070888,
       "trace_rows": 473,
       "total_impulse_ns": 8802.620990250454,
       "negative_thrust_zeroed_ns": 2.6209902504597267,
@@ -229,8 +229,8 @@
       "example_drag_trace_rms_m": 255.26149005222464,
       "recorded_thrust": {
         "impulse_ns": 9251.717584802198,
-        "apogee_m": 3187.2210714351213,
-        "apogee_error_percent": 1.1332378901624283
+        "apogee_m": 3219.6808699432095,
+        "apogee_error_percent": 2.1632149299750694
       },
       "pressure_reading_max_m": 1.3212411887507187,
       "gnss_apogee_m": 3369.2592,
@@ -408,14 +408,14 @@
       "altimeter": "barometric, assumed",
       "altimeter_evidence": "a filtered estimate (`filtered_altitude_AGL`, as Genesis's) from a computer the example doesn't name: barometric assumed",
       "log_apogee_m": 3587.7236328125,
-      "hpr_apogee_m": 3709.240012233322,
-      "hpr_height_apogee_m": 3874.324371751073,
-      "apogee_error_percent": 3.3870050164806718,
+      "hpr_apogee_m": 3732.507832821265,
+      "hpr_height_apogee_m": 3898.6569044421813,
+      "apogee_error_percent": 4.03554495347974,
       "log_time_to_apogee_s": 25.250236133577225,
-      "hpr_time_to_apogee_s": 26.3976516259479,
-      "trace_rms_m": 63.93233360169508,
-      "trace_rms_percent": 1.7819748716702863,
-      "hpr_max_mach": 0.9928882606614836,
+      "hpr_time_to_apogee_s": 26.512023088453883,
+      "trace_rms_m": 69.92092050199473,
+      "trace_rms_percent": 1.9488937180811248,
+      "hpr_max_mach": 0.9935521807758948,
       "trace_rows": 2526,
       "total_impulse_ns": 5199.604636,
       "negative_thrust_zeroed_ns": 0.0,
@@ -517,13 +517,13 @@
       "merged_apogee_m": 2714.1,
       "merged_height_apogee_m": 2808.7,
       "merged_apogee_error_percent": -9.58278436492489,
-      "hpr_apogee_m": 2714.062086372772,
-      "hpr_height_apogee_m": 2808.7090595388167,
-      "apogee_error_percent": -9.584047415147284,
-      "revised_because": null,
+      "hpr_apogee_m": 2760.125062819257,
+      "hpr_height_apogee_m": 2856.514552203321,
+      "apogee_error_percent": -8.049510708999668,
+      "revised_because": "M1.14i3 (ADR-362) changed HPR Sim's base drag below Mach 0.8: behind a boattail the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus 11 has a boattail; nothing in its design or inputs changed.",
       "all_inputs_traced": true,
       "untraced": [],
-      "hpr_max_mach": 0.8755469772496574,
+      "hpr_max_mach": 0.877454120989001,
       "catalog_curve": null,
       "openrocket_stored": null
     },
@@ -605,12 +605,12 @@
   ],
   "summary": {
     "flights": 12,
-    "mean_absolute_apogee_error_percent": 9.002805142875369,
+    "mean_absolute_apogee_error_percent": 8.878462389460557,
     "target_percent": 5.0,
     "within_target": false,
-    "mean_apogee_error_percent": -4.908941292104195,
-    "mean_absolute_height_apogee_error_percent": 7.8829740172828915,
-    "mean_absolute_known_barometric_apogee_error_percent": 9.141038269400925,
+    "mean_apogee_error_percent": -4.635601011977929,
+    "mean_absolute_height_apogee_error_percent": 7.90300087669105,
+    "mean_absolute_known_barometric_apogee_error_percent": 9.014362085830852,
     "outliers": [
       "ndrt-2020",
       "prometheus-2022",
@@ -622,28 +622,32 @@
       "macie-xl-1",
       "macie-xl-2"
     ],
-    "max_trace_rms_percent": 7.259076606486406,
+    "max_trace_rms_percent": 6.954706455882276,
     "example_drag_mean_absolute_apogee_error_percent": 3.4787276891563583,
     "compared_first": {
       "flights": 7,
-      "mean_absolute_apogee_error_percent": 6.058556042176514,
-      "mean_apogee_error_percent": -0.2238079674144153
+      "mean_absolute_apogee_error_percent": 6.064616565772206,
+      "mean_apogee_error_percent": 0.025555840495237625
     },
     "predicted_first": {
       "flights": 5,
-      "mean_absolute_apogee_error_percent": 13.124753883853765,
-      "mean_apogee_error_percent": -11.468127946669885
+      "mean_absolute_apogee_error_percent": 12.817846542624244,
+      "mean_apogee_error_percent": -11.161220605440361
     },
     "traced": {
       "flights": 2,
-      "mean_absolute_apogee_error_percent": 8.05944727905947,
-      "mean_apogee_error_percent": -8.05944727905947
+      "mean_absolute_apogee_error_percent": 7.29217892598566,
+      "mean_apogee_error_percent": -7.29217892598566
     },
     "era5_weather": {
       "flights": 10,
-      "mean_absolute_apogee_error_percent": 6.267035169631424,
-      "mean_apogee_error_percent": -1.3543985487060137
+      "mean_absolute_apogee_error_percent": 6.117823865533648,
+      "mean_apogee_error_percent": -1.0263902125544953
     },
-    "on_merged_predictions": null
+    "on_merged_predictions": {
+      "flights": 12,
+      "mean_absolute_apogee_error_percent": 9.007132574781672,
+      "mean_apogee_error_percent": -4.76407313119672
+    }
   }
 }

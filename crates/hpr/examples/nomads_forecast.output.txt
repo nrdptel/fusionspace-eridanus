@@ -21,6 +21,6 @@ RAP   level (hPa)   height (m)   temperature (°C)   humidity (%)   wind (m/s)  
               100        16739              -70.8             10         13.0        211
 
 Calisto to apogee      apogee (m above the pad)   east of the pad (m)   north (m)
-GFS                                        2842.8                -253.0      -131.7
-RAP                                        2841.3                -204.3       -83.9
-standard, calm                             2826.9                  -5.1         0.0
+GFS                                        2875.5                -258.0      -133.9
+RAP                                        2874.1                -208.6       -85.2
+standard, calm                             2860.0                  -5.2         0.0

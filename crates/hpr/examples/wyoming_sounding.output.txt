@@ -26,7 +26,7 @@ height above the pad (m)   pressure (hPa)   temperature (°C)   density (kg/m³)
   3000 standard                     596.5              -12.6            0.7977
 
 Calisto to apogee      apogee (m above the pad)   east of the pad (m)   north (m)
-coded message                              2848.1                -401.4       -23.4
-BUFR file                                  2822.5                -561.3       -48.0
-BUFR above 1,438 m                         2845.9                -419.1       -19.1
-standard, calm                             2811.0                  -5.1         0.0
+coded message                              2880.4                -408.8       -23.4
+BUFR file                                  2854.5                -571.1       -48.4
+BUFR above 1,438 m                         2878.2                -426.7       -19.1
+standard, calm                             2844.2                  -5.2         0.0

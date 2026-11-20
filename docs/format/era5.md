@@ -16,7 +16,7 @@ up to a few kilometers or more.
 > measured yet: the pressure between levels, and the air above the file's top level. Ten
 > real flights were flown in ERA5 weather and compared with their logs
 > ([real flights](../accuracy.md#real-flights), milestones
-> [M2.3b](../decisions-and-roadmap.md#m2-3b) and [M2.3d2](../decisions-and-roadmap.md#m2-3d2)). Their apogees miss by 6.27% on average, outside the
+> [M2.3b](../decisions-and-roadmap.md#m2-3b) and [M2.3d2](../decisions-and-roadmap.md#m2-3d2)). Their apogees miss by 6.12% on average, outside the
 > 5% target ([evidence row G24](../evidence.md#g24)). Humidity isn't
 > read yet, so the air is taken as dry.
 
@@ -137,8 +137,8 @@ height above the pad (m)   pressure (hPa)   temperature (°C)   density (kg/m³)
    500 standard                     908.9                9.1            1.1218
 
 Bella Lui to apogee   apogee (m above the pad)   drift at apogee (m)
-ERA5                                      553.4                  40.7
-standard, calm                            555.2                   0.4
+ERA5                                      555.1                  40.9
+standard, calm                            556.9                   0.4
 
 This design flies a stand-in motor; Bella Lui's real flight, on its own K828FJ, is
 compared on the accuracy page.

@@ -4679,21 +4679,21 @@ fn analyze_reads_a_log_with_no_design_file_present() {
          0.305 m, after a 0.30 s running median",
         "liftoff           0.80 s, within 0.81 s, 90% interval 0.41 to 0.64 s",
         "apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% interval \
-         369.8 to 410.2 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.07 to \
+         369.8 to 410.3 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.07 to \
          10.57 s, 9.47 s after liftoff",
         "set aside by the median",
         "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), 90% interval 72.8 to \
          82.8 m/s (239 to 272 ft/s), at 2.20 s",
         "top acceleration  withheld: the log has no accelerometer",
         "flight time       45.00 s, within 2.91 s, 90% interval 45.38 to 46.11 s",
-        "landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.50 s; 35.52 s from \
+        "landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.51 s; 35.52 s from \
          apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to \
          12.0 m/s (32 to 40 ft/s)",
         "drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to \
          23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s",
         "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to \
          6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval \
-         20.80 to 21.26 s, to landing at 45.80 s",
+         20.79 to 21.26 s, to landing at 45.80 s",
         "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
          liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come \
          later by any amount; 95% lower end 2.24 s",

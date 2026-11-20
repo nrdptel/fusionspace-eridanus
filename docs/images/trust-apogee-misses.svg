@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="532" viewBox="0 0 720 532" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">HPR Sim&apos;s apogee against 60 logged flights</title>
-<desc id="desc">Each bar counts the flights whose simulated apogee missed the logged one by that much: simulated less logged, over logged, in bins of 5%. The misses averaged +7.72%; 32 of 60 were within 10% either way (shaded). The two outer bars hold every miss past 30% either way.</desc>
+<desc id="desc">Each bar counts the flights whose simulated apogee missed the logged one by that much: simulated less logged, over logged, in bins of 5%. The misses averaged +8.01%; 31 of 60 were within 10% either way (shaded). The two outer bars hold every miss past 30% either way.</desc>
 <rect width="720" height="532" fill="#F3F4F7"/>
 <text x="40" y="36" font-size="18" font-weight="600" fill="#0B0F1C">HPR Sim&apos;s apogee against 60 logged flights</text>
 <text x="40" y="62" fill="#566079">Each bar counts the flights whose simulated apogee missed the logged one</text>
 <text x="40" y="78" fill="#566079">by that much: simulated less logged, over logged, in bins of 5%.</text>
-<text x="40" y="94" fill="#566079">The misses averaged +7.72%; 32 of 60 were within 10% either way (shaded).</text>
+<text x="40" y="94" fill="#566079">The misses averaged +8.01%; 31 of 60 were within 10% either way (shaded).</text>
 <text x="40" y="110" fill="#566079">The two outer bars hold every miss past 30% either way.</text>
 <rect x="284.0" y="152" width="176.0" height="240.0" fill="#D6DAE4"/>
 <text x="372.0" y="142" text-anchor="middle" fill="#566079">within 10%</text>
@@ -22,9 +22,9 @@
 <rect x="244.0" y="323.4" width="36.0" height="68.6" fill="#566079"/><text x="262.0" y="317.4" text-anchor="middle" fill="#0B0F1C">4</text>
 <rect x="288.0" y="289.1" width="36.0" height="102.9" fill="#566079"/><text x="306.0" y="283.1" text-anchor="middle" fill="#0B0F1C">6</text>
 <rect x="332.0" y="323.4" width="36.0" height="68.6" fill="#566079"/><text x="350.0" y="317.4" text-anchor="middle" fill="#0B0F1C">4</text>
-<rect x="376.0" y="220.6" width="36.0" height="171.4" fill="#566079"/><text x="394.0" y="214.6" text-anchor="middle" fill="#0B0F1C">10</text>
-<rect x="420.0" y="186.3" width="36.0" height="205.7" fill="#566079"/><text x="438.0" y="180.3" text-anchor="middle" fill="#0B0F1C">12</text>
-<rect x="464.0" y="220.6" width="36.0" height="171.4" fill="#566079"/><text x="482.0" y="214.6" text-anchor="middle" fill="#0B0F1C">10</text>
+<rect x="376.0" y="254.9" width="36.0" height="137.1" fill="#566079"/><text x="394.0" y="248.9" text-anchor="middle" fill="#0B0F1C">8</text>
+<rect x="420.0" y="169.1" width="36.0" height="222.9" fill="#566079"/><text x="438.0" y="163.1" text-anchor="middle" fill="#0B0F1C">13</text>
+<rect x="464.0" y="203.4" width="36.0" height="188.6" fill="#566079"/><text x="482.0" y="197.4" text-anchor="middle" fill="#0B0F1C">11</text>
 <rect x="508.0" y="357.7" width="36.0" height="34.3" fill="#566079"/><text x="526.0" y="351.7" text-anchor="middle" fill="#0B0F1C">2</text>
 <rect x="552.0" y="306.3" width="36.0" height="85.7" fill="#566079"/><text x="570.0" y="300.3" text-anchor="middle" fill="#0B0F1C">5</text>
 <rect x="596.0" y="323.4" width="36.0" height="68.6" fill="#566079"/><text x="614.0" y="317.4" text-anchor="middle" fill="#0B0F1C">4</text>

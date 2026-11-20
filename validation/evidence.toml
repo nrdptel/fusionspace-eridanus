@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-11-19"
+as_of = "2026-11-20"
 
 [[row]]
 id = "G1"
@@ -541,7 +541,7 @@ found = "the three answers, of 307, 296 and 60 records, now committed unchanged 
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss 12 public real flights by 9.00% on average and 60 private ones by 12.04%, both outside the 5% target"
+claim = "The simulation's apogees miss 12 public real flights by 8.88% on average and 60 private ones by 12.09%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",
@@ -746,7 +746,7 @@ found = "pad and rest noise for four families, upper bounds that mix in wind and
 [[row]]
 id = "G33"
 surface = "The smoother"
-claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero)"
+claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.2% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 88.7% and 89.2%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (95.6% to 98.7% overall on A and B, on the true zero)"
 pages = ["physics/smoother.md#in-short", "accuracy.md#where-each-model-stands", "reading-a-flight-log.md#the-90-intervals-and-the-health-card"]
 kind = "calibration"
 wanted = "real"
@@ -1075,3 +1075,24 @@ looked = [
   "NACA Report 1306, NACA TN 2250 and NACA TN 2399",
 ]
 found = "four NACA and Air Force reports that give a tangent ogive's pressure drag past Mach 1.3, one of them, NACA Report 1386, with a point at Mach 1.24 too; TR R-100 holds no ogive. They are read in docs/research/ogive-wave-drag.md, with the note's own arithmetic to take friction out, and none is committed as data yet"
+
+[[row]]
+id = "G41"
+surface = "Aerodynamics"
+claim = "Below Mach 0.8 a base behind a boattail keeps d_B/d of the flat-base drag, changed on one missile model's measured free flight"
+pages = [
+  "physics/aero.md#boattails-faster-than-sound",
+  "accuracy.md#the-base-under-power-against-a-measured-flight",
+]
+kind = "sibling"
+wanted = "real"
+not_checked = "a measured base drag behind a hobby rocket's boattail below Mach 0.8; the one flight checked, the Hermes A-3A drag model's, has a long 4.5° cone and is not a hobby rocket"
+issue = 1572
+
+[[row.searched]]
+on = "2026-11-20"
+looked = [
+  "NASA TR R-100 (Stoney, 1961) and Hoerner's Fluid-Dynamic Drag (1965), for a subsonic rule for the base behind a boattail",
+  "NACA RM E54I13 (Salmi) and NACA RM L51L03 (Stoney), for measured base pressures behind cones held without a rear sting",
+]
+found = "a rule and three measurements. TR R-100 gives the base drag of a conical afterbody as the cylinder's times (r_b/R) cubed on the largest cross-section, and Hoerner's eq. 35 has the same dependence. Salmi's jet-off base pressures behind 5.6° cones at Mach 0.9 and Stoney's free-flight body from Mach 0.6 to 0.85, read by eye, both put the base drag below that rule, as the Hermes A-3A's flight does. None is a hobby rocket"

@@ -161,10 +161,10 @@
       "altimeter_evidence": "the notebook calls it a COTS altimeter (erebus_flight_sim.ipynb:390-392), a file named filtered, and records no more: barometric assumed, as hobby altimeters are",
       "all_inputs_traced": true,
       "untraced": [],
-      "predicted_apogee_m": 2714.062086372772,
-      "predicted_height_apogee_m": 2808.7090595388167,
-      "predicted_time_to_apogee_s": 22.449524603817682,
-      "hpr_max_mach": 0.8755469772496574,
+      "predicted_apogee_m": 2760.125062819257,
+      "predicted_height_apogee_m": 2856.514552203321,
+      "predicted_time_to_apogee_s": 22.694397870865757,
+      "hpr_max_mach": 0.877454120989001,
       "catalog_curve": null,
       "files": [
         {

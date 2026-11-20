@@ -119,7 +119,7 @@ Placed with [ADR-360][adr-360], which promotes the first; the other three are SO
   coasts; on the flights with both channels, the share whose barometer reading lies inside the
   accelerometer's interval is given with its count and the rows show each kind apart.
 - SOON: the collection's errors with each source counted once. User: a reader asking whether the
-  +7.72% bias is the model's or a few teams' and flyers' habits. In an earlier count of 53 flights,
+  +7.72% bias (2026-11-16; +8.01% since ADR-362) is the model's or a few teams' and flyers' habits. In an earlier count of 53 flights,
   15 of the 19 whose charge fired or that split before the peak came from 2 of 16 sources ([apogee
   bias](apogee-bias.md)). Workflow: beside each flight-weighted mean, the fixture report gives the
   mean over sources, each source's flights averaged first, with a 95% interval from a bootstrap that

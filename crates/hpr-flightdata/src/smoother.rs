@@ -7,7 +7,7 @@
 //! far the truth may be: its 90% interval is the estimate ± [`INTERVAL_Z`] standard errors. On
 //! HPR Sim's synthetic flights, whose truth is known, it is checked at burnout, the top speed,
 //! apogee and a drawn moment (`cargo xtask synthetic`). There the three sets' cells hold between
-//! 94.3% and 99.4% of the truths inside the 90% intervals. Two logger cells hold 89.2% and 89.7%,
+//! 94.2% and 99.4% of the truths inside the 90% intervals. Two logger cells hold 88.7% and 89.2%,
 //! which the check allows. Its rules were set with those sets in view.
 //!
 //! **How far to trust it.** It has not been compared with a real flight's truth. Its errors are

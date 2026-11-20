@@ -22,29 +22,29 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 10.39 | 176 | -0.2 | 3.2 | +9.3 | 1.86 |
-| descent | 10.39 | 34.32 | 393 | -9.0 | 10.3 | -19.0 | 28.62 |
+| ascent | 0.00 | 10.39 | 176 | -0.6 | 3.5 | +9.3 | 1.86 |
+| descent | 10.39 | 34.32 | 393 | -10.4 | 11.6 | -20.4 | 28.62 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 10.39 | 176 | -0.4 | 1.7 | +7.2 | 1.50 |
+| ascent | 0.00 | 10.39 | 176 | -0.5 | 1.7 | +7.2 | 1.50 |
 | descent | 10.39 | 34.32 | 393 | -0.5 | 2.0 | -5.0 | 26.40 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 458.96 | 431.34 to 486.27 | measured | 462.84 | -3.89 |
+| apogee (m) | 458.96 | 431.34 to 486.32 | measured | 463.99 | -5.03 |
 | time to apogee (s) | 10.39 | none stated | measured | 10.41 | -0.02 |
-| top vertical speed (m/s) | 91.54 | 85.39 to 96.56 | derived | 85.69 | +5.85 |
+| top vertical speed (m/s) | 91.54 | 85.39 to 96.60 | derived | 85.72 | +5.82 |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | at least 1.86 | none stated | derived | at least 2.04 |  |
-| flight time (s) | 34.32 | 34.65 to 35.27 | measured | 35.16 | -0.84 |
+| flight time (s) | 34.32 | 34.65 to 35.27 | measured | 35.22 | -0.90 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | withheld |  |  | withheld |  |
-| descent under the main (m/s) | 19.16 | 18.20 to 20.10 | derived | 18.65 | +0.51 |
+| descent under the main (m/s) | 19.16 | 18.20 to 20.11 | derived | 18.64 | +0.52 |
 
 ## NDRT 2020, Notre Dame Rocketry Team (L1395)
 
@@ -68,15 +68,15 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 1319.68 | 1256.25 to 1382.41 | measured | 1457.60 | -137.92 |
+| apogee (m) | 1319.68 | 1256.25 to 1382.51 | measured | 1457.60 | -137.92 |
 | time to apogee (s) | 16.75 | none stated | measured | 17.47 | -0.72 |
-| top vertical speed (m/s) | 168.48 | 152.09 to 181.84 | derived | 180.07 | -11.59 |
+| top vertical speed (m/s) | 168.48 | 152.09 to 181.96 | derived | 180.07 | -11.59 |
 | top acceleration (m/s²) | 105.91 | 70.18 to 137.05 | measured | 77.41 | +28.50 |
 | burnout (s) | at least 4.60 | none stated | derived | 3.20 |  |
-| flight time (s) | 84.30 | 85.02 to 86.35 | measured | 94.35 | -10.05 |
+| flight time (s) | 84.30 | 85.01 to 86.34 | measured | 94.35 | -10.05 |
 | descent under the drogue (m/s) | 22.41 | 21.35 to 23.50 | derived | 27.54 | -5.13 |
 | main's opening (m) | 39.87 | none stated | derived | 137.65 | -97.78 |
-| descent under the main (m/s) | 3.62 | 3.09 to 4.14 | derived | 4.69 | -1.07 |
+| descent under the main (m/s) | 3.62 | 3.08 to 4.14 | derived | 4.69 | -1.07 |
 
 ## Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)
 
@@ -102,12 +102,12 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3892.09 | 3711.78 to 4070.42 | measured | 3549.26 | +342.83 |
+| apogee (m) | 3892.09 | 3711.78 to 4070.70 | measured | 3549.26 | +342.83 |
 | time to apogee (s) | 28.69 | none stated | measured | 27.26 | +1.43 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | 99.40 | 90.12 to 107.48 | measured | 92.99 | +6.41 |
 | burnout (s) | 4.67 | none stated | measured | 4.63 | +0.04 |
-| flight time (s) | 223.01 | 223.44 to 224.23 | measured | 202.75 | +20.26 |
+| flight time (s) | 223.01 | 223.43 to 224.22 | measured | 202.75 | +20.26 |
 | descent under the drogue (m/s) | 26.50 | 25.30 to 27.73 | derived | 26.72 | -0.21 |
 | main's opening (m) | 411.51 | none stated | derived | 418.88 | -7.37 |
 | descent under the main (m/s) | 6.50 | 6.17 to 6.84 | derived | 7.15 | -0.64 |
@@ -120,27 +120,27 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.95 | 600 | +279.4 | 480.8 | +7814.4 | 29.90 |
+| flight | 0.00 | 29.95 | 600 | +267.5 | 474.3 | +7784.7 | 29.90 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.95 | 600 | +1.8 | 24.9 | -122.2 | 3.10 |
+| flight | 0.00 | 29.95 | 600 | +0.8 | 25.1 | -122.2 | 3.10 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | withheld |  |  | 2923.32 |  |
-| time to apogee (s) | withheld |  |  | 26.43 |  |
-| top vertical speed (m/s) | withheld |  |  | 226.64 |  |
+| apogee (m) | withheld |  |  | 2950.15 |  |
+| time to apogee (s) | withheld |  |  | 26.58 |  |
+| top vertical speed (m/s) | withheld |  |  | 226.78 |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | at least 4.50 |  |
-| flight time (s) | withheld |  |  | 155.50 |  |
+| flight time (s) | withheld |  |  | 156.70 |  |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | withheld |  |  | withheld |  |
-| descent under the main (m/s) | withheld |  |  | 22.64 |  |
+| descent under the main (m/s) | withheld |  |  | 22.66 |  |
 
 ## Cavour, Politecnico di Torino, EuRoC 2023 (L995)
 
@@ -162,7 +162,7 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2785.00 | 2641.57 to 2926.85 | measured | 2945.92 | -160.92 |
+| apogee (m) | 2785.00 | 2641.57 to 2927.08 | measured | 2945.92 | -160.92 |
 | time to apogee (s) | 23.50 | none stated | measured | 23.30 | +0.20 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
@@ -190,12 +190,12 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2915.34 | 2779.95 to 3049.24 | measured | 2745.93 | +169.41 |
+| apogee (m) | 2915.34 | 2779.95 to 3049.45 | measured | 2745.93 | +169.41 |
 | time to apogee (s) | 23.69 | none stated | measured | 23.04 | +0.65 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 175.53 | 175.76 to 176.17 | measured | 173.76 | +1.77 |
+| flight time (s) | 175.53 | 175.75 to 176.17 | measured | 173.76 | +1.77 |
 | descent under the drogue (m/s) | withheld |  |  | 23.73 |  |
 | main's opening (m) | withheld |  |  | 797.33 |  |
 | descent under the main (m/s) | 19.18 | 18.35 to 20.00 | derived | 11.60 | +7.59 |
@@ -208,29 +208,29 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 25.91 | 2591 | +3.3 | 62.4 | +125.2 | 8.17 |
-| descent | 25.91 | 430.91 | 40501 | -507.0 | 533.4 | -883.8 | 27.63 |
+| ascent | 0.00 | 25.91 | 2591 | -5.2 | 68.5 | -138.4 | 25.89 |
+| descent | 25.91 | 430.91 | 40501 | -529.4 | 554.5 | -907.4 | 27.63 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 25.91 | 2591 | +4.0 | 95.7 | +377.0 | 15.11 |
-| descent | 25.91 | 430.91 | 40501 | +16.7 | 354.3 | +10210.9 | 29.09 |
+| ascent | 0.00 | 25.91 | 2591 | +3.2 | 95.4 | +375.9 | 15.11 |
+| descent | 25.91 | 430.91 | 40501 | +16.7 | 354.3 | +10210.8 | 29.09 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3586.66 | 3420.58 to 3750.92 | measured | 3709.21 | -122.55 |
-| time to apogee (s) | 25.91 | none stated | measured | 27.05 | -1.14 |
+| apogee (m) | 3586.66 | 3420.58 to 3751.18 | measured | 3732.48 | -145.82 |
+| time to apogee (s) | 25.91 | none stated | measured | 27.16 | -1.25 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 430.91 | 431.32 to 432.08 | measured | 549.36 | -118.45 |
+| flight time (s) | 430.91 | 431.31 to 432.07 | measured | 552.45 | -121.54 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | 3403.33 | none stated | derived | withheld |  |
-| descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.49 |
+| descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.48 |
 
 ## Sources
 

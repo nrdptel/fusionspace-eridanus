@@ -3559,9 +3559,11 @@ mod tests {
                 1e-14,
                 "boattail",
             );
+            // Below Mach 0.8 a boattailed base is d_B/d₁ of the flat-base value (NASA TR R-100,
+            // 1961, p. 11; Hoerner 1965, eq. 35): here 0.02/0.03.
             close(
                 parts[2].drag.base,
-                c_base * PI * small * small / a_ref,
+                (small / big) * c_base * PI * small * small / a_ref,
                 1e-14,
                 "base",
             );
@@ -3872,21 +3874,24 @@ mod tests {
         // Calisto's two designs share one export.
         assert_eq!(curves.values().filter(|c| c.len() == 2).count(), 1);
         // Rows within 10%, by case and band (ADR-029, ADR-030). Calisto's export on the 2018 fins:
-        // every subsonic row, 3 of 7 transonic, and 8 of 17 supersonic, where hpr reads −14.9% to
+        // every subsonic row, 5 of 7 transonic, and 8 of 17 supersonic, where hpr reads −14.9% to
         // −5.1% (−29.8% to −24.4% before the boattail's wave drag). The getting-started fins (a
-        // variant on the same export, thick NACA 0012) now read 23% to 32% high. Juno III's
-        // table is hand-edited from Mach 0.93 and Cavour's stop below Mach 0.93; Valetudo's is
-        // 1.44 times its own OpenRocket export at Mach 0.3 (ADR-009).
+        // variant on the same export, thick NACA 0012) now read 23% to 32% high supersonic.
+        // Juno III's table is hand-edited from Mach 0.93 and Cavour's stop below Mach 0.93;
+        // Valetudo's is 1.44 times its own OpenRocket export at Mach 0.3 (ADR-009). M1.14i3's
+        // relief of a boattailed base below Mach 0.8 (ADR-362) took Calisto's transonic rows from
+        // 3 to 5, the getting-started fins' subsonic rows from 12 to 8 and Juno III's from 15 to
+        // 12: code against code, a difference sized, not a verdict on either.
         assert_eq!(
             within,
             [
                 ("calisto-power-off", "subsonic", 15, 15),
-                ("calisto-power-off", "transonic", 3, 7),
+                ("calisto-power-off", "transonic", 5, 7),
                 ("calisto-power-off", "supersonic", 8, 17),
-                ("calisto-getting-started-power-off", "subsonic", 12, 15),
+                ("calisto-getting-started-power-off", "subsonic", 8, 15),
                 ("calisto-getting-started-power-off", "transonic", 0, 7),
                 ("calisto-getting-started-power-off", "supersonic", 0, 17),
-                ("juno-iii-power-off", "subsonic", 15, 15),
+                ("juno-iii-power-off", "subsonic", 12, 15),
                 ("juno-iii-power-off", "transonic", 0, 2),
                 ("cavour-power-off", "subsonic", 6, 15),
                 ("cavour-power-off", "transonic", 0, 1),

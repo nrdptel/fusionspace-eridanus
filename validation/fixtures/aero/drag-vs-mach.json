@@ -4010,7 +4010,7 @@
           "band": "subsonic",
           "error": 0.12861336574205828,
           "fins": "on",
-          "hpr_base": 0.07119765333333332,
+          "hpr_base": 0.04790448193706062,
           "hpr_forebody_by_part": {
             "boattail": 0.0697205182219302,
             "body": 0.15129622681951652,
@@ -4031,7 +4031,7 @@
           "band": "subsonic",
           "error": 0.13814870836199256,
           "fins": "off",
-          "hpr_base": 0.07119765333333332,
+          "hpr_base": 0.04790448193706062,
           "hpr_forebody_by_part": {
             "boattail": 0.0697205182219302,
             "body": 0.15129622681951652,
@@ -4051,7 +4051,7 @@
           "band": "subsonic",
           "error": 0.27302606463566237,
           "fins": "on",
-          "hpr_base": 0.0867347911111111,
+          "hpr_base": 0.05835845761157506,
           "hpr_forebody_by_part": {
             "boattail": 0.08318924140251345,
             "body": 0.14690173060484177,
@@ -4072,7 +4072,7 @@
           "band": "subsonic",
           "error": 0.12009891076248946,
           "fins": "off",
-          "hpr_base": 0.0867347911111111,
+          "hpr_base": 0.05835845761157506,
           "hpr_forebody_by_part": {
             "boattail": 0.08318924140251345,
             "body": 0.14690173060484177,
@@ -4092,7 +4092,7 @@
           "band": "transonic",
           "error": 0.5103260427879635,
           "fins": "on",
-          "hpr_base": 0.0766930230397429,
+          "hpr_base": 0.06096175350862708,
           "hpr_forebody_by_part": {
             "boattail": 0.1872642964371562,
             "body": 0.14423364361736069,
@@ -4113,7 +4113,7 @@
           "band": "transonic",
           "error": 0.38802233662918484,
           "fins": "off",
-          "hpr_base": 0.0766930230397429,
+          "hpr_base": 0.06096175350862708,
           "hpr_forebody_by_part": {
             "boattail": 0.1872642964371562,
             "body": 0.14423364361736069,
@@ -4133,7 +4133,7 @@
           "band": "transonic",
           "error": 0.1834828666996524,
           "fins": "on",
-          "hpr_base": 0.07052914296801518,
+          "hpr_base": 0.06224369347517881,
           "hpr_forebody_by_part": {
             "boattail": 0.23929633016983043,
             "body": 0.1427818904035842,
@@ -4154,7 +4154,7 @@
           "band": "transonic",
           "error": 0.44524997983302383,
           "fins": "off",
-          "hpr_base": 0.07052914296801518,
+          "hpr_base": 0.06224369347517881,
           "hpr_forebody_by_part": {
             "boattail": 0.23929633016983043,
             "body": 0.1427818904035842,
@@ -4509,7 +4509,7 @@
           "band": "subsonic",
           "error": 0.12126349550093463,
           "fins": "on",
-          "hpr_base": 0.07119765333333332,
+          "hpr_base": 0.04790448193706062,
           "hpr_forebody_by_part": {
             "boattail": 0.06938336758656687,
             "body": 0.20481859465072272,
@@ -4530,7 +4530,7 @@
           "band": "subsonic",
           "error": 0.2277548132624576,
           "fins": "off",
-          "hpr_base": 0.07119765333333332,
+          "hpr_base": 0.04790448193706062,
           "hpr_forebody_by_part": {
             "boattail": 0.06938336758656687,
             "body": 0.20481859465072272,
@@ -4550,7 +4550,7 @@
           "band": "subsonic",
           "error": 0.2649503969546616,
           "fins": "on",
-          "hpr_base": 0.0867347911111111,
+          "hpr_base": 0.05835845761157506,
           "hpr_forebody_by_part": {
             "boattail": 0.08286188352419385,
             "body": 0.19886950683929092,
@@ -4571,7 +4571,7 @@
           "band": "subsonic",
           "error": 0.22686504493517035,
           "fins": "off",
-          "hpr_base": 0.0867347911111111,
+          "hpr_base": 0.05835845761157506,
           "hpr_forebody_by_part": {
             "boattail": 0.08286188352419385,
             "body": 0.19886950683929092,
@@ -4591,7 +4591,7 @@
           "band": "transonic",
           "error": 0.5134626295190912,
           "fins": "on",
-          "hpr_base": 0.0766930230397429,
+          "hpr_base": 0.06096175350862708,
           "hpr_forebody_by_part": {
             "boattail": 0.18694288416132746,
             "body": 0.1952575606680645,
@@ -4612,7 +4612,7 @@
           "band": "transonic",
           "error": 0.5411593844124329,
           "fins": "off",
-          "hpr_base": 0.0766930230397429,
+          "hpr_base": 0.06096175350862708,
           "hpr_forebody_by_part": {
             "boattail": 0.18694288416132746,
             "body": 0.1952575606680645,

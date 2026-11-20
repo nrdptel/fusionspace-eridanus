@@ -20,22 +20,22 @@ This report compares hpr's flights of 11 of the library's 12 private designs wit
 - with the public report's 15, 26 designs in all, against [M2.2][m2-2]'s bar of 20 (met)
 - configurations flown: 35 (2 OpenRocket flew are not flown by hpr); apogee more than 5% from OpenRocket's: 1; the same reference diameter as OpenRocket's: 35
 - apogee, hpr's own drag coefficient: 1 scored, median +13.60%, mean absolute 13.60%, from +13.60% to +13.60%
-- apogee, no named cause: 28 scored, median -0.31%, mean absolute 1.32%, from -4.84% to +1.17%
+- apogee, no named cause: 28 scored, median -0.25%, mean absolute 1.32%, from -4.84% to +1.17%
 - apogee, reference parachute open before apogee: 6 scored, median -0.32%, mean absolute 1.56%, from -3.09% to +2.15%
 - largest speed, hpr's own drag coefficient: 1 scored, median +7.98%, mean absolute 7.98%, from +7.98% to +7.98%
-- largest speed, no named cause: 34 scored, median +0.27%, mean absolute 0.48%, from -0.65% to +2.28%
+- largest speed, no named cause: 34 scored, median +0.27%, mean absolute 0.49%, from -0.65% to +2.28%
 - margin at rod clearance, no named cause: 35 scored, median +0.0308 cal, mean absolute 0.0291 cal, from -0.0166 cal to +0.1108 cal
 - mass at launch: 35 compared, median +0.000%, mean absolute 0.027%, from -0.770% to +0.070%
 - mass at rod clearance: 35 compared, median +0.001%, mean absolute 0.034%, from -0.781% to +0.072%
 - center of mass at rod clearance: 35 compared, median -0.0004 cal, mean absolute 0.0121 cal, from -0.1102 cal to +0.0198 cal
 - descents compared: 34; not compared: neither tool deploys a device: 1
-- 34 with no named cause for the apogee but an early parachute: landing speed median +0.01%, mean absolute 0.06%, from -1.53% to +0.04%; flight time median +0.14%, mean absolute 1.52%, from -4.98% to +3.72%; every deployment within its target in 31; meeting every target 31, and 34 once each deployment that misses is held by what is left of it
+- 34 with no named cause for the apogee but an early parachute: landing speed median +0.01%, mean absolute 0.06%, from -1.53% to +0.04%; flight time median +0.23%, mean absolute 1.53%, from -4.98% to +3.72%; every deployment within its target in 31; meeting every target 31, and 34 once each deployment that misses is held by what is left of it
 - the nose's column swapped in, on hpr's own thrust and mass: 2 flights in the line, 2 swapped
 
 | flight | Mach | site | apogee Δ | max speed Δ | margin Δ (cal) | at OR's α (cal) | CG Δ (cal) | CP Δ (cal) | launch mass Δ | rod-clearance mass Δ | named cause |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| C01/1 | subsonic | sea level | -0.36% | +0.28% | -0.0166 | -0.0166 | +0.0198 | +0.0031 | +0.070% | +0.072% |  |
-| C01/2 | subsonic | sea level | +0.04% | +0.56% | +0.0025 | +0.0025 | +0.0006 | +0.0031 | +0.065% | +0.065% |  |
+| C01/1 | subsonic | sea level | -0.04% | +0.31% | -0.0166 | -0.0166 | +0.0198 | +0.0031 | +0.070% | +0.072% |  |
+| C01/2 | subsonic | sea level | +0.38% | +0.61% | +0.0025 | +0.0025 | +0.0006 | +0.0031 | +0.065% | +0.065% |  |
 | C02/1 | subsonic | sea level | -0.56% | +0.08% | +0.0041 | +0.0041 | -0.0000 | +0.0041 | +0.001% | +0.001% |  |
 | C02/2 | subsonic | sea level | +2.15% | +0.24% | +0.0044 | +0.0044 | -0.0003 | +0.0041 | +0.001% | -0.006% | chute 1.45 s early |
 | C02/3 | subsonic | sea level | -0.94% | +0.24% | +0.0044 | +0.0044 | -0.0003 | +0.0041 | +0.001% | -0.006% |  |

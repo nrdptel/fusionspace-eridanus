@@ -17,13 +17,19 @@ Written by `cargo xtask public-predictions` ([the EuRoC 2022 predictions, M2.3d3
 [site]: https://hpr.fusionspace.co/accuracy.html#predicted-before-compared
 [real]: real-flights.md
 
+## Revised since merging
+
+A merged prediction is never edited. Each of these changed, and is kept beside the number first merged; the real-flights report gives both errors.
+
+- **`erebus-11`:** merged 2714.1 m, now 2760.1 m. Revised, because M1.14i3 (ADR-362) changed HPR Sim's base drag below Mach 0.8: behind a boattail the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus 11 has a boattail; nothing in its design or inputs changed.
+
 ## Predictions
 
 | flight | impulse flown (N s) | liftoff mass (kg) | predicted apogee (m) | as a height (m) | time to apogee (s) | largest Mach | every input traced |
 |---|---:|---:|---:|---:|---:|---:|---|
 | Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350) | 4280.2 | 12.670 | 3037.1 | 3155.4 | 24.40 | 0.911 | yes |
 | Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | 9866.7 | 25.323 | 3581.0 | 3729.5 | 26.30 | 1.019 | no |
-| Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K) | 2418.2 | 6.996 | 2714.1 | 2808.7 | 22.45 | 0.876 | yes |
+| Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K) | 2418.2 | 6.996 | 2760.1 | 2856.5 | 22.69 | 0.877 | yes |
 | Macie XL, flight 1 (AeroTech I284W) | 599.5 | 4.278 | 706.2 | 706.3 | 12.20 | 0.354 | no |
 | Macie XL, flight 2 (Cesaroni 601I350-16A) | 600.8 | 4.338 | 692.6 | 692.7 | 12.12 | 0.362 | no |
 

@@ -16,9 +16,9 @@ sensors, and how well its 90% intervals hold.
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-300, the smoother and its check][adr-300].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
-  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.3% to 97.4% of
+  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.4% to 98.1% of
   set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). Two
-  logger cells fall under 90%: 89.2% on set B and 89.7% on set A, which the check's rule allows. Sets
+  logger cells fall under 90%: 88.7% on set B and 89.2% on set A, which the check's rule allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)). Tracking from the ground can't stand in for one: a
@@ -80,23 +80,23 @@ was:
 
 | Moment | Height | Speed | Median standard error (height, speed) |
 |---|---:|---:|---:|
-| Burnout | 96.7% | 96.6% | 59.1 m (194 ft), 11.3 m/s (37 ft/s) |
-| Top speed | 97.3% | 94.3% | 62.3 m (204 ft), 10.9 m/s (36 ft/s) |
-| Apogee | 97.3% | 96% | 84.3 m (277 ft), 1.23 m/s (4.04 ft/s) |
-| A drawn moment | 97.4% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
+| Burnout | 96.8% | 96.4% | 59.3 m (195 ft), 11.2 m/s (37 ft/s) |
+| Top speed | 97.4% | 94.4% | 62.3 m (204 ft), 11.1 m/s (36 ft/s) |
+| Apogee | 97.3% | 96.9% | 85.3 m (280 ft), 1.23 m/s (4.04 ft/s) |
+| A drawn moment | 97.3% | 98.1% | 18.5 m (61 ft), 1.02 m/s (3.35 ft/s) |
 
 The intervals are wide on purpose. Two terms are expected to lead the height interval: the
 day's air, which a log without a GNSS receiver can't measure, and the port's error. The widest
 are on barometer-only loggers, in the report's JSON per logger: up to 407 m (1,335 ft) at
 burnout and 260 m/s (853 ft/s) at a drawn moment.
 
-Across the three sets, each set's cells run from 94.3% to 99.4%. Per logger, the lowest cells
-are 89.2% on set B and 89.7% on set A, both the GNSS logger's apogee height. The rule still
+Across the three sets, each set's cells run from 94.2% to 99.4%. Per logger, the lowest cells
+are 88.7% on set B and 89.2% on set A, both the GNSS logger's apogee height. The rule still
 allows them: their misses aren't shown to pass 5% a side.
 
 Trusting the GNSS receiver from liftoff instead fails the check. B's 186 smoothed logs with a
-GNSS track were smoothed again that way, the rest left as they were. Then 146 of its 845 apogee
-truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
+GNSS track were smoothed again that way, the rest left as they were. Then 147 of its 845 apogee
+truths lay below the interval, and only 81.8% inside it. Every set, logger and moment is in
 [the report][report].
 
 ## A log written from launch
@@ -122,7 +122,7 @@ assumes it:
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the
 logger's true zero, so the test holds no error in that zero. On the [report][launch]'s sets A and B, every cell
-holds, overall and per logger (the command fails otherwise): 94.9% to 98.7% of truths lie inside the
+holds, overall and per logger (the command fails otherwise): 95.6% to 98.7% of truths lie inside the
 90% intervals overall. Real logs have no such truth ([evidence row G33](../evidence.md#g33)). Their
 smoothed apogee falls outside the reading's bound on 12 of the 373 on an assumed pad and 20 of the
 176 on their own. A log's own pad doesn't prevent it
@@ -137,8 +137,8 @@ so, and the reading is the one to go by.
 A barometer-only log from the tuning set, as the report prints it:
 
 ```text,wrap
-barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.709; largest test ratio 0.585 at 141 s, Mach 0.01
-barometer de-weighted: charge 27.9–29.9 s
+barometer: 5632 samples, 5632 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.678; largest test ratio 0.632 at 141 s, Mach 0.01
+barometer de-weighted: charge 28.1–30.1 s
 pass back: every step smoothed
 ```
 

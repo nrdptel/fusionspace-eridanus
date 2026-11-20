@@ -4056,8 +4056,19 @@ mod tests {
     /// would move it by 0.03 or more. The stage covering its children is the whole drag in both
     /// codes: exactly 0.5. A stage's coefficient alone, and one on a part inside the body, change
     /// both codes' drag exactly as much at every Mach number, and the fins' agree within 1e-4.
+    ///
+    /// Since M1.14i3 (ADR-362) hpr's base behind a boattail keeps `d_B/d₁` of the flat-base
+    /// drag below Mach 0.8 (NASA TR R-100, p. 11), where OpenRocket keeps all of it, so stating
+    /// the boattail, which carries the base, moves hpr's drag by that much more. The difference
+    /// is written out by hand from the probe's 8° cone, 25 mm to 18 mm in radius, and taken off
+    /// before the probe is held as before.
     #[test]
     fn a_stated_drag_coefficient_moves_the_drag_as_openrocket_s() {
+        // The flat-base drag, (0.12 + 0.13 M²) on the base's area over the body's (Niskanen
+        // 2009, eq. 3.94), less the share of it hpr keeps behind the boattail, d_B/d₁.
+        let (fore, aft) = (0.025_f64, 0.018_f64);
+        let relief =
+            |mach: f64| (0.12 + 0.13 * mach * mach) * (aft / fore).powi(2) * (1.0 - aft / fore);
         let record = drag_override_record();
         let variants = record["variants"].as_object().expect("variants");
         assert_eq!(variants.len(), 25);
@@ -4108,6 +4119,9 @@ mod tests {
                 if *name == "flare, the tube at 0.5 with its children" {
                     gap -= gap_of("flare, the lugs at 0.5", at)
                         + gap_of("flare, the buttons at 0.5", at);
+                }
+                if *name == "boattail, the boattail at 0.2" && mach <= 0.8 {
+                    gap -= relief(mach);
                 }
                 if exact {
                     assert!(gap.abs() <= 1e-9, "{what}");

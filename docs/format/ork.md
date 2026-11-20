@@ -1352,7 +1352,7 @@ cones, body tubes and transitions written inside the `podset`, with everything o
 [M1.13c1](../decisions-and-roadmap.md#m1-13c1), each pod's parts with their own normal force and
 drag ([aerodynamics: Pods](../physics/aero.md#pods)).
 
-Five probe designs with pods fly within 0.81% of OpenRocket's apogee, and so does the same airframe
+Five probe designs with pods fly within 0.92% of OpenRocket's apogee, and so does the same airframe
 without pods ([a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2)). The pods
 hold bodies, fins, a tail cone, winglets and motors. The probes are
 listed apart from the designs, at the end of
@@ -2852,7 +2852,7 @@ OpenRocket's on ordinary hobby rockets.
   early ([staged, clustered and air-start flights](#staged-clustered-and-air-start-flights),
   below).
 - Six probe designs, five with pods and one without, are not counted among the 53. They were written
-  for [a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2). They fly within 0.81%
+  for [a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2). They fly within 0.92%
   of OpenRocket's apogee and 1.24% of its largest speed, and their margins are within 0.0014
   calibers ([aerodynamics: Pods](../physics/aero.md#pods)).
 - The bar, set for the whole corpus ([OpenRocket comparisons](../decisions-and-roadmap.md#m2-2)),
@@ -3472,11 +3472,11 @@ record of OpenRocket's run must also show it loading exactly those curves. One c
 because HPR Sim's curve came from its own catalog, found by the motor's name. A tilted rod is flown
 as recorded, as in [A tilted launch rod](#a-tilted-launch-rod).
 
-The 35 flights (from the committed report, September 28, 2026):
+The 35 flights (from the committed report):
 
 | metric | flights | median | from | to |
 |---|---:|---:|---:|---:|
-| apogee, no named cause | 28 | −0.31% | −4.84% | +1.17% |
+| apogee, no named cause | 28 | −0.25% | −4.84% | +1.17% |
 | apogee, OpenRocket's parachute open before apogee | 6 | −0.32% | −3.09% | +2.15% |
 | apogee, HPR Sim's own drag coefficient | 1 | +13.60% | +13.60% | +13.60% |
 | largest speed, no named cause | 34 | +0.27% | −0.65% | +2.28% |

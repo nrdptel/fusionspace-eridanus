@@ -18,12 +18,16 @@
 //!   blast tube carries the nozzle to the base, so what the base holds is the nozzle exit. The
 //!   same rule given the nozzle exit's area leaves the annulus the report measured on: that
 //!   tests the coefficient on the annulus, not the area HPR Sim flies. Beside both, the whole
-//!   base under power, OpenRocket 24.12's rule
-//!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it), which is the power-off
+//!   base under power, the area OpenRocket 24.12 keeps, on HPR Sim's coefficient
+//!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it): HPR Sim's power-off
 //!   value. All are on the model's maximum cross-section, as the report's coefficients are.
-//!   Below Mach 0.8 the base term doesn't depend on the body ahead of the base (the boattail's
-//!   factor on it is 1 there), so the body is drawn as the report's nose, a cylinder, and a
+//!   Below Mach 0.8 the base term depends on the body ahead of the base only through the base's
+//!   diameter over the largest (M1.14i3: a boattailed base is `d_B/d` of the flat-base value
+//!   there, NASA TR R-100's rule), so the body is drawn as the report's nose, a cylinder, and a
 //!   straight cone to the base.
+//! - **The rule before M1.14i3,** the flat-base value on the base's area with no relief behind
+//!   the boattail, is written beside it (`flat_base_rule_power_off`), so the change's effect on
+//!   the reference stays in the record.
 //!
 //! No target is set: each difference is reported as it is, beside the report's stated error
 //! and the reading's own.
@@ -41,6 +45,12 @@ use serde_json::{Value, json};
 pub const FIXTURE: &str = "validation/fixtures/aero/base-drag-under-power.json";
 pub const REFERENCE: &str = "validation/fixtures/aero/hermes-a3a-base-drag.json";
 const IN: f64 = 0.0254;
+/// Hoerner's constant in his subsonic base drag of a body of revolution, `C_DB = 0.029 /
+/// sqrt(C_DfB)` on the base's area (*Fluid-Dynamic Drag*, 1965, p. 3-19, eq. 34), which on the
+/// largest cross-section is `0.029 (d_B/d)^3 / sqrt(C_Df)` (p. 3-20, eq. 35), `C_Df` the body's
+/// drag less its base on that area. USAF DATCOM (1978, section 4.2.3.1, eq. 4.2.3.1-b) gives the
+/// same rule.
+const HOERNER_K: f64 = 0.029;
 
 /// The fixture, from the reference's geometry and rows.
 pub fn generate(root: &Path) -> Result<Value, String> {
@@ -56,6 +66,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         Ok(0.25 * std::f64::consts::PI * (num(geometry, key)? * IN).powi(2))
     };
     let exit_m2 = circle("nozzle_exit_diameter_in")?;
+    let base_over_max = num(geometry, "base_diameter_in")? / num(geometry, "diameter_in")?;
     let case_m2 = circle("motor_case_diameter_in")?;
     let stated = num(&reference["accuracy"], "base_drag_coefficient")?;
     let reading = num(&reference["digitization"], "reading_uncertainty")?;
@@ -73,10 +84,22 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                 .map_err(|e| fail(&e.to_string()))?
                 .base)
         };
-        let off = base(DragConditions::coasting(reynolds_per_m))?;
+        let coasting = model
+            .buildup_drag(&flow, &DragConditions::coasting(reynolds_per_m))
+            .map_err(|e| fail(&e.to_string()))?;
+        let off = coasting.base;
+        // Hoerner's subsonic base drag on the largest cross-section (1965, p. 3-20, eq. 35;
+        // USAF DATCOM 1978, eq. 4.2.3.1-b): 0.029 (d_B/d)^3 / sqrt(C_Df), C_Df the body's drag
+        // less its base on that area, here HPR Sim's own friction and pressure drag coasting.
+        let forebody = coasting.friction + coasting.pressure;
+        let hoerner = HOERNER_K * base_over_max.powi(3) / forebody.sqrt();
+        // HPR Sim's rule before M1.14i3: the flat-base value on the base's area, (d_B/d)^2 on
+        // the largest cross-section, with no relief behind the boattail. Since M1.14i3 HPR Sim
+        // takes d_B/d of it below Mach 0.8 (NASA TR R-100, 1961, p. 11), (d_B/d)^3 as in eq. 35.
+        let flat_base_rule = off / base_over_max;
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
         let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
-        let mut out = json!({ "mach": mach });
+        let mut out = json!({ "mach": mach, "hpr_forebody_drag": forebody });
         // HPR Sim's own power off and power on, and the whole base under power, each against
         // its measured curve.
         for (name, hpr, key) in [
@@ -84,6 +107,8 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             ("hpr_power_on", on, "power_on"),
             ("hpr_power_on_case", on_case, "power_on"),
             ("whole_base_under_power", off, "power_on"),
+            ("hoerner_power_off", hoerner, "power_off"),
+            ("flat_base_rule_power_off", flat_base_rule, "power_off"),
         ] {
             out[name] = json!(hpr);
             let Some(measured) = row[key].as_f64() else {
@@ -108,8 +133,16 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  base holds of the burning motor, off the base: the annulus the report measured \
                  on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off \
                  the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, \
-                 so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's \
-                 rule, the power-off value. Each _difference is the rule's \
+                 so nothing is left. whole_base_under_power: nothing off, the area OpenRocket \
+                 24.12 keeps, on HPR Sim's coefficient: hpr_power_off. hoerner_power_off: Hoerner's subsonic base drag \
+                 (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35; USAF DATCOM 1978, eq. \
+                 4.2.3.1-b), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df the body's drag less its \
+                 base, HPR Sim's own friction and pressure drag coasting (hpr_forebody_drag), \
+                 on the same area. Since M1.14i3 (ADR-362) HPR Sim's base below Mach 0.8 is \
+                 d_B/d of the flat-base value behind a boattail (NASA TR R-100, 1961, p. 11), \
+                 (d_B/d)^3 on this area as in Hoerner's eq. 35. flat_base_rule_power_off: \
+                 HPR Sim's rule before M1.14i3, the flat-base value on the base's area, \
+                 hpr_power_off over d_B/d. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",
