@@ -290,7 +290,7 @@ print(f"{calisto.configuration}: apogee {flight.apogee_m:.0f} m, landing at {fli
 ```
 
 ```text
-example: apogee 2807 m, landing at 5.2 m/s
+example: apogee 2841 m, landing at 5.2 m/s
 ```
 
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with

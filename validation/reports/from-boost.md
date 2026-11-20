@@ -79,7 +79,7 @@ Fitted whole log: residual RMS 2.06 m, misfit share 0.0132, 51 simulations flown
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.020 | 0.103 | 0.873 to 1.151 |
+| drag scale | 1.020 | 0.103 | 0.873 to 1.150 |
 | impulse scale | 0.995 | 0.021 | 0.964 to 1.027 |
 | burn time scale | 0.985 | 0.046 | none |
 | wind toward the east (m/s) | 0.848 | 3.838 | none |
@@ -105,7 +105,7 @@ Fitted whole log: residual RMS 3.25 m, misfit share 0.0071, 92 simulations flown
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 0.709 | 0.072 | 0.606 to 0.801 |
+| drag scale | 0.709 | 0.072 | 0.606 to 0.800 |
 | impulse scale | 0.950 | 0.024 | 0.914 to 0.986 |
 | burn time scale | 1.062 | 0.035 | none |
 | wind toward the east (m/s) | 13.814 | 3.583 | none |
@@ -131,10 +131,10 @@ Fitted whole log: residual RMS 22.40 m, misfit share 0.0168, 405 simulations flo
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 0.916 | 0.074 | 0.757 to 1.010 |
+| drag scale | 0.916 | 0.074 | 0.760 to 1.011 |
 | impulse scale | 1.019 | 0.025 | 0.972 to 1.057 |
 | burn time scale | 1.073 | 0.054 | none |
-| wind toward the east (m/s) | 11.737 | 3.870 | 6.745 to 17.000 |
+| wind toward the east (m/s) | 11.737 | 3.870 | 6.745 to 17.155 |
 | wind toward the north (m/s) | 0.598 | 3.113 | -3.698 to 5.268 |
 | structure mass scale | 0.987 | 0.011 | 0.969 to 1.006 |
 
@@ -154,10 +154,10 @@ Fitted whole log: residual RMS 10.72 m, misfit share 0.0122, 74 simulations flow
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.078 | 0.024 | 1.026 to 1.108 |
+| drag scale | 1.078 | 0.024 | 1.027 to 1.108 |
 | impulse scale | 0.972 | 0.012 | 0.949 to 0.990 |
 | burn time scale | 1.242 | 0.037 | none |
-| wind toward the east (m/s) | 10.880 | 0.665 | 10.023 to 11.784 |
+| wind toward the east (m/s) | 10.880 | 0.665 | 10.023 to 11.811 |
 | wind toward the north (m/s) | 3.872 | 0.551 | 3.112 to 4.699 |
 | structure mass scale | 1.003 | 0.010 | 0.985 to 1.021 |
 
