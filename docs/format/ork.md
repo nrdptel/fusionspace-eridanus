@@ -478,11 +478,12 @@ example, and the decision records give the measurements: [a stage on the axis][a
   override and no stated inertia is written with a warning too: OpenRocket, and the reader, weigh it with its parts in
   place.
 - **Not flown yet,** each refused by name, never guessed:
-  - *On the stage a parallel stage hangs on,* an added mass with no station, and one at a
+  - *On the stage a parallel stage hangs on,* an added mass above zero with no station, and one at a
     station where the parallel stage is one booster off the axis. OpenRocket weighs that stage with its
-    boosters while they hang there. With a mass and no center stated, and nothing added to the
-    boosters, its point sits 39 mm (1.5 in) aft of where it sits once three boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside
-    one booster it sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.
+    boosters while they hang there. With a mass and no center stated, and no override on the
+    parallel stage, OpenRocket puts the added mass 39 mm (1.5 in) aft of where it sits once three
+    boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside one booster, the
+    added mass sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.
     Either way it moves when they drop. HPR Sim's stage is one body that keeps its center
     ([M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11)).
     An override that covers that stage's parts is refused there as before
