@@ -4737,8 +4737,22 @@ fn the_validated_range_is_the_fastest_public_reference() {
     }
     assert_eq!(
         mach_keys(&read("fixture-flights.json")),
-        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3"],
-        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference; a reference's key belongs above"
+        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3", "mach"],
+        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference, and the Mach numbers of the base drag's measured reference (M1.14i2), a part's drag below Mach 0.8 and no whole flight; a whole flight's reference key belongs above"
+    );
+    // The base drag's reference is a part's drag, not a flight: its Mach numbers stay below the
+    // validated range, so they could never set it.
+    let terms = &read("fixture-flights.json")["terms"]["reference"];
+    let reference_machs: Vec<f64> = terms
+        .as_array()
+        .expect("fixture-flights.json: the base drag's reference rows")
+        .iter()
+        .map(|row| row["mach"].as_f64().expect("a reference row's Mach number"))
+        .collect();
+    assert!(!reference_machs.is_empty());
+    assert!(
+        reference_machs.iter().all(|m| *m < 0.8),
+        "{reference_machs:?}"
     );
     let (mach, flight) = fastest
         .iter()
