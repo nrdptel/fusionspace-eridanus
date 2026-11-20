@@ -599,10 +599,20 @@ mod tests {
         // Outside the tolerance (ADR-009): Cavour under power, where the table carries at most
         // 0.001 of relief at Mach 0.3 and hpr's depends on the unrecorded motor diameter; and
         // Valetudo's table, 1.44 times the OpenRocket export for the same rocket, which hpr
-        // matches to 2% with that file's inputs.
+        // matches to 2% with that file's inputs. Since M1.14i3 relieves a boattailed base below
+        // Mach 0.8 (ADR-362), Calisto's getting-started fins (−11.5%, from −7.3%) and Juno III
+        // (−10.3%, from −6.0%) are outside too, where Calisto's own export comes to +0.2%, from
+        // +4.4%: one code against another, which sizes the difference and doesn't say which is
+        // right.
         assert_eq!(
             outside,
-            ["cavour-power-on", "valetudo-power-off", "valetudo-power-on"]
+            [
+                "calisto-getting-started-power-off",
+                "juno-iii-power-off",
+                "cavour-power-on",
+                "valetudo-power-off",
+                "valetudo-power-on"
+            ]
         );
     }
 
@@ -984,9 +994,14 @@ mod tests {
     /// (20 µm), every 0.05 from Mach 0.1 to 2.0 at sea level. Before the boattail's supersonic
     /// wave drag no combination had rows within 10% in both the subsonic and the supersonic bands
     /// (the test was named `calistos_supersonic_gap_survives_every_plausible_fin_and_finish`).
-    /// Now the committed inputs (square, 3 mm, smooth, ADR-009's rule) have 15, 3 and 8, and
-    /// rounded fins 4.76 mm thick, smooth, have 15, 4 and 14: most of the supersonic gap left is
-    /// within what the unrecorded inputs span. The committed design keeps ADR-009's rule.
+    /// Then the committed inputs (square, 3 mm, smooth, ADR-009's rule) had 15, 3 and 8, and
+    /// rounded fins 4.76 mm thick, smooth, had 15, 4 and 14: most of the supersonic gap left is
+    /// within what the unrecorded inputs span. The committed design keeps ADR-009's rule. Since
+    /// M1.14i3's relief of a boattailed base below Mach 0.8 (ADR-362) they have 15, 5 and 8, and
+    /// 6, 5 and 14: the committed inputs' subsonic rows read −1.7% to +3.3% of the export, where
+    /// they read +3.9% to +8.9%, and the rounded fins' fall to −12.6% to −0.4%, from −8.4% to
+    /// +5.8%. These rows are one code against another: they size the difference, not which is
+    /// right.
     #[test]
     fn calistos_rows_by_fin_and_finish() {
         use hpr_design::{Component, FinCrossSection, Finish, Part};
@@ -1072,36 +1087,36 @@ mod tests {
         assert_eq!(
             counts,
             [
-                [15, 3, 1],
-                [7, 4, 8],
-                [15, 3, 8],
-                [3, 4, 15],
-                [0, 3, 17],
+                [15, 4, 1],
+                [14, 4, 8],
+                [15, 5, 8],
+                [6, 4, 15],
+                [4, 3, 17],
                 [0, 3, 17],
                 [0, 3, 17],
                 [0, 1, 2],
-                [9, 4, 0],
-                [14, 3, 4],
-                [15, 3, 1],
-                [14, 4, 9],
-                [15, 4, 14],
-                [12, 3, 17],
-                [14, 4, 17],
-                [9, 3, 17],
-                [3, 4, 0],
-                [14, 3, 2],
-                [7, 3, 0],
-                [13, 4, 7],
-                [10, 4, 9],
-                [13, 4, 17],
-                [11, 4, 17],
+                [1, 4, 0],
+                [13, 3, 4],
+                [2, 3, 1],
+                [13, 4, 9],
+                [6, 5, 14],
                 [13, 3, 17],
+                [9, 4, 17],
+                [12, 3, 17],
+                [0, 4, 0],
+                [12, 4, 2],
+                [1, 4, 0],
+                [12, 4, 7],
+                [2, 5, 9],
+                [12, 4, 17],
+                [3, 4, 17],
+                [12, 3, 17],
             ]
         );
-        // The committed inputs (square, 3 mm, smooth) and the best of the rest (rounded,
-        // 4.76 mm, smooth): no combination has every row within 10%.
-        assert_eq!(ranges[2], [(3.9, 8.9), (-10.1, 16.4), (-14.9, -5.1)]);
-        assert_eq!(ranges[12], [(-8.4, 5.8), (-8.9, 22.5), (-11.7, -3.4)]);
+        // The committed inputs (square, 3 mm, smooth) and rounded fins 4.76 mm thick, smooth:
+        // no combination has every row within 10%.
+        assert_eq!(ranges[2], [(-1.7, 3.3), (-10.1, 13.4), (-14.9, -5.1)]);
+        assert_eq!(ranges[12], [(-12.6, -0.4), (-8.9, 19.5), (-11.7, -3.4)]);
         assert!(counts.iter().all(|c| c != &[15, 7, 17]));
     }
 

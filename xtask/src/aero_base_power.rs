@@ -21,9 +21,13 @@
 //!   base under power, OpenRocket 24.12's rule
 //!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it), which is the power-off
 //!   value. All are on the model's maximum cross-section, as the report's coefficients are.
-//!   Below Mach 0.8 the base term doesn't depend on the body ahead of the base (the boattail's
-//!   factor on it is 1 there), so the body is drawn as the report's nose, a cylinder, and a
+//!   Below Mach 0.8 the base term depends on the body ahead of the base only through the base's
+//!   diameter over the largest (M1.14i3: a boattailed base is `d_B/d` of the flat-base value
+//!   there, NASA TR R-100's rule), so the body is drawn as the report's nose, a cylinder, and a
 //!   straight cone to the base.
+//! - **The rule before M1.14i3,** the flat-base value on the base's area with no relief behind
+//!   the boattail, is written beside it (`flat_base_rule_power_off`), so the change's effect on
+//!   the reference stays in the record.
 //!
 //! No target is set: each difference is reported as it is, beside the report's stated error
 //! and the reading's own.
@@ -89,10 +93,10 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         // less its base on that area, here HPR Sim's own friction and pressure drag coasting.
         let forebody = coasting.friction + coasting.pressure;
         let hoerner = HOERNER_K * base_over_max.powi(3) / forebody.sqrt();
-        // HPR Sim's flat-base rule with Hoerner's dependence on the base's diameter, (d_B/d)^3
-        // on the largest cross-section (eq. 35) where HPR Sim's is (d_B/d)^2: the same at a flat
-        // base, and d_B/d of it behind a boattail.
-        let relief = off * base_over_max;
+        // HPR Sim's rule before M1.14i3: the flat-base value on the base's area, (d_B/d)^2 on
+        // the largest cross-section, with no relief behind the boattail. Since M1.14i3 HPR Sim
+        // takes d_B/d of it below Mach 0.8 (NASA TR R-100, 1961, p. 11), (d_B/d)^3 as in eq. 35.
+        let flat_base_rule = off / base_over_max;
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
         let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
         let mut out = json!({ "mach": mach, "hpr_forebody_drag": forebody });
@@ -104,7 +108,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             ("hpr_power_on_case", on_case, "power_on"),
             ("whole_base_under_power", off, "power_on"),
             ("hoerner_power_off", hoerner, "power_off"),
-            ("hpr_relief_power_off", relief, "power_off"),
+            ("flat_base_rule_power_off", flat_base_rule, "power_off"),
         ] {
             out[name] = json!(hpr);
             let Some(measured) = row[key].as_f64() else {
@@ -134,9 +138,11 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35; USAF DATCOM 1978, eq. \
                  4.2.3.1-b), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df the body's drag less its \
                  base, HPR Sim's own friction and pressure drag coasting (hpr_forebody_drag), \
-                 on the same area. hpr_relief_power_off: HPR Sim's rule with Hoerner's \
-                 dependence on the base's diameter, (d_B/d)^3 where HPR Sim's is (d_B/d)^2, so \
-                 hpr_power_off times d_B/d. Each _difference is the rule's \
+                 on the same area. Since M1.14i3 (ADR-362) HPR Sim's base below Mach 0.8 is \
+                 d_B/d of the flat-base value behind a boattail (NASA TR R-100, 1961, p. 11), \
+                 (d_B/d)^3 on this area as in Hoerner's eq. 35. flat_base_rule_power_off: \
+                 HPR Sim's rule before M1.14i3, the flat-base value on the base's area, \
+                 hpr_power_off over d_B/d. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",

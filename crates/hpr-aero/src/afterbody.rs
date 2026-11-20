@@ -355,7 +355,14 @@ fn love_base_pressure(mach: f64) -> f64 {
 ///   `k = (1 − p_bt/p)/(1 − p_cyl/p)`, not below 0 (no measured base pressure is above the free
 ///   stream's).
 /// - From Mach 1 to 2.5, `k` at Mach 2.5.
-/// - From Mach 0.8 to 1, a straight line from 1 to that value; 1 below.
+/// - Up to Mach 0.8, `k = d_B/d₁ = √a_b`: Hoerner's subsonic base drag scales with the base's
+///   diameter cubed on the largest cross-section (*Fluid-Dynamic Drag*, 1965, p. 3-20, eq. 35;
+///   USAF DATCOM 1978, eq. 4.2.3.1-b), where the flat-base rule on the base's area scales with
+///   its square. Behind the same forebody that is `d_B/d₁` of the flat-base value: 1 at a flat
+///   base. On the Hermes A-3A's measured flight below Mach 0.8 it reads high by 0.025 to 0.035
+///   on the largest cross-section, where 1 read high by 0.050 to 0.064 (M1.14i3,
+///   `validation/fixtures/aero/base-drag-under-power.json`).
+/// - From Mach 0.8 to 1, a straight line from `√a_b` to the value at Mach 1.
 ///
 /// # Errors
 ///
@@ -375,11 +382,14 @@ pub fn boattail_base_pressure_ratio(mach: f64, base_area_ratio: f64) -> Result<f
         let p_bt = p_cyl / (0.442 + 0.558 * base_area_ratio);
         ((1.0 - p_bt) / (1.0 - p_cyl)).max(0.0)
     };
+    let subsonic = base_area_ratio.sqrt();
     Ok(if mach <= TRANSONIC_ONSET_MACH {
-        1.0
+        subsonic
     } else if mach < SUPERSONIC_MACH {
         let k = supersonic(BASE_RELIEF_MACH);
-        1.0 + (k - 1.0) * (mach - TRANSONIC_ONSET_MACH) / (SUPERSONIC_MACH - TRANSONIC_ONSET_MACH)
+        subsonic
+            + (k - subsonic) * (mach - TRANSONIC_ONSET_MACH)
+                / (SUPERSONIC_MACH - TRANSONIC_ONSET_MACH)
     } else {
         supersonic(mach.max(BASE_RELIEF_MACH))
     })
@@ -785,14 +795,17 @@ mod tests {
         );
     }
 
-    /// The base pressure ratio: 1 below Mach 0.8, held below 2.5, Fig. 5-141's line in pressure
+    /// The base pressure ratio: `√a_b` up to Mach 0.8 (Hoerner's eq. 35), held below 2.5, Fig. 5-141's line in pressure
     /// from 2.5 (at Mach 3, `p_cyl/p_bt = 0.442 + 0.558 a_b` exactly), 1 for a base as large as the
     /// cylinder, and none below 0.
     #[test]
     fn base_pressure_ratio_follows_fig_5_141() {
         let k = |m: f64, a: f64| boattail_base_pressure_ratio(m, a).unwrap();
-        close(k(0.5, 0.469), 1.0, 0.0, "subsonic");
-        close(k(0.8, 0.469), 1.0, 0.0, "to Mach 0.8");
+        close(k(0.5, 0.469), 0.469f64.sqrt(), 0.0, "subsonic");
+        close(k(0.8, 0.469), 0.469f64.sqrt(), 0.0, "to Mach 0.8");
+        close(k(0.5, 1.0), 1.0, 0.0, "a flat base");
+        // The Hermes A-3A's base, 4.8 in behind 8 in: 0.6 of the flat-base value.
+        close(k(0.7, 0.36), 0.6, 1e-15, "Hermes A-3A");
         close(k(1.0, 0.469), k(2.5, 0.469), 0.0, "held");
         close(k(1.8, 0.469), k(2.5, 0.469), 0.0, "held");
         close(k(3.0, 1.0), 1.0, 1e-12, "no boattail");
@@ -805,7 +818,7 @@ mod tests {
         close(k(2.5, 0.469), 0.6157, 5e-4, "Calisto");
         assert!(k(4.9, 0.0) >= 0.0);
         let mid = k(0.9, 0.469);
-        close(mid, 0.5 * (1.0 + k(2.5, 0.469)), 1e-12, "join");
+        close(mid, 0.5 * (0.469f64.sqrt() + k(2.5, 0.469)), 1e-12, "join");
         assert!(boattail_base_pressure_ratio(2.0, 1.1).is_err());
     }
 
