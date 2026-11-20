@@ -11,15 +11,19 @@
 //!   government work: the numbers are committed.
 //! - **HPR Sim's base drag** is its buildup's base term ([`hpr_aero::Drag::base`]) for a body of
 //!   revolution the model's diameter, ending in the model's base: coasting for power off, and
-//!   thrusting for power on. Under power HPR Sim takes the burning motor's cross-section off the
-//!   base. On this model the case sits forward in the body and a blast tube carries the nozzle
-//!   to the base, so what the base holds is the nozzle exit: its area is taken off, which
-//!   leaves the annulus the report measured on. Beside it, the whole base under power,
-//!   OpenRocket 24.12's rule ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies
-//!   it), which is the power-off value. All are on the model's maximum cross-section, as the
-//!   report's coefficients are. Below Mach 0.8 the base
-//!   term doesn't depend on the body ahead of the base (the boattail's factor on it is 1 there),
-//!   so the body is drawn as the report's nose, a cylinder, and a straight cone to the base.
+//!   thrusting for power on. In a flight HPR Sim takes the burning motor case's cross-section
+//!   off the base, down to zero (`hpr_sim`'s dynamics, from the mount's motor diameter). Here
+//!   the nominal 5 in case is wider than the 4.8 in base, so that rule, as HPR Sim flies it,
+//!   leaves no base drag under power. On this model the case sits forward in the body and a
+//!   blast tube carries the nozzle to the base, so what the base holds is the nozzle exit. The
+//!   same rule given the nozzle exit's area leaves the annulus the report measured on: that
+//!   tests the coefficient on the annulus, not the area HPR Sim flies. Beside both, the whole
+//!   base under power, OpenRocket 24.12's rule
+//!   ([`hpr_aero::AeroModel::with_full_base_drag_under_power`] flies it), which is the power-off
+//!   value. All are on the model's maximum cross-section, as the report's coefficients are.
+//!   Below Mach 0.8 the base term doesn't depend on the body ahead of the base (the boattail's
+//!   factor on it is 1 there), so the body is drawn as the report's nose, a cylinder, and a
+//!   straight cone to the base.
 //!
 //! No target is set: each difference is reported as it is, beside the report's stated error
 //! and the reading's own.
@@ -52,6 +56,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         Ok(0.25 * std::f64::consts::PI * (num(geometry, key)? * IN).powi(2))
     };
     let exit_m2 = circle("nozzle_exit_diameter_in")?;
+    let case_m2 = circle("motor_case_diameter_in")?;
     let stated = num(&reference["accuracy"], "base_drag_coefficient")?;
     let reading = num(&reference["digitization"], "reading_uncertainty")?;
     let reynolds_per_m = num(&reference, "reynolds_per_m")?;
@@ -70,12 +75,14 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         };
         let off = base(DragConditions::coasting(reynolds_per_m))?;
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
+        let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
         let mut out = json!({ "mach": mach });
         // HPR Sim's own power off and power on, and the whole base under power, each against
         // its measured curve.
         for (name, hpr, key) in [
             ("hpr_power_off", off, "power_off"),
             ("hpr_power_on", on, "power_on"),
+            ("hpr_power_on_case", on_case, "power_on"),
             ("whole_base_under_power", off, "power_on"),
         ] {
             out[name] = json!(hpr);
@@ -99,14 +106,17 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  drag (NACA RM SL55F15 Fig. 20) below Mach 0.8. hpr_power_off: coasting. \
                  hpr_power_on: thrusting, HPR Sim's rule with the nozzle exit's area, what the \
                  base holds of the burning motor, off the base: the annulus the report measured \
-                 on. whole_base_under_power: nothing off, OpenRocket 24.12's rule, the \
-                 power-off value. Each _difference is the rule's \
+                 on. hpr_power_on_case: HPR Sim's rule as it flies, the motor case's area off \
+                 the base, down to zero: the nominal 5 in case is wider than the 4.8 in base, \
+                 so nothing is left. whole_base_under_power: nothing off, OpenRocket 24.12's \
+                 rule, the power-off value. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",
         "stated_error": stated,
         "reading_uncertainty": reading,
         "nozzle_exit_area_m2": exit_m2,
+        "motor_case_area_m2": case_m2,
         "reference_area_m2": model.reference_area_m2(),
         "rows": rows,
     }))

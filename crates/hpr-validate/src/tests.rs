@@ -4735,24 +4735,26 @@ fn the_validated_range_is_the_fastest_public_reference() {
     for name in ["openrocket-export-flights.json", "ork-cli-flights.json"] {
         assert_eq!(mach_keys(&read(name)), Vec::<String>::new(), "{name}");
     }
+    // The base drag's measured reference (M1.14i2) is a part's drag below Mach 0.8, not a whole
+    // flight: its rows are taken out and held below Mach 0.8, and any other `mach` key in the
+    // report still fails here.
+    let mut fixture_flights = read("fixture-flights.json");
+    let reference = fixture_flights["terms"]["reference"]["rows"]
+        .as_array_mut()
+        .map(std::mem::take)
+        .expect("fixture-flights.json: the base drag's reference rows");
+    assert!(!reference.is_empty());
+    for row in &reference {
+        let mach = row["mach"].as_f64().expect("a reference row's Mach number");
+        assert!(
+            mach < 0.8,
+            "fixture-flights.json: a reference row at Mach {mach}"
+        );
+    }
     assert_eq!(
-        mach_keys(&read("fixture-flights.json")),
-        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3", "mach"],
-        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference, and the Mach numbers of the base drag's measured reference (M1.14i2), a part's drag below Mach 0.8 and no whole flight; a whole flight's reference key belongs above"
-    );
-    // The base drag's reference is a part's drag, not a flight: its Mach numbers stay below the
-    // validated range, so they could never set it.
-    let terms = &read("fixture-flights.json")["terms"]["reference"];
-    let reference_machs: Vec<f64> = terms
-        .as_array()
-        .expect("fixture-flights.json: the base drag's reference rows")
-        .iter()
-        .map(|row| row["mach"].as_f64().expect("a reference row's Mach number"))
-        .collect();
-    assert!(!reference_machs.is_empty());
-    assert!(
-        reference_machs.iter().all(|m| *m < 0.8),
-        "{reference_machs:?}"
+        mach_keys(&fixture_flights),
+        ["hpr_mean_top_mach", "hpr_top_mach_over_1_3"],
+        "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference; a reference's key belongs above"
     );
     let (mach, flight) = fastest
         .iter()

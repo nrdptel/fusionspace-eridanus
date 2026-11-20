@@ -837,14 +837,14 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   [roll and damping](decisions-and-roadmap.md#m1-8c).
 - **Hermes A-3A free flights with the motor burning:** H. H. Jackson, NACA RM SL55F15 (1955),
   NTRS 20010057623, pinned as `naca-rm-sl55f15-jackson-1955`. Its Fig. 20 gives the base drag
-  with the motor burning and coasting, stated to ±0.005. Below Mach 0.8 it is read by pixels
+  with the motor burning and coasting, its error believed to be under ±0.005. Below Mach 0.8 it is read by pixels
   (`validation/oracles/naca/hermes_base_drag.py`) into
   `validation/fixtures/aero/hermes-a3a-base-drag.json`, with the model's sizes. It is the measured
   reference for the base term of
   [the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2). `cargo xtask aero` writes
   HPR Sim's base drag on it to `validation/fixtures/aero/base-drag-under-power.json`. Its tests
-  (`xtask/src/aero_base_power/tests.rs`) hold that every rule reads high and the jet raises the
-  measured base drag
+  (`xtask/src/aero_base_power/tests.rs`) hold which way each rule errs: HPR Sim's as it flies
+  low, the others high
   ([the base under power, against a measured flight](accuracy.md#the-base-under-power-against-a-measured-flight)).
 - **Stoney, zero-lift drag of bodies of revolution:** NASA TR R-100 (1961), NTRS 19630004995.
   Figure 12's nose pressure-drag curves at fineness 3 are read into `hpr_aero::nose_drag` as the

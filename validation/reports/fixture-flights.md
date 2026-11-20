@@ -243,16 +243,16 @@ The flights with a term swapped alone are also set beside the logs: of the fligh
 
 As with the bands, a row nearer the logs doesn't show that OpenRocket's term is the truer one: both simulators climb above the logs on average, so more drag from any cause moves the mean toward them. The terms say where to look for a measurement; a measured reference says which code is nearer it.
 
-The measured reference of the base term below Mach 0.8 is the base drag of the Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM SL55F15, Fig. 20, stated error ±0.005), read off the figure to ±0.001 more (validation/fixtures/aero/base-drag-under-power.json). Each coefficient is on the model's largest cross-section; HPR Sim's under power takes the nozzle exit off the base, and the whole base under power, OpenRocket 24.12's rule, is the power-off value.
+The measured reference of the base term below Mach 0.8 is the base drag of the Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM SL55F15, Fig. 20, its faired curves' error believed to be less than ±0.005), read off the figure to ±0.001 more (validation/fixtures/aero/base-drag-under-power.json). Each coefficient is on the model's largest cross-section. HPR Sim's rule as it flies takes the motor case's area off the base, down to zero; the model's nominal 5 in case is wider than its 4.8 in base. Given the nozzle exit's area instead, which is what the base holds of the motor, the same rule leaves the annulus the report measured on. The whole base under power, OpenRocket 24.12's rule, is the power-off value.
 
-| Mach | measured power off | HPR Sim power off | difference | measured under power | HPR Sim under power | difference | the whole base under power | difference |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 0.65 | 0.0127 | 0.0630 | +0.0503 | 0.0270 | 0.0384 | +0.0114 | 0.0630 | +0.0360 |
-| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0403 | +0.0159 | 0.0661 | +0.0417 |
-| 0.75 | 0.0096 | 0.0695 | +0.0599 | 0.0221 | 0.0424 | +0.0203 | 0.0695 | +0.0474 |
-| 0.79 | 0.0086 | 0.0724 | +0.0638 | 0.0204 | 0.0441 | +0.0237 | 0.0724 | +0.0520 |
+| Mach | measured power off | HPR Sim power off | difference | measured under power | HPR Sim under power, case off | difference | HPR Sim under power, nozzle exit off | difference | the whole base under power | difference |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.65 | 0.0127 | 0.0630 | +0.0503 | 0.0270 | 0.0000 | -0.0270 | 0.0384 | +0.0114 | 0.0630 | +0.0360 |
+| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0000 | -0.0244 | 0.0403 | +0.0159 | 0.0661 | +0.0417 |
+| 0.75 | 0.0096 | 0.0695 | +0.0599 | 0.0221 | 0.0000 | -0.0221 | 0.0424 | +0.0203 | 0.0695 | +0.0474 |
+| 0.79 | 0.0086 | 0.0724 | +0.0638 | 0.0204 | 0.0000 | -0.0204 | 0.0441 | +0.0237 | 0.0724 | +0.0520 |
 
-The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule under power gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
+Power off, HPR Sim's value is 5.0 to 8.4 times the measured. The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule given the nozzle exit gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
 
 ## Sources
 

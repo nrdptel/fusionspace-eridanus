@@ -1101,39 +1101,48 @@
         }
       ]
     },
-    "reference": [
-      {
-        "mach": 0.65,
-        "measured_power_off": 0.0127,
-        "hpr_power_off": 0.06297299999999997,
-        "measured_power_on": 0.027,
-        "hpr_power_on": 0.03837417187499998,
-        "whole_base_under_power": 0.06297299999999997
-      },
-      {
-        "mach": 0.7,
-        "measured_power_off": 0.0105,
-        "hpr_power_off": 0.06613199999999997,
-        "measured_power_on": 0.0244,
-        "hpr_power_on": 0.04029918749999998,
-        "whole_base_under_power": 0.06613199999999997
-      },
-      {
-        "mach": 0.75,
-        "measured_power_off": 0.0096,
-        "hpr_power_off": 0.06952499999999999,
-        "measured_power_on": 0.0221,
-        "hpr_power_on": 0.04236679687499998,
-        "whole_base_under_power": 0.06952499999999999
-      },
-      {
-        "mach": 0.79,
-        "measured_power_off": 0.0086,
-        "hpr_power_off": 0.07240787999999998,
-        "measured_power_on": 0.0204,
-        "hpr_power_on": 0.04412355187499998,
-        "whole_base_under_power": 0.07240787999999998
-      }
-    ]
+    "band_logged": 60,
+    "reference": {
+      "stated_error": 0.005,
+      "reading_uncertainty": 0.001,
+      "rows": [
+        {
+          "mach": 0.65,
+          "measured_power_off": 0.0127,
+          "hpr_power_off": 0.06297299999999997,
+          "measured_power_on": 0.027,
+          "hpr_power_on": 0.03837417187499998,
+          "hpr_power_on_case": 0.0,
+          "whole_base_under_power": 0.06297299999999997
+        },
+        {
+          "mach": 0.7,
+          "measured_power_off": 0.0105,
+          "hpr_power_off": 0.06613199999999997,
+          "measured_power_on": 0.0244,
+          "hpr_power_on": 0.04029918749999998,
+          "hpr_power_on_case": 0.0,
+          "whole_base_under_power": 0.06613199999999997
+        },
+        {
+          "mach": 0.75,
+          "measured_power_off": 0.0096,
+          "hpr_power_off": 0.06952499999999999,
+          "measured_power_on": 0.0221,
+          "hpr_power_on": 0.04236679687499998,
+          "hpr_power_on_case": 0.0,
+          "whole_base_under_power": 0.06952499999999999
+        },
+        {
+          "mach": 0.79,
+          "measured_power_off": 0.0086,
+          "hpr_power_off": 0.07240787999999998,
+          "measured_power_on": 0.0204,
+          "hpr_power_on": 0.04412355187499998,
+          "hpr_power_on_case": 0.0,
+          "whole_base_under_power": 0.07240787999999998
+        }
+      ]
+    }
   }
 }

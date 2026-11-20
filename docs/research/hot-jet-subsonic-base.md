@@ -10,7 +10,7 @@ The near-matched firings gave C_pb −0.17 to −0.27, a base drag of 0.13 to 0.
 and whole-base rules land within about 0.1 of that; HPR Sim's case rule, about 0.02 at minimum diameter, does not. The
 numbered copy of MIL-HDBK-762 Fig. 5-150 is Brazzel's RD-TM-70-7 Fig. 2, a cold-air correlation; at Mach 0.9 and
 thrust coefficients 4.5 to 7 it reads 0.10 to 0.25 of ambient deeper than three measured sets, so it is not a safe
-stand-in. Below Mach 0.9 the one hot test, Hermes A-3A's (vaned, overexpanded; [power-on](power-on-base-drag.md)
+stand-in. Below Mach 0.9 the hot flight read here, Hermes A-3A's (vaned, overexpanded; [power-on](power-on-base-drag.md)
 §2.3), is unlike HPR boost. There the cold correlation alone puts the jet's suction at −0.3% to +5.1% of thrust above
 the whole-base rule, which would lower apogee; hot data don't bound it. Plot readings carry their read-off error;
 "Inference" marks this note's arithmetic. Sources read 2026-10-28.

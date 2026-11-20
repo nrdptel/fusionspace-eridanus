@@ -32,10 +32,12 @@ and, less certainly, supersonic.
     of fineness ratio 3 under 1% of the pressure drag its own documented method gives. That is a
     confirmed defect in OpenRocket 24.12. Whether HPR Sim's value matches a measured nose stays open
     ([a tangent ogive past Mach 1](#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
-  - *Base drag under power reads high against the one measured flight found.* HPR Sim takes the
-    burning motor's area off the base (Niskanen); OpenRocket keeps the whole base. On a NACA
-    missile model's flight below Mach 0.8 both rules read high, and the jet raised the base drag
-    where HPR Sim's rule lowers it
+  - *Base drag under power is checked against one measured flight, and HPR Sim's reads low.* HPR
+    Sim takes the burning motor case's area off the base (Niskanen); OpenRocket keeps the whole
+    base. On a NACA missile model's flight below Mach 0.8, whose motor case is wider than its
+    base, HPR Sim's rule leaves no base drag under power: too little drag, the flattering side.
+    The whole base reads high, and the jet raised the base drag where either rule lowers or keeps
+    it
     ([Base drag under power against the Hermes A-3A's flight](#base-drag-under-power-against-the-hermes-a-3as-flight)).
     No hobby rocket's has been measured ([evidence row G14](../evidence.md#g14)). On one private
     supersonic flight the choice moves the apogee by about 24 percentage points
@@ -3238,9 +3240,10 @@ $$
   A lip (a short step up or flare) just behind a boattail or a step down is in its wake at every
   speed. From Mach 0.8 a boattail's drag rises to its supersonic wave drag
   ([Boattails faster than sound](#boattails-faster-than-sound)).
-- **Base drag under power** subtracts the thrusting motors' cross-section from the aft base, down to zero ([N09] pp. 50–51; [Loft lesson L13](../decisions-and-roadmap.md#l13)). Eq. 3.94 is on p. 50. On p. 51, "if the base is the same size as the motor itself, no base drag" is Niskanen's rule from Fleeman's *Tactical Missile Design*. On the one measured flight found below
-  Mach 0.8, the Hermes A-3A's, both this rule and OpenRocket's below read high, and the jet more
-  than doubled the base drag where this rule lowers it
+- **Base drag under power** subtracts the thrusting motors' cross-section from the aft base, down to zero ([N09] pp. 50–51; [Loft lesson L13](../decisions-and-roadmap.md#l13)). Eq. 3.94 is on p. 50. On p. 51, "if the base is the same size as the motor itself, no base drag" is Niskanen's rule from Fleeman's *Tactical Missile Design*. On the Hermes A-3A's measured flight below
+  Mach 0.8, whose motor case is wider than its base, this rule leaves no base drag under power and
+  reads low; given only the nozzle exit it reads high, as OpenRocket's below does. The jet more
+  than doubled the base drag, where this rule lowers it
   ([Base drag under power against the Hermes A-3A's flight](#base-drag-under-power-against-the-hermes-a-3as-flight)). On one private design's supersonic flight, `C06/1`,
   the choice moves HPR Sim's apogee difference from OpenRocket's from +13.60% to −10.71%. That is about 24
   percentage points, more than any other known cause
@@ -4330,30 +4333,34 @@ readings' half a caliber, the short model at Mach 1.5 and 1.8. The slope misses 
 
 #### Base drag under power against the Hermes A-3A's flight
 
-This checks HPR Sim's base drag below Mach 0.8, power off and while a motor burns, against a
+This checks HPR Sim's base drag below Mach 0.8, coasting and while a motor burns, against a
 measured flight rather than another program. NACA flew rocket-propelled models of the Hermes
 A-3A with the motor burning and then coasting, and measured the pressure on the base
-([Jackson 1955, NACA RM SL55F15](https://ntrs.nasa.gov/citations/20010057623), Fig. 20; stated
-error ±0.005, and ±0.001 more for reading the figure). The model narrows to its base along a
-long 4.5° cone, and its jet leaves through a nozzle at the base, below the outside air's
-pressure, with steering vanes in it.
+([Jackson 1955, NACA RM SL55F15](https://ntrs.nasa.gov/citations/20010057623), Fig. 20; an error
+believed to be less than ±0.005, and ±0.001 more for reading the figure). The model narrows to
+its 4.8 in base along a long 4.5° cone. Its motor, a nominal 5 in case, sits forward, and a
+blast tube carries the jet to a 3.0 in nozzle exit at the base, past fixed vanes.
 
-- **Power off, HPR Sim reads high**, by 0.0503 to 0.0638 on the model's largest cross-section,
-  five to eight times the measured base drag: below Mach 0.8 HPR Sim gives a boattail no relief
-  on its base.
-- **Under power, both rules read high.** HPR Sim, with the nozzle exit off the base, by 0.0114
-  to 0.0237; the whole base, OpenRocket 24.12's rule, by 0.0360 to 0.0520.
-- **The jet more than doubled the measured base drag**, where HPR Sim's rule lowers it to 0.61
-  of power off and the whole base keeps it. Neither rule moves the way the flight did.
+- **Under power, HPR Sim's rule as it flies reads low.** It takes the motor case's area off the
+  base, down to zero, and this case is wider than the base: it leaves no base drag, where the
+  flight measured 0.0204 to 0.0270 on the model's largest cross-section. Too little drag is the
+  flattering side.
+- **Given only the nozzle exit, the same rule reads high**, by 0.0114 to 0.0237, and the whole
+  base, OpenRocket 24.12's rule, by 0.0360 to 0.0520.
+- **Coasting, HPR Sim reads high**: 5.0 to 8.4 times the measured base drag. Below Mach 0.8 HPR
+  Sim gives a boattail no relief on its base, and behind this long cone the measured base drag
+  is far lower.
+- **The jet more than doubled the measured base drag**, where HPR Sim's rule lowers it and the
+  whole base keeps it. Neither rule moves the way the flight did.
 
 The rows, a worked example and how far this carries to a hobby rocket are on the accuracy page
 ([the base under power, against a measured flight](../accuracy.md#the-base-under-power-against-a-measured-flight)).
 The rows are written by `cargo xtask aero` to
-[`validation/fixtures/aero/base-drag-under-power.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json)
-and held by tests
+[`validation/fixtures/aero/base-drag-under-power.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json),
+also in the [fixture report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md),
+and which way each rule errs is held by tests
 ([`xtask/src/aero_base_power/tests.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/aero_base_power/tests.rs)).
-Before the base model changes on it, the drag of the other terms below Mach 0.8 is split out by
-the same comparison with OpenRocket
+The comparison with OpenRocket that points at this term splits the drag below Mach 0.8 by term
 ([the slowest band, by term](../accuracy.md#the-slowest-band-by-term)).
 
 #### Drag against the Arcas Robin wind tunnel

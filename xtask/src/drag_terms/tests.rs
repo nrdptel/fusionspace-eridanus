@@ -27,6 +27,21 @@ fn openrocket_books_lugs_and_buttons_as_pressure_and_stated_drag_in_the_rest() {
         "validation/fixtures/ork/history-flights/mach-probe.ork"
     );
     assert_eq!(record["openrocket"], "24.12");
+    // Written by the scripts and the design in the tree.
+    let sha = |path: &str| crate::ork_supply::sha256(&std::fs::read(root.join(path)).unwrap());
+    assert_eq!(
+        record["design_sha256"].as_str(),
+        Some(sha(record["design"].as_str().unwrap()).as_str())
+    );
+    let inputs = record["inputs_sha256"].as_object().unwrap();
+    assert!(inputs.contains_key("validation/oracles/openrocket/drag_terms.py"));
+    for (path, recorded) in inputs {
+        assert_eq!(
+            recorded.as_str(),
+            Some(sha(path).as_str()),
+            "{path} changed since the record was written: run drag_terms.py again"
+        );
+    }
     let at = |variant: &str, i: usize| -> [f64; 5] {
         let row = &record["variants"][variant]["at_mach"][i];
         let n = |key: &str| row[key].as_f64().unwrap();
@@ -83,10 +98,15 @@ fn hpr_sims_parasitic_drag_is_with_its_pressure() {
     assert_eq!(hpr_terms(&drag), [0.25, 0.625, 0.0625, 2.0]);
 }
 
-/// The coefficient at `mach` of a design's buildup, coasting or thrusting with no motor area.
+/// A motor case's cross-section for the tests under power, about a 36 mm case's, m², so that
+/// HPR Sim's base under power takes an area off the base, as in a flight.
+const MOTOR_AREA_M2: f64 = 1.0e-3;
+
+/// The coefficient at `mach` of a design's buildup, coasting or thrusting with
+/// [`MOTOR_AREA_M2`] off its base.
 fn buildup(model: &AeroModel, mach: f64, thrusting: bool) -> Drag {
     let conditions = if thrusting {
-        DragConditions::thrusting(1.0e7, 0.0)
+        DragConditions::thrusting(1.0e7, MOTOR_AREA_M2)
     } else {
         DragConditions::coasting(1.0e7)
     };
@@ -136,6 +156,10 @@ fn each_codes_four_terms_sum_to_its_whole() {
 /// The two designs share an airframe and differ in their motors, so coasting their terms are
 /// the same but for OpenRocket's pressure at Mach 0.6, read along two flights. HPR Sim's
 /// friction is about 1.3% above OpenRocket's; pressure and base agree to 0.2%.
+///
+/// The pins are given to five decimals. OpenRocket's are read between its flight data's rows,
+/// at its own time steps, so a pin may sit up to one more unit of that digit off the value the
+/// test interpolates: [`PIN_WITHIN`] is that, and the half unit of rounding, rounded outward.
 const PINS: [(&str, f64, [f64; 4], [f64; 4]); 4] = [
     (
         "pods-none.ork",
@@ -162,7 +186,7 @@ const PINS: [(&str, f64, [f64; 4], [f64; 4]); 4] = [
         [0.29484, 0.21220, 0.16680, 0.0],
     ),
 ];
-const PIN_WITHIN: f64 = 5e-5;
+const PIN_WITHIN: f64 = 2e-5;
 
 #[test]
 fn both_codes_terms_are_pinned_at_mach_0_3_and_0_6() {
@@ -232,7 +256,7 @@ fn the_rest_is_openrockets_only_when_swapped() {
         for mach in [0.3, 0.6] {
             for conditions in [
                 DragConditions::coasting(1.0e7),
-                DragConditions::thrusting(1.0e7, 0.0),
+                DragConditions::thrusting(1.0e7, MOTOR_AREA_M2),
             ] {
                 let flow = Flow::new(mach, 0.0, 0.0);
                 let drag = |model: &AeroModel| {
@@ -283,7 +307,7 @@ fn each_swap_replaces_its_own_term_and_nothing_else() {
         for mach in [0.05, 0.3, 0.6, 0.79, 0.8, 1.0, 1.5] {
             for conditions in [
                 DragConditions::coasting(1.0e7),
-                DragConditions::thrusting(1.0e7, 0.0),
+                DragConditions::thrusting(1.0e7, MOTOR_AREA_M2),
             ] {
                 let flow = Flow::new(mach, 0.0, 0.0);
                 let drag = |model: &AeroModel| {
@@ -345,7 +369,8 @@ fn termed_public(public: &Public) -> (Banded, Termed) {
 }
 
 /// What the two public designs' parts below Mach 0.8 come to by term, per cent of OpenRocket's
-/// apogee, in [`TERMS`]' order, each held within 0.01. On `pods-none`, which stays below Mach
+/// apogee, in [`TERMS`]' order, each held within 0.001, the half unit of their last digit
+/// rounded outward. On `pods-none`, which stays below Mach
 /// 0.8 and burns there, they are −0.37% friction, +0.04% pressure, +1.12% base and 0% rest,
 /// which sum to the band's +0.79%; the base's is the largest: coasting the two codes' base drag
 /// agree ([`PINS`]), so it is the base under thrust. `mach-probe` burns out past Mach 1.2, so
@@ -398,7 +423,7 @@ fn the_public_flights_split_by_term() {
             termed.alone[2]
         );
         for (i, (part, expected)) in termed.parts.iter().zip(expected).enumerate() {
-            assert!((part - expected).abs() <= 0.01, "{file}: term {i}: {part}");
+            assert!((part - expected).abs() <= 0.001, "{file}: term {i}: {part}");
         }
     }
 }
@@ -504,7 +529,7 @@ fn size(mean_percent: f64, median_percent: f64, mean_absolute_percent: f64) -> O
 /// Every count and size of the section, worked by hand over [`section`]'s four flights.
 #[test]
 fn the_section_counts_and_averages() {
-    let terms = DragTerms::of(&section(), 3);
+    let terms = DragTerms::of(&section(), 3, None);
     assert!(terms.published());
     assert_eq!(terms.check_consistent(3), Ok(()));
     let term = |name: &str, flights, sizes: [Option<Size>; 2], counts: [usize; 2]| Term {
@@ -575,8 +600,9 @@ fn the_section_counts_and_averages() {
                 row("subsonic", 3, 3, 0, size(9.13, 9.1, 9.13)),
             ],
         },
+        band_logged: 3,
         // The run adds the base's measured reference after `of`.
-        reference: Vec::new(),
+        reference: None,
     };
     assert_eq!(terms, expected);
     assert_eq!(terms.largest_measurable(), Some(0));
@@ -598,7 +624,7 @@ fn a_small_or_inconsistent_section_is_caught() {
         termed: Err((2, "a flight failed".to_owned())),
         logged_m: Some(1000.0),
     });
-    let terms = DragTerms::of(&flights, 4);
+    let terms = DragTerms::of(&flights, 4, None);
     assert!(!terms.published());
     assert_eq!(terms.not_termed[2].flights, 1);
     assert_eq!(terms.check_consistent(4), Ok(()));
@@ -611,9 +637,13 @@ fn a_small_or_inconsistent_section_is_caught() {
     // One flight with a stated coefficient: the rest's one flight holds every size back.
     let mut flights = section();
     flights[0] = by_hand([1.0, -0.5, 0.2, 0.3], [1.0, -0.5, 0.2, 0.3], Some(1000.0));
-    assert!(!DragTerms::of(&flights, 3).published());
+    assert!(!DragTerms::of(&flights, 3, None).published());
+    // The bands set one flight more beside the logs than this section: sizes over the two sets
+    // would give that flight back, so none is given.
+    assert!(!DragTerms::of(&section(), 3, Some(4)).published());
+    assert!(DragTerms::of(&section(), 3, Some(6)).published());
     // Sums that don't hold.
-    let good = DragTerms::of(&section(), 3);
+    let good = DragTerms::of(&section(), 3, None);
     let mut bad = good.clone();
     bad.band = size(0.95, 0.85, 0.95);
     assert!(bad.check_consistent(3).unwrap_err().contains("sum to"));
@@ -636,7 +666,7 @@ fn a_small_or_inconsistent_section_is_caught() {
 /// refused, and with every flight split by both the band rows must be the bands'.
 #[test]
 fn the_section_is_held_to_the_bands() {
-    let terms = DragTerms::of(&section(), 3);
+    let terms = DragTerms::of(&section(), 3, None);
     let mut bands = crate::drag_bands::DragBands {
         split: 4,
         banded: 4,
@@ -712,12 +742,16 @@ fn the_committed_report_splits_the_band_by_term() {
         &std::fs::read_to_string(root.join(crate::aero_base_power::FIXTURE)).unwrap(),
     )
     .unwrap();
-    assert_eq!(terms.reference, reference_rows(&fixture).unwrap());
-    assert_eq!(terms.reference.len(), 4);
-    assert!(terms.reference.iter().all(|r| r.mach < 0.8));
+    let reference = terms.reference.as_ref().unwrap();
+    assert_eq!(reference, &base_reference(&fixture).unwrap());
+    assert_eq!(reference.rows.len(), 4);
+    assert!(reference.rows.iter().all(|r| r.mach < 0.8));
     let page = std::fs::read_to_string(root.join(crate::fixture_flights::REPORT_MD)).unwrap();
     assert!(page.contains(&terms.to_markdown()));
-    assert!(page.contains("| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0403 | +0.0159 |"));
+    assert!(page.contains(
+        "| 0.70 | 0.0105 | 0.0661 | +0.0556 | 0.0244 | 0.0000 | -0.0244 | 0.0403 | +0.0159 |"
+    ));
+    assert!(page.contains("Power off, HPR Sim's value is 5.0 to 8.4 times the measured."));
     assert!(page.contains("to 2.1 to 2.4 times its power-off value"));
     assert!(page.contains("gives 0.61 of its power-off value"));
     assert!(page.contains("power-on less power-off: 0.0118 to 0.0143."));

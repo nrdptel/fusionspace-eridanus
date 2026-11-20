@@ -988,6 +988,9 @@ fn fly_all(
     let mut noses = Vec::new();
     let mut bands: Vec<crate::drag_bands::BandFlight> = Vec::new();
     let mut terms: Vec<crate::drag_terms::TermFlight> = Vec::new();
+    // Read before any flight, so that a broken reference stops the run before the flying.
+    let base_reference =
+        crate::drag_terms::base_reference(&crate::aero_base_power::generate(root)?)?;
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -1309,8 +1312,9 @@ fn fly_all(
     }
     let sets = error_sets(&compared)?;
     let bands = crate::drag_bands::DragBands::of(&bands, counts.compared);
-    let mut terms = crate::drag_terms::DragTerms::of(&terms, counts.compared);
-    terms.reference = crate::drag_terms::reference_rows(&crate::aero_base_power::generate(root)?)?;
+    let mut terms =
+        crate::drag_terms::DragTerms::of(&terms, counts.compared, Some(bands.logs.flights));
+    terms.reference = Some(base_reference);
     Ok((
         Report {
             milestone: "M2.3c1, rechecked in M2.3c5, halved in M2.7a".to_owned(),

@@ -1,5 +1,3 @@
-use hpr_aero::drag::base_drag_coefficient;
-
 use super::*;
 
 fn read(root: &Path, name: &str) -> Value {
@@ -19,9 +17,10 @@ fn committed_fixture_is_current() {
 }
 
 /// Below Mach 0.8 HPR Sim's base term for the drawn model is its base rule on the base's area
-/// over the maximum cross-section, `(0.12 + 0.13 M²) A/A_ref`, whatever the body ahead (the
-/// boattail's factor on the base is 1 there), with `A` the whole base coasting and the base
-/// less the nozzle exit under power.
+/// over the maximum cross-section, `(0.12 + 0.13 M²) A/A_ref` (Niskanen 2009, eq. 3.94, written
+/// out here so that a change to the coefficient fails), whatever the body ahead (the boattail's
+/// factor on the base is 1 there). `A` is the whole base coasting, the base less the nozzle exit
+/// under power, and nothing with the motor case off, the case being wider than the base.
 #[test]
 fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
     let root = crate::designs::root().unwrap();
@@ -30,18 +29,19 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
     let geometry = &reference["geometry"];
     let area =
         |key: &str| 0.25 * std::f64::consts::PI * (geometry[key].as_f64().unwrap() * IN).powi(2);
-    let (reference_m2, base_m2, exit_m2) = (
+    let (reference_m2, base_m2, exit_m2, case_m2) = (
         area("diameter_in"),
         area("base_diameter_in"),
         area("nozzle_exit_diameter_in"),
+        area("motor_case_diameter_in"),
     );
-    assert!(exit_m2 < base_m2 && base_m2 < reference_m2);
+    assert!(exit_m2 < base_m2 && base_m2 < reference_m2 && base_m2 < case_m2);
     let rows = fixture["rows"].as_array().unwrap();
     assert!(!rows.is_empty());
     for row in rows {
         let mach = row["mach"].as_f64().unwrap();
         assert!(mach < 0.8, "Mach {mach}");
-        let rule = base_drag_coefficient(mach).unwrap();
+        let rule = 0.12 + 0.13 * mach * mach;
         let close = |key: &str, expected: f64| {
             let got = row[key].as_f64().unwrap();
             assert!(
@@ -51,6 +51,7 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
         };
         close("hpr_power_off", rule * base_m2 / reference_m2);
         close("hpr_power_on", rule * (base_m2 - exit_m2) / reference_m2);
+        close("hpr_power_on_case", 0.0);
         close("whole_base_under_power", rule * base_m2 / reference_m2);
     }
 }
@@ -58,13 +59,15 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
 /// What the reference shows, row by row below Mach 0.8, which the documentation quotes:
 ///
 /// - power off, HPR Sim's base drag is high by more than 0.04, past the stated error and the
-///   reading: on this long-boattailed base the measured drag is about a sixth of its rule's;
-/// - under power, both rules are high past the stated error and the reading, HPR Sim's (the
-///   nozzle exit off the base) by less than the whole base's;
+///   reading: on this long-boattailed base HPR Sim's value is 5.0 to 8.4 times the measured;
+/// - under power, HPR Sim's rule as it flies, the motor case off the base, leaves no base drag
+///   and reads low past the stated error and the reading: the flattering side, too little drag;
+/// - given only the nozzle exit, the same rule reads high past them, by less than the whole
+///   base, which reads high too;
 /// - the jet more than doubles the measured base drag, where HPR Sim's rule lowers it to the
 ///   annulus's share, about 0.61 of power off, and the whole base keeps it.
 #[test]
-fn every_rule_reads_high_and_the_jet_raises_the_measured_base_drag() {
+fn the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag() {
     let root = crate::designs::root().unwrap();
     let fixture = read(&root, FIXTURE);
     let rows = fixture["rows"].as_array().unwrap();
@@ -75,6 +78,10 @@ fn every_rule_reads_high_and_the_jet_raises_the_measured_base_drag() {
         let n = |key: &str| row[key].as_f64().unwrap();
         let mach = n("mach");
         assert!(n("hpr_power_off_difference") > 0.04, "Mach {mach}");
+        let times = n("hpr_power_off") / n("measured_power_off");
+        assert!((4.95..8.45).contains(&times), "Mach {mach}: {times}");
+        assert_eq!(n("hpr_power_on_case"), 0.0, "Mach {mach}");
+        assert!(n("hpr_power_on_case_difference") < -margin, "Mach {mach}");
         assert!(n("hpr_power_on_difference") > margin, "Mach {mach}");
         assert!(
             n("whole_base_under_power_difference") > n("hpr_power_on_difference"),
@@ -86,7 +93,12 @@ fn every_rule_reads_high_and_the_jet_raises_the_measured_base_drag() {
         );
         let ratio = n("hpr_power_on") / n("hpr_power_off");
         assert!((ratio - 0.609).abs() < 0.001, "Mach {mach}: {ratio}");
-        for key in ["hpr_power_off", "hpr_power_on", "whole_base_under_power"] {
+        for key in [
+            "hpr_power_off",
+            "hpr_power_on",
+            "hpr_power_on_case",
+            "whole_base_under_power",
+        ] {
             assert_eq!(row[format!("{key}_within_stated_and_reading")], false);
         }
     }

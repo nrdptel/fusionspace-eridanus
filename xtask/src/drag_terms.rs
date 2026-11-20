@@ -191,8 +191,8 @@ pub(crate) fn term_tables(flight: &Value) -> Result<Result<[DragTable; 4], Strin
 /// With friction, pressure and base all swapped, the coefficient starts from OpenRocket's whole
 /// one, read as [`crate::drag_bands::BandSwap`] reads it, and takes OpenRocket's rest back out
 /// when the rest is not swapped; otherwise it starts from HPR Sim's own. The two are the same
-/// number to rounding, but an adaptive integrator turns a difference in the last bit into one
-/// of about 1e-6% in the apogee, so this order makes the flight on every term swapped the band
+/// number to rounding, but an adaptive integrator can turn a difference in the last bit into a
+/// visible one in the apogee, so this order makes the flight on every term swapped the band
 /// swap's flight bit for bit. And a term both codes give as zero leaves the coefficient as it
 /// was, bit for bit (x − 0 + 0 = x): on a flight with no stated coefficient the rest's part is
 /// exactly zero.
@@ -522,9 +522,25 @@ pub(crate) struct DragTerms {
     /// The flights with a term swapped alone, beside the logs; the rows are
     /// [`TERM_LOG_ROWS`].
     pub logs: Logs,
-    /// The measured reference of the base term below Mach 0.8, one row per Mach number, from
+    /// The flights the band section sets beside the logs. Sizes over that set and over this
+    /// section's, given side by side, would give back the flights between them, so that
+    /// difference is held to the floor too.
+    pub band_logged: usize,
+    /// The measured reference of the base term below Mach 0.8, from
     /// [`crate::aero_base_power::FIXTURE`].
-    pub reference: Vec<ReferenceRow>,
+    pub reference: Option<BaseReference>,
+}
+
+/// The base term's measured reference (NACA RM SL55F15, Fig. 20), with HPR Sim's base drag on
+/// it, as [`crate::aero_base_power::generate`] writes it.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub(crate) struct BaseReference {
+    /// The report's stated error of its faired base drag curves.
+    pub stated_error: f64,
+    /// The uncertainty of reading them off the figure.
+    pub reading_uncertainty: f64,
+    /// One row per Mach number, below Mach 0.8.
+    pub rows: Vec<ReferenceRow>,
 }
 
 /// A row of the base term's measured reference (NACA RM SL55F15, Fig. 20): base drag
@@ -535,33 +551,55 @@ pub(crate) struct ReferenceRow {
     pub measured_power_off: f64,
     pub hpr_power_off: f64,
     pub measured_power_on: f64,
+    /// HPR Sim's rule given the nozzle exit's area.
     pub hpr_power_on: f64,
+    /// HPR Sim's rule as it flies, the motor case's area off the base, down to zero.
+    pub hpr_power_on_case: f64,
     /// The whole base under power, OpenRocket 24.12's rule: the power-off value.
     pub whole_base_under_power: f64,
 }
 
-/// The reference's rows from [`crate::aero_base_power::generate`]'s fixture.
-pub(crate) fn reference_rows(fixture: &Value) -> Result<Vec<ReferenceRow>, String> {
+/// The reference from [`crate::aero_base_power::generate`]'s fixture. Every value must be a
+/// finite number, the measured power-off drag above zero and the measured power-on drag above
+/// it: the report's text says the jet raises it.
+pub(crate) fn base_reference(fixture: &Value) -> Result<BaseReference, String> {
+    let fail = |what: String| format!("the base reference's fixture: {what}");
+    let number = |value: &Value, key: &str| {
+        value[key]
+            .as_f64()
+            .filter(|n| n.is_finite())
+            .ok_or_else(|| fail(format!("{key} is not a finite number")))
+    };
     let rows = fixture["rows"]
         .as_array()
-        .ok_or("the base reference's fixture has no rows")?;
-    rows.iter()
+        .filter(|rows| !rows.is_empty())
+        .ok_or_else(|| fail("no rows".to_owned()))?
+        .iter()
         .map(|row| {
-            let n = |key: &str| {
-                row[key]
-                    .as_f64()
-                    .ok_or_else(|| format!("the base reference's fixture: a row lacks {key}"))
+            let r = ReferenceRow {
+                mach: number(row, "mach")?,
+                measured_power_off: number(row, "measured_power_off")?,
+                hpr_power_off: number(row, "hpr_power_off")?,
+                measured_power_on: number(row, "measured_power_on")?,
+                hpr_power_on: number(row, "hpr_power_on")?,
+                hpr_power_on_case: number(row, "hpr_power_on_case")?,
+                whole_base_under_power: number(row, "whole_base_under_power")?,
             };
-            Ok(ReferenceRow {
-                mach: n("mach")?,
-                measured_power_off: n("measured_power_off")?,
-                hpr_power_off: n("hpr_power_off")?,
-                measured_power_on: n("measured_power_on")?,
-                hpr_power_on: n("hpr_power_on")?,
-                whole_base_under_power: n("whole_base_under_power")?,
-            })
+            if r.measured_power_off > 0.0 && r.measured_power_on > r.measured_power_off {
+                Ok(r)
+            } else {
+                Err(fail(format!(
+                    "at Mach {} the measured drag is {} power off and {} under power",
+                    r.mach, r.measured_power_off, r.measured_power_on
+                )))
+            }
         })
-        .collect()
+        .collect::<Result<_, _>>()?;
+    Ok(BaseReference {
+        stated_error: number(fixture, "stated_error")?,
+        reading_uncertainty: number(fixture, "reading_uncertainty")?,
+        rows,
+    })
 }
 
 /// Whether `count` flights are none, or enough for an aggregate over them to be given.
@@ -573,7 +611,9 @@ impl DragTerms {
     /// The section's numbers from each flight split, of which the report compares `compared`
     /// with a log. The sizes are given only when the section is published
     /// ([`DragTerms::published`]).
-    pub(crate) fn of(flights: &[TermFlight], compared: usize) -> Self {
+    /// `band_logged` is the band section's count of flights beside the logs, `None` for this
+    /// section's own.
+    pub(crate) fn of(flights: &[TermFlight], compared: usize, band_logged: Option<usize>) -> Self {
         let termed: Vec<(&Termed, Option<f64>)> = flights
             .iter()
             .filter_map(|flight| Some((flight.termed.as_ref().ok()?, flight.logged_m)))
@@ -633,7 +673,8 @@ impl DragTerms {
                     })
                     .collect(),
             },
-            reference: Vec::new(),
+            band_logged: band_logged.unwrap_or(logged.len()),
+            reference: None,
         };
         if !section.published() {
             return section;
@@ -681,6 +722,7 @@ impl DragTerms {
             && none_or_floor(self.logs.flights)
             && none_or_floor(self.logs.left_out)
             && self.logs.rows.iter().all(|row| none_or_floor(row.moved))
+            && none_or_floor(self.band_logged.saturating_sub(self.logs.flights))
     }
 
     /// Holds the section to the band split's: the flights it starts from are those split, the
@@ -692,10 +734,18 @@ impl DragTerms {
         bands: &crate::drag_bands::DragBands,
     ) -> Result<(), String> {
         let fail = |why: String| Err(format!("the part below Mach 0.8 by term: {why}"));
-        if self.split != bands.split || self.not_termed[0].flights != bands.failed {
+        let not_banded = self.not_termed.first().map_or(0, |n| n.flights);
+        if self.split != bands.split || not_banded != bands.failed {
             return fail(format!(
-                "{} flights split and {} not split by band, where the bands have {} and {}",
-                self.split, self.not_termed[0].flights, bands.split, bands.failed
+                "{} flights split and {not_banded} not split by band, where the bands have {} \
+                 and {}",
+                self.split, bands.split, bands.failed
+            ));
+        }
+        if self.band_logged != bands.logs.flights {
+            return fail(format!(
+                "the bands set {} flights beside the logs, where this section counts {}",
+                bands.logs.flights, self.band_logged
             ));
         }
         if self.termed.saturating_mul(2) < bands.banded {
@@ -717,7 +767,11 @@ impl DragTerms {
             if self.logs.flights == bands.logs.flights {
                 let pairs = [(0, 0), (TERM_LOG_ROWS.len() - 1, 1)];
                 for (ours, theirs) in pairs {
-                    let (a, b) = (&self.logs.rows[ours], &bands.logs.rows[theirs]);
+                    let (Some(a), Some(b)) =
+                        (self.logs.rows.get(ours), bands.logs.rows.get(theirs))
+                    else {
+                        return fail("a row against the logs is missing".to_owned());
+                    };
                     if (a.moved, a.nearer, a.farther, a.error)
                         != (b.moved, b.nearer, b.farther, b.error)
                     {
@@ -793,7 +847,7 @@ impl DragTerms {
                 row.name, row.moved, logs.flights
             ));
         }
-        if logs.rows[0].moved != 0 {
+        if logs.rows.first().is_some_and(|row| row.moved != 0) {
             return fail("HPR Sim's own row moves a flight".to_owned());
         }
         let published = self.published();
@@ -909,6 +963,80 @@ impl DragTerms {
         largest.map(|(i, _)| i)
     }
 
+    /// The base term's measured reference and HPR Sim's error on each row, given whether or not
+    /// the sizes are: it holds no private number.
+    fn reference_markdown(&self) -> String {
+        let mut page = String::new();
+        let Some(reference) = &self.reference else {
+            return page;
+        };
+        let _ = writeln!(
+            page,
+            "\nThe measured reference of the base term below Mach 0.8 is the base drag of the \
+             Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM \
+             SL55F15, Fig. 20, its faired curves' error believed to be less than ±{}), read off \
+             the figure to ±{} more ({}). Each coefficient is on the model's largest \
+             cross-section. HPR Sim's rule as it flies takes the motor case's area off the base, \
+             down to zero; the model's nominal 5 in case is wider than its 4.8 in base. Given \
+             the nozzle exit's area instead, which is what the base holds of the motor, the \
+             same rule leaves the annulus the report measured on. The whole base under power, \
+             OpenRocket 24.12's rule, is the power-off value.\n",
+            reference.stated_error,
+            reference.reading_uncertainty,
+            crate::aero_base_power::FIXTURE
+        );
+        let _ = writeln!(
+            page,
+            "| Mach | measured power off | HPR Sim power off | difference | measured under \
+             power | HPR Sim under power, case off | difference | HPR Sim under power, nozzle \
+             exit off | difference | the whole base under power | difference \
+             |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+        );
+        for r in &reference.rows {
+            let _ = writeln!(
+                page,
+                "| {:.2} | {:.4} | {:.4} | {:+.4} | {:.4} | {:.4} | {:+.4} | {:.4} | {:+.4} | \
+                 {:.4} | {:+.4} |",
+                r.mach,
+                r.measured_power_off,
+                r.hpr_power_off,
+                r.hpr_power_off - r.measured_power_off,
+                r.measured_power_on,
+                r.hpr_power_on_case,
+                r.hpr_power_on_case - r.measured_power_on,
+                r.hpr_power_on,
+                r.hpr_power_on - r.measured_power_on,
+                r.whole_base_under_power,
+                r.whole_base_under_power - r.measured_power_on,
+            );
+        }
+        // The least and the most of a quantity over the rows, which `base_reference` holds to
+        // finite numbers with the power-off drag above zero.
+        let range = |of: &dyn Fn(&ReferenceRow) -> f64| {
+            let values = reference.rows.iter().map(of);
+            let least = values.clone().fold(f64::INFINITY, f64::min);
+            (least, values.fold(f64::NEG_INFINITY, f64::max))
+        };
+        // "a to b", or one value where the two print the same.
+        let span = |(least, most): (f64, f64), digits: usize| {
+            let (a, b) = (format!("{least:.digits$}"), format!("{most:.digits$}"));
+            if a == b { a } else { format!("{a} to {b}") }
+        };
+        let _ = writeln!(
+            page,
+            "\nPower off, HPR Sim's value is {} times the measured. The jet raises the measured \
+             base drag to {} times its power-off value. HPR Sim's rule given the nozzle exit \
+             gives {} of its power-off value, and the whole base 1. Kept on the measured \
+             power-off value, the whole base would read low by the measured power-on less \
+             power-off: {}.",
+            span(range(&|r| r.hpr_power_off / r.measured_power_off), 1),
+            span(range(&|r| r.measured_power_on / r.measured_power_off), 1),
+            span(range(&|r| r.hpr_power_on / r.hpr_power_off), 2),
+            span(range(&|r| r.measured_power_on - r.measured_power_off), 4)
+        );
+        page
+    }
+
     /// The section, after the bands'.
     pub(crate) fn to_markdown(&self) -> String {
         let mut page = String::new();
@@ -954,6 +1082,7 @@ impl DragTerms {
                  flight's own number, and the flights are private. The terms sum to the band's \
                  part, so one held back could be read off the others, and none is given."
             );
+            page.push_str(&self.reference_markdown());
             return page;
         };
         let sizes = |size: Size| {
@@ -1078,62 +1207,7 @@ impl DragTerms {
              any cause moves the mean toward them. The terms say where to look for a \
              measurement; a measured reference says which code is nearer it."
         );
-        if !self.reference.is_empty() {
-            let _ = writeln!(
-                page,
-                "\nThe measured reference of the base term below Mach 0.8 is the base drag of the \
-                 Hermes A-3A drag model A(1) in free flight, power on and power off (NACA RM \
-                 SL55F15, Fig. 20, stated error ±0.005), read off the figure to ±0.001 more \
-                 ({}). Each coefficient is on the model's largest cross-section; HPR Sim's under \
-                 power takes the nozzle exit off the base, and the whole base under power, \
-                 OpenRocket 24.12's rule, is the power-off value.\n",
-                crate::aero_base_power::FIXTURE
-            );
-            let _ = writeln!(
-                page,
-                "| Mach | measured power off | HPR Sim power off | difference | measured under \
-                 power | HPR Sim under power | difference | the whole base under power | \
-                 difference |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
-            );
-            for r in &self.reference {
-                let _ = writeln!(
-                    page,
-                    "| {:.2} | {:.4} | {:.4} | {:+.4} | {:.4} | {:.4} | {:+.4} | {:.4} | {:+.4} |",
-                    r.mach,
-                    r.measured_power_off,
-                    r.hpr_power_off,
-                    r.hpr_power_off - r.measured_power_off,
-                    r.measured_power_on,
-                    r.hpr_power_on,
-                    r.hpr_power_on - r.measured_power_on,
-                    r.whole_base_under_power,
-                    r.whole_base_under_power - r.measured_power_on,
-                );
-            }
-            let range = |of: &dyn Fn(&ReferenceRow) -> f64| {
-                let values = self.reference.iter().map(of);
-                let least = values.clone().fold(f64::INFINITY, f64::min);
-                (least, values.fold(f64::NEG_INFINITY, f64::max))
-            };
-            let jet = range(&|r| r.measured_power_on / r.measured_power_off);
-            let rule = range(&|r| r.hpr_power_on / r.hpr_power_off);
-            let low = range(&|r| r.measured_power_on - r.measured_power_off);
-            // "a to b", or one value where the two print the same.
-            let span = |(least, most): (f64, f64), digits: usize| {
-                let (a, b) = (format!("{least:.digits$}"), format!("{most:.digits$}"));
-                if a == b { a } else { format!("{a} to {b}") }
-            };
-            let _ = writeln!(
-                page,
-                "\nThe jet raises the measured base drag to {} times its power-off value. HPR \
-                 Sim's rule under power gives {} of its power-off value, and the whole base 1. \
-                 Kept on the measured power-off value, the whole base would read low by the \
-                 measured power-on less power-off: {}.",
-                span(jet, 1),
-                span(rule, 2),
-                span(low, 4)
-            );
-        }
+        page.push_str(&self.reference_markdown());
         page
     }
 }

@@ -333,10 +333,12 @@ goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its 
 flat aft end, has been compared with two references. One is
 MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The other is Love's
 correlation of measured bases. The base drag reads high from Mach 0.8 to 1.2 against the first,
-and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured.
-Behind a plain cylinder, no reference here measures base drag faster than Mach 0.3
+and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured
 ([issue 68, the base drag's error](https://github.com/nrdptel/fusionspace-eridanus/issues/68);
 [the handbook's calculation](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation)).
+Below Mach 0.8 a third, a NACA missile model's measured flight, checks it coasting and with the
+motor burning
+([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
 
 It's also been compared with [RASAero II](glossary.md#rasaero-ii)'s drag near Mach 1, and that
 comparison isn't within the 10% target everywhere. [Accuracy](accuracy.md) has the cases and
@@ -640,10 +642,10 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   gap between the two codes is split by cause, and drag is the largest part on 59
   ([the split](accuracy.md#the-gap-between-the-two-codes-by-cause)). By Mach number, the
   largest share of that drag difference, in mean absolute value, is below Mach 0.8
-  ([the bands](accuracy.md#the-drag-part-by-mach-band)). Most of that share is the base drag
-  while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)). Against one measured
-  flight, a NACA missile model's, both codes' base rules read high
-  ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
+  ([the bands](accuracy.md#the-drag-part-by-mach-band)). The largest term in that share is the
+  base drag, almost all of it while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)).
+  On that missile model's flight HPR Sim's rule leaves too little base drag under power and
+  OpenRocket's too much ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
   On the 5 that only just pass Mach 1 (1.06 on average) with a tangent-ogive nose, flying OpenRocket's nose pressure
   drag in HPR Sim lifts its apogee by 1.28% of OpenRocket's on average. That sizes a
   difference between the codes, not which is right

@@ -318,7 +318,7 @@ pages = [
 ]
 kind = "reasoning"
 wanted = "real"
-not_checked = "any measurement of base drag under power on a hobby rocket"
+not_checked = "any measurement of base drag under power on a hobby rocket; on the one missile model's flight checked, whose motor case is wider than its base, the rule leaves no base drag under power and reads low"
 issue = 667
 
 [[row.searched]]
@@ -336,7 +336,7 @@ looked = [
   "NACA and NASA reports on subsonic base drag with a rocket jet, on the NASA Technical Reports Server",
   "the project's research notes on power-on and hot-jet base drag",
 ]
-found = "one free flight with a burning motor below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value, where HPR Sim's rule lowers it and OpenRocket's keeps it, and both rules read high; it is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found"
+found = "one free flight with a burning motor below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found"
 
 [[row]]
 id = "G15"
