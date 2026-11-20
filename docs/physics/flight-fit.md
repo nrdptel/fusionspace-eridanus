@@ -26,7 +26,7 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   reading the curvature at the answer. Its intervals pass 8 of their 10 tests, 5 parameters on each
   of 2 sets. The wind passes on both sets, on a model of the receiver tuned on those same flights.
   Set B's drag passes, but so does a copy widened on purpose. A tail passes with at most 74 of
-  1,000 truths. Set A's drag reads low, 83 above its intervals, and set B's impulse high, 85 below.
+  1,000 truths. Set A's drag reads low, 85 above its intervals, and set B's impulse high, 84 below.
   Each makes the rocket look better than it flew. Until all pass, use the least-squares intervals
   ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
@@ -134,7 +134,7 @@ value; the mass's, times the weighed mass:
 
 | Parameter | Fitted (factor) | 90% interval (factor) | Truth (factor) |
 |---|---:|---:|---:|
-| drag scale | 0.903 | 0.857 to 0.931 | 0.897 |
+| drag scale | 0.903 | 0.858 to 0.931 | 0.897 |
 | impulse scale | 1.011 | 0.991 to 1.028 | 1.019 |
 | mass on the weighed mass | 1.000 | 0.982 to 1.017 | 1.013 |
 
@@ -167,11 +167,11 @@ The counts are flights:
 
 | Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
-| drag scale | 34, 905, 61 | 70, 901, 29 |
-| impulse scale | 35, 908, 57 | 54, 910, 36 |
-| wind toward the east, m/s | 89, 1,343, 65 | 75, 1,349, 73 |
-| wind toward the north, m/s | 67, 1,366, 64 | 71, 1,362, 64 |
-| mass on the weighed mass | 40, 911, 49 | 42, 900, 58 |
+| drag scale | 34, 903, 63 | 71, 900, 29 |
+| impulse scale | 34, 910, 56 | 54, 909, 37 |
+| wind toward the east, m/s | 90, 1,346, 61 | 76, 1,352, 69 |
+| wind toward the north, m/s | 66, 1,366, 65 | 73, 1,360, 64 |
+| mass on the weighed mass | 40, 911, 49 | 41, 900, 59 |
 
 A log tells of a parameter, the report's "identified", when the median interval on set A is at most
 half the stated range's 90% width:
@@ -179,32 +179,32 @@ half the stated range's 90% width:
 | Parameter | Median width (factor) | Stated width (factor) |
 |---|---:|---:|
 | drag scale | 0.115 | 0.36 |
-| impulse scale | 0.0399 | 0.108 |
+| impulse scale | 0.04 | 0.108 |
 | mass on the weighed mass | 0.035 | 0.036 |
 
 So it tells of the drag and impulse, and not of the mass. On logs with a track, a wind's median
-width is 0.345 m/s (1.13 ft/s) east and 0.374 m/s (1.23 ft/s) north, of 12.7 m/s (41.7 ft/s) stated.
+width is 0.348 m/s (1.14 ft/s) east and 0.372 m/s (1.22 ft/s) north, of 12.7 m/s (41.7 ft/s) stated.
 
 On pure noise nothing is told ([the report's noise table][report]). The log reader turns noise of
 ±5 m (16 ft) and ±1,000 m (3,281 ft) away. Noise is also handed straight to the fit. On height alone it's
 ±5 m (16 ft), ±50 m (164 ft) or ±1,000 m (3,281 ft). With a track of ±5 m (16 ft), it's ±5 m (16 ft)
 or ±1,000 m (3,281 ft). It says nothing in all 200
-flights of each. The fit's residual is at least 0.958 of the heights' spread, against 0.1 allowed.
+flights of each. The fit's residual is at least 0.957 of the heights' spread, against 0.1 allowed.
 
 Those counts have limits:
 
 - Sets A and B were seen. The barometer's unknowns, the track's floor, the split of shares by track
   and set B's truth were chosen after reading their counts. So were which logs are counted and which
   hold a wind, the wind's flight count, the misfit's cut of 0.1, and both widenings. Only the shares themselves come from flights kept apart.
-- Set B's drag passes at the edge: 29 above is the fewest that pass at 1,000. At 70 below, 5 more
+- Set B's drag passes at the edge: 29 above is the fewest that pass at 1,000. At 71 below, 4 more
   would fail it too. Its fit runs high by 0.005 on average.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 127 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
-  misses more often. Set B's drag interval holds 377 of 454 such flights, and 524 of 546 that fit
+  misses more often. Set B's drag interval holds 370 of 450 such flights, and 530 of 550 that fit
   better (the issue that tracks it: [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
-- Some fits stop short of the bottom of $\chi^2$. Among the flights counted and the wind's, 2 on set
-  A and 7 on set B did, counting set B's truths' own fits.
+- Some fits stop short of the bottom of $\chi^2$. Among the flights counted and the wind's, 3 on set
+  A and 8 on set B did, counting set B's truths' own fits.
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
   steady wind from one that changes with height.
 
@@ -286,11 +286,11 @@ It's held to the same test as the least-squares fit, on the same flights
 
 | Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
-| drag scale | 30, 887, 83: fails | 69, 877, 54 |
-| impulse scale | 72, 878, 50 | 85, 881, 34: fails |
-| wind toward the east, m/s | 59, 1,380, 58 | 58, 1,353, 86 |
-| wind toward the north, m/s | 55, 1,384, 58 | 71, 1,345, 81 |
-| mass on the weighed mass | 56, 882, 62 | 61, 870, 69 |
+| drag scale | 30, 885, 85: fails | 74, 872, 54 |
+| impulse scale | 72, 875, 53 | 84, 883, 33: fails |
+| wind toward the east, m/s | 57, 1,381, 59 | 58, 1,353, 86 |
+| wind toward the north, m/s | 56, 1,382, 59 | 70, 1,348, 79 |
+| mass on the weighed mass | 56, 882, 62 | 63, 869, 68 |
 
 On the 1,000 flights of drag, impulse and mass, a tail passes with 29 to 74 truths. On the wind's
 1,497, a tail passes with 49 to 104, and the inside with 1,308 to 1,384. What holds and what fails,
@@ -299,18 +299,18 @@ as far as it's known:
 - **The wind passes on both sets** since the track is read as a receiver reports it
   ([ADR-321][adr-321]). Before, the posterior took the track's noise as the least-squares fit
   states it. Then from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
-  on set A is now 0.364 m/s (1.19 ft/s) east, against least squares' 0.345 m/s (1.13 ft/s). Set
-  B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass. Its mean error is
-  −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind
-  doesn't, which may be why; that isn't measured. Set A's wind is close to too wide: 1,380 and
-  1,384 of 1,497 truths fall inside, and 1,384 is the most that pass.
+  on set A is now 0.36 m/s (1.18 ft/s) east, against least squares' 0.348 m/s (1.14 ft/s). Set
+  B's wind leans: 86 and 79 of its truths fall above, near the 104 that pass. Its mean error is
+  −0.0362 m/s (−0.12 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind
+  doesn't, which may be why; that isn't measured. Set A's wind is close to too wide: 1,381 and
+  1,382 of 1,497 truths fall inside, and 1,384 is the most that pass.
 - **The wind's pass leans on thin posteriors.** On the committed slice, every 21st fit, 294 wind
-  intervals are counted. The 218 from posteriors of 100 or more effective draws miss 12 truths,
-  5.5%, where 10% belong. The 76 under 100 miss 11, 14.5%. So the well-drawn intervals may still be
+  intervals are counted. The 218 from posteriors of 100 or more effective draws miss 14 truths,
+  6.4%, where 10% belong. The 76 under 100 miss 11, 14.5%. So the well-drawn intervals may still be
   too wide, and the thin ones, too narrow, may bring the tails up to 5%. The report doesn't split
   its counts this way yet.
-- **Set A's drag sits low and set B's impulse high.** 83 of set A's drag truths fall above, and
-  85 of set B's impulse truths below. 70 of set A's 83 above are on logs of height alone, 776 of
+- **Set A's drag sits low and set B's impulse high.** 85 of set A's drag truths fall above, and
+  84 of set B's impulse truths below. 72 of set A's 85 above are on logs of height alone, 776 of
   its 1,000 flights, as before the track was read anew. Height-alone logs are the only ones where
   the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated range,
   but it isn't measured yet, and set B's impulse leans the other way. Set A's drag is
@@ -321,7 +321,7 @@ as far as it's known:
   ones widened to 1.25 times, so they may be wider than they need be.
 
 Drag and impulse are identified on set A, at median widths of 0.0919 and 0.0391 (least squares:
-0.115 and 0.0399), of 0.36 and 0.108 stated. The mass isn't, at 0.034 of 0.036. On pure noise
+0.115 and 0.04), of 0.36 and 0.108 stated. The mass isn't, at 0.034 of 0.036. On pure noise
 nothing is identified by either method. But the reader or the fit turns away every noise log before a posterior is
 drawn, so that says nothing of the sampler itself.
 
@@ -331,12 +331,12 @@ result is flagged as too few to read, but its interval still counts in the table
 draws can leave an interval too narrow or off center, so take it as rough. All 10 tests, the 8
 that pass and the 2 that fail, include those posteriors. On the wind, the slice suggests they
 cause more than their share of misses (above). Of the
-flights counted, 2,276 on set A had a posterior, 563 of them with fewer than 100 effective draws;
-across all 2,276, the fewest was 1 and the median 153. On set B, 711 of 2,296 had fewer than 100;
+flights counted, 2,276 on set A had a posterior, 559 of them with fewer than 100 effective draws;
+across all 2,276, the fewest was 1 and the median 153. On set B, 712 of 2,296 had fewer than 100;
 the fewest was 1 and the median 138. That's about a quarter on set A and nearly a third on set B, the
 loss on logs with a track: before the track was read anew, 319 and 392 fell short. A
-draw fails when it can't be weighed, as when its flight can't fly. That's 126 of 1,138,000 on set A,
-and 149 of 1,148,000 on set B. Every
+draw fails when it can't be weighed, as when its flight can't fly. That's 129 of 1,138,000 on set A,
+and 152 of 1,148,000 on set B. Every
 flight counted with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
 
 ### The sampler's tests
