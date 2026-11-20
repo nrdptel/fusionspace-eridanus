@@ -333,8 +333,8 @@ goes past Mach 1, expect HPR Sim's apogee to come out low rather than high. Its 
 flat aft end, has been compared with two references. One is
 MIL-HDBK-762's worked example, a handbook calculation from Mach 0.5 to 3.2. The other is Love's
 correlation of measured bases. The base drag reads high from Mach 0.8 to 1.2 against the first,
-and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured, and no
-reference here measures base drag faster than Mach 0.3
+and low from Mach 1.5 against the second. Between Mach 1.2 and 1.5 the sign is unmeasured.
+Behind a plain cylinder, no reference here measures base drag faster than Mach 0.3
 ([issue 68, the base drag's error](https://github.com/nrdptel/fusionspace-eridanus/issues/68);
 [the handbook's calculation](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation)).
 
@@ -640,7 +640,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   gap between the two codes is split by cause, and drag is the largest part on 59
   ([the split](accuracy.md#the-gap-between-the-two-codes-by-cause)). By Mach number, the
   largest share of that drag difference, in mean absolute value, is below Mach 0.8
-  ([the bands](accuracy.md#the-drag-part-by-mach-band)), and most of that is the base drag
+  ([the bands](accuracy.md#the-drag-part-by-mach-band)). Most of that share is the base drag
   while the motor burns ([by term](accuracy.md#the-slowest-band-by-term)). Against one measured
   flight, a NACA missile model's, both codes' base rules read high
   ([the base under power](accuracy.md#the-base-under-power-against-a-measured-flight)).
