@@ -1082,7 +1082,7 @@ fn the_committed_cases_all_pass_and_the_report_says_so() {
         .collect();
     assert_eq!(compared, flown);
     // The committed reports are these reports, so a number that moves shows up in the diff. The
-    // JSON is pinned too, to what the platforms share (`Report::reproduces`); CI's `validate` job
+    // JSON is pinned too, to what the platforms share (`Report::reproduces`); CI's `reports` job
     // runs the same check through `cargo xtask validate --check`.
     let read = |name: &str| {
         std::fs::read_to_string(root().join("validation/reports").join(name))

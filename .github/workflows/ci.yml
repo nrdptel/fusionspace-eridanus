@@ -42,8 +42,8 @@ jobs:
   # the synthetic flights and two logs (`validate`) and fits the fit's slice (`fit-slice`), and
   # leaves the whole to that night's run, as `scripts/gate.sh` does on the Mac. `notes` is true
   # when every file a pull request or push changes, renamed from or to, is a research note under
-  # docs/research/: `validate`, `reports`, `fit-slice`, `examples` and `python` then run no step
-  # and pass, and `types`, `wasm-check` and `phone` skip, each still reporting by name for branch
+  # docs/research/: `validate`, `reports`, `fit-slice`, `examples`, `python` and `phone` then run
+  # no step and pass, and `types` and `wasm-check` skip, each still reporting by name for branch
   # protection. `test` and `site`, which read the notes, run, and so do the quick Linux checks. A
   # list GitHub can't give, an empty one, or one of 300 files or more (the compare API's cap)
   # counts as code.
@@ -278,9 +278,10 @@ jobs:
   # network, and fails if a metric is outside its tolerance or if the committed report is not this
   # run's, to the digits the platforms share (M2.1c1, ADR-015, ADR-022). The references themselves
   # are regenerated only by hand, by the `Regenerate references` workflow. Then the tip-off model
-  # and the scoreboard. All three build xtask's dev profile; they ran in `validate` until its macOS
-  # job neared the 20-minute budget for a job (issues #1427, #1558), and `validate` keeps the
-  # steps that build the `report-check` profile, so neither job builds both.
+  # and the scoreboard (on ubuntu-latest). All three build xtask's dev profile; they ran in
+  # `validate` until its macOS job went over the 20-minute budget for a job (issues #1427,
+  # #1558), and `validate` keeps the steps that build the `report-check` profile, so neither job
+  # builds both.
   reports:
     name: reports (${{ matrix.os }})
     needs: scope
@@ -590,13 +591,11 @@ jobs:
       - run: cargo run --locked --quiet --package xtask -- wasm-check --locked
 
   # The workspace builds for Android and the iPhone (ADR-227), each in a job of its own. The
-  # iPhone build ran in `validate (macos-latest)` until that job neared its budget (issue #1427).
+  # iPhone build ran in `validate (macos-latest)` until that job went over its budget (#1427).
   # Build only: the tests run on phones when the mobile apps (M9.4) do.
   phone:
     name: phone (${{ matrix.phone }})
     needs: scope
-    # Not for a change to research notes alone (`scope`); skipped, it still passes by name.
-    if: needs.scope.outputs.notes != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -608,15 +607,23 @@ jobs:
             os: macos-latest
             targets: aarch64-apple-ios aarch64-apple-ios-sim
     runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`). A matrix job skipped whole
+      # reports under its unexpanded name, so it runs with no steps and passes by name instead.
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
     steps:
-      - uses: actions/checkout@v7
-      - run: rustup toolchain install
-      - uses: Swatinem/rust-cache@v2
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: scripts/phone-build.sh ${{ matrix.targets }}
+      - if: env.RUN == 'true'
+        run: scripts/phone-build.sh ${{ matrix.targets }}
         shell: bash
 
   deny:
