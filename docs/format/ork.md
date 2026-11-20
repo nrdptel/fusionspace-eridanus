@@ -3582,7 +3582,10 @@ two ways. They pull opposite ways:
   drag. OpenRocket 24.12 keeps the whole base's drag while the motor burns. On `C06` the motor fills
   most of the base, so HPR Sim has less drag under power and climbs higher
   ([Aerodynamics](../physics/aero.md#drag)). What OpenRocket does is measured from its own output.
-  Which rule is right is not: neither has been checked against a measured flight. On `C06/1` the
+  Which rule is right is not. On the one measured flight found below Mach 0.8, a NACA missile
+  model's, both read high and the jet raised the base drag where HPR Sim's rule lowers it
+  ([the base under power, against a measured flight](../accuracy.md#the-base-under-power-against-a-measured-flight)).
+  On `C06/1` the
   choice moves HPR Sim's apogee difference from +13.60% to −10.71%, about 24 percentage points.
   That is more than any other known cause
   ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222), open on both drag questions).

@@ -835,6 +835,15 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   Of 44 rows, 2 are within the 10% target set before measuring, HPR Sim reading high
   (`docs/physics/aero.md`). Their roll effectiveness (TN D-4014 Fig. 14) is for
   [roll and damping](decisions-and-roadmap.md#m1-8c).
+- **Hermes A-3A free flights with the motor burning:** H. H. Jackson, NACA RM SL55F15 (1955),
+  NTRS 20010057623, pinned as `naca-rm-sl55f15-jackson-1955`. Its Fig. 20 base drag, power on and
+  power off, below Mach 0.8 is read by pixels (`validation/oracles/naca/hermes_base_drag.py`) into
+  `validation/fixtures/aero/hermes-a3a-base-drag.json`, with the model's sizes and the report's
+  stated error of ±0.005. It is the measured reference for the base term of
+  [the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2). `cargo xtask aero` writes
+  HPR Sim's base drag on it to `validation/fixtures/aero/base-drag-under-power.json`, and
+  `xtask/src/aero_base_power/tests.rs` holds it: every rule reads high, and the jet raises the
+  measured base drag ([the base under power, against a measured flight](accuracy.md#the-base-under-power-against-a-measured-flight)).
 - **Stoney, zero-lift drag of bodies of revolution:** NASA TR R-100 (1961), NTRS 19630004995.
   Figure 12's nose pressure-drag curves at fineness 3 are read into `hpr_aero::nose_drag` as the
   model's own data, not as a reference. Niskanen's appendix B uses them the same way. The figure's

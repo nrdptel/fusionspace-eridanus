@@ -674,7 +674,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14h"></a>[M1.14h][phase-1] | The extended band, Mach 2.5 to 3.5, after the core band: each fixed or re-measured in a decision record. The four switches' errors as measured at Mach 3, where the center of pressure moves aft and the rocket reads more stable; the near-flat flare's step at Mach 2.90 to 2.95 ([issue #108](https://github.com/nrdptel/fusionspace-eridanus/issues/108)), which way it errs not yet measured; and [M1.8e](#m1-8e)'s body-alone row at Mach 2.96, 16.9% high in its normal-force slope, which tends toward the conservative side on a finned rocket, whose center of pressure then reads forward; and the two rows above Mach 2.5 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range), the slope low and the center of pressure forward | not yet done |
 | <a id="m1-14i"></a>[M1.14i][phase-1] | Drag below Mach 0.8 | not yet done |
 | <a id="m1-14i1"></a>[M1.14i1][done-1] | The drag part of the gap to OpenRocket, by Mach band | done |
-| <a id="m1-14i2"></a>[M1.14i2][phase-1] | The part below Mach 0.8, by term | not yet done |
+| <a id="m1-14i2"></a>[M1.14i2][done-1] | The part below Mach 0.8, by term | done |
 | <a id="m1-14i3"></a>[M1.14i3][phase-1] | Its largest term, held to a measurement | not yet done |
 | <a id="m2-1"></a>[M2.1][done-1] | The validation harness, and comparisons with RocketPy | done |
 | <a id="m2-1a"></a>[M2.1a][done-1] | The harness itself: cases, reference data, tolerances and reports | done |
