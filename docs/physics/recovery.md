@@ -56,7 +56,7 @@ part drifts and lands.
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at
     deployment), and streamer pleats (+58% fast on a pleated one).
-  - [Tumbling](../glossary.md#tumble-recovery) is used far outside its fit: 36 m/s (118 ft/s) for Valetudo,
+  - [Tumbling](../glossary.md#tumble-recovery) is used far outside its fit: 36.4 m/s (119 ft/s) for Valetudo,
     against 5.0 to 6.6 m/s (16 to 22 ft/s). A nose cone tumbling on its own is outside it too.
 
 ## Code and sources
@@ -280,12 +280,12 @@ the claim is not reproducible. The table above is what the simulator can demonst
 the simulator states.
 
 **Where it stops being true.** The fit covers 44 to 103 mm (1.7 to 4.1 in) bodies of 6.8 to 160 g. They descend at
-5.0 to 6.6 m/s (16 to 22 ft/s). A high-power booster is far outside it: Valetudo tumbling comes out at 36 m/s (118 ft/s).
+5.0 to 6.6 m/s (16 to 22 ft/s). A high-power booster is far outside it: Valetudo tumbling comes out at 36.4 m/s (119 ft/s).
 
 - A cylinder's crossflow drag falls by roughly half above a
   [Reynolds number](../glossary.md#reynolds-number) near 2e5, its
   [drag crisis](../glossary.md#drag-crisis). A 100 mm (3.9 in) body reaches that at about 30 m/s (98 ft/s).
-  Valetudo's 80 mm (3.1 in) at 36 m/s (118 ft/s) is right at it.
+  Valetudo's 80 mm (3.1 in) at 36.4 m/s (119 ft/s) is right at it.
 - So a real body that size would descend faster than the simulator says.
 - The simulator does not model that fall, and nothing in the pinned sources covers it.
 
@@ -1151,8 +1151,9 @@ gaps, in order:
   - Over the fixture's 23 gravity samples the tilt runs from +6.9e-6 m/s² (north) at Valetudo's
     top sample, 1,168 m (3,832 ft). It reaches −3.3e-5 m/s² (south) at Calisto's 4,400 m (14,436 ft).
   - HPR Sim's vector also turns with the local vertical downrange, by $g \cdot d/R$. Here $d$ is the distance
-    drifted and $R$ the Earth's radius. That is 2.1e-3 m/s² at Calisto's 1.4 km (0.87 mi) of drift. Wherever a rocket
-    drifts at all, that is much the larger of the two.
+    drifted and $R$ the Earth's radius. That is 2.1e-3 m/s² at Calisto's 1.4 km (0.87 mi) of drift, about 60 times
+    the largest tilt. Over Valetudo's 0.19 m (0.62 ft) it is about 3e-7 m/s², so there the tilt is
+    the larger.
   - The parachute milestone's test ([M1.7a](../decisions-and-roadmap.md#m1-7a)) used to compare
     gravity by its size alone, so it could see neither. This comparison and the validation suite
     now both fly `GravityModel::VerticalTaylor`. HPR Sim ships it as RocketPy's own formula for

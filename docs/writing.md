@@ -111,8 +111,9 @@ label, lists of three all looked alike and caveats were stacked on caveats. Page
 
 Each rule here comes from that read-through or from
 [a survey of plain technical writing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md).
-Each shows a passage from these pages as it stood on October 19, 2026, then the same passage in
-this voice.
+Each shows a passage from these pages as it stood when its rule was written, then the same
+passage in this voice. The *Before* passages in the two sections after
+[Honest, once](#honest-once) are the pages as of November 20, 2026, and the rest as of October 19.
 
 ### Where "I" goes
 
@@ -212,6 +213,37 @@ simulation](trusting-a-simulation.md#which-miss-flatters))."
 
 *After*: "Here the drag may read high. If it does, the apogee reads low, the side that flatters a
 field's ceiling ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters))."
+
+### A past mistake, owned
+
+When a number or a behavior was wrong before, say so in one sentence, and give what it meant for
+a reader ([the survey's rules](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md#what-this-suggests)).
+The survey found this on SQLite's pages: "Due to an historical oversight, the column values of a
+PRIMARY KEY are allowed to be NULL"
+([what personal-voice pages do](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md#2-what-personal-voice-technical-docs-do)).
+
+*Before*, in [When fins flutter](when-fins-flutter.md): "Loft, HPR Sim's predecessor, made the
+same mistake ([a lesson from Loft](decisions-and-roadmap.md#l32))."
+
+*After*: "Loft, my earlier project, made the same mistake, so its flutter speeds read 41% high, the
+side that flatters ([a lesson from Loft](decisions-and-roadmap.md#l32))."
+
+### Numbers that go stale
+
+A number that can change after it's written carries the date or the version it was measured at
+([the survey's rules](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md#what-this-suggests)).
+Examples are an accuracy figure, a rule's value and a catalog's count. Say which side it errs on
+too, as the survey found on SQLite's pages: "The 100K hits/day figure is a conservative estimate,
+not a hard upper bound"
+([what personal-voice pages do](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/plain-voice-docs.md#2-what-personal-voice-technical-docs-do)).
+
+*Before*, in [Pick a motor](pick-a-motor.md): "`hpr motors list` filters the 1,004 motors built
+into the simulator by diameter, impulse class or maker."
+
+*After*: "`hpr motors list` filters the simulator's built-in motors by diameter, impulse class or
+maker. There are 1,004, ThrustCurve.org's catalog as of October 28, 2026. It errs by leaving out
+newer motors: one ThrustCurve.org added since is missing until `hpr motors update` or
+`hpr motors fetch` gets it."
 
 ### The limits
 

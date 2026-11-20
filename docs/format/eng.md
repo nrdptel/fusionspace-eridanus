@@ -36,8 +36,8 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
   The lock file records each source's address and checksum. Sections are cited as [R Header], [R Data],
   [R Problems]. The page names the RASP C source as "the ultimate authority"; its license is not
   stated, so it was not consulted.
-- **Observed:** 734 entries in the ThrustCurve manufacturer file sets (12 `.eng` sets) and 13
-  single-motor API downloads. They were fetched September 17, 2026 into a local cache,
+- **Observed:** 734 entries, 721 in the ThrustCurve manufacturer file sets (12 `.eng` sets) and 13
+  in single-motor API downloads. They were fetched September 17, 2026 into a local cache,
   `refs/samples/formats/`, never committed. Counts below are over those entries.
 
 ## What the spec says

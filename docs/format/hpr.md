@@ -24,10 +24,10 @@ from the schema, each with a reader that checks a document
 > from the `.ork` except the reader's warnings. This project's checks use 75 `.ork` files and read
 > 73. Each of the 73 goes `.ork` → `.hpr` → `.ork` and comes back as the same design, bit for bit,
 > and as the `.ork` the simulator writes from the original, byte for byte
-> ([close to the original, not the same](ork.md#writing-a-ork-back-out)). The 145 motor
-> configurations that fly, spread over 41 of the designs, each reach the same apogee, bit for bit,
-> all three ways. These counts include private designs; the automatic checks repeat the checks, not
-> the counts, on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
+> ([close to the original, not the same](ork.md#writing-a-ork-back-out)). Of the designs' 170 motor
+> configurations, the 161 that fly each reach the same apogee, bit for bit, all three ways. These
+> counts include private designs; the automatic checks repeat the checks, not the counts,
+> on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
 
 **Keep your `.ork` too.** The format is version 0.2, a draft until FusionSpace HPR's first release.
 A document of version 0.1 still reads, but 0.1 didn't record whether the rocket's airframe was read
