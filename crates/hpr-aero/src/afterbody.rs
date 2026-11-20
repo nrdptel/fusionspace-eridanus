@@ -45,7 +45,7 @@
 //!   ratio of the two coefficients, `k = C_p,bt/C_p,cyl`. Below Mach 2.5, where the correlation
 //!   over-predicts the relief of the measured bases, `k` is held at its Mach 2.5 value, which
 //!   matches Cortright and Schroeder's at Mach 1.91 and de Moraes and Nowitzky's at 1.59. Up to
-//!   Mach 0.8, `k = d_B/d₁ = √a_b` (M1.14i3, ADR-362): the base drag of a conical afterbody
+//!   Mach 0.8, `k = d_B/d₁ = √a_b` ([ADR-362, held to a measured flight][adr-362]): the base drag of a conical afterbody
 //!   scales with `(r_b/R)³` on the largest cross-section (Stoney, NASA TR R-100, 1961, p. 11,
 //!   from wind-tunnel data; Hoerner's eq. 35 has the same dependence), where Niskanen's rule on
 //!   the base's area scales with its square, so the rule keeps `d_B/d₁` of its value. From Mach
@@ -78,6 +78,7 @@
 //! See [Boattails faster than sound][guide] in the guide.
 //!
 //! [guide]: https://hpr.fusionspace.co/physics/aero.html#boattails-faster-than-sound
+//! [adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 
 use serde::Serialize;
 
@@ -359,7 +360,7 @@ fn love_base_pressure(mach: f64) -> f64 {
 ///   `k = (1 − p_bt/p)/(1 − p_cyl/p)`, not below 0 (no measured base pressure is above the free
 ///   stream's).
 /// - From Mach 1 to 2.5, `k` at Mach 2.5.
-/// - Up to Mach 0.8, `k = d_B/d₁ = √a_b` (M1.14i3, ADR-362): Stoney's empirical base drag of a
+/// - Up to Mach 0.8, `k = d_B/d₁ = √a_b` ([ADR-362, held to a measured flight][adr-362]): Stoney's empirical base drag of a
 ///   conical afterbody, from wind-tunnel data, is `C_D,b = C_D,b,cylinder (r_b/R)³` on the
 ///   largest cross-section (NASA TR R-100, 1961, printed p. 11; Missile DATCOM's manual names
 ///   the method for a boattail's base drag below Mach 1.2), where the flat-base rule on the
@@ -374,6 +375,8 @@ fn love_base_pressure(mach: f64) -> f64 {
 /// # Errors
 ///
 /// [`AeroError::Domain`] for a negative or non-finite Mach number, or `a_b` outside `[0, 1]`.
+///
+/// [adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 pub fn boattail_base_pressure_ratio(mach: f64, base_area_ratio: f64) -> Result<f64, AeroError> {
     check_mach_any(mach)?;
     if !(0.0..=1.0).contains(&base_area_ratio) {

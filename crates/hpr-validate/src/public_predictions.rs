@@ -167,8 +167,8 @@ pub struct Revision {
     pub because: &'static str,
 }
 
-/// The revisions: one. Erebus 11's apogee rose 46.0 m with M1.14i3's base drag behind a
-/// boattail ([ADR-362][adr-362]); the other eleven fly as they were merged.
+/// The revisions: one. Erebus 11's apogee rose 46.0 m with the base drag behind a boattail
+/// that [ADR-362][adr-362] relieved; the other eleven fly as they were merged.
 ///
 /// An entry here is the only way a prediction may differ from [`MERGED`] by more than 0.05 m
 /// (`MERGED_WITHIN_M`): the real-flights
