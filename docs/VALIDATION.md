@@ -843,13 +843,14 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   reference for the base term of
   [the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2). `cargo xtask aero` writes
   HPR Sim's base drag on it to `validation/fixtures/aero/base-drag-under-power.json`. Its tests
-  (`xtask/src/aero_base_power/tests.rs`) hold which way each rule errs: under power HPR Sim's as
-  it flies low, power off its rule high, by less than before
-  [M1.14i3](decisions-and-roadmap.md#m1-14i3) changed the base behind a boattail on this reference
+  (`xtask/src/aero_base_power/tests.rs`) hold which way each rule errs. Under power HPR Sim's
+  rule as it flies reads low. Power off it reads high, by less since
+  [M1.14i3](decisions-and-roadmap.md#m1-14i3) changed the base behind a boattail
   ([the base under power, against a measured flight](accuracy.md#the-base-under-power-against-a-measured-flight)).
-- **Stoney's base drag of a conical afterbody:** NASA TR R-100 (1961), printed p. 11: the
-  cylinder's base drag times $(r_b/R)^3$ on the largest cross-section, from tunnel data. HPR Sim's
-  base behind a boattail below Mach 0.8 keeps $d_B/d_1$ of the flat-base value by it (M1.14i3).
+- **Stoney's base drag of a conical afterbody:** NASA TR R-100 (1961), printed p. 11. From tunnel data, the
+  cylinder's base drag times $(r_b/R)^3$ on the largest cross-section. HPR Sim's
+  base behind a boattail below Mach 0.8 keeps $d_B/d_1$ of the flat-base value by it
+  ([M1.14i3, the base model](decisions-and-roadmap.md#m1-14i3)).
 - **Stoney, zero-lift drag of bodies of revolution:** NASA TR R-100 (1961), NTRS 19630004995.
   Figure 12's nose pressure-drag curves at fineness 3 are read into `hpr_aero::nose_drag` as the
   model's own data, not as a reference. Niskanen's appendix B uses them the same way. The figure's

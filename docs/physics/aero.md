@@ -4373,7 +4373,7 @@ blast tube carries the jet to a 3.0 in nozzle exit at the base, past fixed vanes
   high, and the whole base, OpenRocket 24.12's rule, reads high by 0.0108 to 0.0230.
 - **Coasting, HPR Sim reads high**: 3.0 to 5.1 times the measured base drag, high by 0.025 to
   0.035. Behind a boattail below Mach 0.8 HPR Sim keeps $d_B/d_1$ of the flat-base value, here
-  0.6 ([S61] p. 11; since M1.14i3, [ADR-362][adr-362]); before, it gave no relief and read high
+  0.6 ([S61] p. 11; since [ADR-362, the base held to this flight][adr-362]); before, it gave no relief and read high
   by 0.050 to 0.064, 5.0 to 8.4 times the measured. Hoerner's rule, which also takes the
   forebody's friction into account, reads high by 0.012 to 0.016 ([H65] eq. 35).
 - **The jet more than doubled the measured base drag**, where HPR Sim's rule lowers it and the

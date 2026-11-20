@@ -428,7 +428,7 @@ is 0.94: the boosts, on the files' masses, climb as if every motor gave 94% of i
 takes the held-out half's mean absolute error from 16.34% to 10.89%, and its mean error from +13.56% to +6.04%.
 On the 12 public flights it takes the mean absolute error from 8.88% to 11.91%, and the mean error from −4.64%
 to −11.76%. These are the report's figures on the simulator as it is now: the report flies the correction again
-whenever the model changes, and ADR-348 keeps those of the day it was judged. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
+whenever the model changes, and the verdict's decision record keeps those of the day it was judged. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
 records it. No correction ships, so the simulator's flight results are unchanged. The collection reads high and the

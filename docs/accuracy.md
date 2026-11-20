@@ -867,7 +867,7 @@ flights predicted first ([evidence row G39](evidence.md#g39)). Each row of the
 [report][real-report] gives its evidence. Reading all 12 logs as heights would give a mean of
 7.90%, but five logs are known to be barometric. Reading only the seven assumed ones as heights
 gives 9.01%: the target is missed either way. Read that way, among the seven compared first,
-Lince (+8.67%) would miss by more than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
+Lince, read as a height at 3,898.7 m (12,791 ft) against its log's 3,587.7 m (11,771 ft), would miss by more than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
 [decision][adr-082]).
 
 Two logs also carry satellite (GNSS) heights, a geometric reference. Their barometric apogees are
@@ -990,8 +990,8 @@ prediction below beside its error
 
 The error is of the apogee flown today, which for four of the five is the merged prediction to
 the digit printed. Worked from the printed numbers, the errors are −6.54%, −16.21% and −29.17%
-for Astra and the two Macie XL flights, and the same for the other two. Erebus 11 flies 46.0 m
-higher than its merged prediction since [ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) relieved the base behind a boattail below Mach
+for Astra and the two Macie XL flights, and the same for the other two. Erebus 11 flies 46.0 m (151 ft)
+higher than its merged prediction since [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) relieved the base behind a boattail below Mach
 0.8; its merged prediction missed by −9.58% ([report][real-report]).
 
 **What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
@@ -1016,7 +1016,7 @@ whose [digest](glossary.md#digest) was committed with its prediction.
 **A prediction that changes.** A merged prediction is never edited. If a later change to HPR Sim
 or to an input moves one, `cargo xtask real-flights` fails until the code lists a revision for
 it: the number flown now, and the reason. The report then prints both numbers and both errors,
-and gives the means over the merged predictions too. One has been: Erebus 11, by [ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md).
+and gives the means over the merged predictions too. One has been: Erebus 11, by [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md).
 On the predictions as first merged, the 12 flights miss by 9.01% on average, and by −4.76%
 with the sign ([report][real-report]).
 
@@ -1116,7 +1116,7 @@ maintainer's statement; no check can show it.
 RocketPy and the Macie XL repository had published the measured apogees before the predictions
 were made. Each log was also looked at, for its columns and for a spike near its peak, before its
 rule was fixed. The code keeps the merged apogees as first merged, to the digit the page prints,
-and Erebus 11's revision beside its own. A test that CI runs fails a committed report whose
+and Erebus 11's revision beside its own ([report][real-report]). A test that CI runs fails a committed report whose
 prediction has moved from them with no revision listed.
 
 **Flying them again** needs RocketPy's files and the Macie XL repository's, which CI doesn't
@@ -1682,7 +1682,7 @@ What the rows say:
   `both_codes_terms_are_pinned_at_mach_0_3_and_0_6`). While a motor burns, HPR Sim takes the
   burning motor's cross-section off the base, and OpenRocket 24.12 keeps the whole base. Behind a
   boattail below Mach 0.8, HPR Sim keeps $d_B/d_1$ of the flat-base value and OpenRocket all of it,
-  since [ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) ([below](#the-base-under-power-against-a-measured-flight)). Swapped alone, the base
+  since [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) ([below](#the-base-under-power-against-a-measured-flight)). Swapped alone, the base
   moves HPR Sim's apogee by a mean absolute 1.17%; swapped only while a motor burns, by 0.94%
   ([report][fixture-report]).
 - **Pressure and the base partly cancel.** The pressure term is negative, HPR Sim's the higher.
@@ -1757,7 +1757,7 @@ base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole
 behind a boattail it keeps $d_B/d_1$ of that, the base's diameter over the largest: a conical
 afterbody's base drag scales with that ratio cubed on the largest cross-section where the
 rule on the base's area scales with its square (Stoney, NASA TR R-100, 1961, p. 11, from
-tunnel data; [ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md),
+tunnel data; [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md),
 which this reference decided). In a
 flight, with the motor burning, HPR Sim takes the motor case's area off the base, down to zero.
 Here the case is wider than the base, so as HPR Sim flies it there is no base drag under power.
@@ -1769,15 +1769,15 @@ on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, and be
 it keeps $4.8/8 = 0.6$ of the rule, so coasting HPR Sim gives $0.1837 \times 0.36 \times 0.6 =
 0.0397$. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle exit
 HPR Sim gives 0.0242, and with the case off 0. The flight measured 0.0105 coasting and 0.0244
-under power ([fixture report][fixture-report]). Before ADR-362 the base kept the whole rule
-behind a boattail, $1/0.6$ times as much coasting (the table's fourth column).
+under power ([fixture report][fixture-report]). Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) the base kept the
+whole rule behind a boattail, $1/0.6$ times as much coasting.
 
-| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | HPR Sim's before ADR-362, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| [0.65][fixture-report] | 0.0127 | 0.0378 | 0.0630 | 0.0270 | 0.0000 | 0.0230 | 0.0378 |
-| [0.70][fixture-report] | 0.0105 | 0.0397 | 0.0661 | 0.0244 | 0.0000 | 0.0242 | 0.0397 |
-| [0.75][fixture-report] | 0.0096 | 0.0417 | 0.0695 | 0.0221 | 0.0000 | 0.0254 | 0.0417 |
-| [0.79][fixture-report] | 0.0086 | 0.0434 | 0.0724 | 0.0204 | 0.0000 | 0.0265 | 0.0434 |
+| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power |
+|---:|---:|---:|---:|---:|---:|---:|
+| [0.65][fixture-report] | 0.0127 | 0.0378 | 0.0270 | 0.0000 | 0.0230 | 0.0378 |
+| [0.70][fixture-report] | 0.0105 | 0.0397 | 0.0244 | 0.0000 | 0.0242 | 0.0397 |
+| [0.75][fixture-report] | 0.0096 | 0.0417 | 0.0221 | 0.0000 | 0.0254 | 0.0417 |
+| [0.79][fixture-report] | 0.0086 | 0.0434 | 0.0204 | 0.0000 | 0.0265 | 0.0434 |
 
 ([fixture](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json),
 written by `cargo xtask aero`; the same rows are in the [fixture report][fixture-report])
@@ -1786,7 +1786,7 @@ What the rows say. Which way each rule errs, past the stated error and the readi
 test
 ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/aero_base_power/tests.rs),
 `the_power_off_rule_reads_high_the_flown_power_on_rule_low`, with two mutation probes in
-[ADR-362](decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)):
+[ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)):
 
 - **Under power, HPR Sim's rule as it flies reads low**, by 0.0204 to 0.0270: it leaves no base
   drag where the flight measured some. Too little drag gives too high an apogee: the optimistic
@@ -1798,7 +1798,7 @@ test
   The whole base kept under power reads high by 0.0108 to 0.0230
   ([fixture report][fixture-report]).
 - **Coasting, HPR Sim reads high,** by 0.025 to 0.035: its value is 3.0 to 5.1 times the
-  measured. Before ADR-362 it read high by 0.050 to 0.064, 5.0 to 8.4 times: the mean absolute
+  measured. Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) it read high by 0.050 to 0.064, 5.0 to 8.4 times: the mean absolute
   error over the four rows fell from 0.0574 to 0.0303, and no row's grew. Hoerner's rule, which
   also lowers the base for a thinner boundary layer, reads high by 0.012 to 0.016
   ([fixture report][fixture-report];
@@ -1812,8 +1812,8 @@ test
 What it leaves out: one vehicle and one motor, whose jet left through a blast tube, past fixed
 vanes, below the outside air's pressure. How far the result carries to another motor and base
 is not measured. The base model was changed on this reference for a boattailed base, power off
-([M1.14i3](decisions-and-roadmap.md#m1-14i3), ADR-362), and what that moved is below
-([the relief's effect on the flights](#the-relief-behind-a-boattail-on-the-flights)). Nothing
+([M1.14i3](decisions-and-roadmap.md#m1-14i3), [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)), and what that moved is
+above ([the slowest band, by term](#the-slowest-band-by-term)). Nothing
 here covers the jet ([evidence row G14](evidence.md#g14)), and no hobby rocket's base behind a
 boattail has been measured ([evidence row G41](evidence.md#g41)).
 
