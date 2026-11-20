@@ -28,7 +28,7 @@ source read:
   `pAlt` is a falling function of the barometer's count one record earlier, in all three files
   with no count meeting two values.
 - **One count of the barometer** is 92 Pa, about 7.7 m near sea level and more at a higher
-  site, so over a 1 s window one flight climbs less than two counts.
+  site, so over 1 s, with the window's end the median of 5 records, one flight climbs two counts.
 - **An AltOS board flew with each**: the ARTS2's pad pressure lies 0.42 to 1.08 kPa below the
   AltOS board's and its least pressure from 0.48 below to 0.11 kPa above, within the MPX4100A's
   error band, ±1.5 kPa from 20 to 105 kPa at 0 to 85 °C (*MPX4100A*, Rev 9, Freescale, 2009,

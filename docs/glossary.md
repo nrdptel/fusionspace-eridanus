@@ -8,7 +8,7 @@ any page can link straight to one; a site search jumps to it. Headings show as w
 in each name's own spelling. Where HPR Sim uses a term in a particular way (a
 sign, a frame, a reference point), the entry says so.
 
-> **How far to trust it.** These are definitions, not results: each of the 190 terms follows the
+> **How far to trust it.** These are definitions, not results: each of the 193 terms follows the
 > model page it links. The site's build checks that every link here, and every link other pages
 > make to a term's heading, leads somewhere. The spelling check reads every entry. If this page
 > and a model page ever disagree, the model page is the authority.
@@ -118,6 +118,13 @@ six-fin Recruiter's slope is 2.87% high. See [Aerodynamics](physics/aero.md#veri
 ### Base drag
 
 The drag on a rocket's flat aft end, its base. HPR Sim works it out on the base's area, with a coefficient of $0.12 + 0.13\,M^2$ below Mach 1 and $0.25/M$ above it ($M$ the [Mach number](#mach-number)). While a motor burns, the simulator subtracts the burning motors' cross-section from that area ([power-on drag](#power-on-and-power-off-drag)). This follows Niskanen, who takes from Fleeman that a base the size of the motor has no base drag. OpenRocket 24.12 keeps the whole base's drag, and HPR Sim can fly that rule for a comparison. OpenRocket's development line takes out the nozzle exit only when an exit diameter is entered. On a NACA missile model's measured flight below Mach 0.8, whose motor case is wider than its base, HPR Sim's rule leaves no base drag under power and reads low, the flattering side; the whole base reads high, and the jet more than doubled the base drag, which neither rule does ([the base under power, against a measured flight](accuracy.md#the-base-under-power-against-a-measured-flight)). On one private design's supersonic flight, `C06/1`, the choice moves HPR Sim's apogee difference from OpenRocket's by about 24 percentage points. That is more than any other known cause ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)). Behind a [boattail](#boattail), faster than sound, the base's pressure is higher and the simulator lowers the base drag to match ([Boattails faster than sound](physics/aero.md#boattails-faster-than-sound)). See [Aerodynamics](physics/aero.md#drag).
+
+### Baseline
+
+A logger's reading of a sensor at rest on the pad, which it takes as zero for later readings.
+Ozark Aerospace's ARTS2 altimeter keeps two: its barometer's, the "Zero Altitude baseline", and its
+accelerometer's, the "Zero G baseline". HPR Sim reads both from the flight's `.odf` file. See
+[Flight logs](format/flight-logs.md#the-arts2s-raw-data).
 
 ### BATES grain
 

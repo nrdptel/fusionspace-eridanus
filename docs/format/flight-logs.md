@@ -2884,11 +2884,12 @@ AltOS's and the ARTS2's. A count with no source stays as written.
 > - **AltiMAX `.ALS`:** the one file agrees, some values once two rules fitted to it are applied.
 > - **AIM raw dump and `.xtra`:** 435,075 values are equal bit for bit.
 
-Not compared: the exports' altitudes (but the order of the ARTS2's), flags and the velocities they
-work out. Those are the programs' conversions, not the altimeter's words. Where a number matters, set it
-beside the maker's program's export of the same flight. The other 2 `.FIPa` files and 5 `.rff` files
-are decoded by the same rules, unchecked by an export ([evidence row G6](../evidence.md#g6)). The
-RRC3's pairs and single words have no calibration to check. The sections have the rest:
+Not compared: the exports' altitudes, flags and the velocities they work out. Those are the
+programs' conversions, not the altimeter's words. The one exception is the ARTS2 export's altitude,
+whose order is checked. Where a number matters, set it beside the maker's program's export of the
+same flight. The other 2 `.FIPa` files and 5 `.rff` files are decoded by the same rules, unchecked
+by an export ([evidence row G6](../evidence.md#g6)). The RRC3's pairs and single words have no
+calibration to check. The sections have the rest:
 
 - [AltOS's `.eeprom`](#altoss-eeprom): the TeleMetrum v1's pressure assumes its converter's
   reference is the sensor's supply, which no document states. The TeleMega v4's IMU isn't read.
@@ -3220,14 +3221,15 @@ bears their units out. Also left out is any log format not listed above, which n
 
 ### The ARTS2's raw data
 
-HPR Sim reads an Ozark Aerospace ARTS2's flight from two more files. One is the `.odf` file.
+HPR Sim reads an Ozark Aerospace ARTS2's flight from two files. One is the `.odf` file.
 DataAnalyzer, the board's PC software, saves a downloaded flight to it. The other is the sensors'
-counts as DataAnalyzer exports them to CSV. Only the Rust library reads them so far. The *ARTS2 User
-Manual* (V1.0.0, Ozark Aerospace, 2007) describes neither file. So the layout was worked out from
-the 3 sample flights that hold both. Each has DataAnalyzer's interpreted export of the same flight
-beside it ([an ARTS2's unit system](#units-the-file-decides)). The work used no other program's
-source code. The `.odf` carries the board's calibration, so its acceleration and pressure are read
-in SI. The raw CSV carries none, so its counts are kept as written.
+[counts](#raw-downloads), their readings as whole numbers, as DataAnalyzer exports them to CSV. Only
+the Rust library reads them so far. The *ARTS2 User Manual* (V1.0.0, Ozark Aerospace, 2007)
+describes neither file. So the layout was worked out from the 3 sample flights that hold both. Each
+has DataAnalyzer's interpreted export of the same flight beside it ([an ARTS2's unit
+system](#units-the-file-decides)). The work used no other program's source code. The `.odf` carries
+the board's calibration, so its acceleration and pressure are read in SI. The raw CSV carries none,
+so its counts are kept as written.
 
 > **How far to trust it.** These are the board's own readings. They are decoded from a layout the
 > maker doesn't publish. They are checked against the files beside each.
@@ -3270,12 +3272,12 @@ exactly its parts':
 Of the settings block, the reader takes four things, each a 16-bit little-endian word. At its offset
 8 is a word that is 2 in every sample file. That is the likeliest place for the recording rate,
 which the owner sets (pp. 6–7). A file where that word is anything else is refused, as its clock
-would be unknown. At 10 is the barometer's count on the pad. This is the "Zero Altitude baseline"
-the board averages on entering flight mode (p. 17). At 12 is eight times the accelerometer's count
-on the pad, its "Zero G baseline" (p. 16). So it keeps an eighth of a count. At 20, 22 and 24 are
-three sums of 64 accelerometer readings, taken when the board was calibrated "at +1g, −1g, and 0"
-(p. 16). In every sample file the middle one is the reading on its side, midway between the two
-ends.
+would be unknown. At 10 is the barometer's count on the pad. This is the "Zero Altitude
+[baseline](../glossary.md#baseline)" the board averages on entering flight mode (p. 17). At 12 is
+eight times the accelerometer's count on the pad, its "Zero G baseline" (p. 16). So it keeps an
+eighth of a count. At 20, 22 and 24 are three sums of 64 accelerometer readings, taken when the
+board was calibrated "at +1g, −1g, and 0" (p. 16). These are the *calibration sums*. In every sample
+file the middle one is the reading on its side, midway between the two ends.
 
 Each record is four 16-bit words, in the order of the raw CSV's columns. They are the
 accelerometer's count (`Acc(HI)`), a byte of flags (`Acc/Baro(LO)`), the barometer's count
@@ -3303,11 +3305,12 @@ What the reader does with the records:
 
   The pad sets the sign. Standing nose up, the board reads +1 g along its axis. So the pad's reading
   lies near one end sum. A count moving further toward that end is an acceleration forward,
-  positive. The ADXL78's data sheet must bear the calibration out (*ADXL78*, Rev. B, Analog Devices,
-  2010, p. 3, for ±50 g). A g must be from 36.1 to 39.9 mV, 7.39 to 8.17 counts on the board's 5 V
-  supply. The side's reading must lie within 150 mV, 30.72 counts, of half the supply and between
-  the two ends. The pad's reading must be nearer an end than the side's. Otherwise the file is
-  refused.
+  positive.
+
+  The ADXL78's data sheet must bear the calibration out (*ADXL78*, Rev. B, Analog Devices, 2010,
+  p. 3, for ±50 g), or the file is refused. A g must be from 36.1 to 39.9 mV, 7.39 to 8.17 counts
+  on the board's 5 V supply. The side's reading must lie within 150 mV, 30.72 counts, of half the
+  supply and between the two ends. The pad's reading must be nearer an end than the side's.
 - **Pressure**, by the MPX4100A's nominal transfer function, the first line below (*MPX4100A*, Rev
   9, Freescale, 2009, p. 5). Here $V$ is the sensor's output, $V_S$ its supply and $P$ in kPa. The
   converter reads the output against the supply as its full scale, so $V/V_S$ is $c/1024$. That
@@ -3327,12 +3330,16 @@ What the reader does with the records:
   `.eeprom`](#altoss-eeprom). Over the first 2 s from the first record, the climb by the pressure
   must agree with the climb by the acceleration. The acceleration is integrated twice from rest. The
   pressure climb is taken as its pressure altitude in the U.S. Standard Atmosphere, 1976. Their
-  ratio must lie from 0.6 to 5/3. The window is twice AltOS's 1 s because this barometer is coarse.
-  Over 1 s, one sample flight climbs less than two counts. The check bounds the clock only loosely.
-  The climb by the acceleration goes as the square of the time step. So with a flight's ratio $r$ on
-  its true clock, a step $k$ times the true one passes for $k$ from $\sqrt{r/(5/3)}$ to
-  $\sqrt{r/0.6}$. That is 0.67 to 1.12 for the sample file of the least ratio and 0.83 to 1.38 for
-  the greatest's.
+  ratio must lie from 0.6 to 5/3. The pressure at the window's end is the median of the 5 records
+  within 0.04 s of it.
+
+  The window is twice AltOS's 1 s because this barometer is coarse. Over 1 s, measured that way,
+  one sample flight climbs only two counts. Over 2 s each climbs at least 10 counts.
+
+  The check bounds the clock only loosely. The climb by the acceleration goes as the square of the
+  time step. So with a flight's ratio $r$ on its true clock, a step $k$ times the true one passes
+  for $k$ from $\sqrt{r/(5/3)}$ to $\sqrt{r/0.6}$. That is 0.67 to 1.12 for the sample file of the
+  least ratio and 0.83 to 1.38 for the greatest's.
 - **A file that fails the climb check is refused.** AltOS's reader keeps such a file's counts as
   written. This reader can't, because a count kept as written still needs a clock. Nothing else in
   the file bears a clock out.
@@ -3346,18 +3353,19 @@ The file holds no altitude. The record's [primary track](#the-record) is empty, 
 [raw downloads](#raw-downloads), and every word is a channel. The record's stated figures hold the
 two baselines and the three calibration sums.
 
-**A worked example**, from the invented file the crate's test `tests/arts2_raw.rs` reads. Its
-settings block holds a pad barometer count of 800 and an accelerometer word of 4,100 (512.5 counts).
-The calibration sums are 31,744 (64 × 496), 32,250 and 32,768 (64 × 512). The ends differ by 1,024,
-so a g is 1,024 / 128 = 8 counts, inside the data sheet's 7.39 to 8.17. The side's reading, 32,250 /
-64 = 503.9, lies between the ends and within 30.72 of 512. The pad's 512.5 lies near the 512 end, so
-the acceleration is positive as the count rises. A count of 576 in the boost is (576 − 512.5) / 8 =
-7.94 g, 77.84 m/s² above rest. The pad's barometer count reads (800 / 1,024 + 0.1518) / 0.010 59 =
-88.107 kPa, inside the sensor's 20 to 105 kPa.
+**A worked example**, from the invented file the crate's test
+[`tests/arts2_raw.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-flightdata/tests/arts2_raw.rs)
+reads. Its settings block holds a pad barometer count of 800 and an accelerometer word of 4,100
+(512.5 counts). The calibration sums are 31,744 (64 × 496), 32,250 and 32,768 (64 × 512). The ends
+differ by 1,024, so a g is 1,024 / 128 = 8 counts, inside the data sheet's 7.39 to 8.17. The side's
+reading, 32,250 / 64 = 503.9, lies between the ends and within 30.72 of 512. The pad's 512.5 lies
+near the 512 end, so the acceleration is positive as the count rises. A count of 576 in the boost is
+(576 − 512.5) / 8 = 7.94 g, 77.84 m/s² above rest. The pad's barometer count reads (800 / 1,024 +
+0.1518) / 0.010 59 = 88.107 kPa, inside the sensor's 20 to 105 kPa.
 
-**The raw CSV** is DataAnalyzer's raw export of the same records. It has a
-`MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then a row for each record. Each row holds its
-time and its four words as whole numbers:
+**The raw CSV** is DataAnalyzer's raw export of the same records. Its header names the time,
+`MET` (mission elapsed time, in seconds), then the record's four words. A row follows for each
+record, holding its time and its four words as whole numbers:
 
 ```text
 MET,Acc(HI),Acc/Baro(LO),Baro(HI),State
@@ -3372,13 +3380,34 @@ and in range. Its time must be after the row before's. Its flags byte must hold 
 bits. A file where a row fails any of these is refused, naming the line. For values in units, read
 the flight's `.odf`.
 
-**Checked.** `cargo xtask logs` pairs each `.odf` with the files of its flight in its folder. A raw
-CSV must hold its records word for word, 0.02 s apart. DataAnalyzer's interpreted export must agree
-in `Acc` within half a count on every record after the first. It must read zero in `Acc` and `pAlt`
-at its first row and at any row after the records. Its `pAlt` is compared by order only. It must be
-zero at the pad's pressure and above. It must rise as the pressure one record earlier falls below
-that. Each pressure must meet one value, and no row's `pAlt` may be missing. `cargo xtask logs
---check` fails on a file that differs. For the 3 `.odf` files, the results are:
+**Checked.** `cargo xtask logs` pairs each `.odf` with the files of its flight in its folder, and
+`cargo xtask logs --check` fails on a file that differs. A raw CSV must hold the `.odf`'s records
+word for word, 0.02 s apart.
+
+DataAnalyzer's interpreted export holds four columns beside `MET`
+([its reader](#units-the-file-decides)):
+
+- `Acc`, the acceleration along the board's axis, with gravity taken out.
+- `Vel`, the speed, DataAnalyzer's integral of `Acc`.
+- `iAlt`, the altitude, the integral of `Vel`.
+- `pAlt`, the barometric altitude above the pad.
+
+Only `Acc` and `pAlt` are checked. HPR Sim's reader for the export turns `Acc` into m/s², from g
+or from the file's speed unit per second. The check divides its difference from the `.odf`'s
+acceleration by a count's worth, $g_0/k$. Here $g_0$ is standard gravity, 9.806 65 m/s², and $k$
+the counts a g. On every record after the first, that must be within half a count.
+
+Both `Acc` and `pAlt` must read zero at the export's first row, which holds the pad's baselines,
+and at any row after the last record.
+
+`pAlt` is compared by order only, since one export works it by a formula of its own (the table
+below). Each row's `pAlt` is paired with the `.odf`'s pressure one record earlier, as the export's
+altitude lags the barometer by one record. Then each pressure meets one value of `pAlt`, as an
+altitude worked from the pressure must. Paired with the same record, or with two records earlier,
+many pressures would meet two values.
+
+`pAlt` must also be zero at the pad's pressure and above, and rise as the pressure falls below
+that. No row's `pAlt` may be missing. For the 3 `.odf` files, the results are:
 
 | Compared | Files | Values | Result |
 |---|---:|---:|---|
@@ -3387,13 +3416,29 @@ that. Each pressure must meet one value, and no row's `pAlt` may be missing. `ca
 | `pAlt`'s order, against the pressure | 3 | 48,611 | no pressure meeting two values; none out of order; no gap |
 | The climb check | 3 | | ratios 0.754, 1.032 and 1.145 |
 
-Reported, not checked: in two exports, `pAlt` lies within 3.3 m (11 ft) of the standard atmosphere's
-pressure altitude from the `.odf`'s pressure. In the third, `pAlt` departs by up to 151 m (496 ft),
-worked by some other formula. An AltOS board flew beside the ARTS2 on each flight. The ARTS2's pad
-pressure reads 0.42 to 1.08 kPa below the AltOS board's. The ARTS2's least pressure reads from 0.48 kPa
-below to 0.11 kPa above the AltOS board's. Both fall inside the MPX4100A's ±1.5 kPa error band. The
-[survey's report](#how-it-was-checked) prints each file's counts and climb ratio under an anonymized
-id.
+Some figures are reported, not checked. The first is how far `pAlt` lies from the standard
+atmosphere's pressure altitude, worked from the `.odf`'s pressure. The others compare the ARTS2's
+pressure with an AltOS board's, flown beside it on each flight. The flights are numbered in the
+order of the [survey's report](#how-it-was-checked), which lists them under anonymized ids with the
+same climb ratios:
+
+| Flight number | Climb ratio | `pAlt` from the standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |
+|---:|---:|---:|---:|---:|
+| 1 | 0.754 | 151.2 | −1.08 | −0.48 |
+| 2 | 1.032 | 3.1 | −0.42 | +0.02 |
+| 3 | 1.145 | 3.3 | −0.44 | +0.11 |
+
+Two exports' `pAlt` lies within 3.3 m (11 ft) of the standard atmosphere. Flight 1's departs by up
+to 151.2 m (496 ft), worked by some other formula.
+
+The ARTS2's pad pressure reads 0.42 to 1.08 kPa below the AltOS board's. Near sea level that is
+about 35 to 90 m (115 to 295 ft) of height, and more at a higher site. Its least pressure reads from
+0.48 kPa below, about 40 m (131 ft), to 0.11 kPa above, about 9 m (30 ft). All fall inside the
+MPX4100A's ±1.5 kPa error band.
+
+Flight 1 stands out three ways. It has the largest pad difference, the 151.2 m (496 ft) departure of
+`pAlt` and the least climb ratio.
+
 [ADR-266, the ARTS2's raw data](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
 gives the evidence for the layout.
 
