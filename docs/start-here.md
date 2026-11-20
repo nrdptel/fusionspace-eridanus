@@ -703,7 +703,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   - The drag was compared with drag curves that come with RocketPy's example rockets, labeled as
     [RASAero II](glossary.md#rasaero-ii)'s (another rocket aerodynamics program). The curves don't
     record the fins' edges or the surface finish, so HPR Sim's copies of the designs follow a
-    declared guess. HPR Sim is within 10% in four of the seven cases.
+    declared guess. HPR Sim is within 10% in two of the seven cases.
   - HPR Sim's drag is 18% low for Cavour, another of RocketPy's examples, while its motor burns
     ([power-on drag](glossary.md#power-on-and-power-off-drag)). The cause isn't known yet.
   - HPR Sim's drag is 47% to 50% below Valetudo's example curve. Valetudo is the rocket that

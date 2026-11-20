@@ -1352,7 +1352,7 @@ cones, body tubes and transitions written inside the `podset`, with everything o
 [M1.13c1](../decisions-and-roadmap.md#m1-13c1), each pod's parts with their own normal force and
 drag ([aerodynamics: Pods](../physics/aero.md#pods)).
 
-Five probe designs with pods fly within 0.81% of OpenRocket's apogee, and so does the same airframe
+Five probe designs with pods fly within 0.91% of OpenRocket's apogee, and so does the same airframe
 without pods ([a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2)). The pods
 hold bodies, fins, a tail cone, winglets and motors. The probes are
 listed apart from the designs, at the end of
@@ -2852,7 +2852,7 @@ OpenRocket's on ordinary hobby rockets.
   early ([staged, clustered and air-start flights](#staged-clustered-and-air-start-flights),
   below).
 - Six probe designs, five with pods and one without, are not counted among the 53. They were written
-  for [a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2). They fly within 0.81%
+  for [a pod design against OpenRocket](../decisions-and-roadmap.md#m1-13c2). They fly within 0.91%
   of OpenRocket's apogee and 1.24% of its largest speed, and their margins are within 0.0014
   calibers ([aerodynamics: Pods](../physics/aero.md#pods)).
 - The bar, set for the whole corpus ([OpenRocket comparisons](../decisions-and-roadmap.md#m2-2)),

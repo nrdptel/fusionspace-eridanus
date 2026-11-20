@@ -310,7 +310,7 @@ Below the table:
     simulator's apogee is from the truth.
   - Three values don't fence in the true drag: it could lie outside them.
   - HPR Sim's drag has been checked against reference drag curves at Mach 0.3 only. It's within 10%
-    in two of seven cases, 10% to 12% low for two boattailed ones, 18% low for another rocket with its motor burning, and 47% to 50% low
+    in two of seven cases, 10.3% and 11.5% low for two boattailed ones, 18% low for another rocket with its motor burning, and 47% to 50% low
     against this rocket's own curve, the 1.05 above
     ([Accuracy](accuracy.md#results-by-model)).
   - Another rocket, or this one on another motor, has its own spread.
