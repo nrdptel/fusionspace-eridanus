@@ -310,6 +310,7 @@ measured against OpenRocket. One booster alone, off the axis, is still refused. 
 mass with no center override that has the box unticked, or beside a single booster off the
 axis, is open work:
 [M2.3d11, the stage a parallel stage hangs on](decisions-and-roadmap.md#m2-3d11).
+An unticked mass override of zero adds nothing, so neither refusal applies to it.
 
 Matching OpenRocket isn't matching your rocket. Where a ticked override sets the stage's mass,
 both put the mass the parts miss at the stage's center, where it adds no inertia. If that mass

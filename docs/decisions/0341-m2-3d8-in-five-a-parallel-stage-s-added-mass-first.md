@@ -173,7 +173,14 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      differ by between 1.3e-9 and 1.6e-9 kg·m², under 8 parts in 100 million of it
      (`a_parallel_stages_override_not_covering_its_parts_adds_to_them` pins both). So the bound
      goes with the addition, at the share the masses are held to, and keeps ADR-335's 1e-9
-     kg·m² below it. No probe ADR-335 holds is held to less than before.
+     kg·m² below it. No probe ADR-335 holds is held to less than before. That share is measured,
+     not derived. What a point adds is its mass times a distance squared, and the masses' bound
+     alone doesn't hold that product. A body's center held within 0.2 µm allows the point's
+     distance to be off by at least that much. That moves the product by twice 0.2 µm over the
+     distance, more than 5 parts in 10 million on any distance under 0.8 m. The share holds
+     because the two tools agree more closely than the bounds require. With the mass alone, on
+     three boosters and on one, they differ across the axis by under 8 parts in 100 million of
+     what is added. The case with a center beside the mass is held to the share only.
    - With one booster, an inertia across the axis is compared about the body axis the booster
      lies along. OpenRocket gives one inertia across the axis, the one about its y axis, and
      the booster hangs off the axis along that axis, so how far off it is adds nothing to
