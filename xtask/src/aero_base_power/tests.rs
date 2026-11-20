@@ -61,6 +61,10 @@ fn the_base_term_is_the_rule_on_the_base_less_the_jet() {
             "hoerner_power_off",
             0.029 * (base_m2 / reference_m2).powf(1.5) / forebody.sqrt(),
         );
+        close(
+            "hpr_relief_power_off",
+            rule * (base_m2 / reference_m2).powf(1.5),
+        );
     }
 }
 
@@ -93,6 +97,13 @@ fn the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag() {
         // reads high too, past the stated error and the reading, but by less than a third of
         // HPR Sim's rule's.
         let hoerner = n("hoerner_power_off_difference");
+        // HPR Sim's rule with Hoerner's dependence on the base's diameter reads high too, by
+        // less than HPR Sim's own and more than Hoerner's.
+        let relief = n("hpr_relief_power_off_difference");
+        assert!(
+            hoerner < relief && relief < n("hpr_power_off_difference"),
+            "Mach {mach}: {relief}"
+        );
         assert!(hoerner > margin, "Mach {mach}: {hoerner}");
         assert!(
             hoerner < n("hpr_power_off_difference") / 3.0,
@@ -116,6 +127,7 @@ fn the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag() {
             "hpr_power_on_case",
             "whole_base_under_power",
             "hoerner_power_off",
+            "hpr_relief_power_off",
         ] {
             assert_eq!(row[format!("{key}_within_stated_and_reading")], false);
         }

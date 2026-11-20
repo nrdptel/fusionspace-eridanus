@@ -47,8 +47,11 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   read 0.12 to 0.16 on the base area from Mach 0.6 to 0.9 ([cylinder base drag](cylinder-base-drag.md)); for eq. 34 to
   give that, C_DfB would be 0.033 to 0.058 (Inference: (0.029/0.16)² to (0.029/0.12)²), too low for a forebody
   several diameters long. So on flat bases the rule reads low there. Changing every base on one boattailed
-  vehicle's flight would move every flight's apogee up, and the collection already climbs above its logs on average. A change limited to the boattail's relief, (d_B/d)³ against (d_B/d)²,
-  leaves straight bases as they are; on this model it gives 0.6 of HPR Sim's value, 0.0378 to 0.0434, still high.
+  vehicle's flight would move every flight's apogee up, and the collection already climbs above its logs on average.
+- **The relief alone.** HPR Sim's flat-base rule with Hoerner's dependence on the base's diameter, (d_B/d)³ on the
+  largest cross-section where HPR Sim's is (d_B/d)², leaves flat bases as they are and multiplies a boattailed base's
+  value by d_B/d (`hpr_relief_power_off`). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean
+  absolute error of 0.0303 against HPR Sim's 0.0574 and Hoerner's 0.0144 (Inference: the fixture's rows).
 - **No Mach number.** HPR Sim's 0.13 M² rise has no counterpart in eq. 35; the Hermes curve falls with Mach number
   below 0.8 where both rules rise or stay level.
 - **Under power** the measured base drag is 2.1 to 2.4 times its power-off value; neither rule here covers the jet.

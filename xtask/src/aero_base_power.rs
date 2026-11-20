@@ -89,6 +89,10 @@ pub fn generate(root: &Path) -> Result<Value, String> {
         // less its base on that area, here HPR Sim's own friction and pressure drag coasting.
         let forebody = coasting.friction + coasting.pressure;
         let hoerner = HOERNER_K * base_over_max.powi(3) / forebody.sqrt();
+        // HPR Sim's flat-base rule with Hoerner's dependence on the base's diameter, (d_B/d)^3
+        // on the largest cross-section (eq. 35) where HPR Sim's is (d_B/d)^2: the same at a flat
+        // base, and d_B/d of it behind a boattail.
+        let relief = off * base_over_max;
         let on = base(DragConditions::thrusting(reynolds_per_m, exit_m2))?;
         let on_case = base(DragConditions::thrusting(reynolds_per_m, case_m2))?;
         let mut out = json!({ "mach": mach, "hpr_forebody_drag": forebody });
@@ -100,6 +104,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
             ("hpr_power_on_case", on_case, "power_on"),
             ("whole_base_under_power", off, "power_on"),
             ("hoerner_power_off", hoerner, "power_off"),
+            ("hpr_relief_power_off", relief, "power_off"),
         ] {
             out[name] = json!(hpr);
             let Some(measured) = row[key].as_f64() else {
@@ -129,7 +134,9 @@ pub fn generate(root: &Path) -> Result<Value, String> {
                  (Fluid-Dynamic Drag, 1965, p. 3-20, eq. 35; USAF DATCOM 1978, eq. \
                  4.2.3.1-b), 0.029 (d_B/d)^3 / sqrt(C_Df), with C_Df the body's drag less its \
                  base, HPR Sim's own friction and pressure drag coasting (hpr_forebody_drag), \
-                 on the same area. Each _difference is the rule's \
+                 on the same area. hpr_relief_power_off: HPR Sim's rule with Hoerner's \
+                 dependence on the base's diameter, (d_B/d)^3 where HPR Sim's is (d_B/d)^2, so \
+                 hpr_power_off times d_B/d. Each _difference is the rule's \
                  less the measured; _within_stated is |difference| no more than the report's \
                  stated error of the faired curves, and _within_stated_and_reading adds the \
                  reading's own uncertainty.",
