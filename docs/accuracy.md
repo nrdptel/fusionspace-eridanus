@@ -784,8 +784,8 @@ Why the misses, largest first:
   Juno III's fin slope. They act as in same-drag mode ([the wind-path decision][adr-026]).
 - **Prometheus 2022 flies low: the drag again, the other way.** Since
   [the drag through Mach 1](decisions-and-roadmap.md#m1-8b1), it passes Mach 1 on HPR Sim's own
-  drag. It peaks at Mach 1.060 against RocketPy's 1.048. Its coasting drag rises to about 0.49 at
-  Mach 0.8, where the example's falls to 0.30. So HPR Sim peaks −7.280% low and sooner, and its
+  drag. It peaks at Mach 1.060 against RocketPy's 1.048. Its coasting drag rises toward Mach 0.8,
+  where the example's falls. So HPR Sim peaks −7.280% low and sooner, and its
   drifts and times follow ([report][report], [case file][prometheus-predicted-case]).
 - **NDRT 2020's and Prometheus 2022's peak deceleration** at their main openings, +83.059% and
   +19.062%, are the added-mass difference explained above. Their times move +9.646% and −6.903%
