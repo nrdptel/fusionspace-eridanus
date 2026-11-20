@@ -16,6 +16,7 @@
 #[cfg(test)]
 mod addresses;
 mod aero;
+mod aero_base_power;
 mod aero_blunt;
 mod aero_body;
 mod aero_bullet;
@@ -44,6 +45,7 @@ mod designs;
 #[cfg(test)]
 mod docs;
 mod drag_bands;
+mod drag_terms;
 mod evidence;
 mod examples;
 mod features;

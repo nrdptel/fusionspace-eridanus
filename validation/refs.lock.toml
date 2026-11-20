@@ -295,6 +295,15 @@ license = "US government work"
 mode = "fetched"
 
 [[file]]
+name = "naca-rm-sl55f15-jackson-1955"
+title = "H. H. Jackson, Longitudinal aerodynamic characteristics and effect of rocket jet on drag of models of the Hermes A-3A and A-3B missiles in free flight at Mach numbers from 0.6 to 2.0, NACA RM SL55F15, 1955"
+url = "https://ntrs.nasa.gov/api/citations/20010057623/downloads/20010057623.pdf"
+sha256 = "3ca350f78f8905b756ae2b6ea7a2a3f766342368a893d70ec4d9157c02b163ca"
+dest = "refs/papers/naca-rm-sl55f15-hermes-a3-rocket-jet-drag.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
 name = "naca-tn-2972-jack-1953"
 title = "J. R. Jack, Theoretical pressure distributions and wave drags for conical boattails, NACA TN 2972, 1953"
 url = "https://ntrs.nasa.gov/api/citations/19930083638/downloads/19930083638.pdf"
