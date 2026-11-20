@@ -57,7 +57,12 @@ defect's size on HPR Sim's comparisons is known only by flying OpenRocket with a
   OpenRocket's drag; −10.71% with OpenRocket's base rule alone [S14, S21]. **Inference:** about 11.8 points sit in
   drag other than the base (nose, fins, and the pressure drag OpenRocket gives no part). #3391 is the nose's share;
   no public number splits it from the fins'.
-- **The collection.** Its report has no Mach split; ADR-273 already asks M2.3c6 to count supersonic flights.
+- **The collection.** By the Mach numbers HPR Sim's own flights reach, 5 of the 68 flights both codes fly pass
+  Mach 1 on a tangent-ogive nose, and none passes Mach 1.3 [S23]. Flown again with OpenRocket's nose pressure drag
+  above Mach 1, HPR Sim climbs 1.28% of OpenRocket's apogee higher on average: OpenRocket's low nose drag makes its
+  apogee high, as #3391 says. This is [M2.3c13, the nose's line](../decisions-and-roadmap.md#m2-3c13), code
+  against code on the collection's designs. It holds between Mach 1 and 1.3 only, so it doesn't size OpenRocket's
+  near-zero drag from Mach 1.3 up, nor #222's nose and fin split above.
 
 ### #3318 (open pull request): stubby noses get almost no subsonic pressure drag
 
@@ -151,9 +156,11 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 - **Terms.** OpenRocket is GPL-3.0; only issue, pull-request and forum text is cited, nothing copied. Its motor
   database states no terms, so cite impulses only. Its curves come from ThrustCurve.org, which grants no license.
 - **M2.9's OpenRocket cells.** No open defect has an own-report size above 0.5% of apogee, so the list ADR-246 asks
-  for holds only unsized rows: #3391 (fix unreleased; supersonic flights, OpenRocket high; unsized on 24.12's examples
-  until [#733](https://github.com/nrdptel/fusionspace-eridanus/issues/733) sizes it), #3318 (pending fix, OpenRocket
-  high on stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
+  for holds only rows unsized in OpenRocket's own reports: #3391 (fix unreleased; supersonic flights, OpenRocket
+  high; unsized in its issue and on 24.12's example flights, which
+  [#733](https://github.com/nrdptel/fusionspace-eridanus/issues/733) is to size; sized on the collection's 5 flights,
+  none past Mach 1.3, at a mean 1.28% of OpenRocket's apogee, §2 [S23]), #3318 (pending fix, OpenRocket high on
+  stubby noses), #2489 (wind, OpenRocket high), #1400 (bounded below 5%, shared), #2031 (descent only).
 - **M2.3c6.** A fineness-0.58 ellipsoid beside ADR-273's fineness-3 nose probe would show a #3318 merge as its own
   row. 24.12's component drag on *Base drag hack (short-wide)* and *Dual parachute deployment* would turn this
   note's two upper bounds into measurements.
@@ -162,7 +169,8 @@ in 24.12 beta 1) was fixed by #2667 before 24.12's release. #3342 was explained,
 ## Open questions
 
 - J570W-P's time above Mach 1; if its nose reads like the probe's [S22]; 24.12's drag on the fineness-0.58 ellipsoid.
-- How many collection flights pass Mach 1 on a tangent ogive, or carry a stubby stored-table nose.
+- How many collection flights carry a stubby stored-table nose. The tangent-ogive count is answered: 5 pass Mach 1,
+  none Mach 1.3, and OpenRocket's nose drag lifts HPR Sim's apogee by 1.28% of OpenRocket's on average [S23].
 - #2489's and #2892's numbers, which exist only in images; whether #1062 and #3399 hold in 24.12 itself.
 
 ## Sources
@@ -198,3 +206,5 @@ All read 2026-10-17 unless dated; issue texts are cached in the gitignored `refs
 20. **S20.** #3041, #2639 (fixed by #2667), #3342. <https://github.com/openrocket/openrocket/issues/2639>
 21. **S21.** [`openrocket-library-flights.md`](../../validation/reports/openrocket-library-flights.md).
 22. **S22.** [Nose probe tables, 2026-11-16](../physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412).
+23. **S23.** [The tangent-ogive nose's line, 2026-11-20](../accuracy.md#the-tangent-ogive-noses-line) and
+    [`validation/reports/fixture-flights.md`](../../validation/reports/fixture-flights.md).
