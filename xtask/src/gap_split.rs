@@ -57,7 +57,7 @@ use crate::fixture_flights::Tally;
 use crate::histories::own::{OWN_HISTORY_BOUND, own_history};
 
 /// The columns of a record flight's rows, as `histories.py` writes them.
-pub(crate) const COLUMNS: [&str; 7] = [
+pub(crate) const COLUMNS: [&str; 10] = [
     "time_s",
     "thrust_n",
     "mass_kg",
@@ -65,6 +65,9 @@ pub(crate) const COLUMNS: [&str; 7] = [
     "drag_coefficient",
     "mach",
     "altitude_m",
+    "friction_coefficient",
+    "pressure_coefficient",
+    "base_coefficient",
 ];
 pub(crate) const TIME: usize = 0;
 const THRUST: usize = 1;

@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 40 rows, as of November 10, 2026.
+The register holds 40 rows, as of November 19, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -106,7 +106,7 @@ The register holds 40 rows, as of November 10, 2026.
 | <a id="g11"></a>G11 | The flight analyzer | Reading your own logger by a stated mapping or layout is shown on one invented flight's logger and GPS tracker files. **Not checked:** a real logger's files read by a mapping or layout someone states. | spec | real | [#664](https://github.com/nrdptel/fusionspace-eridanus/issues/664) | 2026-10-17 |
 | <a id="g12"></a>G12 | Flight models | Dryden gusts are generated as MIL-F-8785C gives them for aircraft, and no flight uses them. **Not checked:** any rocket flight, for which the model is unvalidated. | spec | real | [#665](https://github.com/nrdptel/fusionspace-eridanus/issues/665) | 2026-10-17 |
 | <a id="g13"></a>G13 | Flight models | A dropped booster or middle stage is flown after the split as a point, a mass with only its recovery device's drag. **Not checked:** the whole flight of the dropped part, which is not validated at all. | none | real | [#666](https://github.com/nrdptel/fusionspace-eridanus/issues/666) | 2026-10-17 |
-| <a id="g14"></a>G14 | Aerodynamics | Base drag with the motor burning takes the motor case off the base. **Not checked:** any measurement of base drag under power. | reasoning | real | [#667](https://github.com/nrdptel/fusionspace-eridanus/issues/667) | 2026-10-17 |
+| <a id="g14"></a>G14 | Aerodynamics | Base drag with the motor burning takes the motor case off the base. **Not checked:** any measurement of base drag under power on a hobby rocket; on the one missile model's flight checked, whose motor case is wider than its base, the rule leaves no base drag under power and reads low. | reasoning | real | [#667](https://github.com/nrdptel/fusionspace-eridanus/issues/667) | 2026-11-19 |
 | <a id="g15"></a>G15 | Flight models | Thrust about a center of gravity off the axis turns the rocket in HPR Sim, and not in OpenRocket. **Not checked:** which of the two is right, which nothing measures. | reasoning | real | [#668](https://github.com/nrdptel/fusionspace-eridanus/issues/668) | 2026-10-17 |
 | <a id="g16"></a>G16 | `.ork` import | A part's roll angle in an `.ork` file turns the way HPR Sim assumes. **Not checked:** which direction OpenRocket turns it. | reasoning | real | [#669](https://github.com/nrdptel/fusionspace-eridanus/issues/669) | 2026-10-17 |
 | <a id="g17"></a>G17 | Flight models | The apogee printed for an unstable sustainer assumes it stays upright, and flights off a rod and off a rail differ. **Not checked:** an unstable sustainer's real flight; where the rod and the rail differ, not traced. | reasoning | real | [#670](https://github.com/nrdptel/fusionspace-eridanus/issues/670) | 2026-10-17 |
@@ -134,7 +134,36 @@ The register holds 40 rows, as of November 10, 2026.
 | <a id="g39"></a>G39 | Public flights predicted first | Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way. **Not checked:** each of the three altimeters' make and sensor. | reasoning | real | [#1403](https://github.com/nrdptel/fusionspace-eridanus/issues/1403) | 2026-11-10 |
 | <a id="g40"></a>G40 | Aerodynamics | A tangent-ogive nose's pressure drag past Mach 1 is its equivalent cone's by the method in Niskanen's thesis, set beside OpenRocket 24.12's on an invented probe from Mach 1 to 2 and on the designs of 5 logged flights just past Mach 1. **Not checked:** a measured pressure drag of a tangent ogive past Mach 1, including between Mach 1 and 1.3, committed as data with a test that scores HPR Sim's nose against it. | code to code | real | [#616](https://github.com/nrdptel/fusionspace-eridanus/issues/616) | 2026-10-16 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 10, 2026: none.
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 19, 2026:
+
+- [G2](#g2)
+- [G3](#g3)
+- [G5](#g5)
+- [G6](#g6)
+- [G7](#g7)
+- [G8](#g8)
+- [G9](#g9)
+- [G10](#g10)
+- [G11](#g11)
+- [G12](#g12)
+- [G13](#g13)
+- [G15](#g15)
+- [G16](#g16)
+- [G17](#g17)
+- [G18](#g18)
+- [G19](#g19)
+- [G20](#g20)
+- [G21](#g21)
+- [G22](#g22)
+- [G24](#g24)
+- [G25](#g25)
+- [G26](#g26)
+- [G27](#g27)
+- [G28](#g28)
+- [G29](#g29)
+- [G30](#g30)
+- [G32](#g32)
+- [G40](#g40)
 
 **Searches so far.**
 
@@ -232,6 +261,11 @@ The register holds 40 rows, as of November 10, 2026.
   - measurements of base pressure on hobby rockets in flight
 
   It found nothing beyond the October 17, 2026 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found.
+- [G14](#g14), November 19, 2026, looked at:
+  - NACA and NASA reports on subsonic base drag with a rocket jet, on the NASA Technical Reports Server
+  - the project's research notes on power-on and hot-jet base drag
+
+  It found one free flight whose base drag curves, power on and power off, run below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found.
 - [G15](#g15), October 17, 2026, looked at:
   - web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust
 

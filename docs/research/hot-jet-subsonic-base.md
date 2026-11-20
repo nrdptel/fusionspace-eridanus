@@ -10,9 +10,10 @@ The near-matched firings gave C_pb −0.17 to −0.27, a base drag of 0.13 to 0.
 and whole-base rules land within about 0.1 of that; HPR Sim's case rule, about 0.02 at minimum diameter, does not. The
 numbered copy of MIL-HDBK-762 Fig. 5-150 is Brazzel's RD-TM-70-7 Fig. 2, a cold-air correlation; at Mach 0.9 and
 thrust coefficients 4.5 to 7 it reads 0.10 to 0.25 of ambient deeper than three measured sets, so it is not a safe
-stand-in. Below Mach 0.9 no hot test was reached. There the cold correlation alone puts the jet's suction at −0.3% to
-+5.1% of thrust above the whole-base rule, which would lower apogee; hot data don't bound it. Plot readings carry
-their read-off error; "Inference" marks this note's arithmetic. Sources read 2026-10-28.
+stand-in. Below Mach 0.9 the hot flight read here, Hermes A-3A's (vaned, overexpanded; [power-on](power-on-base-drag.md)
+§2.3), is unlike HPR boost. There the cold correlation alone puts the jet's suction at −0.3% to +5.1% of thrust above
+the whole-base rule, which would lower apogee; hot data don't bound it. Plot readings carry their read-off error;
+"Inference" marks this note's arithmetic. Sources read 2026-10-28.
 
 It follows [power-on base drag](power-on-base-drag.md) (its §3 and §4 rules, its first open question) for #633 and
 Cavour's power-on miss ([aero](../physics/aero.md), "Power-on"). C_pb = (p_b − p∞)/q∞ throughout; negative is
@@ -148,8 +149,7 @@ rule minus measured, on the base area, for the near-matched runs 4/6, 13/5 and 1
 ## What the project can use
 
 - **Terms.** RD-TM-70-7: public release, distribution unlimited (DTIC cover) [1]; the NASA reports: public, government
-  use permitted, on NTRS [3, 4, 5]. All four are cached under `refs/research/` with the readings and script; nothing
-  copied.
+  use permitted, on NTRS [3, 4, 5]. All four are cached in `refs/research/` with readings and script; none copied.
 - **For #633:** the FA 22 rows give a hot-jet test for the rule at Mach 0.9 and 1.2 (d_e/d_b 0.47). A test pinning base
   drag under power to 0.13 to 0.21 on the base area at Mach 0.9 (near-matched) would fail the case rule.
 - **For Cavour:** RASAero's power-on table equals power-off, the whole-base rule; the Mach 0.9 hot data side with a base

@@ -48,7 +48,10 @@ pub const USAGE: &str = "\
                            and write validation/fixtures/aero/arcas-robin-gap.json;
                            compare the Basic Finner's normal force and center of pressure
                            with DREV-TM-9703's range fits and write
-                           validation/fixtures/aero/basic-finner-normal-force.json.
+                           validation/fixtures/aero/basic-finner-normal-force.json;
+                           compare its base drag, power off and under power, with the
+                           Hermes A-3A model's flights below Mach 0.8 and write
+                           validation/fixtures/aero/base-drag-under-power.json.
                            --check fails if a committed fixture differs instead of writing.";
 
 const FIXTURE: &str = "validation/fixtures/aero/rocketpy-drag-curves.json";
@@ -220,6 +223,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
         (
             crate::aero_finner_drag::FIXTURE,
             crate::aero_finner_drag::generate(&root)?,
+        ),
+        (
+            crate::aero_base_power::FIXTURE,
+            crate::aero_base_power::generate(&root)?,
         ),
     ] {
         let path = root.join(name);

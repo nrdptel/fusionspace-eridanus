@@ -1,0 +1,44 @@
+{
+  "reference": "H. Herbert Jackson, Longitudinal Aerodynamic Characteristics and Effect of Rocket Jet on Drag of Models of the Hermes A-3A and A-3B Missiles in Free Flight at Mach Numbers from 0.6 to 2.0, NACA RM SL55F15, 1955",
+  "url": "https://ntrs.nasa.gov/citations/20010057623",
+  "license": "a NACA report: a work of the US government, in the public domain",
+  "model": "drag model A(1): rocket-propelled, flown in free flight with its sustainer, a modified 5-inch British Cordite motor, burning, then coasting",
+  "definition": "C_DB on the maximum cross-section A_max = 0.349 sq ft, from one base-pressure orifice on the base annulus: power on, -(p_b - p_0)/q_0 times A_a/A_max, the annulus A_a = 0.0767 sq ft between the nozzle exit and the base; power off, the same times A_b/A_max, the whole base A_b = 0.126 sq ft (printed p. 2, symbols; p. 4, areas; p. 7, the orifice)",
+  "accuracy": {
+    "base_drag_coefficient": 0.005,
+    "quote": "The error in the faired curves of total drag coefficient (power off) and base drag coefficient (power on and off) presented herein is believed to be less than ±0.007 and ±0.005, respectively.",
+    "page": "printed p. 10 (PDF p. 11)"
+  },
+  "jet": "overexpanded: jet static pressure about 0.8 of ambient below Mach 0.8 (p. 1; Fig. 10), exit Mach 2.685, 15° divergence; fixed steel jet vanes in the jet (pp. 5-6)",
+  "geometry": {
+    "source": "printed pp. 3-6, Figs. 1 and 6",
+    "diameter_in": 8.0,
+    "base_diameter_in": 4.8,
+    "nozzle_exit_diameter_in": 3.0,
+    "motor_case_diameter_in": 5.0,
+    "motor_case_source": "printed p. 6 (PDF p. 7): every model's sustainer was \"a modified 5-inch British Cordite rocket motor\"; the nominal 5 in is taken as the case's diameter",
+    "nose_length_in": 44.82,
+    "nose": "an L-V Haack nose of fineness ratio 5.6 to the maximum diameter",
+    "afterbody": "a circular arc of radius 93.408 in from station 44.82 to 50.82, faired into a cone frustum of 4.5° half-angle to the base at station 68.8",
+    "cylinder_length_in": 6.0,
+    "afterbody_length_in": 17.98,
+    "drawn": "the arc is drawn as a cylinder and the frustum as a straight cone from the full diameter to the base; below Mach 0.8 HPR Sim's base term depends on neither",
+    "motor": "the case sits forward in the body and a blast tube carries the nozzle to the base (Fig. 6): what the base holds is the 3.00 in nozzle exit (throat 1.510 in, area ratio 3.95)"
+  },
+  "reynolds_per_m": 1.64e7,
+  "reynolds_note": "about 28.6 million on the 5.733 ft body at Mach 0.7, power on (Fig. 7); the base term doesn't depend on it",
+  "digitization": {
+    "figure": "Fig. 20, PDF p. 41: faired curves, A(1) power on (solid) and power off (dash-dot)",
+    "script": "validation/oracles/naca/hermes_base_drag.py",
+    "method": "rendered at 300 dpi; both axes calibrated from the labelled grid lines (Mach 0.6, 0.7 and 0.8; C_D 0 and 0.1, per column for the scan's half-degree turn); each curve tracked column by column and read by a least-squares line within ±0.0125 Mach of each target",
+    "reading_uncertainty": 0.001,
+    "reading_note": "fit residuals 0.3 to 0.6 px at 0.0005 per px; the power-on curve at Mach 0.70 lies on a grid line and is read from its edge; the power-off curve starts at Mach 0.65; no row at Mach 0.60: the power-off curve isn't drawn there, and the power-on curve reaches it only at the plot's frame, read from one side",
+    "cross_check": "the report's base pressures (Fig. 22) times its own areas, read by eye and not committed, differ from Fig. 20 by up to about the stated ±0.005, which the figures don't settle; Fig. 20, the drag with the stated error, is the reference"
+  },
+  "rows": [
+    { "mach": 0.65, "power_on": 0.0270, "power_off": 0.0127 },
+    { "mach": 0.70, "power_on": 0.0244, "power_off": 0.0105 },
+    { "mach": 0.75, "power_on": 0.0221, "power_off": 0.0096 },
+    { "mach": 0.79, "power_on": 0.0204, "power_off": 0.0086 }
+  ]
+}

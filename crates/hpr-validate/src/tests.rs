@@ -4735,8 +4735,24 @@ fn the_validated_range_is_the_fastest_public_reference() {
     for name in ["openrocket-export-flights.json", "ork-cli-flights.json"] {
         assert_eq!(mach_keys(&read(name)), Vec::<String>::new(), "{name}");
     }
+    // The base drag's measured reference (M1.14i2) is a part's drag below Mach 0.8, not a whole
+    // flight: its rows are taken out and held below Mach 0.8, and any other `mach` key in the
+    // report still fails here.
+    let mut fixture_flights = read("fixture-flights.json");
+    let reference = fixture_flights["terms"]["reference"]["rows"]
+        .as_array_mut()
+        .map(std::mem::take)
+        .expect("fixture-flights.json: the base drag's reference rows");
+    assert!(!reference.is_empty());
+    for row in &reference {
+        let mach = row["mach"].as_f64().expect("a reference row's Mach number");
+        assert!(
+            mach < 0.8,
+            "fixture-flights.json: a reference row at Mach {mach}"
+        );
+    }
     assert_eq!(
-        mach_keys(&read("fixture-flights.json")),
+        mach_keys(&fixture_flights),
         ["hpr_mean_top_mach", "hpr_top_mach_over_1_3"],
         "fixture-flights.json: a mean and a count over hpr's own flights of private designs, no reference; a reference's key belongs above"
     );

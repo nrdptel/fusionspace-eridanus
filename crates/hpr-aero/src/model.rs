@@ -1863,7 +1863,10 @@ impl AeroModel {
     /// column is the whole base's coefficient while a motor burns, as after, where the motors
     /// cover up to 94% of the reference area (`validation/fixtures/ork/openrocket-base-drag.json`,
     /// [ADR-097][adr-097]). This is how a comparison with OpenRocket sizes that difference; it is
-    /// not a better model. Neither rule has been checked against a measured flight.
+    /// not a better model. On the Hermes A-3A's measured flight below Mach 0.8 (Jackson 1955,
+    /// NACA RM SL55F15), whose motor case is wider than its base, HPR Sim's rule leaves no base
+    /// drag under power and reads low, the whole base reads high, and the jet more than doubled
+    /// the base drag (`validation/fixtures/aero/base-drag-under-power.json`).
     ///
     /// [adr-097]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-097-a-cause-in-the-drag-sized-by-hpr-flying-openrockets-drag-2026-09-28
     #[must_use]

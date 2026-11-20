@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-11-10"
+as_of = "2026-11-19"
 
 [[row]]
 id = "G1"
@@ -318,7 +318,7 @@ pages = [
 ]
 kind = "reasoning"
 wanted = "real"
-not_checked = "any measurement of base drag under power"
+not_checked = "any measurement of base drag under power on a hobby rocket; on the one missile model's flight checked, whose motor case is wider than its base, the rule leaves no base drag under power and reads low"
 issue = 667
 
 [[row.searched]]
@@ -329,6 +329,14 @@ looked = [
   "measurements of base pressure on hobby rockets in flight",
 ]
 found = "nothing beyond the October 17, 2026 power-on base drag note. Craven's record describes a subsonic stream with a supersonic jet at a jet-to-base diameter ratio of 0.1875. There, slight under-expansion raises base pressure and higher stagnation pressure lowers it again. Its full text returned HTTP 403. No measurement on a hobby rocket under power was found"
+
+[[row.searched]]
+on = "2026-11-19"
+looked = [
+  "NACA and NASA reports on subsonic base drag with a rocket jet, on the NASA Technical Reports Server",
+  "the project's research notes on power-on and hot-jet base drag",
+]
+found = "one free flight whose base drag curves, power on and power off, run below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found"
 
 [[row]]
 id = "G15"

@@ -368,7 +368,7 @@ its reference and still pass.
 | [Rigid-body flight](format/ork.md) | the other two of those six, *Base drag hack (short-wide)* on a D12-3 and an E12-4 | whose part set to no drag now flies as OpenRocket flies it ([a part's drag override](decisions-and-roadmap.md#m4-5h)): against OpenRocket's flight with nothing deployed they read +5.84% and +8.92%, and within 0.10% when HPR Sim flies OpenRocket's own drag, so their gap is the drag coefficient, by OpenRocket's breakdown the very blunt nose's. With recovery in both, the basis [the E12-4's milestone](decisions-and-roadmap.md#m4-5o) judged, the D12-3 is within 5% (+4.52%) and only the E12-4 is over (+7.80%). HPR Sim keeps a value for that nose read between Hoerner's measured round heads, so the gap stays ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0173-a-blunt-ellipsoid-s-subsonic-pressure-drag-from-hoerner.md), [#177](https://github.com/nrdptel/fusionspace-eridanus/issues/177)). |
 | [Rigid-body flight](format/ork.md) | a seventh, the *Tube fin rocket* | reads +6.95%, and within 0.03% when HPR Sim flies OpenRocket's own drag, so the gap is HPR Sim's tube-fin drag, which probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228)). |
 | [Rigid-body flight](format/ork.md) | the flight OpenRocket aborts, *Pods-\-powered with recovery deployment*'s first configuration | within 5% at both points (height −1.17% and −1.18%, speed −0.04% and +4.02%), weaker evidence than an apogee ([its milestone](decisions-and-roadmap.md#m4-5n)) |
-| [Rigid-body flight](format/ork.md#the-simulators-flights-of-the-private-designs) | [OpenRocket](glossary.md#openrocket) 24.12's calm flights of the 35 configurations of 11 private designs that HPR Sim flies, published only as differences under anonymized ids ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)); a code-to-code comparison, with no target set | covers 11 of the 12 private designs. Apogee −4.84% to +13.60%. One is more than 5% off: the one supersonic flight, `C06/1`, +13.60% in apogee and +7.98% in largest speed, whose cause is the drag coefficient: flown on OpenRocket's own drag, HPR Sim reads +1.11% and +1.04%; the [supersonic pressure drag](glossary.md#wave-drag) (mostly wave drag) and HPR Sim's unvalidated base drag under power are open ([#222: HPR Sim's supersonic pressure drag is about twice OpenRocket's](https://github.com/nrdptel/fusionspace-eridanus/issues/222)) ([evidence row G14](evidence.md#g14)). The rest: largest speed −0.65% to +2.28%. |
+| [Rigid-body flight](format/ork.md#the-simulators-flights-of-the-private-designs) | [OpenRocket](glossary.md#openrocket) 24.12's calm flights of the 35 configurations of 11 private designs that HPR Sim flies, published only as differences under anonymized ids ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)); a code-to-code comparison, with no target set | covers 11 of the 12 private designs. Apogee −4.84% to +13.60%. One is more than 5% off: the one supersonic flight, `C06/1`, +13.60% in apogee and +7.98% in largest speed, whose cause is the drag coefficient: flown on OpenRocket's own drag, HPR Sim reads +1.11% and +1.04%; the [supersonic pressure drag](glossary.md#wave-drag) (mostly wave drag) and HPR Sim's base drag under power, checked against a measurement only below Mach 0.8, are open ([#222: HPR Sim's supersonic pressure drag is about twice OpenRocket's](https://github.com/nrdptel/fusionspace-eridanus/issues/222)) ([evidence row G14](evidence.md#g14)). The rest: largest speed −0.65% to +2.28%. |
 | [Rigid-body flight](format/ork.md) | the same flights' stability margin ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)) | −0.0166 to +0.1108 calibers. HPR Sim calls four designs clearly more stable than OpenRocket does: `C09` by 0.0350 to 0.0478 and `C03` by 0.0564 to 0.0730 on every flight, cause not yet traced ([#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172)); `C08`, a two-stage design, by 0.1108, a center-of-mass gap with a lead but no measured cause ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)); and `C06/1` by +0.0604, most of it a center of mass 0.0447 calibers forward of OpenRocket's, with a lead but no measured cause: its airfoil fins, which OpenRocket weighs by a factor of 0.85 (the [mass survey's fin-section cause](physics/mass.md#checked-against-openrocket), sized on the structure alone). |
 | [Rigid-body flight](format/ork.md) | a fifth design, `C12`, launched from a tilted rod: its margin | 0.0125 to 0.0366 calibers, most of it OpenRocket's rocket clearing the rod at an angle of attack: at that angle HPR Sim reads 0.0033 to 0.0074 ([a tilted launch rod](format/ork.md#a-tilted-launch-rod)) |
 | [Time integration](physics/integration.md) | a separate line-by-line transcription of `DOPRI5`, the published Fortran integrator by Hairer and Wanner that HPR Sim's [Dormand-Prince](glossary.md#dormand-prince-and-rk4) stepper follows, on the problem Hairer's own example program for `DOPRI5` solves: the Arenstorf orbit, the closed, looping path of a small body pulled by two large ones that circle each other | the same step counts |
@@ -1614,6 +1614,185 @@ OpenRocket's.
 > read the same way. No size is given unless it is over at least three flights, since the
 > flights are private ([report][fixture-report]).
 
+#### The slowest band, by term
+
+This part takes [the band below Mach 0.8](#the-drag-part-by-mach-band) and splits its share of
+the drag difference by the term of the drag it comes from: friction, pressure and
+[base drag](glossary.md#base-drag), over the same 68 flights
+([report][fixture-report]; [M1.14i2, the part below Mach 0.8 by term](decisions-and-roadmap.md#m1-14i2),
+[decision][adr-359]). It is for anyone asking which of HPR Sim's drag models to check first.
+The largest term is the base drag, almost all of it while the motor burns; the pressure term,
+of the other sign, cancels part of it. Like the bands, the parts are code against code. A measured reference of that term is then the check
+([below](#the-base-under-power-against-a-measured-flight)).
+
+**The terms, set against each other.** OpenRocket's flight data splits its
+[drag coefficient](glossary.md#drag-coefficient) into friction, pressure and base. The two
+codes don't file every part of the drag under the same name, so a small probe flies one public
+design four more times in OpenRocket, each time with one thing added, and records which of
+OpenRocket's terms moves ([record][drag-terms-record], written by
+[`drag_terms.py`][drag-terms-script]):
+
+- A [launch lug or rail buttons](glossary.md#rail-button-launch-lug-and-guide) raise OpenRocket's
+  pressure term by 0.012 to 0.018 and leave its base alone. HPR Sim files them as parasitic
+  drag, so its pressure term here is its pressure plus its parasitic drag.
+- A drag coefficient stated for a part shows up in none of OpenRocket's three terms: the
+  coefficient less the three is the stated value, 0.3 on the body tube and three times 0.3 on a
+  three-fin set ([the probe][drag-terms-script]). So the fourth term, *the rest*, is a stated
+  coefficient in both codes.
+
+Each code's four terms sum to its whole coefficient, under power and coasting, and a test holds
+both sums and the probe's record
+([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_terms/tests.rs),
+`each_codes_four_terms_sum_to_its_whole`,
+`openrocket_books_lugs_and_buttons_as_pressure_and_stated_drag_in_the_rest`).
+
+**The split.** With thrust and mass already OpenRocket's, HPR Sim flies four more times.
+OpenRocket's friction replaces its own below Mach 0.8, then its pressure too, then its base,
+then its rest. Above Mach 0.8 the drag stays HPR Sim's own. A term's part is the apogee before
+its swap less the apogee after it, over OpenRocket's apogee. A positive part means HPR Sim's
+term is the lower of the two over that flight. The last of the four flights is the band's own
+flight below Mach 0.8, to the last digit, so the four parts sum to the band's part, and the
+run that writes the report stops on a flight where they don't. All 68 flights split by band
+are split by term ([report][fixture-report]).
+
+| [over 68 flights][fixture-report] | flights with a part in it | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
+|---|---:|---:|---:|---:|---:|---:|
+| [friction][fixture-report] | 68 | −0.17% | −0.16% | 0.17% | 0 | 0 |
+| [pressure, launch lugs and rail buttons among it][fixture-report] | 68 | −0.63% | −0.11% | 0.65% | 18 | 12 |
+| [base][fixture-report] | 68 | +0.95% | +0.55% | 0.95% | 50 | 22 |
+| [the rest: stated drag coefficients][fixture-report] | 0 | +0.00% | +0.00% | 0.00% | 0 | 0 |
+| [the part below Mach 0.8][fixture-report] | 68 | +0.15% | +0.19% | 0.87% | | |
+
+A term dominates a flight when its part is the largest of the four in absolute value, and the
+last column counts the flights where its part is over 1% of the apogee
+([report][fixture-report]).
+
+What the rows say:
+
+- **The base is the largest term.** Its mean absolute part is 0.95% of the apogee, against
+  0.65% for pressure and 0.17% for friction, and it dominates 50 of the 68 flights
+  ([report][fixture-report]). It is positive: HPR Sim's base drag is the lower of the two.
+- **The base difference is the base under power.** Coasting, the two codes' base drag agree:
+  0.13170 against 0.13170 at Mach 0.3 on the public test rocket, a test's pinned numbers
+  ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_terms/tests.rs),
+  `both_codes_terms_are_pinned_at_mach_0_3_and_0_6`). While a motor burns, HPR Sim takes the
+  burning motor's cross-section off the base, and OpenRocket 24.12 keeps the whole base. Swapped
+  alone, the base moves HPR Sim's apogee by a mean absolute 0.93%; swapped only while a motor
+  burns, by 0.92% ([report][fixture-report]).
+- **Pressure and the base partly cancel.** The pressure term is negative, HPR Sim's the higher.
+  Its mean, −0.63%, is far from its median, −0.11%, and it is over 1% on 12 flights. That is
+  why the band's mean, +0.15%, is much smaller than its mean absolute part, 0.87%
+  ([report][fixture-report]).
+- **Friction is small.** Its part never dominates a flight ([report][fixture-report]). On the
+  public test rocket HPR Sim's friction is the higher: 0.30690 against OpenRocket's 0.30310 at
+  Mach 0.3
+  ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_terms/tests.rs),
+  `both_codes_terms_are_pinned_at_mach_0_3_and_0_6`).
+- **No flight states a drag coefficient** in either code, so the rest is zero on every flight.
+
+**Beside the logs.** As with the bands, each term is also swapped alone, on HPR Sim's own
+thrust and mass, and set beside the logged apogees of the 60 flights compared. The columns are
+the bands' ([report][fixture-report]).
+
+| [HPR Sim's drag, over 60 flights][fixture-report] | flights moved | mean | median | mean absolute | flights nearer their log | flights farther from it |
+|---|---:|---:|---:|---:|---:|---:|
+| [its own][fixture-report] | | +7.72% | +6.69% | 12.04% | | |
+| [OpenRocket's friction below Mach 0.8][fixture-report] | 60 | +7.90% | +6.82% | 12.12% | 15 | 45 |
+| [OpenRocket's pressure below Mach 0.8][fixture-report] | 60 | +8.34% | +7.73% | 12.16% | 23 | 37 |
+| [OpenRocket's base below Mach 0.8][fixture-report] | 60 | +6.64% | +6.40% | 11.45% | 45 | 15 |
+| [OpenRocket's rest below Mach 0.8][fixture-report] | 0 | +7.72% | +6.69% | 12.04% | 0 | 0 |
+| [OpenRocket's whole drag below Mach 0.8][fixture-report] | 60 | +7.42% | +6.70% | 11.65% | 39 | 21 |
+
+On OpenRocket's base alone, HPR Sim's mean absolute error falls from 12.04% to 11.45%, more
+than on OpenRocket's whole drag below Mach 0.8, and 45 of the 60 flights come nearer their log
+([report][fixture-report]). Its friction and its pressure alone each take HPR Sim farther from
+the logs. That doesn't show OpenRocket's base rule is the truer one: both codes climb above
+the logs on average, so more drag from any cause moves the mean toward them.
+
+As a worked example anyone can run, take
+[`pods-none`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/pod-flights/pods-none.ork),
+which stays below Mach 0.8 and burns there. Its band's part of +0.79% splits into −0.37%
+friction, +0.04% pressure, +1.12% base and 0% rest
+([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/drag_terms/tests.rs),
+`the_public_flights_split_by_term`; from a clone, `cargo test -p xtask drag_terms`).
+
+#### The base under power, against a measured flight
+
+This part sets HPR Sim's [base drag](glossary.md#base-drag) below Mach 0.8, coasting and with
+the motor burning, beside a measured flight (the rows are in the
+[fixture report][fixture-report]). It is for anyone weighing the term above against something
+other than another code. It stops at Mach 0.8 because that is the band the term split covers.
+
+> **How far to trust it.** A measurement, from one vehicle's flight, with a long
+> [boattail](glossary.md#boattail) and a motor unlike a hobby motor. It tests the rules on that
+> vehicle; it doesn't say which one fits a hobby rocket.
+
+**The reference.** In 1955 NACA flew rocket-propelled models of the Hermes A-3A from Wallops
+Island with the sustainer motor burning and then coasting, and measured the pressure on the
+base during both ([Jackson 1955, NACA RM SL55F15](https://ntrs.nasa.gov/citations/20010057623),
+a US government work in the public domain). Its figure 20 gives the base drag coefficient on
+the model's largest cross-section, from Mach 0.6 to 1.8, with the motor burning and (from
+about Mach 0.65) coasting. The report believes the error of these faired curves to be less than
+±0.005 (printed p. 10). The curves are read off the figure by pixels to ±0.001 more
+([the reading script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/naca/hermes_base_drag.py),
+[the readings and the model's sizes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
+The report's own base pressures, in its figure 22, give base drag that differs from figure 20 by
+up to about the stated error, and the figures don't settle which is right
+([the readings' notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
+
+The model is 8 in across, with a 4.5° cone narrowing to a 4.8 in base. Its motor, a nominal
+5 in case, sits forward in the body, and a blast tube carries the jet to a 3.0 in nozzle exit at
+the base. The jet leaves below the outside air's pressure, past fixed vanes in it
+([the model's sizes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/hermes-a3a-base-drag.json)).
+
+**HPR Sim's rule and OpenRocket's.** Below Mach 0.8, HPR Sim's base drag coefficient on the
+base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base. In a
+flight, with the motor burning, HPR Sim takes the motor case's area off the base, down to zero.
+Here the case is wider than the base, so as HPR Sim flies it there is no base drag under power.
+Given only the nozzle exit's area, which is what this base holds of the motor, the same rule
+leaves the ring of base around the exit, the area the report measured on: that tests the
+coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power,
+which is the coasting value. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
+on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, so coasting HPR Sim
+gives 0.0661. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle
+exit HPR Sim gives 0.0403, and with the case off 0. The flight measured 0.0105 coasting and
+0.0244 under power ([fixture report][fixture-report]).
+
+| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole-base rule's base drag coefficient, under power |
+|---:|---:|---:|---:|---:|---:|---:|
+| [0.65][fixture-report] | 0.0127 | 0.0630 | 0.0270 | 0.0000 | 0.0384 | 0.0630 |
+| [0.70][fixture-report] | 0.0105 | 0.0661 | 0.0244 | 0.0000 | 0.0403 | 0.0661 |
+| [0.75][fixture-report] | 0.0096 | 0.0695 | 0.0221 | 0.0000 | 0.0424 | 0.0695 |
+| [0.79][fixture-report] | 0.0086 | 0.0724 | 0.0204 | 0.0000 | 0.0441 | 0.0724 |
+
+([fixture](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/base-drag-under-power.json),
+written by `cargo xtask aero`; the same rows are in the [fixture report][fixture-report])
+
+What the rows say. Which way each rule errs, past the stated error and the reading, is held by a
+test
+([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/aero_base_power/tests.rs),
+`the_flown_rule_reads_low_the_others_high_and_the_jet_raises_the_base_drag`):
+
+- **Under power, HPR Sim's rule as it flies reads low**, by 0.0204 to 0.0270: it leaves no base
+  drag where the flight measured some. That is the flattering side: too little drag, so too high
+  an apogee ([fixture report][fixture-report]).
+- **Given the nozzle exit instead, the same rule reads high,** by 0.0114 to 0.0237, and the whole
+  base by 0.0360 to 0.0520. No row is within the stated error and the reading together, ±0.006
+  ([fixture report][fixture-report]).
+- **Coasting, HPR Sim reads high:** its value is 5.0 to 8.4 times the measured. Behind this long
+  cone the base drag is far lower than the flat-base rule gives, and below Mach 0.8 HPR Sim gives
+  a boattail no relief on its base ([fixture report][fixture-report]).
+- **The jet raised the measured base drag**, to 2.1 to 2.4 times its coasting value, as the
+  report says in its own words: "more than twice". HPR Sim's rule given the nozzle exit lowers
+  it, to 0.61 of coasting, and the whole base keeps it. Neither moves the way the flight did.
+  Kept on the measured coasting value instead, the whole base would read low, by 0.0118 to
+  0.0143 ([fixture report][fixture-report]).
+
+What it leaves out: one vehicle and one motor, whose jet left through a blast tube, past fixed
+vanes, below the outside air's pressure. How far the result carries to another motor and base
+is not measured. Deciding the base model on this reference is the next step in the drag work
+([M1.14i3](decisions-and-roadmap.md#m1-14i3); [evidence row G14](evidence.md#g14)).
+
 ## Known gaps
 
 These are the largest known differences and missing pieces. Each model page's *In short* lists the
@@ -1751,6 +1930,8 @@ rest.
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json
+[drag-terms-record]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-drag-terms.json
+[drag-terms-script]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/drag_terms.py
 [steps]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one
 [scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md

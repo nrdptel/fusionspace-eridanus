@@ -987,6 +987,10 @@ fn fly_all(
     let mut splits = Vec::new();
     let mut noses = Vec::new();
     let mut bands: Vec<crate::drag_bands::BandFlight> = Vec::new();
+    let mut terms: Vec<crate::drag_terms::TermFlight> = Vec::new();
+    // Read before any flight, so that a broken reference stops the run before the flying.
+    let base_reference =
+        crate::drag_terms::base_reference(&crate::aero_base_power::generate(root)?)?;
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -1162,6 +1166,43 @@ fn fly_all(
             Some(Err(error)) => println!("fixture-flights: {at:<48} bands failed: {error}"),
             None => {}
         }
+        // And the part below Mach 0.8 by term (M1.14i2).
+        let termed = crate::drag_terms::flight(
+            &build,
+            &climbed_m,
+            recorded,
+            &split,
+            banded.as_ref(),
+            openrocket_m,
+        )
+        .map_err(|error| format!("{at}: the part below Mach 0.8 by term: {error}"))?;
+        match &termed {
+            Some(Ok(t)) => println!(
+                "fixture-flights: {at:<48} terms {:+6.2}% {:+6.2}% {:+6.2}% {:+6.2}% = band \
+                 {:+6.2}%; alone {:+6.2}% {:+6.2}% {:+6.2}% {:+6.2}%",
+                t.parts[0],
+                t.parts[1],
+                t.parts[2],
+                t.parts[3],
+                t.band,
+                t.alone[0],
+                t.alone[1],
+                t.alone[2],
+                t.alone[3]
+            ),
+            Some(Err((reason, detail))) => println!(
+                "fixture-flights: {at:<48} not split by term: {}: {detail}",
+                crate::drag_terms::NOT_TERMED[*reason].0
+            ),
+            None => {}
+        }
+        let term_at = termed.map(|termed| {
+            terms.push(crate::drag_terms::TermFlight {
+                termed,
+                logged_m: None,
+            });
+            terms.len() - 1
+        });
         let band_at = banded.map(|banded| {
             bands.push(crate::drag_bands::BandFlight {
                 banded,
@@ -1199,6 +1240,9 @@ fn fly_all(
         };
         if let Some(band_at) = band_at {
             bands[band_at].logged_m = Some(logged_m);
+        }
+        if let Some(term_at) = term_at {
+            terms[term_at].logged_m = Some(logged_m);
         }
         let early = entry.early_deployment == Some(true);
         counts.early_deployments += usize::from(early);
@@ -1268,6 +1312,9 @@ fn fly_all(
     }
     let sets = error_sets(&compared)?;
     let bands = crate::drag_bands::DragBands::of(&bands, counts.compared);
+    let mut terms =
+        crate::drag_terms::DragTerms::of(&terms, counts.compared, Some(bands.logs.flights));
+    terms.reference = Some(base_reference);
     Ok((
         Report {
             milestone: "M2.3c1, rechecked in M2.3c5, halved in M2.7a".to_owned(),
@@ -1284,6 +1331,7 @@ fn fly_all(
             split: crate::gap_split::GapSplit::of(&splits),
             nose: crate::nose_line::NoseLine::of(&noses),
             bands,
+            terms,
         },
         kept,
     ))
@@ -1357,6 +1405,9 @@ pub(crate) struct Report {
     /// Inside the drag part, each band of Mach number's share, and what each does to the
     /// errors against the logs (M1.14i1).
     pub bands: crate::drag_bands::DragBands,
+    /// Inside the band below Mach 0.8, each term of the drag's share, and what each does to
+    /// the errors against the logs (M1.14i2).
+    pub terms: crate::drag_terms::DragTerms,
 }
 
 /// How many flights went where.
@@ -1668,6 +1719,8 @@ impl Report {
                 .check_against_split(drag.size(), self.split.drag_first)
                 .or_else(fail)?;
         }
+        self.terms.check_consistent(c.compared).or_else(fail)?;
+        self.terms.check_against_bands(&self.bands).or_else(fail)?;
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1849,6 +1902,7 @@ impl Report {
         page.push_str(&self.split.to_markdown());
         page.push_str(&self.nose.to_markdown());
         page.push_str(&self.bands.to_markdown());
+        page.push_str(&self.terms.to_markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");

@@ -10,7 +10,12 @@ time and, at that time,
 - `cg_m`: `TYPE_CG_LOCATION`, its center of mass, m aft of the nose tip;
 - `drag_coefficient`: `TYPE_DRAG_COEFF`, on the reference area of `reference_length_m` across;
 - `mach`: `TYPE_MACH_NUMBER`, which the drag coefficient is taken against;
-- `altitude_m`: `TYPE_ALTITUDE`, 0 at launch.
+- `altitude_m`: `TYPE_ALTITUDE`, 0 at launch;
+- `friction_coefficient`, `pressure_coefficient`, `base_coefficient`:
+  `TYPE_FRICTION_DRAG_COEFF`, `TYPE_PRESSURE_DRAG_COEFF` and `TYPE_BASE_DRAG_COEFF`, the three
+  terms OpenRocket's flight data splits its drag coefficient into, on the same reference area
+  (M1.14i2, ADR-359). What OpenRocket books under each is read from its flight data only: the
+  fixture report takes the rest, the drag coefficient less the three, as a fourth term.
 
 A value OpenRocket gives as not-a-number is written as `null`. Each flight either holds every
 input or lacks one, under the first reason of `REASONS` that applies; the list is closed, and a
@@ -79,7 +84,18 @@ REASONS = {
 SAME_FLIGHT = 1e-5
 
 #: The columns of each row, in order.
-COLUMNS = ["time_s", "thrust_n", "mass_kg", "cg_m", "drag_coefficient", "mach", "altitude_m"]
+COLUMNS = [
+    "time_s",
+    "thrust_n",
+    "mass_kg",
+    "cg_m",
+    "drag_coefficient",
+    "mach",
+    "altitude_m",
+    "friction_coefficient",
+    "pressure_coefficient",
+    "base_coefficient",
+]
 
 
 def relative(path):
@@ -112,9 +128,12 @@ def rows_of(simulation):
         F.TYPE_DRAG_COEFF,
         F.TYPE_MACH_NUMBER,
         F.TYPE_ALTITUDE,
+        F.TYPE_FRICTION_DRAG_COEFF,
+        F.TYPE_PRESSURE_DRAG_COEFF,
+        F.TYPE_BASE_DRAG_COEFF,
     ]
     columns = [[float(x) for x in branch.get(kind)] for kind in kinds]
-    altitude = columns[-1]
+    altitude = columns[6]
     finite_altitudes = [a for a in altitude if math.isfinite(a)]
     aborted = any(events.name_of(e.getType()) == "SIM_ABORT" for e in branch.getEvents())
     apogee_events = any(events.name_of(e.getType()) == "APOGEE" for e in branch.getEvents())
