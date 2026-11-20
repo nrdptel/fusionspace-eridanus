@@ -107,7 +107,8 @@ pub const SEPARATION_COMPLETE_RAD: f64 = 30.0 * std::f64::consts::PI / 180.0;
 /// pressure ratio is held.
 pub const BASE_RELIEF_MACH: f64 = 2.5;
 
-/// Where a boattail's drag starts its transonic rise and its base its relief: Mach 0.8, where
+/// Where a boattail's drag starts its transonic rise and its base's relief its move to the
+/// supersonic value: Mach 0.8, where
 /// the rest of the buildup starts its transonic methods ([`crate::drag::SUBSONIC_MACH_LIMIT`],
 /// Niskanen 2009 p. 47). An earlier draft used 0.9, chosen after seeing the Arcas Robin wind
 /// tunnel, a target (the decision record on the afterbody, [ADR-030][adr-030]).
@@ -802,6 +803,20 @@ mod tests {
             1.0,
             0.0,
             "no relief",
+        );
+        // Below Mach 0.8 too (ADR-362): a separated boattail's base keeps the flat-base value,
+        // and half separated, half of the √a_b relief, 0.5 · 0.6 + 0.5 by hand.
+        close(
+            steep.base_pressure_ratio(0.5, 0.36).unwrap(),
+            1.0,
+            0.0,
+            "no relief, subsonic",
+        );
+        close(
+            at(23.0).base_pressure_ratio(0.5, 0.36).unwrap(),
+            0.8,
+            1e-12,
+            "half relief, subsonic",
         );
     }
 

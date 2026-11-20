@@ -1,7 +1,7 @@
 # ADR-362: Base drag behind a boattail below Mach 0.8, held to the Hermes A-3A (2026-11-20)
 
 - **Status:** accepted; carries out [M1.14i3][m1-14i3] under [ADR-359][adr-359] decision 3, and so meets [M1.14i][m1-14i]; changes HPR Sim's base drag below Mach 0.8 behind a boattail; revises Erebus 11's merged prediction under [ADR-328][adr-328] §1b; accepts the census's moved rows ([ADR-084][adr-084]) and two scoreboard cells ([ADR-240][adr-240]); adds evidence row G41
-- **Summary:** Below Mach 0.8 HPR Sim gave the base behind a boattail the whole flat-base drag. On the Hermes A-3A's measured free flight, the reference the previous increment added, that read high by 0.050 to 0.064 power off, ten times the report's stated error. The base now keeps $d_B/d_1$ of the flat-base value, the base's diameter over the largest, from Stoney's rule for conical afterbodies (NASA TR R-100, 1961, p. 11). On the reference the mean absolute error falls from 0.0574 to 0.0303, and no row's error grows. On the private collection's logged flights HPR Sim's mean error goes from +7.72% to +8.01% and its mean absolute error from 12.04% to 12.09%. Those flights choose nothing here; they are reported.
+- **Summary:** Below Mach 0.8 HPR Sim gave the base behind a boattail the whole flat-base drag. On the Hermes A-3A's measured free flight, the reference the previous increment added, that read high by 0.050 to 0.064 power off, at least ten times the report's stated error. The base now keeps $d_B/d_1$ of the flat-base value, the base's diameter over the boattail's fore diameter (the largest where the boattail starts at it), from Stoney's rule for conical afterbodies (NASA TR R-100, 1961, p. 11). On the reference the mean absolute error falls from 0.0574 to 0.0303, and no row's error grows. On the private collection's logged flights HPR Sim's mean error goes from +7.72% to +8.01% and its mean absolute error from 12.04% to 12.09%. Those flights choose nothing here; they are reported.
 - **Scoreboard:** `accuracy.collection.hpr` and `bias.collection.hpr` worse in release 0.2: the change rests on a measured reference, and on the collection's calibration half it moves the mean absolute error from 9.42% to 9.45% and the mean error from +4.22% to +4.56%.
 
 [m1-14i]: ../decisions-and-roadmap.md#m1-14i
@@ -21,6 +21,7 @@
 [report]: ../../validation/reports/fixture-flights.md
 [real]: ../../validation/reports/real-flights.md
 [note]: ../research/subsonic-boattail-base-drag.md
+[cyl]: ../research/cylinder-base-drag.md
 [page]: ../accuracy.md#the-base-under-power-against-a-measured-flight
 [i-73]: https://github.com/nrdptel/fusionspace-eridanus/issues/73
 [i-633]: https://github.com/nrdptel/fusionspace-eridanus/issues/633
@@ -53,10 +54,11 @@ boattailed base the whole flat-base value, $0.12 + 0.13\,M^2$ on the base's area
    step it tends to. The code is `hpr_aero::afterbody::boattail_base_pressure_ratio`.
 
 2. **Why this rule and not Hoerner's whole rule.** Hoerner's eq. 35, which also lowers the base
-   for a thinner boundary layer, reads nearer on the Hermes A-3A: high by 0.012 to 0.016. But on
+   for a thicker boundary layer, reads nearer on the Hermes A-3A: high by 0.012 to 0.016. But on
    a flat base it gives 0.046 to 0.065 on the base's area at forebody drags of 0.4 to 0.2, where
-   flat bases measured without a sting read 0.12 to 0.16 from Mach 0.6 to 0.9, as HPR Sim's rule
-   does ([the note][note], §3). The reference is a boattailed base, so the change is held to
+   flat bases measured without a sting read 0.12 to 0.16 from Mach 0.6 to 0.9 and HPR Sim's
+   rule gives 0.167 to 0.225 ([the note][note], §3; [cylinder base drag][cyl]): Hoerner's reads
+   far below the measured flat bases, HPR Sim's above them. The reference is a boattailed base, so the change is held to
    what it measures: the relief behind a boattail. A flat base is unchanged.
 
 3. **What the reference shows after.** Power off, high on every row by 0.025 to 0.035, 3.0 to
@@ -107,8 +109,9 @@ boattailed base the whole flat-base value, $0.12 + 0.13\,M^2$ on the base's area
      +1.10%) and Lince (+3.39% to +4.04%) move away from their logs; Juno III (−7.24% to
      −6.39%) and Erebus 11 move nearer.
    - **The census.** 52 rows moved, 38 for the worse, accepted with the reason in
-     `validation/reports/census.json`: the rows against OpenRocket on three boattailed public
-     examples and on two calm flights of one private design, and the four public flights above.
+     `validation/reports/census.json`: 41 are the whole flights of three boattailed public
+     examples against RocketPy 1.13.0 (patched), each code on its own drag curve; 4 are two calm
+     flights of one private design against OpenRocket 24.12; 7 are the four public flights above.
    - **The synthetic flights.** HPR Sim flies them, so they move too. The shares that make the
      log readings' 90% intervals and the flight fit's, both fitted on the calibration set, are
      fitted again, and the library holds the new ones at three figures, as `cargo xtask
@@ -129,8 +132,8 @@ boattailed base the whole flat-base value, $0.12 + 0.13\,M^2$ on the base's area
 
 **Consequences.**
 
-- Every boattailed rocket's drag below Mach 0.8 falls, so its apogee rises. A flat base, a step
-  and a separated boattail are as before. No API changes.
+- Every attached boattail's base drag below Mach 0.8 falls, so its apogee rises. A flat base, a
+  step and a separated boattail are as before. No public function's signature changes.
 - Evidence row G41 ([#1572][i-1572], `needs-sample`) states that the rule rests on one missile
   model's flight and on tunnel data, not on a hobby rocket's base.
 - Under [ADR-143][adr-143]'s stop rule this is progress: a measured error against an independent

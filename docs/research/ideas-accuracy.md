@@ -146,8 +146,8 @@ That review promoted the rail-exit speed to [M2.14][m2-14]; the three below are 
   smoothest finish. Another simulator's notes give its apogees on seven weighed, logged kit flights
   as 13.8% high "as their design files are set up (polished, no rail buttons)" and 3.5% off with
   regular paint and rail buttons, and say what the rockets really had isn't recorded ([its
-  validation page][prfl], read 2026-11-16). HPR Sim's apogees on the private collection run +7.72%
-  high on average ([scoreboard][score]). Workflow: the fixture report counts the flown designs with
+  validation page][prfl], read 2026-11-16). HPR Sim's apogees on the private collection ran +7.72%
+  high on average on 2026-11-16 (+8.01% since ADR-362) ([scoreboard][score]). Workflow: the fixture report counts the flown designs with
   no rail guide and those at the smoothest finish, then flies each again with guides sized by a rule
   fixed beforehand and a named painted finish. Moves: `bias.collection`, as a shown diagnosis, never
   the scored cell: a changed default is a correction of another form, which [ADR-346][adr-346] makes

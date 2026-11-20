@@ -3472,11 +3472,11 @@ record of OpenRocket's run must also show it loading exactly those curves. One c
 because HPR Sim's curve came from its own catalog, found by the motor's name. A tilted rod is flown
 as recorded, as in [A tilted launch rod](#a-tilted-launch-rod).
 
-The 35 flights (from the committed report, September 28, 2026):
+The 35 flights (from the committed report):
 
 | metric | flights | median | from | to |
 |---|---:|---:|---:|---:|
-| apogee, no named cause | 28 | −0.31% | −4.84% | +1.17% |
+| apogee, no named cause | 28 | −0.25% | −4.84% | +1.17% |
 | apogee, OpenRocket's parachute open before apogee | 6 | −0.32% | −3.09% | +2.15% |
 | apogee, HPR Sim's own drag coefficient | 1 | +13.60% | +13.60% | +13.60% |
 | largest speed, no named cause | 34 | +0.27% | −0.65% | +2.28% |

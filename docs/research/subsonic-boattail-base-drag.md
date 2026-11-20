@@ -21,8 +21,8 @@ be considered as base". The rule has no Mach number in it: it is a low-speed cor
 zero-lift drag less its base (its eq. 4.2.3.1-a's first term).
 
 HPR Sim's rule below Mach 1 is (0.12 + 0.13 M²) on the base area (Niskanen 2009, eq. 3.94), so on the largest
-cross-section it scales with (d_B/d)², and it takes no account of the forebody. Below Mach 0.8 HPR Sim gives a
-boattail no relief on its base.
+cross-section it scales with (d_B/d)², and it takes no account of the forebody. Before M1.14i3 (ADR-362), below
+Mach 0.8 HPR Sim gave a boattail no relief on its base.
 
 ## 2. On the Hermes A-3A
 
@@ -48,7 +48,7 @@ columns). A test holds that Hoerner's rule reads high past ±0.006 on every row,
   read 0.12 to 0.16 on the base area from Mach 0.6 to 0.9 ([cylinder base drag](cylinder-base-drag.md)); for eq. 34 to
   give that, C_DfB would be 0.033 to 0.058 (Inference: (0.029/0.16)² to (0.029/0.12)²), too low for a forebody
   several diameters long. So on flat bases the rule reads low there. Changing every base on one boattailed
-  vehicle's flight would move every flight's apogee up, and the collection already climbs above its logs on average.
+  vehicle's flight would move every flight's apogee up, on a rule that reads low on the flat bases measured.
 - **The relief alone.** HPR Sim's flat-base rule with Hoerner's dependence on the base's diameter, (d_B/d)³ on the
   largest cross-section where HPR Sim's is (d_B/d)², leaves flat bases as they are and multiplies a boattailed base's
   value by d_B/d (`hpr_power_off` since M1.14i3). On this model that is 0.0378 to 0.0434, high by 0.0251 to 0.0348: a mean

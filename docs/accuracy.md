@@ -335,7 +335,7 @@ its reference and still pass.
 | [Solid motors](physics/motor.md#validation) | [OpenRocket](glossary.md#openrocket) 24.12's own reading of the same 32 curve files (total impulse, peak thrust, the 5%-of-peak burn-time window and the curve's duration) | every one bit for bit equal. Its average thrust divides the window's own impulse by the window where HPR Sim divides the whole curve's, so HPR Sim's is +0.0107% to +0.3147% higher (median +0.0965%). Nothing else in the motor model is compared with OpenRocket |
 | [Solid motors](physics/motor.md) | RocketPy's solid-motor model, on three bundled motors, at 203 times each | total mass and inertias within 7.9e-5 relative; the propellant's own mass and inertias within 1e-4 of their values at ignition |
 | [Aerodynamics](physics/aero.md) | [Barrowman's](glossary.md#barrowmans-method) five worked examples, at Mach 0 (low speed): each rocket's [normal-force slope](glossary.md#normal-force-slope) and [center of pressure](glossary.md#center-of-pressure-cp) | every center of pressure within 1%. Every slope within 1% too, except the six-fin Recruiter's: +2.87% (+3.42% on its fins alone) |
-| [Aerodynamics](physics/aero.md) | drag curves labeled [RASAero](glossary.md#rasaero-ii) in RocketPy's examples, at [Mach](glossary.md#mach-number) 0.3, with the fins and surface finish guessed because the curves don't record them | within 10% in four of seven cases; −18.3% for Cavour [power-on](glossary.md#power-on-and-power-off-drag) (motor burning), cause open |
+| [Aerodynamics](physics/aero.md) | drag curves labeled [RASAero](glossary.md#rasaero-ii) in RocketPy's examples, at [Mach](glossary.md#mach-number) 0.3, with the fins and surface finish guessed because the curves don't record them | within 10% in two of seven cases; two boattailed ones −10.3% and −11.5%; −18.3% for Cavour [power-on](glossary.md#power-on-and-power-off-drag) (motor burning), cause open |
 | [Aerodynamics](physics/aero.md) | Valetudo's drag table, which is 1.44 times the drag in the [OpenRocket](glossary.md#openrocket) export for the same rocket | −47.0% power-off and −50.4% power-on. Against the OpenRocket export, HPR Sim is 23.5% under as designed here, and 1.9% under with the export's own surface finish and launch lugs |
 | [Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2) | the same curves every 0.05 from Mach 0.1 to 2.0, as far as each reaches; Calisto's, the one real RASAero II export, to Mach 2 | Calisto within 10% at 15 of 15 subsonic Mach numbers, 3 of 7 transonic and 8 of 17 supersonic, where HPR Sim reads −14.9% to −5.1%, lowest at Mach 2 (−29.8% to −24.4% before the boattail's supersonic wave drag) ([evidence row G26](evidence.md#g26)). Other plausible fins put 14 to 17 of the 17 within 10%, though none puts every row within it, so most of what is left is within the unrecorded inputs; part of it is HPR Sim's body, which reads low faster than sound against MIL-HDBK-762 too |
 | [Aerodynamics](physics/aero.md#drag-against-mil-hdbk-762s-sample-calculation) | MIL-HDBK-762's worked drag example, a rocket whose every term the handbook calculates, from Mach 0.5 to 3.2: a calculation with every input known, not a measurement. Its fins are sharp-edged wedges, which HPR Sim can't represent, so their pressure drag is left out on both sides | 6 of 12 within 10%. From Mach 0.9 to 1.2, +12.3% to +31.9%, mostly the nose and the base; from Mach 1.6, −6.0% to −9.6%, friction and the base |
@@ -1596,7 +1596,7 @@ those ([the tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xta
 `the_public_flights_split_by_band`). From a clone, `cargo test -p xtask drag_bands` runs it,
 with neither OpenRocket nor the private flights.
 
-**What it decided.** The band below Mach 0.8 is worked on next:
+**What it decided.** The band below Mach 0.8 was worked on next:
 [M1.14i, drag below Mach 0.8](decisions-and-roadmap.md#m1-14i)
 ([the decision that orders the work][adr-359]). Over these flights it has the largest mean
 absolute part, 0.94% against 0.48% and 0.23%, and it dominates the most of them
@@ -1754,7 +1754,8 @@ the base. The jet leaves below the outside air's pressure, past fixed vanes in i
 
 **HPR Sim's rule and OpenRocket's.** Below Mach 0.8, HPR Sim's base drag coefficient on the
 base is $0.12 + 0.13\,M^2$ ([Drag](physics/aero.md#drag)), coasting on the whole base, and
-behind a boattail it keeps $d_B/d_1$ of that, the base's diameter over the largest: a conical
+behind a boattail it keeps $d_B/d_1$ of that, the base's diameter over the boattail's fore diameter
+(the largest, where the boattail starts at it): a conical
 afterbody's base drag scales with that ratio cubed on the largest cross-section where the
 rule on the base's area scales with its square (Stoney, NASA TR R-100, 1961, p. 11, from
 tunnel data; [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md),
@@ -1763,8 +1764,9 @@ flight, with the motor burning, HPR Sim takes the motor case's area off the base
 Here the case is wider than the base, so as HPR Sim flies it there is no base drag under power.
 Given only the nozzle exit's area, which is what this base holds of the motor, the same rule
 leaves the ring of base around the exit, the area the report measured on: that tests the
-coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power,
-which is the coasting value. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
+coefficient, not the area HPR Sim flies. OpenRocket 24.12 keeps the whole base under power, on
+the flat-base rule with no relief behind a boattail: $1/0.6$ times the table's last column,
+which is the whole base on HPR Sim's coefficient. As a worked example at Mach 0.7: $0.12 + 0.13 \times 0.49 = 0.1837$
 on the base. The base is $(4.8/8)^2 = 0.36$ of the largest cross-section, and behind the cone
 it keeps $4.8/8 = 0.6$ of the rule, so coasting HPR Sim gives $0.1837 \times 0.36 \times 0.6 =
 0.0397$. Under power the ring is $(4.8^2 - 3.0^2)/8^2 = 0.219$ of it, so given the nozzle exit
@@ -1772,7 +1774,7 @@ HPR Sim gives 0.0242, and with the case off 0. The flight measured 0.0105 coasti
 under power ([fixture report][fixture-report]). Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) the base kept the
 whole rule behind a boattail, $1/0.6$ times as much coasting.
 
-| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power |
+| Mach | measured base drag coefficient, power off | HPR Sim's base drag coefficient, power off | measured base drag coefficient, under power | HPR Sim's base drag coefficient, under power, case off | HPR Sim's base drag coefficient, under power, nozzle exit off | the whole base's drag coefficient, under power, on HPR Sim's coefficient |
 |---:|---:|---:|---:|---:|---:|---:|
 | [0.65][fixture-report] | 0.0127 | 0.0378 | 0.0270 | 0.0000 | 0.0230 | 0.0378 |
 | [0.70][fixture-report] | 0.0105 | 0.0397 | 0.0244 | 0.0000 | 0.0242 | 0.0397 |
@@ -1795,12 +1797,13 @@ test
   [fixture report][fixture-report]).
 - **Given the nozzle exit instead, the same rule comes within 0.007,** from 0.0040 low to
   0.0061 high: within the stated error and the reading together, ±0.006, at Mach 0.65 to 0.75.
-  The whole base kept under power reads high by 0.0108 to 0.0230
-  ([fixture report][fixture-report]).
+  The whole base kept under power reads high by 0.0108 to 0.0230 on HPR Sim's coefficient; on
+  OpenRocket 24.12's, the flat-base rule with no relief behind the boattail, by 0.036 to 0.052
+  (the fixture's flat-base column less the measured; [fixture report][fixture-report]).
 - **Coasting, HPR Sim reads high,** by 0.025 to 0.035: its value is 3.0 to 5.1 times the
   measured. Before [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) it read high by 0.050 to 0.064, 5.0 to 8.4 times: the mean absolute
   error over the four rows fell from 0.0574 to 0.0303, and no row's grew. Hoerner's rule, which
-  also lowers the base for a thinner boundary layer, reads high by 0.012 to 0.016
+  also lowers the base for a thicker boundary layer, reads high by 0.012 to 0.016
   ([fixture report][fixture-report];
   [the rules side by side](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/subsonic-boattail-base-drag.md)).
 - **The jet raised the measured base drag**, to 2.1 to 2.4 times its coasting value, as the
@@ -1906,8 +1909,9 @@ rest.
   probably reads low ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228); [tube
   fins](physics/aero.md#tube-fins-against-openrocket)). Check a tube-fin design in both programs and
   treat the smaller margin as the more cautious estimate, not a bound.
-- **Drag against the RASAero curves** at Mach 0.3 is within 10% in four of seven cases, with the
-  fins and finish guessed, as the curves don't record them. Cavour power-on is −18.3%, cause open. Valetudo's −47.0% and −50.4% are
+- **Drag against the RASAero curves** at Mach 0.3 is within 10% in two of seven cases, with the
+  fins and finish guessed, as the curves don't record them. Two boattailed cases, Juno III and
+  Calisto's getting-started fins, are −10.3% and −11.5%. Cavour power-on is −18.3%, cause open. Valetudo's −47.0% and −50.4% are
   against a table 1.44 times the OpenRocket export's ([Aerodynamics](physics/aero.md#verification)).
 - **Six fins.** The [normal-force slope](glossary.md#normal-force-slope) of Barrowman's six-fin
   Recruiter is +2.87% above his printed value, mostly from HPR Sim's different six-fin rule

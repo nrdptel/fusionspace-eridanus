@@ -46,7 +46,7 @@ model is checked.
 | reasoning | An argument only | A unit inferred from what a rocket can do |
 | none | Nothing yet | A format no one has a file of |
 
-The report below has a column only for a kind some row has: no row is `sibling` yet. A row also says
+The report below has a column only for a kind some row has; today one row, [G41](#g41), is `sibling`. A row also says
 what its evidence doesn't cover (*not checked*). It lists each real sample with its SHA-256 hash
 (a fingerprint of the file's bytes) and the test that reads it. It logs each search for better
 evidence by date: each place it looked and what it found, so the next doesn't repeat it.
