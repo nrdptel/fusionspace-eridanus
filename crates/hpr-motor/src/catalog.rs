@@ -3146,7 +3146,7 @@ mod tests {
         // A 38 mm bore, and one a little under (a tight fit the design checks warn of).
         assert_eq!(found("J360", 38.4), small);
         assert_eq!(found("J360", 37.5), small);
-        // A 75 mm bore fits neither closely: the 54 mm motor is closer by 16 mm, so both.
+        // A 76.2 mm bore fits neither closely: the 54 mm motor is closer by 16 mm, so both.
         assert_eq!(found("J360", 76.2), both);
         // Its own designation names the 54 mm motor alone, whatever the bore.
         assert_eq!(

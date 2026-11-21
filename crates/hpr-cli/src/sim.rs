@@ -3173,9 +3173,8 @@ fn bore_guard(name: &str, bore_m: f64, catalog: &Catalog) -> Result<(), Failure>
 }
 
 /// The share of a mount's bore by which a motor narrower than it needs an adapter: more than the
-/// 1.6% a 3.00 in (76.2 mm) bore leaves a 75 mm case, and less than the smallest step between the
-/// bundled catalog's common diameters (13, 18, 24, 29, 38, 54, 75 and 98 mm), 17% from 24 to
-/// 29 mm.
+/// 1.6% a 3.00 in (76.2 mm) bore leaves a 75 mm case, and less than the 17% between 24 and
+/// 29 mm, the smallest step between the sizes 13, 18, 24, 29, 38, 54, 75 and 98 mm.
 const ADAPTER_GAP_SHARE: f64 = 0.05;
 
 /// A note that `motor`, narrower than `mount`'s `bore_m` by more than [`ADAPTER_GAP_SHARE`] of

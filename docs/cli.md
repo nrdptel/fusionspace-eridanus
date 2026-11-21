@@ -1435,7 +1435,8 @@ The rule follows the one a `.ork` file's motor is read by, in
 §1 on looking a motor up by name, but it measures the motor against the mount's bore rather
 than against the case the file draws. `--motor` looks at every motor sharing the name. It refuses
 the name if one of them fits the bore closer than the motor the name gives, by more than 1 mm
-(0.039 in) of room, or fits where the named motor doesn't. That other motor must fly in the bore
+(0.039 in) of room, or fits where the named motor doesn't. Here a motor fits when it is at most
+1 mm (0.039 in) wider than the bore. That other motor must fly in the bore
 by the design checks' rule, which allows a nominal 18, 24 or 29 mm case a fraction of a millimeter
 over the bore and other sizes none. In a 38 mm (1.5 in) mount the same `J360` names the 38 mm
 (1.5 in) motor alone, as the 54 mm (2.1 in) one doesn't fit.
@@ -1444,9 +1445,9 @@ A motor named with `--motor` more than 5% narrower than the bore, such as a 38 m
 in a 54 mm (2.1 in) mount, flies centered with no adapter. A note says so. The adapter's mass is
 left out: it would move the apogee, up or down, and for an adapter aft of the center of gravity
 the margin reads high without it. 5% is more than the 1.6% a 3.00 in (76.2 mm) bore leaves a
-75 mm case, and less than the smallest step between the catalog's common motor sizes, from 13 mm
-(0.51 in) to 98 mm (3.9 in): 17%, from 24 to 29 mm (0.94 to 1.14 in). A motor the design file
-holds gets no such note.
+75 mm case. It is less than the 17% between 24 mm (0.94 in) and 29 mm (1.14 in), the smallest
+step between these sizes, in millimeters: 13, 18, 24, 29, 38, 54, 75 and 98. A motor the design
+file holds gets no such note.
 
 #### A motor's figures
 
