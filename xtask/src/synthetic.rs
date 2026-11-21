@@ -3380,6 +3380,90 @@ mod tests {
         problems
     }
 
+    /// The checks split out of `validate` when its macOS job went over the 20-minute budget for a
+    /// job (issues #1427, #1558) still run where they ran: the reports' check and the tip-off
+    /// model on every platform, the scoreboard on ubuntu-latest, and the iPhone build on macOS;
+    /// each skipped only for a change to research notes alone, step by step, so a skipped job still
+    /// reports by its name; and none of them is left in `validate`.
+    #[test]
+    fn the_checks_split_from_validate_run_where_they_ran() {
+        let root = crate::designs::root().unwrap();
+        let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+        let ci = ci.replace("\r\n", "\n");
+        // A job, from its key to the next job's key.
+        let job = |name: &str| {
+            let key = format!("  {name}:");
+            let lines: Vec<&str> = ci.lines().skip_while(|l| *l != key).collect();
+            assert!(!lines.is_empty(), "{name}");
+            let is_key = |l: &str| {
+                l.len() > 3
+                    && l.starts_with("  ")
+                    && !l.starts_with("   ")
+                    && l.ends_with(':')
+                    && !l.trim_start().starts_with('#')
+            };
+            let end = lines[1..]
+                .iter()
+                .position(|l| is_key(l))
+                .map_or(lines.len(), |at| at + 1);
+            lines[..end].join("\n") + "\n"
+        };
+        let (reports, validate, phone) = (job("reports"), job("validate"), job("phone"));
+        // Every step runs unless the change is research notes alone; nothing else turns a job or
+        // a step off, and nothing lets one fail.
+        let run_only = |text: &str, also: &[&str]| {
+            assert!(text.contains("      RUN: ${{ needs.scope.outputs.notes != 'true' }}\n"));
+            assert!(!text.contains("continue-on-error"));
+            assert!(!text.contains("exclude:"));
+            assert!(
+                !text.lines().any(|l| l.starts_with("    if:")),
+                "a job-level if"
+            );
+            for line in text.lines().filter(|l| l.starts_with("      - ")) {
+                let condition = line.strip_prefix("      - if: ");
+                assert!(
+                    condition == Some("env.RUN == 'true'")
+                        || condition.is_some_and(|c| also.contains(&c)),
+                    "{line}"
+                );
+            }
+        };
+        let linux = "env.RUN == 'true' && matrix.os == 'ubuntu-latest'";
+        run_only(&reports, &[linux]);
+        run_only(&phone, &[]);
+        assert!(reports.contains(&format!("        os: {PLATFORMS}\n")));
+        assert!(reports.contains("    runs-on: ${{ matrix.os }}\n"));
+        for check in ["validate --check", "tip-off-model --check"] {
+            let line = format!(
+                "\n      - if: env.RUN == 'true'\n        run: cargo run --locked --quiet --package \
+                 xtask -- {check}\n"
+            );
+            assert!(reports.contains(&line), "{check}");
+            assert_eq!(ci.matches(&format!("-- {check}")).count(), 1, "{check}");
+        }
+        assert!(reports.contains(&format!(
+            "\n      - if: {linux}\n        run: cargo run --locked --quiet --package xtask -- \
+             scoreboard --check --against HEAD^1\n"
+        )));
+        assert_eq!(
+            reports.matches(linux).count(),
+            2,
+            "the fetch and the scoreboard alone"
+        );
+        assert!(validate.contains("--profile report-check -- motor-catalog --check\n"));
+        for moved in ["validate --check", "tip-off", "scoreboard", "phone-build"] {
+            assert!(!validate.contains(moved), "{moved}");
+        }
+        assert!(phone.contains(
+            "      matrix:\n        include:\n          - phone: android\n            os: \
+             ubuntu-latest\n            targets: aarch64-linux-android\n          - phone: ios\n  \
+             \x20         os: macos-latest\n            targets: aarch64-apple-ios \
+             aarch64-apple-ios-sim\n    runs-on: ${{ matrix.os }}\n"
+        ));
+        assert!(phone.contains("    name: phone (${{ matrix.phone }})\n"));
+        assert!(phone.contains("        run: scripts/phone-build.sh ${{ matrix.targets }}\n"));
+    }
+
     /// The slices of the synthetic flights and of two logs (M0.16a1, ADR-149 amended): checked
     /// on every platform on every pull request, unconditioned but for a change to research notes
     /// alone, and in the gate's validate step in place of the whole censuses.
@@ -3547,12 +3631,15 @@ mod tests {
         ));
         assert_eq!(ci.matches("-- two-logs --check").count(), 1);
         // A nightly run whose censuses failed or didn't run files an issue.
-        assert!(ci.contains("\n    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals,"));
+        // The reports' own check runs in `reports` (issue #1427), which the alert waits on too.
+        assert!(ci.contains("\n    needs: [scope, fmt, clippy, test, examples, types, python, validate, reports, census, fit-intervals,"));
         assert!(ci.contains(
             "|| needs.census.result != 'success' || needs['fit-intervals'].result != 'success') }}"
         ));
         // The two jobs must hold up what's deployed.
-        assert!(ci.contains("needs: [fmt, clippy, test, examples, types, python, validate,"));
+        assert!(
+            ci.contains("needs: [fmt, clippy, test, examples, types, python, validate, reports,")
+        );
         // Each way of leaving a set out, or running it somewhere it isn't always run.
         let half = "synthetic --check --sets b,calibration";
         let has = |probe: &str, text: &str, what: &str| {

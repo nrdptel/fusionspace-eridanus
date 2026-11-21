@@ -42,10 +42,11 @@ jobs:
   # the synthetic flights and two logs (`validate`) and fits the fit's slice (`fit-slice`), and
   # leaves the whole to that night's run, as `scripts/gate.sh` does on the Mac. `notes` is true
   # when every file a pull request or push changes, renamed from or to, is a research note under
-  # docs/research/: `validate`, `fit-slice`, `examples` and `python` then run no step and pass, and `types`,
-  # `wasm-check` and `phone` skip, each still reporting by name for branch protection. `test` and
-  # `site`, which read the notes, run, and so do the quick Linux checks. A list GitHub can't give,
-  # an empty one, or one of 300 files or more (the compare API's cap) counts as code.
+  # docs/research/: `validate`, `reports`, `fit-slice`, `examples`, `python` and `phone` then run
+  # no step and pass, and `types` and `wasm-check` skip, each still reporting by name for branch
+  # protection. `test` and `site`, which read the notes, run, and so do the quick Linux checks. A
+  # list GitHub can't give, an empty one, or one of 300 files or more (the compare API's cap)
+  # counts as code.
   scope:
     name: scope
     runs-on: ubuntu-latest
@@ -276,9 +277,13 @@ jobs:
   # Runs every case in the validation lock against its committed reference, with no oracle and no
   # network, and fails if a metric is outside its tolerance or if the committed report is not this
   # run's, to the digits the platforms share (M2.1c1, ADR-015, ADR-022). The references themselves
-  # are regenerated only by hand, by the `Regenerate references` workflow.
-  validate:
-    name: validate (${{ matrix.os }})
+  # are regenerated only by hand, by the `Regenerate references` workflow. Then the tip-off model
+  # and the scoreboard (on ubuntu-latest). All three build xtask's dev profile; they ran in
+  # `validate` until its macOS job went over the 20-minute budget for a job (issues #1427,
+  # #1558), and `validate` keeps the steps that build the `report-check` profile, so neither job
+  # builds both.
+  reports:
+    name: reports (${{ matrix.os }})
     needs: scope
     strategy:
       fail-fast: false
@@ -311,6 +316,44 @@ jobs:
       # force inside ADR-357's bars.
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask -- tip-off-model --check
+      # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
+      # one main committed, unless an accepted ADR names it. Main is the checked-out commit's first
+      # parent: on a pull request's run, main as GitHub merged the branch into it; on main's own
+      # runs, main before the squash merge checked out. Never main fetched as the step runs: a
+      # merge landing mid-run made the older commit read as worse than it (issue #1426).
+      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
+        run: git fetch --no-tags --depth=2 origin "$GITHUB_SHA"
+      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
+        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against HEAD^1
+
+  # The checks that build xtask's optimized `report-check` profile, which keeps the dev profile's
+  # assertions and overflow checks: the bundled motor catalog, and the slices of the synthetic
+  # flights and of two logs. The committed reports' own check runs in `reports`.
+  validate:
+    name: validate (${{ matrix.os }})
+    needs: scope
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
+    steps:
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
+        shell: bash
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
       # write, every file stored as passing is within 1% of its record, worked out again from its
       # bytes, and none stored as failing is, and every motor flies by name offline.
@@ -325,20 +368,6 @@ jobs:
         run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --slice --other-platform
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --slice --other-platform
-      # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
-      # one main committed, unless an accepted ADR names it. Main is the checked-out commit's first
-      # parent: on a pull request's run, main as GitHub merged the branch into it; on main's own
-      # runs, main before the squash merge checked out. Never main fetched as the step runs: a
-      # merge landing mid-run made the older commit read as worse than it (issue #1426).
-      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
-        run: git fetch --no-tags --depth=2 origin "$GITHUB_SHA"
-      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
-        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against HEAD^1
-      # The iPhone build (ADR-227) runs here, not in a job of its own, so a run's macOS jobs fit
-      # the five GitHub runs at once.
-      - if: env.RUN == 'true' && matrix.os == 'macos-latest'
-        run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
-        shell: bash
 
   # The flight censuses, whole, on every platform, each night (ADR-149, amended). The synthetic
   # flights' census (M7.2a, ADR-280): every flight flown again, held to the committed census to the
@@ -561,23 +590,40 @@ jobs:
       # `cargo xtask` without its alias, so the xtask build itself is --locked too.
       - run: cargo run --locked --quiet --package xtask -- wasm-check --locked
 
-  # The workspace builds for Android (ADR-227); the iPhone build runs in `validate (macos-latest)`.
+  # The workspace builds for Android and the iPhone (ADR-227), each in a job of its own. The
+  # iPhone build ran in `validate (macos-latest)` until that job went over its budget (#1427).
   # Build only: the tests run on phones when the mobile apps (M9.4) do.
   phone:
-    name: phone (android)
+    name: phone (${{ matrix.phone }})
     needs: scope
-    # Not for a change to research notes alone (`scope`); skipped, it still passes by name.
-    if: needs.scope.outputs.notes != 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - phone: android
+            os: ubuntu-latest
+            targets: aarch64-linux-android
+          - phone: ios
+            os: macos-latest
+            targets: aarch64-apple-ios aarch64-apple-ios-sim
+    runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`). A matrix job skipped whole
+      # reports under its unexpanded name, so it runs with no steps and passes by name instead.
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
     steps:
-      - uses: actions/checkout@v7
-      - run: rustup toolchain install
-      - uses: Swatinem/rust-cache@v2
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: scripts/phone-build.sh aarch64-linux-android
+      - if: env.RUN == 'true'
+        run: scripts/phone-build.sh ${{ matrix.targets }}
         shell: bash
 
   deny:
@@ -670,7 +716,7 @@ jobs:
   # nightly run.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, types, python, validate, fit-slice, fit-intervals, doc, evidence, wasm-check, phone, deny, site, scope]
+    needs: [fmt, clippy, test, examples, types, python, validate, reports, fit-slice, fit-intervals, doc, evidence, wasm-check, phone, deny, site, scope]
     if: >-
       ${{ !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
       && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -691,7 +737,7 @@ jobs:
   # amended; ADR-144 §4). A run started by hand reports to whoever started it.
   nightly-alert:
     name: nightly alert
-    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals, fit-slice, doc, evidence, wasm-check, phone, deny, site]
+    needs: [scope, fmt, clippy, test, examples, types, python, validate, reports, census, fit-intervals, fit-slice, doc, evidence, wasm-check, phone, deny, site]
     if: >-
       ${{ always() && github.event_name == 'schedule'
       && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

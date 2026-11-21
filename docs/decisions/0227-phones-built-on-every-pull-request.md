@@ -1,6 +1,6 @@
 # ADR-227: Phones built on every pull request (2026-10-10)
 
-- **Status:** accepted
+- **Status:** accepted; decision 1's placement amended 2026-11-20: the iPhone build runs in a job of its own, `phone (ios)`, beside `phone (android)`, since the macOS `validate` job went over the 20-minute budget for a job (issues #1427, #1558)
 - **Summary:** CI builds the workspace for iPhone (`aarch64-apple-ios`), its simulator on Apple silicon (`aarch64-apple-ios-sim`) and 64-bit Android (`aarch64-linux-android`, Android 7.0 and later) on every pull request, so the mobile apps (M9.4) start from a core that already builds there. Build only: the tests run on phones when the apps do, and no phone archives or wheels are released.
 
 **Context.** The mobile apps come after release 1.0 ([ADR-162][adr-162]): an offline web app

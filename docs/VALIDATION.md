@@ -423,9 +423,9 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 
 Every pull request but one that changes only research notes (under `docs/research/`) runs
 `cargo xtask validate --check` on macOS, Windows and Linux, in continuous
-integration (CI). It's the `validate` job in `.github/workflows/ci.yml`
-([its milestone](decisions-and-roadmap.md#m2-1c1)). It flies every locked case, compares each
-result with the stored RocketPy numbers, and writes nothing. RocketPy itself isn't run. The job
+integration (CI). It's the `reports` job in `.github/workflows/ci.yml`
+([its milestone](decisions-and-roadmap.md#m2-1c1)). The job flies every locked case, compares
+each result with the stored RocketPy numbers, and writes nothing. RocketPy itself isn't run. The job
 fails if a scored metric is outside its tolerance, or if the committed report differs from this
 run's.
 
@@ -437,10 +437,11 @@ rendering (`Report::reproduces`;
 [the CI decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0022-validation-in-ci-and-regenerating-references.md)).
 So a change that moves a number has to commit the report that shows it.
 
-The long report checks run from an optimized build in CI: `report-check`, a Cargo build setting
-with release's speed plus the assertions and overflow checks of the everyday build. Optimizing
-keeps their numbers to the digits they compare. `cargo xtask motor-catalog --check` runs beside
-`validate --check` on the same pull requests. The flight censuses, `cargo xtask synthetic --check`, `cargo xtask two-logs --check`
+Two builds run these checks in CI. `validate --check` runs from the everyday (dev) build, in the
+`reports` job. The checks that fly many flights run from `report-check`, a Cargo build setting
+with release's speed plus the assertions and overflow checks of the everyday build, in the
+`validate` job: `cargo xtask motor-catalog --check` and the censuses' slices, on the same pull
+requests. Optimizing keeps their numbers to the digits they compare. The flight censuses, `cargo xtask synthetic --check`, `cargo xtask two-logs --check`
 and `cargo xtask fit --check`, fly thousands of flights each, so CI runs them whole each night on
 main, not on every pull request
 ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
@@ -543,7 +544,7 @@ and on. A change that moves only fits outside it, and by less than the night's a
 by 5 flights or fewer), is found only by the check by hand
 ([issue #1177](https://github.com/nrdptel/fusionspace-eridanus/issues/1177)).
 
-Then the `validate` job holds the committed reports to the accuracy census accepted last
+In the same `reports` job, `validate --check` ends by holding the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).
 Each number the harness's report, the real flights' and both OpenRocket reports hold HPR Sim to is a
