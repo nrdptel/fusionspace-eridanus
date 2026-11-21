@@ -263,6 +263,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14b5 Tip-off, measured with RocketPy's ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b11 The tip-off phase, held to RocketPy's on RocketPy's normal force ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14b13 The tip-off reference at RocketPy's rewritten phase ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M1.14b14 What tip-off moves on the real flights ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14i Drag below Mach 0.8 ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14i1 The drag part of the gap to OpenRocket, by Mach band ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14i2 The part below Mach 0.8, by term ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1456,6 +1457,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - **M1.14b10** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M1.14b13 The tip-off reference at RocketPy's rewritten phase** (#1550). *Done
         when:* ADR-363 decision 1's for M1.14b13.
+      - [x] **M1.14b14 What tip-off moves on the real flights.** *Done when:* ADR-363
+        decision 1's for M1.14b14.
   - [x] **M1.14i Drag below Mach 0.8,** next, ahead of M1.14b's open increments (ADR-359 gives
     each *done when*). Met when its three increments are.
     - [x] **M1.14i1 The drag part of the gap to OpenRocket, by Mach band.** *Done when:* ADR-359

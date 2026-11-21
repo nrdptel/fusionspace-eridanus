@@ -1,0 +1,322 @@
+{
+  "generated_by": "cargo xtask tip-off-flights",
+  "milestone": "M1.14b14",
+  "decision": "ADR-363",
+  "flights": [
+    {
+      "id": "bella-lui",
+      "title": "Bella Lui, EPFL Rocket Team, 2020 (K828FJ)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 458.971,
+      "guided_apogee_m": 464.03171278207265,
+      "tip_off_apogee_m": 464.0606074219696,
+      "move_m": 0.028894639896975605,
+      "move_percent": 0.006226867496563894,
+      "guided_error_percent": 1.102621468910376,
+      "tip_off_error_percent": 1.1089169951847977,
+      "still_guided_apogee_m": 464.3293107663045,
+      "still_tip_off_apogee_m": 464.3106260242454,
+      "still_move_m": -0.018684742059122073
+    },
+    {
+      "id": "ndrt-2020",
+      "title": "NDRT 2020, Notre Dame Rocketry Team (L1395)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 1320.3570240000001,
+      "guided_apogee_m": 1457.640613100426,
+      "tip_off_apogee_m": 1457.5017925239604,
+      "move_m": -0.13882057646560497,
+      "move_percent": -0.009523649054366787,
+      "guided_error_percent": 10.397459672273143,
+      "tip_off_error_percent": 10.386945805649018,
+      "still_guided_apogee_m": 1482.4627591191147,
+      "still_tip_off_apogee_m": 1482.463625539369,
+      "still_move_m": 0.0008664202543968713
+    },
+    {
+      "id": "prometheus-2022",
+      "title": "Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 3895.83,
+      "guided_apogee_m": 3549.286727859384,
+      "tip_off_apogee_m": 3536.6296399047715,
+      "move_m": -12.657087954612507,
+      "move_percent": -0.3566093394276473,
+      "guided_error_percent": -8.895235986699008,
+      "tip_off_error_percent": -9.220124083833957,
+      "still_guided_apogee_m": 3523.3176408865784,
+      "still_tip_off_apogee_m": 3509.615008509195,
+      "still_move_m": -13.702632377383452
+    },
+    {
+      "id": "juno-iii",
+      "title": "Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 3151.507,
+      "guided_apogee_m": 2950.192561612711,
+      "tip_off_apogee_m": 2976.686419664891,
+      "move_m": 26.493858052180258,
+      "move_percent": 0.8980382635666838,
+      "guided_error_percent": -6.387878509782435,
+      "tip_off_error_percent": -5.547205839463749,
+      "still_guided_apogee_m": 3016.722378120292,
+      "still_tip_off_apogee_m": 3000.0027393684386,
+      "still_move_m": -16.71963875185338
+    },
+    {
+      "id": "cavour",
+      "title": "Cavour, Politecnico di Torino, EuRoC 2023 (L995)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 2785.0,
+      "guided_apogee_m": 2945.972368564547,
+      "tip_off_apogee_m": 2945.4765840775126,
+      "move_m": -0.495784487034598,
+      "move_percent": -0.016829230726158294,
+      "guided_error_percent": 5.77997732727279,
+      "tip_off_error_percent": 5.762175370826305,
+      "still_guided_apogee_m": 2971.8242009389774,
+      "still_tip_off_apogee_m": 2970.837452907285,
+      "still_move_m": -0.9867480316925139
+    },
+    {
+      "id": "genesis",
+      "title": "Genesis, EuRoC 2023 (L995)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 2916.691650390625,
+      "guided_apogee_m": 2745.9602450525335,
+      "tip_off_apogee_m": 2745.1869991091166,
+      "move_m": -0.7732459434168959,
+      "move_percent": -0.028159400516088052,
+      "guided_error_percent": -5.853598041987944,
+      "tip_off_error_percent": -5.8801091043867855,
+      "still_guided_apogee_m": 2763.160832805793,
+      "still_tip_off_apogee_m": 2762.118190670274,
+      "still_move_m": -1.0426421355186903
+    },
+    {
+      "id": "lince",
+      "title": "Lince, EuRoC 2023 (M1101)",
+      "set": "compared first",
+      "two_guides": true,
+      "log_apogee_m": 3587.7236328125,
+      "guided_apogee_m": 3732.507832821265,
+      "tip_off_apogee_m": 3728.0316807470213,
+      "move_m": -4.4761520742436005,
+      "move_percent": -0.11992344757814594,
+      "guided_error_percent": 4.03554495347974,
+      "tip_off_error_percent": 3.9107819412648155,
+      "still_guided_apogee_m": 3758.0442414157064,
+      "still_tip_off_apogee_m": 3753.9360986471656,
+      "still_move_m": -4.108142768540802
+    },
+    {
+      "id": "astra",
+      "title": "Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350)",
+      "set": "predicted first",
+      "two_guides": true,
+      "log_apogee_m": 3249.46,
+      "guided_apogee_m": 3037.1127560279933,
+      "tip_off_apogee_m": 3037.0918723809427,
+      "move_m": -0.020883647050595755,
+      "move_percent": -0.0006876151374079333,
+      "guided_error_percent": -6.534847142971653,
+      "tip_off_error_percent": -6.5354898235109005,
+      "still_guided_apogee_m": 3015.3358951427817,
+      "still_tip_off_apogee_m": 3015.1544255895797,
+      "still_move_m": -0.1814695532020778
+    },
+    {
+      "id": "andromeda",
+      "title": "Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve)",
+      "set": "predicted first",
+      "two_guides": true,
+      "log_apogee_m": 3438.549384,
+      "guided_apogee_m": 3580.9591363955515,
+      "tip_off_apogee_m": 3580.5928613847254,
+      "move_m": -0.36627501082602976,
+      "move_percent": -0.010228405208630985,
+      "guided_error_percent": 4.141564842959706,
+      "tip_off_error_percent": 4.13091282171696,
+      "still_guided_apogee_m": 3565.614079830162,
+      "still_tip_off_apogee_m": 3565.014569860058,
+      "still_move_m": -0.599509970104009
+    },
+    {
+      "id": "erebus-11",
+      "title": "Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)",
+      "set": "predicted first",
+      "two_guides": true,
+      "log_apogee_m": 3001.75136,
+      "guided_apogee_m": 2760.125062819257,
+      "tip_off_apogee_m": 2759.61843158174,
+      "move_m": -0.5066312375170128,
+      "move_percent": -0.018355372527921892,
+      "guided_error_percent": -8.049510708999668,
+      "tip_off_error_percent": -8.066388563850278,
+      "still_guided_apogee_m": 2747.548539371502,
+      "still_tip_off_apogee_m": 2746.992569466437,
+      "still_move_m": -0.5559699050650124
+    },
+    {
+      "id": "macie-xl-1",
+      "title": "Macie XL, flight 1 (AeroTech I284W)",
+      "set": "predicted first",
+      "two_guides": false,
+      "log_apogee_m": 842.772,
+      "guided_apogee_m": 706.2447625513657,
+      "tip_off_apogee_m": 706.2447625513657,
+      "move_m": 0.0,
+      "move_percent": 0.0,
+      "guided_error_percent": -16.199783268622394,
+      "tip_off_error_percent": -16.199783268622394,
+      "still_guided_apogee_m": 708.2492716873514,
+      "still_tip_off_apogee_m": 708.2492716873514,
+      "still_move_m": 0.0
+    },
+    {
+      "id": "macie-xl-2",
+      "title": "Macie XL, flight 2 (Cesaroni 601I350-16A)",
+      "set": "predicted first",
+      "two_guides": false,
+      "log_apogee_m": 977.7984,
+      "guided_apogee_m": 692.637902059154,
+      "tip_off_apogee_m": 692.637902059154,
+      "move_m": 0.0,
+      "move_percent": 0.0,
+      "guided_error_percent": -29.1635267495678,
+      "tip_off_error_percent": -29.1635267495678,
+      "still_guided_apogee_m": 694.9937581769695,
+      "still_tip_off_apogee_m": 694.9937581769695,
+      "still_move_m": 0.0
+    }
+  ],
+  "collection": {
+    "flights": 60,
+    "flights_with_two_guides": 23,
+    "flights_with_two_guides_on_a_vertical_rail": 11,
+    "designs": 42,
+    "designs_with_two_guides": 20,
+    "moves": [
+      {
+        "from_percent": -0.4,
+        "to_percent": 0.4,
+        "flights": 23
+      }
+    ],
+    "still_air_moves": [
+      {
+        "from_percent": -0.4,
+        "to_percent": 0.0,
+        "flights": 15
+      },
+      {
+        "from_percent": 0.0,
+        "to_percent": 0.1,
+        "flights": 8
+      }
+    ],
+    "split": {
+      "in_the_wind": null,
+      "in_still_air": null,
+      "away": 14,
+      "toward": 9,
+      "away_points": 0.0142,
+      "toward_points": -0.011
+    },
+    "guided": {
+      "mean_absolute_percent": 12.0945,
+      "mean_percent": 8.0073
+    },
+    "tip_off": {
+      "mean_absolute_percent": 12.0978,
+      "mean_percent": 8.0148
+    }
+  },
+  "sets": [
+    {
+      "set": "compared first",
+      "flights": 7,
+      "flights_with_two_guides": 7,
+      "guided": {
+        "mean_absolute_percent": 6.064616565772206,
+        "mean_percent": 0.025555840495237625
+      },
+      "tip_off": {
+        "mean_absolute_percent": 5.973751305801346,
+        "mean_percent": 0.0744830121772064
+      },
+      "split": {
+        "in_the_wind": {
+          "raised": 2,
+          "not_moved": 0,
+          "lowered": 5
+        },
+        "in_still_air": {
+          "raised": 0,
+          "not_moved": 1,
+          "lowered": 6
+        },
+        "away": 3,
+        "toward": 4,
+        "away_points": 0.0510992408297446,
+        "toward_points": -0.1419645008006029
+      }
+    },
+    {
+      "set": "predicted first",
+      "flights": 5,
+      "flights_with_two_guides": 3,
+      "guided": {
+        "mean_absolute_percent": 12.817846542624244,
+        "mean_percent": -11.161220605440361
+      },
+      "tip_off": {
+        "mean_absolute_percent": 12.819220245453664,
+        "mean_percent": -11.166855116766882
+      },
+      "split": {
+        "in_the_wind": {
+          "raised": 0,
+          "not_moved": 0,
+          "lowered": 3
+        },
+        "in_still_air": {
+          "raised": 0,
+          "not_moved": 0,
+          "lowered": 3
+        },
+        "away": 2,
+        "toward": 1,
+        "away_points": 0.0035041070779715964,
+        "toward_points": -0.002130404248549311
+      }
+    },
+    {
+      "set": "the private collection",
+      "flights": 60,
+      "flights_with_two_guides": 23,
+      "guided": {
+        "mean_absolute_percent": 12.0945,
+        "mean_percent": 8.0073
+      },
+      "tip_off": {
+        "mean_absolute_percent": 12.0978,
+        "mean_percent": 8.0148
+      },
+      "split": {
+        "in_the_wind": null,
+        "in_still_air": null,
+        "away": 14,
+        "toward": 9,
+        "away_points": 0.0142,
+        "toward_points": -0.011
+      }
+    }
+  ]
+}

@@ -1144,5 +1144,47 @@
         }
       ]
     }
+  },
+  "tip_off": {
+    "flights": 60,
+    "flights_with_two_guides": 23,
+    "flights_with_two_guides_on_a_vertical_rail": 11,
+    "designs": 42,
+    "designs_with_two_guides": 20,
+    "moves": [
+      {
+        "from_percent": -0.4,
+        "to_percent": 0.4,
+        "flights": 23
+      }
+    ],
+    "still_air_moves": [
+      {
+        "from_percent": -0.4,
+        "to_percent": 0.0,
+        "flights": 15
+      },
+      {
+        "from_percent": 0.0,
+        "to_percent": 0.1,
+        "flights": 8
+      }
+    ],
+    "split": {
+      "in_the_wind": null,
+      "in_still_air": null,
+      "away": 14,
+      "toward": 9,
+      "away_points": 0.0142,
+      "toward_points": -0.011
+    },
+    "guided": {
+      "mean_absolute_percent": 12.0945,
+      "mean_percent": 8.0073
+    },
+    "tip_off": {
+      "mean_absolute_percent": 12.0978,
+      "mean_percent": 8.0148
+    }
   }
 }

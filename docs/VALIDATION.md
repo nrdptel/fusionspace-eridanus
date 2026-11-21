@@ -312,6 +312,16 @@ So far three are reported and three are refused; three are open.
 | A validation uncertainty for each real flight (ASME V&V 20) | open | [Its increment](decisions-and-roadmap.md#m1-14b7). |
 | MAPLEAF, as another simulator to compare with | open | [Its increment](decisions-and-roadmap.md#m1-14b8). |
 
+Beside the tip-off reference, the phase was also flown on every real flight HPR Sim compares,
+with it and without it. That compares HPR Sim with itself, not with a measurement. The phase
+moves each apogee by under 1%. On the seven public flights [the real
+flights](accuracy.md#real-flights) compared as soon as they were flown, the mean absolute apogee
+error falls by 0.091 percentage points. The phase raises Juno III's apogee by 26.5 m (87 ft),
+toward its log, and that one flight alone turns the change into a fall, so the fall is not
+counted for the phase. On the five whose predictions were published before their comparison,
+and on the private collection's 60 flights, it rises by 0.0014 and 0.0033 points. No landing
+point is compared yet ([on the real flights](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
+
 ## The validation harness
 
 `cargo xtask validate [--fast|--check]` runs every case in `validation/cases/lock.toml` and writes

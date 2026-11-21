@@ -12,8 +12,9 @@
 
 use hpr_analysis::AnalysisError;
 use hpr_analysis::montecarlo::dispersed_motor;
+use hpr_atmos::ConstantWind;
 use hpr_design::Rocket;
-use hpr_sim::{SimError, Simulation};
+use hpr_sim::{Environment, SimError, Simulation};
 use serde::{Deserialize, Serialize};
 
 /// The two scales of a correction.
@@ -54,6 +55,98 @@ impl Correction {
     /// A drag scale that isn't a positive number.
     pub fn simulation(&self, simulation: Simulation) -> Result<Simulation, SimError> {
         simulation.with_drag_scale(self.drag_scale)
+    }
+}
+
+/// A public flight flown beside its report's flight: with or without a [`Correction`], with or
+/// without the tip-off phase (`Simulation::with_tip_off`; [what it moves on the real
+/// flights](https://hpr.fusionspace.co/physics/flight.html#the-tip-off-phase-on-the-real-flights)),
+/// and in its report's wind or in still air. Everything else is as the flight's report flies
+/// it: still air keeps the report's air (its pressure, temperature and density) and takes out
+/// only the wind. With no correction, no phase and the report's wind it is that report's flight
+/// itself.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct Variant {
+    /// The correction flown, or none: the motors and the drag as the report flies them.
+    pub correction: Option<Correction>,
+    /// Whether the flight flies the tip-off phase.
+    pub tip_off: bool,
+    /// Whether the wind is taken out: what the phase moves in still air is gravity's part alone.
+    pub still_air: bool,
+}
+
+impl Variant {
+    /// The report's own flight: no correction, no tip-off phase.
+    pub const GUIDED: Self = Self {
+        correction: None,
+        tip_off: false,
+        still_air: false,
+    };
+
+    /// The report's flight with the tip-off phase and no correction.
+    pub const TIP_OFF: Self = Self {
+        correction: None,
+        tip_off: true,
+        still_air: false,
+    };
+
+    /// [`Variant::GUIDED`] in still air.
+    pub const STILL_GUIDED: Self = Self {
+        still_air: true,
+        ..Self::GUIDED
+    };
+
+    /// [`Variant::TIP_OFF`] in still air.
+    pub const STILL_TIP_OFF: Self = Self {
+        still_air: true,
+        ..Self::TIP_OFF
+    };
+
+    /// `correction` flown, without the tip-off phase.
+    #[must_use]
+    pub fn corrected(correction: Correction) -> Self {
+        Self {
+            correction: Some(correction),
+            ..Self::GUIDED
+        }
+    }
+
+    /// `environment` with its wind taken out if the variant asks for still air.
+    #[must_use]
+    pub fn environment(&self, environment: Environment) -> Environment {
+        if self.still_air {
+            environment.with_wind(ConstantWind::calm())
+        } else {
+            environment
+        }
+    }
+
+    /// `rocket` as [`Correction::rocket`] scales it, or `None` with no correction: the rocket as
+    /// given.
+    ///
+    /// # Errors
+    ///
+    /// As [`Correction::rocket`].
+    pub fn rocket(&self, rocket: &Rocket) -> Result<Option<Rocket>, AnalysisError> {
+        self.correction.map(|c| c.rocket(rocket)).transpose()
+    }
+
+    /// `simulation` with the correction's drag scale, if any, and the tip-off phase if asked.
+    ///
+    /// # Errors
+    ///
+    /// As [`Correction::simulation`].
+    pub fn simulation(&self, simulation: Simulation) -> Result<Simulation, SimError> {
+        let simulation = match self.correction {
+            Some(correction) => correction.simulation(simulation)?,
+            None => simulation,
+        };
+        Ok(if self.tip_off {
+            simulation.with_tip_off()
+        } else {
+            simulation
+        })
     }
 }
 
@@ -113,5 +206,63 @@ mod tests {
             };
             assert!(correction.rocket(&rocket).is_err(), "{impulse_scale}");
         }
+    }
+
+    #[test]
+    fn a_variant_changes_only_what_it_names() {
+        use hpr_sim::{FlightSettings, Rail};
+        let rocket = bella_lui();
+        let site = hpr_core::geodesy::Geodetic {
+            latitude_rad: 0.8,
+            longitude_rad: 0.1,
+            height_m: 400.0,
+        };
+        let windy = Environment::standard(site)
+            .unwrap()
+            .with_wind(ConstantWind::new(6.0, 1.0).unwrap());
+        // Still air takes out the wind and keeps the air.
+        let still = Variant::STILL_GUIDED.environment(windy.clone());
+        assert_eq!(
+            still.wind.wind(500.0).unwrap().velocity_enu_m_s.length(),
+            0.0
+        );
+        assert!(windy.wind.wind(500.0).unwrap().velocity_enu_m_s.length() > 5.9);
+        assert_eq!(
+            still.atmosphere.air(500.0).unwrap(),
+            windy.atmosphere.air(500.0).unwrap()
+        );
+        // The report's wind is left as it is.
+        let kept = Variant::TIP_OFF.environment(windy.clone());
+        assert_eq!(
+            kept.wind.wind(500.0).unwrap(),
+            windy.wind.wind(500.0).unwrap()
+        );
+        // Only the tip-off variants ask for the phase, and only a correction scales the rocket.
+        let simulation = || {
+            Simulation::new(
+                &rocket,
+                "example",
+                windy.clone(),
+                Rail::vertical(5.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+        };
+        for (variant, phase) in [
+            (Variant::GUIDED, false),
+            (Variant::TIP_OFF, true),
+            (Variant::STILL_GUIDED, false),
+            (Variant::STILL_TIP_OFF, true),
+            (Variant::corrected(Correction::NONE), false),
+        ] {
+            assert_eq!(variant.simulation(simulation()).unwrap().tip_off(), phase);
+        }
+        assert!(Variant::TIP_OFF.rocket(&rocket).unwrap().is_none());
+        assert!(
+            Variant::corrected(Correction::NONE)
+                .rocket(&rocket)
+                .unwrap()
+                .is_some()
+        );
     }
 }

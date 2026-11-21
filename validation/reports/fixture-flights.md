@@ -254,6 +254,36 @@ The measured reference of the base term below Mach 0.8 is the base drag of the H
 
 Power off, HPR Sim's value is 3.0 to 5.1 times the measured. The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule given the nozzle exit gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
 
+## The tip-off phase (M1.14b14)
+
+Each flight compared is flown again with the tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. Guided is the flight as HPR Sim flies it by default, held straight to its last guide. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided; still air is the day's air with its wind taken out, so that what the phase moves there is gravity's turn about the last guide alone. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
+
+| | compared | with two or more guides at different stations |
+|---|---:|---:|
+| flights | 60 | 23 |
+| designs | 42 | 20 |
+
+Of the flights with two guides, 11 fly from a vertical rail, where gravity has no moment about the last guide: the collection flies one wherever a flight's tilt is not known.
+
+The phase's apogee moves in the day's wind, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+
+| move | flights |
+|---|---:|
+| -0.4% to +0.4% | 23 |
+
+One bin holds all 23 flights.
+
+The phase's apogee moves in still air, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+
+| move | flights |
+|---|---:|
+| -0.4% to 0.0% | 15 |
+| 0.0% to +0.1% | 8 |
+
+Of the 23 flights with two guides: in the wind, how many it raised, left within 1 cm and lowered is held back; in still air, how many it raised, left within 1 cm and lowered is held back. A group of counts is held back where any count in it would be one to four. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points), each rounded on its own.
+
+Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%: a change of +0.0033 points in the mean absolute error.
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.

@@ -102,6 +102,7 @@ mod spelling;
 mod steps;
 mod synthetic;
 mod tip_off;
+mod tip_off_flights;
 mod tip_off_model;
 mod two_logs;
 mod validate;
@@ -126,6 +127,7 @@ Commands:
 {CHECK_CASES}
 {TIP_OFF}
 {TIP_OFF_MODEL}
+{TIP_OFF_FLIGHTS}
 {VALIDATE}
 {CENSUS}
 {CI_BUDGET}
@@ -170,6 +172,7 @@ fn usage() -> String {
         .replace("{CHECK_CASES}", check_cases::USAGE)
         .replace("{TIP_OFF}", tip_off::USAGE)
         .replace("{TIP_OFF_MODEL}", tip_off_model::USAGE)
+        .replace("{TIP_OFF_FLIGHTS}", tip_off_flights::USAGE)
         .replace("{VALIDATE}", validate::USAGE)
         .replace("{CENSUS}", census::USAGE)
         .replace("{CI_BUDGET}", ci_budget::USAGE)
@@ -216,6 +219,7 @@ fn main() -> ExitCode {
         Some("check-cases") => check_cases::run(&args.collect::<Vec<_>>()),
         Some("tip-off") => tip_off::run(&args.collect::<Vec<_>>()),
         Some("tip-off-model") => tip_off_model::run(&args.collect::<Vec<_>>()),
+        Some("tip-off-flights") => tip_off_flights::run(&args.collect::<Vec<_>>()),
         Some("validate") => validate::run(&args.collect::<Vec<_>>()),
         Some("census") => census::run(&args.collect::<Vec<_>>()),
         Some("ci-budget") => ci_budget::run(&args.collect::<Vec<_>>()),

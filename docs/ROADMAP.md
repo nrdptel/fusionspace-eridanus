@@ -266,8 +266,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     - [ ] **M1.14b10 Tip-off in every flight that has two guides** (ADR-363: in three; met when
       M1.14b13, M1.14b14 and M1.14b15 are). *Done when:* ADR-357 decision 4's for M1.14b10,
       the private flights in aggregate.
-      - [ ] **M1.14b14 What tip-off moves on the real flights.** *Done when:* ADR-363
-        decision 1's for M1.14b14.
       - [ ] **M1.14b15 Tip-off by default.** *Done when:* ADR-363 decision 1's for M1.14b15.
     - [ ] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
       decision 2's for M1.14b6.

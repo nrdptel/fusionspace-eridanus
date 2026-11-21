@@ -1034,6 +1034,66 @@ held and what stays open.
   crosswind the rocket leaves the rail at 9.7° to 25.6° to the air. Both codes carry
   small-angle models there, and 7 of the 13 are past the 15° the accuracy work assumes.
 
+### The tip-off phase on the real flights
+
+This compares HPR Sim with itself, the phase on against the phase off; no flight's log checks the
+phase. It moves each real flight's apogee by under 1%, and each set's mean error against the
+logs by a tenth of a percentage point or less. The *compared first* flights are the seven public
+flights compared as soon as they were flown; the *predicted first* are the five whose
+predictions were published before their comparison. On the seven compared first the phase brings
+the mean absolute apogee error down from 6.065% to 5.974%. On the five predicted first, and on
+the private collection's 60 logged flights, it raises it by 0.0014 and 0.0033 percentage points.
+No real flight's landing point is compared yet, so this measures apogees only. The phase is
+still off unless a flight asks for it; [the next increment](../decisions-and-roadmap.md#m1-14b15)
+may make it the default.
+
+`cargo xtask tip-off-flights` writes [the report][tip-off-flights] ([the decision
+record][adr-364]); the gate holds it (`--check`).
+
+- **What flies.** Every real flight HPR Sim compares, each as its own report flies it: the twelve
+  public flights of [the real-flight report](../accuracy.md#real-flights), and the private
+  collection's flights, given in aggregate only. Each flies *guided*, held straight to its last
+  guide and then freed, as by default, and with the phase. A design needs two guides (rail buttons
+  or launch lugs) at different stations for the phase to move it: 10 of the 12 public flights have
+  them, and 23 of the collection's 60. Each flies again in still air: the same air with its wind
+  taken out, so that what the phase moves there is gravity's turn about the last guide alone.
+- **Gravity lowers; the wind's part is open.** In still air the phase lowers 9 of the 10 public
+  flights with two guides by more than 1 cm (0.4 in). The tenth, NDRT 2020, flies from a vertical
+  rail, where gravity has no moment about the last guide; it moves 1 mm (0.04 in). On a tilted rail
+  gravity turns the rocket nose-down about its last guide, so it leaves pointing lower. In the day's
+  wind the phase raises 2 of the 10 public apogees. That wind's part is the part of the phase [not
+  yet held to RocketPy's](#the-tip-off-phase-against-rocketpys) on HPR Sim's own normal force; on
+  Juno III in that comparison's crosswind, HPR Sim's phase raises the apogee and RocketPy's lowers
+  it.
+- **Why two errors rise.** Of the predicted flights, the phase lowers Erebus 11, which HPR Sim
+  already flies 8.05% low. On the collection it raises the mean signed error from +8.007% to
+  +8.015%, on a set HPR Sim flies 8.0% high on average, and moves 14 of the 23 flights with two
+  guides away from their logs and 9 toward them. How many it raises is held back, so that no figure
+  gives a few flights' own moves. Both rises are smaller than the hundredth of a point the reports
+  print. The decision record traces each to its flights and lets the next increment make the phase
+  the default; the fall over the compared-first flights rests on Juno III's rise, so it is not
+  counted for the phase.
+- **A worked example.** Juno III's log reads 3,151.5 m (10,340 ft). Guided, HPR Sim's apogee reads
+  2,950.2 m (9,679 ft), 6.39% low. With the phase it reads 2,976.7 m (9,766 ft), 5.55% low: 26.5 m
+  (87 ft) higher. In still air the phase lowers it by 16.7 m (55 ft). That is more than the 11.33 m
+  (37.2 ft) of [the comparison with RocketPy](#the-tip-off-phase-against-rocketpys), which flies
+  Juno III on one drag coefficient, not on the real-flight report's drag and launch-day air; how
+  much of the gap that explains is not measured. Taking out the wind changes the guided flight too,
+  so the still-air and wind moves are not two parts of one sum.
+- **What it leaves out.** The phase moves apogees by under 1%, against mean absolute errors of 6% to
+  13%, so no flight checks it. Landing points, where [RocketPy's
+  flights](#what-leaving-tip-off-out-costs) show the larger cost, wait for [landing points against
+  the tracked landings](../decisions-and-roadmap.md#m2-13). Two tests on the Valetudo pin which way
+  a landing point errs without the phase; the direction depends on the rail and the wind. On a 5.3°
+  tilted rail in still air the guided flight lands about 51 m (167 ft) short, held between 50.5 m
+  (166 ft) and 52 m (171 ft):
+  `without_tip_off_a_landing_point_errs_nearer_the_pad_on_a_tilted_rail_in_still_air`. On a vertical
+  rail in a 5 m/s (11 mph) crosswind it lands about 26 m (85 ft) farther from the pad, held between
+  25 m (82 ft) and 26.5 m (87 ft):
+  `without_tip_off_a_landing_point_errs_farther_from_the_pad_on_a_vertical_rail_in_a_crosswind`.
+  That second direction comes from the wind's part of the turn, the part not yet held to RocketPy's
+  on HPR Sim's own normal force.
+
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-353]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0353-nasas-check-cases-1-and-2-both-differences-past-the-codes-spread-traced.md
@@ -1052,6 +1112,8 @@ held and what stays open.
 [tip-off-model]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off-model.md
 [adr-358]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md
 [adr-363]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md
+[adr-364]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0364-the-tip-off-phase-on-the-real-flights-two-small-rises-measured.md
+[tip-off-flights]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off-flights.md
 [i-1538]: https://github.com/nrdptel/fusionspace-eridanus/issues/1538
 [adr-026]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md

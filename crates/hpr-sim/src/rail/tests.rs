@@ -685,3 +685,71 @@ fn friction_too_large_for_the_last_guide_is_refused_by_name() {
         other => panic!("a jammed guide was solved: {other:?}"),
     }
 }
+
+/// Where a whole flight of `rocket` lands on `rail` in standard air with `wind_m_s` blowing from
+/// the north (still air at zero), guided or with the tip-off phase: the final sample's position,
+/// m east, north and up of the launch frame's origin.
+fn landing(rocket: &hpr_design::Rocket, rail: Rail, wind_m_s: f64, tip_off: bool) -> DVec3 {
+    let environment = Environment::standard(site())
+        .unwrap()
+        .with_wind(hpr_atmos::ConstantWind::new(wind_m_s, 0.0).unwrap());
+    let simulation = Simulation::new(
+        rocket,
+        "example",
+        environment,
+        rail,
+        FlightSettings {
+            max_time_s: 6000.0,
+            ..FlightSettings::default()
+        },
+    )
+    .unwrap();
+    let simulation = if tip_off {
+        simulation.with_tip_off()
+    } else {
+        simulation
+    };
+    let result = simulation.run(&mut ()).unwrap();
+    assert_eq!(result.termination, Termination::GroundHit);
+    result.final_sample.state.position_enu_m
+}
+
+#[test]
+fn without_tip_off_a_landing_point_errs_nearer_the_pad_on_a_tilted_rail_in_still_air() {
+    // M1.14b14 (ADR-363, ADR-364): which way leaving the phase out moves a landing point, on a
+    // tilted rail in still air. On the Valetudo's own rail, 5.3 degrees off vertical, gravity's
+    // moment about the last guide turns the rocket nose-down, toward the rail's heading, while
+    // that guide alone holds it; with the phase it leaves pointing lower and lands farther
+    // downrange. Guided, it leaves along the rail and lands nearer the pad: 50.5 to 52 m short
+    // along the heading, and nearer the pad by distance too.
+    let rocket = design("rocketpy-valetudo");
+    let rail = valetudo_rail(0.0);
+    let guided = landing(&rocket, rail, 0.0, false);
+    let tipped = landing(&rocket, rail, 0.0, true);
+    let heading = DVec3::new(rail.azimuth_rad.sin(), rail.azimuth_rad.cos(), 0.0);
+    let short_m = (tipped - guided).dot(heading);
+    assert!(
+        (50.5..52.0).contains(&short_m),
+        "guided lands {short_m:.2} m short of the flight with the phase along the heading"
+    );
+    let from_pad = |p: DVec3| p.x.hypot(p.y);
+    assert!(from_pad(guided) < from_pad(tipped) - 40.0);
+}
+
+#[test]
+fn without_tip_off_a_landing_point_errs_farther_from_the_pad_on_a_vertical_rail_in_a_crosswind() {
+    // The other way (ADR-364): on a vertical rail gravity has no moment about the last guide,
+    // and only the wind turns the rocket there. In a 5 m/s (11 mph) wind the guided Valetudo
+    // lands 25 to 26.5 m farther from the pad than the one with the phase. Which way leaving
+    // the phase out errs depends on the rail's tilt and the wind.
+    let rocket = design("rocketpy-valetudo");
+    let rail = Rail::vertical(5.7);
+    let from_pad = |p: DVec3| p.x.hypot(p.y);
+    let guided = from_pad(landing(&rocket, rail, 5.0, false));
+    let tipped = from_pad(landing(&rocket, rail, 5.0, true));
+    let farther_m = guided - tipped;
+    assert!(
+        (25.0..26.5).contains(&farther_m),
+        "guided lands {farther_m:.2} m farther from the pad than the flight with the phase"
+    );
+}
