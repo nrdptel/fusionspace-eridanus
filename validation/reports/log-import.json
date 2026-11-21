@@ -4182,11 +4182,12 @@
         },
         "smoother": {
           "own_pad": 5,
-          "assumed_pad": 29,
+          "assumed_pad": 28,
           "own_pad_past_bound": 1,
-          "assumed_pad_past_bound": 5,
-          "accelerometer_set_aside": 25,
+          "assumed_pad_past_bound": 4,
+          "accelerometer_set_aside": 24,
           "withheld": {
+            "diverged": 1,
             "no_liftoff": 16
           }
         }
@@ -5833,12 +5834,13 @@
           }
         },
         "smoother": {
-          "own_pad": 9,
+          "own_pad": 7,
           "assumed_pad": 1,
-          "own_pad_past_bound": 2,
+          "own_pad_past_bound": 1,
           "assumed_pad_past_bound": 0,
           "accelerometer_set_aside": 0,
           "withheld": {
+            "diverged": 2,
             "no_barometer": 10
           }
         }

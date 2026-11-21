@@ -47,7 +47,7 @@ use std::path::Path;
 
 use hpr_flightdata::readings::Clip;
 use hpr_flightdata::readings::interval::{FloorShares, Shares};
-use hpr_flightdata::smoother::{GnssTrust, Options};
+use hpr_flightdata::smoother::{self, GnssTrust, Options};
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
@@ -350,6 +350,10 @@ struct SmootherSet {
     /// The flights whose log has a GNSS track, smoothed again with the receiver trusted from
     /// liftoff (`GnssTrust::FromLiftoff`); the others keep their check.
     gnss_rerun: u64,
+    /// Those of them whose track ran away trusted from liftoff, and was withheld as diverged
+    /// (`smoother::DIVERGED_SPEED_M_S`, #1590): they leave the cells below, which so count fewer
+    /// flights than the check's, and the mutation must fail on the rest.
+    gnss_diverged: u64,
     /// The cells with those flights trusted from liftoff, to three significant figures.
     gnss_from_liftoff: Vec<smoothed::Cell>,
     /// The same flights, each log as a logger that writes only from launch would have written it,
@@ -1008,7 +1012,15 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
     for cells in check.by_logger.values_mut() {
         round_cells(cells);
     }
-    let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
+    let trusted = smoothed::tally(&mutated);
+    // The check's own flights lose none to divergence (`SetCheck::lost` fails the census on
+    // one), so every diverged log here is the mutation's.
+    let gnss_diverged = trusted
+        .withheld
+        .get(&format!("{:?}", smoother::Reason::Diverged))
+        .copied()
+        .unwrap_or(0);
+    let mut gnss_from_liftoff = trusted.cells;
     round_cells(&mut gnss_from_liftoff);
     let mut launch_started = smoothed::tally(&launches);
     round_launch_health(&mut launch_started.health);
@@ -1021,6 +1033,7 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
             set,
             check,
             gnss_rerun,
+            gnss_diverged,
             gnss_from_liftoff,
             launch_started,
         },
@@ -2333,16 +2346,26 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
         }
         page.push('\n');
     }
-    page.push_str(
+    let _ = write!(
+        page,
         "### Trusting the GNSS receiver from liftoff\n\n\
          The same flights, each log with a GNSS track smoothed again with its receiver trusted \
          from liftoff rather than once its speed agrees with the smoother's. A receiver lags a \
-         climb, so this must fail.\n\n",
+         climb, so this must fail. On some flights the receiver and the barometer then disagree \
+         past their gates, each is taken back in turn, and the estimate runs away: a track \
+         whose speed passes {} m/s, Earth's escape speed, is withheld as diverged and \
+         leaves the cells, which then count fewer flights than the check's.\n\n",
+        crate::collection_errors::grouped(smoother::DIVERGED_SPEED_M_S as u32)
     );
     header(page);
     page.push_str("| Flights smoothed again | |");
     for s in sets {
         let _ = write!(page, " {} |", s.gnss_rerun);
+    }
+    page.push('\n');
+    page.push_str("| Of them, withheld as diverged | |");
+    for s in sets {
+        let _ = write!(page, " {} |", s.gnss_diverged);
     }
     page.push('\n');
     rows(page, &|s| &s.gnss_from_liftoff, cell_text);
@@ -3864,6 +3887,7 @@ mod tests {
             set: Set::A,
             check: whole.clone(),
             gnss_rerun: 0,
+            gnss_diverged: 0,
             gnss_from_liftoff: Vec::new(),
             launch_started: launch,
         };

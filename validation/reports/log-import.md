@@ -740,7 +740,7 @@ Every record again, through `hpr_flightdata::smoother` (M7.2e4, ADR-308): smooth
 | altimax-als | 0 | 0 | 1 | 0 | 1 | none |
 | altimax-xls | 0 | 0 | 1 | 0 | 1 | none |
 | altimetercloud-csv | 11 | 0 | 0 | 0 | 0 | none |
-| altos-csv | 5 | 1 | 29 | 5 | 25 | 16 `no_liftoff` |
+| altos-csv | 5 | 1 | 28 | 4 | 24 | 1 `diverged`, 16 `no_liftoff` |
 | altos-eeprom | 0 | 0 | 6 | 0 | 5 | 1 `no_barometer`, 7 `no_liftoff` |
 | altos-resaved-csv | 0 | 0 | 0 | 0 | 0 | 1 `no_barometer` |
 | altos-table-csv | 0 | 0 | 0 | 0 | 0 | 1 `no_liftoff` |
@@ -762,7 +762,7 @@ Every record again, through `hpr_flightdata::smoother` (M7.2e4, ADR-308): smooth
 | featherweight-summary-csv | 0 | 0 | 0 | 0 | 0 | 25 `no_barometer` |
 | fluctus-csv | 4 | 0 | 2 | 0 | 3 | none |
 | fwgps-csv | 0 | 0 | 0 | 0 | 0 | 40 `no_barometer` |
-| held-table | 9 | 2 | 1 | 0 | 0 | 10 `no_barometer` |
+| held-table | 7 | 1 | 1 | 0 | 0 | 2 `diverged`, 10 `no_barometer` |
 | kml | 0 | 0 | 0 | 0 | 0 | 39 `no_barometer`, 4 `no_liftoff` |
 | kml-map | 0 | 0 | 0 | 0 | 0 | 1 `no_barometer` |
 | mapped-table-csv | 0 | 0 | 0 | 0 | 0 | 6 `no_barometer` |
@@ -789,7 +789,7 @@ Every record again, through `hpr_flightdata::smoother` (M7.2e4, ADR-308): smooth
 | teensy-named-txt | 1 | 0 | 0 | 0 | 0 | none |
 | teensy-tabs-txt | 6 | 2 | 0 | 0 | 0 | 1 `no_liftoff` |
 | workbook-xlsx | 4 | 0 | 0 | 0 | 0 | 16 `no_barometer`, 1 `no_liftoff` |
-| **Every family** | 176 | 20 | 373 | 12 | 134 | 329 `no_barometer`, 180 `no_liftoff` |
+| **Every family** | 174 | 19 | 372 | 11 | 133 | 3 `diverged`, 329 `no_barometer`, 180 `no_liftoff` |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
