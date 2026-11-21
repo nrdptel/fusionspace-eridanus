@@ -21,7 +21,7 @@ fn root() -> PathBuf {
 }
 
 /// The checks the `refs` step runs, each as the lane the step's line must name.
-const REFS_CHECKS: [&str; 16] = [
+const REFS_CHECKS: [&str; 17] = [
     "'$XTASK ork-flights --check'",
     "'$XTASK roll-drev --check'",
     "'$XTASK check-cases --check'",
@@ -38,6 +38,7 @@ const REFS_CHECKS: [&str; 16] = [
     "'$XTASK evidence --samples'",
     "'node validation/oracles/thrustcurve/analyze_stats.js --recount'",
     "'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check'",
+    "'refs/venv/bin/python -I validation/oracles/rocketpy/tip_off.py --stays-on-rail'",
 ];
 
 #[test]

@@ -727,13 +727,14 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - No flight's apogee moved by more than {} mm ({apogee_at}), nor its landing point by \
          more than {} mm ({landing_at}).\n  \
          - These are differences between two commits, not the measured effect of one change. \
-         By its description the rewrite simplified the phase's function, changed what RocketPy \
-         reports inside the phase and corrected how the phase ends. It also finds every \
-         flight's rail exit a new way, by a root search on the solver's own interpolation of \
-         the step. Other changes to RocketPy lie between the two pins as well. Over all the \
+         By its description the rewrite simplified the phase's function (`udot_rail2`), changed \
+         what RocketPy reports inside the phase and corrected how the phase ends. It also finds \
+         every flight's rail exit a new way, by a root search on the solver's own interpolation \
+         of the step. Other changes to RocketPy lie between the two pins as well. Over all the \
          flights without the phase (phase off and guided), an apogee or landing point moved by \
-         up to {} mm; over those with it, by up to {} mm. The last table gives the guided \
-         flights' moves alone. {} This report does not test which change made each.\n  \
+         up to {} mm; over those with it, by up to {} mm. {} The last two columns of the last \
+         table give the guided flights' moves alone. This report does not test which change \
+         made each.\n  \
          - {}",
         linked_pulls(text(since, "oracle")?),
         linked_pulls(text(since, "equations")?),
@@ -1987,6 +1988,42 @@ mod tests {
     }
 
     /// A bound is rounded away from zero, never toward it, and an exact figure is left alone.
+    /// The sentence after the two bounds credits the farthest moves to the phase only when a
+    /// flight with it moved farther than every flight without it; a tie is not the phase's.
+    #[test]
+    fn the_farthest_moves_are_the_phases_only_when_its_flights_moved_farthest() {
+        let report = committed();
+        let alone = "So the moves are not the phase's alone.";
+        let farthest = "The flights with the phase moved the farthest.";
+        let page = markdown(&report).unwrap();
+        assert!(page.contains(alone) && !page.contains(farthest));
+        let without_m = list(&report["since_the_earlier_pin"], "flights")
+            .unwrap()
+            .iter()
+            .flat_map(|flight| {
+                ["apogee_m", "landing_point_m"].map(|figure| {
+                    ["phase off", "guided"]
+                        .map(|way| number(&flight[figure], way).unwrap().abs())
+                        .into_iter()
+                        .fold(0.0, f64::max)
+                })
+            })
+            .fold(0.0, f64::max);
+        let with_move = |move_m: f64| {
+            let mut moved = report.clone();
+            moved["since_the_earlier_pin"]["flights"][0]["landing_point_m"]["phase on"] =
+                json!(move_m);
+            markdown(&moved).unwrap()
+        };
+        let page = with_move(1.0);
+        assert!(page.contains(farthest) && !page.contains(alone));
+        assert!(
+            page.contains("over those with it, by up to 1000.00 mm. The flights with the phase")
+        );
+        let page = with_move(-without_m);
+        assert!(page.contains(alone) && !page.contains(farthest));
+    }
+
     #[test]
     fn a_bound_is_rounded_up() {
         assert_eq!(at_most(1.9159e-5, 6), "0.000020");

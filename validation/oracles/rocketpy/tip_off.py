@@ -5,10 +5,11 @@ angular velocity (`docs/physics/flight.md`, The rail). A real rocket pivots abou
 once the forward one is off: tip-off. RocketPy gained that as an opt-in phase in its pull request
 #920 (merged into `develop` 2026-09-14) and rewrote it in #1217 (merged 2026-11-17, in no
 release). Since #1217 it has no switch: it runs in every flight that uses the standard 6-DOF
-equations and starts with both buttons on the rail. After the upper button leaves the rail the rocket slides
-on along the rail line, free to pitch and yaw about the lower button with roll held, until the
-lower button leaves too. Without the phase, as in every release so far, RocketPy frees the
-rocket where the upper button leaves.
+equations and starts with both buttons on the rail at different stations (the commit's
+`effective_2rl > effective_1rl`, which `fly_one` holds every flight here to). After the upper
+button leaves the rail the rocket slides on along the rail line, free to pitch and yaw about the
+lower button with roll held, until the lower button leaves too. Without the phase, as in every
+release so far, RocketPy frees the rocket where the upper button leaves.
 
 This script flies every example rocket of `validation/fixtures/design/rocketpy-rocket-mass.json`
 (the public designs under `validation/designs/rocketpy-*.json` are built from the same inputs)
@@ -39,9 +40,10 @@ What is declared here, and why:
 - **The solver's step** is bounded (`flight.SOLVER`, `max_time_step`). #1217's description
   names two defects it leaves open. One is in the rail-button forces RocketPy reports, which
   this script does not read. The other is a rocket whose thrust starts below its weight never
-  leaving the rail unless `max_time_step` is set: `flight.py` measured that on its own whole
-  flights and bounds the step for it. `fly_one` fails a flight that does not end, does not
-  climb, or whose phase did not run.
+  leaving the rail unless `max_time_step` is set: `flight.py` reproduced that on its own whole
+  flights at its own 6000 s `max_time` (at RocketPy's default of 600 s the same flights fly) and
+  bounds the step for it. `fly_one` fails a flight that does not end, does not climb, or whose
+  phase did not run; `--stays-on-rail` shows it failing one that never leaves the rail.
 - **The drag** is the constant `flight.py` declares for same-drag flights, power on and off.
 - **The motors** are the mass fixture's: each flies the bundled substitute thrust curve the
   fixture names, not the example's own file (`recovery.build_motor`).
@@ -108,6 +110,11 @@ import recovery  # noqa: E402
 
 COMMAND = "refs/venv/bin/python validation/oracles/rocketpy/tip_off.py"
 LAG_PROBE_FLAG = "--lag-probe"
+STAYS_ON_RAIL_FLAG = "--stays-on-rail"
+# The rocket `--stays-on-rail` flies: the first example with its dry mass this many times its own,
+# so its weight passes its motor's largest thrust, under a time cap this many seconds long.
+STAYS_ON_RAIL_MASS_FACTOR = 1000
+STAYS_ON_RAIL_MAX_TIME_S = 20
 # How long the probe lets the flight with its lag run, in seconds of wall time.
 LAG_PROBE_WALL_S = 20
 
@@ -271,8 +278,9 @@ class PhaseOff(Flight):
     """The pinned commit's flight without its tip-off phase.
 
     The commit has no switch: it runs the phase whenever `effective_2rl > effective_1rl > 0`,
-    in a 6-DOF flight on the standard equations (`__handle_out_of_rail_event`). Here the lower button's rail length reads as the upper one's, so the commit takes its own
-    branch for a rocket without a pair of buttons on the rail: free flight from where the upper
+    in a 6-DOF flight on the standard equations (`__handle_out_of_rail_event`). Here the lower
+    button's rail length reads as the upper one's, so the commit takes its own branch for a
+    rocket without a pair of buttons on the rail: free flight from where the upper
     button leaves, which is what every release does. `lower_button_rail_length_m` keeps the
     commit's own figure for the lower button."""
 
@@ -663,6 +671,39 @@ def lag_probe(document):
         fail("no rocket flies without its parachute's lag: nothing to probe")
 
 
+def stays_on_rail(document):
+    """`fly_one` fails a flight that never leaves the rail (#1585): the first example rocket, its
+    dry mass `STAYS_ON_RAIL_MASS_FACTOR` times its own so its weight passes its motor's largest
+    thrust, flown with the phase on under a time cap of `STAYS_ON_RAIL_MAX_TIME_S` s instead of
+    `flight.SOLVER`'s 6000 s. Exits 0 and prints the refusal only when `fly_one` refuses it at the
+    time cap; any other ending fails."""
+    name = document["cases"][0]["name"]
+    inputs = recovery.mass_case(document, name)
+    inputs["name"] = name
+    inputs["rocket"] = {
+        **inputs["rocket"], "mass": inputs["rocket"]["mass"] * STAYS_ON_RAIL_MASS_FACTOR
+    }
+    motor, _ = recovery.build_motor(inputs["motor"])
+    # Standard gravity; RocketPy's at the site differs from it by well under a percent.
+    weight_n = inputs["rocket"]["mass"] * 9.80665
+    if not weight_n > 2 * motor.max_thrust:
+        fail(f"{name}: weight {weight_n} N does not pass twice the largest thrust "
+             f"{motor.max_thrust} N; raise STAYS_ON_RAIL_MASS_FACTOR")
+    site, rail = site_and_rail(name, document)
+    flight.SOLVER = {**flight.SOLVER, "max_time": STAYS_ON_RAIL_MAX_TIME_S}
+    cap = "the flight did not end before the time cap"
+    try:
+        fly_one(inputs, site, rail, "still", True, False)
+    except SystemExit as refusal:
+        if not str(refusal).endswith(cap):
+            fail(f"{name}: a rocket that cannot leave the rail was refused for another reason: "
+                 f"{refusal}")
+        print(f"tip_off.py {STAYS_ON_RAIL_FLAG}: {name}, {STAYS_ON_RAIL_MASS_FACTOR} times its "
+              f"dry mass, refused: {refusal}")
+        return
+    fail(f"{name}: a rocket that cannot leave the rail flew")
+
+
 def between(a, b, east, north):
     return math.hypot(b[east] - a[east], b[north] - a[north])
 
@@ -724,6 +765,10 @@ def main():
         pinned_commit()
         lag_probe(recovery.mass_fixture())
         return
+    if arguments == [STAYS_ON_RAIL_FLAG]:
+        pinned_commit()
+        stays_on_rail(recovery.mass_fixture())
+        return
     keep = set(arguments)
     commit = pinned_commit()
     document = recovery.mass_fixture()
@@ -781,10 +826,11 @@ def main():
                           "which frees the rocket, unturned, where the lower button leaves",
             "equations": "as the pinned commit has them: it carries pull request #1196's "
                          "correction to the sign of the center-of-mass vector, which the "
-                         "reference's script (tip_off.py) checks on the commit's source before "
+                         "reference's script (validation/oracles/rocketpy/tip_off.py) checks on "
+                         "the commit's source before "
                          "it flies, and #1188's to the nozzle's jet-damping lever",
             "phase_off": "the commit's own branch for a rocket without a pair of buttons on "
-                         "the rail, reached by reading the lower button's rail length as equal to "
+                         "the rail, reached by setting the lower button's rail length equal to "
                          "the upper one's: free flight from where the upper button leaves",
             "drag": {"declared_cd0": flight.DECLARED_CD0},
             "solver": flight.SOLVER,

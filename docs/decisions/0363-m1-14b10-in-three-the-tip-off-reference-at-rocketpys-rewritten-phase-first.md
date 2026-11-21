@@ -165,11 +165,13 @@ depend on the rest.
    - **"A rocket whose thrust starts below its weight never leaves the rail unless
      `max_time_step` is set."** The oracle sets it: every flight runs on
      `validation/oracles/rocketpy/flight.py`'s solver settings, which bound the step at
-     0.05 s for this very failure. That script measured it on its own whole flights, whose
-     thrust curves ramp from zero. A flight that stayed on the rail could not pass unnoticed
-     either. The oracle
-     fails a flight that does not end before its time cap, whose apogee is not above the
-     site, or, with the phase on, whose phase did not run. All 26 flights flew three ways.
+     0.05 s for this very failure. That script reproduced it on its own whole flights, whose
+     thrust curves ramp from zero, at its own 6000 s `max_time`; at RocketPy's default of
+     600 s the same flights fly. A flight that stayed on the rail could not pass unnoticed
+     either. The oracle fails a flight that does not end before its time cap, whose apogee is
+     not above the site, or, with the phase on, whose phase did not run (`tip_off.py
+     --stays-on-rail` shows the first on a rocket too heavy to leave the rail, #1585). All 26
+     flights flew three ways.
 4. **The order.** M1.14b13 ships with this record. M1.14b14 is next, then M1.14b15, all ahead
    of the increments ADR-357's decision 6 put after tip-off. M1.14b14 comes before the default
    so that what the default does to the real flights' error is known, and written down, before
