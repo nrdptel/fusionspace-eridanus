@@ -1265,7 +1265,7 @@ What the rows say:
   absolute value, 1.64%, is nearly the whole's 1.68% ([report][fixture-report]). Its sign varies from flight to flight:
   its mean is +0.85%. Swapped first instead of third, its mean, median and mean absolute value
   are the drag row's to the report's two decimals. The report puts the drag swap in only these
-two places, first and third.
+  two places, first and third.
 - **Thrust is nil.** Both codes fly the same thrust curve for each motor. Swapping in the
   thrust OpenRocket made of it moves the apogee by 0.00% on average, to the report's two
   decimals ([report][fixture-report]).

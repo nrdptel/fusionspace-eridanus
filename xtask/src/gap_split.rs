@@ -1221,7 +1221,8 @@ mod tests {
 
         // A record that ends while the motor burns gives no power-off curve. HPR Sim would refuse
         // its thrust too (its last thrust isn't zero), but the input the record lacks is counted
-        // first, as the first reason of `NOT_SPLIT` that applies; so is a refused mass beside it.
+        // first, as the first reason of `NOT_SPLIT` that applies, ahead of the refused thrust and
+        // the refused mass beside it.
         let mut burning_out = public.flight.clone();
         let rows = burning_out["rows"].as_array_mut().unwrap();
         rows.truncate(last_burning + 1);
@@ -1382,15 +1383,21 @@ mod tests {
                 }),
             )
         };
-        let s = GapSplit::of(&[of(4.0, -3.9), of(2.0, 1.5), of(-1.5, 0.5), of(0.2, -0.5)]);
-        assert_eq!(s.parts[1].large, 3);
-        assert_eq!(s.left_large, 2);
+        let s = GapSplit::of(&[
+            of(4.0, -3.9),
+            of(2.0, 1.5),
+            of(-1.5, 0.5),
+            of(0.2, -2.0),
+            of(3.0, 0.5),
+        ]);
+        assert_eq!(s.parts[1].large, 4);
+        assert_eq!(s.left_large, 3);
         assert_eq!(s.mass_opposed_by_rest, 1);
-        assert_eq!(s.check_consistent(4), Ok(()));
+        assert_eq!(s.check_consistent(5), Ok(()));
         let page = s.to_markdown();
         assert!(
             page.contains(
-                "Of the 3 flights where the mass part is over 1%, 1 has a rest over 1% of the \
+                "Of the 4 flights where the mass part is over 1%, 1 has a rest over 1% of the \
                  opposite sign,"
             ),
             "{page}"
@@ -1401,12 +1408,12 @@ mod tests {
                 .find(|line| line.starts_with(&format!("| {label} |")))
                 .unwrap_or_default()
         };
-        assert!(row("other: the rest").ends_with("| n/a | 2 |"), "{page}");
+        assert!(row("other: the rest").ends_with("| n/a | 3 |"), "{page}");
         assert!(row("other: the air").ends_with("| n/a | n/a |"), "{page}");
         let mut more = s.clone();
         more.mass_opposed_by_rest = 4;
         assert!(
-            more.check_consistent(4)
+            more.check_consistent(5)
                 .unwrap_err()
                 .contains("opposes a large mass part")
         );
@@ -1415,16 +1422,16 @@ mod tests {
         fewer.left_large = 0;
         assert!(
             fewer
-                .check_consistent(4)
+                .check_consistent(5)
                 .unwrap_err()
                 .contains("the rest (0) is large")
         );
         let mut past = s.clone();
-        past.left_large = 5;
+        past.left_large = 6;
         assert!(
-            past.check_consistent(4)
+            past.check_consistent(5)
                 .unwrap_err()
-                .contains("the rest is large on 5 flights")
+                .contains("the rest is large on 6 flights")
         );
     }
 
