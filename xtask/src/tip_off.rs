@@ -615,7 +615,8 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         "- **Phase off** is RocketPy as its releases fly: the rocket is free where its upper \
          button leaves the rail. The commit this report flies has no switch for the phase: it \
          flies it in every flight that uses its standard six-degree-of-freedom equations and \
-         starts with both buttons on the rail. So these flights take {}.\n\
+         starts with both buttons on the rail, the lower one nearer the nozzle, so its rail \
+         length is the longer. So these flights take {}.\n\
          - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, \
          free to pitch and yaw about its lower button with roll held, until that button leaves \
          too.\n\
@@ -1987,7 +1988,6 @@ mod tests {
         }
     }
 
-    /// A bound is rounded away from zero, never toward it, and an exact figure is left alone.
     /// The sentence after the two bounds credits the farthest moves to the phase only when a
     /// flight with it moved farther than every flight without it; a tie is not the phase's.
     #[test]
@@ -2024,6 +2024,7 @@ mod tests {
         assert!(page.contains(alone) && !page.contains(farthest));
     }
 
+    /// A bound is rounded away from zero, never toward it, and an exact figure is left alone.
     #[test]
     fn a_bound_is_rounded_up() {
         assert_eq!(at_most(1.9159e-5, 6), "0.000020");
