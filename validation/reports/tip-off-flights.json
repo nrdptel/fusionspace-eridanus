@@ -199,6 +199,7 @@
   "collection": {
     "flights": 60,
     "flights_with_two_guides": 23,
+    "flights_with_two_guides_on_a_vertical_rail": 11,
     "designs": 42,
     "designs_with_two_guides": 20,
     "moves": [
@@ -221,22 +222,20 @@
       }
     ],
     "split": {
-      "moved_up": 19,
-      "moved_down": 4,
-      "still_air_up": 8,
-      "still_air_down": 15,
+      "in_the_wind": null,
+      "in_still_air": null,
       "away": 14,
       "toward": 9,
-      "away_points": 0.014238622933704386,
-      "toward_points": -0.010981768230594229
+      "away_points": 0.0142,
+      "toward_points": -0.011
     },
     "guided": {
-      "mean_absolute_percent": 12.094540640343817,
-      "mean_percent": 8.007295722968047
+      "mean_absolute_percent": 12.0945,
+      "mean_percent": 8.0073
     },
     "tip_off": {
-      "mean_absolute_percent": 12.097797495046931,
-      "mean_percent": 8.014759252700761
+      "mean_absolute_percent": 12.0978,
+      "mean_percent": 8.0148
     }
   },
   "sets": [
@@ -253,10 +252,16 @@
         "mean_percent": 0.0744830121772064
       },
       "split": {
-        "moved_up": 2,
-        "moved_down": 5,
-        "still_air_up": 1,
-        "still_air_down": 6,
+        "in_the_wind": {
+          "raised": 2,
+          "not_moved": 0,
+          "lowered": 5
+        },
+        "in_still_air": {
+          "raised": 0,
+          "not_moved": 1,
+          "lowered": 6
+        },
         "away": 3,
         "toward": 4,
         "away_points": 0.0510992408297446,
@@ -276,10 +281,16 @@
         "mean_percent": -11.166855116766882
       },
       "split": {
-        "moved_up": 0,
-        "moved_down": 3,
-        "still_air_up": 0,
-        "still_air_down": 3,
+        "in_the_wind": {
+          "raised": 0,
+          "not_moved": 0,
+          "lowered": 3
+        },
+        "in_still_air": {
+          "raised": 0,
+          "not_moved": 0,
+          "lowered": 3
+        },
         "away": 2,
         "toward": 1,
         "away_points": 0.0035041070779715964,
@@ -291,22 +302,20 @@
       "flights": 60,
       "flights_with_two_guides": 23,
       "guided": {
-        "mean_absolute_percent": 12.094540640343817,
-        "mean_percent": 8.007295722968047
+        "mean_absolute_percent": 12.0945,
+        "mean_percent": 8.0073
       },
       "tip_off": {
-        "mean_absolute_percent": 12.097797495046931,
-        "mean_percent": 8.014759252700761
+        "mean_absolute_percent": 12.0978,
+        "mean_percent": 8.0148
       },
       "split": {
-        "moved_up": 19,
-        "moved_down": 4,
-        "still_air_up": 8,
-        "still_air_down": 15,
+        "in_the_wind": null,
+        "in_still_air": null,
         "away": 14,
         "toward": 9,
-        "away_points": 0.014238622933704386,
-        "toward_points": -0.010981768230594229
+        "away_points": 0.0142,
+        "toward_points": -0.011
       }
     }
   ]

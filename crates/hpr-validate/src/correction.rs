@@ -65,7 +65,8 @@ impl Correction {
 /// it: still air keeps the report's air (its pressure, temperature and density) and takes out
 /// only the wind. With no correction, no phase and the report's wind it is that report's flight
 /// itself.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Variant {
     /// The correction flown, or none: the motors and the drag as the report flies them.
     pub correction: Option<Correction>,
@@ -205,5 +206,63 @@ mod tests {
             };
             assert!(correction.rocket(&rocket).is_err(), "{impulse_scale}");
         }
+    }
+
+    #[test]
+    fn a_variant_changes_only_what_it_names() {
+        use hpr_sim::{FlightSettings, Rail};
+        let rocket = bella_lui();
+        let site = hpr_core::geodesy::Geodetic {
+            latitude_rad: 0.8,
+            longitude_rad: 0.1,
+            height_m: 400.0,
+        };
+        let windy = Environment::standard(site)
+            .unwrap()
+            .with_wind(ConstantWind::new(6.0, 1.0).unwrap());
+        // Still air takes out the wind and keeps the air.
+        let still = Variant::STILL_GUIDED.environment(windy.clone());
+        assert_eq!(
+            still.wind.wind(500.0).unwrap().velocity_enu_m_s.length(),
+            0.0
+        );
+        assert!(windy.wind.wind(500.0).unwrap().velocity_enu_m_s.length() > 5.9);
+        assert_eq!(
+            still.atmosphere.air(500.0).unwrap(),
+            windy.atmosphere.air(500.0).unwrap()
+        );
+        // The report's wind is left as it is.
+        let kept = Variant::TIP_OFF.environment(windy.clone());
+        assert_eq!(
+            kept.wind.wind(500.0).unwrap(),
+            windy.wind.wind(500.0).unwrap()
+        );
+        // Only the tip-off variants ask for the phase, and only a correction scales the rocket.
+        let simulation = || {
+            Simulation::new(
+                &rocket,
+                "example",
+                windy.clone(),
+                Rail::vertical(5.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+        };
+        for (variant, phase) in [
+            (Variant::GUIDED, false),
+            (Variant::TIP_OFF, true),
+            (Variant::STILL_GUIDED, false),
+            (Variant::STILL_TIP_OFF, true),
+            (Variant::corrected(Correction::NONE), false),
+        ] {
+            assert_eq!(variant.simulation(simulation()).unwrap().tip_off(), phase);
+        }
+        assert!(Variant::TIP_OFF.rocket(&rocket).unwrap().is_none());
+        assert!(
+            Variant::corrected(Correction::NONE)
+                .rocket(&rocket)
+                .unwrap()
+                .is_some()
+        );
     }
 }

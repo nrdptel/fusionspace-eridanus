@@ -1257,7 +1257,7 @@ fn fly_all(
             climbed_m(&tipped).map_err(|error| format!("{at}: with the tip-off phase: {error}"))?;
         // And both in still air, the day's air with its wind taken out: what gravity's turn about
         // the last guide moves alone. A design with fewer than two guides doesn't move in it.
-        let (still_guided_m, still_tip_off_m) = if two_guides {
+        let still = if two_guides {
             let still = || {
                 simulation_of(
                     &design,
@@ -1269,9 +1269,9 @@ fn fly_all(
             let flown = |simulation: Simulation| {
                 climbed_m(&simulation).map_err(|error| format!("{at}: in still air: {error}"))
             };
-            (flown(still()?)?, flown(still()?.with_tip_off())?)
+            Some((flown(still()?)?, flown(still()?.with_tip_off())?))
         } else {
-            (hpr_m, hpr_m)
+            None
         };
         tip_offs.push(crate::tip_off_flights::CollectionFlight {
             design: crate::ork_supply::sha256(
@@ -1280,8 +1280,9 @@ fn fly_all(
             two_guides,
             guided_m: hpr_m,
             tip_off_m,
-            still_guided_m,
-            still_tip_off_m,
+            still,
+            // 90° to radians may land an ulp off π/2.
+            vertical_rail: (rail.elevation_rad - std::f64::consts::FRAC_PI_2).abs() < 1e-12,
             logged_m,
         });
         let row = Compared::of(

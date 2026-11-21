@@ -256,29 +256,33 @@ Power off, HPR Sim's value is 3.0 to 5.1 times the measured. The jet raises the 
 
 ## The tip-off phase (M1.14b14)
 
-Each flight compared is flown again with the tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
+Each flight compared is flown again with the tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. Guided is the flight as HPR Sim flies it by default, held straight to its last guide. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided; still air is the day's air with its wind taken out, so that what the phase moves there is gravity's turn about the last guide alone. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
 
 | | compared | with two or more guides at different stations |
 |---|---:|---:|
 | flights | 60 | 23 |
 | designs | 42 | 20 |
 
-The flights with two guides by the phase's apogee move in the day's wind, in bins of 0.1% of the apogee guided, a bin holding fewer than five merged with its smaller neighbor:
+Of the flights with two guides, 11 fly from a vertical rail, where gravity has no moment about the last guide: the collection flies one wherever a flight's tilt is not known.
+
+The flights with two guides by the phase's apogee move in the day's wind, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
 | -0.4% to +0.4% | 23 |
 
-The flights with two guides by the phase's apogee move in still air (the day's air with its wind taken out, so gravity's part alone), in bins of 0.1% of the apogee guided, a bin holding fewer than five merged with its smaller neighbor:
+One bin holds all 23 flights.
+
+The flights with two guides by the phase's apogee move in still air, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
-| -0.4% to +0.0% | 15 |
-| +0.0% to +0.1% | 8 |
+| -0.4% to 0.0% | 15 |
+| 0.0% to +0.1% | 8 |
 
-Of the 23 flights with two guides, the phase raised the apogee of 19 and lowered it on 4 in the wind; in still air it raised 8 and lowered 15. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.014 points) plus the flights moved toward's (-0.011 points).
+Of the 23 flights with two guides, the phase held back (a group of fewer than five flights) in the wind, and held back (a group of fewer than five flights) in still air. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points).
 
-Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%.
+Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%: a change of +0.0033 points in the mean absolute error.
 
 ## Sources
 

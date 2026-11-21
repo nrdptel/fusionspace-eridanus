@@ -1501,7 +1501,7 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
         Flew::Row(row) => Ok(*row),
         Flew::Varied(_) => Err(RealFlightError::Input {
             flight: flight.id.to_owned(),
-            what: "a flight with no correction came back as a corrected one".to_owned(),
+            what: "a flight with no variant came back as a varied one".to_owned(),
         }),
     }
 }
@@ -1516,7 +1516,8 @@ enum Flew {
 
 /// A flight flown as a [`Variant`] of its report's: its apogee, and whether its design has a
 /// stretch on its last guide alone for the tip-off phase to fly.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Varied {
     /// The apogee as the log's altimeter would read it, m above the start.
     pub apogee_m: f64,

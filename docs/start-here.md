@@ -402,8 +402,9 @@ These are left out of a flight, or approximated:
   [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs). The Rust library
   flies [a tip-off phase](physics/flight.md#tip-off) when asked. It is held to RocketPy's in
   still air, and not yet in a crosswind on HPR Sim's own normal force. On the real flights it
-  moves each apogee by under 1% ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
-  [Flying it by default is planned](decisions-and-roadmap.md#m1-14b10);
+  moves each apogee by under 1%. It moves each set's mean error by a tenth of a point or less
+  ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
+  [Flying it by default is planned](decisions-and-roadmap.md#m1-14b15);
 - thrust misalignment, a motor pushing slightly off the rocket's axis;
 - turbulence: the model exists, but a flight doesn't use it. No milestone plans these last two
   yet, though turbulence has

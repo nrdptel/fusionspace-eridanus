@@ -37,9 +37,16 @@ pub const USAGE: &str = "\
 
 pub const REPORT: &str = "validation/reports/tip-off-flights.json";
 pub const REPORT_MD: &str = "validation/reports/tip-off-flights.md";
-/// How far a guided flight may land from the apogee its committed report gives, m: the same
-/// flight on the same code, so any distance past rounding means the report is stale.
+/// How far a guided flight may land from the apogee its committed report gives, m. On the
+/// platform that wrote the report it lands on it to the bit; this leaves room for another
+/// platform's rounding, and is 20 times smaller than the smallest move the report gives.
 pub const GUIDED_WITHIN_M: f64 = 0.001;
+/// A move smaller than this, m, either way, counts as not moved: on a vertical rail in still air
+/// gravity has no moment about the last guide, and the public vertical rail's flight moves by
+/// under a millimeter there (`validation/reports/tip-off-flights.json`, NDRT 2020).
+pub const MOVED_FLOOR_M: f64 = 0.01;
+/// The decimals the collection's errors and parts are kept to.
+pub const COLLECTION_DECIMALS: i32 = 4;
 /// The width of a bin of the phase's apogee move, per cent of the guided apogee (ADR-363).
 pub const BIN_PERCENT: f64 = 0.1;
 /// The fewest flights a published bin may hold; a bin with fewer is merged with its neighbor
@@ -63,10 +70,12 @@ pub(crate) struct CollectionFlight {
     pub guided_m: f64,
     /// The apogee flown with the phase, m climbed.
     pub tip_off_m: f64,
-    /// The apogee flown guided in still air, m climbed: the day's air with its wind taken out.
-    pub still_guided_m: f64,
-    /// The same with the phase.
-    pub still_tip_off_m: f64,
+    /// The apogees flown guided and with the phase in still air, m climbed (the day's air with
+    /// its wind taken out), for a design with two guides; none for one with fewer, which moves
+    /// in neither air.
+    pub still: Option<(f64, f64)>,
+    /// Whether the flight is flown from a vertical rail.
+    pub vertical_rail: bool,
     /// The logged apogee as a height climbed, m.
     pub logged_m: f64,
 }
@@ -169,90 +178,147 @@ pub struct Moved {
     pub tip_off_error_percent: f64,
     /// The phase's apogee move in the report's wind, m.
     pub move_m: f64,
-    /// The same in still air, m: gravity's part alone.
+    /// The same in still air, m: gravity's turn alone. Zero for a design with fewer than two
+    /// guides, which moves in neither.
     pub still_move_m: f64,
 }
 
-/// Where a set's change in mean absolute error comes from: which way the phase moved each
-/// flight's apogee, in the wind and in still air, and whether that took it toward the log or
-/// away from it. Each flight with two guides counts once in each pair; a move of exactly zero
-/// in neither.
+/// How many flights with two guides the phase raised, left within [`MOVED_FLOOR_M`] and lowered.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Ways {
+    pub raised: usize,
+    pub not_moved: usize,
+    pub lowered: usize,
+}
+
+impl Ways {
+    fn of(moves_m: impl Iterator<Item = f64>) -> Self {
+        let mut ways = Self {
+            raised: 0,
+            not_moved: 0,
+            lowered: 0,
+        };
+        for m in moves_m {
+            if m >= MOVED_FLOOR_M {
+                ways.raised += 1;
+            } else if m <= -MOVED_FLOOR_M {
+                ways.lowered += 1;
+            } else {
+                ways.not_moved += 1;
+            }
+        }
+        ways
+    }
+}
+
+/// Whether a group of `counts`, which together make up a set of flights, may be published from
+/// the private collection: every count none or at least [`BIN_FLOOR`]. A count from one to four
+/// would bound those few flights' moves as a bin of them would, and with the others published,
+/// any one count follows from the rest.
+fn publishable(counts: &[usize]) -> bool {
+    counts.iter().all(|&n| n == 0 || n >= BIN_FLOOR)
+}
+
+/// Where a set's change in mean absolute error comes from: which way the phase moved the apogees
+/// of the flights with two guides, in the wind and in still air, and whether that took each
+/// toward its log or away from it. For the private collection a group holding from one to four
+/// flights is held back with the rest of its group ([`publishable`]), as are both parts when
+/// either is.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Split {
-    /// Flights whose apogee the phase raised, in the report's wind.
-    pub moved_up: usize,
-    /// Flights whose apogee it lowered.
-    pub moved_down: usize,
-    /// Flights whose apogee it raised in still air.
-    pub still_air_up: usize,
-    /// Flights whose apogee it lowered in still air.
-    pub still_air_down: usize,
+    /// Which way the phase moved the apogees, in the report's wind.
+    pub in_the_wind: Option<Ways>,
+    /// The same in still air.
+    pub in_still_air: Option<Ways>,
     /// Flights whose absolute error the phase raised: moved away from the log.
-    pub away: usize,
+    pub away: Option<usize>,
     /// Flights whose absolute error it lowered: moved toward the log.
-    pub toward: usize,
+    pub toward: Option<usize>,
     /// The flights moved away's part of the change in the set's mean absolute error, percentage
-    /// points: their rises in absolute error summed, over every flight of the set. `None` where
-    /// fewer than [`BIN_FLOOR`] such flights would give a few flights' own figures (the private
-    /// collection only).
+    /// points: their rises in absolute error summed, over every flight of the set.
     pub away_points: Option<f64>,
-    /// The flights moved toward's part, points (zero or less), held back as `away_points` is.
+    /// The flights moved toward's part, points (zero or less). With `away_points` it sums to the
+    /// change in the mean absolute error, so the two are held back together.
     pub toward_points: Option<f64>,
 }
 
 impl Split {
-    /// The split of a set of `moved` flights. With `floor`, a part made of fewer flights than
-    /// [`BIN_FLOOR`] is held back.
+    /// The split of a set of `moved` flights; with `floor`, the collection's rule
+    /// ([`publishable`]) holds back what it must, and the parts are rounded to
+    /// [`COLLECTION_DECIMALS`].
     pub fn of(moved: &[Moved], floor: bool) -> Self {
         let n = moved.len() as f64;
         let two: Vec<&Moved> = moved.iter().filter(|m| m.two_guides).collect();
-        let count = |pick: &dyn Fn(&Moved) -> bool| two.iter().filter(|m| pick(m)).count();
         let rise = |m: &Moved| m.tip_off_error_percent.abs() - m.guided_error_percent.abs();
-        let part = |away: bool| {
-            let members: Vec<f64> = two
+        let rises: Vec<f64> = two.iter().map(|m| rise(m)).collect();
+        let away = rises.iter().filter(|r| **r > 0.0).count();
+        let toward = rises.iter().filter(|r| **r < 0.0).count();
+        let unchanged = rises.len() - away - toward;
+        let ways = |pick: fn(&Moved) -> f64| {
+            let ways = Ways::of(two.iter().map(|m| pick(m)));
+            (!floor || publishable(&[ways.raised, ways.not_moved, ways.lowered])).then_some(ways)
+        };
+        let sides = !floor || publishable(&[away, toward, unchanged]);
+        let part = |sign: f64| {
+            let sum = rises
                 .iter()
-                .map(|m| rise(m))
-                .filter(|r| if away { *r > 0.0 } else { *r < 0.0 })
-                .collect();
-            (!(floor && members.len() < BIN_FLOOR) && n > 0.0)
-                .then(|| members.iter().fold(0.0, |sum, r| sum + r) / n)
+                .filter(|r| **r * sign > 0.0)
+                .fold(0.0, |sum, r| sum + r);
+            let part = if n > 0.0 { sum / n } else { 0.0 };
+            if floor {
+                round(part, COLLECTION_DECIMALS)
+            } else {
+                part
+            }
         };
         Self {
-            moved_up: count(&|m| m.move_m > 0.0),
-            moved_down: count(&|m| m.move_m < 0.0),
-            still_air_up: count(&|m| m.still_move_m > 0.0),
-            still_air_down: count(&|m| m.still_move_m < 0.0),
-            away: count(&|m| rise(m) > 0.0),
-            toward: count(&|m| rise(m) < 0.0),
-            away_points: part(true),
-            toward_points: part(false),
+            in_the_wind: ways(|m| m.move_m),
+            in_still_air: ways(|m| m.still_move_m),
+            away: sides.then_some(away),
+            toward: sides.then_some(toward),
+            away_points: sides.then(|| part(1.0)),
+            toward_points: sides.then(|| part(-1.0)),
         }
+    }
+
+    /// The split in words, for a set with `two_guides` flights that have two guides.
+    pub fn sentence(&self, two_guides: usize) -> String {
+        let ways = |ways: Option<Ways>| {
+            ways.map_or_else(
+                || "held back (a group of fewer than five flights)".to_owned(),
+                |w| {
+                    format!(
+                        "raised {}, left {} within 1 cm and lowered {}",
+                        w.raised, w.not_moved, w.lowered
+                    )
+                },
+            )
+        };
+        let sides = match (self.away, self.toward, self.away_points, self.toward_points) {
+            (Some(away), Some(toward), Some(a), Some(t)) => format!(
+                "It moved {away} away from the log and {toward} toward it. The change in the mean \
+                 absolute error is the flights moved away's part ({a:+.4} points) plus the \
+                 flights moved toward's ({t:+.4} points)."
+            ),
+            _ => "Which way it moved them against their logs is held back (a group of fewer than \
+                  five flights)."
+                .to_owned(),
+        };
+        format!(
+            "Of the {two_guides} flights with two guides, the phase {} in the wind, and {} in \
+             still air. {sides}\n\n",
+            ways(self.in_the_wind),
+            ways(self.in_still_air)
+        )
     }
 }
 
-impl Split {
-    /// The split in words, for a set with `two_guides` flights that have two guides.
-    pub fn sentence(&self, two_guides: usize) -> String {
-        let points = |p: Option<f64>| {
-            p.map_or_else(
-                || "held back: fewer than five flights".to_owned(),
-                |p| format!("{p:+.3} points"),
-            )
-        };
-        format!(
-            "Of the {two_guides} flights with two guides, the phase raised the apogee of {} and \
-             lowered it on {} in the wind; in still air it raised {} and lowered {}. It moved {} \
-             away from the log and {} toward it. The change in the mean absolute error is the \
-             flights moved away's part ({}) plus the flights moved toward's ({}).\n\n",
-            self.moved_up,
-            self.moved_down,
-            self.still_air_up,
-            self.still_air_down,
-            self.away,
-            self.toward,
-            points(self.away_points),
-            points(self.toward_points)
-        )
+/// A move per cent, as a bin's edge prints it: zero unsigned.
+fn edge(percent: f64) -> String {
+    if percent.abs() < 1e-9 {
+        "0.0%".to_owned()
+    } else {
+        format!("{percent:+.1}%")
     }
 }
 
@@ -260,28 +326,44 @@ impl Split {
 fn bins_table(how: &str, bins: &[Bin]) -> String {
     let mut md = format!(
         "The flights with two guides by the phase's apogee move {how}, in bins of 0.1% of the \
-         apogee guided, a bin holding fewer than five merged with its smaller neighbor:\n\n| move \
-         | flights |\n|---|---:|\n"
+         apogee guided, each from its lower edge up to its upper one, a bin holding fewer than \
+         five merged with its smaller neighbor:\n\n| move | flights |\n|---|---:|\n"
     );
     for bin in bins {
         let _ = writeln!(
             md,
-            "| {:+.1}% to {:+.1}% | {} |",
-            bin.from_percent, bin.to_percent, bin.flights
+            "| {} to {} | {} |",
+            edge(bin.from_percent),
+            edge(bin.to_percent),
+            bin.flights
         );
+    }
+    if let [only] = bins {
+        let _ = writeln!(md, "\nOne bin holds all {} flights.", only.flights);
     }
     md.push('\n');
     md
 }
 
+/// `value` rounded to `decimals` places.
+fn round(value: f64, decimals: i32) -> f64 {
+    let scale = 10f64.powi(decimals);
+    (value * scale).round() / scale
+}
+
 /// What the phase moves on the private collection's logged flights, in aggregate only: no
-/// flight named or numbered, no apogee, no row of one flight (ADR-363 decision 1).
+/// flight named or numbered, no apogee, no row of one flight (ADR-363 decision 1). Its errors and
+/// parts are rounded to [`COLLECTION_DECIMALS`], as the collection's other aggregates are
+/// rounded, so that no regeneration gives a figure to machine precision.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CollectionTipOff {
     /// The flights compared with their logs.
     pub flights: usize,
     /// Of those, the flights whose design has two or more guides at different stations.
     pub flights_with_two_guides: usize,
+    /// Of those, the flights flown from a vertical rail, where gravity has no moment about the
+    /// last guide; the collection flies one wherever the flight's tilt is not known.
+    pub flights_with_two_guides_on_a_vertical_rail: usize,
     /// The designs those flights fly: distinct design files, by their bytes.
     pub designs: usize,
     /// Of those, the designs with two or more guides at different stations.
@@ -303,18 +385,31 @@ impl CollectionTipOff {
     ///
     /// # Errors
     ///
-    /// A flight with fewer than two guides whose apogee the phase moved: such a design has no
-    /// stretch for the phase to fly.
+    /// An apogee that is not a finite number, a flight with fewer than two guides whose apogee
+    /// the phase moved (such a design has no stretch for the phase to fly), or one with two
+    /// guides and no flights in still air.
     pub(crate) fn of(flights: &[CollectionFlight]) -> Result<Self, String> {
-        if flights.iter().any(|f| {
-            !f.two_guides
-                && (f.tip_off_m.to_bits() != f.guided_m.to_bits()
-                    || f.still_tip_off_m.to_bits() != f.still_guided_m.to_bits())
-        }) {
-            return Err(
-                "a collection flight with fewer than two guides moved with the tip-off phase"
-                    .to_owned(),
-            );
+        for f in flights {
+            let still = f.still.map_or([0.0, 0.0], |(g, t)| [g, t]);
+            if [f.guided_m, f.tip_off_m, f.logged_m, still[0], still[1]]
+                .iter()
+                .any(|v| !v.is_finite())
+            {
+                return Err("a collection flight's apogee is not a number".to_owned());
+            }
+            if f.two_guides != f.still.is_some() {
+                return Err(
+                    "a collection flight with two guides has no still-air flights, or one \
+                     without has"
+                        .to_owned(),
+                );
+            }
+            if !f.two_guides && f.tip_off_m.to_bits() != f.guided_m.to_bits() {
+                return Err(
+                    "a collection flight with fewer than two guides moved with the tip-off phase"
+                        .to_owned(),
+                );
+            }
         }
         let designs: BTreeSet<&str> = flights.iter().map(|f| f.design.as_str()).collect();
         let designs_two: BTreeSet<&str> = flights
@@ -333,8 +428,8 @@ impl CollectionTipOff {
             .collect();
         let still_moves: Vec<f64> = flights
             .iter()
-            .filter(|f| f.two_guides)
-            .map(|f| 100.0 * (f.still_tip_off_m - f.still_guided_m) / f.still_guided_m)
+            .filter_map(|f| f.still)
+            .map(|(g, t)| 100.0 * (t - g) / g)
             .collect();
         let moved: Vec<Moved> = flights
             .iter()
@@ -344,19 +439,29 @@ impl CollectionTipOff {
                 guided_error_percent: g,
                 tip_off_error_percent: t,
                 move_m: f.tip_off_m - f.guided_m,
-                still_move_m: f.still_tip_off_m - f.still_guided_m,
+                still_move_m: f.still.map_or(0.0, |(g, t)| t - g),
             })
             .collect();
+        let rounded = |e: Option<Errors>| {
+            e.map(|e| Errors {
+                mean_absolute_percent: round(e.mean_absolute_percent, COLLECTION_DECIMALS),
+                mean_percent: round(e.mean_percent, COLLECTION_DECIMALS),
+            })
+        };
         Ok(Self {
             flights: flights.len(),
             flights_with_two_guides: moves.len(),
+            flights_with_two_guides_on_a_vertical_rail: flights
+                .iter()
+                .filter(|f| f.two_guides && f.vertical_rail)
+                .count(),
             designs: designs.len(),
             designs_with_two_guides: designs_two.len(),
             moves: bins(&moves),
             still_air_moves: bins(&still_moves),
             split: Split::of(&moved, true),
-            guided: Errors::of(&guided),
-            tip_off: Errors::of(&tip_off),
+            guided: rounded(Errors::of(&guided)),
+            tip_off: rounded(Errors::of(&tip_off)),
         })
     }
 
@@ -365,17 +470,25 @@ impl CollectionTipOff {
         let mut md = String::from(
             "\n## The tip-off phase (M1.14b14)\n\nEach flight compared is flown again with the \
              tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket \
-             pivots about its last guide until that one leaves too. A design with fewer than two \
-             guides at different stations has no such stretch and flies as it did. The move is \
-             the apogee with the phase less the apogee guided, over the apogee guided. The \
-             public flights' table and what it means are in [the tip-off flights' \
-             report](tip-off-flights.md).\n\n",
+             pivots about its last guide until that one leaves too. Guided is the flight as \
+             HPR Sim flies it by default, held straight to its last guide. A design with fewer \
+             than two guides at different stations has no such stretch and flies as it did. The \
+             move is the apogee with the phase less the apogee guided, over the apogee guided; \
+             still air is the day's air with its wind taken out, so that what the phase moves \
+             there is gravity's turn about the last guide alone. The public flights' table and \
+             what it means are in [the tip-off flights' report](tip-off-flights.md).\n\n",
         );
         let _ = writeln!(
             md,
             "| | compared | with two or more guides at different stations |\n|---|---:|---:|\n| \
-             flights | {} | {} |\n| designs | {} | {} |\n",
-            self.flights, self.flights_with_two_guides, self.designs, self.designs_with_two_guides
+             flights | {} | {} |\n| designs | {} | {} |\n\nOf the flights with two guides, {} \
+             fly from a vertical rail, where gravity has no moment about the last guide: the \
+             collection flies one wherever a flight's tilt is not known.\n",
+            self.flights,
+            self.flights_with_two_guides,
+            self.designs,
+            self.designs_with_two_guides,
+            self.flights_with_two_guides_on_a_vertical_rail
         );
         if self.flights_with_two_guides == 0 {
             md.push_str("No flight has two guides, so the phase moves none.\n\n");
@@ -386,21 +499,20 @@ impl CollectionTipOff {
             );
         } else {
             md.push_str(&bins_table("in the day's wind", &self.moves));
-            md.push_str(&bins_table(
-                "in still air (the day's air with its wind taken out, so gravity's part alone)",
-                &self.still_air_moves,
-            ));
+            md.push_str(&bins_table("in still air", &self.still_air_moves));
         }
         md.push_str(&self.split.sentence(self.flights_with_two_guides));
         if let (Some(guided), Some(tip_off)) = (self.guided, self.tip_off) {
             let _ = writeln!(
                 md,
                 "Over every flight compared, guided, the mean absolute apogee error is {:.3}% \
-                 and the mean {:+.3}%; with the phase, {:.3}% and {:+.3}%.",
+                 and the mean {:+.3}%; with the phase, {:.3}% and {:+.3}%: a change of {:+.4} \
+                 points in the mean absolute error.",
                 guided.mean_absolute_percent,
                 guided.mean_percent,
                 tip_off.mean_absolute_percent,
-                tip_off.mean_percent
+                tip_off.mean_percent,
+                tip_off.mean_absolute_percent - guided.mean_absolute_percent
             );
         }
         md
@@ -532,118 +644,142 @@ impl Report {
     pub fn markdown(&self) -> String {
         let mut md = String::from(
             "# What the tip-off phase moves on the real flights\n\nWritten by `cargo xtask \
-             tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]); do not edit. \
-             HPR Sim's tip-off phase lets the rocket pivot about its last guide once the guide \
-             ahead of it has left the rail, instead of guiding it to that last guide ([the \
+             tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result \
+             in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot \
+             about its last guide once the guide ahead of it has left the rail ([the \
              phase][flight]; held to RocketPy's in [the comparison](tip-off-model.md)). It is \
-             off by default. This report flies every real flight HPR Sim compares twice, guided \
-             as today and with the phase, before the phase becomes the default.\n\n- **What is \
+             off by default. This report flies every real flight HPR Sim compares with the phase \
+             and without it, before the phase becomes the default. It compares HPR Sim with \
+             itself: it does not check the phase against a measurement.\n\n- **What is \
              flown:** each flight as its own report flies it, the phase the only change: the \
              seven flights [the real-flight report](real-flights.md) compared as soon as they \
-             were flown, the five it compares after their predictions were merged ([the \
-             predictions](public-predictions.md)), and the private collection's logged flights \
-             ([its report](fixture-flights.md#the-tip-off-phase-m114b14)), given in aggregate \
-             only.\n- **Two guides:** a design with fewer than two guides (rail buttons or \
-             launch lugs) at different stations has no stretch on its last guide alone, so the \
-             phase moves nothing; such a flight is listed as not moved.\n- **The errors** are \
-             each set's own report's: for the public flights, HPR Sim's apogee as the log's \
-             altimeter would read it, less the log's apogee, over the log's apogee; for the \
-             collection, the apogee as a height climbed in the day's air, against the logged \
-             apogee read the same way.\n- **The move** is the apogee with the phase less the \
-             apogee guided; its share is of the apogee guided.\n- **Landing points:** none of \
-             these flights has a landing point compared (the reports compare apogees; landing \
-             points against tracked landings are [M2.13][m2-13]), so no landing move is \
+             were flown (*compared first*), the five it compares after their predictions were \
+             merged (*predicted first*; [the predictions](public-predictions.md)), and the \
+             private collection's logged flights ([its \
+             report](fixture-flights.md#the-tip-off-phase-m114b14)), given in aggregate \
+             only.\n- **Guided** is the flight as HPR Sim flies it by default: held straight to \
+             its last guide, then freed with no turning rate.\n- **Two guides:** a design with \
+             fewer than two guides (rail buttons or launch lugs) at different stations has no \
+             stretch on its last guide alone, so the phase moves nothing; such a flight is \
+             listed as not moved.\n- **Still air:** each flight with two guides flies again, \
+             guided and with the phase, in its report's air with the wind taken out. What the \
+             phase moves there is gravity's turn about the last guide alone. Taking out the \
+             wind changes the guided flight too, so the move in still air and the move in the \
+             wind are not two parts of one sum.\n- **The errors** are each set's own report's: \
+             for the public flights, HPR Sim's apogee as the log's altimeter would read it, \
+             less the log's apogee, over the log's apogee; for the collection, the apogee as a \
+             height climbed in the day's air, against the logged apogee read the same \
+             way.\n- **The move** is the apogee with the phase less the apogee guided; its share \
+             is of the apogee guided.\n- **Landing points:** none of these flights has a \
+             landing point compared (the reports compare apogees; landing points against \
+             tracked landings are [M2.13][m2-13]), so no landing move is \
              given.\n\n[m1-14b14]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b14\n\
              [adr-363]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md\n\
+             [adr-364]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0364-the-tip-off-phase-on-the-real-flights-two-small-rises-measured.md\n\
+             [adr-151]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md\n\
+             [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md\n\
              [flight]: https://hpr.fusionspace.co/physics/flight.html#what-leaving-tip-off-out-costs\n\
              [m2-13]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-13\n\n## The \
              errors, guided and with the phase\n\n| set | flights | with two guides | mean \
-             absolute error, guided | with the phase | mean error, guided | with the phase | \
-             higher with the phase |\n|---|---:|---:|---:|---:|---:|---:|---|\n",
+             absolute error, guided | mean absolute error, with the phase | change (points) | \
+             mean signed error, guided | mean signed error, with the phase \
+             |\n|---|---:|---:|---:|---:|---:|---:|---:|\n",
         );
+        let change =
+            |set: &SetRow| set.tip_off.mean_absolute_percent - set.guided.mean_absolute_percent;
         for set in &self.sets {
             let _ = writeln!(
                 md,
-                "| {} | {} | {} | {:.3}% | {:.3}% | {:+.3}% | {:+.3}% | {} |",
+                "| {} | {} | {} | {:.3}% | {:.3}% | {:+.4} | {:+.3}% | {:+.3}% |",
                 set.set,
                 set.flights,
                 set.flights_with_two_guides,
                 set.guided.mean_absolute_percent,
                 set.tip_off.mean_absolute_percent,
+                change(set),
                 set.guided.mean_percent,
                 set.tip_off.mean_percent,
-                if set.higher_with_the_phase() {
-                    "yes"
-                } else {
-                    "no"
-                }
             );
         }
-        let higher: Vec<&str> = self
-            .sets
-            .iter()
-            .filter(|s| s.higher_with_the_phase())
-            .map(|s| s.set.as_str())
-            .collect();
+        let (higher, lower): (Vec<&SetRow>, Vec<&SetRow>) =
+            self.sets.iter().partition(|s| s.higher_with_the_phase());
+        let listed = |sets: &[&SetRow]| {
+            sets.iter()
+                .map(|s| format!("{} by {:.4} points", s.set, change(s).abs()))
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
         md.push('\n');
         if higher.is_empty() {
             md.push_str("No set's mean absolute apogee error is higher with the phase.\n\n");
         } else {
             let _ = writeln!(
                 md,
-                "The mean absolute apogee error is higher with the phase over: {}. ADR-363 asks \
-                 for a decision record that measures the rise and its cause before the phase \
-                 becomes the default.\n",
-                higher.join(", ")
+                "With the phase the mean absolute apogee error is higher over {}{}. \
+                 [ADR-364][adr-364] measures the rises and their cause, as ADR-363 asks before \
+                 the phase becomes the default.\n",
+                listed(&higher),
+                if lower.is_empty() {
+                    String::new()
+                } else {
+                    format!(", and lower over {}", listed(&lower))
+                }
             );
         }
         md.push_str(
             "## Where the change comes from\n\nFor each set: which way the phase moved the \
              apogees of the flights with two guides, in the wind each report flies and in still \
-             air (the same air with its wind taken out, so that what moves is gravity's turn \
-             about the last guide alone), and whether the move took the apogee toward the log or \
-             away from it. The change in a set's mean absolute error is the sum of two parts: \
-             the rises in absolute error of the flights moved away, and the falls of those moved \
-             toward, each summed and divided by the set's flights.\n\n| set | with two guides \
-             | raised | lowered | raised in still air | lowered in still air | moved away | \
-             moved toward | away's part | toward's part |\n|---|---:|---:|---:|---:|---:|---:|\
-             ---:|---:|---:|\n",
+             air, and whether the move took the apogee toward the log or away from it. A move \
+             under 1 cm (0.4 in) either way counts as not moved: on a vertical rail in still \
+             air gravity has no moment about the last guide. The change in a set's mean absolute \
+             error is the sum of two parts: the rises in absolute error of the flights moved \
+             away, and the falls of those moved toward, each summed and divided by the set's \
+             flights.\n\n| set | with two guides | in the wind: raised, not moved, lowered | in \
+             still air: raised, not moved, lowered | moved away | moved toward | away's part \
+             (points) | toward's part (points) |\n|---|---:|---|---|---:|---:|---:|---:|\n",
         );
+        let held = "held back".to_owned();
         for set in &self.sets {
-            let points =
-                |p: Option<f64>| p.map_or_else(|| "held back".to_owned(), |p| format!("{p:+.3}"));
             let t = &set.split;
+            let ways = |w: Option<Ways>| {
+                w.map_or_else(
+                    || held.clone(),
+                    |w| format!("{}, {}, {}", w.raised, w.not_moved, w.lowered),
+                )
+            };
+            let count = |c: Option<usize>| c.map_or_else(|| held.clone(), |c| c.to_string());
+            let points = |p: Option<f64>| p.map_or_else(|| held.clone(), |p| format!("{p:+.4}"));
             let _ = writeln!(
                 md,
-                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                "| {} | {} | {} | {} | {} | {} | {} | {} |",
                 set.set,
                 set.flights_with_two_guides,
-                t.moved_up,
-                t.moved_down,
-                t.still_air_up,
-                t.still_air_down,
-                t.away,
-                t.toward,
+                ways(t.in_the_wind),
+                ways(t.in_still_air),
+                count(t.away),
+                count(t.toward),
                 points(t.away_points),
                 points(t.toward_points)
             );
         }
         md.push_str(
-            "\nThe parts are percentage points of the mean absolute error. The collection's part \
-             of fewer than five flights is held back, so as not to give a few flights' own \
-             figures.\n\n",
+            "\nThe parts are percentage points of the mean absolute error. For the private \
+             collection a group of counts is given only where each holds no flight or at least \
+             five, and the two parts only where both groups of flights do; otherwise they are \
+             held back, so that no figure gives a few flights' own moves.\n\n",
         );
         md.push_str(
             "## Each public flight\n\n| flight | set | two guides | log apogee (m) | apogee \
              guided (m) | with the phase (m) | move (m) | move | move in still air (m) | error \
-             guided | with the phase |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n",
+             guided | error with the phase |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\
+             ---:|\n",
         );
         for f in &self.flights {
             if f.two_guides {
                 let _ = writeln!(
                     md,
-                    "| {} | {} | yes | {:.1} | {:.2} | {:.2} | {:+.2} | {:+.3}% | {:+.2} | {:+.3}% \
-                     | {:+.3}% |",
+                    "| {} | {} | yes | {:.1} | {:.2} | {:.2} | {:+.2} | {:+.3}% | {:+.3} | \
+                     {:+.3}% | {:+.3}% |",
                     f.title,
                     f.set,
                     f.log_apogee_m,
@@ -673,16 +809,19 @@ impl Report {
         let _ = writeln!(
             md,
             "Of the {} flights compared with their logs, {} fly a design with two or more guides \
-             at different stations: {} of the {} designs. No flight is named or numbered here \
-             and no apogee of one is given (decision records ADR-151 and ADR-184).\n",
-            c.flights, c.flights_with_two_guides, c.designs_with_two_guides, c.designs
+             at different stations: {} of the {} designs. {} of those flights fly from a \
+             vertical rail. No flight is named or numbered here and no apogee of one is given: \
+             the collection's terms allow aggregates only ([ADR-151][adr-151], \
+             [ADR-184][adr-184]).\n",
+            c.flights,
+            c.flights_with_two_guides,
+            c.designs_with_two_guides,
+            c.designs,
+            c.flights_with_two_guides_on_a_vertical_rail
         );
         if !c.moves.is_empty() {
             md.push_str(&bins_table("in the day's wind", &c.moves));
-            md.push_str(&bins_table(
-                "in still air (the day's air with its wind taken out, so gravity's part alone)",
-                &c.still_air_moves,
-            ));
+            md.push_str(&bins_table("in still air", &c.still_air_moves));
         }
         md
     }
@@ -936,8 +1075,8 @@ mod tests {
         let got = bins(&[-0.05; 7]);
         assert_eq!(got.len(), 1);
         assert_eq!(got[0].flights, 7);
-        // Six, then three two bins up: the three are too few and join the six, across the empty
-        // bin between them.
+        // Six in bin -3, then three in bin 0: the three are too few and join the six, across the
+        // two empty bins between them.
         let mut moves = vec![-0.25; 6];
         moves.extend([0.05, 0.06, 0.07]);
         let got = bins(&moves);
@@ -964,8 +1103,8 @@ mod tests {
             two_guides: false,
             guided_m: 1000.0,
             tip_off_m: 1000.0,
-            still_guided_m: 1001.0,
-            still_tip_off_m: 1001.0,
+            still: None,
+            vertical_rail: true,
             logged_m: 900.0,
         };
         let aggregate = CollectionTipOff::of(std::slice::from_ref(&flight)).unwrap();
@@ -976,6 +1115,80 @@ mod tests {
             ..flight
         };
         assert!(CollectionTipOff::of(&[moved]).is_err());
+    }
+
+    fn moved(two_guides: bool, guided: f64, tip_off: f64, move_m: f64) -> Moved {
+        Moved {
+            two_guides,
+            guided_error_percent: guided,
+            tip_off_error_percent: tip_off,
+            move_m,
+            still_move_m: -move_m,
+        }
+    }
+
+    #[test]
+    fn the_split_sums_to_the_change_and_the_collection_holds_back_small_groups() {
+        // Nineteen moved away (raised 1 m on flights flown 10% high) and four toward (raised on
+        // flights flown 10% low), and a one-guide flight.
+        let mut flights: Vec<Moved> = (0..19).map(|_| moved(true, 10.0, 10.1, 1.0)).collect();
+        flights.extend((0..4).map(|_| moved(true, -10.0, -9.9, 1.0)));
+        flights.push(moved(false, 5.0, 5.0, 0.0));
+        let public = Split::of(&flights, false);
+        assert_eq!((public.away, public.toward), (Some(19), Some(4)));
+        let parts = public.away_points.unwrap() + public.toward_points.unwrap();
+        let n = flights.len() as f64;
+        let change = flights.iter().fold(0.0, |s, m| {
+            s + m.tip_off_error_percent.abs() - m.guided_error_percent.abs()
+        }) / n;
+        assert!((parts - change).abs() < 1e-12);
+        assert_eq!(
+            public.in_the_wind,
+            Some(Ways {
+                raised: 23,
+                not_moved: 0,
+                lowered: 0
+            })
+        );
+        assert_eq!(public.in_still_air.unwrap().lowered, 23);
+        // The collection: four toward is a group of fewer than five, so both sides and both
+        // parts are held back; the 23 raised in the wind stand, every group none or five or more.
+        let collection = Split::of(&flights, true);
+        assert_eq!(collection.away, None);
+        assert_eq!(collection.toward, None);
+        assert_eq!(collection.away_points, None);
+        assert_eq!(collection.toward_points, None);
+        assert!(collection.in_the_wind.is_some());
+        // A move under a centimeter is not moved, and a group of one to four of those holds the
+        // whole group back.
+        flights[0].move_m = 0.005;
+        let collection = Split::of(&flights, true);
+        assert_eq!(collection.in_the_wind, None);
+        assert_eq!(Split::of(&flights, false).in_the_wind.unwrap().not_moved, 1);
+    }
+
+    #[test]
+    fn the_committed_guided_apogees_are_the_real_flight_reports() {
+        // Without refs/: the report's guided apogees are the ones the real-flight report
+        // commits, so a regenerated real-flight report with this one left stale fails here.
+        let root = crate::designs::root().unwrap();
+        let text = fs::read_to_string(root.join(real_flight::REPORT_JSON)).unwrap();
+        let real: RealFlightReport = serde_json::from_str(&text).unwrap();
+        for f in &committed().flights {
+            let committed_m = real
+                .flights
+                .iter()
+                .find(|r| r.id == f.id)
+                .map(|r| r.hpr_apogee_m)
+                .or_else(|| {
+                    real.predicted_first
+                        .iter()
+                        .find(|r| r.id == f.id)
+                        .map(|r| r.hpr_apogee_m)
+                })
+                .unwrap();
+            assert_eq!(f.guided_apogee_m, committed_m, "{}", f.id);
+        }
     }
 
     fn committed() -> Report {
