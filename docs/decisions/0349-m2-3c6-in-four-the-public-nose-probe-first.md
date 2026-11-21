@@ -219,7 +219,12 @@ the errors among them, since the split needs no log; over the 60 compared with a
   against OpenRocket already is.
 - **The drag swap** is [ADR-097][adr-097]'s two curves in Mach number, power on and power off,
   built from the rows M2.3c11's record holds, on OpenRocket's reference length. A record whose
-  rows give no such curve stops the run: it is not counted under a reason.
+  rows give no such curve stopped the run, counted under no reason. Amended with #1488
+  (2026-11-21): such a record is counted under "OpenRocket's record lacks an input", since a
+  usable drag curve is an input the record lacks. A thrust that stops and starts again with no
+  separation is refused, since its coast between the burns would be in neither curve, and an
+  own-history flight that fails is counted under the own-history test's reason, not as a refused
+  swap. None of the 68 flights split moved.
 - **A tie** between two parts goes to the earlier of thrust, mass, drag and other.
 - **A median and a count** stand beside each mean: the count is of the flights where the part's
   absolute value is over 1%. They were added because the mass row's mean isn't typical of the
@@ -227,11 +232,11 @@ the errors among them, since the split needs no log; over the 60 compared with a
   flight: the lead is that the two programs weigh the rocket the same and put its center of
   mass apart.
 - **What no swap replaces** stays HPR Sim's in every flight: its normal force, its center of
-  pressure, its damping of a turn and its inertia. So after the mass swap HPR Sim flies
-  OpenRocket's center of mass against its own center of pressure, which moves its stability
-  margin. What that does to the apogee is in the mass row, and no later swap undoes it: the
-  last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the
-  rest can take back what the mass row holds. The report counts the flights where both are over
+  pressure, its damping of pitching and yawing motion and its inertia. So after the mass swap
+  HPR Sim flies OpenRocket's center of mass against its own center of pressure, which moves its
+  stability margin. What that does to the apogee is in the mass row, and no later swap undoes
+  it: the flight on all four swaps keeps it, and the rest is measured from that flight to
+  OpenRocket's own. So the rest can take back what the mass row holds. The report counts the flights where both are over
   1% with opposite signs: the 1 flight where the mass part is over 1%. That fits the reading
   and doesn't prove it.
 

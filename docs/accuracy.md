@@ -1138,7 +1138,8 @@ catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.
 OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
-Where the two codes differ from each other, it is mostly in drag
+Where the two codes differ from each other, it is mostly in drag: drag is the largest part of
+the gap on 61 of the 68 flights both fly
 ([the gap between the two codes, by cause](#the-gap-between-the-two-codes-by-cause)).
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
@@ -1238,7 +1239,8 @@ don't.
 
 In the table, a part *dominates* a flight when its absolute value is the largest of the four.
 The last column counts the flights where a part's absolute value is over 1%
-([report][fixture-report]).
+([report][fixture-report]). A cell reading n/a is not counted: the rows below the four parts
+dominate no flight, and among them only the rest's flights over 1% are counted.
 
 | [over 68 flights][fixture-report] | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|
@@ -1246,10 +1248,10 @@ The last column counts the flights where a part's absolute value is over 1%
 | [mass][fixture-report] | +0.10% | +0.00% | 0.10% | 1 | 1 |
 | [drag][fixture-report] | +0.85% | +0.76% | 1.64% | 61 | 39 |
 | [other][fixture-report] | +0.03% | +0.01% | 0.26% | 6 | 4 |
-| [other: the air][fixture-report] | −0.15% | −0.17% | 0.25% | | |
-| [other: the rest][fixture-report] | +0.18% | +0.19% | 0.33% | | |
-| [the whole][fixture-report] | +0.98% | +0.85% | 1.68% | | |
-| [drag, swapped first][fixture-report] | +0.85% | +0.76% | 1.64% | | |
+| [other: the air][fixture-report] | −0.15% | −0.17% | 0.25% | n/a | n/a |
+| [other: the rest][fixture-report] | +0.18% | +0.19% | 0.33% | n/a | 2 |
+| [the whole][fixture-report] | +0.98% | +0.85% | 1.68% | n/a | n/a |
+| [drag, swapped first][fixture-report] | +0.85% | +0.76% | 1.64% | n/a | n/a |
 
 All 68 flights are split. None lacks an input in OpenRocket's record, none is refused by
 HPR Sim, and none fails the check on the thrust and mass swaps
@@ -1260,7 +1262,7 @@ What the rows say:
 - **Drag is most of the gap.** It is the largest part on 61 of the 68 flights, and its mean
   absolute value, 1.64%, is nearly the whole's 1.68% ([report][fixture-report]). Its sign varies from flight to flight:
   its mean is +0.85%. Swapped first instead of third, its mean, median and mean absolute value
-  are the drag row's to the report's two decimals. The report takes no other order.
+  are the drag row's to the report's two decimals. The report tries only these two orders.
 - **Thrust is nil.** Both codes fly the same thrust curve for each motor. Swapping in the
   thrust OpenRocket made of it moves the apogee by 0.00% on average, to the report's two
   decimals ([report][fixture-report]).
@@ -1272,17 +1274,19 @@ What the rows say:
 - **The rest holds what no swap replaces.** With all four inputs OpenRocket's, HPR Sim still
   flies 0.18% above OpenRocket on average ([report][fixture-report]). What stays HPR Sim's through every swap is in
   it: the [normal force](glossary.md#normal-force), the
-  [center of pressure](glossary.md#center-of-pressure-cp), the damping of a turn, the inertia,
+  [center of pressure](glossary.md#center-of-pressure-cp), the damping of pitching and yawing
+  motion, the inertia,
   the steps in time, gravity, and what the drag table leaves out. None of those is measured
   apart here.
 
 **The mass swap and stability.** After the mass swap HPR Sim flies OpenRocket's center of mass
 against its own center of pressure. Where the two codes put the center of mass apart, that
 moves HPR Sim's stability margin. What it does to the apogee is in the mass row, and no later
-swap undoes it: the last flight keeps it, and the rest is measured from that flight to
-OpenRocket's own. So the rest can take back what the mass row holds. On the one flight where
-the mass part is over 1%, the rest is over 1% with the other sign, which fits that reading and
-doesn't prove it ([report][fixture-report]). An open issue follows that flight
+swap undoes it: the flight on all four swaps keeps it, and the rest is measured from that flight
+to OpenRocket's own. So the rest can take back what the mass row holds. On the one flight where
+the mass part is over 1%, the rest is over 1% too, with the opposite sign, which fits that
+reading and doesn't prove it ([report][fixture-report]). The count goes by sign and the 1% floor
+alone, not by how much of the mass part the rest takes back. An open issue follows that flight
 ([#1486](https://github.com/nrdptel/fusionspace-eridanus/issues/1486)): the lead is that the two
 codes weigh the rocket the same but put its center of mass apart.
 
@@ -1314,7 +1318,8 @@ tangent-ogive noses above Mach 1. And the drag part is split
 > absolute gap between the two (1.73%, [report][fixture-report]). The thrust and mass swaps are
 > checked on every flight: flown on its own thrust and mass, sampled at OpenRocket's times, each
 > flight must come back to its own apogee within 0.05%. The largest miss was 0.018%
-> ([report][fixture-report]). The paragraph above gives the split's limits.
+> ([report][fixture-report]). The split's limits are in the paragraph that opens "The split has
+> limits".
 
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
