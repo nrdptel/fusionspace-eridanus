@@ -102,7 +102,7 @@ analyze` can't be set that way. The check must catch it, and it does. B's 186 sm
 a GNSS track were smoothed again that way, the rest left as they were. Six of them ran away and
 were withheld ([A track that runs away](#a-track-that-runs-away)). That leaves 839 of B's 845
 smoothed flights. Of those, 144 apogee truths lay below the interval, and only 82.2% inside it.
-Every set, logger and moment is in [the report][mutation].
+Every set and moment is in [the report][mutation].
 
 ### A track that runs away
 
@@ -120,13 +120,14 @@ reason, with your log's speed and time in it:
 the smoother's vertical speed reads <speed> m/s at <time> s, past Earth's escape speed, 11186 m/s either way: the estimate ran away
 ```
 
-Nothing else in the output changes. The [readings](log-readings.md) above that row (liftoff,
-apogee, top speed, landing) are read from the log, not from the smoothed track. Go by those. Of
-the [sample logs' 1,058 records][survey], 3 are withheld so: one `altos-csv` log and two
-`held-table` logs, both names of log families in that survey. Why those three run away isn't
-traced yet ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). It
-doesn't by itself mean a sensor is broken. Before the bound, `hpr analyze` printed those three
-tracks, so output saved earlier for such a log shows a runaway track.
+That row takes the place of the smoothed apogee and the health card. The
+[readings](log-readings.md) above it (liftoff, apogee, top speed, landing) are read from the
+log, not from the smoothed track. Go by those. Of the [sample logs' 1,058 records][survey], 3
+are withheld so: one `altos-csv` log and two `held-table` logs (`altos-csv` and `held-table`
+are log families in that survey). Why those three run away isn't traced yet
+([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). It doesn't by
+itself mean a sensor is broken. Before the bound, `hpr analyze` printed those three tracks, so
+output saved earlier for such a log shows a runaway track.
 
 **How the check's wrong setting runs away.** Each sample passes a gate: one that misses the
 estimate by more than five of its standard deviations is rejected. A sensor rejected for a
@@ -135,8 +136,8 @@ smoother then treats the estimate, not the sensor, as wrong. It widens the uncer
 height, speed and acceleration by the size of the gap, so the estimate jumps to the sensor.
 That is right when the estimate has drifted and the sensor hasn't.
 
-It goes wrong with two sensors of the height that sit a steady gap apart, when both can be
-taken back. A take-back reads the gap as motion the filter missed and leaves the speed and
+It goes wrong when two sensors of the height disagree past their gates and both can be taken
+back. A take-back reads the gap as motion the filter missed and leaves the speed and
 acceleration wide open. The other sensor's samples, fused against that, swing the speed. A
 second later the next take-back can meet a wider gap, and the gap can grow without limit.
 
