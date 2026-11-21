@@ -1139,8 +1139,8 @@ OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
 Where the two codes differ from each other, it is mostly in drag: drag is the largest part of
-the gap on 61 of the 68 flights both fly
-([the gap between the two codes, by cause](#the-gap-between-the-two-codes-by-cause)).
+the gap on 61 of the 68 flights both fly ([report][fixture-report];
+[the gap between the two codes, by cause](#the-gap-between-the-two-codes-by-cause)).
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
 below zero hold the flights whose simulated apogee is below the logged one.
