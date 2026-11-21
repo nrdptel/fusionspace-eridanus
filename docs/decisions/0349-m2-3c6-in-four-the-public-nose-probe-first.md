@@ -20,6 +20,7 @@
 [i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
 [i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616
 [i-1486]: https://github.com/nrdptel/fusionspace-eridanus/issues/1486
+[i-1488]: https://github.com/nrdptel/fusionspace-eridanus/issues/1488
 [or-3391]: https://github.com/openrocket/openrocket/issues/3391
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [forward]: ../../validation/reports/fixture-flights.md
@@ -122,8 +123,8 @@ release every report here flies, still has the defect.
 3. **What the later increments take as settled.**
    - **The order.** Thrust, then mass and center of mass, then drag, then the air, each added
      to the ones before. A part is the apogee before its swap less the apogee after it. Other
-     is what thrust, mass and drag leave: the air's line, and the last flight's apogee less
-     OpenRocket's. So the parts sum to the whole by construction ([ADR-226][adr-226]).
+     is what thrust, mass and drag leave: the air's line, and the apogee of the flight on all
+     four swaps less OpenRocket's. So the parts sum to the whole by construction ([ADR-226][adr-226]).
    - **The air is a swap too.** OpenRocket flies the standard atmosphere through the pad's
      temperature and pressure, HPR Sim the day's whole profile. The report's existing flight
      of HPR Sim in OpenRocket's air uses HPR Sim's own inputs, so it is not a part of this
@@ -219,12 +220,13 @@ the errors among them, since the split needs no log; over the 60 compared with a
   against OpenRocket already is.
 - **The drag swap** is [ADR-097][adr-097]'s two curves in Mach number, power on and power off,
   built from the rows M2.3c11's record holds, on OpenRocket's reference length. A record whose
-  rows give no such curve stopped the run, counted under no reason. Amended with #1488
-  (2026-11-21): such a record is counted under "OpenRocket's record lacks an input", since a
-  usable drag curve is an input the record lacks. A thrust that stops and starts again with no
-  separation is refused, since its coast between the burns would be in neither curve, and an
-  own-history flight that fails is counted under the own-history test's reason, not as a refused
-  swap. None of the 68 flights split moved.
+  rows give no such curve stopped the run, counted under no reason. Amended with
+  [#1488][i-1488] (2026-11-21): such a record is counted under "OpenRocket's record lacks an
+  input", since a usable drag curve is an input the record lacks, and so is a thrust that stops
+  and starts again, whose coast between the burns is in neither curve. Both are looked for
+  before HPR Sim reads the histories, so a flight is counted under the first reason that
+  applies. An own-history flight that fails is counted under the own-history test's reason, not
+  as a refused swap. None of the 68 flights split moved.
 - **A tie** between two parts goes to the earlier of thrust, mass, drag and other.
 - **A median and a count** stand beside each mean: the count is of the flights where the part's
   absolute value is over 1%. They were added because the mass row's mean isn't typical of the
@@ -236,9 +238,12 @@ the errors among them, since the split needs no log; over the 60 compared with a
   HPR Sim flies OpenRocket's center of mass against its own center of pressure, which moves its
   stability margin. What that does to the apogee is in the mass row, and no later swap undoes
   it: the flight on all four swaps keeps it, and the rest is measured from that flight to
-  OpenRocket's own. So the rest can take back what the mass row holds. The report counts the flights where both are over
-  1% with opposite signs: the 1 flight where the mass part is over 1%. That fits the reading
-  and doesn't prove it.
+  OpenRocket's own. So the rest can take back what the mass row holds. The report counts the
+  flights where both are over 1% with opposite signs: the 1 flight where the mass part is over
+  1%. That fits the reading and doesn't prove it. The count goes by sign and the 1% floor alone,
+  not by how much of the mass part the rest takes back: a size rule was weighed with [#1488][i-1488] and
+  not taken, since it would add a second threshold with no source behind it, and the count
+  claims no more than a fit.
 
 On the two public designs, held by a test: `pods-none` +0.81% with drag +0.79%, and `mach-probe`
 +3.06% with drag +3.03%; thrust and mass under 0.005%, and under 0.05% left after the swaps.

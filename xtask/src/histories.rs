@@ -101,7 +101,8 @@ impl Inputs {
         let _ = writeln!(page, "\n## OpenRocket's inputs along its flights\n");
         let _ = writeln!(
             page,
-            "For M2.3c11 (ADR-349), `{ORACLE}` flies each flight again as OpenRocket's flights \
+            "For [M2.3c11](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c11) \
+             ([ADR-349](../../docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md)), `{ORACLE}` flies each flight again as OpenRocket's flights \
              above are flown and records, at OpenRocket's own time steps from launch to apogee, \
              its thrust, mass, center of mass and drag coefficient. The record stays on this \
              machine. M2.3c12 flies HPR Sim on those inputs to split the gap between the two \

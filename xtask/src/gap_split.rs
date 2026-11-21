@@ -37,9 +37,9 @@
 //! takes back; it doesn't show they are one effect).
 //!
 //! A flight is not split, and is counted under the first of [`NOT_SPLIT`] that applies, when
-//! OpenRocket's record lacks an input for it (a drag curve of two points or more among them),
-//! when HPR Sim refuses one of the histories (a thrust that stops and starts again among them) or
-//! fails any of the swapped flights, or when the flight on its own thrust and mass, sampled at
+//! OpenRocket's record lacks an input for it (a drag curve of two points or more, or a drag curve
+//! for each coast: a thrust that stops and starts again has a coast between the burns that is in
+//! neither curve), when HPR Sim refuses one of the histories or fails any of the swapped flights, or when the flight on its own thrust and mass, sampled at
 //! OpenRocket's times, fails or doesn't come back within [`OWN_HISTORY_BOUND`] of its own apogee
 //! (M2.3c11's test).
 //!
@@ -214,14 +214,14 @@ pub(crate) fn drag_table(
 
 impl OpenRocketInputs {
     /// A record flight's inputs: `Ok(Err(_))` when the record lacks one (rows that give a drag
-    /// curve of fewer than two points among them) or HPR Sim refuses a history built from it (a
-    /// thrust that stops and starts again among them: the coast between two burns would be in
-    /// neither drag curve).
+    /// curve of fewer than two points, or a thrust that stops and starts again, whose coast
+    /// between the burns is in neither drag curve) or, after that, when HPR Sim refuses a history
+    /// built from it.
     ///
     /// # Errors
     ///
-    /// A record that is not `histories.py`'s: no rows, a cell that isn't a number or null, or no
-    /// reference length.
+    /// A record that is not `histories.py`'s: no rows, a cell that isn't a number or null, or a
+    /// reference length that is missing or no length.
     pub(crate) fn of(flight: &Value) -> Result<Result<Self, NotSplit>, String> {
         if let Some(lacks) = flight.get("lacks") {
             return Ok(Err(NotSplit::lacks_input(lacks.to_string())));
@@ -251,17 +251,25 @@ impl OpenRocketInputs {
         let reference = flight["reference_length_m"]
             .as_f64()
             .ok_or("a flight holding every input has no reference length")?;
-        // The histories first: a thrust HPR Sim refuses (one that doesn't end at zero, say) is
-        // counted before the drag curves are read from its rows.
+        if !(reference > 0.0 && reference.is_finite()) {
+            return Err(format!("a reference length of {reference} m is no length"));
+        }
+        // The inputs the record lacks first, so that a flight is counted under the first reason
+        // of `NOT_SPLIT` that applies: rows that give a drag curve of fewer than two points, or a
+        // thrust that stops and starts again, whose coast between the burns is in neither curve.
+        let drag = match drag_table(&drag_rows, reference) {
+            Ok(drag) => drag,
+            Err(error) => return Ok(Err(NotSplit::lacks_input(error))),
+        };
         let burning = |thrust: &&f64| **thrust > 0.0;
         if let (Some(first), Some(last)) = (
             thrust_n.iter().position(|t| burning(&t)),
             thrust_n.iter().rposition(|t| burning(&t)),
         ) && let Some(gap) = thrust_n[first..=last].iter().position(|t| *t == 0.0)
         {
-            return Ok(Err(NotSplit::refused(format!(
-                "the thrust stops at {} s and starts again: the coast between the burns would \
-                 be in neither drag curve",
+            return Ok(Err(NotSplit::lacks_input(format!(
+                "the thrust stops at {} s and starts again: the coast between the burns is in \
+                 neither drag curve",
                 times_s[first + gap]
             ))));
         }
@@ -272,14 +280,6 @@ impl OpenRocketInputs {
         let mass = match MassHistory::new(times_s.clone(), column(MASS)?, column(CG)?) {
             Ok(mass) => mass,
             Err(error) => return Ok(Err(NotSplit::refused(error.to_string()))),
-        };
-        if !(reference > 0.0 && reference.is_finite()) {
-            return Err(format!("a reference length of {reference} m is no length"));
-        }
-        // A record whose rows give a curve of fewer than two points lacks the drag input.
-        let drag = match drag_table(&drag_rows, reference) {
-            Ok(drag) => drag,
-            Err(error) => return Ok(Err(NotSplit::lacks_input(error))),
         };
         Ok(Ok(Self {
             times_s,
@@ -869,8 +869,7 @@ impl GapSplit {
              The air's line is taken with the \
              drag table already in place, so it holds the air's density and speed of sound and \
              not what the air does to friction. Each flight split also passed \
-             [M2.3c11](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c11)'s test \
-             (the section above): flown on its own thrust and mass sampled at OpenRocket's times, it came back to \
+             [M2.3c11](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c11)'s test: flown on its own thrust and mass sampled at OpenRocket's times, it came back to \
              its own apogee within 0.05%; the largest miss was {}%.\n",
             self.parts[1].large,
             if self.parts[1].large == 1 {
@@ -1220,8 +1219,22 @@ mod tests {
             "{detail}"
         );
 
-        // A thrust that stops and starts again, with no separation: refused, since the coast
-        // between the burns would be in neither drag curve.
+        // A record that ends while the motor burns gives no power-off curve. HPR Sim would refuse
+        // its thrust too (its last thrust isn't zero), but the input the record lacks is counted
+        // first, as the first reason of `NOT_SPLIT` that applies; so is a refused mass beside it.
+        let mut burning_out = public.flight.clone();
+        let rows = burning_out["rows"].as_array_mut().unwrap();
+        rows.truncate(last_burning + 1);
+        rows[2][MASS] = json!(0.0);
+        let (name, detail) = reason(&burning_out, OWN_HISTORY_BOUND);
+        assert_eq!(name, "lacks_input");
+        assert!(
+            detail.contains("power-off drag curve has 0 points"),
+            "{detail}"
+        );
+
+        // A thrust that stops and starts again: the coast between the burns is in neither drag
+        // curve, so the record lacks an input for it, whatever separates.
         let mut relit = public.flight.clone();
         let rows = relit["rows"].as_array_mut().unwrap();
         let burning: Vec<usize> = (0..rows.len())
@@ -1230,7 +1243,7 @@ mod tests {
         let middle = burning[burning.len() / 2];
         rows[middle][THRUST] = json!(0.0);
         let (name, detail) = reason(&relit, OWN_HISTORY_BOUND);
-        assert_eq!(name, "refused");
+        assert_eq!(name, "lacks_input");
         assert!(
             detail.contains("stops at") && detail.contains("starts again"),
             "{detail}"
@@ -1282,8 +1295,8 @@ mod tests {
         assert!(stopped.unwrap_err().contains("not the whole's"));
 
         // A reference length that is no length stops the run, as a record that isn't the
-        // oracle's.
-        let mut lengthless = public.flight.clone();
+        // oracle's, even beside a history HPR Sim refuses.
+        let mut lengthless = pulling.clone();
         lengthless["reference_length_m"] = json!(0.0);
         assert!(
             split(
@@ -1369,9 +1382,9 @@ mod tests {
                 }),
             )
         };
-        let s = GapSplit::of(&[of(4.0, -3.9), of(2.0, 1.5), of(-1.5, 0.5), of(0.2, -2.0)]);
+        let s = GapSplit::of(&[of(4.0, -3.9), of(2.0, 1.5), of(-1.5, 0.5), of(0.2, -0.5)]);
         assert_eq!(s.parts[1].large, 3);
-        assert_eq!(s.left_large, 3);
+        assert_eq!(s.left_large, 2);
         assert_eq!(s.mass_opposed_by_rest, 1);
         assert_eq!(s.check_consistent(4), Ok(()));
         let page = s.to_markdown();
@@ -1383,8 +1396,13 @@ mod tests {
             "{page}"
         );
         // The rest's row counts its flights over 1%; the rows that dominate no flight say so.
-        assert!(page.contains("| other: the rest | "), "{page}");
-        assert!(page.contains("| n/a | 3 |"), "{page}");
+        let row = |label: &str| {
+            page.lines()
+                .find(|line| line.starts_with(&format!("| {label} |")))
+                .unwrap_or_default()
+        };
+        assert!(row("other: the rest").ends_with("| n/a | 2 |"), "{page}");
+        assert!(row("other: the air").ends_with("| n/a | n/a |"), "{page}");
         let mut more = s.clone();
         more.mass_opposed_by_rest = 4;
         assert!(
