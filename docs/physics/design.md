@@ -868,6 +868,7 @@ raises one.
 | `center_outside_rocket` | error | a stage with an axial center-of-mass override (`cg_aft_m`, its own or a component's) has its center off the rocket although its parts aren't |
 | `motor_tight_in_mount` | warning | the motor's nominal diameter is wider than the mount's bore, but its real case fits: a 29 mm motor in a 1.140&nbsp;in tube |
 | `motor_past_mount_top` | warning | the case's forward end is forward of the mount's |
+| `motor_into_block` | warning | the case reaches more than 1 mm (0.039 in), `BLOCK_OVERLAP_TOLERANCE_M` (the step most of the catalog's case lengths are stated to), past the aft face of a part attached to its mount whose bore is narrower than the case, with that face forward of the nozzle: an engine block, forward thrust ring or bulkhead. The real case stops at the aftmost such face, the one named |
 | `attachment_past_body_end` | warning | an external part runs past an end of its body tube |
 | `internal_part_past_parent_end` | warning | an internal part runs past an end of its parent |
 | `internal_part_tight_in_parent` | warning | an internal part other than a packed part reaches past its parent's bore by no more than the [fit tolerance](#wider-than-its-parent): a fit to sand |
@@ -1132,6 +1133,14 @@ unless the caller sets
   that isn't nominal (`a_nominal_motor_in_its_matching_tube_only_warns`). Mutation probes make
   these tests fail. They give the slack to every diameter, or double the tolerance. Or they allow a
   cap anywhere along its parent, off its parent's axis, or over both ends.
+
+- A 38 mm (1.5 in) case that reaches 10 mm (0.39 in) past the aft face of a block of 28 mm
+  (1.1 in) bore at the mount's top warns, with 10 mm (0.39 in) to move. So does a bulkhead 0.8 mm
+  (0.031 in) thick that the case passes wholly, 90.8 mm (3.57 in) past it. Of two blocks the
+  aftmost is named. A case that ends at the block's face, reaches 1 mm (0.039 in) past it or
+  passes its bore doesn't warn, nor does a ring across the nozzle's station
+  (`a_motor_into_an_engine_block_is_found`). Mutation probes that drop the bore comparison, the
+  nozzle condition or the tolerance's measure make it fail.
 
 - Against RocketPy 1.13.0, in `config::tests::matches_rocketpy_example_rockets`:
   - Thirteen cases of the [fixture](../glossary.md#reference-value-and-fixture)

@@ -2699,6 +2699,181 @@ fn probe_with(folder: &Path, name: &str, from: &str, to: &str) -> String {
     path.to_string_lossy().into_owned()
 }
 
+/// Issue #1261: `--motor` is measured against its mount. A common name another catalog motor
+/// shares, which fits the mount better, is refused as ambiguous (ADR-302 §1): `J360` in a 54 mm
+/// mount names both Cesaroni's 38 mm `J360` and its 54 mm `1016J360-15A`. A motor much narrower
+/// than its mount gets a note that no adapter is flown. A case that runs past the mount's forward
+/// end, or into an engine block, gets the margin with the case where it would stop.
+#[test]
+fn sim_measures_a_motor_against_its_mount() {
+    let folder = tempfile::tempdir().unwrap();
+    // The probe's 29 mm mount, widened to a 54 mm bore (0.0275 m outer radius, 0.5 mm wall).
+    let wide = probe_with(
+        folder.path(),
+        "wide.ork",
+        "<outerradius>0.015</outerradius>",
+        "<outerradius>0.0275</outerradius>",
+    );
+    for name in ["J360", "Cesaroni J360"] {
+        let said = said(&json_error(&["sim", &wide, "--motor", name], 1, "input"));
+        assert!(
+            said.contains(&format!(
+                "in a mount of 54.0 mm bore, `{name}` matches several motors: J360 (38 mm), \
+                 1016J360-15A (54 mm)"
+            )),
+            "{said}"
+        );
+        // The help offers only the name that flies there and isn't refused in turn.
+        assert!(
+            said.contains(
+                "help: give `--motor 1016J360-15A` for the closest fit; a narrower one of them, \
+                 flown in an adapter, can be given only by its .eng or .rse file"
+            ),
+            "{said}"
+        );
+    }
+    // A mount drawn at 53.5 mm, which the design checks don't let a 54 mm case into: `J360` has
+    // no rival there, and flies the 38 mm motor, with the adapter note.
+    let tight = probe_with(
+        folder.path(),
+        "tight.ork",
+        "<outerradius>0.015</outerradius>",
+        "<outerradius>0.02725</outerradius>",
+    );
+    let document = json(&["sim", &tight, "--motor", "J360"], 0, "sim.schema.json");
+    assert_eq!(document["motors"][0]["designation"], "J360", "{document:#}");
+    // The 54 mm motor's own designation names it alone, and fills the bore: no note.
+    let messages = |args: &[&str], key: &str| -> Vec<String> {
+        let document = json(args, 0, "sim.schema.json");
+        document[key]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| {
+                item.as_str()
+                    .or(item["message"].as_str())
+                    .unwrap()
+                    .to_owned()
+            })
+            .collect()
+    };
+    let notes = messages(&["sim", &wide, "--motor", "1016J360-15A"], "notes");
+    assert!(!notes.iter().any(|n| n.contains("adapter")), "{notes:?}");
+    // In the probe's own 29 mm mount the 38 mm J360 can't fit, so `J360` names it alone: the
+    // design checks refuse it as wider than the mount, not as ambiguous.
+    let probe = repo_file(PROBE);
+    let said = said(&json_error(&["sim", &probe, "--motor", "J360"], 1, "input"));
+    assert!(!said.contains("matches several motors"), "{said}");
+    assert!(said.contains("wider than the mount's"), "{said}");
+
+    // A 38 mm motor in the 54 mm bore flies centered, with no adapter, and says so.
+    let notes = messages(&["sim", &wide, "--motor", "J350W"], "notes");
+    assert!(
+        notes.iter().any(|n| n.contains(
+            "the J350W is 38.0 mm across, 16.0 mm narrower than the 54.0 mm bore of `Motor \
+             mount`, and flies centered there with no adapter. An adapter's mass isn't included"
+        )),
+        "{notes:?}"
+    );
+
+    // The probe's H128W, 194 mm long, in a mount cut to 100 mm: it reaches 94 mm past the
+    // mount's forward end, and stopped there it sits 94 mm further aft, with less margin.
+    let short = probe_with(
+        folder.path(),
+        "short.ork",
+        "<length>0.2</length><outerradius>0.015</outerradius>",
+        "<length>0.1</length><outerradius>0.015</outerradius>",
+    );
+    let margins = |warning: &str, excess: &str| -> (f64, f64) {
+        let (_, tail) = warning
+            .split_once(". At ignition the static margin is ")
+            .unwrap_or_else(|| panic!("{warning}"));
+        let (drawn, tail) = tail.split_once(" calibers as drawn, and ").unwrap();
+        let (stopped, tail) = tail.split_once(" with the case ").unwrap();
+        assert_eq!(tail, format!("{excess} mm further aft"), "{warning}");
+        (drawn.parse().unwrap(), stopped.parse().unwrap())
+    };
+    let warnings = messages(&["sim", &short], "warnings");
+    let past: Vec<&String> = warnings
+        .iter()
+        .filter(|w| w.contains("past the mount's forward end"))
+        .collect();
+    let [past] = past[..] else {
+        panic!("{warnings:?}")
+    };
+    assert!(
+        past.contains(
+            "reaches 94.0 mm past the mount's forward end (configuration [H128W-0]). The mass, CG \
+             and margin are for the motor as drawn"
+        ),
+        "{past}"
+    );
+    let (drawn, stopped) = margins(past, "94.0");
+    assert!(stopped < drawn - 0.1, "{past}");
+    // Each figure is the library's static margin at ignition: as drawn, and with the file's own
+    // overhang set to the 94 mm the case moves aft.
+    let library_margin = |path: &str| {
+        let file = hpr::hpr_io::ork::read(&std::fs::read(path).unwrap())
+            .unwrap()
+            .value;
+        let design = hpr::hpr_io::ork::design(&file).value;
+        let id = design.motors.default_configuration().unwrap().id.clone();
+        hpr::Rocket::from_design(design.rocket, &id)
+            .unwrap()
+            .margin(0.0, hpr::hpr_sim::metrics::STATIC_MARGIN_MACH)
+            .unwrap()
+            .margin_cal
+            .unwrap()
+    };
+    let moved = std::fs::read_to_string(&short).unwrap().replacen(
+        "<overhang>0.0</overhang>",
+        "<overhang>0.094</overhang>",
+        1,
+    );
+    let moved_path = folder.path().join("short-moved.ork");
+    std::fs::write(&moved_path, moved).unwrap();
+    let moved_path = moved_path.to_string_lossy().into_owned();
+    assert!((library_margin(&short) - drawn).abs() <= 0.005, "{past}");
+    assert!(
+        (library_margin(&moved_path) - stopped).abs() <= 0.005,
+        "{past}"
+    );
+
+    // An engine block 10 mm long at the top of the probe's own mount, of 21 mm bore: the
+    // H128W, 6 mm short of the mount's top, runs 4 mm into it.
+    let block = probe_with(
+        folder.path(),
+        "block.ork",
+        "</motormount></innertube>",
+        "</motormount><subcomponents><engineblock><name>Block</name>\
+         <id>00000000-0000-4000-8000-000000000006</id>\
+         <axialoffset method=\"top\">0.0</axialoffset><position type=\"top\">0.0</position>\
+         <length>0.01</length><outerradius>auto</outerradius><thickness>0.004</thickness>\
+         <material type=\"bulk\" density=\"1000.0\">Probe</material></engineblock>\
+         </subcomponents></innertube>",
+    );
+    let warnings = messages(&["sim", &block], "warnings");
+    let into: Vec<&String> = warnings.iter().filter(|w| w.contains("`Block`")).collect();
+    let [into] = into[..] else {
+        panic!("{warnings:?}")
+    };
+    assert!(
+        into.contains(
+            "the motor in `Motor mount` reaches 4.0 mm forward of the aft face of `Block`, whose \
+             21.0 mm bore can't pass the 29.0 mm case"
+        ),
+        "{into}"
+    );
+    let (drawn, stopped) = margins(into, "4.0");
+    assert!(stopped < drawn, "{into}");
+    // Without the block, the same motor gets neither warning.
+    let warnings = messages(&["sim", &probe], "warnings");
+    assert!(
+        !warnings.iter().any(|w| w.contains("as drawn")),
+        "{warnings:?}"
+    );
+}
+
 /// A `.ork` flies its own configuration as the library flies it, when its motor is one the
 /// catalog holds: the probe with the H54 written in place of its H128W.
 #[test]

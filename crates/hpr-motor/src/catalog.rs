@@ -292,6 +292,14 @@ pub const PROPELLANT_SHORT_BOUND: f64 = 0.05;
 /// [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
 pub const CHECK_BOUND: f64 = 0.01;
 
+/// How far, in mm, a motor named for a mount may be wider than its bore and still fit, and by how
+/// much another motor must fit more closely to make the name ambiguous
+/// ([`Catalog::find_for_bore`]): the 1 mm [`Catalog::find_for_design`] allows between a design's
+/// case and a catalog motor ([ADR-302][adr-302] §1).
+///
+/// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
+pub const BORE_TOLERANCE_MM: f64 = 1.0;
+
 /// A curve file's check against its motor's [`StatedFigures`] ([ADR-005][adr-005]'s 1% rule,
 /// definition A of the ThrustCurve.org data notes): the file's total impulse over its whole
 /// curve, its NFPA 1125 burn time between the 5%-of-peak crossings, and its average thrust as
@@ -741,6 +749,39 @@ impl Catalog {
             return all;
         }
         picked
+    }
+
+    /// As [`Catalog::find`], for a motor named by hand to go into a mount whose bore is `bore_mm`
+    /// across. It follows the diameter guard of [ADR-302][adr-302] §1, on looking a motor up by
+    /// name, which [`Catalog::find_for_design`] applies to a design file's motor against the file's
+    /// case diameter; here it is measured against the mount's bore. Where another motor the name matches, by designation or
+    /// common name, fits the bore more closely by more than [`BORE_TOLERANCE_MM`] than every motor
+    /// [`Catalog::find`] gives (or where none of those fits and another does), every match, so the
+    /// caller refuses the name as ambiguous; else what [`Catalog::find`] gives. A motor fits when
+    /// it is no wider than the bore and the tolerance; the closer fit leaves less room around it.
+    /// So `J360` in a 54 mm mount names both Cesaroni's 38 mm `J360` and its 54 mm `1016J360-15A`,
+    /// and in a 38 mm mount the `J360` alone.
+    ///
+    /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
+    pub fn find_for_bore<'a>(&'a self, name: &str, bore_mm: f64) -> Vec<&'a CatalogMotor> {
+        let (maker, rest) = self.maker_and_name(name);
+        let all = self.matching(rest, |motor| {
+            maker.is_none_or(|maker| maker == motor.manufacturer)
+        });
+        let picked = prefer_designations(all.clone(), rest);
+        let room = |motor: &CatalogMotor| {
+            (motor.diameter_mm <= bore_mm + BORE_TOLERANCE_MM)
+                .then_some(bore_mm - motor.diameter_mm)
+        };
+        let best = picked
+            .iter()
+            .filter_map(|motor| room(motor))
+            .fold(f64::INFINITY, f64::min);
+        let closer = all.iter().any(|motor| {
+            !picked.iter().any(|kept| std::ptr::eq(*kept, *motor))
+                && room(motor).is_some_and(|room| room + BORE_TOLERANCE_MM < best)
+        });
+        if closer { all } else { picked }
     }
 
     /// The motors `of` keeps whose designation or common name is `name`, narrowed as
@@ -3078,6 +3119,50 @@ mod tests {
                 .count(),
             1
         );
+    }
+
+    /// ADR-302 §1's guard for a motor named by hand (issue #1261): `J360` in a 54 mm mount names
+    /// both Cesaroni motors, the 38 mm `J360` and the 54 mm `1016J360-15A`, so it is refused as
+    /// ambiguous; in a 38 mm mount, or one a little narrower than 38 mm, the `J360` alone. A name
+    /// the bore doesn't split stays as [`Catalog::find`] gives it.
+    #[test]
+    fn a_mount_s_bore_keeps_a_common_name_from_flying_another_motor() {
+        let catalog = bundled();
+        let found = |name: &str, bore_mm: f64| -> Vec<(String, f64)> {
+            let mut found: Vec<(String, f64)> = catalog
+                .find_for_bore(name, bore_mm)
+                .into_iter()
+                .map(|motor| (motor.designation.clone(), motor.diameter_mm))
+                .collect();
+            found.sort_by(|a, b| a.0.cmp(&b.0));
+            found
+        };
+        let both = vec![("1016J360-15A".to_owned(), 54.0), ("J360".to_owned(), 38.0)];
+        let small = vec![("J360".to_owned(), 38.0)];
+        // A 54 mm mount tube's bore, 2.17 in, and one drawn at the case's own size.
+        assert_eq!(found("J360", 55.1), both);
+        assert_eq!(found("J360", 54.0), both);
+        assert_eq!(found("Cesaroni J360", 54.0), both);
+        // A 38 mm bore, and one a little under (a tight fit the design checks warn of).
+        assert_eq!(found("J360", 38.4), small);
+        assert_eq!(found("J360", 37.5), small);
+        // A 76.2 mm bore fits neither closely: the 54 mm motor is closer by 16 mm, so both.
+        assert_eq!(found("J360", 76.2), both);
+        // Its own designation names the 54 mm motor alone, whatever the bore.
+        assert_eq!(
+            found("1016J360-15A", 38.4),
+            vec![("1016J360-15A".to_owned(), 54.0)]
+        );
+        // A name the bore doesn't split: what `find` gives.
+        for (name, bore_mm) in [("H128W", 29.0), ("G80", 29.0), ("K1100T", 55.1)] {
+            let find: Vec<&str> = catalog.find(name).map(|m| m.designation.as_str()).collect();
+            let bore: Vec<&str> = catalog
+                .find_for_bore(name, bore_mm)
+                .into_iter()
+                .map(|m| m.designation.as_str())
+                .collect();
+            assert_eq!(bore, find, "{name}");
+        }
     }
 
     /// ADR-298 §5: the default is the first ranked file that is bundled. A passing file listed
