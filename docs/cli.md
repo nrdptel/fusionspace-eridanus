@@ -529,7 +529,7 @@ motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster 
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
-note: the 168H54-10A is 29.0 mm across, 23.4 mm narrower than the 52.4 mm bore of `Booster / motor bay`: it flies centered there, with no adapter, so an adapter's mass isn't included; left out, it reads the apogee high and, aft of the center of gravity, the margin high
+note: the 168H54-10A is 29.0 mm across, 23.4 mm narrower than the 52.4 mm bore of `Booster / motor bay`, and flies centered there with no adapter. An adapter's mass isn't included, so the apogee reads high, and so does the margin for an adapter aft of the center of gravity
 note: the file's 2 recovery devices fly as OpenRocket flies them. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much

@@ -3177,9 +3177,10 @@ fn adapter_note(
             .find(|(id, _)| id == mount)
             .map_or_else(String::new, |(_, name)| name);
         format!(
-            "the {} is {:.1} mm across, {:.1} mm narrower than the {:.1} mm bore of `{}`: it \
-             flies centered there, with no adapter, so an adapter's mass isn't included; left \
-             out, it reads the apogee high and, aft of the center of gravity, the margin high",
+            "the {} is {:.1} mm across, {:.1} mm narrower than the {:.1} mm bore of `{}`, and \
+             flies centered there with no adapter. An adapter's mass isn't included, so the \
+             apogee reads high, and so does the margin for an adapter aft of the center of \
+             gravity",
             crate::printable(motor.designation()),
             motor.diameter_m() * 1000.0,
             gap_m * 1000.0,
@@ -3225,16 +3226,16 @@ fn stopped_case_margin(
     let mut moved = rocket.clone();
     let mut found = false;
     walk_mut(&mut moved, &mut |component| {
-        if component.id == *mount {
-            if let Some(held) = &mut component.motor_mount {
-                held.overhang_m += excess_m;
-                found = true;
-            }
+        if component.id == *mount
+            && let Some(held) = &mut component.motor_mount
+        {
+            held.overhang_m += excess_m;
+            found = true;
         }
     });
     let stopped = margin(moved).filter(|_| found)?;
     Some(format!(
-        "; at ignition the static margin is {drawn:.2} calibers as drawn, and {stopped:.2} with \
+        ". At ignition the static margin is {drawn:.2} calibers as drawn, and {stopped:.2} with \
          the case {:.1} mm further aft",
         excess_m * 1000.0
     ))

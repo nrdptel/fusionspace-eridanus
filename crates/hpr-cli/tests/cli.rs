@@ -2757,8 +2757,7 @@ fn sim_measures_a_motor_against_its_mount() {
     assert!(
         notes.iter().any(|n| n.contains(
             "the J350W is 38.0 mm across, 16.0 mm narrower than the 54.0 mm bore of `Motor \
-             mount`: it flies centered there, with no adapter, so an adapter's mass isn't \
-             included"
+             mount`, and flies centered there with no adapter. An adapter's mass isn't included"
         )),
         "{notes:?}"
     );
@@ -2773,7 +2772,7 @@ fn sim_measures_a_motor_against_its_mount() {
     );
     let margins = |warning: &str, excess: &str| -> (f64, f64) {
         let (_, tail) = warning
-            .split_once("; at ignition the static margin is ")
+            .split_once(". At ignition the static margin is ")
             .unwrap_or_else(|| panic!("{warning}"));
         let (drawn, tail) = tail.split_once(" calibers as drawn, and ").unwrap();
         let (stopped, tail) = tail.split_once(" with the case ").unwrap();
@@ -2790,7 +2789,7 @@ fn sim_measures_a_motor_against_its_mount() {
     };
     assert!(
         past.contains(
-            "reaches 94.0 mm past the mount's forward end (configuration [H128W-0]); the mass, CG \
+            "reaches 94.0 mm past the mount's forward end (configuration [H128W-0]). The mass, CG \
              and margin are for the motor as drawn"
         ),
         "{past}"

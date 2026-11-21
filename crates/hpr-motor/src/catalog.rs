@@ -767,7 +767,8 @@ impl Catalog {
         });
         let picked = prefer_designations(all.clone(), rest);
         let room = |motor: &CatalogMotor| {
-            (motor.diameter_mm <= bore_mm + BORE_TOLERANCE_MM).then(|| bore_mm - motor.diameter_mm)
+            (motor.diameter_mm <= bore_mm + BORE_TOLERANCE_MM)
+                .then_some(bore_mm - motor.diameter_mm)
         };
         let best = picked
             .iter()

@@ -407,9 +407,9 @@ impl Finding {
                 mount,
                 excess_m,
             } => format!(
-                "the motor in {} reaches {} past the mount's forward end (configuration {}); the \
-                 mass, CG and margin are for the motor as drawn, and where a ring or bulkhead \
-                 closes the mount there, the case sits that much further aft",
+                "the motor in {} reaches {} past the mount's forward end (configuration {}). The \
+                 mass, CG and margin are for the motor as drawn: where a ring or bulkhead closes \
+                 the mount there, the real case sits that much further aft",
                 name(mount),
                 mm(*excess_m),
                 name(configuration)
@@ -423,8 +423,8 @@ impl Finding {
                 excess_m,
             } => format!(
                 "the motor in {} runs {} into {}, whose {} bore can't pass the {} case \
-                 (configuration {}); the mass, CG and margin are for the motor as drawn, and a \
-                 real case stops at the part, that much further aft",
+                 (configuration {}). The mass, CG and margin are for the motor as drawn: a real \
+                 case stops at the part, that much further aft",
                 name(mount),
                 mm(*excess_m),
                 name(block),
@@ -1328,7 +1328,7 @@ mod tests {
         assert!(sentences[7].contains(" 50.8 mm past "), "{}", sentences[7]);
         assert!(
             sentences[3].contains(
-                "reaches 12.0 mm past the mount's forward end (configuration <cfg>); the mass, CG \
+                "reaches 12.0 mm past the mount's forward end (configuration <cfg>). The mass, CG \
                  and margin are for the motor as drawn"
             ),
             "{}",
@@ -1338,8 +1338,8 @@ mod tests {
             sentences.last().map(String::as_str),
             Some(
                 "the motor in <mt> runs 12.0 mm into <block>, whose 25.0 mm bore can't pass the \
-                 38.0 mm case (configuration <cfg>); the mass, CG and margin are for the motor as \
-                 drawn, and a real case stops at the part, that much further aft"
+                 38.0 mm case (configuration <cfg>). The mass, CG and margin are for the motor as \
+                 drawn: a real case stops at the part, that much further aft"
             )
         );
         assert!(sentences[14].contains(" 250.0 mm forward of the nose tip"));
