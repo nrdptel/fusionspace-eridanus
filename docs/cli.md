@@ -1414,8 +1414,8 @@ and `simfile_id`). Python's and Rust's `from_catalog` follow the same rule.
 #### A name that fits another motor's mount
 
 A designation outranks a common name, but not when the common name's motor fits the mount
-better. Cesaroni's `J360` is a 38 mm motor, and `J360` is also the common name of its 54 mm
-`1016J360-15A`. In a 54 mm mount, `J360` could mean either, so `hpr sim --motor` refuses it and
+better. Cesaroni's `J360` is a 38 mm (1.5 in) motor, and `J360` is also the common name of its
+54 mm (2.1 in) `1016J360-15A`. In a 54 mm (2.1 in) mount, `J360` could mean either, so `hpr sim --motor` refuses it and
 lists both, each with its diameter:
 
 ```text
@@ -1426,16 +1426,16 @@ help: give --motor one of those names, such as `--motor 1016J360-15A` for the on
 
 The rule is the one a `.ork` file's motor is read by, in
 [ADR-302](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md)
-§1 on looking a motor up by name. A motor counts as fitting when it is at most 1 mm wider than
-the bore. The name is refused when another motor of that common name fits with over 1 mm less
-room to spare than the named one. In a 38 mm mount the same `J360` names the 38 mm motor alone,
-as the 54 mm one doesn't fit.
+§1 on looking a motor up by name. A motor counts as fitting when it is at most 1 mm (0.039 in)
+wider than the bore. The name is refused when another motor of that common name fits with over
+1 mm (0.039 in) less room to spare than the named one. In a 38 mm (1.5 in) mount the same `J360`
+names the 38 mm (1.5 in) motor alone, as the 54 mm (2.1 in) one doesn't fit.
 
-A motor more than 5% narrower than the bore, such as a 38 mm motor in a 54 mm mount, flies
-centered with no adapter. A note says so: the adapter's mass is left out, so the apogee and,
-for an adapter aft of the center of gravity, the margin read high. 5% is more than the
-clearance a mount tube leaves a case of its own size, and less than the smallest step between
-neighboring standard sizes (24 to 29 mm, 17%).
+A motor more than 5% narrower than the bore, such as a 38 mm (1.5 in) motor in a 54 mm (2.1 in)
+mount, flies centered with no adapter. A note says so: the adapter's mass is left out, so the
+apogee and, for an adapter aft of the center of gravity, the margin read high. 5% is more than
+the clearance a mount tube leaves a case of its own size, and less than the smallest step
+between neighboring standard sizes, 17% from 24 to 29 mm (0.94 to 1.1 in).
 
 #### A motor's figures
 

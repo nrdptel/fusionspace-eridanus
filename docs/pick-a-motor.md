@@ -230,7 +230,7 @@ More: https://hpr.fusionspace.co/accuracy.html
 The `warning` says the I377's case reaches 22.0 mm (0.87 in) past the mount tube's forward end.
 The 292 mm (11.5 in) case sits 10 mm (0.39 in) out of the back of the rocket's 260 mm (10 in)
 mount tube. The simulator flies it as drawn. If a ring or bulkhead closes the mount's forward
-end, the real case stops there and sits 22.0 mm further aft. The warning gives the static
+end, the real case stops there and sits 22.0 mm (0.87 in) further aft. The warning gives the static
 margin at ignition both ways, as drawn and moved aft. Whether it fits the real rocket is for
 you to check.
 
