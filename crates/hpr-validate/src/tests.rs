@@ -4661,6 +4661,10 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // leaves the rail. Its one Mach number a flight is the Mach number there, 0.16 at most,
         // so it never sets the fastest reference.
         "tip-off-model.json",
+        // What HPR Sim's tip-off phase moves on the real flights (M1.14b14): the flights
+        // `real-flights.json` already holds, flown again with and without the phase, and the
+        // private collection's aggregate. Apogees and errors only: no Mach number in it.
+        "tip-off-flights.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
