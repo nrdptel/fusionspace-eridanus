@@ -720,6 +720,7 @@
       "median_percent": 0.19,
       "mean_absolute_percent": 0.33
     },
+    "left_large": 2,
     "drag_first": {
       "mean_percent": 0.85,
       "median_percent": 0.76,
