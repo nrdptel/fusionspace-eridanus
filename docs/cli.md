@@ -1444,9 +1444,9 @@ A motor named with `--motor` more than 5% narrower than the bore, such as a 38 m
 in a 54 mm (2.1 in) mount, flies centered with no adapter. A note says so. The adapter's mass is
 left out: it would move the apogee, up or down, and for an adapter aft of the center of gravity
 the margin reads high without it. 5% is more than the 1.6% a 3.00 in (76.2 mm) bore leaves a
-75 mm case, and less than the smallest step between the catalog's common diameters (13, 18, 24,
-29, 38, 54, 75 and 98 mm), 17% from 24 to 29 mm (0.94 to 1.14 in). A motor the design file holds
-gets no such note.
+75 mm case, and less than the smallest step between the catalog's common motor sizes, from 13 mm
+(0.51 in) to 98 mm (3.9 in): 17%, from 24 to 29 mm (0.94 to 1.14 in). A motor the design file
+holds gets no such note.
 
 #### A motor's figures
 

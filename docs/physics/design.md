@@ -1140,7 +1140,7 @@ unless the caller sets
   aftmost is named. A case that ends at the block's face, reaches 1 mm (0.039 in) past it or
   passes its bore doesn't warn, nor does a ring across the nozzle's station
   (`a_motor_into_an_engine_block_is_found`). Mutation probes that drop the bore comparison, the
-  nozzle condition or the 1 mm tolerance's measure make it fail.
+  nozzle condition or the tolerance's measure make it fail.
 
 - Against RocketPy 1.13.0, in `config::tests::matches_rocketpy_example_rockets`:
   - Thirteen cases of the [fixture](../glossary.md#reference-value-and-fixture)

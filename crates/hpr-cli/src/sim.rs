@@ -3130,7 +3130,7 @@ fn bore_guard(name: &str, bore_m: f64, catalog: &Catalog) -> Result<(), Failure>
     let rival_flies = fits
         .iter()
         .filter(|motor| !named.iter().any(|kept| std::ptr::eq(*kept, **motor)))
-        .any(|motor| flies(motor));
+        .any(&flies);
     if fits.len() < 2 || !rival_flies {
         return Ok(());
     }
