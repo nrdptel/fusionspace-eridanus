@@ -30,7 +30,7 @@ sensors, and how well its 90% intervals hold.
   launch has no pad to zero the barometer on, so the pad is assumed, the card says so, and its
   accelerometer is set aside ([A log written from launch](#a-log-written-from-launch), and
   [evidence row G33](../evidence.md#g33)). A log too long to hold in memory is withheld. So is a
-  track whose vertical speed passes 11,186 m/s, Earth's escape speed: that is an estimate that
+  track whose vertical speed passes 11,186 m/s, Earth's escape speed. That is an estimate that
   ran away, not a rocket ([A track that runs away](#a-track-that-runs-away)).
 
 ## How it works
@@ -114,33 +114,33 @@ card do that work.
 A track runs away when two sensors of the height disagree and both can be taken back. Each
 sample is gated: one more than five standard errors from the estimate is rejected. A sensor
 rejected for a whole second is taken back. The smoother then takes the estimate to be the one
-that is wrong, and widens the height, speed and acceleration by the size of the gap, so the
+that is wrong. It widens the height, speed and acceleration by the size of the gap, so the
 estimate moves to the sensor. That is right for one sensor against the motion model, such as a
-barometer through a deployment's pressure pulse. With two sensors a steady gap apart, each
-take-back reads the gap as motion the filter missed and moves the speed and acceleration to
-close it. A second later the other sensor is taken back across a wider gap, and the gap can
-grow at every turn.
+barometer through a deployment's pressure pulse. Two sensors a steady gap apart are another
+case. Each take-back reads the gap as motion the filter missed. It moves the speed and
+acceleration to close it. A second later the other sensor is taken back across a wider gap,
+and the gap can grow at every turn.
 
 The barometer and the GNSS receiver both measure height. As shipped, the receiver is never
-taken back: two rejections in a row lose it its trust, and it must agree with the smoother for
+taken back. Two rejections in a row lose it its trust, and it must agree with the smoother for
 2 s again. So only the barometer can be taken back, and the loop has one side. Trusted from
 liftoff, the receiver is taken back like any sensor, and the loop has both.
 
 An invented flight shows it (the smoother's own test). The rocket tops out at 98.1 m/s. Its
 barometer logs at 20 Hz. Its receiver logs at 5 Hz and, from apogee on, runs off the truth at
 20 m/s, as no real receiver does. Trusted from liftoff, the track is withheld as diverged.
-Trusted by agreement, the same log smooths: the top speed reads within 2 m/s of 98.1, and the
-truth lies inside the interval at 30 s, on the way down.
+Trusted by agreement, the same log smooths. The top speed reads within 2 m/s of 98.1. At
+30 s, on the way down, the truth lies inside the interval.
 
-On the synthetic flights, trusting the receiver from liftoff runs away on 11 of set A's 185 logs
-smoothed again and on 6 of set B's 186, and on none of the tuning set's 33
+On the synthetic flights, trusting the receiver from liftoff runs away on 11 of the 185 logs
+set A smooths again. It does on 6 of set B's 186, and on none of the tuning set's 33
 ([the report][report]). They leave that check's cells, and it still fails on the rest. As
 shipped, the check fails if a single synthetic log with a barometer is withheld, for this
 reason or another, and none is.
 
 Real logs are another matter. As shipped, 3 of the [sample logs' 1,058 records][survey] run
 away and are withheld: one `altos-csv` log and two `held-table` logs. The shipped rule never
-takes a receiver back, so they ran away by another road than the one above, and it isn't traced
+takes a receiver back, so they ran away by another road than the one above. It isn't traced
 yet ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). Before the
 bound, `hpr analyze` printed those three tracks.
 
