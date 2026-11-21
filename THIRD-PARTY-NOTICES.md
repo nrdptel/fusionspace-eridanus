@@ -178,8 +178,8 @@ adds a source.
   `validation/fixtures/flight/rocketpy-whole-flight-own-drag.json`; the curves are **not**
   committed. Prometheus 2022's drag function is ported under Ported, below.
 - **RocketPy's tip-off phase** (MIT; ADR-357): `validation/oracles/rocketpy/tip_off.py` flies
-  RocketPy's development branch at the merge of its pull request #920
-  (`ebe1b775cd9270c93018dc6d7867313d6eed4e5c`, pinned as `rocketpy-tip-off` in
+  RocketPy's development branch at the merge of its pull request #1217
+  (`65b9838f23f62ce6155ac712798ccab01c45ea47`, pinned as `rocketpy-tip-off` in
   `validation/refs.lock.toml` and fetched under the gitignored `refs/`), from the committed
   example inputs above. Only the flights' results are committed, in
   `validation/reports/tip-off.json`, with what each flight carried: its parachutes, dry mass,
@@ -412,10 +412,10 @@ adds a source.
   drag, `prometheus_cd_at_ma`, as `PROMETHEUS_CD_POINTS` in `validation/oracles/rocketpy/flight.py`.
   And two upstream corrections to `rocketpy/simulation/flight.py` and `rocketpy/rocket/rocket.py`,
   applied to v1.13.0 by `validation/oracles/rocketpy/corrections.py` (ADR-026): the edited lines of
-  pull request #1196 (open, head `927e771e`), quoted there as substitutions into RocketPy's own
+  pull request #1196 (taken at its head of 2026-09-16, `927e771e`; merged into `develop` 2026-11-16 as `aee512f8`), quoted there as substitutions into RocketPy's own
   `u_dot_generalized`, and the nozzle gyration tensor of pull request #1188 (merged 2026-09-09).
   And `Flight.udot_rail2` in `rocketpy/simulation/flight.py` at the merge of pull request #920
-  (`ebe1b775`, the development branch; pinned as `rocketpy-tip-off`): the form of the tip-off
+  (`ebe1b775`, the development branch; `rocketpy-tip-off`'s pin until ADR-363): the form of the tip-off
   phase, the free equations plus a force across the rail at the last guide and a moment about
   the long axis, fixed by three linear conditions. `hpr_sim::rail::pivot_motion` is written from
   that form for this crate's equations about the nose tip, with this crate's rail friction
@@ -594,7 +594,7 @@ same license and mode.
 | name | source | license | mode | notes |
 |---|---|---|---|---|
 | `rocketpy` | RocketPy v1.13.0 (example rockets, flight data, RASAero Cd exports, acceptance tests) | MIT; data files carry their own terms | fetched | code is MIT and may be ported with attribution; flight data carries team permissions recorded in RocketPy's notebooks, so `cargo xtask real-flights` (M2.3b, ADR-082) reads the logs, the example thrust files and the full ERA5 files from `refs/` and commits only derived numbers and file digests to `validation/reports/real-flights.{json,md}`, with the examples' sites, rails, launch hours and drag constants or knots transcribed from the notebooks' (MIT) code in `hpr_validate::real_flight`; the ERA5 weather files in `data/weather/` are Copernicus (C3S) data with attribution required; the NASADEM tile is NASA data. Three of the logs `cargo xtask real-flights` reads are also published, byte for byte, under GPL-3.0, in RocketPy-Team's [fork](https://github.com/RocketPy-Team/euroc23-team-data) of CATS's GPL-3.0 [euroc23-team-data](https://github.com/catsystems/euroc23-team-data), at paths only the fork has: Genesis's `data/rockets/genesis/flight_data_faraday.csv` is its `11_faraday/refined/main_filtered_data_info_df.csv`, Lince's `data/rockets/lince/main_data.csv` its `23_star/refined/main_filtered_data_info_df.csv`, and Cavour's `data/rockets/polito/altimeter_cavour.csv` its `17_polito/refined/telemetry_gs_log_main_1.csv` (git object ids `2f58a11d`, `428311c4` and `250647b9`); Cavour's is the ground-station log `17_polito/gs_log_main_1.csv`, in both repositories, with its repeated rows dropped, its rows in time order, its clock in seconds from the first row and fewer columns. HPR Sim reads the copies in RocketPy's repository, published there under its MIT license with the teams' permission recorded in its notebooks, from `refs/` only, and commits only statistics and digests of them, never the logs |
-| `rocketpy-tip-off` | RocketPy's `develop` branch at the merge of its pull request #920 (`ebe1b775`), which carries the opt-in tip-off phase no release has | MIT; data files carry their own terms | fetched | run as an oracle by `validation/oracles/rocketpy/tip_off.py` (ADR-357); the form of its tip-off phase is ported to `hpr_sim::rail` (ADR-358; see Ported); only the flights' results and what they carried are committed, in `validation/reports/tip-off.json` |
+| `rocketpy-tip-off` | RocketPy's `develop` branch at the merge of its pull request #1217 (`65b9838f`), which rewrote the tip-off phase no release has; until ADR-363 the pin was pull request #920's merge (`ebe1b775`) | MIT; data files carry their own terms | fetched | run as an oracle by `validation/oracles/rocketpy/tip_off.py` (ADR-357, ADR-363); the form of its tip-off phase at the earlier pin is ported to `hpr_sim::rail` (ADR-358; see Ported); only the flights' results and what they carried are committed, in `validation/reports/tip-off.json`, with the earlier pin's in `validation/fixtures/flight/rocketpy-tip-off-at-pull-920.json` |
 | `openrocket-database` | `openrocket/openrocket-database` (`.orc` parts) | Apache-2.0 | fetched | its 16 `.orc` files are bundled unchanged (see Bundled, M5.5a). `validation/fixtures/ork/openrocket-automatic-radius.json` records the four radii OpenRocket resolves in its `ork/parachutes.ork`, and nothing else from the file |
 | `fusionspace-loft` | `nrdptel/fusionspace-loft` (the project owner's own) | MIT | fetched | ported with a note; its seven `fixtures/demo-*.ork` designs are committed as test data (below) |
 | `fusionspace-debrief` | `nrdptel/fusionspace-debrief` (the project owner's own) | MIT | fetched | ported with a note; the flight-log format knowledge behind Phase 5. Its twelve public flight-log fixtures come from publicly shared flights whose upstream terms are unrecorded, so none is committed; a test reads its Pnut log where it is fetched (ADR-108) |

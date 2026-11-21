@@ -90,10 +90,16 @@ Sources:
   (<https://nescacademy.nasa.gov/flightsim/2015>). Cases 1 to 3 and 6 to 10 are flown
   ([below](#a-free-body-against-nasas-check-cases)).
 
-- **[RP-TIP]** RocketPy's tip-off phase, `Flight.udot_rail2`, in its development branch at the
-  merge of [its pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920) (MIT; no
-  release carries it). HPR Sim's [tip-off phase](#tip-off) takes its form: the free equations
-  plus the force and the moment the last guide adds.
+- **[RP-TIP]** RocketPy's tip-off phase, `Flight.udot_rail2`, in its development branch (MIT;
+  no release carries it). [Its pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920)
+  added the phase and [#1217](https://github.com/RocketPy-Team/RocketPy/pull/1217) rewrote it.
+  By its description the rewrite simplifies the phase's function, changes what RocketPy
+  reports inside the phase, and corrects how the phase ends: it finds the moment each button
+  leaves by a root search on the solver's own interpolation of a step, and it corrects what
+  happened when a parachute opened inside the phase or the rail was too short for it. It
+  also took away the phase's switch. HPR Sim's [tip-off phase](#tip-off) takes its form from
+  the first: the free equations plus the force and the moment the last guide adds. The
+  comparisons below fly the rewrite.
 
 ## The equations
 
@@ -853,8 +859,11 @@ What the two codes still do differently, and how much it moves:
   documentation, which measures the center of mass from the
   [center of dry mass](../glossary.md#center-of-dry-mass). RocketPy 1.13.0's code reads that
   vector the other way round. So during the burn it takes the turning moments about the wrong
-  point, and its rockets turn into the wind too far. The fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
-  still open. It is built on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188) but not yet released. RocketPy 1.13.0 as installed still has
+  point, and its rockets turn into the wind too far. The fix is
+  [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196), merged on
+  November 16, 2026. It is built on
+  [an earlier one](https://github.com/RocketPy-Team/RocketPy/pull/1188), merged too. No
+  release carries either yet. RocketPy 1.13.0 as installed still has
   the error, and the comparison applies both fixes. Without them,
   HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee and +151% beyond it at
   landing ([ADR-026][adr-026],
@@ -897,7 +906,8 @@ with no turning rate.
 ([the decision record][adr-357]):
 
 - **What flies.** RocketPy, at the merge of its
-  [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), flies the thirteen
+  [pull request #1217](https://github.com/RocketPy-Team/RocketPy/pull/1217) (`65b9838f`),
+  flies the thirteen
   public designs built from its examples and tests, on its own inputs. They are twelve rockets;
   Calisto comes twice, from RocketPy's getting-started notebook and from its tests. A Calisto id
   in the report ends in the motor's position in meters, in the rocket's own coordinates as its
@@ -939,6 +949,19 @@ with no turning rate.
   2,623.9 m (8,609 ft). With the phase on it reaches 2,613.1 m (8,573 ft) and lands 91.3 m
   (300 ft) farther from the pad. Each figure is rounded on its own; unrounded, the apogee moves
   down by 10.86 m (35.6 ft).
+- **The reference moved once.** The report flies one fixed commit of RocketPy's source. At
+  first that was the merge of RocketPy's
+  [pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920), which added the
+  phase. RocketPy then rewrote the phase ([RP-TIP] says what changed), and the report now
+  flies the rewrite ([the decision record][adr-363]). No figure quoted on this page changed.
+  Between the two commits, a turning rate where the last button leaves moved by at most
+  0.000020 deg/s, and no flight's apogee or landing point by more than 1.04 mm (0.041 in).
+  Each of the four differences HPR Sim's phase is held to is under a hundredth of the bar it
+  is held to. The flights without the phase moved as far as those with it, so these are
+  differences between two commits of RocketPy, not the measured effect of the rewrite: the
+  report does not test which change made each. Its last table gives each flight, and the
+  earlier report's data is kept as
+  `validation/fixtures/flight/rocketpy-tip-off-at-pull-920.json`.
 - **What the comparison leaves out.** RocketPy's pivot is a frictionless pin with roll held;
   a real button has play in its slot. The guided flight frees the rocket at its last
   button's position, and HPR Sim half a button's length later, at the button's aft edge. The
@@ -1028,6 +1051,7 @@ held and what stays open.
 [tip-off]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off.md
 [tip-off-model]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/tip-off-model.md
 [adr-358]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md
+[adr-363]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md
 [i-1538]: https://github.com/nrdptel/fusionspace-eridanus/issues/1538
 [adr-026]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md

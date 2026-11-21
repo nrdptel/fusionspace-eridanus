@@ -3,10 +3,12 @@
 HPR Sim keeps a rocket guided until its last guide leaves the rail and then frees it with no
 angular velocity (`docs/physics/flight.md`, The rail). A real rocket pivots about its last guide
 once the forward one is off: tip-off. RocketPy gained that as an opt-in phase in its pull request
-#920 (`Flight(..., use_udot_rail2=True)`, merged into `develop` 2026-09-14, in no release): after
-the upper button leaves the rail the rocket slides on along the rail line, free to pitch and yaw
-about the lower button with roll held, until the lower button leaves too. With the phase off,
-RocketPy frees the rocket where the upper button leaves.
+#920 (merged into `develop` 2026-09-14) and rewrote it in #1217 (merged 2026-11-17, in no
+release). Since #1217 it has no switch: it runs in every flight that uses the standard 6-DOF
+equations and starts with both buttons on the rail. After the upper button leaves the rail the rocket slides
+on along the rail line, free to pitch and yaw about the lower button with roll held, until the
+lower button leaves too. Without the phase, as in every release so far, RocketPy frees the
+rocket where the upper button leaves.
 
 This script flies every example rocket of `validation/fixtures/design/rocketpy-rocket-mass.json`
 (the public designs under `validation/designs/rocketpy-*.json` are built from the same inputs)
@@ -23,13 +25,23 @@ that release alone). The phase's move from that flight is what HPR Sim's release
 What is declared here, and why:
 
 - **RocketPy's source** is the checkout `refs/rocketpy-tip-off`, pinned in
-  `validation/refs.lock.toml` at the merge commit of #920, put ahead of the installed 1.13.0 on
+  `validation/refs.lock.toml` at the merge commit of #1217, put ahead of the installed 1.13.0 on
   the import path. The script stops unless `rocketpy` loads from that checkout at that commit.
-- **The equations** are that commit's with pull request #1196's sign correction, as every whole
-  flight of this suite flies them (`corrections.py`, ADR-026): without it RocketPy takes its
-  moments during the burn about the wrong point, and tip-off happens during the burn. The
-  commit already carries #1188. `--as-pinned` flies the commit's equations untouched instead,
-  to show the correction does not decide the result.
+- **The equations** are that commit's, untouched. It carries pull request #1196's sign
+  correction, which every whole flight of this suite flies (`corrections.py`, ADR-026; without
+  it RocketPy takes its moments during the burn about the wrong point, and tip-off happens
+  during the burn), and #1188. The script stops unless the commit's `u_dot_generalized` has
+  #1196's three edits (`corrections.upstream_carries_1196`).
+- **The phase off** is the commit's own branch for a rocket with no pair of buttons on the rail.
+  The commit has no switch for the phase, so `PhaseOff` reports the lower button's rail length
+  as the upper one's; the commit then frees the rocket where the upper button leaves, as the
+  releases do.
+- **The solver's step** is bounded (`flight.SOLVER`, `max_time_step`). #1217's description
+  names two defects it leaves open. One is in the rail-button forces RocketPy reports, which
+  this script does not read. The other is a rocket whose thrust starts below its weight never
+  leaving the rail unless `max_time_step` is set: `flight.py` measured that on its own whole
+  flights and bounds the step for it. `fly_one` fails a flight that does not end, does not
+  climb, or whose phase did not run.
 - **The drag** is the constant `flight.py` declares for same-drag flights, power on and off.
 - **The motors** are the mass fixture's: each flies the bundled substitute thrust curve the
   fixture names, not the example's own file (`recovery.build_motor`).
@@ -42,9 +54,10 @@ What is declared here, and why:
 - **The parachutes** are each example's, with their noise zeroed. Three examples carry none in
   the mass fixture and come down ballistic; their landing points are recorded as such.
 
-Where the lower button leaves the rail: with the phase on, RocketPy's own `between_rails_time`.
-With it off the rocket is already free there, and the instant is found as RocketPy finds its own
-rail events, where the distance travelled from the start reaches `effective_2rl`.
+Where the lower button leaves the rail: with the phase on, RocketPy's own `tip_off_end_time`.
+With it off the rocket is already free there, and the instant is found where the distance
+travelled from the start reaches the lower button's rail length, `effective_2rl` as the commit
+computes it, by bisection on the flight's own solution.
 
 One rocket and wind fly with a changed recovery. NDRT 2020's rail is vertical, and in still air
 the rocket falls tail-first through its apogee parachute's 1 s lag; RocketPy's integration of
@@ -53,18 +66,19 @@ open that parachute at apogee with no lag, and the output says so (`declared`). 
 is that measurement: it flies that rocket in still air with its lag, on the corrected
 equations, and prints whether the flight finished and the time its integration had reached.
 
-`cargo xtask tip-off` runs it both ways, and the probe, and writes
+`cargo xtask tip-off` runs it, and the probe, and writes
 `validation/reports/tip-off.json` and `.md`;
 `cargo xtask tip-off --check`, in the gate's `refs` step, holds them. By hand, from the
 repository root with the oracle environment, it prints one run:
 
-    refs/venv/bin/python validation/oracles/rocketpy/tip_off.py [--as-pinned] [case ...]
+    refs/venv/bin/python validation/oracles/rocketpy/tip_off.py [case ...]
     refs/venv/bin/python validation/oracles/rocketpy/tip_off.py --lag-probe
 
 RocketPy is MIT-licensed (`THIRD-PARTY-NOTICES.md`).
 """
 
 import faulthandler
+import inspect
 import json
 import math
 import os
@@ -93,7 +107,6 @@ import flight  # noqa: E402
 import recovery  # noqa: E402
 
 COMMAND = "refs/venv/bin/python validation/oracles/rocketpy/tip_off.py"
-AS_PINNED_FLAG = "--as-pinned"
 LAG_PROBE_FLAG = "--lag-probe"
 # How long the probe lets the flight with its lag run, in seconds of wall time.
 LAG_PROBE_WALL_S = 20
@@ -249,7 +262,27 @@ def pinned_commit():
     loaded = Path(rocketpy.__file__).resolve()
     if CHECKOUT.resolve() not in loaded.parents:
         fail(f"rocketpy loaded from {loaded}, not from {CHECKOUT}")
+    if not corrections.upstream_carries_1196(inspect.getsource(Flight.u_dot_generalized)):
+        fail("the pinned commit's u_dot_generalized does not carry pull request #1196's edits")
     return commit
+
+
+class PhaseOff(Flight):
+    """The pinned commit's flight without its tip-off phase.
+
+    The commit has no switch: it runs the phase whenever `effective_2rl > effective_1rl > 0`,
+    in a 6-DOF flight on the standard equations (`__handle_out_of_rail_event`). Here the lower button's rail length reads as the upper one's, so the commit takes its own
+    branch for a rocket without a pair of buttons on the rail: free flight from where the upper
+    button leaves, which is what every release does. `lower_button_rail_length_m` keeps the
+    commit's own figure for the lower button."""
+
+    @property
+    def effective_2rl(self):
+        return self.effective_1rl
+
+    @property
+    def lower_button_rail_length_m(self):
+        return Flight.effective_2rl.func(self)
 
 
 def site_and_rail(name, document):
@@ -322,12 +355,12 @@ def dot(a, b):
 
 def lower_button_time(flown, phase_on):
     """When the lower button leaves the rail: RocketPy's own event with the phase on; with it
-    off, where the distance travelled from the start reaches `effective_2rl`, by bisection on the
-    flight's own solution."""
+    off, where the distance travelled from the start reaches the lower button's rail length, by
+    bisection on the flight's own solution."""
     if phase_on:
-        return flown.between_rails_time
+        return flown.tip_off_end_time
     elevation = flown.env.elevation
-    target = flown.effective_2rl
+    target = flown.lower_button_rail_length_m
 
     def travelled(t):
         return math.sqrt(
@@ -404,7 +437,7 @@ def state_at(flown, t, rail):
     }
 
 
-def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
+def fly_one(inputs, site, rail, wind_kind, phase_on, guided):
     """One flight: the tip-off phase on or off, or (`guided`) the phase off on a rail longer by
     the button spacing, which guides the rocket to where the real rail's lower button leaves."""
     if no_lag(rail, wind_kind):
@@ -424,13 +457,12 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
     label = "guided to the lower button" if guided else f"phase {'on' if phase_on else 'off'}"
     name = f"{inputs['name']}, {wind_kind}, {label}"
     faulthandler.dump_traceback_later(WATCHDOG_S, exit=True)
-    flown = flight_class(
+    flown = (Flight if phase_on else PhaseOff)(
         rocket=rocket,
         environment=env,
         rail_length=rail["rail_length_m"] + (spacing if guided else 0.0),
         inclination=rail["inclination_deg"],
         heading=rail["heading_deg"],
-        use_udot_rail2=phase_on,
         **flight.SOLVER,
     )
     faulthandler.cancel_dump_traceback_later()
@@ -438,12 +470,15 @@ def fly_one(inputs, site, rail, wind_kind, phase_on, guided, flight_class):
         fail(f"{name}: the flight did not end before the time cap")
     if flown.apogee <= site["elevation"]:
         fail(f"{name}: apogee {flown.apogee} is not above the site")
-    if not flown.effective_2rl > flown.effective_1rl:
+    lower = flown.effective_2rl if phase_on else flown.lower_button_rail_length_m
+    if not lower > flown.effective_1rl > 0:
         fail(f"{name}: the lower button does not leave after the upper one")
-    if abs((flown.effective_2rl - flown.effective_1rl) - spacing) > 1e-9:
+    if abs((lower - flown.effective_1rl) - spacing) > 1e-9:
         fail(f"{name}: RocketPy's two rail lengths differ by other than the button spacing")
     if phase_on and not flown.tip_off_duration > 0:
         fail(f"{name}: the tip-off phase did not run")
+    if not phase_on and flown.tip_off_duration != 0:
+        fail(f"{name}: the tip-off phase ran in a flight meant to fly without it")
     # Guided, the rocket is freed where the real rail's lower button leaves: the longer rail's
     # own exit.
     last = flown.out_of_rail_time if guided else lower_button_time(flown, phase_on)
@@ -585,7 +620,7 @@ def lag_probe(document):
     exits."""
     reached = [0.0]
 
-    class Probe(corrections.CorrectedFlight):
+    class Probe(PhaseOff):
         def u_dot_generalized(self, t, u, post_processing=False):
             reached[0] = max(reached[0], float(t))
             return super().u_dot_generalized(t, u, post_processing)
@@ -620,7 +655,6 @@ def lag_probe(document):
             rail_length=rail["rail_length_m"],
             inclination=rail["inclination_deg"],
             heading=rail["heading_deg"],
-            use_udot_rail2=False,
             **flight.SOLVER,
         )
         # Only one such rocket exists; a second would need the first's timer stopped.
@@ -690,10 +724,8 @@ def main():
         pinned_commit()
         lag_probe(recovery.mass_fixture())
         return
-    as_pinned = AS_PINNED_FLAG in arguments
-    keep = {a for a in arguments if a != AS_PINNED_FLAG}
+    keep = set(arguments)
     commit = pinned_commit()
-    flight_class = Flight if as_pinned else corrections.CorrectedFlight
     document = recovery.mass_fixture()
     names = [case["name"] for case in document["cases"]]
     if keep - set(names):
@@ -707,11 +739,9 @@ def main():
         site, rail = site_and_rail(name, document)
         winds = []
         for wind_kind in WINDS:
-            off, carried = fly_one(inputs, site, rail, wind_kind, False, False, flight_class)
-            on, carried_on = fly_one(inputs, site, rail, wind_kind, True, False, flight_class)
-            guided, carried_guided = fly_one(
-                inputs, site, rail, wind_kind, False, True, flight_class
-            )
+            off, carried = fly_one(inputs, site, rail, wind_kind, False, False)
+            on, carried_on = fly_one(inputs, site, rail, wind_kind, True, False)
+            guided, carried_guided = fly_one(inputs, site, rail, wind_kind, False, True)
             if not carried == carried_on == carried_guided:
                 fail(f"{name}, {wind_kind}: the three flights did not carry the same rocket")
             wind_u, wind_v = wind_of(wind_kind, rail["heading_deg"])
@@ -741,18 +771,21 @@ def main():
         })
     json.dump(
         {
-            "oracle": f"rocketpy develop at {commit} (pull request #920's merge)",
+            "oracle": f"rocketpy develop at {commit} (pull request #1217's merge)",
             "generator": "validation/oracles/rocketpy/tip_off.py",
-            "command": COMMAND + (f" {AS_PINNED_FLAG}" if as_pinned else ""),
-            "evaluation": "What RocketPy's tip-off phase (use_udot_rail2) moves: each example "
+            "command": COMMAND,
+            "evaluation": "What RocketPy's tip-off phase (udot_rail2) moves: each example "
                           "rocket flown with the phase off and on, in still air and in a 20 mph "
                           "crosswind; moved is on less off, and moved_from_guided is on less a "
                           "flight with the phase off on a rail longer by the button spacing, "
                           "which frees the rocket, unturned, where the lower button leaves",
-            "equations": "as the pinned commit has them" if as_pinned else
-                         "the pinned commit's with pull request #1196's sign correction "
-                         "(corrections.py, ADR-026)",
-            "corrections": [] if as_pinned else [corrections.CORRECTIONS[1]],
+            "equations": "as the pinned commit has them: it carries pull request #1196's "
+                         "correction to the sign of the center-of-mass vector, which the "
+                         "reference's script (tip_off.py) checks on the commit's source before "
+                         "it flies, and #1188's to the nozzle's jet-damping lever",
+            "phase_off": "the commit's own branch for a rocket without a pair of buttons on "
+                         "the rail, reached by reading the lower button's rail length as equal to "
+                         "the upper one's: free flight from where the upper button leaves",
             "drag": {"declared_cd0": flight.DECLARED_CD0},
             "solver": flight.SOLVER,
             "crosswind": {

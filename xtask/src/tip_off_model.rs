@@ -952,6 +952,63 @@ mod tests {
         }
     }
 
+    /// The record that moved the reference to RocketPy's rewritten phase (ADR-363) gives the
+    /// largest differences on RocketPy's normal force as the committed report has them, each
+    /// against its bar, and the report flew that reference.
+    #[test]
+    fn the_re_pinned_references_record_quotes_the_committed_differences() {
+        let report = committed();
+        let largest = &report["reading"]["recorded_normal_force"]["largest"];
+        let of = |figure: &str, key: &str| number(&largest[figure], key).unwrap();
+        let adr = read(
+            "docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md",
+        );
+        let words: String = adr.split_whitespace().collect::<Vec<_>>().join(" ");
+        for clause in [
+            format!(
+                "{} deg/s in the turning rate against a bar of {} deg/s",
+                fixed(of("pitch_rate", "apart"), 3),
+                fixed(of("pitch_rate", "bar"), 3)
+            ),
+            format!(
+                "{}° in the angle against {}°",
+                fixed(of("angle", "apart"), 4),
+                fixed(of("angle", "bar"), 4)
+            ),
+            format!(
+                "{}% of the apogee in the apogee move against {}%",
+                fixed(of("apogee_move", "apart"), 3),
+                fixed(of("apogee_move", "bar"), 1)
+            ),
+            format!(
+                "{}% of the apogee in the landing-point move against {}%",
+                fixed(of("landing_move", "apart"), 3),
+                fixed(of("landing_move", "bar"), 0)
+            ),
+        ] {
+            assert!(words.contains(&clause), "ADR-363 lacks: {clause}");
+        }
+        let root = crate::designs::root().unwrap();
+        let pinned = crate::refs::pinned_commit(&root, "rocketpy-tip-off").unwrap();
+        assert!(
+            words.contains(&format!("`{pinned}`")),
+            "ADR-363 lacks the pin"
+        );
+        let reference: Value =
+            serde_json::from_str(&fs::read_to_string(root.join(ORACLE_REPORT)).unwrap()).unwrap();
+        assert!(
+            text(&reference["flown"], "oracle")
+                .unwrap()
+                .contains(&pinned)
+        );
+        assert!(
+            fs::read_to_string(root.join(REPORT_MD))
+                .unwrap()
+                .contains(&pinned),
+            "the comparison's page names another reference"
+        );
+    }
+
     #[test]
     fn the_phase_is_held_on_rocketpys_normal_force_and_in_still_air_on_its_own() {
         // What ADR-358 holds of ADR-357 decision 4's bars: all 26 flights on RocketPy's normal

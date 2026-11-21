@@ -612,16 +612,18 @@ includes every drift but seven ([report](https://github.com/nrdptel/fusionspace-
 apogee drift. The rest are those of the three rockets that leave the rail slowly for the wind they
 meet: Prometheus 2022, Juno III and Bella Lui.
 
-The whole-flight references fly RocketPy 1.13.0 with two corrections to its equations, made or
-proposed upstream ([the turn into the wind](decisions-and-roadmap.md#m2-1d3)).
+The whole-flight references fly RocketPy 1.13.0 with two corrections to its equations, both
+merged upstream and neither released ([the turn into the wind](decisions-and-roadmap.md#m2-1d3)).
 `validation/oracles/rocketpy/corrections.py` applies them, and each fixture's `corrections` records
-them. PR #1188 (merged, unreleased) corrects the nozzle's jet-damping lever. PR #1196 (open, for
-issue #1186) corrects the sign of the center-of-mass and nozzle vectors in `u_dot_generalized`.
+them. PR #1188 (merged, unreleased) corrects the nozzle's jet-damping lever. PR #1196 (for
+issue #1186; merged on November 16, 2026, unreleased) corrects the sign of the center-of-mass and
+nozzle vectors in `u_dot_generalized`.
 
 As released, RocketPy took its moments during the burn about a mirrored point. It lay as far
 forward of the dry center of mass as the center of mass is behind it. That made it turn into the
 wind too far, which was most of issue #50. The corrected function is RocketPy's own source with
-PR #1196's three edits. Each edit must match once, so a RocketPy that has moved stops the generator.
+PR #1196's three edits. On RocketPy 1.13.0 each edit must match once, so a RocketPy that has
+moved stops the generator. A source that already carries all three is flown as it is.
 
 `wind_response.py` flies every case as released and corrected. With HPR Sim's rail release, body
 lift and thin fins added, it lands within 1.3% of HPR Sim's drifts in wind

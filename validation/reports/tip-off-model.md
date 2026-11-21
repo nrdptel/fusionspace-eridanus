@@ -1,6 +1,6 @@
 # HPR Sim's tip-off phase against RocketPy's
 
-Written by `cargo xtask tip-off-model`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#tip-off). It is one code against another, on 26 flights of thirteen designs; RocketPy's phase is in its development branch, in no release, and no real flight checks either. RocketPy's side is [its own report](tip-off.md) (rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c (pull request #920's merge); the pinned commit's with pull request #1196's sign correction (corrections.py, ADR-026)).
+Written by `cargo xtask tip-off-model`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#tip-off). It is one code against another, on 26 flights of thirteen designs; RocketPy's phase is in its development branch, in no release, and no real flight checks either. RocketPy's side is [its own report](tip-off.md) (rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge); as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which the reference's script (tip_off.py) checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever).
 
 How to read it:
 
@@ -47,7 +47,7 @@ How to read it:
 | erebus-11 | still | +0.624, +0.002 | +0.624, +0.002 | 0.000 of 0.100 | +0.0050, 0.0000 | +0.0050, 0.0000 | 0.0000 of 0.0050 |
 | erebus-11 | crosswind | +0.624, +0.337 | +0.624, +0.338 | 0.000 of 0.100 | +0.0050, +0.0027 | +0.0050, +0.0027 | 0.0000 of 0.0050 |
 | prometheus-2022-generic-motor | still | +1.489, 0.000 | +1.489, 0.000 | 0.001 of 0.149 | +0.0134, 0.0000 | +0.0134, 0.0000 | 0.0000 of 0.0050 |
-| prometheus-2022-generic-motor | crosswind | +1.488, +0.540 | +1.489, +0.541 | 0.001 of 0.158 | +0.0134, +0.0048 | +0.0134, +0.0048 | 0.0000 of 0.0050 |
+| prometheus-2022-generic-motor | crosswind | +1.488, +0.540 | +1.490, +0.541 | 0.001 of 0.158 | +0.0134, +0.0048 | +0.0134, +0.0048 | 0.0000 of 0.0050 |
 
 | Rocket | Wind | Apogee moved, HPR Sim | RocketPy | Apart, % of the apogee | Landing point moved, HPR Sim (east, north) | RocketPy | Apart, % of the apogee | Farther from the pad, HPR Sim | RocketPy |
 |---|---|--:|--:|--:|--:|--:|--:|--:|--:|
@@ -68,7 +68,7 @@ How to read it:
 | genesis | still | -1.20 m | -1.20 m | 0.000 of 0.200 | +7.6, -7.1 m | +7.5, -7.1 m | 0.002 of 1.000 | +10.4 m | +10.3 m |
 | genesis | crosswind | +0.31 m | +0.32 m | 0.001 of 0.200 | -1.0, -16.6 m | -1.1, -16.7 m | 0.005 of 1.000 | +16.6 m | +16.7 m |
 | lince | still | -2.57 m | -2.58 m | 0.000 of 0.200 | +14.1, -13.3 m | +14.0, -13.2 m | 0.002 of 1.000 | +19.3 m | +19.3 m |
-| lince | crosswind | -0.72 m | -0.71 m | 0.000 of 0.200 | +4.5, -23.7 m | +4.3, -23.8 m | 0.004 of 1.000 | +17.5 m | +17.6 m |
+| lince | crosswind | -0.72 m | -0.70 m | 0.000 of 0.200 | +4.5, -23.7 m | +4.3, -23.8 m | 0.004 of 1.000 | +17.5 m | +17.6 m |
 | astra | still | -0.20 m | -0.20 m | 0.000 of 0.200 | +2.2, -2.0 m | +2.2, -2.0 m | 0.000 of 1.000 | +3.0 m | +3.0 m |
 | astra | crosswind | -0.82 m | -0.83 m | 0.000 of 0.200 | +7.2, +4.0 m | +7.2, +4.0 m | 0.001 of 1.000 | +6.8 m | +6.8 m |
 | andromeda | still | -0.58 m | -0.58 m | 0.000 of 0.200 | +3.4, -3.2 m | +3.4, -3.2 m | 0.002 of 1.000 | +4.6 m | +4.7 m |
@@ -76,7 +76,7 @@ How to read it:
 | erebus-11 | still | -0.98 m | -0.98 m | 0.000 of 0.200 | +9.5, -9.0 m | +9.5, -9.0 m | 0.001 of 1.000 | +13.1 m | +13.1 m |
 | erebus-11 | crosswind | -0.37 m | -0.36 m | 0.000 of 0.200 | +4.5, -13.4 m | +4.5, -13.5 m | 0.004 of 1.000 | +5.9 m | +5.9 m |
 | prometheus-2022-generic-motor | still | -13.09 m | -13.12 m | 0.001 of 0.200 | +52.0, +13.9 m | +52.1, +13.9 m | 0.002 of 1.000 | +53.9 m | +54.0 m |
-| prometheus-2022-generic-motor | crosswind | -9.21 m | -9.26 m | 0.001 of 0.200 | +57.1, -5.5 m | +57.9, -5.7 m | 0.021 of 1.000 | +57.1 m | +57.9 m |
+| prometheus-2022-generic-motor | crosswind | -9.21 m | -9.25 m | 0.001 of 0.200 | +57.1, -5.5 m | +57.9, -5.7 m | 0.021 of 1.000 | +57.1 m | +57.9 m |
 
 ## On HPR Sim's own normal force
 
@@ -107,7 +107,7 @@ How to read it:
 | erebus-11 | still | +0.624, +0.002 | +0.624, +0.002 | 0.000 of 0.100 | +0.0050, 0.0000 | +0.0050, 0.0000 | 0.0000 of 0.0050 |
 | erebus-11 | crosswind | +0.624, +1.342 | +0.624, +0.338 | **1.005** of 0.100 | +0.0050, +0.0107 | +0.0050, +0.0027 | **0.0080** of 0.0050 |
 | prometheus-2022-generic-motor | still | +1.489, 0.000 | +1.489, 0.000 | 0.001 of 0.149 | +0.0134, 0.0000 | +0.0134, 0.0000 | 0.0000 of 0.0050 |
-| prometheus-2022-generic-motor | crosswind | +1.488, +1.188 | +1.489, +0.541 | **0.647** of 0.158 | +0.0134, +0.0106 | +0.0134, +0.0048 | **0.0058** of 0.0050 |
+| prometheus-2022-generic-motor | crosswind | +1.488, +1.188 | +1.490, +0.541 | **0.647** of 0.158 | +0.0134, +0.0106 | +0.0134, +0.0048 | **0.0058** of 0.0050 |
 
 | Rocket | Wind | Apogee moved, HPR Sim | RocketPy | Apart, % of the apogee | Landing point moved, HPR Sim (east, north) | RocketPy | Apart, % of the apogee | Farther from the pad, HPR Sim | RocketPy |
 |---|---|--:|--:|--:|--:|--:|--:|--:|--:|
@@ -128,7 +128,7 @@ How to read it:
 | genesis | still | -1.21 m | -1.20 m | 0.000 of 0.200 | +7.6, -7.2 m | +7.5, -7.1 m | 0.004 of 1.000 | +10.5 m | +10.3 m |
 | genesis | crosswind | +1.90 m | +0.32 m | 0.049 of 0.200 | -12.6, -31.3 m | -1.1, -16.7 m | 0.579 of 1.000 | +32.7 m | +16.7 m |
 | lince | still | -2.58 m | -2.58 m | 0.000 of 0.200 | +14.1, -13.3 m | +14.0, -13.2 m | 0.003 of 1.000 | +19.4 m | +19.3 m |
-| lince | crosswind | +0.99 m | -0.71 m | 0.045 of 0.200 | -7.2, -37.9 m | +4.3, -23.8 m | 0.485 of 1.000 | +35.7 m | +17.6 m |
+| lince | crosswind | +0.99 m | -0.70 m | 0.045 of 0.200 | -7.2, -37.9 m | +4.3, -23.8 m | 0.485 of 1.000 | +35.7 m | +17.6 m |
 | astra | still | -0.21 m | -0.20 m | 0.000 of 0.200 | +2.2, -2.1 m | +2.2, -2.0 m | 0.002 of 1.000 | +3.0 m | +3.0 m |
 | astra | crosswind | -0.52 m | -0.83 m | 0.009 of 0.200 | +4.9, +1.1 m | +7.2, +4.0 m | 0.112 of 1.000 | +4.7 m | +6.8 m |
 | andromeda | still | -0.58 m | -0.58 m | 0.000 of 0.200 | +3.4, -3.2 m | +3.4, -3.2 m | 0.001 of 1.000 | +4.6 m | +4.7 m |
@@ -136,7 +136,7 @@ How to read it:
 | erebus-11 | still | -0.99 m | -0.98 m | 0.000 of 0.200 | +9.8, -9.3 m | +9.5, -9.0 m | 0.017 of 1.000 | +13.5 m | +13.1 m |
 | erebus-11 | crosswind | +1.43 m | -0.36 m | 0.065 of 0.200 | -11.0, -32.7 m | +4.5, -13.5 m | 0.889 of 1.000 | -4.6 m | +5.9 m |
 | prometheus-2022-generic-motor | still | -13.28 m | -13.12 m | 0.004 of 0.200 | +52.8, +14.1 m | +52.1, +13.9 m | 0.019 of 1.000 | +54.7 m | +54.0 m |
-| prometheus-2022-generic-motor | crosswind | -7.48 m | -9.26 m | 0.048 of 0.200 | +75.7, -39.3 m | +57.9, -5.7 m | **1.025** of 1.000 | +84.3 m | +57.9 m |
+| prometheus-2022-generic-motor | crosswind | -7.48 m | -9.25 m | 0.048 of 0.200 | +75.7, -39.3 m | +57.9, -5.7 m | **1.025** of 1.000 | +84.3 m | +57.9 m |
 
 ## The normal force where the last guide leaves, in the crosswind
 
