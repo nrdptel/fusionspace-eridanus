@@ -214,8 +214,9 @@ def check():
         for name, source, expected in cases
         if upstream_carries_1196(source) != expected
     ]
-    # Code objects compare by their bytecode, constants and names, not their file name, so the
-    # check's own compiles leave the flown function's lines in `linecache` as they were.
+    # Code objects compare by their bytecode, constants, names and lines, not their file name,
+    # so the check compiles under names of its own and leaves the flown function's lines in
+    # `linecache` as they were.
     flown = CorrectedFlight.u_dot_generalized.__code__
     if (flown != compiled(merged_source, "<check: all three edits>").__code__
             or flown == compiled(released_source, "<check: the release>").__code__):

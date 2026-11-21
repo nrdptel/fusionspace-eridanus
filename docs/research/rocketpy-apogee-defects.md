@@ -121,8 +121,8 @@ What these mean for M2.9:
 - **Release state.** None of these is in a release. PR #1194 (2026-09-14, `develop` into `master` for
   1.14.0) says only #1187 and #1190 join it, the rest waiting for 1.15 [16]; yet its head follows
   `develop`, `6b2a37f` on 2026-11-21, which holds #1188, #1195, #1196, #1204 and #1217.
-- **#920's 2 m** is under 0.1% of any Calisto apogee quoted above (**Inference**); #1217's own table
-  sizes the rewritten phase larger on steeper rails. With no switch, a cell flown on `develop` carries it.
+- **#920's 2 m** is under 0.1% of any Calisto apogee quoted above (**Inference**); #1217's table gives
+  its rewrite −2.3 m at 85° and −31.4 m at 70° (solid motor). A 6-DOF cell on `develop` flies it.
 - **#1085 matters only for a late-igniting motor,** such as an air-started or delayed stage, which
   1.13.0 leaves on the pad. Of the seven public flights' notebooks, four give `burn_time` as one
   number, two read it from a parameter file and Juno III's sets none; only the liquid-motor example
