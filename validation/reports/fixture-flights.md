@@ -280,7 +280,7 @@ The phase's apogee moves in still air, for the flights with two guides, in bins 
 | -0.4% to 0.0% | 15 |
 | 0.0% to +0.1% | 8 |
 
-Of the 23 flights with two guides: in the wind, how many it raised, left within 1 cm and lowered is held back; in still air, how many it raised, left within 1 cm and lowered is held back. A group of counts is held back where it would hold one to four flights. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points), each rounded on its own.
+Of the 23 flights with two guides: in the wind, how many it raised, left within 1 cm and lowered is held back; in still air, how many it raised, left within 1 cm and lowered is held back. A group of counts is held back where any count in it would be one to four. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points), each rounded on its own.
 
 Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%: a change of +0.0033 points in the mean absolute error.
 

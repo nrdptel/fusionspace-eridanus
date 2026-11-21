@@ -38,7 +38,7 @@ For each set: which way the phase moved the apogees of the flights with two guid
 | predicted first | 3 | 0, 0, 3 | 0, 0, 3 | 2 | 1 | +0.0035 | -0.0021 |
 | the private collection | 23 | held back | held back | 14 | 9 | +0.0142 | -0.0110 |
 
-The parts are percentage points of the mean absolute error. For the private collection a group of counts is given only where each holds no flight or at least five, and the two parts only where both groups of flights do; otherwise they are held back, so that no figure gives a few flights' own moves.
+The parts are percentage points of the mean absolute error. For the private collection a group of counts is given only where each count is none or at least five. The counts moved away and toward and the two parts are given only where the flights moved away, those moved toward and those whose error did not change each number none or at least five; otherwise they are held back together, so that no figure gives a few flights' own moves.
 
 ## Each public flight
 

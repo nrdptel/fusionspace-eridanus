@@ -1091,7 +1091,8 @@ record][adr-364]); the gate holds it (`--check`).
   rail in a 5 m/s (11 mph) crosswind it lands about 26 m (85 ft) farther from the pad, held between
   25 m (82 ft) and 26.5 m (87 ft):
   `without_tip_off_a_landing_point_errs_farther_from_the_pad_on_a_vertical_rail_in_a_crosswind`.
-  That second direction comes from the wind's part of the turn, the part not yet held to RocketPy's.
+  That second direction comes from the wind's part of the turn, the part not yet held to RocketPy's
+  on HPR Sim's own normal force.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md

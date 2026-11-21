@@ -304,7 +304,7 @@ impl Split {
         };
         format!(
             "Of the {two_guides} flights with two guides: in the wind, {}; in still air, {}. A \
-             group of counts is held back where it would hold one to four flights. {sides}\n\n",
+             group of counts is held back where any count in it would be one to four. {sides}\n\n",
             ways(self.in_the_wind),
             ways(self.in_still_air)
         )
@@ -764,9 +764,11 @@ impl Report {
         }
         md.push_str(
             "\nThe parts are percentage points of the mean absolute error. For the private \
-             collection a group of counts is given only where each holds no flight or at least \
-             five, and the two parts only where both groups of flights do; otherwise they are \
-             held back, so that no figure gives a few flights' own moves.\n\n",
+             collection a group of counts is given only where each count is none or at least \
+             five. The counts moved away and toward and the two parts are given only where the \
+             flights moved away, those moved toward and those whose error did not change each \
+             number none or at least five; otherwise they are held back together, so that no \
+             figure gives a few flights' own moves.\n\n",
         );
         md.push_str(
             "## Each public flight\n\n| flight | set | two guides | log apogee (m) | apogee \

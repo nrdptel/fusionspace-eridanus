@@ -57,16 +57,16 @@ report's.
      its log: +0.0034 points. Andromeda, flown 4.14% high, is moved 0.37 m toward its log:
      −0.0021 points. Astra's move of 0.02 m adds +0.0001. The rise is gravity's lowering of a
      flight HPR Sim already flies low.
-   - **The private collection, +0.0033 points.** 23 of its 60 flights fly a design with two
-     guides at different stations (20 of its 42 designs); 11 of the 23 fly from a vertical rail,
-     as the collection flies every flight whose tilt is not known.
-     The phase moves 14 of the 23 away from their logs and 9 toward them. The flights moved away
-     give +0.0142 points, those moved toward −0.0110 (each rounded on its own; their sum is
-     +0.0033 before rounding). The mean signed error rises from +8.007% to +8.015%: on net the
-     phase raises the apogees of a set HPR Sim flies 8.0% high on average. How many it raises
-     and how many it lowers is held
-     back, in the wind and in still air (see the floor under *Consequences*). In the wind no
-     flight moves by more than 0.4% of its apogee; in still air none rises by 0.1% or more.
+   - **The private collection, +0.0033 points.** 23 of its 60 flights fly a design with two guides
+     at different stations (20 of its 42 designs); 11 of the 23 fly from a vertical rail, as the
+     collection flies every flight whose tilt is not known. The phase moves 14 of the 23 away from
+     their logs and 9 toward them. The flights moved away give +0.0142 points, those moved toward
+     −0.0110 (each rounded to four places on its own, so the two printed parts add to +0.0032; the
+     change itself is +0.0033). The mean signed error rises from +8.007% to +8.015%: on net the
+     phase raises the apogees of a set HPR Sim flies 8.0% high on average. How many it raises and
+     how many it lowers is held back, in the wind and in still air (see the floor under
+     *Consequences*). In the wind no flight moves by more than 0.4% of its apogee; in still air
+     none rises by 0.1% or more.
    - **The compared-first flights fall, −0.091 points.** Juno III is the largest move: the phase
      raises its apogee by 26.5 m, toward its log, which HPR Sim reads 6.4% low (−0.120 points).
      Prometheus 2022 is lowered by 12.7 m, away from its log (+0.046 points). Without Juno III's
@@ -109,12 +109,12 @@ report's.
   the cases it left open: the bin with the fewest flights is merged with its smaller neighbor,
   again until every bin holds five or more, and with fewer than five flights in all the count is
   given alone, with no bin. A group of counts (raised, not moved, lowered) is given only where
-  each holds no flight or at least five. The split's counts and its two parts are given only
-  where the flights moved away, those moved toward and those left unchanged each number none or
-  five or more; otherwise they are held back, together. This is
-  stricter than the three of [ADR-346][adr-346]'s rule against figures given by subtraction.
-  In the day's wind that leaves one bin of all 23 flights and the counts held back; in still
-  air, two bins and the counts held back.
+  each holds no flight or at least five. The split's counts and its two parts are given only where
+  the flights moved away, those moved toward and those whose error did not change each number none
+  or five or more; otherwise they are held back, together. This is stricter than the three of
+  [ADR-346][adr-346]'s rule against figures given by subtraction. In the day's wind that leaves
+  one bin of all 23 flights and the counts held back; in still air, two bins and the counts held
+  back.
 - A move under 1 cm counts as not moved, so a vertical rail's still-air flight, where gravity
   has no moment about the last guide, is not counted as raised or lowered by a rounding error.
 
@@ -129,4 +129,5 @@ report's.
   point is pinned by two tests on a design, not measured on a flight. Which way leaving the
   phase out errs depends on the rail's tilt and the wind: on a tilted rail in still air the
   guided flight lands nearer the pad, on a vertical rail in a crosswind farther from it. The
-  second comes from the wind's part of the turn, the part not yet held to RocketPy's.
+  second comes from the wind's part of the turn, the part not yet held to RocketPy's on HPR
+  Sim's own normal force.
