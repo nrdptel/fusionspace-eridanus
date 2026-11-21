@@ -19,17 +19,20 @@ Both are on RocketPy's record:
   reviewed when it was adopted here; merged into `develop` on 2026-11-16 as `aee512f8`, in no
   release): three edits to `u_dot_generalized` that negate `r_CM` and its derivatives, negate
   `r_NOZ`, and flip the sign of the `r_CM ^ w_dot` term in `v_dot`, which was written for the
-  reversed vector. RocketPy's `develop` branch agrees on the convention: its tip-off phase (PR #920,
-  merged 2026-09-14) says the generalized equations "store r_CM / r_NOZ as (point -> CDM) vectors,
-  i.e. the negative of the true-frame position", and negates them for its own use.
+  reversed vector. RocketPy's `develop` branch agreed on the convention before that merge: its
+  tip-off phase as PR #920 added it (merged 2026-09-14) said the generalized equations "store
+  r_CM / r_NOZ as (point -> CDM) vectors, i.e. the negative of the true-frame position", and
+  negated them for its own use. PR #1217's rewrite of the phase no longer carries that comment.
 - PR #1188 (merged into `develop` 2026-09-09, not yet released) corrects the nozzle gyration
   tensor's parallel-axis term from `0.25 * nozzle_to_cdm**2` to `nozzle_to_cdm**2`
   (`rocket.py:984-985`), so the jet damping about the CDM uses the whole lever.
 
 This module applies exactly those changes and nothing else. `CorrectedFlight` recompiles
-RocketPy's own `u_dot_generalized` source with #1196's three substitutions, each of which must
-match exactly once, so an upgrade that moves the code stops the script instead of flying something
-else. `correct_nozzle_gyration` sets the tensor as #1188's `evaluate_nozzle_gyration_tensor` does.
+RocketPy's own `u_dot_generalized` source with #1196's three substitutions. On a source without
+them each must match exactly once, so an upgrade that moves the code stops the script instead of
+flying something else. A source that already holds all three corrected lines once and none of
+the released ones (`upstream_carries_1196`: `develop` since #1196's merge) is flown as it is.
+`correct_nozzle_gyration` sets the tensor as #1188's `evaluate_nozzle_gyration_tensor` does.
 
 Checked before adopting them (ADR-026):
 

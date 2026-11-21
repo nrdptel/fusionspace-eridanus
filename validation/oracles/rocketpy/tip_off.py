@@ -4,10 +4,11 @@ HPR Sim keeps a rocket guided until its last guide leaves the rail and then free
 angular velocity (`docs/physics/flight.md`, The rail). A real rocket pivots about its last guide
 once the forward one is off: tip-off. RocketPy gained that as an opt-in phase in its pull request
 #920 (merged into `develop` 2026-09-14) and rewrote it in #1217 (merged 2026-11-17, in no
-release), which also flies it in every flight whose two buttons start on the rail: after the
-upper button leaves the rail the rocket slides on along the rail line, free to pitch and yaw
-about the lower button with roll held, until the lower button leaves too. Without the phase,
-as in every release so far, RocketPy frees the rocket where the upper button leaves.
+release). Since #1217 it has no switch: it runs in every flight on the standard 6-DOF equations
+whose two buttons start on the rail. After the upper button leaves the rail the rocket slides
+on along the rail line, free to pitch and yaw about the lower button with roll held, until the
+lower button leaves too. Without the phase, as in every release so far, RocketPy frees the
+rocket where the upper button leaves.
 
 This script flies every example rocket of `validation/fixtures/design/rocketpy-rocket-mass.json`
 (the public designs under `validation/designs/rocketpy-*.json` are built from the same inputs)
@@ -32,8 +33,15 @@ What is declared here, and why:
   during the burn), and #1188. The script stops unless the commit's `u_dot_generalized` has
   #1196's three edits (`corrections.upstream_carries_1196`).
 - **The phase off** is the commit's own branch for a rocket with no pair of buttons on the rail.
-  The commit has no switch, so `PhaseOff` reports the lower button's rail length as the upper
-  one's; the commit then frees the rocket where the upper button leaves, as the releases do.
+  The commit has no switch for the phase, so `PhaseOff` reports the lower button's rail length
+  as the upper one's; the commit then frees the rocket where the upper button leaves, as the
+  releases do.
+- **The solver's step** is bounded (`flight.SOLVER`, `max_time_step`). #1217's description
+  names two defects it leaves open. One is in the rail-button forces RocketPy reports, which
+  this script does not read. The other is a rocket whose thrust starts below its weight never
+  leaving the rail unless `max_time_step` is set: `flight.py` measured that on this suite's
+  thrust curves, which ramp from zero, and bounds the step for it. `fly_one` fails a flight
+  that does not end, does not climb, or whose phase did not run.
 - **The drag** is the constant `flight.py` declares for same-drag flights, power on and off.
 - **The motors** are the mass fixture's: each flies the bundled substitute thrust curve the
   fixture names, not the example's own file (`recovery.build_motor`).
@@ -772,10 +780,12 @@ def main():
                           "flight with the phase off on a rail longer by the button spacing, "
                           "which frees the rocket, unturned, where the lower button leaves",
             "equations": "as the pinned commit has them: it carries pull request #1196's "
-                         "sign correction (ADR-026), checked on its source, and #1188",
+                         "correction to the sign of the center-of-mass vector, which this "
+                         "script checks on the commit's source before it flies, and #1188's to "
+                         "the nozzle's jet-damping lever",
             "phase_off": "the commit's own branch for a rocket without a pair of buttons on "
-                         "the rail, taken by reporting the lower button's rail length as the "
-                         "upper one's (PhaseOff): free flight from where the upper button leaves",
+                         "the rail, reached by giving it the lower button's rail length as the "
+                         "upper one's: free flight from where the upper button leaves",
             "drag": {"declared_cd0": flight.DECLARED_CD0},
             "solver": flight.SOLVER,
             "crosswind": {

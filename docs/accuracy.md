@@ -656,9 +656,10 @@ What the two codes still do differently, and what it moves:
   burn about the wrong point. That point is as far in front of the rocket's
   [center of dry mass](glossary.md#center-of-dry-mass) as the real center of mass is behind it.
   That makes its rockets too stable while the motor burns, so they turn into the wind too far. The
-  fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
-  still open. It builds on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188)
-  but not yet released. RocketPy 1.13.0 as installed still has the error, and the comparison
+  fix is [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
+  now merged. It builds on
+  [an earlier one](https://github.com/RocketPy-Team/RocketPy/pull/1188), merged too. No release
+  carries either yet. RocketPy 1.13.0 as installed still has the error, and the comparison
   applies both fixes ([the wind-path decision][adr-026]). Without them, Juno III's apogee drift
   was 582.4 m (1,911 ft). HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee
   and +151% beyond it at landing (the question of [issue #50][issue-50]).

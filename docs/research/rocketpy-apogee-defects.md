@@ -55,7 +55,7 @@ maintainer on 2026-09-19, not merged; head `f3c0c86`, against `develop`.
 ## (a2) Open, sized below 0.5% by its own report
 
 - **#1186, the center-of-mass lever arm's sign in `u_dot_generalized`** [6]. Open; its fix, PR #1196,
-  is open and unreviewed, head `927e771` [7]. Calisto in custom wind: 3,423.27 to 3,427.72 m (+0.13%).
+  read here at head `927e771` [7], merged into `develop` on 2026-11-16 (`aee512f8`), in no release. Calisto in custom wind: 3,423.27 to 3,427.72 m (+0.13%).
   Defiance, on top of #1188: 9,243.84 to 9,247.97 m (+0.045%).
 - **#1185, the CM offset's second derivative at ignition** [8]. Open, no PR. On calisto_hybrid_modded,
   removing the term moves apogee 0.90 m of 4,405 m (0.02%).

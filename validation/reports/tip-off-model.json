@@ -3801,9 +3801,9 @@
     }
   },
   "reference": {
-    "equations": "as the pinned commit has them: it carries pull request #1196's sign correction (ADR-026), checked on its source, and #1188",
+    "equations": "as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which this script checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever",
     "oracle": "rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge)",
     "report": "validation/reports/tip-off.json",
-    "sha256": "466ea7677e71afe0a582ea5a886f51c3b8fa1a364e7651938882b4e87cf5d556"
+    "sha256": "ca5d24a8767dfc52a981a36a866c024c868cd98151c99032b5b759b9d8ffbca2"
   }
 }

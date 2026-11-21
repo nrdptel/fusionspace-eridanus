@@ -1,7 +1,7 @@
 # ADR-363: M1.14b10 in three: the tip-off reference at RocketPy's rewritten phase first (2026-11-20)
 
-- **Status:** accepted; splits [M1.14b10][m1-14b10] ([ADR-357][adr-357], decision 4) into [M1.14b13][m1-14b13], [M1.14b14][m1-14b14] and [M1.14b15][m1-14b15], each with its own *done when*; the *done when* changed: M1.14b10 keeps its own words whole across the three and gains M1.14b13, which ADR-357 did not ask for
-- **Summary:** RocketPy rewrote its tip-off phase after HPR Sim's comparison was pinned. Re-pinned at the rewrite, the reference moves by at most 0.000019 deg/s in a turning rate and about 1 mm (0.04 in) in any apogee or landing point, the same flights are past the plan's bars, and HPR Sim's phase is inside every bar it was held to. Flying the phase by default reaches the command line, the Python package, the comparisons with other codes and most committed flight reports, so it is split: the reference first, then what the phase moves on each real flight, then the default.
+- **Status:** accepted; splits [M1.14b10][m1-14b10] ([ADR-357][adr-357], decision 4) into [M1.14b13][m1-14b13], [M1.14b14][m1-14b14] and [M1.14b15][m1-14b15], each with its own *done when*; the *done when* changed: M1.14b10 keeps its own words across the three and gains M1.14b13, which ADR-357 did not ask for; for the private collection's flights its table "for each real flight" is an aggregate, since [ADR-151][adr-151] and [ADR-184][adr-184] allow no per-flight row
+- **Summary:** RocketPy rewrote its tip-off phase after HPR Sim's comparison was pinned. Re-pinned at the rewrite, the reference moves by at most 0.000020 deg/s in a turning rate and about 1 mm (0.04 in) in any apogee or landing point, the same flights are past the plan's bars, and HPR Sim's phase is inside every bar it was held to. Flying the phase by default reaches the command line, the Python package, the comparisons with other codes and most committed flight reports, so it is split: the reference first, then what the phase moves on the real flights, then the default.
 
 [m1-14b9]: ../decisions-and-roadmap.md#m1-14b9
 [m1-14b10]: ../decisions-and-roadmap.md#m1-14b10
@@ -9,11 +9,13 @@
 [m1-14b14]: ../decisions-and-roadmap.md#m1-14b14
 [m1-14b15]: ../decisions-and-roadmap.md#m1-14b15
 [m2-13]: ../decisions-and-roadmap.md#m2-13
+[adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
+[adr-184]: 0184-logged-apogees-of-the-private-collection.md
 [adr-328]: 0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [adr-357]: 0357-tip-off-measured-with-rocketpys-past-the-plans-bar-the-model-in-two-more-increments.md
 [adr-358]: 0358-m1-14b9-in-two-the-tip-off-phase-on-rocketpys-normal-force-first.md
 [report]: ../../validation/reports/tip-off.md
-[report-moved]: ../../validation/reports/tip-off.md#what-rocketpys-rewrite-of-the-phase-moved
+[report-moved]: ../../validation/reports/tip-off.md#between-the-two-pins
 [model-report]: ../../validation/reports/tip-off-model.md
 [flight]: ../physics/flight.md#what-leaving-tip-off-out-costs
 [pr-920]: https://github.com/RocketPy-Team/RocketPy/pull/920
@@ -33,11 +35,12 @@ cause before the default changes.
 
 Two things stand between today's code and that.
 
-- **The reference moved.** HPR Sim's phase is held to RocketPy's at the merge of RocketPy's
-  [pull request #920][pr-920]. On 2026-11-17 RocketPy merged [pull request #1217][pr-1217],
-  which rewrites the phase, corrects how it ends and flies it in every flight whose two
-  buttons start on the rail. A default should not rest on a reference its own authors have
-  since corrected ([issue #1550][i1550]).
+- **The reference moved.** Until this record HPR Sim's phase was held to RocketPy's at the
+  merge of RocketPy's [pull request #920][pr-920]. On 2026-11-17 RocketPy merged
+  [pull request #1217][pr-1217], which rewrites the phase, corrects how it ends and takes
+  away its switch: the phase now runs in every flight on RocketPy's standard
+  six-degree-of-freedom equations whose two buttons start on the rail. A default should not
+  rest on a reference its own authors have since corrected ([issue #1550][i1550]).
 - **The default is wide.** A survey of the code before this record:
   - Today only the library offers the phase (`Simulation::with_tip_off`). The command line
     (`hpr sim`, `hpr mc`, `hpr compare`) and the Python package (`Flight`, `MonteCarlo`) carry
@@ -70,8 +73,9 @@ depend on the rest.
      - the reference's report is regenerated from that pin and held by its check. The report
        as the earlier pin gave it is committed unchanged, named by the commit that last held
        it and held by its SHA-256. For each of the 26 flights the new report gives how far
-       the rewrite moved the four figures [M1.14b9][m1-14b9]'s bars are on, compared as the
-       bars compare two codes, and how far each flight's own apogee and landing point moved.
+       the four figures [M1.14b9][m1-14b9]'s bars are on moved between the two pins,
+       compared as the bars compare two codes, and how far each flight's own apogee and
+       landing point moved.
        It says whether the same flights are past the plan's bars, and whether each rocket
        carried the same;
      - HPR Sim's phase is flown again against the new reference with ADR-357's bars
@@ -81,15 +85,22 @@ depend on the rest.
        which side the miss errs on, with its size and cause, and no bar is widened;
      - this record says whether the two defects pull request #1217 names as left open reach
        a figure the comparison reads;
-     - and the flight page says which commit the reference flies and what the rewrite moved.
-   - **M1.14b14, what the phase moves on each real flight.** *Done when:*
-     - a committed table, held by a check, lists each real flight HPR Sim compares: the
-       flights of the real-flight report, of the public predictions, and the private
-       collection's logged flights by their anonymised ids. For each it says whether the
-       design has two or more guides at different stations. For each that has, it gives the
-       apogee flown guided as today and with the phase, and the move between them. Where a
-       landing point is compared it gives the landing point's move as a vector. A flight
-       with fewer than two guides is listed as not moved;
+     - and the flight page says which commit the reference flies and what moved between the
+       two pins.
+   - **M1.14b14, what tip-off moves on the real flights.** *Done when:*
+     - a committed table, held by a check, lists each public real flight HPR Sim compares:
+       the flights of the real-flight report and of the public predictions. For each it says
+       whether the design has two or more guides at different stations. For each that has,
+       it gives the apogee flown guided as today and with the phase, and the move between
+       them. Where a landing point is compared it gives the landing point's move as a
+       vector. A flight with fewer than two guides is listed as not moved;
+     - the private collection's logged flights are given in aggregate only, as
+       [ADR-151][adr-151] (decision 2) and [ADR-184][adr-184] (decision 7) require: how many
+       of its flights and of its designs have two or more guides at different stations, and
+       a count of those flights by the phase's apogee move in bins of 0.1% of the apogee. No
+       flight is named or numbered, and no apogee and no per-flight row is given. That limits
+       ADR-357's "for each real flight": for the collection, M1.14b10's table is this
+       aggregate;
      - for each of those three sets the table gives the mean absolute apogee error guided
        and with the phase, on the flights and by the error that set's own report uses, with
        the signed mean beside it;
@@ -98,7 +109,7 @@ depend on the rest.
      - if any set's mean absolute apogee error is higher with the phase, an ADR measures the
        rise and its cause before M1.14b15 changes the default;
      - and the phase stays opt-in: every other committed report reproduces unchanged.
-   - **M1.14b15, the phase by default.** *Done when:* M1.14b10's *done when*, whole. What is
+   - **M1.14b15, tip-off by default.** *Done when:* M1.14b10's *done when*, whole. What is
      left of it after the two above is the default itself: every flight of a design with two
      or more guides flies the phase unless told not to, from the library, the command line
      and the Python package alike; each report that moves is regenerated in that pull
@@ -112,13 +123,14 @@ depend on the rest.
      flight without it takes the commit's own branch for a rocket with no pair of buttons on
      the rail, which frees the rocket where its upper button leaves, as RocketPy's releases
      do.
-   - **What the rewrite moved.** Where the lower button leaves with the phase on, the
-     turning rate moved by at most 0.000019 deg/s and the angle off the rail's axis by at
-     most 0.0000003°. What the phase moves from the guided flight changed by at most
-     0.000033% of the apogee in the apogee and 0.000032% of the apogee in the landing point.
+   - **What moved between the two pins.** Where the lower button leaves with the phase on,
+     the turning rate moved by at most 0.000020 deg/s and the angle off the rail's axis by
+     at most 0.0000003°. What the phase moves from the guided flight changed by at most
+     0.000034% of the apogee in the apogee and 0.000032% of the apogee in the landing point.
      No flight's apogee moved by more than 1.04 mm, nor its landing point by more than
-     0.96 mm. The same flights are past the plan's bars, and each rocket carried the same
-     normal force, dry mass, motor and parachutes.
+     0.96 mm. Each bound is rounded up. The same flights are past the plan's bars, and each
+     rocket carried the same normal force, dry mass, parachutes and motor (its total
+     impulse, burn time and propellant mass).
    - **HPR Sim's phase against the new reference** ([the comparison][model-report]). On
      RocketPy's normal force all 26 flights are inside every bar. The largest differences
      are 0.003 deg/s in the turning rate against a bar of 0.238 deg/s, 0.0001° in the angle
@@ -126,22 +138,40 @@ depend on the rest.
      the apogee in the landing-point move against 1%. At that rounding they are the figures
      [ADR-358][adr-358] recorded on the earlier pin. On HPR Sim's own normal force the 13
      still-air flights are inside every bar and the 13 crosswind flights are not, as before.
-   - **Why so little moved.** The rewrite's corrections are to how the phase ends: the time
-     the rail exit is found at on a long solver step, a parachute opening inside the phase,
-     and a rail too short for the phase to end. None of the 26 flights met one of those on
-     the earlier pin. That reading is this record's, from the size of the moves; the report
-     measures the moves and does not test each cause.
+   - **What the differences are, and are not.** They are differences between two commits
+     of RocketPy, 26 commits and 45 changed files apart, 15 of them under `rocketpy/`. They
+     are not the measured effect of the rewrite, and the report does not test which change
+     made each. Two things say the phase's own equations are not where they come from. The
+     largest apogee move, 1.04 mm, is in a flight without the phase, and the flights without
+     it moved by up to 1.04 mm in an apogee or landing point against 0.81 mm for those with
+     it. And pull request #1217's description puts its corrections in how the phase ends: a
+     parachute opening inside it, a rail too short for it, and the time of each rail exit,
+     now found by a root search on the solver's own interpolation of the step. That last
+     change reaches every flight, with the phase or without, since the upper button's exit
+     is found the same way. Moves of a millimeter in flights of hundreds to thousands of
+     meters are the size a changed root search and solver steps would leave, but that is a
+     reading, not a measurement.
 3. **The two defects pull request #1217 leaves open do not reach the comparison.** Its
-   description names a wrong lever arm and a missing weight in the rail-button forces while
-   both buttons are on the rail. RocketPy computes those forces after the flight, from the
-   solved trajectory (`Flight.rail_button1_normal_force` and its three companions). They are
-   outputs: while both buttons are on the rail the rocket moves along the rail alone, and the
-   equations of that stretch do not read them. The comparison reads the state where the last
-   button leaves, the apogee and the landing point, and none of the forces.
+   description names them as found on the way and not fixed.
+   - **The rail-button forces with both buttons on the rail** "use a wrong lever arm and
+     leave out the weight". Those are the forces RocketPy reports for that stretch
+     (`Flight.rail_button1_normal_force` and its three companions). They are outputs: while
+     both buttons are on the rail the rocket moves along the rail alone, and the equations
+     of that stretch do not read them. The comparison reads the state where the last button
+     leaves, the apogee and the landing point, and none of the forces.
+   - **"A rocket whose thrust starts below its weight never leaves the rail unless
+     `max_time_step` is set."** The oracle sets it: every flight runs on
+     `validation/oracles/rocketpy/flight.py`'s solver settings, whose step is bounded at
+     0.05 s for this very failure, measured there on that suite's flights, whose thrust
+     curves ramp from zero. A flight that stayed on the rail could not pass unnoticed either. The oracle
+     fails a flight that does not end before its time cap, whose apogee is not above the
+     site, or, with the phase on, whose phase did not run. All 26 flights flew three ways.
 4. **The order.** M1.14b13 ships with this record. M1.14b14 is next, then M1.14b15, all ahead
    of the increments ADR-357's decision 6 put after tip-off. M1.14b14 comes before the default
    so that what the default does to the real flights' error is known, and written down, before
-   any report moves.
+   any report moves. M1.14b15 does not wait for M1.14b12, the crosswind flights on HPR Sim's
+   own normal force: [ADR-358][adr-358]'s decision 6 put the default ahead of it, and that
+   stands.
 
 **Consequences.**
 
@@ -161,5 +191,8 @@ depend on the rest.
 - **M1.14b14's landing column may be empty.** No real flight's landing point is compared
   today; [landing points against the tracked landings][m2-13] is a later milestone. The table
   then says so.
-- **The private collection's designs with two guides are not counted yet.** M1.14b14's table
-  counts them.
+- **The private collection's designs with two guides are not counted yet.** M1.14b14 counts
+  them, in aggregate.
+- **No test holds the sentence that the comparison's largest differences are ADR-358's at
+  that rounding.** A test holds this record's four figures to the committed comparison;
+  ADR-358's are its own record's.

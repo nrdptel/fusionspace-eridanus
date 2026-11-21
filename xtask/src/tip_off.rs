@@ -515,6 +515,13 @@ pub(crate) fn signed(value: f64, decimals: usize) -> String {
     }
 }
 
+/// A bound's magnitude, rounded up at `decimals`, so "at most" and "no more than" stay true of
+/// the figure before rounding.
+pub(crate) fn at_most(value: f64, decimals: usize) -> String {
+    let scale = (0..decimals).fold(1.0, |scale, _| scale * 10.0);
+    fixed((value.abs() * scale).ceil() / scale, decimals)
+}
+
 /// A move's landing-point cells: the distance, its share of the apogee and how much farther from
 /// the pad the rocket lands.
 fn landing_cells(moved: &Value) -> Result<[String; 3], String> {
@@ -606,8 +613,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     let _ = writeln!(
         w,
         "- **Phase off** is RocketPy as its releases fly: the rocket is free where its upper \
-         button leaves the rail. The pinned commit flies the phase in every flight and has no \
-         switch for it, so these flights take {}.\n\
+         button leaves the rail. The commit this report flies has no switch for the phase: it \
+         flies it in every flight on its standard six-degree-of-freedom equations whose two \
+         buttons start on the rail. So these flights take {}.\n\
          - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, \
          free to pitch and yaw about its lower button with roll held, until that button leaves \
          too.\n\
@@ -688,14 +696,28 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     let (apogee, apogee_at) = most("apogee_m")?;
     let (landing, landing_at) = most("landing_point_m")?;
     let carried = number(since, "carried_largest_difference")?;
+    // The farthest any apogee or landing point moved among the flights flown these ways.
+    let farthest_mm = |ways: &[&str]| -> Result<f64, String> {
+        let mut most = 0.0_f64;
+        for flight in list(since, "flights")? {
+            for figure in ["apogee_m", "landing_point_m"] {
+                for way in ways {
+                    most = most.max(number(&flight[figure], way)?.abs());
+                }
+            }
+        }
+        Ok(most * 1000.0)
+    };
+    let without_mm = farthest_mm(&["phase off", "guided"])?;
+    let with_mm = farthest_mm(&["phase on"])?;
     let _ = writeln!(
         w,
-        "- **Since the earlier pin.** This report first flew {}. Its equations: {}. RocketPy \
-         then rewrote the phase ([pull request #1217]({REWRITE})), and this report flies the \
-         rewrite. The \
-         earlier report is kept as `{}`: this file as commit `{}` of this repository had it, \
-         byte for byte. Between the two, {}. [The table below](#what-rocketpys-rewrite-of-the-phase-moved) \
-         gives each flight.\n  \
+        "- **Since the earlier pin.** A pin is the one commit of RocketPy's source a report \
+         flies. This report first flew {}. Its equations: {}. RocketPy then rewrote the phase \
+         ([pull request #1217]({REWRITE})), and this report flies that pull request's merge. \
+         The earlier report's data is kept as `{}`, a byte-for-byte copy of `{REPORT}` as commit \
+         `{}` of this repository had it. Between the two pins, {}. \
+         [The last table](#between-the-two-pins) gives each flight.\n  \
          - Where the lower button leaves with the phase on, the turning rate moved by at most \
          {} deg/s ({rate_at}) and the angle off the rail's axis by at most {}° ({angle_at}), \
          each as its nose-down and nose-right parts together.\n  \
@@ -704,31 +726,44 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          ({landing_move_at}).\n  \
          - No flight's apogee moved by more than {} mm ({apogee_at}), nor its landing point by \
          more than {} mm ({landing_at}).\n  \
+         - These are differences between two commits, not the measured effect of one change. \
+         The rewrite changed how the phase ends, and it also finds every flight's rail exit a \
+         new way, by a root search on the solver's own interpolation of the step. Other \
+         changes to RocketPy lie between the two pins as well. A flight without the phase \
+         moved by up to {} mm in its apogee or landing point and a flight with it by up to {} \
+         mm, so the moves are not the phase's alone. This report does not test which change \
+         made each.\n  \
          - {}",
         linked_pulls(text(since, "oracle")?),
         linked_pulls(text(since, "equations")?),
         text(since, "record")?,
-        &text(since, "commit")?[..8],
+        text(since, "commit")?
+            .get(..8)
+            .ok_or("the earlier pin's commit is shorter than 8 characters")?,
         if same {
             "the same flights are past each bar, and the rocket lands farther from the pad in \
              the same number of them"
         } else {
             "the flights past the bars are not the same"
         },
-        fixed(rate.abs(), 6),
-        fixed(angle.abs(), 7),
-        fixed(apogee_move.abs(), 6),
-        fixed(landing_move.abs(), 6),
-        fixed(apogee.abs() * 1000.0, 2),
-        fixed(landing.abs() * 1000.0, 2),
+        at_most(rate, 6),
+        at_most(angle, 7),
+        at_most(apogee_move, 6),
+        at_most(landing_move, 6),
+        at_most(apogee * 1000.0, 2),
+        at_most(landing * 1000.0, 2),
+        at_most(without_mm, 2),
+        at_most(with_mm, 2),
         if carried == 0.0 {
             "Each rocket carried the same in both: its normal force at every Mach number, its \
-             dry mass, its motor and its parachutes."
+             dry mass, its motor's total impulse, burn time and propellant mass, and its \
+             parachutes."
                 .to_owned()
         } else {
             format!(
-                "What the rockets carried (normal force, dry mass, motor, parachutes) differs \
-                 between the two by up to {carried:e}."
+                "What the rockets carried (normal force, dry mass, the motor's total impulse, \
+                 burn time and propellant mass, parachutes) differs between the two by up to \
+                 {carried:e}."
             )
         },
     );
@@ -855,16 +890,18 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         }
     }
 
-    let _ = writeln!(w, "\n## What RocketPy's rewrite of the phase moved\n");
+    let _ = writeln!(w, "\n## Between the two pins\n");
     let _ = writeln!(
         w,
-        "This pin's figure less the earlier pin's, for each flight. The first four are the \
+        "This pin's figure less the earlier pin's, for each flight: the difference between \
+         the two commits of RocketPy, whatever in them made it. The first four are the \
          figures HPR Sim's own phase is held to RocketPy's on \
          ([the comparison](tip-off-model.md)), compared the same way: the turning rate and the \
          angle where the lower button leaves with the phase on, each as its nose-down and \
          nose-right parts together; and what the phase moves from the guided flight, in the \
          apogee and, as a vector, in the landing point, each as a share of the guided apogee. \
-         The last two are how far the guided flight itself moved.\n"
+         The last two are how far the guided flight itself moved. Each figure here is rounded \
+         to the nearest; the bounds under [the reading](#the-reading) are rounded up.\n"
     );
     let _ = writeln!(
         w,
@@ -1174,8 +1211,9 @@ mod tests {
     /// the report page's own precision: the measured figures of the flight page's section with
     /// their conversions to US units, its declared wind and drag, and its two short statements
     /// of the cost; the cost on the validation page, in the glossary and in the risks note;
-    /// and the decision record's table and its sentence on the equations as pinned. Not held:
-    /// the record's other figures.
+    /// and, from the report kept from the earlier pin, the table of the decision record that
+    /// measured on that pin and its sentence on the equations as pinned. Not held: that
+    /// record's other figures.
     #[test]
     fn the_pages_quote_the_committed_report() {
         let root = crate::designs::root().unwrap();
@@ -1942,10 +1980,26 @@ mod tests {
         }
     }
 
+    /// A bound is rounded away from zero, never toward it, and an exact figure is left alone.
+    #[test]
+    fn a_bound_is_rounded_up() {
+        assert_eq!(at_most(1.9159e-5, 6), "0.000020");
+        assert_eq!(at_most(-1.9159e-5, 6), "0.000020");
+        assert_eq!(at_most(1.035_846, 2), "1.04");
+        assert_eq!(at_most(0.5, 1), "0.5");
+        assert_eq!(at_most(2.0, 2), "2.00");
+        assert_eq!(at_most(0.0, 2), "0.00");
+        // Nearest rounding would understate each of these.
+        assert_eq!(fixed(1.9159e-5, 6), "0.000019");
+        assert_eq!(fixed(0.0413, 2), "0.04");
+        assert_eq!(at_most(0.0413, 2), "0.05");
+    }
+
     /// The earlier pin's report is the file the hash names, it flew the earlier commit with
     /// pull request #1196 applied here, and the committed report's comparison with it is
-    /// recomputed from the two. What the rewrite moved is far inside every bar HPR Sim's phase
-    /// is held to: a hundredth of the smallest, so the earlier comparison's reading stands.
+    /// recomputed from the two. What moved between the pins is far inside every bar HPR Sim's
+    /// phase is held to: under a hundredth of each, so the earlier comparison's reading stands.
+    /// The pages quote each bound rounded up ([`at_most`]).
     #[test]
     fn the_committed_report_compares_itself_with_the_earlier_pins() {
         let root = crate::designs::root().unwrap();
@@ -1989,6 +2043,30 @@ mod tests {
         let page = markdown(&report).unwrap();
         assert!(page.contains("the same flights are past each bar"));
         assert!(page.contains("Each rocket carried the same in both"));
+        // The moves are not credited to the phase: the flights without it moved as far.
+        let farthest = |ways: &[&str]| {
+            list(&since, "flights")
+                .unwrap()
+                .iter()
+                .flat_map(|flight| {
+                    ["apogee_m", "landing_point_m"].map(|figure| {
+                        ways.iter()
+                            .map(|way| number(&flight[figure], way).unwrap().abs())
+                            .fold(0.0, f64::max)
+                    })
+                })
+                .fold(0.0, f64::max)
+                * 1000.0
+        };
+        let (without, with) = (farthest(&["phase off", "guided"]), farthest(&["phase on"]));
+        assert!(without >= with, "{without} {with}");
+        assert!(page.contains(&format!(
+            "A flight without the phase moved by up to {} mm in its apogee or landing point and \
+             a flight with it by up to {} mm",
+            at_most(without, 2),
+            at_most(with, 2)
+        )));
+        assert!(page.contains("This report does not test which change made each."));
         assert!(page.contains(&format!("`{EARLIER}`")));
         assert!(page.contains(&format!("commit `{}`", &EARLIER_COMMIT[..8])));
 
@@ -1997,7 +2075,7 @@ mod tests {
             let text = fs::read_to_string(root.join(path)).unwrap();
             text.split_whitespace().collect::<Vec<_>>().join(" ")
         };
-        let rate = fixed(most("turning_rate_deg_s"), 6);
+        let rate = at_most(most("turning_rate_deg_s"), 6);
         let (apogee_mm, landing_mm) = (most("apogee_m") * 1000.0, most("landing_point_m") * 1000.0);
         let farthest_mm = apogee_mm.max(landing_mm);
         let flight_page = words("docs/physics/flight.md");
@@ -2005,10 +2083,12 @@ mod tests {
             format!("moved by at most {rate} deg/s"),
             format!(
                 "by more than {} mm ({} in)",
-                fixed(farthest_mm, 2),
-                fixed(farthest_mm / 25.4, 2)
+                at_most(farthest_mm, 2),
+                at_most(farthest_mm / 25.4, 3)
             ),
-            "No figure on this page changed".to_owned(),
+            "No figure quoted on this page changed".to_owned(),
+            "under a hundredth of the bar".to_owned(),
+            format!("kept as `{EARLIER}`"),
             format!("(`{}`), flies the thirteen", &pinned[..8]),
         ] {
             assert!(
@@ -2021,17 +2101,17 @@ mod tests {
         );
         for fragment in [
             format!("turning rate moved by at most {rate} deg/s"),
-            format!("by at most {}°", fixed(most("angle_deg"), 7)),
+            format!("by at most {}°", at_most(most("angle_deg"), 7)),
             format!(
                 "at most {}% of the apogee in the apogee",
-                fixed(most("apogee_move_percent_of_apogee"), 6)
+                at_most(most("apogee_move_percent_of_apogee"), 6)
             ),
             format!(
                 "{}% of the apogee in the landing point",
-                fixed(most("landing_point_move_percent_of_apogee"), 6)
+                at_most(most("landing_point_move_percent_of_apogee"), 6)
             ),
-            format!("apogee moved by more than {} mm", fixed(apogee_mm, 2)),
-            format!("landing point by more than {} mm", fixed(landing_mm, 2)),
+            format!("apogee moved by more than {} mm", at_most(apogee_mm, 2)),
+            format!("landing point by more than {} mm", at_most(landing_mm, 2)),
             format!("`{pinned}`"),
             "The same flights are past the plan's bars".to_owned(),
         ] {

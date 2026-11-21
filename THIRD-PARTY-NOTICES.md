@@ -412,7 +412,7 @@ adds a source.
   drag, `prometheus_cd_at_ma`, as `PROMETHEUS_CD_POINTS` in `validation/oracles/rocketpy/flight.py`.
   And two upstream corrections to `rocketpy/simulation/flight.py` and `rocketpy/rocket/rocket.py`,
   applied to v1.13.0 by `validation/oracles/rocketpy/corrections.py` (ADR-026): the edited lines of
-  pull request #1196 (head `927e771e`; merged into `develop` 2026-11-16 as `aee512f8`), quoted there as substitutions into RocketPy's own
+  pull request #1196 (taken at its head of 2026-09-16, `927e771e`; merged into `develop` 2026-11-16 as `aee512f8`), quoted there as substitutions into RocketPy's own
   `u_dot_generalized`, and the nozzle gyration tensor of pull request #1188 (merged 2026-09-09).
   And `Flight.udot_rail2` in `rocketpy/simulation/flight.py` at the merge of pull request #920
   (`ebe1b775`, the development branch; `rocketpy-tip-off`'s pin until ADR-363): the form of the tip-off
