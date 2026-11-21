@@ -3089,7 +3089,7 @@ mod tests {
             "{escape_m_s}"
         );
         // Past any flight in HPR Sim's envelope, Mach 3.5 at sea level, by a factor of nine.
-        assert!(DIVERGED_SPEED_M_S > 9.0 * 3.5 * 340.3);
+        const { assert!(DIVERGED_SPEED_M_S > 9.0 * 3.5 * 340.3) };
     }
 
     #[test]
