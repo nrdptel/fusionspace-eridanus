@@ -50,7 +50,8 @@
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees),
 # and `corrections.py --check` (#1583: on sources built from the installed release, 1.13.0, the
 # whole flights' correction to RocketPy's equations tells a source carrying it from one that
-# doesn't, stops on one carrying part of it, and flies the release with all three edits).
+# doesn't, stops on one carrying part of it, and flies the release with all three edits), and
+# `tip_off.py --stays-on-rail` (#1585: the tip-off oracle fails a flight that never leaves the rail).
 # The checks run side by side, each a lane of `scripts/lanes.sh` (#700). Each reads its own files,
 # and the three that write anything write what no other lane touches: `ghost --check` its
 # target/ghost-files/, `ork-cli --check` its target/ork-cli/, and `evidence --samples` the tests it
@@ -386,7 +387,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount' 'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check'" ;;
+    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount' 'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check' 'refs/venv/bin/python -I validation/oracles/rocketpy/tip_off.py --stays-on-rail'" ;;
     *) return 1 ;;
   esac
 }

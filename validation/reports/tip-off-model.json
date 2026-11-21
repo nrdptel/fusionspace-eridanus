@@ -3801,9 +3801,9 @@
     }
   },
   "reference": {
-    "equations": "as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which the reference's script (tip_off.py) checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever",
+    "equations": "as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which the reference's script (validation/oracles/rocketpy/tip_off.py) checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever",
     "oracle": "rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge)",
     "report": "validation/reports/tip-off.json",
-    "sha256": "9282601285c6a5526c0d58765e6e6ed04632f8ca5ea86ac0b2fdfc05b82b0011"
+    "sha256": "20d1bfed9015ca5cff551815b5f93464e47d7a76db53a25f848e3314bce9607d"
   }
 }
