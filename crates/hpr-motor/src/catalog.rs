@@ -751,9 +751,10 @@ impl Catalog {
         picked
     }
 
-    /// As [`Catalog::find`], for a motor going into a mount whose bore is `bore_mm` across: the
-    /// diameter guard of [ADR-302][adr-302] §1, on looking a motor up by name, which [`Catalog::find_for_design`] applies to a design file's motor,
-    /// applied to a motor named by hand. Where another motor the name matches, by designation or
+    /// As [`Catalog::find`], for a motor named by hand to go into a mount whose bore is `bore_mm`
+    /// across. It follows the diameter guard of [ADR-302][adr-302] §1, on looking a motor up by
+    /// name, which [`Catalog::find_for_design`] applies to a design file's motor against the file's
+    /// case diameter; here it is measured against the mount's bore. Where another motor the name matches, by designation or
     /// common name, fits the bore more closely by more than [`BORE_TOLERANCE_MM`] than every motor
     /// [`Catalog::find`] gives (or where none of those fits and another does), every match, so the
     /// caller refuses the name as ambiguous; else what [`Catalog::find`] gives. A motor fits when

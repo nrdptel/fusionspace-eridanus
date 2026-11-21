@@ -139,9 +139,10 @@ pub enum Finding {
         /// How far past, m.
         excess_m: f64,
     },
-    /// The motor case runs into a part inside its mount whose bore is narrower than the case: an
-    /// engine block, a forward thrust ring or a bulkhead, which the `.ork` reader reads as an inner
-    /// tube or a ring attached to the mount (warning). A real case stops at the part's aft face,
+    /// The motor case reaches forward past the aft face of a part inside its mount whose bore is
+    /// narrower than the case: an engine block, a forward thrust ring or a bulkhead, which the
+    /// `.ork` reader reads as an inner tube or a ring attached to the mount (warning). Of several,
+    /// the aftmost, where a case slid in from aft stops. A real case stops at the part's aft face,
     /// `excess_m` further aft than drawn.
     MotorIntoBlock {
         /// Configuration id.
@@ -154,7 +155,7 @@ pub enum Finding {
         block_bore_m: f64,
         /// The motor case's diameter, m.
         motor_diameter_m: f64,
-        /// How far the case runs forward past the part's aft face, m.
+        /// How far the case reaches forward past the part's aft face, m.
         excess_m: f64,
     },
     /// An external part (fin root, tube fins, lug, rail button or pod set) doesn't overlap the body
@@ -422,9 +423,9 @@ impl Finding {
                 motor_diameter_m,
                 excess_m,
             } => format!(
-                "the motor in {} runs {} into {}, whose {} bore can't pass the {} case \
-                 (configuration {}). The mass, CG and margin are for the motor as drawn: a real \
-                 case stops at the part, that much further aft",
+                "the motor in {} reaches {} forward of the aft face of {}, whose {} bore can't \
+                 pass the {} case (configuration {}). The mass, CG and margin are for the motor \
+                 as drawn: a real case stops at the part, that much further aft",
                 name(mount),
                 mm(*excess_m),
                 name(block),
@@ -661,11 +662,10 @@ pub fn has_errors(findings: &[Finding]) -> bool {
     findings.iter().any(|f| f.severity() == Severity::Error)
 }
 
-/// How far, m, a motor case may run into an engine block or thrust ring inside its mount without
-/// a finding ([`Finding::MotorIntoBlock`]): a whole millimeter, the step 930 of the bundled
-/// catalog's 1,004 case lengths are rounded to, so a case drawn to its catalog length can overlap
-/// a block it really meets by up to half of it. On the reference library's designs, every overlap
-/// under it is 0.55 mm or less, and every one over it 8.8 mm or more.
+/// How far, m, a motor case may reach forward past the aft face of an engine block or thrust ring
+/// inside its mount without a finding ([`Finding::MotorIntoBlock`]): a whole millimeter, the step
+/// most of the bundled catalog's case lengths are stated to, so a case drawn to its catalog length
+/// can reach past a block it really meets by up to half of it.
 pub const BLOCK_OVERLAP_TOLERANCE_M: f64 = 0.001;
 
 /// The overlap of `[a0, a1]` and `[b0, b1]`, m (negative when they are apart).
@@ -1156,32 +1156,37 @@ pub fn check_configuration(
                 excess_m: past,
             });
         }
-        // An engine block, forward thrust ring or bulkhead: a part attached to the mount, across
-        // the case's span, whose bore the case can't pass. The case stops at its aft face.
+        // An engine block, forward thrust ring or bulkhead: a part attached to the mount whose
+        // bore the case can't pass, with its aft face between the case's ends. A case slid in from
+        // aft stops at the aftmost such face, so that part alone is the block.
         let mount_index = layout.find(&motor.mount).map(|(index, _)| index);
         let radius_m = motor.mounted.diameter_m / 2.0;
-        for block in layout
+        let block = layout
             .components
             .iter()
             .filter(|part| part.parent.is_some() && part.parent == mount_index)
-        {
-            let bore_radius_m = match &block.part {
-                Part::InnerTube(tube) => tube.outer_radius_m - tube.thickness_m,
-                Part::CenteringRing(ring) => ring.inner_radius_m,
-                _ => continue,
-            };
-            let aft_m = block.fore_station_m + block.length_m;
-            let into_m = aft_m.min(nozzle) - fore.max(block.fore_station_m);
-            if bore_radius_m < radius_m - LENGTH_TOLERANCE_M && into_m > BLOCK_OVERLAP_TOLERANCE_M {
-                findings.push(Finding::MotorIntoBlock {
-                    configuration: configuration.id.clone(),
-                    mount: mount.id.clone(),
-                    block: block.id.clone(),
-                    block_bore_m: 2.0 * bore_radius_m.max(0.0),
-                    motor_diameter_m: motor.mounted.diameter_m,
-                    excess_m: aft_m - fore,
-                });
-            }
+            .filter_map(|part| {
+                let bore_radius_m = match &part.part {
+                    Part::InnerTube(tube) => tube.outer_radius_m - tube.thickness_m,
+                    Part::CenteringRing(ring) => ring.inner_radius_m,
+                    _ => return None,
+                };
+                let aft_m = part.fore_station_m + part.length_m;
+                (bore_radius_m < radius_m - LENGTH_TOLERANCE_M
+                    && aft_m - fore > BLOCK_OVERLAP_TOLERANCE_M
+                    && aft_m < nozzle - LENGTH_TOLERANCE_M)
+                    .then_some((part, bore_radius_m, aft_m))
+            })
+            .max_by(|(_, _, a), (_, _, b)| a.total_cmp(b));
+        if let Some((block, bore_radius_m, aft_m)) = block {
+            findings.push(Finding::MotorIntoBlock {
+                configuration: configuration.id.clone(),
+                mount: mount.id.clone(),
+                block: block.id.clone(),
+                block_bore_m: 2.0 * bore_radius_m.max(0.0),
+                motor_diameter_m: motor.mounted.diameter_m,
+                excess_m: aft_m - fore,
+            });
         }
     }
     Ok(findings)
@@ -1337,9 +1342,9 @@ mod tests {
         assert_eq!(
             sentences.last().map(String::as_str),
             Some(
-                "the motor in <mt> runs 12.0 mm into <block>, whose 25.0 mm bore can't pass the \
-                 38.0 mm case (configuration <cfg>). The mass, CG and margin are for the motor as \
-                 drawn: a real case stops at the part, that much further aft"
+                "the motor in <mt> reaches 12.0 mm forward of the aft face of <block>, whose 25.0 mm \
+                 bore can't pass the 38.0 mm case (configuration <cfg>). The mass, CG and margin \
+                 are for the motor as drawn: a real case stops at the part, that much further aft"
             )
         );
         assert!(sentences[14].contains(" 250.0 mm forward of the nose tip"));
@@ -1455,9 +1460,10 @@ mod tests {
         assert!(!has_errors(&findings));
     }
 
-    /// Issue #1261: an engine block, forward thrust ring or bulkhead attached to the mount, across
-    /// the case's span with a bore the case can't pass, is found, with how much further aft the
-    /// case stops; one the case clears, ends at, or overlaps by no more than the 1 mm tolerance
+    /// Issue #1261: an engine block, forward thrust ring or bulkhead attached to the mount, with a
+    /// bore the case can't pass and its aft face between the case's ends, is found, with how much
+    /// further aft the case stops; of several, the aftmost alone. One the case clears, ends at,
+    /// reaches past by no more than the 1 mm tolerance, or whose aft face is past the nozzle,
     /// isn't.
     #[test]
     fn a_motor_into_an_engine_block_is_found() {
@@ -1528,6 +1534,44 @@ mod tests {
         assert!((excess_m - 0.004).abs() < 1e-12, "{excess_m}");
         // A case the block's bore passes, 28 mm across, isn't stopped by it.
         assert!(with_motor(block(), 0.0, 0.028, 0.3).is_empty());
+        // A bulkhead 0.8 mm thick, 0.1 m down, wholly inside the case's span: the case reaches
+        // 100.8 mm - 10 mm = 90.8 mm past its aft face, though it overlaps it by 0.8 mm alone.
+        let findings = with_block(ring(0.0008, 0.019, 0.0), 0.1, 0.3);
+        let [Finding::MotorIntoBlock { excess_m, .. }] = findings[..] else {
+            panic!("{findings:?}")
+        };
+        assert!((excess_m - 0.0908).abs() < 1e-12, "{excess_m}");
+        // A ring across the nozzle's station, its aft face aft of it (a retainer's lip drawn
+        // there), isn't a block: the case sits 10 mm up the mount, its nozzle at 290 mm, and the
+        // ring spans 286 to 292 mm.
+        let mut design = three_fin_rocket();
+        let mount = &mut design.stages[0].components[1].children[0];
+        mount.motor_mount = Some(MotorMount { overhang_m: -0.01 });
+        mount.children = vec![attached("lip", ring(0.006, 0.019, 0.0), top(0.286))];
+        design.configurations[0].motors[0] = crate::testing::motor("mmt", 0.038, 0.25);
+        let findings = check(&design).unwrap();
+        assert!(findings.is_empty(), "{findings:?}");
+        // Two blocks: the aftmost is where the case stops, and the one finding names it.
+        let mut design = three_fin_rocket();
+        let mount = &mut design.stages[0].components[1].children[0];
+        mount.children = vec![
+            attached("top-block", block(), top(0.0)),
+            attached("ring", ring(0.006, 0.019, 0.0), top(0.05)),
+        ];
+        design.configurations[0].motors[0] = crate::testing::motor("mmt", 0.038, 0.3);
+        let findings = check(&design).unwrap();
+        let [
+            Finding::MotorIntoBlock {
+                block: ref binding,
+                excess_m,
+                ..
+            },
+        ] = findings[..]
+        else {
+            panic!("{findings:?}")
+        };
+        assert_eq!(binding, "ring");
+        assert!((excess_m - 0.046).abs() < 1e-12, "{excess_m}");
         // A case past the mount's top and into the block: both, the block's the further aft.
         let findings = with_block(block(), 0.0, 0.35);
         let excesses: Vec<f64> = findings

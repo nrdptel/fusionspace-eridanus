@@ -231,8 +231,9 @@ The `warning` says the I377's case reaches 22.0 mm (0.87 in) past the mount tube
 The 292 mm (11.5 in) case sits 10 mm (0.39 in) out of the back of the rocket's 260 mm (10 in)
 mount tube. The simulator flies it as drawn. If a ring or bulkhead closes the mount's forward
 end, the real case stops there and sits 22.0 mm (0.87 in) further aft. The warning gives the static
-margin at ignition both ways, as drawn and moved aft. Whether it fits the real rocket is for
-you to check.
+margin at ignition both ways, as drawn and moved aft. Moving the case aft moves the center of
+gravity aft, so the second figure, 0.94 calibers, is the lower one. The simulator flies the first.
+Whether the case fits the real rocket is for you to check.
 
 `--motor` replaces the motor of the configuration flown. `--config` picks which of the file's
 configurations it goes in, and `--mount` picks which mount, if the design has several.
@@ -368,7 +369,7 @@ as [Fly your .ork](fly-your-ork.md) shows. `hpr sim`'s `delay` line checks the d
 - The simulator's design checks flag a motor wider than its mount. They warn on one longer than its
   tube, or that runs into an engine block, thrust ring or bulkhead the design draws inside the
   mount. They don't know a retainer or closure the design doesn't draw.
-- A motor narrower than its mount flies with no adapter. A note says so when it is more than 5%
-  narrower; the adapter's mass is left out.
+- A motor named with `--motor` narrower than its mount flies with no adapter. A note says so when
+  it is more than 5% narrower; the adapter's mass is left out. A motor the file holds gets none.
 - The simulator gives no verdict: it ranks nothing as safe or unsafe. The motor's printed data, the
   safety codes and your range safety officer decide.

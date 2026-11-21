@@ -2723,11 +2723,25 @@ fn sim_measures_a_motor_against_its_mount() {
             )),
             "{said}"
         );
+        // The help offers only the name that flies there and isn't refused in turn.
         assert!(
-            said.contains("such as `--motor 1016J360-15A` for the one the mount holds"),
+            said.contains(
+                "help: give `--motor 1016J360-15A` for the closest fit; a narrower one of them, \
+                 flown in an adapter, can be given only by its .eng or .rse file"
+            ),
             "{said}"
         );
     }
+    // A mount drawn at 53.5 mm, which the design checks don't let a 54 mm case into: `J360` has
+    // no rival there, and flies the 38 mm motor, with the adapter note.
+    let tight = probe_with(
+        folder.path(),
+        "tight.ork",
+        "<outerradius>0.015</outerradius>",
+        "<outerradius>0.02725</outerradius>",
+    );
+    let document = json(&["sim", &tight, "--motor", "J360"], 0, "sim.schema.json");
+    assert_eq!(document["motors"][0]["designation"], "J360", "{document:#}");
     // The 54 mm motor's own designation names it alone, and fills the bore: no note.
     let messages = |args: &[&str], key: &str| -> Vec<String> {
         let document = json(args, 0, "sim.schema.json");
@@ -2796,6 +2810,34 @@ fn sim_measures_a_motor_against_its_mount() {
     );
     let (drawn, stopped) = margins(past, "94.0");
     assert!(stopped < drawn - 0.1, "{past}");
+    // Each figure is the library's static margin at ignition: as drawn, and with the file's own
+    // overhang set to the 94 mm the case moves aft.
+    let library_margin = |path: &str| {
+        let file = hpr::hpr_io::ork::read(&std::fs::read(path).unwrap())
+            .unwrap()
+            .value;
+        let design = hpr::hpr_io::ork::design(&file).value;
+        let id = design.motors.default_configuration().unwrap().id.clone();
+        hpr::Rocket::from_design(design.rocket, &id)
+            .unwrap()
+            .margin(0.0, hpr::hpr_sim::metrics::STATIC_MARGIN_MACH)
+            .unwrap()
+            .margin_cal
+            .unwrap()
+    };
+    let moved = std::fs::read_to_string(&short).unwrap().replacen(
+        "<overhang>0.0</overhang>",
+        "<overhang>0.094</overhang>",
+        1,
+    );
+    let moved_path = folder.path().join("short-moved.ork");
+    std::fs::write(&moved_path, moved).unwrap();
+    let moved_path = moved_path.to_string_lossy().into_owned();
+    assert!((library_margin(&short) - drawn).abs() <= 0.005, "{past}");
+    assert!(
+        (library_margin(&moved_path) - stopped).abs() <= 0.005,
+        "{past}"
+    );
 
     // An engine block 10 mm long at the top of the probe's own mount, of 21 mm bore: the
     // H128W, 6 mm short of the mount's top, runs 4 mm into it.
@@ -2817,8 +2859,8 @@ fn sim_measures_a_motor_against_its_mount() {
     };
     assert!(
         into.contains(
-            "the motor in `Motor mount` runs 4.0 mm into `Block`, whose 21.0 mm bore can't pass \
-             the 29.0 mm case"
+            "the motor in `Motor mount` reaches 4.0 mm forward of the aft face of `Block`, whose \
+             21.0 mm bore can't pass the 29.0 mm case"
         ),
         "{into}"
     );

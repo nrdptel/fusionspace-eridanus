@@ -3109,56 +3109,73 @@ fn flown_bore_m(rocket: &hpr_design::Rocket, id: &str) -> Option<(String, f64)> 
 
 /// Refuses `name` as ambiguous where it names a catalog motor by a common name another catalog
 /// motor shares, and that other motor fits a mount of `bore_m` more closely
-/// ([`Catalog::find_for_bore`], [ADR-302][adr-302] §1): Cesaroni's 38 mm `J360` in a 54 mm mount,
-/// where `J360` is also the 54 mm `1016J360-15A`'s common name.
+/// ([`Catalog::find_for_bore`], after [ADR-302][adr-302] §1) and flies there, by the design
+/// checks' fit ([`checks::motor_fit_slack_m`]): Cesaroni's 38 mm `J360` in a 54 mm mount, where
+/// `J360` is also the 54 mm `1016J360-15A`'s common name. The help offers only names that fly in
+/// the bore and that this guard doesn't refuse in turn.
 ///
 /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
 fn bore_guard(name: &str, bore_m: f64, catalog: &Catalog) -> Result<(), Failure> {
     let bore_mm = bore_m * 1000.0;
     let fits = catalog.find_for_bore(name, bore_mm);
-    let name = crate::printable(name);
-    if fits.len() < 2 {
+    // A motor flies in the bore when the design checks don't refuse it as wider than the mount.
+    let flies = |motor: &&hpr::hpr_motor::CatalogMotor| {
+        let diameter_m = motor.diameter_mm / 1000.0;
+        diameter_m
+            <= bore_m + checks::motor_fit_slack_m(diameter_m) + hpr_design::tree::LENGTH_TOLERANCE_M
+    };
+    // The name stands unless a motor it doesn't name alone, one that flies in this bore, is the
+    // reason it is ambiguous.
+    let named: Vec<_> = catalog.find(name).collect();
+    let rival_flies = fits
+        .iter()
+        .filter(|motor| !named.iter().any(|kept| std::ptr::eq(*kept, **motor)))
+        .any(|motor| flies(motor));
+    if fits.len() < 2 || !rival_flies {
         return Ok(());
     }
+    let name = crate::printable(name);
     let listed: Vec<String> = fits
         .iter()
         .map(|motor| format!("{} ({:.0} mm)", catalog.selector(motor), motor.diameter_mm))
         .collect();
-    // The motor the mount holds: the widest that fits it, within the guard's tolerance.
-    let held = fits
+    // The names to offer: each of those motors that flies in the bore and whose name this guard
+    // doesn't refuse in turn, so the refusal never sends the user back to itself.
+    let offered: Vec<String> = fits
         .iter()
-        .filter(|motor| motor.diameter_mm <= bore_mm + hpr::hpr_motor::catalog::BORE_TOLERANCE_MM)
-        .max_by(|a, b| a.diameter_mm.total_cmp(&b.diameter_mm))
-        .map(|motor| catalog.selector(motor));
-    let quoted = |selector: String| {
-        if selector.contains(' ') {
-            format!("\"{selector}\"")
-        } else {
-            selector
-        }
+        .filter(|motor| flies(motor))
+        .map(|motor| catalog.selector(motor))
+        .filter(|selector| catalog.find_for_bore(selector, bore_mm).len() < 2)
+        .map(|selector| {
+            let quoted = if selector.contains(' ') {
+                format!("\"{selector}\"")
+            } else {
+                selector
+            };
+            format!("`--motor {}`", crate::printable(&quoted))
+        })
+        .collect();
+    let give = if offered.is_empty() {
+        "no catalog name picks one of them alone in this mount".to_owned()
+    } else {
+        format!("give {} for the closest fit", offered.join(" or "))
     };
-    let such_as = held.map_or_else(String::new, |held| {
-        format!(
-            ", such as `--motor {}` for the one the mount holds",
-            crate::printable(&quoted(held))
-        )
-    });
     Err(Failure::helped(
         format!(
             "{name}: in a mount of {bore_mm:.1} mm bore, `{name}` matches several motors: {}",
             listed.join(", ")
         ),
         format!(
-            "give --motor one of those names{such_as}; to fly a narrower one of them in an \
-             adapter, give its .eng or .rse file by its path"
+            "{give}; a narrower one of them, flown in an adapter, can be given only by its .eng or \
+             .rse file, by its path"
         ),
     ))
 }
 
-/// The share of a mount's bore by which a motor narrower than it needs an adapter: wider than the
-/// clearance a mount tube leaves a case of its own size (1.6% for a 75 mm case in a 3.00 in,
-/// 76.2 mm bore) and narrower than the smallest step between neighboring standard motor
-/// diameters (24 to 29 mm, 17%).
+/// The share of a mount's bore by which a motor narrower than it needs an adapter: more than the
+/// 1.6% a 3.00 in (76.2 mm) bore leaves a 75 mm case, and less than the smallest step between the
+/// bundled catalog's common diameters (13, 18, 24, 29, 38, 54, 75 and 98 mm), 17% from 24 to
+/// 29 mm.
 const ADAPTER_GAP_SHARE: f64 = 0.05;
 
 /// A note that `motor`, narrower than `mount`'s `bore_m` by more than [`ADAPTER_GAP_SHARE`] of
@@ -3178,9 +3195,9 @@ fn adapter_note(
             .map_or_else(String::new, |(_, name)| name);
         format!(
             "the {} is {:.1} mm across, {:.1} mm narrower than the {:.1} mm bore of `{}`, and \
-             flies centered there with no adapter. An adapter's mass isn't included, so the \
-             apogee reads high, and so does the margin for an adapter aft of the center of \
-             gravity",
+             flies centered there with no adapter. An adapter's mass isn't included: it would \
+             move the apogee, up or down, and for an adapter aft of the center of gravity the \
+             margin reads high without it",
             crate::printable(motor.designation()),
             motor.diameter_m() * 1000.0,
             gap_m * 1000.0,
@@ -3222,7 +3239,6 @@ fn stopped_case_margin(
             .ok()
             .and_then(|margin| margin.margin_cal)
     };
-    let drawn = margin(rocket.clone())?;
     let mut moved = rocket.clone();
     let mut found = false;
     walk_mut(&mut moved, &mut |component| {
@@ -3233,7 +3249,11 @@ fn stopped_case_margin(
             found = true;
         }
     });
-    let stopped = margin(moved).filter(|_| found)?;
+    if !found {
+        return None;
+    }
+    let drawn = margin(rocket.clone())?;
+    let stopped = margin(moved)?;
     Some(format!(
         ". At ignition the static margin is {drawn:.2} calibers as drawn, and {stopped:.2} with \
          the case {:.1} mm further aft",
