@@ -306,13 +306,15 @@ pub const MAX_STEPS: usize = 2_000_000;
 /// Science Data Coordinated Archive, Goddard Space Flight Center). Nothing that climbs on a hobby
 /// motor and comes back passes it, so an estimate that does is the filter's, not the rocket's.
 ///
-/// It is a bound on a diverged estimate, not a test of a good one. A filter whose two height
-/// sensors disagree past their gates, each taken back in turn ([`GATE_RESET_S`]), reads each
-/// take-back's gap as motion it missed, and the gap can grow from one take-back to the next
-/// without limit: [`GnssTrust::FromLiftoff`] does it on some of the synthetic flights
-/// ([#1590]). [`GnssTrust::Agreement`] never takes the receiver back, and the synthetic
-/// flights' check fails if it withholds one of their logs so. Three of the sample logs' 1,058
-/// records still run away under it, by a road not traced yet ([#1073]), and are withheld
+/// It is a bound on a diverged estimate, not a test of a good one. A take-back
+/// ([`GATE_RESET_S`]) reads a sensor's gap as motion the filter missed and widens the speed's
+/// and the acceleration's variances by it. With two height sensors that disagree past their
+/// gates and can both be taken back, the other sensor's samples, fused against those variances,
+/// swing the speed, and the next take-back can meet a wider gap, without limit:
+/// [`GnssTrust::FromLiftoff`] does it on some of the synthetic flights ([#1590]).
+/// [`GnssTrust::Agreement`] never takes the receiver back, and the synthetic flights' check
+/// fails if it withholds one of their logs so. Three of the sample logs' 1,058 records still
+/// run away under it, by a road not traced yet ([#1073]), and are withheld
 /// (`validation/reports/log-import.md`, *The smoother*).
 ///
 /// [#1073]: https://github.com/nrdptel/fusionspace-eridanus/issues/1073
@@ -801,8 +803,8 @@ pub fn smooth_with(
         return Err(Withheld {
             reason: Reason::Diverged,
             detail: format!(
-                "the smoother's vertical speed reads {:.0} m/s at {} s, past the {:.0} m/s that \
-                 leaves the Earth: its sensors disagree and the estimate ran away",
+                "the smoother's vertical speed reads {:.0} m/s at {:.2} s, past Earth's escape \
+                 speed, {:.0} m/s either way: the estimate ran away",
                 smoothed.speed_m_s[k], smoothed.time_s[k], DIVERGED_SPEED_M_S
             ),
         });
@@ -3052,9 +3054,9 @@ mod tests {
 
     #[test]
     fn a_track_past_escape_speed_is_withheld_as_diverged() {
-        // Trusted from liftoff, the receiver and the barometer are each taken back in turn, each
-        // take-back read as motion missed: the smoothed speed ran to 2.4e6 m/s on a flight whose
-        // top speed is 98.1 m/s (#1590). The track is withheld, not given.
+        // Trusted from liftoff, the receiver and the barometer are both taken back, each
+        // take-back read as motion missed, and the smoothed speed runs away past escape speed
+        // on a flight whose top speed is 98.1 m/s (#1590). The track is withheld, not given.
         let log = with_a_receiver_that_runs_off(log());
         let options = Options {
             gnss_trust: GnssTrust::FromLiftoff,
@@ -3063,7 +3065,9 @@ mod tests {
             smooth_with(&log, &readings::read(&log), options).expect_err("a speed no rocket flew");
         assert_eq!(withheld.reason, Reason::Diverged);
         assert!(
-            withheld.detail.contains("past the 11186 m/s"),
+            withheld
+                .detail
+                .contains("past Earth's escape speed, 11186 m/s either way: the estimate ran away"),
             "{}",
             withheld.detail
         );

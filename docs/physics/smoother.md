@@ -96,53 +96,69 @@ Across the three sets, each set's cells run from 94.2% to 99.4%. Per logger, the
 are 88.7% on set B and 89.2% on set A, both the GNSS logger's apogee height. The rule still
 allows them: their misses aren't shown to pass 5% a side.
 
-Trusting the GNSS receiver from liftoff instead fails the check. B's 186 smoothed logs with a
-GNSS track were smoothed again that way, the rest left as they were. Six of them ran away and
-were withheld ([A track that runs away](#a-track-that-runs-away)). Of the 839 flights left, 144
-apogee truths lay below the interval, and only 82.2% inside it. Every set, logger and moment is
-in [the report][report].
+The check also runs a setting made to fail. Each log with a GNSS track is smoothed again with
+its receiver trusted from liftoff, which is wrong on purpose: a receiver lags a climb. `hpr
+analyze` can't be set that way. The check must catch it, and it does. B's 186 smoothed logs with
+a GNSS track were smoothed again that way, the rest left as they were. Six of them ran away and
+were withheld ([A track that runs away](#a-track-that-runs-away)). That leaves 839 of B's 845
+smoothed flights. Of those, 144 apogee truths lay below the interval, and only 82.2% inside it.
+Every set, logger and moment is in [the report][mutation].
 
 ### A track that runs away
 
 The smoother withholds a track whose vertical speed passes 11,186 m/s (36,699 ft/s) anywhere in
-the log. That is Earth's escape speed at its surface, the 11.186 km/s of NASA's Earth Fact Sheet. No rocket
-that comes back flew it, so a track that reads it is an estimate that ran away. `hpr analyze`
-then prints `withheld` and the reason on its `smoother` row instead of the track's numbers. The
+the log, up or down. That is Earth's escape speed at its surface, the 11.186 km/s of
+[NASA's Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html). No
+rocket that comes back flew it, so a track that reads it is an estimate that ran away. The
 bound catches a runaway. It doesn't make a track under it right: the intervals and the health
-card do that work.
+card do that work. [The decision record][adr-365] has the measurements behind it.
 
-A track runs away when two sensors of the height disagree and both can be taken back. Each
-sample is gated: one more than five standard errors from the estimate is rejected. A sensor
-rejected for a whole second is taken back. The smoother then takes the estimate to be the one
-that is wrong. It widens the height, speed and acceleration by the size of the gap, so the
-estimate moves to the sensor. That is right for one sensor against the motion model, such as a
-barometer through a deployment's pressure pulse. Two sensors a steady gap apart are another
-case. Each take-back reads the gap as motion the filter missed. It moves the speed and
-acceleration to close it. A second later the other sensor is taken back across a wider gap,
-and the gap can grow at every turn.
+**If your log is withheld.** `hpr analyze` prints `withheld:` on its `smoother` row and this
+reason, with your log's speed and time in it:
+
+```text
+the smoother's vertical speed reads <speed> m/s at <time> s, past Earth's escape speed, 11186 m/s either way: the estimate ran away
+```
+
+Nothing else in the output changes. The [readings](log-readings.md) above that row (liftoff,
+apogee, top speed, landing) are read from the log, not from the smoothed track. Go by those. Of
+the [sample logs' 1,058 records][survey], 3 are withheld so: one `altos-csv` log and two
+`held-table` logs, both names of log families in that survey. Why those three run away isn't
+traced yet ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). It
+doesn't by itself mean a sensor is broken. Before the bound, `hpr analyze` printed those three
+tracks, so output saved earlier for such a log shows a runaway track.
+
+**How the check's wrong setting runs away.** Each sample passes a gate: one that misses the
+estimate by more than five of its standard deviations is rejected. A sensor rejected for a
+whole second is taken back, which the [health card](#the-health-card) counts as a reset. The
+smoother then treats the estimate, not the sensor, as wrong. It widens the uncertainty of the
+height, speed and acceleration by the size of the gap, so the estimate jumps to the sensor.
+That is right when the estimate has drifted and the sensor hasn't.
+
+It goes wrong with two sensors of the height that sit a steady gap apart, when both can be
+taken back. A take-back reads the gap as motion the filter missed and leaves the speed and
+acceleration wide open. The other sensor's samples, fused against that, swing the speed. A
+second later the next take-back can meet a wider gap, and the gap can grow without limit.
 
 The barometer and the GNSS receiver both measure height. As shipped, the receiver is never
-taken back. Two rejections in a row lose it its trust, and it must agree with the smoother for
-2 s again. So only the barometer can be taken back, and the loop has one side. Trusted from
-liftoff, the receiver is taken back like any sensor, and the loop has both.
+taken back. After two rejections in a row it is no longer trusted, and it must agree with the
+smoother for 2 s again. The barometer can be taken back, and so can the accelerometer before
+apogee, but those two don't measure the same thing. Trusted from liftoff, the receiver is taken
+back as the barometer is, and the two can feed each other.
 
-An invented flight shows it (the smoother's own test). The rocket tops out at 98.1 m/s (322 ft/s). Its
-barometer logs at 20 Hz. Its receiver logs at 5 Hz and, from apogee on, runs off the truth at
-20 m/s (66 ft/s), as no real receiver does. Trusted from liftoff, the track is withheld as diverged.
-Trusted by agreement, the same log smooths. The top speed reads within 2 m/s (6.6 ft/s) of that. At
-30 s, on the way down, the truth lies inside the interval.
+An invented flight shows it (the smoother's test
+`a_track_past_escape_speed_is_withheld_as_diverged`). The rocket's top speed is 98.1 m/s
+(322 ft/s). Its barometer logs at 20 Hz. Its receiver logs at 5 Hz and, from apogee on, its
+altitude error grows by 20 m (66 ft) every second, as no real receiver's does. Trusted from
+liftoff, the track is withheld as diverged. Trusted by agreement, as shipped, the same log
+smooths. Its top speed reads within 2 m/s (6.6 ft/s) of the true 98.1 m/s (322 ft/s). At 30 s,
+on the way down, the true height and speed lie inside their 90% intervals.
 
-On the synthetic flights, trusting the receiver from liftoff runs away on 11 of the 185 logs
-set A smooths again. It does on 6 of set B's 186, and on none of the tuning set's 33
-([the report][report]). They leave that check's cells, and it still fails on the rest. As
-shipped, the check fails if a single synthetic log with a barometer is withheld, for this
-reason or another, and none is.
-
-Real logs are another matter. As shipped, 3 of the [sample logs' 1,058 records][survey] run
-away and are withheld: one `altos-csv` log and two `held-table` logs. The shipped rule never
-takes a receiver back, so they ran away by another road than the one above. It isn't traced
-yet ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). Before the
-bound, `hpr analyze` printed those three tracks.
+On the synthetic flights, the wrong setting runs away on 11 of the 185 logs set A smooths
+again. It does so on 6 of set B's 186 and on none of the tuning set's 33
+([the report][mutation]). Those logs leave the wrong setting's cells, and it still fails on the
+rest, as it must. As shipped, the check fails if a single synthetic log with a barometer is
+withheld, for this reason or another, and none is.
 
 ## A log written from launch
 
@@ -216,3 +232,5 @@ the [GNSS note][gnss]. The rest are HPR Sim's choices, recorded in
 [truth]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/smoother-truth-flights.md
 [adr-300]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0300-the-smoother-and-its-check.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#the-smoother-against-the-truth
+[mutation]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#trusting-the-gnss-receiver-from-liftoff
+[adr-365]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md

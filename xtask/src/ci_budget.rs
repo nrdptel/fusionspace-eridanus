@@ -21,9 +21,10 @@
 //!    `census` job and `fit intervals` passed, made within the last 26 hours by its first
 //!    attempt's time (a re-run of an old night's failed jobs is no new night). None fails,
 //!    unless the branch repairs the night: a full run started by hand on the branch's own head
-//!    that passed whole stands in for main's ([ADR-365], decision 6). A run on an earlier
-//!    commit of the branch counts while only pages changed since
-//!    ([`pages_only`]). Without that, no repair of a night older than 26 hours could merge.
+//!    that passed whole stands in for main's ([ADR-365], decision 6). The run's commit must
+//!    hold every commit of main, as GitHub has it, and a run on an earlier commit of the
+//!    branch counts only while pages alone changed since ([`speaks_for`]). Without that, no
+//!    repair of a night older than 26 hours could merge.
 //!
 //! Reading GitHub's runs needs `gh` and the network; a failure to read them fails the check
 //! and says why.
@@ -460,11 +461,11 @@ pub(crate) fn pages_only(paths: &[&str]) -> bool {
 /// The night's check for a branch that may repair the night ([ADR-365], decision 6): `main`'s
 /// verdict stands unless it fails and one of `own` is a passing full run. `own` holds the
 /// passing hand-started runs on the branch's own commits, each with its jobs and whether it
-/// speaks for the head: it ran on the head, or only pages changed since ([`pages_only`]).
+/// speaks for the head ([`speaks_for`]).
 ///
-/// A branch's own full run flies every census on the branch's commits, main's among them, so it
+/// A run that speaks for the head flew every census on main's commits and the branch's, so it
 /// shows what a night on main after the merge would. A run that isn't full (no census ran), or
-/// that ran before a change the censuses could read, shows nothing and the failure stands.
+/// that doesn't speak for the head, shows nothing and the failure stands.
 ///
 /// [ADR-365]: ../../docs/decisions/0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md
 pub(crate) fn repaired_night_verdict(main: Verdict, own: &[(Run, Vec<Job>, bool)]) -> Verdict {
@@ -481,37 +482,85 @@ pub(crate) fn repaired_night_verdict(main: Verdict, own: &[(Run, Vec<Job>, bool)
             run.head_sha.get(..10).unwrap_or(&run.head_sha)
         )),
         None => Verdict::Fail(format!(
-            "{why}; a repair's branch passes on a hand-started full run of its own head \
-             (`gh workflow run ci.yml --ref <branch> -f full=true`; ADR-365 §6)"
+            "{why}; a repair's branch passes on a hand-started full run of its own head, main \
+             merged in (`gh workflow run ci.yml --ref <branch> -f full=true`; ADR-365 §6)"
         )),
     }
 }
 
+/// Whether a full run on `commit` speaks for `head`, in the repository at `dir` (the current
+/// directory if `None`), with main at `main`:
+///
+/// - `commit` holds every commit of `main`. A branch behind main has flown none of what main
+///   gained since, and GitHub merges such a branch; its run says nothing of the merge.
+/// - `commit` is `head`, or pages alone changed from it to `head` ([`pages_only`]). The paths
+///   are read with renames off, so a report or a source file moved under `docs/` shows its old
+///   path too, and NUL-separated, so git quotes none of them.
+fn speaks_for(dir: Option<&Path>, main: &str, commit: &str, head: &str) -> Result<bool, String> {
+    let behind = git_in(dir, &["rev-list", "--count", main, "--not", commit])?;
+    if behind != "0" {
+        return Ok(false);
+    }
+    if commit == head {
+        return Ok(true);
+    }
+    let changed = git_in(
+        dir,
+        &[
+            "diff-tree",
+            "-r",
+            "--no-renames",
+            "--name-only",
+            "-z",
+            commit,
+            head,
+        ],
+    )?;
+    let paths: Vec<&str> = changed.split('\0').filter(|p| !p.is_empty()).collect();
+    Ok(pages_only(&paths))
+}
+
+/// Main's head as GitHub has it now, so a local `origin/main` not fetched since main moved
+/// can't pass for it.
+fn main_head() -> Result<String, String> {
+    #[derive(Deserialize)]
+    struct Commit {
+        sha: String,
+    }
+    let commit: Commit =
+        serde_json::from_str(&gh_api(&format!("repos/{REPOSITORY}/commits/main"))?)
+            .map_err(|error| format!("reading main's head: {error}"))?;
+    Ok(commit.sha)
+}
+
 /// The passing hand-started runs on the branch's own commits, newest commit first, each with its
-/// jobs and whether it speaks for `head` (see [`repaired_night_verdict`]).
+/// jobs and whether it speaks for `head` ([`speaks_for`], against main's head on GitHub). A
+/// head with no commit of its own past main has none: main's own runs are the night's.
 fn own_runs(head: &str) -> Result<Vec<(Run, Vec<Job>, bool)>, String> {
-    let commits = branch_commits(head)?;
     let head_sha = git(&[
         "rev-parse",
         "--verify",
         "--end-of-options",
         &format!("{head}^{{commit}}"),
     ])?;
+    let main = main_head()?;
+    let commits = git(&["rev-list", &head_sha, "--not", &main]).map_err(|error| {
+        format!("{error}; main's head on GitHub is {main}: `git fetch origin` first")
+    })?;
     let mut own = Vec::new();
-    for commit in commits.iter().take(OWN_COMMITS) {
+    for commit in commits.lines().take(OWN_COMMITS) {
         let path = format!(
             "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs?status=success\
              &event=workflow_dispatch&head_sha={commit}&per_page={HAND_RUNS}"
         );
-        let runs: Runs = serde_json::from_str(&gh_api(&path)?)
+        let mut runs: Runs = serde_json::from_str(&gh_api(&path)?)
             .map_err(|error| format!("reading {commit}'s hand-started runs: {error}"))?;
+        // The query's own filter, held here too: a run on another commit never counts.
+        runs.workflow_runs.retain(|run| run.head_sha == commit);
         if runs.workflow_runs.is_empty() {
             continue;
         }
-        let speaks = *commit == head_sha || {
-            let changed = git(&["diff", "--name-only", commit, &head_sha])?;
-            pages_only(&changed.lines().collect::<Vec<_>>())
-        };
+        let speaks = speaks_for(None, &main, commit, &head_sha)?;
         for run in runs.workflow_runs {
             let jobs = run_jobs(&run)?;
             own.push((run, jobs, speaks));
@@ -613,7 +662,16 @@ fn every_page(
 
 /// `git <args>`'s output, run in the current directory: the branch being checked.
 fn git(args: &[&str]) -> Result<String, String> {
-    let output = Command::new("git")
+    git_in(None, args)
+}
+
+/// `git <args>`'s output, run in `dir`, or in the current directory.
+fn git_in(dir: Option<&Path>, args: &[&str]) -> Result<String, String> {
+    let mut command = Command::new("git");
+    if let Some(dir) = dir {
+        command.current_dir(dir);
+    }
+    let output = command
         .args(args)
         .output()
         .map_err(|error| format!("running `git {}`: {error}", args.join(" ")))?;
@@ -1102,6 +1160,78 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
             matches!(v, Verdict::Ok(ref t) if t.contains("run, 7 on")),
             "{v:?}"
         );
+    }
+
+    /// `git <args>` in `dir`, as a committer with a name.
+    fn scratch_git(dir: &Path, args: &[&str]) -> String {
+        let mut all = vec!["-c", "user.name=test", "-c", "user.email=test@example.com"];
+        all.extend_from_slice(args);
+        git_in(Some(dir), &all).unwrap()
+    }
+
+    /// Writes `text` to `path` under `dir` and commits everything; the commit's hash.
+    fn scratch_commit(dir: &Path, path: &str, text: &str) -> String {
+        let file = dir.join(path);
+        std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+        std::fs::write(file, text).unwrap();
+        scratch_git(dir, &["add", "-A"]);
+        scratch_git(dir, &["commit", "-q", "-m", path]);
+        scratch_git(dir, &["rev-parse", "HEAD"])
+    }
+
+    #[test]
+    fn a_run_speaks_for_a_head_only_on_top_of_main_and_past_pages_alone() {
+        // CI's checkout holds one commit, so the history is a scratch repository's.
+        let scratch = tempfile::tempdir().unwrap();
+        let dir = scratch.path();
+        let report = "a report of many lines\n".repeat(40);
+        scratch_git(dir, &["init", "-q", "-b", "main"]);
+        scratch_commit(dir, "validation/reports/census.md", &report);
+        let fork = scratch_commit(dir, "docs/page.md", "a page\n");
+        let main = scratch_commit(dir, "crates/code.rs", "the break\n");
+        let speaks = |commit: &str, head: &str| speaks_for(Some(dir), "main", commit, head);
+
+        // A branch that forked before main's last commit: its own run flew none of it.
+        scratch_git(dir, &["checkout", "-q", "-b", "behind", &fork]);
+        let behind = scratch_commit(dir, "docs/page.md", "a page, edited\n");
+        assert_eq!(speaks(&behind, &behind), Ok(false));
+
+        // The repair, on top of main: a run on its head speaks for it.
+        scratch_git(dir, &["checkout", "-q", "-b", "repair", &main]);
+        let fix = scratch_commit(dir, "crates/code.rs", "the fix\n");
+        assert_eq!(speaks(&fix, &fix), Ok(true));
+        // Pages alone since, a new page among them: the run on the fix still speaks.
+        scratch_commit(dir, "docs/page.md", "a page, reworded\n");
+        let pages = scratch_commit(dir, "docs/physics/new page.md", "another\n");
+        assert_eq!(speaks(&fix, &pages), Ok(true));
+        // A report moved under `docs/` is a page gained and a report lost: with renames on,
+        // git would list the new path alone.
+        scratch_git(
+            dir,
+            &["mv", "validation/reports/census.md", "docs/census.md"],
+        );
+        scratch_git(dir, &["commit", "-q", "-m", "move"]);
+        let moved = scratch_git(dir, &["rev-parse", "HEAD"]);
+        assert_eq!(
+            scratch_git(dir, &["diff", "--name-only", "-M", &pages, &moved]),
+            "docs/census.md"
+        );
+        assert_eq!(speaks(&pages, &moved), Ok(false));
+        assert_eq!(speaks(&fix, &moved), Ok(false));
+        // Code changed since: the earlier run doesn't speak, the head's own would.
+        let code = scratch_commit(dir, "crates/code.rs", "the fix, again\n");
+        assert_eq!(speaks(&moved, &code), Ok(false));
+        assert_eq!(speaks(&code, &code), Ok(true));
+        // Main moves on: the repair is behind it until main is merged in.
+        scratch_git(dir, &["checkout", "-q", "main"]);
+        scratch_commit(dir, "crates/other.rs", "more\n");
+        assert_eq!(speaks(&code, &code), Ok(false));
+        scratch_git(dir, &["checkout", "-q", "repair"]);
+        scratch_git(dir, &["merge", "-q", "--no-edit", "main"]);
+        let merged = scratch_git(dir, &["rev-parse", "HEAD"]);
+        assert_eq!(speaks(&merged, &merged), Ok(true));
+        // A commit git doesn't hold is an error, not a no.
+        assert!(speaks("0123456789abcdef0123456789abcdef01234567", &merged).is_err());
     }
 
     #[test]

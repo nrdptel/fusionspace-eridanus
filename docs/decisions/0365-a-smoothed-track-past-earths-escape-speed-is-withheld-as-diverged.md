@@ -1,7 +1,7 @@
 # ADR-365: A smoothed track past Earth's escape speed is withheld as diverged (2026-11-21)
 
 - **Status:** accepted; adds a refusal to the smoother of [ADR-300][adr-300] and a count to its check's mutation; changes no rule of the filter, and no interval of a track that is still given; amends [ADR-149][adr-149] §3: the repair of a failed night merges on a full run of its own head (decision 6)
-- **Summary:** The nightly census failed on every platform ([#1590](https://github.com/nrdptel/fusionspace-eridanus/issues/1590)). One synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m (8,136,483 ft), to three figures that no two builds agree on. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails on the rest. The same bound withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now. A branch that repairs a failed night may merge on a hand-started full run of its own head.
+- **Summary:** The nightly census failed on four of its five platforms ([#1590](https://github.com/nrdptel/fusionspace-eridanus/issues/1590)). One synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m (8,136,483 ft), to three figures the platforms made three ways. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails. The bound also withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now. A branch repairing a failed night may merge on a full run of its own head, main merged in.
 
 [adr-149]: 0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 [adr-300]: 0300-the-smoother-and-its-check.md
@@ -18,13 +18,14 @@ second time, the receiver trusted from liftoff: a mutation that must fail. The r
 the mutation's cells too, each with its largest standard error, and the nightly run flies
 every flight again on five platforms and compares to three figures.
 
-On 2026-11-21 that run failed on all of them. Two cells of set A's mutation differed, the
+On 2026-11-21 that run failed on four of them. Two cells of set A's mutation differed, the
 drawn moment's height and speed:
 
 | build | largest standard error, height | speed |
 |---|---:|---:|
 | committed (macOS, the dev profile) | 2,480,000 m | 10,100,000 m/s |
-| nightly, macOS and Windows | 2,460,000 m | 10,000,000 m/s |
+| nightly, Windows on ARM | as committed: its census passed | |
+| nightly, macOS and Windows on x86-64 | 2,460,000 m | 10,000,000 m/s |
 | nightly, Linux, x86-64 and ARM | 2,300,000 m | 9,380,000 m/s |
 
 Before [ADR-362][adr-362]'s drag change moved the synthetic flights, the same two cells held
@@ -41,9 +42,16 @@ The cause is the gate's take-back with two sensors on one quantity. A sensor rej
 second is taken back, and the height, speed and acceleration are widened by its gap
 ([ADR-300][adr-300], decision 9). That reads the gap as motion the filter missed. Trusted from
 liftoff, the receiver is taken back as the barometer is. When the two disagree past their
-gates, each take-back moves the speed and acceleration toward one sensor, the other is
-rejected for the next second and taken back across a wider gap, and the gap grows at each
-turn. As shipped, the receiver is never taken back: two rejections lose it its trust.
+gates, a take-back leaves the speed's variance as wide as the gap over a second. The other
+sensor's samples, fused against that, swing the speed, and the next take-back can meet a
+wider gap. As shipped, the receiver is never taken back: two rejections lose it its trust.
+
+A trace of the invented log the new test flies shows it (a probe on this build, as the
+figures above are). Trusted from liftoff, the barometer is taken back at 19.5 s and 20.85 s,
+then the two by turns, the receiver often twice running. From 31 s the receiver is taken back
+four times in a row, 1.2 s apart, across gaps of 224 m, 1,584 m, −4,210 m and −24,187 m,
+and the speed passes the bound between them. With either sensor's take-back switched off in
+the probe, the same log smooths with a top speed of 97 m/s. It takes both.
 
 A probe of every synthetic log on the same build sized it:
 
@@ -74,10 +82,11 @@ have no gap in them: they run from a few thousand m/s up.
    before.
 3. **The mutation's diverged logs are counted and leave its cells.** The report prints how
    many of the logs smoothed again were withheld: 0 of the tuning set's 33, 11 of A's 185 and
-   6 of B's 186. Leaving them out can only make the mutation look better, which is the hard
-   side for the claim that the check catches it: the check still demands that the mutation
-   fail on A and on B, and it does. At apogee 143 of A's 809 truths and 144 of B's 839 lie
-   below the height's interval ([the report][report]).
+   6 of B's 186. Leaving them out raised the share inside the interval in every one of A's
+   and B's 16 cells and changed no cell's verdict: the logs that ran away missed more often
+   than the rest. So the mutation is judged on logs that read better than the whole did, and
+   the check still demands that it fail on A and on B. It does. At apogee 143 of A's 809
+   truths and 144 of B's 839 lie below the height's interval ([the report][report]).
 4. **The filter's rules don't change.** Three other fixes were weighed and left:
    - *Compare the mutation's largest standard error to fewer figures, or not at all.* That
      edits a check to pass it, and leaves the smoother handing out a track 10¹⁰ m high.
@@ -92,13 +101,14 @@ have no gap in them: they run from a few thousand m/s up.
    are withheld as diverged: one `altos-csv` log and two `held-table` logs. The smoothed count
    falls from 549 to 546. The smoothed apogees past the reading's bound fall from 32 to 30, so
    the card had marked two of the three and not the third. The shipped rule takes no receiver
-   back, so these ran away by another road. It isn't traced. That work belongs to the open
-   issue on smoothed apogees past the reading's bound ([#1073][bound-issue]), which now
-   carries these three.
+   back, so these ran away by another road. It isn't traced. The accelerometer can be taken
+   back before apogee as the barometer can, which is one road to look at first. That work
+   belongs to the open issue on smoothed apogees past the reading's bound
+   ([#1073][bound-issue]), which carries these three since a comment of 2026-11-21.
 
 6. **The repair of a failed night merges on a full run of its own head.** The budget check
    before a pull request and before a merge wants a passing full run on main, the night's or
-   one started by hand, made within 26 hours ([ADR-149][adr-149], amended 2026-11-03). A red
+   one started by hand, made within 26 hours ([ADR-149][adr-149], amended 2026-11-04). A red
    night is repaired by a pull request, and once main's last green night is 26 hours old that
    check refuses the repair itself: no full run on main can pass until the repair is on main.
    This one reached that point. Main's last passing night was made at 16:58 UTC on
@@ -106,19 +116,28 @@ have no gap in them: they run from a few thousand m/s up.
 
    So when main's night fails the check, `cargo xtask ci-budget` reads the branch's own
    hand-started runs. One that passed whole, every census job and the fit's among them, on
-   the branch's head stands in for main's night. A run on an earlier commit of the branch
-   counts only while nothing but pages changed since: Markdown under `docs/`, the README and
-   the changelog, none of which a census reads. A hand-started run without `full` flies no
-   census and doesn't count.
+   the branch's head stands in for main's night. Two conditions hold it to the merge:
+
+   - The run's commit holds every commit of main, as GitHub has main at the check. Main's
+     branch protection doesn't ask a branch to be up to date, so without this a branch that
+     forked before the break could pass on its own run and merge onto a main still broken.
+   - A run on an earlier commit of the branch counts only while nothing but pages changed
+     since: Markdown under `docs/`, the README and the changelog, none of which a census
+     reads. The paths are read with renames off, so a report moved under `docs/` still shows
+     as a report lost.
+
+   A hand-started run without `full` flies no census and doesn't count.
 
    This asks more of the repair than the night asks of main, not less: the same censuses on
-   the same five platforms, on the commits about to merge. It lets other work past a red
-   night only if that work's own head passes every census, which is what the night's check
-   is there to learn. The rule that a failed night comes first ([ADR-149][adr-149] §3) stands.
+   the same five platforms, on main's commits and the branch's together. It lets other work
+   past a red night only if that work, on top of main, passes every census, which is what
+   the night's check is there to learn. The rule that a failed night comes first
+   ([ADR-149][adr-149] §3) stands.
 
 **Which way it errs.** A refusal is the safe side: the reader loses a track and keeps the
-readings, which don't come from the smoother. The bound can't refuse a real flight inside the
-envelope. It can let a wrong track through, which decision 2 says.
+readings, which don't come from the smoother. A flight inside the envelope can't reach the
+bound, which is nine times Mach 3.5 at sea level: the three real records it withholds are
+tracks no rocket flew. It can let a wrong track through, which decision 2 says.
 
 **What isn't settled.**
 
@@ -130,6 +149,9 @@ envelope. It can let a wrong track through, which decision 2 says.
   grown by one or two. Both of this Mac's builds, the dev profile and the nightly's, count
   the same logs.
 - The real logs' road to a runaway ([#1073][bound-issue]).
+- The bound reads the smoothed speed. The second run that sizes the port coefficient's share
+  of each standard error isn't read against it. No log was found where that run alone runs
+  away; if one does, its standard error would be wide and build-dependent again.
 
 **Consequences.**
 

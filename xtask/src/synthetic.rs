@@ -2352,7 +2352,7 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
          The same flights, each log with a GNSS track smoothed again with its receiver trusted \
          from liftoff rather than once its speed agrees with the smoother's. A receiver lags a \
          climb, so this must fail. On some flights the receiver and the barometer then disagree \
-         past their gates, each is taken back in turn, and the estimate runs away: a track \
+         past their gates, both are taken back, and the estimate runs away: a track \
          whose speed passes {} m/s, Earth's escape speed, is withheld as diverged and \
          leaves the cells, which then count fewer flights than the check's.\n\n",
         crate::collection_errors::grouped(smoother::DIVERGED_SPEED_M_S as u32)
