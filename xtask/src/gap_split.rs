@@ -21,23 +21,27 @@
 //! whole  = (A₀ − A_OR) / A_OR = thrust + mass + drag + other
 //! ```
 //!
-//! So the parts sum to the whole by construction, and [`Parts::check_sum`] holds every flight
-//! split to it. The parts depend on the order: the drag part is also taken with the drag swapped
+//! So the parts sum to the whole by construction. [`Parts::check_sum`] holds every flight split to
+//! it, which guards the arithmetic and an apogee that isn't a number, nothing else: the parts
+//! telescope, so finite apogees always sum. The parts depend on the order: the drag part is also taken with the drag swapped
 //! first, on HPR Sim's own thrust and mass ([`Parts::drag_first`]).
 //!
 //! What no swap replaces stays HPR Sim's in every flight: its normal force, its center of
-//! pressure, its damping of a turn and its inertia. So after the mass swap HPR Sim flies
-//! OpenRocket's center of mass against its own center of pressure, which moves its stability
-//! margin. What that does to the apogee is in the mass part, and no later swap undoes it: the
-//! last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the
-//! rest can take back what the mass part holds ([`GapSplit::mass_opposed_by_rest`] counts the
-//! flights where both are large with opposite signs; it doesn't show they are one effect).
+//! pressure, its damping of pitching and yawing motion and its inertia. So after the mass swap
+//! HPR Sim flies OpenRocket's center of mass against its own center of pressure, which moves its
+//! stability margin. What that does to the apogee is in the mass part, and no later swap undoes
+//! it: the flight on all four swaps keeps it, and the rest is measured from that flight to
+//! OpenRocket's own. So the rest can take back what the mass part holds
+//! ([`GapSplit::mass_opposed_by_rest`] counts the flights where both are large with opposite
+//! signs, by sign and the [`LARGE_PERCENT`] floor alone, not by how much of the mass part the rest
+//! takes back; it doesn't show they are one effect).
 //!
 //! A flight is not split, and is counted under the first of [`NOT_SPLIT`] that applies, when
-//! OpenRocket's record lacks an input for it, when HPR Sim refuses one of the histories or fails
-//! any of the flights the split needs (its own sampled at OpenRocket's times among them), or when
-//! the flight on its own thrust and mass, sampled at OpenRocket's times, doesn't come back within
-//! [`OWN_HISTORY_BOUND`] of its own apogee (M2.3c11's test).
+//! OpenRocket's record lacks an input for it (a drag curve of two points or more, or a drag curve
+//! for each coast: a thrust that stops and starts again has a coast between the burns that is in
+//! neither curve), when HPR Sim refuses one of the histories or fails any of the swapped flights, or when the flight on its own thrust and mass, sampled at
+//! OpenRocket's times, fails or doesn't come back within [`OWN_HISTORY_BOUND`] of its own apogee
+//! (M2.3c11's test).
 //!
 //! Inside the drag part, [`crate::nose_line`] splits off the pressure drag of a tangent-ogive
 //! nose above Mach 1 (M2.3c13).
@@ -92,8 +96,8 @@ pub(crate) const NOT_SPLIT: [(&str, &str); 3] = [
     ),
     (
         "own_history",
-        "the flight on its own thrust and mass, sampled at OpenRocket's times, misses its own \
-         apogee by more than 0.05%",
+        "the flight on its own thrust and mass, sampled at OpenRocket's times, fails or misses \
+         its own apogee by more than 0.05%",
     ),
 ];
 
@@ -209,13 +213,15 @@ pub(crate) fn drag_table(
 }
 
 impl OpenRocketInputs {
-    /// A record flight's inputs: `Ok(Err(_))` when the record lacks one or HPR Sim refuses a
-    /// history built from it.
+    /// A record flight's inputs: `Ok(Err(_))` when the record lacks one (rows that give a drag
+    /// curve of fewer than two points, or a thrust that stops and starts again, whose coast
+    /// between the burns is in neither drag curve) or, after that, when HPR Sim refuses a history
+    /// built from it.
     ///
     /// # Errors
     ///
-    /// A record that is not `histories.py`'s: no rows, a cell that isn't a number or null, no
-    /// reference length, or rows that give no drag curve.
+    /// A record that is not `histories.py`'s: no rows, a cell that isn't a number or null, or a
+    /// reference length that is missing or no length.
     pub(crate) fn of(flight: &Value) -> Result<Result<Self, NotSplit>, String> {
         if let Some(lacks) = flight.get("lacks") {
             return Ok(Err(NotSplit::lacks_input(lacks.to_string())));
@@ -245,8 +251,28 @@ impl OpenRocketInputs {
         let reference = flight["reference_length_m"]
             .as_f64()
             .ok_or("a flight holding every input has no reference length")?;
-        // The histories first: a thrust HPR Sim refuses (one that doesn't end at zero, say) is
-        // counted, where the rows it would leave the drag curves stop the run.
+        if !(reference > 0.0 && reference.is_finite()) {
+            return Err(format!("a reference length of {reference} m is no length"));
+        }
+        // The inputs the record lacks first, so that a flight is counted under the first reason
+        // of `NOT_SPLIT` that applies: rows that give a drag curve of fewer than two points, or a
+        // thrust that stops and starts again, whose coast between the burns is in neither curve.
+        let drag = match drag_table(&drag_rows, reference) {
+            Ok(drag) => drag,
+            Err(error) => return Ok(Err(NotSplit::lacks_input(error))),
+        };
+        let burning = |thrust: &&f64| **thrust > 0.0;
+        if let (Some(first), Some(last)) = (
+            thrust_n.iter().position(|t| burning(&t)),
+            thrust_n.iter().rposition(|t| burning(&t)),
+        ) && let Some(gap) = thrust_n[first..=last].iter().position(|t| *t == 0.0)
+        {
+            return Ok(Err(NotSplit::lacks_input(format!(
+                "the thrust stops at {} s and starts again: the coast between the burns is in \
+                 neither drag curve",
+                times_s[first + gap]
+            ))));
+        }
         let thrust = match ThrustHistory::new(times_s.clone(), thrust_n) {
             Ok(thrust) => thrust,
             Err(error) => return Ok(Err(NotSplit::refused(error.to_string()))),
@@ -255,7 +281,6 @@ impl OpenRocketInputs {
             Ok(mass) => mass,
             Err(error) => return Ok(Err(NotSplit::refused(error.to_string()))),
         };
-        let drag = drag_table(&drag_rows, reference)?;
         Ok(Ok(Self {
             times_s,
             thrust,
@@ -378,8 +403,9 @@ pub(crate) struct SplitFlight {
 ///
 /// # Errors
 ///
-/// A record that is not `histories.py`'s ([`OpenRocketInputs::of`]), or parts that don't sum to
-/// the whole ([`Parts::check_sum`]).
+/// An OpenRocket apogee that isn't a positive height, a record that is not `histories.py`'s
+/// ([`OpenRocketInputs::of`]), or parts that don't sum to the whole ([`Parts::check_sum`]: an
+/// apogee that isn't a number).
 pub(crate) fn split(
     build: &dyn Fn(Air) -> Result<Simulation, String>,
     climbed_m: &dyn Fn(&Simulation) -> Result<f64, String>,
@@ -397,9 +423,9 @@ pub(crate) fn split(
         Ok(inputs) => inputs,
         Err(not_split) => return Ok(Err(not_split)),
     };
-    // HPR Sim's refusals and failures: the flight is counted, and the run goes on.
-    let flown = || -> Result<(f64, [f64; 5]), String> {
-        let own = own_history(|| build(Air::Day), &inputs.times_s)?;
+    // HPR Sim's refusals and failures of the swapped flights: the flight is counted, and the run
+    // goes on.
+    let flown = || -> Result<[f64; 5], String> {
         let history = |simulation: Simulation, mass: bool| -> Result<Simulation, String> {
             let simulation = simulation
                 .with_thrust_history(inputs.thrust.clone())
@@ -420,14 +446,17 @@ pub(crate) fn split(
             &history(build(Air::OpenRocket)?, true)?.with_drag_table(inputs.drag.clone()),
         )?;
         let drag_first_m = climbed_m(&build(Air::Day)?.with_drag_table(inputs.drag.clone()))?;
-        Ok((
-            own.relative(),
-            [thrust_m, mass_m, drag_m, air_m, drag_first_m],
-        ))
+        Ok([thrust_m, mass_m, drag_m, air_m, drag_first_m])
     };
-    let (own_history, [thrust_m, mass_m, drag_m, air_m, drag_first_m]) = match flown() {
+    let [thrust_m, mass_m, drag_m, air_m, drag_first_m] = match flown() {
         Ok(flown) => flown,
         Err(error) => return Ok(Err(NotSplit::refused(error))),
+    };
+    // The flight on its own thrust and mass, sampled at OpenRocket's times, is M2.3c11's test,
+    // so its failure is counted under that test's reason, after the swaps' refusals.
+    let own_history = match own_history(|| build(Air::Day), &inputs.times_s) {
+        Ok(own) => own.relative(),
+        Err(error) => return Ok(Err(NotSplit::own_history(error))),
     };
     // A difference or a bound that isn't a number fails the test too.
     let within = own_history.abs() <= bound;
@@ -552,6 +581,8 @@ pub(crate) struct GapSplit {
     pub air: Size,
     /// Inside other: what is left after the air's line.
     pub left: Size,
+    /// The flights where the rest's absolute value is over [`LARGE_PERCENT`].
+    pub left_large: usize,
     /// The drag part with the drag swapped first.
     pub drag_first: Size,
     /// The largest miss of a split flight on its own histories from its own apogee, per cent,
@@ -612,6 +643,10 @@ impl GapSplit {
             parts,
             air: over(&|parts| parts.air),
             left: over(&|parts| parts.left),
+            left_large: split
+                .iter()
+                .filter(|s| s.parts.left.abs() > LARGE_PERCENT)
+                .count(),
             drag_first: over(&|parts| parts.drag_first),
             largest_own_history_percent: crate::histories::significant(100.0 * largest, 2),
             mass_opposed_by_rest: split
@@ -681,11 +716,18 @@ impl GapSplit {
         {
             size.consistent(what)?;
         }
-        if self.mass_opposed_by_rest > self.parts[1].large {
+        if self.left_large > self.split {
             return fail(format!(
-                "the rest opposes a large mass part on {} flights, more than the {} where the \
-                 mass part is large",
-                self.mass_opposed_by_rest, self.parts[1].large
+                "the rest is large on {} flights, more than the {} split",
+                self.left_large, self.split
+            ));
+        }
+        let fewer_large = self.parts[1].large.min(self.left_large);
+        if self.mass_opposed_by_rest > fewer_large {
+            return fail(format!(
+                "the rest opposes a large mass part on {} flights, more than the {fewer_large} \
+                 where the mass part ({}) or the rest ({}) is large",
+                self.mass_opposed_by_rest, self.parts[1].large, self.left_large
             ));
         }
         // Each mean is rounded to 0.005: five of them, then three.
@@ -720,14 +762,16 @@ impl GapSplit {
         let _ = writeln!(page, "\n## The gap to OpenRocket, by cause\n");
         let _ = writeln!(
             page,
-            "For M2.3c12 (ADR-349), HPR Sim flies each flight again with OpenRocket's inputs from \
+            "For [M2.3c12](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c12) \
+             ([ADR-349](../../docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md)), \
+             HPR Sim flies each flight again with OpenRocket's inputs from \
              the section above swapped in for its own, one after another, each added to the ones \
              before: OpenRocket's thrust against time, then its mass and center of mass against \
              time, then its drag coefficient against Mach number, then its air (the standard \
              atmosphere through the pad's temperature and pressure, in place of the day's \
              profile). A part is the apogee before its swap less the apogee after it. Other is \
-             what thrust, mass and drag leave: the air's line, and the last flight's apogee less \
-             OpenRocket's own. So the parts sum to the whole, HPR Sim's apogee less OpenRocket's, \
+             what thrust, mass and drag leave: the air's line, and the apogee of the flight on \
+             all four swaps less OpenRocket's own. So the parts sum to the whole, HPR Sim's apogee less OpenRocket's, \
              and the run stops if they don't on a flight. Every number is a share of \
              OpenRocket's apogee. This is code against code: it sizes where the two simulators \
              differ and says nothing about which is nearer a flight.\n"
@@ -738,7 +782,9 @@ impl GapSplit {
              left out of the errors above, whose logs are no fair test: the split needs no \
              log. A part dominates a flight when its absolute value is the largest of thrust, \
              mass, drag and other, the earlier in that order if two tie. The last column counts \
-             the flights where a part's absolute value is over {LARGE_PERCENT}%.\n",
+             the flights where a part's absolute value is over {LARGE_PERCENT}%. A cell reading \
+             n/a is not counted: the rows below the four parts dominate no flight, and only the \
+             rest's flights over {LARGE_PERCENT}% are counted among them.\n",
             self.flown_by_both, self.split
         );
         let _ = writeln!(
@@ -746,16 +792,20 @@ impl GapSplit {
             "| part | mean | median | mean absolute | flights it dominates | flights where it is \
              over {LARGE_PERCENT}% |\n|---|---:|---:|---:|---:|---:|"
         );
-        let row = |page: &mut String, name: &str, size: Size, counts: Option<(usize, usize)>| {
-            let count = |n: Option<usize>| n.map_or_else(String::new, |n| n.to_string());
+        let row = |page: &mut String,
+                   name: &str,
+                   size: Size,
+                   dominates: Option<usize>,
+                   large: Option<usize>| {
+            let count = |n: Option<usize>| n.map_or_else(|| "n/a".to_owned(), |n| n.to_string());
             let _ = writeln!(
                 page,
                 "| {name} | {:+.2}% | {:+.2}% | {:.2}% | {} | {} |",
                 size.mean_percent,
                 size.median_percent,
                 size.mean_absolute_percent,
-                count(counts.map(|c| c.0)),
-                count(counts.map(|c| c.1))
+                count(dominates),
+                count(large)
             );
         };
         for part in &self.parts {
@@ -763,11 +813,18 @@ impl GapSplit {
                 &mut page,
                 &part.name,
                 part.size(),
-                Some((part.dominates, part.large)),
+                Some(part.dominates),
+                Some(part.large),
             );
             if part.name == PARTS[3] {
-                row(&mut page, "other: the air", self.air, None);
-                row(&mut page, "other: the rest", self.left, None);
+                row(&mut page, "other: the air", self.air, None, None);
+                row(
+                    &mut page,
+                    "other: the rest",
+                    self.left,
+                    None,
+                    Some(self.left_large),
+                );
             }
         }
         row(
@@ -775,14 +832,22 @@ impl GapSplit {
             "the whole, on the flights split",
             self.whole_on_split,
             None,
+            None,
         );
         row(
             &mut page,
             "the whole, on every flight both fly",
             self.whole_on_both,
             None,
+            None,
         );
-        row(&mut page, "drag, swapped first", self.drag_first, None);
+        row(
+            &mut page,
+            "drag, swapped first",
+            self.drag_first,
+            None,
+            None,
+        );
         let _ = writeln!(
             page,
             "\nThe parts depend on the order. The last row is the drag part with the drag \
@@ -792,17 +857,19 @@ impl GapSplit {
              drag depends on the Reynolds number and the angle of attack away from that \
              flight's path. The mass swap leaves HPR Sim's inertia and its center of pressure in \
              place, and no swap replaces its normal force, its center of pressure or its damping \
-             of a turn: those are in the rest. So where the two simulators put the center of \
+             of pitching and yawing motion: those are in the rest. So where the two simulators put the center of \
              mass apart, HPR Sim flies OpenRocket's center of mass against its own center of \
              pressure from the mass swap on, which moves its stability margin. What that does \
-             to the apogee is in the mass row, and no later swap undoes it: the last flight \
-             keeps it, and the rest is measured from that flight to OpenRocket's own. So the \
-             rest can take back what the mass row holds. Of the {} {} where the mass part \
-             is over {LARGE_PERCENT}%, the rest is over {LARGE_PERCENT}% with the other sign on \
-             {}, which fits that reading and doesn't prove it. The air's line is taken with the \
+             to the apogee is in the mass row, and no later swap undoes it: the flight on all \
+             four swaps keeps it, and the rest is measured from that flight to OpenRocket's own. \
+             So the rest can take back what the mass row holds. Of the {} {} where the mass part \
+             is over {LARGE_PERCENT}%, {} {} a rest over {LARGE_PERCENT}% of the opposite sign, \
+             which fits that reading and doesn't prove it. The count goes by sign and the \
+             {LARGE_PERCENT}% floor alone, not by how much of the mass part the rest takes back. \
+             The air's line is taken with the \
              drag table already in place, so it holds the air's density and speed of sound and \
-             not what the air does to friction. Each flight split also passed M2.3c11's test: \
-             flown on its own thrust and mass sampled at OpenRocket's times, it came back to \
+             not what the air does to friction. Each flight split also passed \
+             [M2.3c11](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c11)'s test: flown on its own thrust and mass sampled at OpenRocket's times, it came back to \
              its own apogee within 0.05%; the largest miss was {}%.\n",
             self.parts[1].large,
             if self.parts[1].large == 1 {
@@ -811,6 +878,11 @@ impl GapSplit {
                 "flights"
             },
             self.mass_opposed_by_rest,
+            if self.mass_opposed_by_rest == 1 {
+                "has"
+            } else {
+                "have"
+            },
             self.largest_own_history_percent
         );
         let _ = writeln!(
@@ -1132,6 +1204,63 @@ mod tests {
         assert_eq!(name, "refused");
         assert!(detail.contains("a mass isn't positive"), "{detail}");
 
+        // Rows that give a drag curve of fewer than two points: the record lacks the input.
+        let mut coastless = public.flight.clone();
+        let rows = coastless["rows"].as_array_mut().unwrap();
+        let last_burning = rows
+            .iter()
+            .rposition(|row| row[THRUST].as_f64().unwrap() > 0.0)
+            .unwrap();
+        rows.truncate(last_burning + 2);
+        let (name, detail) = reason(&coastless, OWN_HISTORY_BOUND);
+        assert_eq!(name, "lacks_input");
+        assert!(
+            detail.contains("power-off drag curve has 1 points"),
+            "{detail}"
+        );
+
+        // A record that ends while the motor burns gives no power-off curve. HPR Sim would refuse
+        // its thrust too (its last thrust isn't zero), but the input the record lacks is counted
+        // first, as the first reason of `NOT_SPLIT` that applies, ahead of the refused thrust and
+        // the refused mass beside it.
+        let mut burning_out = public.flight.clone();
+        let rows = burning_out["rows"].as_array_mut().unwrap();
+        rows.truncate(last_burning + 1);
+        rows[2][MASS] = json!(0.0);
+        let (name, detail) = reason(&burning_out, OWN_HISTORY_BOUND);
+        assert_eq!(name, "lacks_input");
+        assert!(
+            detail.contains("power-off drag curve has 0 points"),
+            "{detail}"
+        );
+
+        // A thrust that stops and starts again: the coast between the burns is in neither drag
+        // curve, so the record lacks an input for it, whatever separates.
+        let mut relit = public.flight.clone();
+        let rows = relit["rows"].as_array_mut().unwrap();
+        let burning: Vec<usize> = (0..rows.len())
+            .filter(|&i| rows[i][THRUST].as_f64().unwrap() > 0.0)
+            .collect();
+        let middle = burning[burning.len() / 2];
+        rows[middle][THRUST] = json!(0.0);
+        let (name, detail) = reason(&relit, OWN_HISTORY_BOUND);
+        assert_eq!(name, "lacks_input");
+        assert!(
+            detail.contains("stops at") && detail.contains("starts again"),
+            "{detail}"
+        );
+
+        // The flight on its own thrust and mass failing is M2.3c11's test failing: here OpenRocket
+        // has a time long after HPR Sim's flight has ended, which the swapped flights fly through.
+        let mut later = public.flight.clone();
+        let rows = later["rows"].as_array_mut().unwrap();
+        let mut last = rows.last().unwrap().clone();
+        last[TIME] = json!(1.0e5);
+        rows.push(last);
+        let (name, detail) = reason(&later, OWN_HISTORY_BOUND);
+        assert_eq!(name, "own_history");
+        assert!(detail.contains("sample times"), "{detail}");
+
         assert_eq!(reason(&public.flight, 0.0).0, "own_history");
         assert_eq!(reason(&public.flight, f64::NAN).0, "own_history");
         // A miss below the flight's own apogee counts as one above does: the second public
@@ -1154,6 +1283,33 @@ mod tests {
             );
             assert!(stopped.unwrap_err().contains("not a height"), "{apogee}");
         }
+
+        // An own apogee that isn't a number gives parts that don't sum: the sum check stops the
+        // run, which is all it can catch, since the parts telescope.
+        let stopped = split(
+            &|_air| public.build(),
+            &fly,
+            &public.flight,
+            (f64::NAN, 700.0),
+            OWN_HISTORY_BOUND,
+        );
+        assert!(stopped.unwrap_err().contains("not the whole's"));
+
+        // A reference length that is no length stops the run, as a record that isn't the
+        // oracle's, even beside a history HPR Sim refuses.
+        let mut lengthless = pulling.clone();
+        lengthless["reference_length_m"] = json!(0.0);
+        assert!(
+            split(
+                &|_air| public.build(),
+                &fly,
+                &lengthless,
+                (own_m, 700.0),
+                OWN_HISTORY_BOUND
+            )
+            .unwrap_err()
+            .contains("is no length")
+        );
 
         // A record that is not the oracle's stops the run instead.
         let mut broken = public.flight.clone();
@@ -1227,24 +1383,55 @@ mod tests {
                 }),
             )
         };
-        let s = GapSplit::of(&[of(4.0, -3.9), of(2.0, 1.5), of(-1.5, 0.5), of(0.2, -2.0)]);
-        assert_eq!(s.parts[1].large, 3);
+        let s = GapSplit::of(&[
+            of(4.0, -3.9),
+            of(2.0, 1.5),
+            of(-1.5, 0.5),
+            of(0.2, -2.0),
+            of(3.0, 0.5),
+        ]);
+        assert_eq!(s.parts[1].large, 4);
+        assert_eq!(s.left_large, 3);
         assert_eq!(s.mass_opposed_by_rest, 1);
-        assert_eq!(s.check_consistent(4), Ok(()));
+        assert_eq!(s.check_consistent(5), Ok(()));
         let page = s.to_markdown();
         assert!(
             page.contains(
-                "Of the 3 flights where the mass part is over 1%, the rest is over 1% with the \
-                 other sign on 1,"
+                "Of the 4 flights where the mass part is over 1%, 1 has a rest over 1% of the \
+                 opposite sign,"
             ),
             "{page}"
         );
+        // The rest's row counts its flights over 1%; the rows that dominate no flight say so.
+        let row = |label: &str| {
+            page.lines()
+                .find(|line| line.starts_with(&format!("| {label} |")))
+                .unwrap_or_default()
+        };
+        assert!(row("other: the rest").ends_with("| n/a | 3 |"), "{page}");
+        assert!(row("other: the air").ends_with("| n/a | n/a |"), "{page}");
         let mut more = s.clone();
         more.mass_opposed_by_rest = 4;
         assert!(
-            more.check_consistent(4)
+            more.check_consistent(5)
                 .unwrap_err()
                 .contains("opposes a large mass part")
+        );
+        // The count is bound by the rest's flights over 1% as well as the mass part's.
+        let mut fewer = s.clone();
+        fewer.left_large = 0;
+        assert!(
+            fewer
+                .check_consistent(5)
+                .unwrap_err()
+                .contains("the rest (0) is large")
+        );
+        let mut past = s.clone();
+        past.left_large = 6;
+        assert!(
+            past.check_consistent(5)
+                .unwrap_err()
+                .contains("the rest is large on 6 flights")
         );
     }
 
@@ -1291,7 +1478,11 @@ mod tests {
         let large: Vec<usize> = s.parts.iter().map(|p| p.large).collect();
         assert_eq!(large, [0, 0, 2, 0]);
         assert!(page.contains("| drag | -0.23% | +0.30% | 1.43% | 2 | 2 |"));
-        assert!(page.contains("| other: the air | -0.03% | +0.10% | 0.30% |  |  |"));
+        assert!(page.contains("| other: the air | -0.03% | +0.10% | 0.30% | n/a | n/a |"));
+        assert_eq!(s.left_large, 0);
+        // The rest: 0.4 − 0.3, 0.2 − 0.1 and −0.9 + 0.5, none over 1%.
+        assert!(page.contains("| other: the rest | -0.07% | +0.10% | 0.20% | n/a | 0 |"));
+        assert!(!page.contains("|  |"), "{page}");
         assert!(page.contains("the largest miss was 0.025%"));
         for (_, words) in NOT_SPLIT {
             assert!(page.contains(&format!("| {words} |")), "{words}");

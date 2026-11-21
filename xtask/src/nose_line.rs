@@ -829,7 +829,8 @@ impl NoseLine {
         let flights = |n: usize| if n == 1 { "flight" } else { "flights" };
         let _ = writeln!(
             page,
-            "\n### The tangent-ogive nose's line\n\nFor M2.3c13 (ADR-349, ADR-350), the drag part is \
+            "\n### The tangent-ogive nose's line\n\nFor [M2.3c13](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c13) \
+             ([ADR-349](../../docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md), [ADR-350](../../docs/decisions/0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md)), the drag part is \
              split once more. From Mach 1.3 up, OpenRocket 24.12 gives a tangent-ogive nose almost \
              no pressure drag, where HPR Sim gives it the drag of the cone of its length and \
              base; between Mach 1 and 1.3 each joins that to its own value at Mach 1 \

@@ -510,7 +510,7 @@ for one job: splitting the gap between HPR Sim's apogee and OpenRocket's by caus
 swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]).
 [The split](../decisions-and-roadmap.md#m2-3c12) is in
 [Accuracy](../accuracy.md#real-flights-of-the-private-collection): drag is the largest part on
-59 of the 68 flights both programs fly. It is not a model, and a flight on
+61 of the 68 flights both programs fly. It is not a model, and a flight on
 it is not a prediction. It is in the Rust library only, for the validation harness: no `hpr`
 command, Python call or file option takes a history.
 
