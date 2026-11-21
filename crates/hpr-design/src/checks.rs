@@ -139,6 +139,24 @@ pub enum Finding {
         /// How far past, m.
         excess_m: f64,
     },
+    /// The motor case runs into a part inside its mount whose bore is narrower than the case: an
+    /// engine block, a forward thrust ring or a bulkhead, which the `.ork` reader reads as an inner
+    /// tube or a ring attached to the mount (warning). A real case stops at the part's aft face,
+    /// `excess_m` further aft than drawn.
+    MotorIntoBlock {
+        /// Configuration id.
+        configuration: String,
+        /// Mount id.
+        mount: String,
+        /// The blocking part's id.
+        block: String,
+        /// The part's bore, m: 0 for a bulkhead.
+        block_bore_m: f64,
+        /// The motor case's diameter, m.
+        motor_diameter_m: f64,
+        /// How far the case runs forward past the part's aft face, m.
+        excess_m: f64,
+    },
     /// An external part (fin root, tube fins, lug, rail button or pod set) doesn't overlap the body
     /// tube it is attached to at all (error). A pod set of no length touches its tube when it sits
     /// between the tube's ends, and a part on a pod's tube of no length when it spans the tube's
@@ -314,6 +332,7 @@ impl Finding {
             | Self::CenterOutsideRocket { .. } => Severity::Error,
             Self::MotorTightInMount { .. }
             | Self::MotorPastMountTop { .. }
+            | Self::MotorIntoBlock { .. }
             | Self::AttachmentPastBodyEnd { .. }
             | Self::InternalPartPastParentEnd { .. }
             | Self::InternalPartTightInParent { .. }
@@ -388,9 +407,29 @@ impl Finding {
                 mount,
                 excess_m,
             } => format!(
-                "the motor in {} reaches {} past the mount's forward end (configuration {})",
+                "the motor in {} reaches {} past the mount's forward end (configuration {}); the \
+                 mass, CG and margin are for the motor as drawn, and where a ring or bulkhead \
+                 closes the mount there, the case sits that much further aft",
                 name(mount),
                 mm(*excess_m),
+                name(configuration)
+            ),
+            Self::MotorIntoBlock {
+                configuration,
+                mount,
+                block,
+                block_bore_m,
+                motor_diameter_m,
+                excess_m,
+            } => format!(
+                "the motor in {} runs {} into {}, whose {} bore can't pass the {} case \
+                 (configuration {}); the mass, CG and margin are for the motor as drawn, and a \
+                 real case stops at the part, that much further aft",
+                name(mount),
+                mm(*excess_m),
+                name(block),
+                mm(*block_bore_m),
+                mm(*motor_diameter_m),
                 name(configuration)
             ),
             Self::AttachmentOffBody { component, body } => format!(
@@ -621,6 +660,13 @@ fn check_on(rocket: &Rocket, layout: &Layout) -> Result<Vec<Finding>, DesignErro
 pub fn has_errors(findings: &[Finding]) -> bool {
     findings.iter().any(|f| f.severity() == Severity::Error)
 }
+
+/// How far, m, a motor case may run into an engine block or thrust ring inside its mount without
+/// a finding ([`Finding::MotorIntoBlock`]): a whole millimeter, the step 930 of the bundled
+/// catalog's 1,004 case lengths are rounded to, so a case drawn to its catalog length can overlap
+/// a block it really meets by up to half of it. On the reference library's designs, every overlap
+/// under it is 0.55 mm or less, and every one over it 8.8 mm or more.
+pub const BLOCK_OVERLAP_TOLERANCE_M: f64 = 0.001;
 
 /// The overlap of `[a0, a1]` and `[b0, b1]`, m (negative when they are apart).
 fn overlap(a0: f64, a1: f64, b0: f64, b1: f64) -> f64 {
@@ -1110,6 +1156,33 @@ pub fn check_configuration(
                 excess_m: past,
             });
         }
+        // An engine block, forward thrust ring or bulkhead: a part attached to the mount, across
+        // the case's span, whose bore the case can't pass. The case stops at its aft face.
+        let mount_index = layout.find(&motor.mount).map(|(index, _)| index);
+        let radius_m = motor.mounted.diameter_m / 2.0;
+        for block in layout
+            .components
+            .iter()
+            .filter(|part| part.parent.is_some() && part.parent == mount_index)
+        {
+            let bore_radius_m = match &block.part {
+                Part::InnerTube(tube) => tube.outer_radius_m - tube.thickness_m,
+                Part::CenteringRing(ring) => ring.inner_radius_m,
+                _ => continue,
+            };
+            let aft_m = block.fore_station_m + block.length_m;
+            let into_m = aft_m.min(nozzle) - fore.max(block.fore_station_m);
+            if bore_radius_m < radius_m - LENGTH_TOLERANCE_M && into_m > BLOCK_OVERLAP_TOLERANCE_M {
+                findings.push(Finding::MotorIntoBlock {
+                    configuration: configuration.id.clone(),
+                    mount: mount.id.clone(),
+                    block: block.id.clone(),
+                    block_bore_m: 2.0 * bore_radius_m.max(0.0),
+                    motor_diameter_m: motor.mounted.diameter_m,
+                    excess_m: aft_m - fore,
+                });
+            }
+        }
     }
     Ok(findings)
 }
@@ -1222,6 +1295,14 @@ mod tests {
                 room_m: 0.0115,
                 widest_room_m: 0.025,
             },
+            Finding::MotorIntoBlock {
+                configuration: id("cfg"),
+                mount: id("mt"),
+                block: id("block"),
+                block_bore_m: 0.025,
+                motor_diameter_m: 0.038,
+                excess_m: 0.012,
+            },
         ];
         let name = |id: &str| format!("<{id}>");
         let sentences: Vec<String> = findings.iter().map(|f| f.describe(&name)).collect();
@@ -1245,6 +1326,22 @@ mod tests {
         );
         assert!(sentences[5].contains(" 0.40 mm past "), "{}", sentences[5]);
         assert!(sentences[7].contains(" 50.8 mm past "), "{}", sentences[7]);
+        assert!(
+            sentences[3].contains(
+                "reaches 12.0 mm past the mount's forward end (configuration <cfg>); the mass, CG \
+                 and margin are for the motor as drawn"
+            ),
+            "{}",
+            sentences[3]
+        );
+        assert_eq!(
+            sentences.last().map(String::as_str),
+            Some(
+                "the motor in <mt> runs 12.0 mm into <block>, whose 25.0 mm bore can't pass the \
+                 38.0 mm case (configuration <cfg>); the mass, CG and margin are for the motor as \
+                 drawn, and a real case stops at the part, that much further aft"
+            )
+        );
         assert!(sentences[14].contains(" 250.0 mm forward of the nose tip"));
         assert_eq!(mm(0.000_05), "0.050 mm");
         // Two sizes a sentence compares never print alike.
@@ -1356,6 +1453,93 @@ mod tests {
         };
         assert!((excess_m - 0.04).abs() < 1e-12);
         assert!(!has_errors(&findings));
+    }
+
+    /// Issue #1261: an engine block, forward thrust ring or bulkhead attached to the mount, across
+    /// the case's span with a bore the case can't pass, is found, with how much further aft the
+    /// case stops; one the case clears, ends at, or overlaps by no more than the 1 mm tolerance
+    /// isn't.
+    #[test]
+    fn a_motor_into_an_engine_block_is_found() {
+        // The tests' mount: 0.3 m long, 38 mm bore, its motor 0.01 m past its aft end.
+        let with_motor = |block: Part, at_m: f64, motor_diameter_m: f64, motor_length_m: f64| {
+            let mut design = three_fin_rocket();
+            let mount = &mut design.stages[0].components[1].children[0];
+            assert_eq!(mount.id, "mmt");
+            mount.children = vec![attached("block", block, top(at_m))];
+            design.configurations[0].motors[0] =
+                crate::testing::motor("mmt", motor_diameter_m, motor_length_m);
+            check(&design).unwrap()
+        };
+        let with_block = |block: Part, at_m: f64, motor_length_m: f64| {
+            with_motor(block, at_m, 0.038, motor_length_m)
+        };
+        // A 20 mm block of 28 mm bore at the mount's top: a 0.2 m case ends 0.11 m aft of it.
+        let block = || inner_tube(0.02, 0.019, 0.005);
+        assert!(with_block(block(), 0.0, 0.2).is_empty());
+        // A 0.3 m case reaches 0.01 m aft of the mount's top, 0.01 m into the block: it stops 0.01
+        // m further aft.
+        let findings = with_block(block(), 0.0, 0.3);
+        let [
+            Finding::MotorIntoBlock {
+                block: ref blocker,
+                block_bore_m,
+                motor_diameter_m,
+                excess_m,
+                ..
+            },
+        ] = findings[..]
+        else {
+            panic!("{findings:?}")
+        };
+        assert_eq!(blocker, "block");
+        assert!((block_bore_m - 0.028).abs() < 1e-12, "{block_bore_m}");
+        assert_eq!(motor_diameter_m, 0.038);
+        assert!((excess_m - 0.01).abs() < 1e-12, "{excess_m}");
+        assert_eq!(findings[0].severity(), Severity::Warning);
+        // A case ending exactly at the block's aft face touches it, no more: 0.28 m + 0.01 m out.
+        assert!(with_block(block(), 0.0, 0.29).is_empty());
+        // Up to a millimeter into it is the catalog's rounding of the case's length; past it, not.
+        assert!(with_block(block(), 0.0, 0.291).is_empty());
+        let findings = with_block(block(), 0.0, 0.291 + 1e-6);
+        assert!(
+            matches!(findings[..], [Finding::MotorIntoBlock { .. }]),
+            "{findings:?}"
+        );
+        // A thrust ring lower down stops the case at its own aft face: 0.03 m aft of the top.
+        let findings = with_block(block(), 0.01, 0.3);
+        let [Finding::MotorIntoBlock { excess_m, .. }] = findings[..] else {
+            panic!("{findings:?}")
+        };
+        assert!((excess_m - 0.02).abs() < 1e-12, "{excess_m}");
+        // A bulkhead, as a ring with no bore, 8 mm down, stops it 4 mm further aft; its bore is 0.
+        let findings = with_block(ring(0.006, 0.019, 0.0), 0.008, 0.3);
+        let [
+            Finding::MotorIntoBlock {
+                block_bore_m,
+                excess_m,
+                ..
+            },
+        ] = findings[..]
+        else {
+            panic!("{findings:?}")
+        };
+        assert_eq!(block_bore_m, 0.0);
+        assert!((excess_m - 0.004).abs() < 1e-12, "{excess_m}");
+        // A case the block's bore passes, 28 mm across, isn't stopped by it.
+        assert!(with_motor(block(), 0.0, 0.028, 0.3).is_empty());
+        // A case past the mount's top and into the block: both, the block's the further aft.
+        let findings = with_block(block(), 0.0, 0.35);
+        let excesses: Vec<f64> = findings
+            .iter()
+            .map(|finding| match finding {
+                Finding::MotorPastMountTop { excess_m, .. }
+                | Finding::MotorIntoBlock { excess_m, .. } => *excess_m,
+                _ => panic!("{findings:?}"),
+            })
+            .collect();
+        assert_eq!(excesses.len(), 2, "{findings:?}");
+        assert!((excesses[0] - 0.04).abs() < 1e-12 && (excesses[1] - 0.06).abs() < 1e-12);
     }
 
     /// Issue #280: a nominal 29 mm motor in LOC's 1.140 in (28.956 mm) tube only warns, as

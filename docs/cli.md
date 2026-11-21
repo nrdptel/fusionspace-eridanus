@@ -529,6 +529,7 @@ motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster 
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
+note: the 168H54-10A is 29.0 mm across, 23.4 mm narrower than the 52.4 mm bore of `Booster / motor bay`: it flies centered there, with no adapter, so an adapter's mass isn't included; left out, it reads the apogee high and, aft of the center of gravity, the margin high
 note: the file's 2 recovery devices fly as OpenRocket flies them. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
@@ -1409,6 +1410,32 @@ Within one maker, a designation wins over another motor's common name: `D5` is Q
 D5-P. `hpr motors list --json` gives each motor's name that finds it alone as `selector`, and the
 JSON of a flight names the motor and the curve file it flew by ThrustCurve.org's ids (`motor_id`
 and `simfile_id`). Python's and Rust's `from_catalog` follow the same rule.
+
+#### A name that fits another motor's mount
+
+A designation outranks a common name, but not when the common name's motor fits the mount
+better. Cesaroni's `J360` is a 38 mm motor, and `J360` is also the common name of its 54 mm
+`1016J360-15A`. In a 54 mm mount, `J360` could mean either, so `hpr sim --motor` refuses it and
+lists both, each with its diameter:
+
+```text
+$ hpr sim rocket.ork --motor J360
+error: J360: in a mount of 54.0 mm bore, `J360` matches several motors: J360 (38 mm), 1016J360-15A (54 mm)
+help: give --motor one of those names, such as `--motor 1016J360-15A` for the one the mount holds; to fly a narrower one of them in an adapter, give its .eng or .rse file by its path
+```
+
+The rule is the one a `.ork` file's motor is read by, in
+[ADR-302](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md)
+§1 on looking a motor up by name. A motor counts as fitting when it is at most 1 mm wider than
+the bore. The name is refused when another motor of that common name fits with over 1 mm less
+room to spare than the named one. In a 38 mm mount the same `J360` names the 38 mm motor alone,
+as the 54 mm one doesn't fit.
+
+A motor more than 5% narrower than the bore, such as a 38 mm motor in a 54 mm mount, flies
+centered with no adapter. A note says so: the adapter's mass is left out, so the apogee and,
+for an adapter aft of the center of gravity, the margin read high. 5% is more than the
+clearance a mount tube leaves a case of its own size, and less than the smallest step between
+neighboring standard sizes (24 to 29 mm, 17%).
 
 #### A motor's figures
 

@@ -190,7 +190,7 @@ motor: 1 × I377-CT (from the bundled catalog, as of 2026-10-28) in `Motor mount
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 11.43 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
-warning: design checks: the motor in `Motor mount tube` reaches 22.0 mm past the mount's forward end (configuration [H170M-10] with --motor I377-CT --delay 10)
+warning: design checks: the motor in `Motor mount tube` reaches 22.0 mm past the mount's forward end (configuration [H170M-10] with --motor I377-CT --delay 10); the mass, CG and margin are for the motor as drawn, and where a ring or bulkhead closes the mount there, the case sits that much further aft; at ignition the static margin is 1.12 calibers as drawn, and 0.94 with the case 22.0 mm further aft
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 1.10 at 1.1 s
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 1.10 at 1.1 s
 warning: drag: issue #222: supersonic pressure drag on an ogive nose or airfoil fins is about twice OpenRocket's, and which is right is unresolved. If HPR Sim's drag is high, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 1.10 at 1.1 s
@@ -229,7 +229,10 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 The `warning` says the I377's case reaches 22.0 mm (0.87 in) past the mount tube's forward end.
 The 292 mm (11.5 in) case sits 10 mm (0.39 in) out of the back of the rocket's 260 mm (10 in)
-mount tube. The simulator flies it as drawn. Whether it fits the real rocket is for you to check.
+mount tube. The simulator flies it as drawn. If a ring or bulkhead closes the mount's forward
+end, the real case stops there and sits 22.0 mm further aft. The warning gives the static
+margin at ignition both ways, as drawn and moved aft. Whether it fits the real rocket is for
+you to check.
 
 `--motor` replaces the motor of the configuration flown. `--config` picks which of the file's
 configurations it goes in, and `--mount` picks which mount, if the design has several.
@@ -362,7 +365,10 @@ as [Fly your .ork](fly-your-ork.md) shows. `hpr sim`'s `delay` line checks the d
 
 - Each motor flies one thrust curve, ThrustCurve.org's, and its stated delay exactly. Real motors
   differ a little from their published curves.
-- The simulator's design checks flag a motor wider than its mount, and warn on one longer than its
-  tube. They don't know your motor retainer, thrust ring or closure.
+- The simulator's design checks flag a motor wider than its mount. They warn on one longer than its
+  tube, or that runs into an engine block, thrust ring or bulkhead the design draws inside the
+  mount. They don't know a retainer or closure the design doesn't draw.
+- A motor narrower than its mount flies with no adapter. A note says so when it is more than 5%
+  narrower; the adapter's mass is left out.
 - The simulator gives no verdict: it ranks nothing as safe or unsafe. The motor's printed data, the
   safety codes and your range safety officer decide.

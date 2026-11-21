@@ -868,6 +868,7 @@ raises one.
 | `center_outside_rocket` | error | a stage with an axial center-of-mass override (`cg_aft_m`, its own or a component's) has its center off the rocket although its parts aren't |
 | `motor_tight_in_mount` | warning | the motor's nominal diameter is wider than the mount's bore, but its real case fits: a 29 mm motor in a 1.140&nbsp;in tube |
 | `motor_past_mount_top` | warning | the case's forward end is forward of the mount's |
+| `motor_into_block` | warning | the case runs more than 1 mm (`BLOCK_OVERLAP_TOLERANCE_M`, the step the catalog rounds case lengths to) into a part attached to its mount whose bore is narrower than the case: an engine block, forward thrust ring or bulkhead. The real case stops at the part's aft face |
 | `attachment_past_body_end` | warning | an external part runs past an end of its body tube |
 | `internal_part_past_parent_end` | warning | an internal part runs past an end of its parent |
 | `internal_part_tight_in_parent` | warning | an internal part other than a packed part reaches past its parent's bore by no more than the [fit tolerance](#wider-than-its-parent): a fit to sand |
@@ -1129,7 +1130,10 @@ unless the caller sets
   edge of the coarse tolerance is pinned
   (`the_fit_tolerance_is_the_coarse_general_tolerance_of_the_bore`). A 29 mm motor warns in a
   28.956 mm (1.14 in) bore and errs 1 µm past its slack. So do 24, 38 and 54 mm motors and a size
-  that isn't nominal (`a_nominal_motor_in_its_matching_tube_only_warns`). Mutation probes make
+  that isn't nominal (`a_nominal_motor_in_its_matching_tube_only_warns`). A 38 mm case that runs
+  10 mm into a 28 mm block at the mount's top warns, with 10 mm to move. So does a bulkhead, while
+  a case that ends at the block's face, overlaps it by 1 mm or passes its bore doesn't
+  (`a_motor_into_an_engine_block_is_found`). Mutation probes make
   these tests fail. They give the slack to every diameter, or double the tolerance. Or they allow a
   cap anywhere along its parent, off its parent's axis, or over both ends.
 
