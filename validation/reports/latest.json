@@ -3777,7 +3777,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3787,7 +3787,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3797,7 +3797,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3807,7 +3807,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3817,7 +3817,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3827,7 +3827,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3837,7 +3837,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3847,7 +3847,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3857,7 +3857,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py",
       "file": "validation/fixtures/flight/rocketpy-whole-flight.json",
-      "sha256": "51d1465581f06373a3d9a48e558bc741a6e14592dc64cbd82f7d4f1c4fe6d6f2",
+      "sha256": "f52d619e82fa41753e80bc0d49a8dd025fde758ee55a3d53147615d01633aa3b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under the drag table this script declares",
       "overrides": "the drag is the constant C_D0 this script declares, handed to power_off_drag and power_on_drag, because RocketPy's own exports carry their own terms and are never committed (ADR-009); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3867,7 +3867,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3877,7 +3877,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3887,7 +3887,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3897,7 +3897,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3907,7 +3907,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     },
@@ -3917,7 +3917,7 @@
       "generator": "validation/oracles/rocketpy/flight.py",
       "command": "refs/venv/bin/python validation/oracles/rocketpy/flight.py --own-drag",
       "file": "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json",
-      "sha256": "32b326b80f03529927ff65a5fdcfbe99c31c85dc050dc065be59ca07bc2e6f70",
+      "sha256": "8ade834547df2eb728a6b1de88c0f7f62b4c36a08b9ffa5fe90f7dd5138ae02b",
       "model": "Flight.u_dot_generalized (flight.py:2471-2709, the default equations_of_motion='standard') with upstream PRs #1188 and #1196 applied (corrections.py): RocketPy's 6-DOF variable-mass rigid body from the rail to apogee, then its point-mass parachute phase (u_dot_parachute, flight.py:2710-2790), under each example's own drag and RocketPy's Barrowman lift",
       "overrides": "none to the drag: each example flies its own, as RocketPy 1.13.0 flies the example (the curves stay under refs/, ADR-009; each case records its file and SHA-256); every parachute's noise is zero (it draws from the global np.random), and the lags are the examples' own"
     }

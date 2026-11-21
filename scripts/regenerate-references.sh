@@ -53,6 +53,8 @@ generate() {
     tmp=
 }
 
+# The whole flights' correction (corrections.py) still reads the installed RocketPy as written.
+"$python" -I validation/oracles/rocketpy/corrections.py --check
 generate validation/oracles/rocketpy/rocket_mass.py validation/fixtures/design/rocketpy-rocket-mass.json
 xtask designs
 generate validation/oracles/rocketpy/recovery.py validation/fixtures/recovery/rocketpy-descent.json

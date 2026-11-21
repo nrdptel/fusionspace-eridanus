@@ -68,7 +68,8 @@ CORRECTIONS = [
     {
         "upstream": "https://github.com/RocketPy-Team/RocketPy/pull/1196",
         "issue": "https://github.com/RocketPy-Team/RocketPy/issues/1186",
-        "state": "open, head 927e771e1a7faa2915d1f96ff48a70c544db13b4 (2026-09-16)",
+        "state": "merged into develop 2026-11-16 (aee512f8), not in a release; adopted at head "
+                 "927e771e1a7faa2915d1f96ff48a70c544db13b4 (2026-09-16)",
         "what": "u_dot_generalized negates com_to_cdm_function and nozzle_to_cdm where it reads "
                 "them and flips the sign of r_CM ^ w_dot in v_dot (flight.py:2509-2515, :2695): "
                 "both attributes point to the centre of dry mass, the equations need them from "
@@ -112,16 +113,9 @@ def upstream_carries_1196(source):
     )
 
 
-def corrected_u_dot_generalized():
-    """RocketPy's own `u_dot_generalized`, recompiled with PR #1196's substitutions, or as it is
-    where the source already carries them (`upstream_carries_1196`).
-
-    It is compiled inside a class named `Flight`, in `rocketpy.simulation.flight`'s globals, so
-    its private names (`self.__post_processed_variables`) mangle as they do upstream.
-    """
-    source = inspect.getsource(Flight.u_dot_generalized)
-    if upstream_carries_1196(source):
-        return Flight.u_dot_generalized
+def substituted(source):
+    """`source` with PR #1196's three substitutions, each made exactly once; stops the script if
+    any released form is not there exactly once."""
     for released, corrected in SUBSTITUTIONS:
         found = source.count(released)
         if found != 1:
@@ -131,6 +125,20 @@ def corrected_u_dot_generalized():
                 "written"
             )
         source = source.replace(released, corrected)
+    return source
+
+
+def corrected_u_dot_generalized():
+    """RocketPy's own `u_dot_generalized`, recompiled with PR #1196's substitutions (`substituted`),
+    or as it is where the source already carries them (`upstream_carries_1196`).
+
+    It is compiled inside a class named `Flight`, in `rocketpy.simulation.flight`'s globals, so
+    its private names (`self.__post_processed_variables`) mangle as they do upstream.
+    """
+    source = inspect.getsource(Flight.u_dot_generalized)
+    if upstream_carries_1196(source):
+        return Flight.u_dot_generalized
+    source = substituted(source)
     wrapped = "class Flight:\n" + textwrap.indent(textwrap.dedent(source), "    ")
     filename = "<u_dot_generalized with PR #1196>"
     # So a traceback from inside the corrected function shows its lines.
@@ -161,3 +169,54 @@ def correct_nozzle_gyration(rocket):
     rocket.nozzle_gyration_tensor = Matrix(
         [[lateral, 0, 0], [0, lateral, 0], [0, 0, axial]]
     )
+
+
+def check():
+    """`upstream_carries_1196` and `substituted` on four kinds of source built from the installed
+    release's `u_dot_generalized`: the release itself (corrected here), the release with all three
+    edits (flown as it is, as on `develop` since #1196's merge), and that source with one edit
+    undone, doubled, or kept beside its released form, and the release with one released form
+    doubled (neither, so the correction stops).
+    Returns the failures and the number of sources. `tip_off.py` checks the pinned `develop`
+    commit's own source with `upstream_carries_1196`."""
+    released_source = inspect.getsource(Flight.u_dot_generalized)
+    if upstream_carries_1196(released_source):
+        return ["the installed RocketPy already carries #1196: this check needs 1.13.0"], 0
+    merged_source = substituted(released_source)
+    cases = [("the released source", released_source, False),
+             ("the released source with all three edits", merged_source, True)]
+    for index, (released, corrected) in enumerate(SUBSTITUTIONS, start=1):
+        cases.append((f"edit {index} undone", merged_source.replace(corrected, released), False))
+        cases.append((f"edit {index} doubled", merged_source.replace(corrected, 2 * corrected),
+                      False))
+        cases.append((f"edit {index} beside its released form",
+                      merged_source.replace(corrected, corrected + released), False))
+        cases.append((f"released form {index} doubled",
+                      released_source.replace(released, 2 * released), False))
+    failures = [
+        f"{name}: upstream_carries_1196 gave {not expected}, not {expected}"
+        for name, source, expected in cases
+        if upstream_carries_1196(source) != expected
+    ]
+    if CorrectedFlight.u_dot_generalized is Flight.u_dot_generalized:
+        failures.append("the released source was flown uncorrected")
+    for name, source, _ in cases[2:]:
+        try:
+            substituted(source)
+        except SystemExit:
+            continue
+        failures.append(f"{name}: substituted corrected it instead of stopping")
+    return failures, len(cases)
+
+
+if __name__ == "__main__":
+    import sys
+
+    if sys.argv[1:] != ["--check"]:
+        raise SystemExit("usage: corrections.py --check")
+    found, sources = check()
+    for failure in found:
+        print(f"corrections.py --check: {failure}", file=sys.stderr)
+    if found:
+        raise SystemExit(1)
+    print(f"corrections.py --check: {sources} sources classified as expected")

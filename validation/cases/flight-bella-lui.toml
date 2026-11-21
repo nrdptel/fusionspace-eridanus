@@ -46,7 +46,7 @@
 #   hpr's growth of C_D0 with the angle of attack (up to 1.3 times at 17 degrees; RocketPy's table
 #   has none) moves no drift by more than 0.1%.
 # - The reference's equations. RocketPy 1.13.0 flies with two corrections to its 6-DOF equations
-#   made or proposed upstream, PR #1188 (merged) and PR #1196 (open) (`corrections.py`, ADR-026).
+#   made upstream, PR #1188 and PR #1196, both merged, unreleased (`corrections.py`, ADR-026).
 #   As released it takes the moments during the burn about a point as far forward of the dry
 #   centre of mass as the centre of mass is behind it, which overstates its stability while the
 #   motor burns, and its jet damping uses a quarter of the nozzle's lever squared. Flown as

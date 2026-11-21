@@ -36,7 +36,7 @@ Run from the repository root with the oracle environment:
         > validation/fixtures/flight/rocketpy-whole-flight.json
 
 **RocketPy's equations as corrected upstream.** Every flight here uses `corrections.py`: RocketPy
-1.13.0 with PR #1188 (merged, unreleased) and PR #1196 (open) applied, which correct the nozzle's
+1.13.0 with PR #1188 and PR #1196 (both merged, unreleased) applied, which correct the nozzle's
 jet-damping lever and the sign of the centre-of-mass and nozzle vectors in `u_dot_generalized`
 (issue #50, ADR-026). As released, RocketPy takes its moments during the burn about the wrong
 point, which is most of why it turned into the wind further than hpr. The fixture records both
