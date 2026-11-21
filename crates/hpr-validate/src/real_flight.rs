@@ -65,7 +65,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-use crate::correction::Correction;
+use crate::correction::{Correction, Variant};
 use crate::predicted_first::ComparedPrediction;
 
 /// The report, as data.
@@ -1352,6 +1352,8 @@ struct Flown {
     max_mach: f64,
     trace: TraceComparison,
     total_impulse_ns: f64,
+    /// Whether the design has two or more guides at different stations.
+    two_guides: bool,
 }
 
 /// The design's rocket on the thrust `curve` read from `thrust_path`.
@@ -1497,19 +1499,31 @@ pub(crate) fn rail_from(rail: (f64, f64, f64)) -> Rail {
 pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightError> {
     match fly_with(root, flight, None)? {
         Flew::Row(row) => Ok(*row),
-        Flew::Corrected(_) => Err(RealFlightError::Input {
+        Flew::Varied(_) => Err(RealFlightError::Input {
             flight: flight.id.to_owned(),
             what: "a flight with no correction came back as a corrected one".to_owned(),
         }),
     }
 }
 
-/// What [`fly_with`] flew: the report's row, or a corrected flight's apogee alone.
+/// What [`fly_with`] flew: the report's row, or a varied flight's apogee alone.
 enum Flew {
-    /// The row, with no correction.
+    /// The row, with no variant.
     Row(Box<FlightRow>),
-    /// A corrected flight's apogee as the log's altimeter would read it, m.
-    Corrected(f64),
+    /// A varied flight ([`Variant`]).
+    Varied(Varied),
+}
+
+/// A flight flown as a [`Variant`] of its report's: its apogee, and whether its design has a
+/// stretch on its last guide alone for the tip-off phase to fly.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Varied {
+    /// The apogee as the log's altimeter would read it, m above the start.
+    pub apogee_m: f64,
+    /// Whether the design has two or more guides at different stations
+    /// (`hpr_sim::Guides::next_guide_station_m`): a design with fewer flies the tip-off phase as
+    /// it flies without it.
+    pub two_guides: bool,
 }
 
 /// The apogee of [`fly`]'s flight with `correction` flown, m above the start, as the log's
@@ -1525,11 +1539,26 @@ pub fn fly_corrected(
     flight: &RealFlight,
     correction: Correction,
 ) -> Result<f64, RealFlightError> {
-    match fly_with(root, flight, Some(correction))? {
-        Flew::Corrected(apogee_m) => Ok(apogee_m),
+    fly_varied(root, flight, Variant::corrected(correction)).map(|varied| varied.apogee_m)
+}
+
+/// [`fly`]'s flight flown as `variant`, as [`fly_corrected`] flies a correction: its apogee as
+/// the log's altimeter would read it and whether its design has two guides at different
+/// stations. With [`Variant::GUIDED`] it is the report's flight itself, apogee for apogee.
+///
+/// # Errors
+///
+/// As [`fly`], and a scale the motors or the drag refuse.
+pub fn fly_varied(
+    root: &Path,
+    flight: &RealFlight,
+    variant: Variant,
+) -> Result<Varied, RealFlightError> {
+    match fly_with(root, flight, Some(variant))? {
+        Flew::Varied(varied) => Ok(varied),
         Flew::Row(_) => Err(RealFlightError::Input {
             flight: flight.id.to_owned(),
-            what: "a corrected flight came back as the report's row".to_owned(),
+            what: "a varied flight came back as the report's row".to_owned(),
         }),
     }
 }
@@ -1537,7 +1566,7 @@ pub fn fly_corrected(
 fn fly_with(
     root: &Path,
     flight: &RealFlight,
-    correction: Option<Correction>,
+    variant: Option<Variant>,
 ) -> Result<Flew, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
@@ -1639,22 +1668,24 @@ fn fly_with(
     }
 
     let fly_once = |rocket: &Rocket, table: Option<DragTable>| -> Result<Flown, RealFlightError> {
-        let corrected;
-        let rocket = match correction {
-            Some(correction) => {
-                corrected = correction
-                    .rocket(rocket)
-                    .map_err(|error| input(error.to_string()))?;
-                &corrected
-            }
-            None => rocket,
+        let corrected = match variant {
+            Some(variant) => variant
+                .rocket(rocket)
+                .map_err(|error| input(error.to_string()))?,
+            None => None,
+        };
+        let rocket = corrected.as_ref().unwrap_or(rocket);
+        let flown_in = match variant {
+            Some(variant) => variant.environment(environment.clone()),
+            None => environment.clone(),
         };
         let simulation =
-            Simulation::new(rocket, "example", environment.clone(), rail, settings).map_err(sim)?;
-        let simulation = match correction {
-            Some(correction) => correction.simulation(simulation).map_err(sim)?,
+            Simulation::new(rocket, "example", flown_in, rail, settings).map_err(sim)?;
+        let simulation = match variant {
+            Some(variant) => variant.simulation(simulation).map_err(sim)?,
             None => simulation,
         };
+        let two_guides = simulation.guides().next_guide_station_m.is_some();
         let simulation = match table {
             Some(table) => simulation.with_drag_table(table),
             None => simulation,
@@ -1711,11 +1742,15 @@ fn fly_with(
             max_mach,
             trace,
             total_impulse_ns,
+            two_guides,
         })
     };
     let own = fly_once(&rocket, None)?;
-    if correction.is_some() {
-        return Ok(Flew::Corrected(own.apogee_m));
+    if variant.is_some() {
+        return Ok(Flew::Varied(Varied {
+            apogee_m: own.apogee_m,
+            two_guides: own.two_guides,
+        }));
     }
     let on_example_drag = fly_once(&rocket, Some(table))?;
     let on_recorded_thrust = recorded

@@ -988,6 +988,7 @@ fn fly_all(
     let mut noses = Vec::new();
     let mut bands: Vec<crate::drag_bands::BandFlight> = Vec::new();
     let mut terms: Vec<crate::drag_terms::TermFlight> = Vec::new();
+    let mut tip_offs: Vec<crate::tip_off_flights::CollectionFlight> = Vec::new();
     // Read before any flight, so that a broken reference stops the run before the flying.
     let base_reference =
         crate::drag_terms::base_reference(&crate::aero_base_power::generate(root)?)?;
@@ -1249,6 +1250,40 @@ fn fly_all(
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
         let below_tier_a = entry.catalog_tier != CatalogTier::A;
         counts.below_tier_a += usize::from(below_tier_a);
+        // The same flight with the tip-off phase (M1.14b14): written in aggregate only.
+        let tipped = simulation_of(&design, chosen, day.clone(), rail)?.with_tip_off();
+        let two_guides = tipped.guides().next_guide_station_m.is_some();
+        let tip_off_m =
+            climbed_m(&tipped).map_err(|error| format!("{at}: with the tip-off phase: {error}"))?;
+        // And both in still air, the day's air with its wind taken out: what gravity's turn about
+        // the last guide moves alone. A design with fewer than two guides doesn't move in it.
+        let (still_guided_m, still_tip_off_m) = if two_guides {
+            let still = || {
+                simulation_of(
+                    &design,
+                    chosen,
+                    day.clone().with_wind(hpr_atmos::ConstantWind::calm()),
+                    rail,
+                )
+            };
+            let flown = |simulation: Simulation| {
+                climbed_m(&simulation).map_err(|error| format!("{at}: in still air: {error}"))
+            };
+            (flown(still()?)?, flown(still()?.with_tip_off())?)
+        } else {
+            (hpr_m, hpr_m)
+        };
+        tip_offs.push(crate::tip_off_flights::CollectionFlight {
+            design: crate::ork_supply::sha256(
+                &fs::read(root.join(&entry.design)).map_err(|error| format!("{at}: {error}"))?,
+            ),
+            two_guides,
+            guided_m: hpr_m,
+            tip_off_m,
+            still_guided_m,
+            still_tip_off_m,
+            logged_m,
+        });
         let row = Compared::of(
             at,
             Apogees {
@@ -1332,6 +1367,7 @@ fn fly_all(
             nose: crate::nose_line::NoseLine::of(&noses),
             bands,
             terms,
+            tip_off: crate::tip_off_flights::CollectionTipOff::of(&tip_offs)?,
         },
         kept,
     ))
@@ -1408,6 +1444,8 @@ pub(crate) struct Report {
     /// Inside the band below Mach 0.8, each term of the drag's share, and what each does to
     /// the errors against the logs (M1.14i2).
     pub terms: crate::drag_terms::DragTerms,
+    /// What the tip-off phase moves on the flights compared, in aggregate (M1.14b14).
+    pub tip_off: crate::tip_off_flights::CollectionTipOff,
 }
 
 /// How many flights went where.
@@ -1721,6 +1759,22 @@ impl Report {
         }
         self.terms.check_consistent(c.compared).or_else(fail)?;
         self.terms.check_against_bands(&self.bands).or_else(fail)?;
+        if self.tip_off.flights != c.compared {
+            return fail(format!(
+                "the tip-off phase's aggregate counts {} flights, not the {} compared",
+                self.tip_off.flights, c.compared
+            ));
+        }
+        // Flown guided, the aggregate's flights are every flight compared, by the same error.
+        if let Some(guided) = self.tip_off.guided
+            && (round(guided.mean_absolute_percent, 2) != every.hpr.mean_absolute_percent
+                || round(guided.mean_percent, 2) != every.hpr.mean_percent)
+        {
+            return fail(format!(
+                "the tip-off phase's guided errors {:.2}% and {:+.2}% are not every flight's",
+                guided.mean_absolute_percent, guided.mean_percent
+            ));
+        }
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1903,6 +1957,7 @@ impl Report {
         page.push_str(&self.nose.to_markdown());
         page.push_str(&self.bands.to_markdown());
         page.push_str(&self.terms.to_markdown());
+        page.push_str(&self.tip_off.markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");

@@ -685,3 +685,49 @@ fn friction_too_large_for_the_last_guide_is_refused_by_name() {
         other => panic!("a jammed guide was solved: {other:?}"),
     }
 }
+
+/// Where a whole flight of `rocket` lands on `rail` in standard still air, guided or with the
+/// tip-off phase: the final sample's position, m east, north and up of the launch frame's origin.
+fn landing(rocket: &hpr_design::Rocket, rail: Rail, tip_off: bool) -> DVec3 {
+    let simulation = Simulation::new(
+        rocket,
+        "example",
+        Environment::standard(site()).unwrap(),
+        rail,
+        FlightSettings {
+            max_time_s: 6000.0,
+            ..FlightSettings::default()
+        },
+    )
+    .unwrap();
+    let simulation = if tip_off {
+        simulation.with_tip_off()
+    } else {
+        simulation
+    };
+    let result = simulation.run(&mut ()).unwrap();
+    assert_eq!(result.termination, Termination::GroundHit);
+    result.final_sample.state.position_enu_m
+}
+
+#[test]
+fn without_tip_off_a_landing_point_errs_nearer_the_pad() {
+    // M1.14b14 (ADR-363): which way leaving the phase out moves a landing point. On the
+    // Valetudo's own rail, 5.3 degrees off vertical, in still air, gravity's moment about the
+    // last guide turns the rocket nose-down, toward the rail's heading, while that guide alone
+    // holds it; with the phase it leaves pointing lower and lands farther downrange. Guided, it
+    // leaves along the rail and lands nearer the pad: here about 51 m short along the heading,
+    // and nearer the pad by distance too.
+    let rocket = design("rocketpy-valetudo");
+    let rail = valetudo_rail(0.0);
+    let guided = landing(&rocket, rail, false);
+    let tipped = landing(&rocket, rail, true);
+    let heading = DVec3::new(rail.azimuth_rad.sin(), rail.azimuth_rad.cos(), 0.0);
+    let short_m = (tipped - guided).dot(heading);
+    assert!(
+        short_m > 40.0,
+        "guided lands {short_m:.2} m short of the flight with the phase along the heading"
+    );
+    let from_pad = |p: DVec3| p.x.hypot(p.y);
+    assert!(from_pad(guided) < from_pad(tipped) - 40.0);
+}

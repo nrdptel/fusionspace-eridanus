@@ -53,7 +53,8 @@ use hpr_sim::{Environment, EventKind, FlightMetrics, FlightSettings, Rail, Simul
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::correction::Correction;
+use crate::correction::{Correction, Variant};
+use crate::real_flight::Varied;
 use crate::real_flight::{
     Altimeter, Barometer, FileRead, Heights, MASS_FIXTURE, ROCKETPY, RealFlightError,
     example_thrust_of, fixture_case_of, fmt_number, launch_day_at, parse_thrust, rail_from,
@@ -763,6 +764,8 @@ struct Flown {
     liftoff_mass_kg: f64,
     /// The motors' mass at liftoff, kg: each one's case and propellant.
     motor_mass_kg: f64,
+    /// Whether the design has two or more guides at different stations.
+    two_guides: bool,
 }
 
 /// Reads [`CONVERSION_RECORD`].
@@ -910,15 +913,17 @@ pub fn predict(
     flight: &PredictedFlight,
     weather: &WeatherConversion,
 ) -> Result<PredictionRow, RealFlightError> {
-    predict_with(root, flight, weather, None)
+    predict_with(root, flight, weather, None).map(|(row, _)| row)
 }
 
+/// A predicted flight's row, and whether its design has two or more guides at different
+/// stations.
 fn predict_with(
     root: &Path,
     flight: &PredictedFlight,
     weather: &WeatherConversion,
-    correction: Option<Correction>,
-) -> Result<PredictionRow, RealFlightError> {
+    variant: Option<Variant>,
+) -> Result<(PredictionRow, bool), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1004,7 +1009,7 @@ fn predict_with(
         elevation_m,
         rail,
         altimeter: flight.reference.altimeter,
-        correction,
+        variant,
     };
     let fly_once = |rocket: &Rocket| flown_to_apogee(rocket, &launch);
     let counted = fly_once(&rocket)?;
@@ -1028,7 +1033,7 @@ fn predict_with(
     let (year, month, day, hour) = flight.utc;
     let (rail_length_m, rail_inclination_deg, rail_heading_deg) = flight.rail;
 
-    Ok(PredictionRow {
+    let row = PredictionRow {
         id: flight.id.to_owned(),
         title: flight.title.to_owned(),
         design: flight.design.to_owned(),
@@ -1067,7 +1072,8 @@ fn predict_with(
         files,
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
-    })
+    };
+    Ok((row, counted.two_guides))
 }
 
 /// What flying a rocket to its apogee needs beside the rocket.
@@ -1088,8 +1094,8 @@ struct Launch<'a> {
     rail: Rail,
     /// What the log's height is taken to be.
     altimeter: Altimeter,
-    /// A correction flown on the flight, or none: the flight as predicted.
-    correction: Option<Correction>,
+    /// A variant flown on the flight, or none: the flight as predicted.
+    variant: Option<Variant>,
 }
 
 /// Flies `rocket` to its apogee and reads it as the log's altimeter would.
@@ -1106,28 +1112,29 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         max_time_s: MAX_TIME_S,
         ..FlightSettings::default()
     };
-    let corrected;
-    let rocket = match launch.correction {
-        Some(correction) => {
-            corrected = correction
-                .rocket(rocket)
-                .map_err(|error| input(error.to_string()))?;
-            &corrected
-        }
-        None => rocket,
+    let corrected = match launch.variant {
+        Some(variant) => variant
+            .rocket(rocket)
+            .map_err(|error| input(error.to_string()))?,
+        None => None,
     };
+    let rocket = corrected.as_ref().unwrap_or(rocket);
     let simulation = Simulation::new(
         rocket,
         launch.configuration,
-        launch.environment.clone(),
+        match launch.variant {
+            Some(variant) => variant.environment(launch.environment.clone()),
+            None => launch.environment.clone(),
+        },
         launch.rail,
         settings,
     )
     .map_err(sim)?;
-    let simulation = match launch.correction {
-        Some(correction) => correction.simulation(simulation).map_err(sim)?,
+    let simulation = match launch.variant {
+        Some(variant) => variant.simulation(simulation).map_err(sim)?,
         None => simulation,
     };
+    let two_guides = simulation.guides().next_guide_station_m.is_some();
     let motors = &simulation.assembly().motors;
     let total_impulse_ns = motors
         .iter()
@@ -1183,6 +1190,7 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         total_impulse_ns,
         liftoff_mass_kg,
         motor_mass_kg,
+        two_guides,
     })
 }
 
@@ -1381,14 +1389,16 @@ pub fn predict_design_file(
     root: &Path,
     flight: &DesignFileFlight,
 ) -> Result<DesignFilePredictionRow, RealFlightError> {
-    predict_design_file_with(root, flight, None)
+    predict_design_file_with(root, flight, None).map(|(row, _)| row)
 }
 
+/// A design-file flight's row, and whether its design has two or more guides at different
+/// stations.
 fn predict_design_file_with(
     root: &Path,
     flight: &DesignFileFlight,
-    correction: Option<Correction>,
-) -> Result<DesignFilePredictionRow, RealFlightError> {
+    variant: Option<Variant>,
+) -> Result<(DesignFilePredictionRow, bool), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1487,11 +1497,11 @@ fn predict_design_file_with(
             elevation_m,
             rail,
             altimeter: flight.reference.altimeter,
-            correction,
+            variant,
         },
     )?;
 
-    Ok(DesignFilePredictionRow {
+    let row = DesignFilePredictionRow {
         id: flight.id.to_owned(),
         title: flight.title.to_owned(),
         repository: flight.repository.url.to_owned(),
@@ -1540,7 +1550,8 @@ fn predict_design_file_with(
         files,
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
-    })
+    };
+    Ok((row, flown.two_guides))
 }
 
 /// Predicts every flight in [`NEW_FLIGHTS`], then every one in [`DESIGN_FILE_FLIGHTS`].
@@ -1567,18 +1578,40 @@ pub fn corrected_apogees(
     root: &Path,
     correction: Correction,
 ) -> Result<Vec<CorrectedApogee>, RealFlightError> {
+    Ok(varied_apogees(root, Variant::corrected(correction))?
+        .into_iter()
+        .map(|(id, varied)| (id, varied.map(|varied| varied.apogee_m)))
+        .collect())
+}
+
+/// One predicted flight's id and its flight as a [`Variant`], or why it didn't fly.
+pub type VariedApogee = (String, Result<Varied, RealFlightError>);
+
+/// Each predicted flight flown as `variant`, by its id, as [`corrected_apogees`] flies a
+/// correction: its predicted apogee as the log's altimeter would read it, m, and whether its
+/// design has two guides at different stations. With [`Variant::GUIDED`] each is the
+/// prediction [`run`] makes.
+///
+/// # Errors
+///
+/// As [`corrected_apogees`].
+pub fn varied_apogees(root: &Path, variant: Variant) -> Result<Vec<VariedApogee>, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
-    let correction = Some(correction);
+    let variant = Some(variant);
+    let varied = |apogee_m: f64, two_guides: bool| Varied {
+        apogee_m,
+        two_guides,
+    };
     Ok(NEW_FLIGHTS
         .iter()
         .map(|flight| {
-            let apogee = predict_with(root, flight, &weather_conversion, correction)
-                .map(|row| row.predicted_apogee_m);
+            let apogee = predict_with(root, flight, &weather_conversion, variant)
+                .map(|(row, two)| varied(row.predicted_apogee_m, two));
             (flight.id.to_owned(), apogee)
         })
         .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| {
-            let apogee = predict_design_file_with(root, flight, correction)
-                .map(|row| row.predicted_apogee_m);
+            let apogee = predict_design_file_with(root, flight, variant)
+                .map(|(row, two)| varied(row.predicted_apogee_m, two));
             (flight.id.to_owned(), apogee)
         }))
         .collect())
@@ -1606,18 +1639,15 @@ fn checked_conversion(root: &Path) -> Result<WeatherConversion, RealFlightError>
     Ok(weather_conversion)
 }
 
-fn run_with(
-    root: &Path,
-    correction: Option<Correction>,
-) -> Result<PredictionsReport, RealFlightError> {
+fn run_with(root: &Path, variant: Option<Variant>) -> Result<PredictionsReport, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
     let flights = NEW_FLIGHTS
         .iter()
-        .map(|flight| predict_with(root, flight, &weather_conversion, correction))
+        .map(|flight| predict_with(root, flight, &weather_conversion, variant).map(|(row, _)| row))
         .collect::<Result<Vec<_>, _>>()?;
     let design_file_flights = DESIGN_FILE_FLIGHTS
         .iter()
-        .map(|flight| predict_design_file_with(root, flight, correction))
+        .map(|flight| predict_design_file_with(root, flight, variant).map(|(row, _)| row))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(PredictionsReport {
         generator: "cargo xtask public-predictions".to_owned(),

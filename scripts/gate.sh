@@ -37,6 +37,9 @@
 # `tip-off --check` (M1.14b5, ADR-357: RocketPy's example rockets flown again with its tip-off phase
 # off, on and guided to the last button, from the checkout pinned as rocketpy-tip-off, against the
 # committed report),
+# `tip-off-flights --check` (M1.14b14, ADR-363: the public real flights flown guided and with HPR
+# Sim's tip-off phase, against the committed report, which reads the collection's aggregate from
+# `fixture-flights`'),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)
@@ -167,8 +170,8 @@ touches_physics() {
   # What `fixture-flights --check` holds the held-out half and its guard with (M2.7a, ADR-332),
   # and new flights' predictions (M2.7b, ADR-333), and what it reads, writes and seals: CI has no
   # private collection to run it on.
-  grep -qE "^xtask/src/(fixture_flights|collection_boost|collection_errors|predict_first).rs$" <<<"$changed" && return 0
-  grep -qE "^validation/reports/(fixture-flights\.(md|json)|collection-boost\.(md|json)|predictions\.sha256|m2\.7a-flights\.sha256|held-out(-fits)?\.sha256)$" <<<"$changed" && return 0
+  grep -qE "^xtask/src/(fixture_flights|collection_boost|collection_errors|predict_first|tip_off_flights).rs$" <<<"$changed" && return 0
+  grep -qE "^validation/reports/(tip-off-flights\.(md|json)|fixture-flights\.(md|json)|collection-boost\.(md|json)|predictions\.sha256|m2\.7a-flights\.sha256|held-out(-fits)?\.sha256)$" <<<"$changed" && return 0
   return 1
 }
 
@@ -380,7 +383,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount'" ;;
+    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount'" ;;
     *) return 1 ;;
   esac
 }

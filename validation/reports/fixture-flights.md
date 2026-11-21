@@ -254,6 +254,32 @@ The measured reference of the base term below Mach 0.8 is the base drag of the H
 
 Power off, HPR Sim's value is 3.0 to 5.1 times the measured. The jet raises the measured base drag to 2.1 to 2.4 times its power-off value. HPR Sim's rule given the nozzle exit gives 0.61 of its power-off value, and the whole base 1. Kept on the measured power-off value, the whole base would read low by the measured power-on less power-off: 0.0118 to 0.0143.
 
+## The tip-off phase (M1.14b14)
+
+Each flight compared is flown again with the tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
+
+| | compared | with two or more guides at different stations |
+|---|---:|---:|
+| flights | 60 | 23 |
+| designs | 42 | 20 |
+
+The flights with two guides by the phase's apogee move in the day's wind, in bins of 0.1% of the apogee guided, a bin holding fewer than five merged with its smaller neighbor:
+
+| move | flights |
+|---|---:|
+| -0.4% to +0.4% | 23 |
+
+The flights with two guides by the phase's apogee move in still air (the day's air with its wind taken out, so gravity's part alone), in bins of 0.1% of the apogee guided, a bin holding fewer than five merged with its smaller neighbor:
+
+| move | flights |
+|---|---:|
+| -0.4% to +0.0% | 15 |
+| +0.0% to +0.1% | 8 |
+
+Of the 23 flights with two guides, the phase raised the apogee of 19 and lowered it on 4 in the wind; in still air it raised 8 and lowered 15. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.014 points) plus the flights moved toward's (-0.011 points).
+
+Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%.
+
 ## Sources
 
 Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.
