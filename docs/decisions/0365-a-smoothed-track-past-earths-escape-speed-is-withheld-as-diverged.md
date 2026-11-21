@@ -1,8 +1,9 @@
 # ADR-365: A smoothed track past Earth's escape speed is withheld as diverged (2026-11-21)
 
-- **Status:** accepted; adds a refusal to the smoother of [ADR-300][adr-300] and a count to its check's mutation; changes no rule of the filter, and no interval of a track that is still given
-- **Summary:** The nightly census failed on every platform ([#1590](https://github.com/nrdptel/fusionspace-eridanus/issues/1590)). One synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m (8,136,483 ft), to three figures that no two builds agree on. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails on the rest. The same bound withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now.
+- **Status:** accepted; adds a refusal to the smoother of [ADR-300][adr-300] and a count to its check's mutation; changes no rule of the filter, and no interval of a track that is still given; amends [ADR-149][adr-149] §3: the repair of a failed night merges on a full run of its own head (decision 6)
+- **Summary:** The nightly census failed on every platform ([#1590](https://github.com/nrdptel/fusionspace-eridanus/issues/1590)). One synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m (8,136,483 ft), to three figures that no two builds agree on. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails on the rest. The same bound withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now. A branch that repairs a failed night may merge on a hand-started full run of its own head.
 
+[adr-149]: 0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 [adr-300]: 0300-the-smoother-and-its-check.md
 [adr-362]: 0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 [issue]: https://github.com/nrdptel/fusionspace-eridanus/issues/1590
@@ -95,6 +96,26 @@ have no gap in them: they run from a few thousand m/s up.
    issue on smoothed apogees past the reading's bound ([#1073][bound-issue]), which now
    carries these three.
 
+6. **The repair of a failed night merges on a full run of its own head.** The budget check
+   before a pull request and before a merge wants a passing full run on main, the night's or
+   one started by hand, made within 26 hours ([ADR-149][adr-149], amended 2026-11-03). A red
+   night is repaired by a pull request, and once main's last green night is 26 hours old that
+   check refuses the repair itself: no full run on main can pass until the repair is on main.
+   This one reached that point. Main's last passing night was made at 16:58 UTC on
+   2026-11-20, and the check refused this change 27 hours 44 minutes later.
+
+   So when main's night fails the check, `cargo xtask ci-budget` reads the branch's own
+   hand-started runs. One that passed whole, every census job and the fit's among them, on
+   the branch's head stands in for main's night. A run on an earlier commit of the branch
+   counts only while nothing but pages changed since: Markdown under `docs/`, the README and
+   the changelog, none of which a census reads. A hand-started run without `full` flies no
+   census and doesn't count.
+
+   This asks more of the repair than the night asks of main, not less: the same censuses on
+   the same five platforms, on the commits about to merge. It lets other work past a red
+   night only if that work's own head passes every census, which is what the night's check
+   is there to learn. The rule that a failed night comes first ([ADR-149][adr-149] §3) stands.
+
 **Which way it errs.** A refusal is the safe side: the reader loses a track and keeps the
 readings, which don't come from the smoother. The bound can't refuse a real flight inside the
 envelope. It can let a wrong track through, which decision 2 says.
@@ -120,3 +141,5 @@ envelope. It can let a wrong track through, which decision 2 says.
   withheld.
 - [The smoother's page][page] explains the bound, with the invented flight its test flies.
   The `analyze` schemas carry the reason's new wording.
+- `cargo xtask ci-budget` takes a repair's own full run for a failed night (decision 6), with
+  tests of what counts and what doesn't.

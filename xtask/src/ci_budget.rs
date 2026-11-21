@@ -19,12 +19,17 @@
 //!    request's; they are printed, not held.
 //! 3. **The night.** A passing run on main, nightly or started by hand with `full`, in which every
 //!    `census` job and `fit intervals` passed, made within the last 26 hours by its first
-//!    attempt's time (a re-run of an old night's failed jobs is no new night). None fails.
+//!    attempt's time (a re-run of an old night's failed jobs is no new night). None fails,
+//!    unless the branch repairs the night: a full run started by hand on the branch's own head
+//!    that passed whole stands in for main's ([ADR-365], decision 6). A run on an earlier
+//!    commit of the branch counts while only pages changed since
+//!    ([`pages_only`]). Without that, no repair of a night older than 26 hours could merge.
 //!
 //! Reading GitHub's runs needs `gh` and the network; a failure to read them fails the check
 //! and says why.
 //!
 //! [ADR-149]: ../../docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
+//! [ADR-365]: ../../docs/decisions/0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md
 
 use std::collections::HashMap;
 use std::fmt::Write as _;
@@ -40,8 +45,9 @@ pub const USAGE: &str = "  ci-budget [--head <commit>]
                            <commit>) within 30 minutes, every job of main's last passing
                            CI run with a pull request's jobs (pushed, or by hand without
                            `full`) within 20, and a passing nightly (or hand-started full)
-                           run on main within 26 hours. Reads the gate's history and
-                           GitHub's runs with `gh`.";
+                           run on main within 26 hours, or a passing hand-started full run
+                           on the branch's own head, the repair of a failed night (ADR-365).
+                           Reads the gate's history and GitHub's runs with `gh`.";
 
 /// The repository whose runs are read.
 const REPOSITORY: &str = "nrdptel/fusionspace-eridanus";
@@ -63,6 +69,8 @@ const FIT_JOB: &str = "fit intervals";
 const PUSH_RUNS: usize = 30;
 /// Hand-started runs read, full or not.
 const HAND_RUNS: usize = 10;
+/// The branch's newest commits whose own hand-started runs are read when main's night fails.
+const OWN_COMMITS: usize = 20;
 /// Nightly runs read.
 const NIGHT_RUNS: usize = 5;
 /// Jobs read a page. GitHub allows 100, but on 2026-11-08 it answered every page of 100 of a
@@ -437,6 +445,81 @@ fn hours(seconds: i64) -> String {
     format!("{}h{:02}m", minutes / 60, minutes % 60)
 }
 
+/// Whether every path is a page: a Markdown file under `docs/`, or the README or the changelog
+/// at the root. Nothing a census flies or compares is among them, so a full run on an earlier
+/// commit of a branch still speaks for a head that differs from it by pages alone. A report
+/// under `validation/` is no page: the censuses compare those.
+pub(crate) fn pages_only(paths: &[&str]) -> bool {
+    paths.iter().all(|path| {
+        *path == "README.md"
+            || *path == "CHANGELOG.md"
+            || (path.starts_with("docs/") && path.ends_with(".md"))
+    })
+}
+
+/// The night's check for a branch that may repair the night ([ADR-365], decision 6): `main`'s
+/// verdict stands unless it fails and one of `own` is a passing full run. `own` holds the
+/// passing hand-started runs on the branch's own commits, each with its jobs and whether it
+/// speaks for the head: it ran on the head, or only pages changed since ([`pages_only`]).
+///
+/// A branch's own full run flies every census on the branch's commits, main's among them, so it
+/// shows what a night on main after the merge would. A run that isn't full (no census ran), or
+/// that ran before a change the censuses could read, shows nothing and the failure stands.
+///
+/// [ADR-365]: ../../docs/decisions/0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md
+pub(crate) fn repaired_night_verdict(main: Verdict, own: &[(Run, Vec<Job>, bool)]) -> Verdict {
+    let Verdict::Fail(why) = main else {
+        return main;
+    };
+    match own
+        .iter()
+        .find(|(run, jobs, speaks)| *speaks && full_pass(run, jobs))
+    {
+        Some((run, _, _)) => Verdict::Ok(format!(
+            "{why}; this branch's own full run, {} on {}, passed whole: the repair (ADR-365 §6)",
+            run.id,
+            run.head_sha.get(..10).unwrap_or(&run.head_sha)
+        )),
+        None => Verdict::Fail(format!(
+            "{why}; a repair's branch passes on a hand-started full run of its own head \
+             (`gh workflow run ci.yml --ref <branch> -f full=true`; ADR-365 §6)"
+        )),
+    }
+}
+
+/// The passing hand-started runs on the branch's own commits, newest commit first, each with its
+/// jobs and whether it speaks for `head` (see [`repaired_night_verdict`]).
+fn own_runs(head: &str) -> Result<Vec<(Run, Vec<Job>, bool)>, String> {
+    let commits = branch_commits(head)?;
+    let head_sha = git(&[
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        &format!("{head}^{{commit}}"),
+    ])?;
+    let mut own = Vec::new();
+    for commit in commits.iter().take(OWN_COMMITS) {
+        let path = format!(
+            "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs?status=success\
+             &event=workflow_dispatch&head_sha={commit}&per_page={HAND_RUNS}"
+        );
+        let runs: Runs = serde_json::from_str(&gh_api(&path)?)
+            .map_err(|error| format!("reading {commit}'s hand-started runs: {error}"))?;
+        if runs.workflow_runs.is_empty() {
+            continue;
+        }
+        let speaks = *commit == head_sha || {
+            let changed = git(&["diff", "--name-only", commit, &head_sha])?;
+            pages_only(&changed.lines().collect::<Vec<_>>())
+        };
+        for run in runs.workflow_runs {
+            let jobs = run_jobs(&run)?;
+            own.push((run, jobs, speaks));
+        }
+    }
+    Ok(own)
+}
+
 /// The night's longest jobs, printed for the record: they are a full run's, not a pull
 /// request's, so the budget doesn't hold them.
 fn night_jobs_line(jobs: &[Job]) -> Result<String, String> {
@@ -627,7 +710,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
             break;
         }
     }
-    verdicts.push(night_verdict(&with_jobs, now)?);
+    let night = night_verdict(&with_jobs, now)?;
+    // The branch's own runs are read only when main's night fails: the repair's case.
+    let own = if matches!(night, Verdict::Fail(_)) {
+        own_runs(head)?
+    } else {
+        Vec::new()
+    };
+    verdicts.push(repaired_night_verdict(night, &own));
 
     for verdict in &verdicts {
         println!("{}", verdict.line());
@@ -953,6 +1043,90 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         ));
         // None read fails.
         assert!(matches!(night_verdict(&[], now).unwrap(), Verdict::Fail(_)));
+    }
+
+    #[test]
+    fn a_repairs_own_full_run_stands_in_for_a_failed_night() {
+        let failed = || Verdict::Fail("night: main's newest passing full run is old".to_owned());
+        let hand = run(7, "workflow_dispatch", "2026-11-21T20:45:43Z");
+        let full = night_jobs("success", "success");
+        // Main's night within its window is left as it is, whatever the branch ran.
+        let ok = repaired_night_verdict(Verdict::Ok("night: fine".to_owned()), &[]);
+        assert!(
+            matches!(ok, Verdict::Ok(ref t) if t == "night: fine"),
+            "{ok:?}"
+        );
+        // A failed night with no run of the branch's own fails, and says what would pass.
+        let v = repaired_night_verdict(failed(), &[]);
+        assert!(
+            matches!(v, Verdict::Fail(ref t) if t.contains("is old") && t.contains("full=true")),
+            "{v:?}"
+        );
+        // The branch's own full run that speaks for its head passes, naming the run.
+        let v = repaired_night_verdict(failed(), &[(hand.clone(), full.clone(), true)]);
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if t.contains("run, 7 on 0123456789,")),
+            "{v:?}"
+        );
+        // One that ran before a change the censuses could read doesn't.
+        let v = repaired_night_verdict(failed(), &[(hand.clone(), full.clone(), false)]);
+        assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        // A hand-started run without `full` flew no census; one whose census failed on a
+        // platform, or whose fit check skipped, is no full pass either.
+        let mut no_census = full.clone();
+        no_census.retain(|job| !job.name.starts_with("census"));
+        for jobs in [
+            no_census,
+            night_jobs("failure", "success"),
+            night_jobs("success", "skipped"),
+        ] {
+            let v = repaired_night_verdict(failed(), &[(hand.clone(), jobs, true)]);
+            assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        }
+        // A run that didn't pass as a whole doesn't, though its censuses did.
+        let mut red = hand.clone();
+        red.conclusion = Some("failure".to_owned());
+        let v = repaired_night_verdict(failed(), &[(red, full.clone(), true)]);
+        assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        // The first that qualifies is taken, past ones that don't.
+        let own = [
+            (
+                run(8, "workflow_dispatch", "2026-11-21T21:00:00Z"),
+                full.clone(),
+                false,
+            ),
+            (hand, full, true),
+        ];
+        let v = repaired_night_verdict(failed(), &own);
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if t.contains("run, 7 on")),
+            "{v:?}"
+        );
+    }
+
+    #[test]
+    fn only_pages_leave_an_earlier_full_run_standing() {
+        assert!(pages_only(&[]));
+        assert!(pages_only(&[
+            "docs/physics/smoother.md",
+            "README.md",
+            "CHANGELOG.md"
+        ]));
+        assert!(pages_only(&["docs/decisions/0365-a-record.md"]));
+        // Code, a report the censuses compare, a workflow, a page's figure, a Markdown file
+        // elsewhere, and a path that only starts like a page's.
+        for path in [
+            "crates/hpr-flightdata/src/smoother.rs",
+            "validation/reports/synthetic-flights.md",
+            "validation/reports/synthetic-flights.json",
+            ".github/workflows/ci.yml",
+            "docs/images/figure.svg",
+            "xtask/README.md",
+            "docs.md",
+            "docs/physics/smoother.md.rs",
+        ] {
+            assert!(!pages_only(&["docs/a.md", path]), "{path}");
+        }
     }
 
     #[test]
