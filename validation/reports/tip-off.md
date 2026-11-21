@@ -1,10 +1,10 @@
 # What RocketPy's tip-off phase moves
 
-Written by `cargo xtask tip-off`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#what-leaving-tip-off-out-costs). It is one code against another: the phase is in RocketPy's development branch, in no release, and no flight checks it. By default HPR Sim frees a rocket with no turning rate where its last guide leaves the rail ([its opt-in tip-off phase against this report](tip-off-model.md)). This report measures the pivot about that guide which that leaves out, with RocketPy's tip-off phase: rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c ([pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920)'s merge). Equations: the pinned commit's with [pull request #1196](https://github.com/RocketPy-Team/RocketPy/pull/1196)'s sign correction (corrections.py, ADR-026). Each example rocket of `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and site on a declared constant drag coefficient, in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading, blowing toward its right, the same at every height.
+Written by `cargo xtask tip-off`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#what-leaving-tip-off-out-costs). It is one code against another: the phase is in RocketPy's development branch, in no release, and no flight checks it. By default HPR Sim frees a rocket with no turning rate where its last guide leaves the rail ([its opt-in tip-off phase against this report](tip-off-model.md)). This report measures the pivot about that guide which that leaves out, with RocketPy's tip-off phase: rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 ([pull request #1217](https://github.com/RocketPy-Team/RocketPy/pull/1217)'s merge). Equations: as the pinned commit has them: it carries [pull request #1196](https://github.com/RocketPy-Team/RocketPy/pull/1196)'s sign correction (ADR-026), checked on its source, and #1188. Each example rocket of `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and site on a declared constant drag coefficient, in still air and in a 20 mph (8.94 m/s) wind square across the rail's heading, blowing toward its right, the same at every height.
 
 How to read it:
 
-- **Phase off** is RocketPy as released: the rocket is free where its upper button leaves the rail.
+- **Phase off** is RocketPy as its releases fly: the rocket is free where its upper button leaves the rail. The pinned commit flies the phase in every flight and has no switch for it, so these flights take the commit's own branch for a rocket without a pair of buttons on the rail, taken by reporting the lower button's rail length as the upper one's (PhaseOff): free flight from where the upper button leaves.
 - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, free to pitch and yaw about its lower button with roll held, until that button leaves too.
 - **Guided** is the phase off on a rail longer by the distance between the buttons: the rocket is held straight until the lower button leaves the real rail, as HPR Sim holds it.
 - **Rocket** is the design's id. The two Calisto ids are two versions of one rocket, from RocketPy's getting-started notebook and from its tests. Each ends in the motor's position in meters, in the rocket's own coordinates as its source sets it: `minus-1.255` is −1.255 m. Each source measures from its own zero point, and the two zero points are 0.118 m (4.6 in) apart. So in both the nozzle sits 2.533 m (8.31 ft) behind the nose's tip. The fins differ, and the notebook's rail buttons and its center of mass without the motor sit 0.118 m (4.6 in) farther back.
@@ -20,7 +20,11 @@ How to read it:
   The phase moves the apogee by at most +1.165% (+5.6 m; bella-lui, crosswind), the landing point by at most 4.585% of the apogee (113.7 m; juno-iii, crosswind), and the pitch rate where the lower button leaves by at most -15.18 deg/s (bella-lui, crosswind).
 - **On less guided, what HPR Sim's release leaves out:** 0 of 26 apogees past 1% and 6 of 26 landing points past 1% of the apogee, on 3 of the designs; with the phase on the rocket lands farther from the pad on 23 of the 26 and nearer on 3.
   The phase moves the apogee by at most -0.414% (-10.9 m; juno-iii, still), the landing point by at most 3.765% of the apogee (28.5 m; valetudo, crosswind), and the pitch rate where the lower button leaves by at most +2.38 deg/s (juno-iii, crosswind).
-- **The equations as pinned** (`refs/venv/bin/python validation/oracles/rocketpy/tip_off.py --as-pinned`), on less off: 1 of 26 apogees past 1% and 7 of 26 landing points past 1% of the apogee, on 5 of the designs; with the phase on the rocket lands farther from the pad on 22 of the 26 and nearer on 4; the phase moves the apogee by at most +1.226% (+5.9 m; bella-lui, crosswind), the landing point by at most 4.326% of the apogee (20.7 m; bella-lui, crosswind), and the pitch rate where the lower button leaves by at most -17.29 deg/s (bella-lui, crosswind). On less guided: 0 of 26 apogees past 1% and 6 of 26 landing points past 1% of the apogee, on 3 of the designs; with the phase on the rocket lands farther from the pad on 24 of the 26 and nearer on 2; the phase moves the apogee by at most -0.346% (-9.1 m; juno-iii, still), the landing point by at most 3.270% of the apogee (24.6 m; valetudo, crosswind), and the pitch rate where the lower button leaves by at most +2.27 deg/s (juno-iii, crosswind).
+- **Since the earlier pin.** This report first flew rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c ([pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920)'s merge). Its equations: the pinned commit's with [pull request #1196](https://github.com/RocketPy-Team/RocketPy/pull/1196)'s sign correction (corrections.py, ADR-026). RocketPy then rewrote the phase ([pull request #1217](https://github.com/RocketPy-Team/RocketPy/pull/1217)), and this report flies the rewrite. The earlier report is kept as `validation/fixtures/flight/rocketpy-tip-off-at-pull-920.json`: this file as commit `ee9a5af6` of this repository had it, byte for byte. Between the two, the same flights are past each bar, and the rocket lands farther from the pad in the same number of them. [The table below](#what-rocketpys-rewrite-of-the-phase-moved) gives each flight.
+  - Where the lower button leaves with the phase on, the turning rate moved by at most 0.000019 deg/s (prometheus-2022-generic-motor, still) and the angle off the rail's axis by at most 0.0000003° (prometheus-2022-generic-motor, still), each as its nose-down and nose-right parts together.
+  - What the phase moves from the guided flight changed by at most 0.000033% of the apogee in the apogee (ndrt-2020-nose-to-tail, still) and 0.000032% of the apogee in the landing point (calisto-tests-motor-at-minus-1.373, crosswind).
+  - No flight's apogee moved by more than 1.04 mm (prometheus-2022-generic-motor, crosswind, phase off), nor its landing point by more than 0.96 mm (calisto-tests-motor-at-minus-1.373, crosswind, guided).
+  - Each rocket carried the same in both: its normal force at every Mach number, its dry mass, its motor and its parachutes.
 - **A declared change** (ndrt-2020-nose-to-tail, still):
   - The change: the parachute that opens at apogee opens with no lag.
   - Why: on a vertical rail in still air RocketPy's integration of the tail-first fall through the lag had not finished after 20 s of wall time.
@@ -42,7 +46,7 @@ How to read it:
 | valetudo | crosswind | 5.70 m at 84.7° | 1.154 m | 755.3 m | -0.019% | 30.9 m | 4.095% | +30.9 m | 25.5 m |
 | juno-iii | still | 5.20 m at 85.0° | 1.410 m | 2623.0 m | -0.378% | 82.7 m | 3.154% | +82.7 m | 74.5 m |
 | juno-iii | crosswind | 5.20 m at 85.0° | 1.410 m | 2480.1 m | +0.321% | 113.7 m | 4.585% | +70.4 m | 100.9 m |
-| cavour | still | 12.00 m at 84.0° | 1.090 m | 3163.0 m | -0.026% | 10.8 m | 0.341% | +10.8 m | 6.1 m |
+| cavour | still | 12.00 m at 84.0° | 1.090 m | 3163.0 m | -0.025% | 10.8 m | 0.341% | +10.8 m | 6.1 m |
 | cavour | crosswind | 12.00 m at 84.0° | 1.090 m | 3113.2 m | +0.099% | 47.6 m | 1.529% | -16.9 m | 27.4 m |
 | genesis | still | 12.00 m at 84.0° | 0.885 m | 3265.0 m | -0.031% | 8.7 m | 0.266% | +8.7 m | 7.8 m |
 | genesis | crosswind | 12.00 m at 84.0° | 0.885 m | 3216.8 m | +0.067% | 28.4 m | 0.882% | +26.9 m | 24.7 m |
@@ -118,3 +122,36 @@ How to read it:
 | erebus-11 | crosswind | 2764.8 m | -0.013% | 14.3 m | 0.516% | +5.9 m | +0.71 deg/s |
 | prometheus-2022-generic-motor | still | 3806.6 m | -0.345% | 54.0 m | 1.417% | +54.0 m | +1.49 deg/s |
 | prometheus-2022-generic-motor | crosswind | 3714.8 m | -0.249% | 58.1 m | 1.565% | +57.9 m | +1.58 deg/s |
+
+## What RocketPy's rewrite of the phase moved
+
+This pin's figure less the earlier pin's, for each flight. The first four are the figures HPR Sim's own phase is held to RocketPy's on ([the comparison](tip-off-model.md)), compared the same way: the turning rate and the angle where the lower button leaves with the phase on, each as its nose-down and nose-right parts together; and what the phase moves from the guided flight, in the apogee and, as a vector, in the landing point, each as a share of the guided apogee. The last two are how far the guided flight itself moved.
+
+| Rocket | Wind | Turning rate | Angle | Apogee move | Landing-point move | Apogee, guided | Landing point, guided |
+|---|---|--:|--:|--:|--:|--:|--:|
+| calisto-getting-started-motor-at-minus-1.255 | still | 0.000000 deg/s | 0.0000000° | -0.000015% | 0.000002% | +0.09 mm | 0.03 mm |
+| calisto-getting-started-motor-at-minus-1.255 | crosswind | 0.000000 deg/s | 0.0000000° | -0.000019% | 0.000026% | +0.56 mm | 0.80 mm |
+| calisto-tests-motor-at-minus-1.373 | still | 0.000000 deg/s | 0.0000000° | +0.000023% | 0.000003% | -0.58 mm | 0.08 mm |
+| calisto-tests-motor-at-minus-1.373 | crosswind | 0.000001 deg/s | 0.0000000° | -0.000020% | 0.000032% | +0.62 mm | 0.96 mm |
+| bella-lui | still | 0.000000 deg/s | 0.0000000° | -0.000001% | 0.000001% | -0.01 mm | 0.00 mm |
+| bella-lui | crosswind | 0.000000 deg/s | 0.0000000° | -0.000006% | 0.000000% | -0.03 mm | 0.00 mm |
+| ndrt-2020-nose-to-tail | still | 0.000000 deg/s | 0.0000000° | +0.000033% | 0.000000% | -0.08 mm | 0.00 mm |
+| ndrt-2020-nose-to-tail | crosswind | 0.000000 deg/s | 0.0000000° | +0.000004% | 0.000009% | -0.01 mm | 0.02 mm |
+| valetudo | still | 0.000000 deg/s | 0.0000000° | +0.000004% | 0.000001% | +0.06 mm | 0.01 mm |
+| valetudo | crosswind | 0.000000 deg/s | 0.0000000° | -0.000002% | 0.000001% | -0.08 mm | 0.03 mm |
+| juno-iii | still | 0.000000 deg/s | 0.0000000° | -0.000007% | 0.000001% | +0.21 mm | 0.03 mm |
+| juno-iii | crosswind | 0.000000 deg/s | 0.0000000° | +0.000009% | 0.000002% | -0.29 mm | 0.12 mm |
+| cavour | still | 0.000000 deg/s | 0.0000000° | +0.000001% | 0.000000% | +0.16 mm | 0.04 mm |
+| cavour | crosswind | 0.000001 deg/s | 0.0000000° | 0.000000% | 0.000004% | -0.06 mm | 0.09 mm |
+| genesis | still | 0.000001 deg/s | 0.0000000° | +0.000010% | 0.000002% | -0.65 mm | 0.12 mm |
+| genesis | crosswind | 0.000000 deg/s | 0.0000000° | +0.000015% | 0.000012% | -0.05 mm | 0.12 mm |
+| lince | still | 0.000001 deg/s | 0.0000000° | +0.000005% | 0.000001% | -0.16 mm | 0.02 mm |
+| lince | crosswind | 0.000000 deg/s | 0.0000000° | +0.000015% | 0.000017% | -0.25 mm | 0.26 mm |
+| astra | still | 0.000000 deg/s | 0.0000000° | +0.000001% | 0.000002% | +0.09 mm | 0.02 mm |
+| astra | crosswind | 0.000000 deg/s | 0.0000000° | +0.000002% | 0.000001% | -0.05 mm | 0.02 mm |
+| andromeda | still | 0.000000 deg/s | 0.0000000° | +0.000014% | 0.000001% | +0.07 mm | 0.05 mm |
+| andromeda | crosswind | 0.000005 deg/s | 0.0000001° | +0.000003% | 0.000027% | -0.09 mm | 0.86 mm |
+| erebus-11 | still | 0.000000 deg/s | 0.0000000° | +0.000002% | 0.000001% | -0.17 mm | 0.04 mm |
+| erebus-11 | crosswind | 0.000000 deg/s | 0.0000000° | 0.000000% | 0.000000% | +0.03 mm | 0.01 mm |
+| prometheus-2022-generic-motor | still | 0.000019 deg/s | 0.0000003° | -0.000006% | 0.000014% | +0.19 mm | 0.29 mm |
+| prometheus-2022-generic-motor | crosswind | 0.000003 deg/s | 0.0000001° | +0.000015% | 0.000016% | -0.45 mm | 0.49 mm |

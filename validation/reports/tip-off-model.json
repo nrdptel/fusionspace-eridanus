@@ -15,14 +15,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000011120518796630186,
+          "angle_deg": 0.000011123194457772103,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0000965819567676176,
+          "apogee_move_percent_of_apogee": 0.00011133015229600253,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0033917456998393183,
+          "landing_move_percent_of_apogee": 0.0033941885324364272,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00047621916776980624
+          "pitch_rate_deg_s": 0.00047633624538532453
         },
         "guided": {
           "apogee_agl_m": 2615.3581269855013,
@@ -71,14 +71,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000011120391630696013,
+          "angle_deg": 0.000011123067291836766,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0002630483452766075,
+          "apogee_move_percent_of_apogee": 0.0002777965348798284,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.00034057105700798635,
+          "landing_move_percent_of_apogee": 0.00034300971440056634,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0004762070336096621
+          "pitch_rate_deg_s": 0.00047632411122473746
         },
         "guided": {
           "apogee_agl_m": 2615.2180818208503,
@@ -124,20 +124,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2614.413152703959,
+        "guided_apogee_agl_m": 2614.413245760746,
         "last_guide_leaves": {
-          "nose_down_deg": 0.008387033881840237,
-          "nose_right_deg": -0.0000332561231802932,
-          "pitch_rate_nose_down_deg_s": 0.7174429253480603,
-          "pitch_rate_nose_right_deg_s": -0.002883512411360877,
-          "speed_m_s": 31.056666274011395,
-          "time_s": 0.32230265201508207
+          "nose_down_deg": 0.008387036557531188,
+          "nose_right_deg": -0.00003325613401644299,
+          "pitch_rate_nose_down_deg_s": 0.7174430424333832,
+          "pitch_rate_nose_right_deg_s": -0.002883512861753511,
+          "speed_m_s": 31.056666260131106,
+          "time_s": 0.32230265188053037
         },
         "moved": {
-          "apogee_m": -1.5777753529555412,
-          "landing_east_m": -0.044851718602995305,
-          "landing_north_m": 16.340946041377492,
-          "landing_range_m": 16.340749464807743
+          "apogee_m": -1.578160931822822,
+          "landing_east_m": -0.04485098245525876,
+          "landing_north_m": 16.340882176228433,
+          "landing_range_m": 16.340685595754962
         }
       },
       "wind": "still"
@@ -147,17 +147,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00784682181955572,
+          "angle_deg": 0.007846819687925822,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.06572274295180544,
+          "apogee_move_percent_of_apogee": 0.0657413946425211,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.6766837417935727,
+          "landing_move_percent_of_apogee": 0.6767100239680441,
           "past": [
             "pitch_rate",
             "angle"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.6713267955237462
+          "pitch_rate_deg_s": 0.6713267034773407
         },
         "guided": {
           "apogee_agl_m": 2578.9380045608436,
@@ -206,14 +206,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000011419591650841794,
+          "angle_deg": 0.000011428996540209144,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0001515224602901081,
+          "apogee_move_percent_of_apogee": 0.00017018855575885912,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.007795823755448955,
+          "landing_move_percent_of_apogee": 0.007806168294806001,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0006570680640133104
+          "pitch_rate_deg_s": 0.0006574737192017882
         },
         "guided": {
           "apogee_agl_m": 2571.6497989543573,
@@ -259,20 +259,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2571.2635040466907,
+        "guided_apogee_agl_m": 2571.2640689046234,
         "last_guide_leaves": {
-          "nose_down_deg": 0.008387851820739867,
-          "nose_right_deg": 0.002014113261878784,
-          "pitch_rate_nose_down_deg_s": 0.7174438864852619,
-          "pitch_rate_nose_right_deg_s": 0.17429901412303211,
-          "speed_m_s": 31.054526722103564,
-          "time_s": 0.322325311462975
+          "nose_down_deg": 0.008387860979253718,
+          "nose_right_deg": 0.0020141154075423977,
+          "pitch_rate_nose_down_deg_s": 0.717444281460623,
+          "pitch_rate_nose_right_deg_s": 0.17429910659297293,
+          "speed_m_s": 31.054526701064272,
+          "time_s": 0.32232531126029956
         },
         "moved": {
-          "apogee_m": -1.0673383301300419,
-          "landing_east_m": 3.547583613106326,
-          "landing_north_m": 16.088142583967965,
-          "landing_range_m": 8.263497188151177
+          "apogee_m": -1.067818285591784,
+          "landing_east_m": 3.546906003488857,
+          "landing_north_m": 16.088090010075348,
+          "landing_range_m": 8.262834755076483
         }
       },
       "wind": "crosswind"
@@ -282,14 +282,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000010626267321686212,
+          "angle_deg": 0.000010631855365173363,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0002279857183134874,
+          "apogee_move_percent_of_apogee": 0.0002047047262183904,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.002456733258111953,
+          "landing_move_percent_of_apogee": 0.0024601495082194886,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0004501756030379209
+          "pitch_rate_deg_s": 0.0004504140555150644
         },
         "guided": {
           "apogee_agl_m": 2615.4813469567844,
@@ -338,14 +338,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000010626198477159015,
+          "angle_deg": 0.000010631786520644602,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00031599968385888935,
+          "apogee_move_percent_of_apogee": 0.00029271871121202143,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.004701321770895204,
+          "landing_move_percent_of_apogee": 0.00470473854617821,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0004501696326744993
+          "pitch_rate_deg_s": 0.00045040808515110753
         },
         "guided": {
           "apogee_agl_m": 2615.33092798307,
@@ -391,20 +391,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2614.4588389718715,
+        "guided_apogee_agl_m": 2614.458261261472,
         "last_guide_leaves": {
-          "nose_down_deg": 0.007820231789001406,
-          "nose_right_deg": -0.00003056757192817665,
-          "pitch_rate_nose_down_deg_s": 0.6594546305031572,
-          "pitch_rate_nose_right_deg_s": -0.00261382482636071,
-          "speed_m_s": 30.662069672805636,
-          "time_s": 0.318478897768075
+          "nose_down_deg": 0.007820237377123123,
+          "nose_right_deg": -0.00003056759373376132,
+          "pitch_rate_nose_down_deg_s": 0.6594548689739047,
+          "pitch_rate_nose_right_deg_s": -0.002613825731589009,
+          "speed_m_s": 30.66206966234253,
+          "time_s": 0.31847889766793125
         },
         "moved": {
-          "apogee_m": -1.61926513989647,
-          "landing_east_m": -0.0469596328171038,
-          "landing_north_m": 16.931074627780504,
-          "landing_range_m": 16.930875432033247
+          "apogee_m": -1.6186564667582388,
+          "landing_east_m": -0.04696088660082598,
+          "landing_north_m": 16.931163923232077,
+          "landing_range_m": 16.930964734885094
         }
       },
       "wind": "still"
@@ -414,17 +414,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.006140746475508848,
+          "angle_deg": 0.006140744120232472,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.05414068390799725,
+          "apogee_move_percent_of_apogee": 0.05416066993032618,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.5440154664156568,
+          "landing_move_percent_of_apogee": 0.54404687039991,
           "past": [
             "pitch_rate",
             "angle"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.5179067216243352
+          "pitch_rate_deg_s": 0.5179066212586191
         },
         "guided": {
           "apogee_agl_m": 2580.4693602873626,
@@ -473,14 +473,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000010475898243775166,
+          "angle_deg": 0.000010488738826731288,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00025758921649243446,
+          "apogee_move_percent_of_apogee": 0.00027758822696519116,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.001885493342448357,
+          "landing_move_percent_of_apogee": 0.0018736246043055277,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0005662299263985781
+          "pitch_rate_deg_s": 0.0005667755113245827
         },
         "guided": {
           "apogee_agl_m": 2577.1361818558426,
@@ -526,20 +526,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2576.8165821249527,
+        "guided_apogee_agl_m": 2576.817203248751,
         "last_guide_leaves": {
-          "nose_down_deg": 0.007820985564276527,
-          "nose_right_deg": 0.0015098830246021051,
-          "pitch_rate_nose_down_deg_s": 0.6594590387995171,
-          "pitch_rate_nose_right_deg_s": 0.12882894227832795,
-          "speed_m_s": 30.6599594721532,
-          "time_s": 0.3185012937672463
+          "nose_down_deg": 0.007820998184857564,
+          "nose_right_deg": 0.0015098854022288833,
+          "pitch_rate_nose_down_deg_s": 0.65945957497437,
+          "pitch_rate_nose_right_deg_s": 0.12882904327047434,
+          "speed_m_s": 30.65995946839113,
+          "time_s": 0.31850129373289554
         },
         "moved": {
-          "apogee_m": -1.2210576763518475,
-          "landing_east_m": 2.9602907162548036,
-          "landing_north_m": 16.431083307986853,
-          "landing_range_m": 7.691824825981939
+          "apogee_m": -1.221573015894137,
+          "landing_east_m": 2.959478855215366,
+          "landing_north_m": 16.431047567595044,
+          "landing_range_m": 7.691037762920814
         }
       },
       "wind": "crosswind"
@@ -549,14 +549,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00001604853403803504,
+          "angle_deg": 0.000016050033920423396,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00018469620121637376,
+          "apogee_move_percent_of_apogee": 0.0001832767995186336,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.011541426734660635,
+          "landing_move_percent_of_apogee": 0.011540525190646406,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0004909815649151726
+          "pitch_rate_deg_s": 0.0004910264146033781
         },
         "guided": {
           "apogee_agl_m": 540.3406618149558,
@@ -605,14 +605,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00001604739499487596,
+          "angle_deg": 0.000016048894877258503,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00020150104604556513,
+          "apogee_move_percent_of_apogee": 0.00020008164456151024,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.005016196566463256,
+          "landing_move_percent_of_apogee": 0.0050152949256644,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0004908859454251635
+          "pitch_rate_deg_s": 0.0004909307951115453
         },
         "guided": {
           "apogee_agl_m": 540.3399336332186,
@@ -658,20 +658,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 540.150960301906,
+        "guided_apogee_agl_m": 540.1509534335117,
         "last_guide_leaves": {
-          "nose_down_deg": 0.00908277416543105,
-          "nose_right_deg": -0.00006391794019725652,
-          "pitch_rate_nose_down_deg_s": 0.5432613130402437,
-          "pitch_rate_nose_right_deg_s": -0.003881753041496895,
-          "speed_m_s": 18.636979226061513,
-          "time_s": 0.3774129422111096
+          "nose_down_deg": 0.009082775665318437,
+          "nose_right_deg": -0.00006391795038616344,
+          "pitch_rate_nose_down_deg_s": 0.5432613578934752,
+          "pitch_rate_nose_right_deg_s": -0.0038817533447095096,
+          "speed_m_s": 18.63697921192209,
+          "time_s": 0.3774129419202818
         },
         "moved": {
-          "apogee_m": -0.018534764725245623,
-          "landing_east_m": 0.9037068353537876,
-          "landing_north_m": 0.916162783989293,
-          "landing_range_m": 1.286860878916638
+          "apogee_m": -0.01854243164973468,
+          "landing_east_m": 0.9037034671084676,
+          "landing_north_m": 0.9161592658208022,
+          "landing_range_m": 1.2868560086145386
         }
       },
       "wind": "still"
@@ -681,11 +681,11 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.06713654566014528,
+          "angle_deg": 0.06713654488269842,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.37926708847688967,
+          "apogee_move_percent_of_apogee": 0.3792726725563463,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 1.6777456648449527,
+          "landing_move_percent_of_apogee": 1.6777457363027768,
           "past": [
             "pitch_rate",
             "angle",
@@ -693,7 +693,7 @@
             "landing_move"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 4.009834344520717
+          "pitch_rate_deg_s": 4.009834320912897
         },
         "guided": {
           "apogee_agl_m": 495.5911040094647,
@@ -742,14 +742,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000026050265391029526,
+          "angle_deg": 0.00002605210018825758,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0009426983835808153,
+          "apogee_move_percent_of_apogee": 0.0009371354452991241,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.008708681702648479,
+          "landing_move_percent_of_apogee": 0.00870867328893267,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0013930564040295283
+          "pitch_rate_deg_s": 0.001393112045589319
         },
         "guided": {
           "apogee_agl_m": 487.3335559603391,
@@ -795,20 +795,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 486.19969837038286,
+        "guided_apogee_agl_m": 486.19967133574926,
         "last_guide_leaves": {
-          "nose_down_deg": 0.009081986602956282,
-          "nose_right_deg": 0.00436669364115034,
-          "pitch_rate_nose_down_deg_s": 0.5429367018155447,
-          "pitch_rate_nose_right_deg_s": 0.2637914663512463,
-          "speed_m_s": 18.632443283737672,
-          "time_s": 0.37750289389995983
+          "nose_down_deg": 0.00908198826739901,
+          "nose_right_deg": 0.004366694419351963,
+          "pitch_rate_nose_down_deg_s": 0.5429367526816311,
+          "pitch_rate_nose_right_deg_s": 0.2637914899810715,
+          "speed_m_s": 18.632443261904456,
+          "time_s": 0.3775028934515155
         },
         "moved": {
-          "apogee_m": 0.10402616487704108,
-          "landing_east_m": 1.0985432661680221,
-          "landing_north_m": 0.39667133559085244,
-          "landing_range_m": -0.2628469434562106
+          "apogee_m": 0.10399911763454384,
+          "landing_east_m": 1.0985428647205566,
+          "landing_north_m": 0.3966707619303662,
+          "landing_range_m": -0.2628472202499097
         }
       },
       "wind": "crosswind"
@@ -818,14 +818,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 1.3894391363580309e-8,
+          "angle_deg": 1.3896529581809925e-8,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0009124307221751334,
+          "apogee_move_percent_of_apogee": 0.0009458779415269943,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 7.522404501453668e-7,
+          "landing_move_percent_of_apogee": 4.5337701718124883e-7,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 1.490184288630085e-6
+          "pitch_rate_deg_s": 1.4903224444482236e-6
         },
         "guided": {
           "apogee_agl_m": 1220.2643319333613,
@@ -874,14 +874,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 1.389421620409479e-8,
+          "angle_deg": 1.3896354422324405e-8,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00091242199546475,
+          "apogee_move_percent_of_apogee": 0.0009458692148160524,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 5.071750230376523e-7,
+          "landing_move_percent_of_apogee": 2.0830933371854044e-7,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 1.4901774991798735e-6
+          "pitch_rate_deg_s": 1.490315654998012e-6
         },
         "guided": {
           "apogee_agl_m": 1220.2643315767632,
@@ -927,20 +927,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 1219.4220147878896,
+        "guided_apogee_agl_m": 1219.4219367467515,
         "last_guide_leaves": {
-          "nose_down_deg": 7.689513998126227e-8,
-          "nose_right_deg": 4.405332917745587e-6,
-          "pitch_rate_nose_down_deg_s": 5.6557060327085225e-6,
-          "pitch_rate_nose_right_deg_s": 0.000324016574334826,
-          "speed_m_s": 19.299691288447846,
-          "time_s": 0.2430454179294378
+          "nose_down_deg": 7.689510266437679e-8,
+          "nose_right_deg": 4.4053307798530155e-6,
+          "pitch_rate_nose_down_deg_s": 5.655703621573119e-6,
+          "pitch_rate_nose_right_deg_s": 0.0003240164362000494,
+          "speed_m_s": 19.29969091408872,
+          "time_s": 0.24304541416102485
         },
         "moved": {
-          "apogee_m": 0.011122913075041652,
-          "landing_east_m": -0.00557504019781363,
-          "landing_north_m": 4.8663808814536184e-6,
-          "landing_range_m": 0.005575042319150958
+          "apogee_m": 0.011530775092978729,
+          "landing_east_m": -0.0055786845684835384,
+          "landing_north_m": 4.842243839071241e-6,
+          "landing_range_m": 0.005578686668190613
         }
       },
       "wind": "still"
@@ -950,16 +950,16 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.0019076348201053335,
+          "angle_deg": 0.0019076361556806588,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.016669788204450336,
+          "apogee_move_percent_of_apogee": 0.016665704146680144,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.17781198724875252,
+          "landing_move_percent_of_apogee": 0.17780327500783027,
           "past": [
             "pitch_rate"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.1365657594064893
+          "pitch_rate_deg_s": 0.1365658073416959
         },
         "guided": {
           "apogee_agl_m": 1205.0479063382202,
@@ -1008,14 +1008,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 6.200555908863379e-6,
+          "angle_deg": 6.201891484186693e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0003360680267163192,
+          "apogee_move_percent_of_apogee": 0.0003401522052833536,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.00943417602381624,
+          "landing_move_percent_of_apogee": 0.009442889597274776,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00018983087636494848
+          "pitch_rate_deg_s": 0.0001898788115711062
         },
         "guided": {
           "apogee_agl_m": 1204.2621089584618,
@@ -1061,20 +1061,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 1204.4766239330443,
+        "guided_apogee_agl_m": 1204.4766153773462,
         "last_guide_leaves": {
-          "nose_down_deg": 7.692981203348794e-8,
-          "nose_right_deg": -0.0024700497706892305,
-          "pitch_rate_nose_down_deg_s": 5.66859505386069e-6,
-          "pitch_rate_nose_right_deg_s": -0.18048901994112077,
-          "speed_m_s": 19.296491533854265,
-          "time_s": 0.24308780531543678
+          "nose_down_deg": 7.69298529812792e-8,
+          "nose_right_deg": -0.0024700511062645558,
+          "pitch_rate_nose_down_deg_s": 5.6685965274215344e-6,
+          "pitch_rate_nose_right_deg_s": -0.18048906787632737,
+          "speed_m_s": 19.29649153240695,
+          "time_s": 0.24308780529687127
         },
         "moved": {
-          "apogee_m": -0.26588228924492796,
-          "landing_east_m": 2.9030758937303176,
-          "landing_north_m": -0.053262618434652076,
-          "landing_range_m": -2.9035628922825367
+          "apogee_m": -0.26583309629791074,
+          "landing_east_m": 2.9029709577108065,
+          "landing_north_m": -0.05326077843050658,
+          "landing_range_m": -2.9034579401351266
         }
       },
       "wind": "crosswind"
@@ -1083,15 +1083,15 @@
       "case": "valetudo",
       "own_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.005612287437472562,
-          "angle_deg": 0.0000644771808870324,
+          "angle_bar_deg": 0.005612287342070863,
+          "angle_deg": 0.00006447622687627235,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.003323771651027239,
+          "apogee_move_percent_of_apogee": 0.003319424587484406,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.06009214616109047,
+          "landing_move_percent_of_apogee": 0.06009112460539896,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.20902192927330746,
-          "pitch_rate_deg_s": 0.0012137453522125636
+          "pitch_rate_bar_deg_s": 0.2090219273844776,
+          "pitch_rate_deg_s": 0.0012137264643922586
         },
         "guided": {
           "apogee_agl_m": 778.807957396006,
@@ -1139,15 +1139,15 @@
       "rail_inclination_deg": 84.7,
       "recorded_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.005612287437472562,
-          "angle_deg": 0.00006443917164250995,
+          "angle_bar_deg": 0.005612287342070863,
+          "angle_deg": 0.00006443821763175711,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0006153028119368902,
+          "apogee_move_percent_of_apogee": 0.0006109559451351367,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.019730333564117287,
+          "landing_move_percent_of_apogee": 0.01973134932599099,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.20902192927330746,
-          "pitch_rate_deg_s": 0.0012118123956322236
+          "pitch_rate_bar_deg_s": 0.2090219273844776,
+          "pitch_rate_deg_s": 0.0012117935078134062
         },
         "guided": {
           "apogee_agl_m": 778.6222500781203,
@@ -1193,20 +1193,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 778.1048695691743,
+        "guided_apogee_agl_m": 778.1049260901138,
         "last_guide_leaves": {
-          "nose_down_deg": 0.05612276414562794,
-          "nose_right_deg": -0.00011123279845806393,
-          "pitch_rate_nose_down_deg_s": 2.090215027296568,
-          "pitch_rate_nose_right_deg_s": -0.004222721534876708,
-          "speed_m_s": 22.51214590012352,
-          "time_s": 0.5098753931055539
+          "nose_down_deg": 0.056122763191612954,
+          "nose_right_deg": -0.00011123279649725196,
+          "pitch_rate_nose_down_deg_s": 2.0902150084083146,
+          "pitch_rate_nose_right_deg_s": -0.004222721493449983,
+          "speed_m_s": 22.51214587199757,
+          "time_s": 0.5098753924806269
         },
         "moved": {
-          "apogee_m": -2.6823114260344028,
-          "landing_east_m": 22.460759996012598,
-          "landing_north_m": 17.00898358439703,
-          "landing_range_m": 28.17428199082272
+          "apogee_m": -2.6822776031974627,
+          "landing_east_m": 22.460766299223565,
+          "landing_north_m": 17.00898837128561,
+          "landing_range_m": 28.174289905663954
         }
       },
       "wind": "still"
@@ -1215,20 +1215,20 @@
       "case": "valetudo",
       "own_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.005902868397096936,
-          "angle_deg": 0.05172563280498906,
+          "angle_bar_deg": 0.005902869095962825,
+          "angle_deg": 0.05172563071896899,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.29467619295034025,
+          "apogee_move_percent_of_apogee": 0.29467784060649804,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 4.081870909266917,
+          "landing_move_percent_of_apogee": 4.0818725098713236,
           "past": [
             "pitch_rate",
             "angle",
             "apogee_move",
             "landing_move"
           ],
-          "pitch_rate_bar_deg_s": 0.220140127508953,
-          "pitch_rate_deg_s": 1.9265935110040981
+          "pitch_rate_bar_deg_s": 0.2201401408942418,
+          "pitch_rate_deg_s": 1.9265934710505195
         },
         "guided": {
           "apogee_agl_m": 763.0250209346179,
@@ -1276,15 +1276,15 @@
       "rail_inclination_deg": 84.7,
       "recorded_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.005902868397096936,
-          "angle_deg": 0.00006843465459241473,
+          "angle_bar_deg": 0.005902869095962825,
+          "angle_deg": 0.00006844164225635402,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0011698727749862312,
+          "apogee_move_percent_of_apogee": 0.001168256987975276,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.029275712395402536,
+          "landing_move_percent_of_apogee": 0.029275110388491107,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.220140127508953,
-          "pitch_rate_deg_s": 0.0018128132608458143
+          "pitch_rate_bar_deg_s": 0.2201401408942418,
+          "pitch_rate_deg_s": 0.0018129471141327957
         },
         "guided": {
           "apogee_agl_m": 756.5567136715761,
@@ -1330,20 +1330,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 756.6537359854399,
+        "guided_apogee_agl_m": 756.6536544771516,
         "last_guide_leaves": {
-          "nose_down_deg": 0.05613242057050287,
-          "nose_right_deg": 0.01826299242295089,
-          "pitch_rate_nose_down_deg_s": 2.0902837031384554,
-          "pitch_rate_nose_right_deg_s": 0.6905661549479488,
-          "speed_m_s": 22.509042271418124,
-          "time_s": 0.5099459562968862
+          "nose_down_deg": 0.05613242723666322,
+          "nose_right_deg": 0.018262994522476487,
+          "pitch_rate_nose_down_deg_s": 2.090283830830568,
+          "pitch_rate_nose_right_deg_s": 0.6905661951340714,
+          "speed_m_s": 22.50904226969387,
+          "time_s": 0.509945956258769
         },
         "moved": {
-          "apogee_m": -1.476733274384742,
-          "landing_east_m": 26.85729606400838,
-          "landing_north_m": 9.490461477854382,
-          "landing_range_m": 26.74543324015235
+          "apogee_m": -1.4767455012497521,
+          "landing_east_m": 26.857288869312356,
+          "landing_north_m": 9.490466784392554,
+          "landing_range_m": 26.745426458875926
         }
       },
       "wind": "crosswind"
@@ -1352,15 +1352,15 @@
       "case": "juno-iii",
       "own_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.007886783853496308,
-          "angle_deg": 0.00010319434932830963,
+          "angle_bar_deg": 0.007886783538560135,
+          "angle_deg": 0.00010319119996956374,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.01804195171981126,
+          "apogee_move_percent_of_apogee": 0.018034964969514008,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.15361421848240717,
+          "landing_move_percent_of_apogee": 0.15361559519144963,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.22552180815037823,
-          "pitch_rate_deg_s": 0.0015583226013422317
+          "pitch_rate_bar_deg_s": 0.22552180344264172,
+          "pitch_rate_deg_s": 0.0015582755241177904
         },
         "guided": {
           "apogee_agl_m": 2625.218556741902,
@@ -1408,15 +1408,15 @@
       "rail_inclination_deg": 85.0,
       "recorded_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.007886783853496308,
-          "angle_deg": 0.00010353909652388146,
+          "angle_bar_deg": 0.007886783538560135,
+          "angle_deg": 0.00010353594716511647,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0006440462918598975,
+          "apogee_move_percent_of_apogee": 0.0006370609611595616,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.004963643524475334,
+          "landing_move_percent_of_apogee": 0.004965032363002859,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.22552180815037823,
-          "pitch_rate_deg_s": 0.0015703658710555465
+          "pitch_rate_bar_deg_s": 0.22552180344264172,
+          "pitch_rate_deg_s": 0.0015703187938290281
         },
         "guided": {
           "apogee_agl_m": 2624.8402676264395,
@@ -1462,20 +1462,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2623.9374591960213,
+        "guided_apogee_agl_m": 2623.937673298451,
         "last_guide_leaves": {
-          "nose_down_deg": 0.07886780840479798,
-          "nose_right_deg": 0.00006893911142530834,
-          "pitch_rate_nose_down_deg_s": 2.255217170052263,
-          "pitch_rate_nose_right_deg_s": 0.002027570729145144,
-          "speed_m_s": 21.533969570257124,
-          "time_s": 0.5156329696398215
+          "nose_down_deg": 0.07886780525543759,
+          "nose_right_deg": 0.00006893910853159994,
+          "pitch_rate_nose_down_deg_s": 2.25521712297492,
+          "pitch_rate_nose_right_deg_s": 0.002027570683341081,
+          "speed_m_s": 21.533969504104096,
+          "time_s": 0.5156329682364024
         },
         "moved": {
-          "apogee_m": -10.860619095243692,
-          "landing_east_m": 88.18573297309376,
-          "landing_north_m": -23.796794180293574,
-          "landing_range_m": 91.33997634990521
+          "apogee_m": -10.860802384588624,
+          "landing_east_m": 88.18569780037103,
+          "landing_north_m": -23.796784604398454,
+          "landing_range_m": 91.33993989694795
         }
       },
       "wind": "still"
@@ -1484,20 +1484,20 @@
       "case": "juno-iii",
       "own_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.008313358007373447,
-          "angle_deg": 0.04290258982734667,
+          "angle_bar_deg": 0.008313360255616983,
+          "angle_deg": 0.04290258316534392,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.3314393273900776,
+          "apogee_move_percent_of_apogee": 0.33143017825541066,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 2.357330494866101,
+          "landing_move_percent_of_apogee": 2.3573306844490114,
           "past": [
             "pitch_rate",
             "angle",
             "apogee_move",
             "landing_move"
           ],
-          "pitch_rate_bar_deg_s": 0.23821393845485273,
-          "pitch_rate_deg_s": 1.2273836509741851
+          "pitch_rate_bar_deg_s": 0.2382139719700995,
+          "pitch_rate_deg_s": 1.2273835525581123
         },
         "guided": {
           "apogee_agl_m": 2521.948952718086,
@@ -1545,15 +1545,15 @@
       "rail_inclination_deg": 85.0,
       "recorded_normal_force": {
         "differences": {
-          "angle_bar_deg": 0.008313358007373447,
-          "angle_deg": 0.00012420878885177432,
+          "angle_bar_deg": 0.008313360255616983,
+          "angle_deg": 0.0001242312726608026,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.001717374898513281,
+          "apogee_move_percent_of_apogee": 0.0017265621775698068,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.018476068596894383,
+          "landing_move_percent_of_apogee": 0.018477605486600216,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.23821393845485273,
-          "pitch_rate_deg_s": 0.002610700831421596
+          "pitch_rate_bar_deg_s": 0.2382139719700995,
+          "pitch_rate_deg_s": 0.0026110359567968287
         },
         "guided": {
           "apogee_agl_m": 2492.7264929494386,
@@ -1599,20 +1599,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2492.0030716132246,
+        "guided_apogee_agl_m": 2492.00278629426,
         "last_guide_leaves": {
-          "nose_down_deg": 0.07887569632607117,
-          "nose_right_deg": 0.026264361118318227,
-          "pitch_rate_nose_down_deg_s": 2.2551848857095744,
-          "pitch_rate_nose_right_deg_s": 0.7672868946387198,
-          "speed_m_s": 21.531937270756142,
-          "time_s": 0.5156864309631546
+          "nose_down_deg": 0.0788757177773171,
+          "nose_right_deg": 0.026264367859901556,
+          "pitch_rate_nose_down_deg_s": 2.255185205903132,
+          "pitch_rate_nose_right_deg_s": 0.7672869940594479,
+          "speed_m_s": 21.531937189836547,
+          "time_s": 0.5156864292442431
         },
         "moved": {
-          "apogee_m": -3.9046936575855398,
-          "landing_east_m": 76.51781060842552,
-          "landing_north_m": -51.0880912846866,
-          "landing_range_m": 83.80662720964733
+          "apogee_m": -3.904464715235463,
+          "landing_east_m": 76.51787226899307,
+          "landing_north_m": -51.088097263296035,
+          "landing_range_m": 83.80669512168845
         }
       },
       "wind": "crosswind"
@@ -1622,14 +1622,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 4.225401034047789e-6,
+          "angle_deg": 4.22801933823978e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00014176099331474534,
+          "apogee_move_percent_of_apogee": 0.0001425297033906955,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.006443157217192874,
+          "landing_move_percent_of_apogee": 0.006442955278038844,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00018766498099875866
+          "pitch_rate_deg_s": 0.00018778582109662528
         },
         "guided": {
           "apogee_agl_m": 3164.0437683419123,
@@ -1678,14 +1678,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 4.222997716190078e-6,
+          "angle_deg": 4.2256160202164626e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00001319184595267136,
+          "apogee_move_percent_of_apogee": 0.000013960562479901642,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0006737116683207822,
+          "landing_move_percent_of_apogee": 0.0006735100058392246,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00018731733385354395
+          "pitch_rate_deg_s": 0.00018743817384212123
         },
         "guided": {
           "apogee_agl_m": 3163.960417413586,
@@ -1731,20 +1731,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3163.2676879124488,
+        "guided_apogee_agl_m": 3163.267846637364,
         "last_guide_leaves": {
-          "nose_down_deg": 0.008420520758085701,
-          "nose_right_deg": 0.000035793566238758214,
-          "pitch_rate_nose_down_deg_s": 0.7858788679830216,
-          "pitch_rate_nose_right_deg_s": 0.003367013661104278,
-          "speed_m_s": 51.93936687691599,
-          "time_s": 0.4666562255197058
+          "nose_down_deg": 0.00842052337651156,
+          "nose_right_deg": 0.00003579357719497395,
+          "pitch_rate_nose_down_deg_s": 0.7858789888513577,
+          "pitch_rate_nose_right_deg_s": 0.003367014166122789,
+          "speed_m_s": 51.93936685844086,
+          "time_s": 0.46665622535268475
         },
         "moved": {
-          "apogee_m": -1.0252526396939174,
-          "landing_east_m": 9.986978898126608,
-          "landing_north_m": -9.429501330353446,
-          "landing_range_m": 13.735180326941418
+          "apogee_m": -1.025228323110241,
+          "landing_east_m": 9.986983444446764,
+          "landing_north_m": -9.429505804039309,
+          "landing_range_m": 13.735186703971408
         }
       },
       "wind": "still"
@@ -1754,17 +1754,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.012247755467878714,
+          "angle_deg": 0.012247740222157504,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.051391295118419146,
+          "apogee_move_percent_of_apogee": 0.05139141186318298,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.7713546539580138,
+          "landing_move_percent_of_apogee": 0.7713511181907658,
           "past": [
             "pitch_rate",
             "angle"
           ],
-          "pitch_rate_bar_deg_s": 0.13236920139556316,
-          "pitch_rate_deg_s": 1.141310851705256
+          "pitch_rate_bar_deg_s": 0.13236929124735272,
+          "pitch_rate_deg_s": 1.1413101349820194
         },
         "guided": {
           "apogee_agl_m": 3121.937521638308,
@@ -1813,14 +1813,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 6.069002315128765e-6,
+          "angle_deg": 6.084586424504914e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0007217909747463397,
+          "apogee_move_percent_of_apogee": 0.0007216752522628672,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.005448343647491362,
+          "landing_move_percent_of_apogee": 0.005451704552841025,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.13236920139556316,
-          "pitch_rate_deg_s": 0.0010698631776185766
+          "pitch_rate_bar_deg_s": 0.13236929124735272,
+          "pitch_rate_deg_s": 0.001070685538678087
         },
         "guided": {
           "apogee_agl_m": 3116.187148294092,
@@ -1866,20 +1866,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3115.8032758512854,
+        "guided_apogee_agl_m": 3115.8032147298923,
         "last_guide_leaves": {
-          "nose_down_deg": 0.00842158619921837,
-          "nose_right_deg": 0.011327801761426556,
-          "pitch_rate_nose_down_deg_s": 0.7859218230051036,
-          "pitch_rate_nose_right_deg_s": 1.0651232022326105,
-          "speed_m_s": 51.93457024074067,
-          "time_s": 0.4666986667219909
+          "nose_down_deg": 0.008421597712832801,
+          "nose_right_deg": 0.011327817011750816,
+          "pitch_rate_nose_down_deg_s": 0.7859223644664967,
+          "pitch_rate_nose_right_deg_s": 1.0651239193464956,
+          "speed_m_s": 51.934570238426495,
+          "time_s": 0.46669866669976656
         },
         "moved": {
-          "apogee_m": 0.4633748569704039,
-          "landing_east_m": -2.238406281392372,
-          "landing_north_m": -22.499573088794648,
-          "landing_range_m": 1.0416292305592378
+          "apogee_m": 0.463371250844375,
+          "landing_east_m": -2.238477616715727,
+          "landing_north_m": -22.499657668846368,
+          "landing_range_m": 1.04157031102568
         }
       },
       "wind": "crosswind"
@@ -1889,14 +1889,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.8649732912473792e-6,
+          "angle_deg": 2.8788954952950897e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00021262057067600066,
+          "apogee_move_percent_of_apogee": 0.0002224860346463352,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0038435214196188257,
+          "landing_move_percent_of_apogee": 0.0038411831373674405,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00014792102933555473
+          "pitch_rate_deg_s": 0.00014866649226496015
         },
         "guided": {
           "apogee_agl_m": 3265.8593086844367,
@@ -1945,14 +1945,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.8646205551829017e-6,
+          "angle_deg": 2.878542759155203e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.000029592330519280318,
+          "apogee_move_percent_of_apogee": 0.000019726914727967468,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0020259569923321208,
+          "landing_move_percent_of_apogee": 0.0020236183560993493,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0001478703393434483
+          "pitch_rate_deg_s": 0.00014861580222241689
         },
         "guided": {
           "apogee_agl_m": 3265.7078851756064,
@@ -1998,20 +1998,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3265.1510769007054,
+        "guided_apogee_agl_m": 3265.1504274235203,
         "last_guide_leaves": {
-          "nose_down_deg": 0.005499279676462124,
-          "nose_right_deg": 0.00002237001869458519,
-          "pitch_rate_nose_down_deg_s": 0.6035994191433918,
-          "pitch_rate_nose_right_deg_s": 0.0024710924825083074,
-          "speed_m_s": 49.42887202956106,
-          "time_s": 0.48605818776891707
+          "nose_down_deg": 0.005499293598856862,
+          "nose_right_deg": 0.00002237007465644481,
+          "pitch_rate_nose_down_deg_s": 0.6036001646736979,
+          "pitch_rate_nose_right_deg_s": 0.0024710954779730444,
+          "speed_m_s": 49.42887198636298,
+          "time_s": 0.48605818734173983
         },
         "moved": {
-          "apogee_m": -1.2032993467505548,
-          "landing_east_m": 7.530316886775495,
-          "landing_north_m": -7.093051310408384,
-          "landing_range_m": 10.344893522740449
+          "apogee_m": -1.2029772258924822,
+          "landing_east_m": 7.530372192599202,
+          "landing_north_m": -7.093103980717672,
+          "landing_range_m": 10.344969895520421
         }
       },
       "wind": "still"
@@ -2021,17 +2021,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.007083411517687369,
+          "angle_deg": 0.00708341165960201,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.04887926067926538,
+          "apogee_move_percent_of_apogee": 0.04886425905993175,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.5785497546936313,
+          "landing_move_percent_of_apogee": 0.5785381160857319,
           "past": [
             "pitch_rate",
             "angle"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.7768785700410128
+          "pitch_rate_deg_s": 0.7768785780469554
         },
         "guided": {
           "apogee_agl_m": 3227.513902676992,
@@ -2080,14 +2080,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 3.1463908108117853e-6,
+          "angle_deg": 3.1462266967817368e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0005485670742321577,
+          "apogee_move_percent_of_apogee": 0.0005635693939649911,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.004692004662637684,
+          "landing_move_percent_of_apogee": 0.004703661499287827,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0005545320307612581
+          "pitch_rate_deg_s": 0.0005545224990193918
         },
         "guided": {
           "apogee_agl_m": 3218.688233011488,
@@ -2133,20 +2133,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3218.6808936761236,
+        "guided_apogee_agl_m": 3218.680848066968,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0054999120278218985,
-          "nose_right_deg": 0.00676334497538644,
-          "pitch_rate_nose_down_deg_s": 0.6036309795602733,
-          "pitch_rate_nose_right_deg_s": 0.746841447495764,
-          "speed_m_s": 49.425115381734976,
-          "time_s": 0.4860946292388229
+          "nose_down_deg": 0.005499911913729835,
+          "nose_right_deg": 0.006763344833438681,
+          "pitch_rate_nose_down_deg_s": 0.6036309732710187,
+          "pitch_rate_nose_right_deg_s": 0.7468414394869457,
+          "speed_m_s": 49.42511535675296,
+          "time_s": 0.48609462899246614
         },
         "moved": {
-          "apogee_m": 0.324400234786026,
-          "landing_east_m": -1.0712686107836475,
-          "landing_north_m": -16.715076779905303,
-          "landing_range_m": 16.743002550816982
+          "apogee_m": 0.32488311132783565,
+          "landing_east_m": -1.0714801994127754,
+          "landing_north_m": -16.715387397077166,
+          "landing_range_m": 16.74333121173072
         }
       },
       "wind": "crosswind"
@@ -2156,14 +2156,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000024967445161494045,
+          "angle_deg": 0.000024988044780033385,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00007346006051834887,
+          "apogee_move_percent_of_apogee": 0.00007888112064529666,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0026357255660332877,
+          "landing_move_percent_of_apogee": 0.0026344889794707167,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.11816398939252915,
-          "pitch_rate_deg_s": 0.0009382390871561717
+          "pitch_rate_bar_deg_s": 0.11816411499168056,
+          "pitch_rate_deg_s": 0.0009369830961939735
         },
         "guided": {
           "apogee_agl_m": 3804.0439375872975,
@@ -2212,14 +2212,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000024969001475702208,
+          "angle_deg": 0.000024989601094244435,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00009012012878170139,
+          "apogee_move_percent_of_apogee": 0.00008469907538907704,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0021426559215160412,
+          "landing_move_percent_of_apogee": 0.0021414193252892477,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.11816398939252915,
-          "pitch_rate_deg_s": 0.0009383610095731592
+          "pitch_rate_bar_deg_s": 0.11816411499168056,
+          "pitch_rate_deg_s": 0.000937105018610852
         },
         "guided": {
           "apogee_agl_m": 3803.96948476383,
@@ -2265,20 +2265,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3803.1037282810917,
+        "guided_apogee_agl_m": 3803.1035717136638,
         "last_guide_leaves": {
-          "nose_down_deg": 0.01623920249770231,
-          "nose_right_deg": 0.00006892941354454385,
-          "pitch_rate_nose_down_deg_s": 1.1816290137042813,
-          "pitch_rate_nose_right_deg_s": 0.005070787712100489,
-          "speed_m_s": 52.500291460776644,
-          "time_s": 0.4813622700890946
+          "nose_down_deg": 0.01623918189767024,
+          "nose_right_deg": 0.00006892945686290347,
+          "pitch_rate_nose_down_deg_s": 1.181630269686154,
+          "pitch_rate_nose_right_deg_s": 0.0050707926537770995,
+          "speed_m_s": 52.500291224894774,
+          "time_s": 0.48136227043204133
         },
         "moved": {
-          "apogee_m": -2.5768195981463577,
-          "landing_east_m": 14.023296726346302,
-          "landing_north_m": -13.212067624692565,
-          "landing_range_m": 19.266823979555284
+          "apogee_m": -2.5766134297300596,
+          "landing_east_m": 14.023330920254011,
+          "landing_north_m": -13.21209991879141,
+          "landing_range_m": 19.26687101285995
         }
       },
       "wind": "still"
@@ -2288,17 +2288,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.012183561980802496,
+          "angle_deg": 0.012183562040909745,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.04507270574434738,
+          "apogee_move_percent_of_apogee": 0.04505777240263807,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.48493308454117307,
+          "landing_move_percent_of_apogee": 0.4849165406716195,
           "past": [
             "pitch_rate",
             "angle"
           ],
-          "pitch_rate_bar_deg_s": 0.14954746641052813,
-          "pitch_rate_deg_s": 0.8845457504750565
+          "pitch_rate_bar_deg_s": 0.14954746604464153,
+          "pitch_rate_deg_s": 0.884545752762538
         },
         "guided": {
           "apogee_agl_m": 3761.5767217085836,
@@ -2347,14 +2347,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000032751780294377145,
+          "angle_deg": 0.000032751871273942525,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0002975568938722088,
+          "apogee_move_percent_of_apogee": 0.00031249324840145853,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.004120119401991175,
+          "landing_move_percent_of_apogee": 0.004134593076738443,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.14954746641052813,
-          "pitch_rate_deg_s": 0.0010943686099825383
+          "pitch_rate_bar_deg_s": 0.14954746604464153,
+          "pitch_rate_deg_s": 0.0010943706819659786
         },
         "guided": {
           "apogee_agl_m": 3758.3673389429046,
@@ -2400,20 +2400,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3758.2177796329884,
+        "guided_apogee_agl_m": 3758.2175300679196,
         "last_guide_leaves": {
-          "nose_down_deg": 0.016241104977237904,
-          "nose_right_deg": 0.012466018994445993,
-          "pitch_rate_nose_down_deg_s": 1.1816710448345,
-          "pitch_rate_nose_right_deg_s": 0.9165686077869699,
-          "speed_m_s": 52.49700963085011,
-          "time_s": 0.48139499230987215
+          "nose_down_deg": 0.01624110489998461,
+          "nose_right_deg": 0.012466018934512811,
+          "pitch_rate_nose_down_deg_s": 1.1816710419764316,
+          "pitch_rate_nose_right_deg_s": 0.9165686055018771,
+          "speed_m_s": 52.49700962296522,
+          "time_s": 0.48139499224415816
         },
         "moved": {
-          "apogee_m": -0.7050930092109411,
-          "landing_east_m": 4.321531545702783,
-          "landing_north_m": -23.789539034210975,
-          "landing_range_m": 17.634032469115482
+          "apogee_m": -0.7045316692592678,
+          "landing_east_m": 4.321157217691962,
+          "landing_north_m": -23.79003764834897,
+          "landing_range_m": 17.63465439924221
         }
       },
       "wind": "crosswind"
@@ -2423,14 +2423,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.3988743340604427e-7,
+          "angle_deg": 2.4206012093169325e-7,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.000017419721542495803,
+          "apogee_move_percent_of_apogee": 0.000018724004823957168,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0022460693396828867,
+          "landing_move_percent_of_apogee": 0.0022445634716435764,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00002401969514747981
+          "pitch_rate_deg_s": 0.00002428441155293307
         },
         "guided": {
           "apogee_agl_m": 3448.0724906254804,
@@ -2479,14 +2479,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.400004786547355e-7,
+          "angle_deg": 2.421731661826577e-7,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 9.54654579776233e-6,
+          "apogee_move_percent_of_apogee": 8.242261839986096e-6,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.00018537874533756016,
+          "landing_move_percent_of_apogee": 0.00018387295650641,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.000024023405262839224
+          "pitch_rate_deg_s": 0.000024288121674239147
         },
         "guided": {
           "apogee_agl_m": 3448.014011971812,
@@ -2532,20 +2532,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3447.537180514354,
+        "guided_apogee_agl_m": 3447.537266978702,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0004673827762785978,
-          "nose_right_deg": 1.91764541653059e-6,
-          "pitch_rate_nose_down_deg_s": 0.11389995706544442,
-          "pitch_rate_nose_right_deg_s": 0.0004685463226891258,
-          "speed_m_s": 49.17476626336447,
-          "time_s": 0.47973052257674426
+          "nose_down_deg": 0.00046738494895366743,
+          "nose_right_deg": 1.9176542747729474e-6,
+          "pitch_rate_nose_down_deg_s": 0.11390022179862677,
+          "pitch_rate_nose_right_deg_s": 0.00046854740196008933,
+          "speed_m_s": 49.174766262970756,
+          "time_s": 0.47973052257226473
         },
         "moved": {
-          "apogee_m": -0.2044774740761568,
-          "landing_east_m": 2.1586787853756277,
-          "landing_north_m": -2.0389976864470327,
-          "landing_range_m": 2.9694094398435027
+          "apogee_m": -0.2044325084088996,
+          "landing_east_m": 2.158716435592396,
+          "landing_north_m": -2.0390334287048972,
+          "landing_range_m": 2.9694613536501038
         }
       },
       "wind": "still"
@@ -2555,16 +2555,16 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.0007059146948227694,
+          "angle_deg": 0.0007059146998683724,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.009123340295485904,
+          "apogee_move_percent_of_apogee": 0.009120894779505055,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.11217799076981912,
+          "landing_move_percent_of_apogee": 0.11217855448737682,
           "past": [
             "pitch_rate"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.17200676636334722
+          "pitch_rate_deg_s": 0.1720067669709231
         },
         "guided": {
           "apogee_agl_m": 3397.4599666940308,
@@ -2613,14 +2613,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 1.5717855927605454e-7,
+          "angle_deg": 1.5718375314789684e-7,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00015968252720958439,
+          "apogee_move_percent_of_apogee": 0.0001572368912355497,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0006559065128141109,
+          "landing_move_percent_of_apogee": 0.0006565534025666254,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.000054634932666117133
+          "pitch_rate_deg_s": 0.000054635546684643444
         },
         "guided": {
           "apogee_agl_m": 3392.7281020017385,
@@ -2666,20 +2666,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3392.9161717585434,
+        "guided_apogee_agl_m": 3392.9161263388246,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0004674357000246799,
-          "nose_right_deg": -0.0013304888280484995,
-          "pitch_rate_nose_down_deg_s": 0.11390431497210503,
-          "pitch_rate_nose_right_deg_s": -0.3251107389972682,
-          "speed_m_s": 49.1716663648125,
-          "time_s": 0.47976145930299546
+          "nose_down_deg": 0.0004674357018208982,
+          "nose_right_deg": -0.0013304888330940518,
+          "pitch_rate_nose_down_deg_s": 0.11390431519082769,
+          "pitch_rate_nose_right_deg_s": -0.3251107396048419,
+          "speed_m_s": 49.171666362936755,
+          "time_s": 0.47976145928529595
         },
         "moved": {
-          "apogee_m": -0.8281344766623988,
-          "landing_east_m": 7.241156645154433,
-          "landing_north_m": 4.034874334408926,
-          "landing_range_m": 6.844048347052649
+          "apogee_m": -0.8280514982125169,
+          "landing_east_m": 7.2411906161573825,
+          "landing_north_m": 4.034871478259134,
+          "landing_range_m": 6.844082435319933
         }
       },
       "wind": "crosswind"
@@ -2689,14 +2689,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.0967804238416892e-6,
+          "angle_deg": 2.098486164675657e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 6.478362070779131e-6,
+          "apogee_move_percent_of_apogee": 0.000020254970913747362,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.001469143321770341,
+          "landing_move_percent_of_apogee": 0.0014698291713410355,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0001335758113089247
+          "pitch_rate_deg_s": 0.00013366377024050951
         },
         "guided": {
           "apogee_agl_m": 3055.711907450015,
@@ -2745,14 +2745,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.096763231741864e-6,
+          "angle_deg": 2.0984689725755796e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.000010605287739110615,
+          "apogee_move_percent_of_apogee": 3.1713215008197476e-6,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.001528582412582169,
+          "landing_move_percent_of_apogee": 0.0015292682603664821,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.0001335722020168989
+          "pitch_rate_deg_s": 0.0001336601609479161
         },
         "guided": {
           "apogee_agl_m": 3055.6913967686564,
@@ -2798,20 +2798,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3054.830476642557,
+        "guided_apogee_agl_m": 3054.830547625752,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0037791740695871483,
-          "nose_right_deg": 0.000014322119307882251,
-          "pitch_rate_nose_down_deg_s": 0.48786886538961327,
-          "pitch_rate_nose_right_deg_s": 0.001859154575403027,
-          "speed_m_s": 45.90645646288953,
-          "time_s": 0.5115404438795529
+          "nose_down_deg": 0.003779175775330554,
+          "nose_right_deg": 0.000014322116686707623,
+          "pitch_rate_nose_down_deg_s": 0.4878689533583305,
+          "pitch_rate_nose_right_deg_s": 0.001859154899445641,
+          "speed_m_s": 45.90645646334517,
+          "time_s": 0.5115404438826625
         },
         "moved": {
-          "apogee_m": -0.5830527881107628,
-          "landing_east_m": 3.403092094207068,
-          "landing_north_m": -3.20332190703283,
-          "landing_range_m": 4.67357007912608
+          "apogee_m": -0.5826319360508023,
+          "landing_east_m": 3.4031072132537474,
+          "landing_north_m": -3.2033364133531563,
+          "landing_range_m": 4.673591031224532
         }
       },
       "wind": "still"
@@ -2821,16 +2821,16 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.0018732836154007507,
+          "angle_deg": 0.0018733485095311316,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.011556020646531419,
+          "apogee_move_percent_of_apogee": 0.011553499385667984,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.07534509078493695,
+          "landing_move_percent_of_apogee": 0.07531822474845348,
           "past": [
             "pitch_rate"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.24178592346531086
+          "pitch_rate_deg_s": 0.24179011794299646
         },
         "guided": {
           "apogee_agl_m": 2989.37207922271,
@@ -2879,14 +2879,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 6.342371800176789e-7,
+          "angle_deg": 6.816858598523811e-7,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0002068371028302561,
+          "apogee_move_percent_of_apogee": 0.00020431549424327822,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.001768081954478337,
+          "landing_move_percent_of_apogee": 0.0017661700311577583,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00013720479978322693
+          "pitch_rate_deg_s": 0.00014147516352135727
         },
         "guided": {
           "apogee_agl_m": 2989.040869232491,
@@ -2932,20 +2932,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2988.808157616959,
+        "guided_apogee_agl_m": 2988.808066043946,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0037796947854493567,
-          "nose_right_deg": -0.005426822639316242,
-          "pitch_rate_nose_down_deg_s": 0.48788656445470513,
-          "pitch_rate_nose_right_deg_s": -0.7041083170703767,
-          "speed_m_s": 45.902368761221574,
-          "time_s": 0.5115886256588784
+          "nose_down_deg": 0.0037797404644573157,
+          "nose_right_deg": -0.005426887535457622,
+          "pitch_rate_nose_down_deg_s": 0.4878895172554651,
+          "pitch_rate_nose_right_deg_s": -0.7041125113084741,
+          "speed_m_s": 45.90236870574721,
+          "time_s": 0.5115886250760675
         },
         "moved": {
-          "apogee_m": -1.5819658987115872,
-          "landing_east_m": 7.596470426457074,
-          "landing_north_m": 2.148850673020206,
-          "landing_range_m": -3.643590057556139
+          "apogee_m": -1.5818905324813386,
+          "landing_east_m": 7.595896349066891,
+          "landing_north_m": 2.1482802833481855,
+          "landing_range_m": -3.6429136433227995
         }
       },
       "wind": "crosswind"
@@ -2955,14 +2955,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.736474357316432e-6,
+          "angle_deg": 2.7364425672484234e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.00023270439106014618,
+          "apogee_move_percent_of_apogee": 0.0002351680789883377,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.016651213933568994,
+          "landing_move_percent_of_apogee": 0.01664978513198355,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00016779057322173057
+          "pitch_rate_deg_s": 0.00016778885948669838
         },
         "guided": {
           "apogee_agl_m": 2815.135474170577,
@@ -3011,14 +3011,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 2.7363994769573484e-6,
+          "angle_deg": 2.736367686889378e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 1.066776415434438e-6,
+          "apogee_move_percent_of_apogee": 1.39689702880495e-6,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.001066043917370182,
+          "landing_move_percent_of_apogee": 0.0010646140296264543,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00016777287014037927
+          "pitch_rate_deg_s": 0.00016777115640537462
         },
         "guided": {
           "apogee_agl_m": 2814.999172955386,
@@ -3064,20 +3064,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2814.5580306091942,
+        "guided_apogee_agl_m": 2814.5578562253227,
         "last_guide_leaves": {
-          "nose_down_deg": 0.004976945971308223,
-          "nose_right_deg": 0.000018308556353569952,
-          "pitch_rate_nose_down_deg_s": 0.6239924543435212,
-          "pitch_rate_nose_right_deg_s": 0.0023082230619590896,
-          "speed_m_s": 44.56835232309483,
-          "time_s": 0.551867316400471
+          "nose_down_deg": 0.004976945939517784,
+          "nose_right_deg": 0.000018308556232708874,
+          "pitch_rate_nose_down_deg_s": 0.6239924526296668,
+          "pitch_rate_nose_right_deg_s": 0.00230822305544586,
+          "speed_m_s": 44.56835231855703,
+          "time_s": 0.5518673163505551
         },
         "moved": {
-          "apogee_m": -0.982107088567318,
-          "landing_east_m": 9.496072725298063,
-          "landing_north_m": -8.9552597270648,
-          "landing_range_m": 13.052660984073668
+          "apogee_m": -0.9820377470509811,
+          "landing_east_m": 9.496101210701,
+          "landing_north_m": -8.955288168824723,
+          "landing_range_m": 13.052701222205997
         }
       },
       "wind": "still"
@@ -3087,17 +3087,17 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00802128454675368,
+          "angle_deg": 0.008021284684026018,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0645040246945862,
+          "apogee_move_percent_of_apogee": 0.06450376526058862,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.889312472896357,
+          "landing_move_percent_of_apogee": 0.8893124195365276,
           "past": [
             "pitch_rate",
             "angle"
           ],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 1.0048514617358206
+          "pitch_rate_deg_s": 1.004851470516645
         },
         "guided": {
           "apogee_agl_m": 2773.3834421802,
@@ -3146,14 +3146,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 1.2924209922226007e-6,
+          "angle_deg": 1.2923548159608746e-6,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0003197942136423769,
+          "apogee_move_percent_of_apogee": 0.0003200530125905866,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0035046892217417743,
+          "landing_move_percent_of_apogee": 0.003504769191539276,
           "past": [],
           "pitch_rate_bar_deg_s": 0.1,
-          "pitch_rate_deg_s": 0.00033504372283599205
+          "pitch_rate_deg_s": 0.0003350289486987655
         },
         "guided": {
           "apogee_agl_m": 2764.8367634606716,
@@ -3199,20 +3199,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 2764.785229710403,
+        "guided_apogee_agl_m": 2764.7852567957425,
         "last_guide_leaves": {
-          "nose_down_deg": 0.0049780353973112226,
-          "nose_right_deg": 0.002679104037839421,
-          "pitch_rate_nose_down_deg_s": 0.6240427812093122,
-          "pitch_rate_nose_right_deg_s": 0.3375550365538277,
-          "speed_m_s": 44.56281926143872,
-          "time_s": 0.5519438047480895
+          "nose_down_deg": 0.00497803514414861,
+          "nose_right_deg": 0.0026791039005551517,
+          "pitch_rate_nose_down_deg_s": 0.6240427652899597,
+          "pitch_rate_nose_right_deg_s": 0.3375550277691324,
+          "speed_m_s": 44.562819218419854,
+          "time_s": 0.5519438042747762
         },
         "moved": {
-          "apogee_m": -0.3577477033777541,
-          "landing_east_m": 4.475217043678867,
-          "landing_north_m": -13.537379991986313,
-          "landing_range_m": 5.892675962046269
+          "apogee_m": -0.3577405480559719,
+          "landing_east_m": 4.4752178964379254,
+          "landing_north_m": -13.537382268692411,
+          "landing_range_m": 5.892677072994047
         }
       },
       "wind": "crosswind"
@@ -3222,14 +3222,14 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00001618676925610546,
+          "angle_deg": 0.000016477662095644767,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.004290294421131427,
+          "apogee_move_percent_of_apogee": 0.004284279353175081,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.0185551732265856,
+          "landing_move_percent_of_apogee": 0.01854147060431617,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.14894120059330573,
-          "pitch_rate_deg_s": 0.0008985764218432448
+          "pitch_rate_bar_deg_s": 0.14894311650601513,
+          "pitch_rate_deg_s": 0.000917735544601851
         },
         "guided": {
           "apogee_agl_m": 3807.0858935619945,
@@ -3278,14 +3278,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.00001618551743747789,
+          "angle_deg": 0.000016476410277014876,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.000758941383602844,
+          "apogee_move_percent_of_apogee": 0.0007649561965408633,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.002130195234939761,
+          "landing_move_percent_of_apogee": 0.0021438968086530496,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.14894120059330573,
-          "pitch_rate_deg_s": 0.0008983511514285205
+          "pitch_rate_bar_deg_s": 0.14894311650601513,
+          "pitch_rate_deg_s": 0.0009175102741849454
         },
         "guided": {
           "apogee_agl_m": 3806.878461450603,
@@ -3331,20 +3331,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3806.586820350415,
+        "guided_apogee_agl_m": 3806.5870126071222,
         "last_guide_leaves": {
-          "nose_down_deg": 0.013379871831425489,
-          "nose_right_deg": -3.6291521875202737e-6,
-          "pitch_rate_nose_down_deg_s": 1.4894119502417569,
-          "pitch_rate_nose_right_deg_s": -0.0004073015836808521,
-          "speed_m_s": 27.361467718859373,
-          "time_s": 0.4009725655271472
+          "nose_down_deg": 0.013380162724269637,
+          "nose_right_deg": -3.6292300089346504e-6,
+          "pitch_rate_nose_down_deg_s": 1.4894311093681867,
+          "pitch_rate_nose_right_deg_s": -0.0004073066320687991,
+          "speed_m_s": 27.361467457863107,
+          "time_s": 0.4009725655649011
         },
         "moved": {
-          "apogee_m": -13.116780281282445,
-          "landing_east_m": 52.12538200749418,
-          "landing_north_m": 13.91282915783978,
-          "landing_range_m": 53.950148582066504
+          "apogee_m": -13.117009241829692,
+          "landing_east_m": 52.12588592016732,
+          "landing_north_m": 13.912963707876088,
+          "landing_range_m": 53.950670148381505
         }
       },
       "wind": "still"
@@ -3354,18 +3354,18 @@
       "own_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.005812557481643808,
+          "angle_deg": 0.005812538492711245,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.04785201621903275,
+          "apogee_move_percent_of_apogee": 0.047837092062155695,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 1.0246758478882805,
+          "landing_move_percent_of_apogee": 1.024660221383381,
           "past": [
             "pitch_rate",
             "angle",
             "landing_move"
           ],
-          "pitch_rate_bar_deg_s": 0.1584630869317324,
-          "pitch_rate_deg_s": 0.6471823873965548
+          "pitch_rate_bar_deg_s": 0.15846335141301796,
+          "pitch_rate_deg_s": 0.6471815029405562
         },
         "guided": {
           "apogee_agl_m": 3755.2821324423703,
@@ -3414,14 +3414,14 @@
       "recorded_normal_force": {
         "differences": {
           "angle_bar_deg": 0.005,
-          "angle_deg": 0.000016612509362124334,
+          "angle_deg": 0.00001666806699372847,
           "apogee_move_bar_percent_of_apogee": 0.2,
-          "apogee_move_percent_of_apogee": 0.0011298221515924087,
+          "apogee_move_percent_of_apogee": 0.0011148923466556887,
           "landing_move_bar_percent_of_apogee": 1.0,
-          "landing_move_percent_of_apogee": 0.021381625637324052,
+          "landing_move_percent_of_apogee": 0.021393999451075743,
           "past": [],
-          "pitch_rate_bar_deg_s": 0.1584630869317324,
-          "pitch_rate_deg_s": 0.0012836977688062074
+          "pitch_rate_bar_deg_s": 0.15846335141301796,
+          "pitch_rate_deg_s": 0.0012863420791435454
         },
         "guided": {
           "apogee_agl_m": 3715.5748563426414,
@@ -3467,20 +3467,20 @@
         }
       },
       "rocketpy": {
-        "guided_apogee_agl_m": 3714.7821285485497,
+        "guided_apogee_agl_m": 3714.7816794834107,
         "last_guide_leaves": {
-          "nose_down_deg": 0.013382405813611413,
-          "nose_right_deg": 0.00482257555046919,
-          "pitch_rate_nose_down_deg_s": 1.4894991046594281,
-          "pitch_rate_nose_right_deg_s": 0.5407840689333768,
-          "speed_m_s": 27.35866009497216,
-          "time_s": 0.40101816851732025
+          "nose_down_deg": 0.013382458053181848,
+          "nose_right_deg": 0.00482259470313821,
+          "pitch_rate_nose_down_deg_s": 1.489501595092788,
+          "pitch_rate_nose_right_deg_s": 0.5407849594067892,
+          "speed_m_s": 27.35865994730246,
+          "time_s": 0.4010181685531549
         },
         "moved": {
-          "apogee_m": -9.25527230199441,
-          "landing_east_m": 57.86135624969256,
-          "landing_north_m": -5.682547177782112,
-          "landing_range_m": 57.93281857060947
+          "apogee_m": -9.2547176872622,
+          "landing_east_m": 57.86170524521708,
+          "landing_north_m": -5.683024297930615,
+          "landing_range_m": 57.93324887952235
         }
       },
       "wind": "crosswind"
@@ -3524,25 +3524,25 @@
       },
       "largest": {
         "angle": {
-          "apart": 0.06713654566014528,
+          "apart": 0.06713654488269842,
           "bar": 0.005,
           "case": "bella-lui",
           "wind": "crosswind"
         },
         "apogee_move": {
-          "apart": 0.37926708847688967,
+          "apart": 0.3792726725563463,
           "bar": 0.2,
           "case": "bella-lui",
           "wind": "crosswind"
         },
         "landing_move": {
-          "apart": 4.081870909266917,
+          "apart": 4.0818725098713236,
           "bar": 1.0,
           "case": "valetudo",
           "wind": "crosswind"
         },
         "pitch_rate": {
-          "apart": 4.009834344520717,
+          "apart": 4.009834320912897,
           "bar": 0.1,
           "case": "bella-lui",
           "wind": "crosswind"
@@ -3551,61 +3551,61 @@
       "past": {
         "angle": [
           {
-            "apart": 0.00784682181955572,
+            "apart": 0.007846819687925822,
             "bar": 0.005,
             "case": "calisto-getting-started-motor-at-minus-1.255",
             "wind": "crosswind"
           },
           {
-            "apart": 0.006140746475508848,
+            "apart": 0.006140744120232472,
             "bar": 0.005,
             "case": "calisto-tests-motor-at-minus-1.373",
             "wind": "crosswind"
           },
           {
-            "apart": 0.06713654566014528,
+            "apart": 0.06713654488269842,
             "bar": 0.005,
             "case": "bella-lui",
             "wind": "crosswind"
           },
           {
-            "apart": 0.05172563280498906,
-            "bar": 0.005902868397096936,
+            "apart": 0.05172563071896899,
+            "bar": 0.005902869095962825,
             "case": "valetudo",
             "wind": "crosswind"
           },
           {
-            "apart": 0.04290258982734667,
-            "bar": 0.008313358007373447,
+            "apart": 0.04290258316534392,
+            "bar": 0.008313360255616983,
             "case": "juno-iii",
             "wind": "crosswind"
           },
           {
-            "apart": 0.012247755467878714,
+            "apart": 0.012247740222157504,
             "bar": 0.005,
             "case": "cavour",
             "wind": "crosswind"
           },
           {
-            "apart": 0.007083411517687369,
+            "apart": 0.00708341165960201,
             "bar": 0.005,
             "case": "genesis",
             "wind": "crosswind"
           },
           {
-            "apart": 0.012183561980802496,
+            "apart": 0.012183562040909745,
             "bar": 0.005,
             "case": "lince",
             "wind": "crosswind"
           },
           {
-            "apart": 0.00802128454675368,
+            "apart": 0.008021284684026018,
             "bar": 0.005,
             "case": "erebus-11",
             "wind": "crosswind"
           },
           {
-            "apart": 0.005812557481643808,
+            "apart": 0.005812538492711245,
             "bar": 0.005,
             "case": "prometheus-2022-generic-motor",
             "wind": "crosswind"
@@ -3613,19 +3613,19 @@
         ],
         "apogee_move": [
           {
-            "apart": 0.37926708847688967,
+            "apart": 0.3792726725563463,
             "bar": 0.2,
             "case": "bella-lui",
             "wind": "crosswind"
           },
           {
-            "apart": 0.29467619295034025,
+            "apart": 0.29467784060649804,
             "bar": 0.2,
             "case": "valetudo",
             "wind": "crosswind"
           },
           {
-            "apart": 0.3314393273900776,
+            "apart": 0.33143017825541066,
             "bar": 0.2,
             "case": "juno-iii",
             "wind": "crosswind"
@@ -3633,25 +3633,25 @@
         ],
         "landing_move": [
           {
-            "apart": 1.6777456648449527,
+            "apart": 1.6777457363027768,
             "bar": 1.0,
             "case": "bella-lui",
             "wind": "crosswind"
           },
           {
-            "apart": 4.081870909266917,
+            "apart": 4.0818725098713236,
             "bar": 1.0,
             "case": "valetudo",
             "wind": "crosswind"
           },
           {
-            "apart": 2.357330494866101,
+            "apart": 2.3573306844490114,
             "bar": 1.0,
             "case": "juno-iii",
             "wind": "crosswind"
           },
           {
-            "apart": 1.0246758478882805,
+            "apart": 1.024660221383381,
             "bar": 1.0,
             "case": "prometheus-2022-generic-motor",
             "wind": "crosswind"
@@ -3659,80 +3659,80 @@
         ],
         "pitch_rate": [
           {
-            "apart": 0.6713267955237462,
+            "apart": 0.6713267034773407,
             "bar": 0.1,
             "case": "calisto-getting-started-motor-at-minus-1.255",
             "wind": "crosswind"
           },
           {
-            "apart": 0.5179067216243352,
+            "apart": 0.5179066212586191,
             "bar": 0.1,
             "case": "calisto-tests-motor-at-minus-1.373",
             "wind": "crosswind"
           },
           {
-            "apart": 4.009834344520717,
+            "apart": 4.009834320912897,
             "bar": 0.1,
             "case": "bella-lui",
             "wind": "crosswind"
           },
           {
-            "apart": 0.1365657594064893,
+            "apart": 0.1365658073416959,
             "bar": 0.1,
             "case": "ndrt-2020-nose-to-tail",
             "wind": "crosswind"
           },
           {
-            "apart": 1.9265935110040981,
-            "bar": 0.220140127508953,
+            "apart": 1.9265934710505195,
+            "bar": 0.2201401408942418,
             "case": "valetudo",
             "wind": "crosswind"
           },
           {
-            "apart": 1.2273836509741851,
-            "bar": 0.23821393845485273,
+            "apart": 1.2273835525581123,
+            "bar": 0.2382139719700995,
             "case": "juno-iii",
             "wind": "crosswind"
           },
           {
-            "apart": 1.141310851705256,
-            "bar": 0.13236920139556316,
+            "apart": 1.1413101349820194,
+            "bar": 0.13236929124735272,
             "case": "cavour",
             "wind": "crosswind"
           },
           {
-            "apart": 0.7768785700410128,
+            "apart": 0.7768785780469554,
             "bar": 0.1,
             "case": "genesis",
             "wind": "crosswind"
           },
           {
-            "apart": 0.8845457504750565,
-            "bar": 0.14954746641052813,
+            "apart": 0.884545752762538,
+            "bar": 0.14954746604464153,
             "case": "lince",
             "wind": "crosswind"
           },
           {
-            "apart": 0.17200676636334722,
+            "apart": 0.1720067669709231,
             "bar": 0.1,
             "case": "astra",
             "wind": "crosswind"
           },
           {
-            "apart": 0.24178592346531086,
+            "apart": 0.24179011794299646,
             "bar": 0.1,
             "case": "andromeda",
             "wind": "crosswind"
           },
           {
-            "apart": 1.0048514617358206,
+            "apart": 1.004851470516645,
             "bar": 0.1,
             "case": "erebus-11",
             "wind": "crosswind"
           },
           {
-            "apart": 0.6471823873965548,
-            "bar": 0.1584630869317324,
+            "apart": 0.6471815029405562,
+            "bar": 0.15846335141301796,
             "case": "prometheus-2022-generic-motor",
             "wind": "crosswind"
           }
@@ -3759,26 +3759,26 @@
       },
       "largest": {
         "angle": {
-          "apart": 0.00012420878885177432,
-          "bar": 0.008313358007373447,
+          "apart": 0.0001242312726608026,
+          "bar": 0.008313360255616983,
           "case": "juno-iii",
           "wind": "crosswind"
         },
         "apogee_move": {
-          "apart": 0.001717374898513281,
+          "apart": 0.0017265621775698068,
           "bar": 0.2,
           "case": "juno-iii",
           "wind": "crosswind"
         },
         "landing_move": {
-          "apart": 0.029275712395402536,
+          "apart": 0.029275110388491107,
           "bar": 1.0,
           "case": "valetudo",
           "wind": "crosswind"
         },
         "pitch_rate": {
-          "apart": 0.002610700831421596,
-          "bar": 0.23821393845485273,
+          "apart": 0.0026110359567968287,
+          "bar": 0.2382139719700995,
           "case": "juno-iii",
           "wind": "crosswind"
         }
@@ -3801,9 +3801,9 @@
     }
   },
   "reference": {
-    "equations": "the pinned commit's with pull request #1196's sign correction (corrections.py, ADR-026)",
-    "oracle": "rocketpy develop at ebe1b775cd9270c93018dc6d7867313d6eed4e5c (pull request #920's merge)",
+    "equations": "as the pinned commit has them: it carries pull request #1196's sign correction (ADR-026), checked on its source, and #1188",
+    "oracle": "rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge)",
     "report": "validation/reports/tip-off.json",
-    "sha256": "af8467df095acab240ef3cb2e19c4fa5154cace5cb09abae79a073521f3daa78"
+    "sha256": "466ea7677e71afe0a582ea5a886f51c3b8fa1a364e7651938882b4e87cf5d556"
   }
 }

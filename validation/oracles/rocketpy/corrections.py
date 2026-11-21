@@ -14,9 +14,10 @@ only through the mass flow, so the error ends with the burn.
 
 Both are on RocketPy's record:
 
-- An outside contributor reported the sign in issue #1186 (open, 2026-08-25) and proposed the fix
-  in PR #1196 (open, not yet reviewed, head 927e771e1a7faa2915d1f96ff48a70c544db13b4,
-  2026-09-16): three edits to `u_dot_generalized` that negate `r_CM` and its derivatives, negate
+- An outside contributor reported the sign in issue #1186 (2026-08-25) and proposed the fix
+  in PR #1196 (head 927e771e1a7faa2915d1f96ff48a70c544db13b4, 2026-09-16, open and not yet
+  reviewed when it was adopted here; merged into `develop` on 2026-11-16 as `aee512f8`, in no
+  release): three edits to `u_dot_generalized` that negate `r_CM` and its derivatives, negate
   `r_NOZ`, and flip the sign of the `r_CM ^ w_dot` term in `v_dot`, which was written for the
   reversed vector. RocketPy's `develop` branch agrees on the convention: its tip-off phase (PR #920,
   merged 2026-09-14) says the generalized equations "store r_CM / r_NOZ as (point -> CDM) vectors,
@@ -97,13 +98,27 @@ SUBSTITUTIONS = [
 ]
 
 
+def upstream_carries_1196(source):
+    """Whether this `u_dot_generalized` source already has PR #1196's three edits: each corrected
+    form once and no released form. RocketPy merged the pull request into `develop` on
+    2026-11-16 (`aee512f8`), so a checkout past that needs no substitution. A source with some
+    of the edits and not others is neither, and `corrected_u_dot_generalized` stops on it."""
+    return all(
+        source.count(corrected) == 1 and source.count(released) == 0
+        for released, corrected in SUBSTITUTIONS
+    )
+
+
 def corrected_u_dot_generalized():
-    """RocketPy's own `u_dot_generalized`, recompiled with PR #1196's substitutions.
+    """RocketPy's own `u_dot_generalized`, recompiled with PR #1196's substitutions, or as it is
+    where the source already carries them (`upstream_carries_1196`).
 
     It is compiled inside a class named `Flight`, in `rocketpy.simulation.flight`'s globals, so
     its private names (`self.__post_processed_variables`) mangle as they do upstream.
     """
     source = inspect.getsource(Flight.u_dot_generalized)
+    if upstream_carries_1196(source):
+        return Flight.u_dot_generalized
     for released, corrected in SUBSTITUTIONS:
         found = source.count(released)
         if found != 1:

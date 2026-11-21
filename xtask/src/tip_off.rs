@@ -6,26 +6,29 @@
 //!   the rail: tip-off. This report measures what that pivot is worth, with RocketPy's own
 //!   tip-off phase, so the flight page can say what leaving it out costs.
 //! - **The oracle** is `validation/oracles/rocketpy/tip_off.py`: RocketPy's `develop` at the
-//!   merge of its pull request #920 (pinned in `validation/refs.lock.toml` as
-//!   `rocketpy-tip-off`), flying each example rocket with the phase off and on, in still air and
+//!   merge of its pull request #1217, which rewrote the phase #920 added (pinned in
+//!   `validation/refs.lock.toml` as `rocketpy-tip-off`; M1.14b13, ADR-363), flying each example
+//!   rocket with the phase off and on, in still air and
 //!   in a 20 mph crosswind, and a third time guided to where the lower button leaves, which is
 //!   HPR Sim's release to within half a button's length (HPR Sim waits for the button's aft
 //!   edge). Its docstring states what it declares.
 //! - **The bars** are the plan's: a tip-off model is called for when the phase moves any apogee
 //!   by more than 1%, or any landing point by more than 1% of the apogee
 //!   ([`APOGEE_BAR_PERCENT`], [`LANDING_BAR_PERCENT_OF_APOGEE`]).
-//! - **Two runs and a probe.** The first run flies the commit's equations with RocketPy's pull
-//!   request #1196, as every whole flight of the suite does; the second flies them as pinned,
-//!   to show the correction does not decide whether a model is called for. The report keeps
-//!   the first whole and the second's largest moves and reading. The probe flies, with its
-//!   parachute's lag, the one rocket and wind the runs fly without it, and the report keeps
-//!   that it had not finished in the probe's wall time.
+//! - **One run and a probe.** The run flies the commit's equations as they are: the commit
+//!   carries RocketPy's pull request #1196, which every whole flight of the suite flies. The
+//!   probe flies, with its parachute's lag, the one rocket and wind the run flies without it,
+//!   and the report keeps that it had not finished in the probe's wall time.
+//! - **The earlier pin.** The report first flew the merge of #920, with #1196 applied here.
+//!   That report is kept byte for byte ([`EARLIER`]), and this one says how far each flight's
+//!   figures moved between the two pins ([`since_the_earlier_pin`]).
 
 use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
 
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 pub const USAGE: &str = "\
   tip-off [--check|--page] Fly RocketPy's example rockets with its tip-off phase off and on
@@ -41,6 +44,18 @@ const REPORT: &str = "validation/reports/tip-off.json";
 const REPORT_MD: &str = "validation/reports/tip-off.md";
 /// The checkout's name in `validation/refs.lock.toml`.
 const LOCK_NAME: &str = "rocketpy-tip-off";
+
+/// The report as the earlier pin gave it: RocketPy's `develop` at the merge of its pull request
+/// #920 (`ebe1b775`), flown with pull request #1196's correction applied by the oracle. It is
+/// this repository's `validation/reports/tip-off.json` at [`EARLIER_COMMIT`], byte for byte
+/// ([`EARLIER_SHA256`]): `git show <commit>:validation/reports/tip-off.json` gives the same file.
+const EARLIER: &str = "validation/fixtures/flight/rocketpy-tip-off-at-pull-920.json";
+/// The last commit of this repository whose report flew the earlier pin as [`EARLIER`] has it.
+const EARLIER_COMMIT: &str = "ee9a5af6a175a850242f79bda3e272e27c6fe3d3";
+/// [`EARLIER`]'s SHA-256.
+const EARLIER_SHA256: &str = "af8467df095acab240ef3cb2e19c4fa5154cace5cb09abae79a073521f3daa78";
+/// The pull request that rewrote RocketPy's phase between the two pins.
+const REWRITE: &str = "https://github.com/RocketPy-Team/RocketPy/pull/1217";
 
 /// A tip-off model is called for when the phase moves any apogee by more than this, percent.
 const APOGEE_BAR_PERCENT: f64 = 1.0;
@@ -146,8 +161,250 @@ fn reading(flown: &Value) -> Result<Value, String> {
     }))
 }
 
-/// The report from the two runs' documents.
-fn report(flown: Value, as_pinned: &Value, lag_probe: &Value) -> Result<Value, String> {
+/// The largest difference between two documents' numbers, which must sit in the same places:
+/// an object's keys, a list's length and every value that is not a number have to be the same
+/// in both.
+fn largest_difference(a: &Value, b: &Value) -> Result<f64, String> {
+    match (a, b) {
+        (Value::Number(_), Value::Number(_)) => match (a.as_f64(), b.as_f64()) {
+            (Some(x), Some(y)) if x.is_finite() && y.is_finite() => Ok((x - y).abs()),
+            _ => Err(format!("{a} or {b} is not a finite number")),
+        },
+        (Value::Object(x), Value::Object(y)) => {
+            if x.len() != y.len() {
+                return Err(format!("{a} and {b} differ in their keys"));
+            }
+            x.iter().try_fold(0.0_f64, |largest, (key, value)| {
+                let other = y.get(key).ok_or_else(|| format!("no `{key}` in {b}"))?;
+                Ok(largest.max(largest_difference(value, other)?))
+            })
+        }
+        (Value::Array(x), Value::Array(y)) => {
+            if x.len() != y.len() {
+                return Err(format!("{a} and {b} differ in length"));
+            }
+            x.iter()
+                .zip(y)
+                .try_fold(0.0_f64, |largest, (value, other)| {
+                    Ok(largest.max(largest_difference(value, other)?))
+                })
+        }
+        _ if a == b => Ok(0.0),
+        _ => Err(format!("{a} is not {b}")),
+    }
+}
+
+/// The three flights of a rocket and wind, as the report names them and as the oracle keys them.
+const FLIGHTS: [(&str, &str); 3] = [
+    ("phase off", "phase_off"),
+    ("phase on", "phase_on"),
+    ("guided", "guided_to_lower_button"),
+];
+
+/// How far one rocket and wind's figures moved from the earlier pin's (`old`) to this run's
+/// (`new`), in the four figures M1.14b9's bars are on (ADR-357 decision 4) and in the flights
+/// themselves.
+///
+/// - The turning rate and the angle off the rail's axis where the lower button leaves, phase
+///   on: each the length of the difference of its nose-down and nose-right parts.
+/// - What the phase moves from the guided flight: the apogee's move, and the landing point's as
+///   a vector, each pin's taken against its own guided flight, their difference as a share of
+///   this run's guided apogee.
+/// - Each flight's own apogee, and the distance between its two landing points.
+fn flight_since(name: &str, old: &Value, new: &Value) -> Result<Value, String> {
+    let at = |run: &Value, key: &str| number(&run["phase_on"]["lower_button_leaves"], key);
+    let part = |key: &str| Ok::<f64, String>(at(new, key)? - at(old, key)?);
+    let rate = part("pitch_rate_nose_down_deg_s")?.hypot(part("pitch_rate_nose_right_deg_s")?);
+    let angle = part("nose_down_deg")?.hypot(part("nose_right_deg")?);
+    // The phase's move from the guided flight: up, east and north.
+    let moves = |run: &Value| -> Result<[f64; 3], String> {
+        let (on, guided) = (&run["phase_on"], &run["guided_to_lower_button"]);
+        let by = |key: &str| Ok::<f64, String>(number(on, key)? - number(guided, key)?);
+        Ok([
+            by("apogee_agl_m")?,
+            by("landing_east_m")?,
+            by("landing_north_m")?,
+        ])
+    };
+    let (was, is) = (moves(old)?, moves(new)?);
+    let guided_apogee_m = number(&new["guided_to_lower_button"], "apogee_agl_m")?;
+    let (mut apogee_m, mut landing_point_m) = (serde_json::Map::new(), serde_json::Map::new());
+    for (label, key) in FLIGHTS {
+        let by = |figure: &str| {
+            Ok::<f64, String>(number(&new[key], figure)? - number(&old[key], figure)?)
+        };
+        apogee_m.insert(label.to_owned(), json!(by("apogee_agl_m")?));
+        landing_point_m.insert(
+            label.to_owned(),
+            json!(by("landing_east_m")?.hypot(by("landing_north_m")?)),
+        );
+    }
+    Ok(json!({
+        "case": name,
+        "wind": new["wind"],
+        "turning_rate_deg_s": rate,
+        "angle_deg": angle,
+        "apogee_move_percent_of_apogee": 100.0 * (is[0] - was[0]) / guided_apogee_m,
+        "landing_point_move_percent_of_apogee":
+            100.0 * (is[1] - was[1]).hypot(is[2] - was[2]) / guided_apogee_m,
+        "apogee_m": apogee_m,
+        "landing_point_m": landing_point_m,
+    }))
+}
+
+/// The rockets and winds past each bar in a run, without their figures: what has to stay the
+/// same for two runs to read alike against the bars.
+fn names_past_the_bars(flown: &Value) -> Result<Value, String> {
+    let named = |part: &Value, key: &str| -> Result<Vec<Value>, String> {
+        Ok(list(part, key)?
+            .iter()
+            .map(|row| json!([row["case"], row["wind"]]))
+            .collect())
+    };
+    let mut names = serde_json::Map::new();
+    for key in ["moved", "moved_from_guided"] {
+        let part = past_the_bars(flown, key)?;
+        names.insert(
+            key.to_owned(),
+            json!({
+                "apogee_past_the_bar": named(&part, "apogee_past_the_bar")?,
+                "landing_point_past_the_bar": named(&part, "landing_point_past_the_bar")?,
+                "designs_past_a_bar": part["designs_past_a_bar"],
+                "landing_farther_from_the_pad": part["landing_farther_from_the_pad"],
+                "landing_nearer_the_pad": part["landing_nearer_the_pad"],
+            }),
+        );
+    }
+    Ok(Value::Object(names))
+}
+
+/// What moved between the earlier pin's report (`earlier`, [`EARLIER`]) and this run: each
+/// flight's figures ([`flight_since`]), the largest of each, whether the same flights are past
+/// the bars, and the largest difference in what the rockets carried. Fails unless both flew the
+/// same rockets from the same rails and sites, in the same winds, on the same drag and solver
+/// settings.
+fn since_the_earlier_pin(earlier: &Value, flown: &Value) -> Result<Value, String> {
+    let before = &earlier["flown"];
+    for key in ["solver", "drag", "crosswind"] {
+        if before[key] != flown[key] || before[key].is_null() {
+            return Err(format!("the two pins' runs differ in `{key}`"));
+        }
+    }
+    let (old_cases, new_cases) = (list(before, "cases")?, list(flown, "cases")?);
+    if old_cases.len() != new_cases.len() {
+        return Err("the two pins flew different numbers of rockets".to_owned());
+    }
+    let mut flights = Vec::new();
+    let mut carried = 0.0_f64;
+    for (old_case, new_case) in old_cases.iter().zip(new_cases) {
+        let name = text(new_case, "name")?;
+        for key in ["name", "site", "rail", "button_spacing_m", "parachutes"] {
+            if old_case[key] != new_case[key] {
+                return Err(format!("{name}: the two pins differ in `{key}`"));
+            }
+        }
+        let (old_winds, new_winds) = (list(old_case, "winds")?, list(new_case, "winds")?);
+        if old_winds.len() != new_winds.len() {
+            return Err(format!("{name}: the two pins flew different winds"));
+        }
+        for (old, new) in old_winds.iter().zip(new_winds) {
+            for key in ["wind", "declared", "wind_east_m_s", "wind_north_m_s"] {
+                if old[key] != new[key] {
+                    return Err(format!("{name}: the two pins differ in `{key}`"));
+                }
+            }
+            carried = carried.max(
+                largest_difference(&old["flown_with"], &new["flown_with"])
+                    .map_err(|e| format!("{name}: what the flights carried: {e}"))?,
+            );
+            flights.push(flight_since(name, old, new)?);
+        }
+    }
+    // The largest of a figure over the flights: its rocket, wind and value, and for a figure
+    // kept by flight, which of the three flights.
+    let largest = |figure: &str| -> Result<Value, String> {
+        let mut top: Option<(f64, Value)> = None;
+        for flight in &flights {
+            let entries: Vec<(Option<&str>, f64)> = match &flight[figure] {
+                Value::Object(by_flight) => FLIGHTS
+                    .iter()
+                    .map(|(label, _)| Ok((Some(*label), number(&flight[figure], label)?)))
+                    .collect::<Result<_, String>>()
+                    .and_then(|entries: Vec<_>| {
+                        if entries.len() == by_flight.len() {
+                            Ok(entries)
+                        } else {
+                            Err(format!("`{figure}` is not by flight in {flight}"))
+                        }
+                    })?,
+                _ => vec![(None, number(flight, figure)?)],
+            };
+            for (label, value) in entries {
+                if top
+                    .as_ref()
+                    .is_none_or(|(most, _)| value.abs() > most.abs())
+                {
+                    let mut entry = json!({
+                        "case": flight["case"],
+                        "wind": flight["wind"],
+                        "value": value,
+                    });
+                    if let Some(label) = label {
+                        entry["flight"] = json!(label);
+                    }
+                    top = Some((value, entry));
+                }
+            }
+        }
+        top.map(|(_, entry)| entry)
+            .ok_or_else(|| "no flight to compare between the pins".to_owned())
+    };
+    let mut largest_of = serde_json::Map::new();
+    for figure in [
+        "turning_rate_deg_s",
+        "angle_deg",
+        "apogee_move_percent_of_apogee",
+        "landing_point_move_percent_of_apogee",
+        "apogee_m",
+        "landing_point_m",
+    ] {
+        largest_of.insert(figure.to_owned(), largest(figure)?);
+    }
+    Ok(json!({
+        "record": EARLIER,
+        "commit": EARLIER_COMMIT,
+        "sha256": EARLIER_SHA256,
+        "oracle": before["oracle"],
+        "equations": before["equations"],
+        "same_flights_past_the_bars": names_past_the_bars(before)? == names_past_the_bars(flown)?,
+        "carried_largest_difference": carried,
+        "largest": largest_of,
+        "flights": flights,
+    }))
+}
+
+/// [`EARLIER`], after checking it is the file [`EARLIER_SHA256`] names.
+fn earlier(root: &Path) -> Result<Value, String> {
+    earlier_of(&fs::read(root.join(EARLIER)).map_err(|e| format!("{EARLIER}: {e}"))?)
+}
+
+/// The earlier pin's report from its bytes, refused unless they are the bytes
+/// [`EARLIER_SHA256`] names: a kept report that was edited, or regenerated, is not the record.
+fn earlier_of(bytes: &[u8]) -> Result<Value, String> {
+    let digest: String = Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    if digest != EARLIER_SHA256 {
+        return Err(format!(
+            "{EARLIER} is not the earlier pin's report: its SHA-256 is {digest}"
+        ));
+    }
+    serde_json::from_slice(bytes).map_err(|e| format!("{EARLIER}: {e}"))
+}
+
+/// The report from the run's document, the probe's and the earlier pin's report.
+fn report(flown: Value, lag_probe: &Value, earlier: &Value) -> Result<Value, String> {
     // The declared change stands on the probe: each flight flown without its parachute's lag
     // had not finished with it in the probe's wall time.
     let probes = list(lag_probe, "lag_probe")?;
@@ -184,34 +441,25 @@ fn report(flown: Value, as_pinned: &Value, lag_probe: &Value) -> Result<Value, S
             "landing_point_percent_of_apogee": LANDING_BAR_PERCENT_OF_APOGEE,
         },
         "reading": reading(&flown)?,
-        "as_pinned": {
-            "command": as_pinned["command"],
-            "equations": as_pinned["equations"],
-            "largest": as_pinned["largest"],
-            "largest_from_guided": as_pinned["largest_from_guided"],
-            "reading": reading(as_pinned)?,
-        },
+        "since_the_earlier_pin": since_the_earlier_pin(earlier, &flown)?,
         "lag_probe": probes,
         "flown": flown,
     }))
 }
 
-/// Flies both runs and the probe. Needs the oracle environment and the pinned checkout under
+/// Flies the run and the probe. Needs the oracle environment and the pinned checkout under
 /// `refs/`.
 pub fn generate(root: &Path) -> Result<Value, String> {
     let flown = oracle(root, None)?;
-    let as_pinned = oracle(root, Some("--as-pinned"))?;
     let lag_probe = oracle(root, Some("--lag-probe"))?;
     let pinned = crate::refs::pinned_commit(root, LOCK_NAME)?;
-    for run in [&flown, &as_pinned] {
-        if !text(run, "oracle")?.contains(&pinned) {
-            return Err(format!(
-                "{ORACLE} flew {}, not the pinned {pinned}",
-                run["oracle"]
-            ));
-        }
+    if !text(&flown, "oracle")?.contains(&pinned) {
+        return Err(format!(
+            "{ORACLE} flew {}, not the pinned {pinned}",
+            flown["oracle"]
+        ));
     }
-    report(flown, &as_pinned, &lag_probe)
+    report(flown, &lag_probe, &earlier(root)?)
 }
 
 /// The plan whose bars the report reads against: M1.14b's (ADR-351), from the report's folder.
@@ -329,7 +577,7 @@ fn past_line(part: &Value) -> Result<String, String> {
 pub fn markdown(report: &Value) -> Result<String, String> {
     let flown = &report["flown"];
     let reading = &report["reading"];
-    let as_pinned = &report["as_pinned"];
+    let since = &report["since_the_earlier_pin"];
     let crosswind = &flown["crosswind"];
     let mut page = String::new();
     let w = &mut page;
@@ -357,8 +605,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     let _ = writeln!(w, "How to read it:\n");
     let _ = writeln!(
         w,
-        "- **Phase off** is RocketPy as released: the rocket is free where its upper button \
-         leaves the rail.\n\
+        "- **Phase off** is RocketPy as its releases fly: the rocket is free where its upper \
+         button leaves the rail. The pinned commit flies the phase in every flight and has no \
+         switch for it, so these flights take {}.\n\
          - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, \
          free to pitch and yaw about its lower button with roll held, until that button leaves \
          too.\n\
@@ -388,6 +637,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          moves any apogee by more than {}%, or any landing point by more than {}% of the apogee.\n\
          - **A declared change** is a flight flown with one of its design's inputs changed, with \
          the change and its reason stated.\n",
+        text(flown, "phase_off")?,
         fixed(APOGEE_BAR_PERCENT, 0),
         fixed(LANDING_BAR_PERCENT_OF_APOGEE, 0),
     );
@@ -416,15 +666,71 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         "  The phase moves {}.",
         largest_line(flown, "largest_from_guided")?
     );
+    // The largest of a figure between the pins: its value, and where.
+    let most = |figure: &str| -> Result<(f64, String), String> {
+        let entry = &since["largest"][figure];
+        let flight = entry["flight"]
+            .as_str()
+            .map(|flight| format!(", {flight}"))
+            .unwrap_or_default();
+        Ok((
+            number(entry, "value")?,
+            format!("{}, {}{flight}", text(entry, "case")?, text(entry, "wind")?),
+        ))
+    };
+    let same = since["same_flights_past_the_bars"]
+        .as_bool()
+        .ok_or("no `same_flights_past_the_bars`")?;
+    let (rate, rate_at) = most("turning_rate_deg_s")?;
+    let (angle, angle_at) = most("angle_deg")?;
+    let (apogee_move, apogee_move_at) = most("apogee_move_percent_of_apogee")?;
+    let (landing_move, landing_move_at) = most("landing_point_move_percent_of_apogee")?;
+    let (apogee, apogee_at) = most("apogee_m")?;
+    let (landing, landing_at) = most("landing_point_m")?;
+    let carried = number(since, "carried_largest_difference")?;
     let _ = writeln!(
         w,
-        "- **The equations as pinned** (`{}`), on less off: {}; the phase moves {}. On less \
-         guided: {}; the phase moves {}.",
-        text(as_pinned, "command")?,
-        past_line(&as_pinned["reading"]["moved"])?,
-        largest_line(as_pinned, "largest")?,
-        past_line(&as_pinned["reading"]["moved_from_guided"])?,
-        largest_line(as_pinned, "largest_from_guided")?,
+        "- **Since the earlier pin.** This report first flew {}. Its equations: {}. RocketPy \
+         then rewrote the phase ([pull request #1217]({REWRITE})), and this report flies the \
+         rewrite. The \
+         earlier report is kept as `{}`: this file as commit `{}` of this repository had it, \
+         byte for byte. Between the two, {}. [The table below](#what-rocketpys-rewrite-of-the-phase-moved) \
+         gives each flight.\n  \
+         - Where the lower button leaves with the phase on, the turning rate moved by at most \
+         {} deg/s ({rate_at}) and the angle off the rail's axis by at most {}° ({angle_at}), \
+         each as its nose-down and nose-right parts together.\n  \
+         - What the phase moves from the guided flight changed by at most {}% of the apogee in \
+         the apogee ({apogee_move_at}) and {}% of the apogee in the landing point \
+         ({landing_move_at}).\n  \
+         - No flight's apogee moved by more than {} mm ({apogee_at}), nor its landing point by \
+         more than {} mm ({landing_at}).\n  \
+         - {}",
+        linked_pulls(text(since, "oracle")?),
+        linked_pulls(text(since, "equations")?),
+        text(since, "record")?,
+        &text(since, "commit")?[..8],
+        if same {
+            "the same flights are past each bar, and the rocket lands farther from the pad in \
+             the same number of them"
+        } else {
+            "the flights past the bars are not the same"
+        },
+        fixed(rate.abs(), 6),
+        fixed(angle.abs(), 7),
+        fixed(apogee_move.abs(), 6),
+        fixed(landing_move.abs(), 6),
+        fixed(apogee.abs() * 1000.0, 2),
+        fixed(landing.abs() * 1000.0, 2),
+        if carried == 0.0 {
+            "Each rocket carried the same in both: its normal force at every Mach number, its \
+             dry mass, its motor and its parachutes."
+                .to_owned()
+        } else {
+            format!(
+                "What the rockets carried (normal force, dry mass, motor, parachutes) differs \
+                 between the two by up to {carried:e}."
+            )
+        },
     );
     for case in list(flown, "cases")? {
         for wind in list(case, "winds")? {
@@ -547,6 +853,38 @@ pub fn markdown(report: &Value) -> Result<String, String> {
                 signed(number(moved, "pitch_rate_deg_s")?, 2),
             );
         }
+    }
+
+    let _ = writeln!(w, "\n## What RocketPy's rewrite of the phase moved\n");
+    let _ = writeln!(
+        w,
+        "This pin's figure less the earlier pin's, for each flight. The first four are the \
+         figures HPR Sim's own phase is held to RocketPy's on \
+         ([the comparison](tip-off-model.md)), compared the same way: the turning rate and the \
+         angle where the lower button leaves with the phase on, each as its nose-down and \
+         nose-right parts together; and what the phase moves from the guided flight, in the \
+         apogee and, as a vector, in the landing point, each as a share of the guided apogee. \
+         The last two are how far the guided flight itself moved.\n"
+    );
+    let _ = writeln!(
+        w,
+        "| Rocket | Wind | Turning rate | Angle | Apogee move | Landing-point move | Apogee, \
+         guided | Landing point, guided |"
+    );
+    let _ = writeln!(w, "|---|---|--:|--:|--:|--:|--:|--:|");
+    for flight in list(since, "flights")? {
+        let _ = writeln!(
+            w,
+            "| {} | {} | {} deg/s | {}° | {}% | {}% | {} mm | {} mm |",
+            text(flight, "case")?,
+            text(flight, "wind")?,
+            fixed(number(flight, "turning_rate_deg_s")?, 6),
+            fixed(number(flight, "angle_deg")?, 7),
+            signed(number(flight, "apogee_move_percent_of_apogee")?, 6),
+            fixed(number(flight, "landing_point_move_percent_of_apogee")?, 6),
+            signed(number(&flight["apogee_m"], "guided")? * 1000.0, 2),
+            fixed(number(&flight["landing_point_m"], "guided")? * 1000.0, 2),
+        );
     }
     Ok(page)
 }
@@ -710,6 +1048,7 @@ mod tests {
         assert!(page.contains("\n  - The probe (`tip_off.py --lag-probe`"));
         assert!(page.contains("(https://github.com/RocketPy-Team/RocketPy/pull/920)"));
         assert!(page.contains("(https://github.com/RocketPy-Team/RocketPy/pull/1196)"));
+        assert!(page.contains("(https://github.com/RocketPy-Team/RocketPy/pull/1217)"));
         assert!(page.contains(&format!("[the plan's]({PLAN})")));
         for term in [
             "**Rocket**",
@@ -1118,7 +1457,23 @@ mod tests {
             .find(|name| name.starts_with("0357-"))
             .unwrap();
         let record = page(&format!("docs/decisions/{record}"));
-        let pinned = &report["as_pinned"];
+        // That record is the measurement on the earlier pin, so it is held to the report kept
+        // from it, not to this pin's.
+        let was = earlier(&root).unwrap();
+        let (off_reading, guided_reading) = (
+            &was["reading"]["moved"],
+            &was["reading"]["moved_from_guided"],
+        );
+        let (off, guided) = (
+            &was["flown"]["largest"],
+            &was["flown"]["largest_from_guided"],
+        );
+        let guided_apogee = minus(signed(num(&guided["apogee"], "apogee_percent"), 3));
+        let guided_landing = fixed(
+            num(&guided["landing_point"], "landing_point_percent_of_apogee"),
+            3,
+        );
+        let pinned = &was["as_pinned"];
         let of_13 = |part: &Value| count(part, "designs_past_a_bar");
         let expected = [
             format!(
@@ -1200,12 +1555,15 @@ mod tests {
         assert!(text(flown, "oracle").unwrap().contains(&pinned));
         assert!(
             text(flown, "equations").unwrap().contains("#1196"),
-            "the first run flies the corrected equations"
+            "the run flies the corrected equations"
         );
-        assert_eq!(
-            report["as_pinned"]["equations"],
-            "as the pinned commit has them"
+        assert!(
+            text(flown, "phase_off")
+                .unwrap()
+                .contains("free flight from where the upper button leaves"),
+            "the run says how it flew without the phase"
         );
+        assert!(report.get("as_pinned").is_none());
 
         // Every public design built from RocketPy's examples is a case, and no other.
         let mut designs: Vec<String> = fs::read_dir(root.join("validation/designs"))
@@ -1360,5 +1718,352 @@ mod tests {
             report["bars"]["landing_point_percent_of_apogee"],
             LANDING_BAR_PERCENT_OF_APOGEE
         );
+    }
+
+    /// One rocket in one wind as a run's document has it, for the comparison between pins:
+    /// the three flights' apogees and landing points, and where the lower button leaves.
+    fn pin_of(on: [f64; 3], guided: [f64; 3], rate: [f64; 2], angle: [f64; 2]) -> Value {
+        let flight = |[apogee, east, north]: [f64; 3], rate: [f64; 2], angle: [f64; 2]| {
+            json!({
+                "apogee_agl_m": apogee,
+                "landing_east_m": east,
+                "landing_north_m": north,
+                "lower_button_leaves": {
+                    "pitch_rate_nose_down_deg_s": rate[0],
+                    "pitch_rate_nose_right_deg_s": rate[1],
+                    "nose_down_deg": angle[0],
+                    "nose_right_deg": angle[1],
+                },
+            })
+        };
+        let none = [0.0, 0.0];
+        let moved = json!({
+            "apogee_percent": 0.0,
+            "landing_point_m": 1.0,
+            "landing_point_percent_of_apogee": 0.1,
+            "landing_range_m": 0.5,
+        });
+        json!({
+            "solver": {"rtol": 1e-9},
+            "drag": {"declared_cd0": [[0.0, 0.5]]},
+            "crosswind": {"speed_mph": 20.0},
+            "cases": [{
+                "name": "a",
+                "site": {"elevation": 0.0},
+                "rail": {"rail_length_m": 5.0},
+                "button_spacing_m": 0.5,
+                "parachutes": ["main"],
+                "winds": [{
+                    "wind": "still",
+                    "wind_east_m_s": 0.0,
+                    "wind_north_m_s": 0.0,
+                    "flown_with": {"dry_mass_kg": 10.0, "normal_force": {"slope_per_rad": [2.0, 3.0]}},
+                    "phase_off": flight([900.0, 5.0, 5.0], none, none),
+                    "phase_on": flight(on, rate, angle),
+                    "guided_to_lower_button": flight(guided, none, none),
+                    "moved": moved,
+                    "moved_from_guided": moved,
+                }],
+            }],
+        })
+    }
+
+    /// Between two pins a flight's figures are compared as M1.14b9's bars compare two codes':
+    /// the turning rate and the angle as vectors of their two parts, the phase's move from the
+    /// guided flight in the apogee and, as a vector, in the landing point, each as a share of
+    /// the later pin's guided apogee. A guided flight that moved with the phase-on one leaves
+    /// the phase's move where it was.
+    #[test]
+    fn between_two_pins_the_figures_are_compared_as_the_bars_compare_them() {
+        let old = pin_of(
+            [1000.0, 10.0, 20.0],
+            [1010.0, 0.0, 0.0],
+            [1.0, 0.0],
+            [0.01, 0.0],
+        );
+        // Nothing moved: every figure is zero and the reading is the same.
+        let still = since_the_earlier_pin(&json!({"flown": old}), &old).unwrap();
+        assert_eq!(still["same_flights_past_the_bars"], true);
+        assert_eq!(still["carried_largest_difference"], 0.0);
+        for figure in [
+            "turning_rate_deg_s",
+            "angle_deg",
+            "apogee_move_percent_of_apogee",
+            "landing_point_move_percent_of_apogee",
+        ] {
+            assert_eq!(still["flights"][0][figure], 0.0, "{figure}");
+            assert_eq!(still["largest"][figure]["value"], 0.0, "{figure}");
+        }
+
+        // The phase-on flight moves 2 m up, 3 m east and 4 m north, the guided one 2 m up and
+        // not across: the apogee's move is unchanged and the landing point's moves 5 m, which
+        // is 0.5% of the 1,000 m the later guided flight reaches. The rate moves by 0.3 and
+        // 0.4 deg/s, 0.5 as a vector; the angle by 0.003° and 0.004°, 0.005°.
+        let new = pin_of(
+            [1002.0, 13.0, 24.0],
+            [1000.0, 0.0, 0.0],
+            [1.3, 0.4],
+            [0.013, 0.004],
+        );
+        let old = pin_of(
+            [1000.0, 10.0, 20.0],
+            [998.0, 0.0, 0.0],
+            [1.0, 0.0],
+            [0.01, 0.0],
+        );
+        let since = since_the_earlier_pin(&json!({"flown": old}), &new).unwrap();
+        let flight = &since["flights"][0];
+        let close = |key: &str, expected: f64| {
+            let got = number(flight, key).unwrap();
+            assert!((got - expected).abs() < 1e-12, "{key}: {got}");
+        };
+        close("turning_rate_deg_s", 0.5);
+        close("angle_deg", 0.005);
+        close("apogee_move_percent_of_apogee", 0.0);
+        close("landing_point_move_percent_of_apogee", 0.5);
+        assert_eq!(flight["apogee_m"]["phase on"], 2.0);
+        assert_eq!(flight["apogee_m"]["guided"], 2.0);
+        assert_eq!(flight["apogee_m"]["phase off"], 0.0);
+        assert_eq!(flight["landing_point_m"]["phase on"], 5.0);
+        assert_eq!(flight["landing_point_m"]["guided"], 0.0);
+        // The largest of a figure kept by flight names its flight; the first of two equal
+        // ones stands.
+        assert_eq!(since["largest"]["landing_point_m"]["flight"], "phase on");
+        assert_eq!(since["largest"]["landing_point_m"]["value"], 5.0);
+        assert_eq!(since["largest"]["apogee_m"]["flight"], "phase on");
+        assert_eq!(since["largest"]["turning_rate_deg_s"]["case"], "a");
+        assert!(
+            since["largest"]["turning_rate_deg_s"]
+                .get("flight")
+                .is_none()
+        );
+
+        // Only the apogee's move changes: the guided flight alone gains 3 m, so the phase's
+        // move falls by 3 m, −0.3% of the later guided apogee of 1,001 m.
+        let lifted = pin_of(
+            [1000.0, 10.0, 20.0],
+            [1001.0, 0.0, 0.0],
+            [1.0, 0.0],
+            [0.01, 0.0],
+        );
+        let since = since_the_earlier_pin(&json!({"flown": old}), &lifted).unwrap();
+        let got = number(&since["flights"][0], "apogee_move_percent_of_apogee").unwrap();
+        assert!((got + 100.0 * 3.0 / 1001.0).abs() < 1e-12, "{got}");
+    }
+
+    /// The comparison between pins refuses two runs that did not fly the same thing: other
+    /// solver settings, another rail, another wind, or a rocket that carried a different part
+    /// list. A number that differs in what a rocket carried is measured, not refused.
+    #[test]
+    fn two_pins_that_flew_different_things_are_not_compared() {
+        let old = pin_of(
+            [1000.0, 10.0, 20.0],
+            [1010.0, 0.0, 0.0],
+            [1.0, 0.0],
+            [0.01, 0.0],
+        );
+        let earlier = json!({"flown": old});
+        let changed = |edit: &dyn Fn(&mut Value)| {
+            let mut new = old.clone();
+            edit(&mut new);
+            since_the_earlier_pin(&earlier, &new)
+        };
+        let refused = |edit: &dyn Fn(&mut Value), what: &str| {
+            let error = changed(edit).unwrap_err();
+            assert!(error.contains(what), "{error}");
+        };
+        refused(&|new| new["solver"]["rtol"] = json!(1e-6), "`solver`");
+        refused(
+            &|new| new["drag"] = json!({"declared_cd0": [[0.0, 0.6]]}),
+            "`drag`",
+        );
+        refused(
+            &|new| new["crosswind"]["speed_mph"] = json!(10.0),
+            "`crosswind`",
+        );
+        refused(
+            &|new| new["cases"][0]["rail"]["rail_length_m"] = json!(6.0),
+            "`rail`",
+        );
+        refused(
+            &|new| new["cases"][0]["winds"][0]["wind"] = json!("crosswind"),
+            "`wind`",
+        );
+        refused(
+            &|new| new["cases"][0]["winds"][0]["declared"] = json!("no lag"),
+            "`declared`",
+        );
+        refused(
+            &|new| {
+                new["cases"][0]["winds"][0]["flown_with"]["normal_force"]["slope_per_rad"] =
+                    json!([2.0])
+            },
+            "differ in length",
+        );
+        refused(
+            &|new| new["cases"][0]["winds"][0]["flown_with"]["motor"] = json!("another"),
+            "differ in their keys",
+        );
+        refused(
+            &|new| new["cases"] = json!([]),
+            "different numbers of rockets",
+        );
+        let carried = changed(&|new| {
+            new["cases"][0]["winds"][0]["flown_with"]["normal_force"]["slope_per_rad"][1] =
+                json!(3.25);
+        })
+        .unwrap();
+        assert_eq!(carried["carried_largest_difference"], 0.25);
+
+        assert_eq!(largest_difference(&json!("a"), &json!("a")), Ok(0.0));
+        assert!(largest_difference(&json!("a"), &json!("b")).is_err());
+        assert!(largest_difference(&json!(1.0), &json!("1.0")).is_err());
+        assert!(largest_difference(&json!({"a": 1.0}), &json!({"b": 1.0})).is_err());
+    }
+
+    /// The kept report is read only as the bytes its hash names: one figure edited, or a byte
+    /// added at the end, and it is refused.
+    #[test]
+    fn an_edited_copy_of_the_earlier_report_is_refused() {
+        let root = crate::designs::root().unwrap();
+        let bytes = fs::read(root.join(EARLIER)).unwrap();
+        assert!(earlier_of(&bytes).is_ok());
+        let text = String::from_utf8(bytes.clone()).unwrap();
+        let figure = "\"apogee_percent\": ";
+        let at = text.find(figure).unwrap() + figure.len();
+        let mut edited = bytes.clone();
+        edited[at + 2] = if edited[at + 2] == b'1' { b'2' } else { b'1' };
+        assert!(serde_json::from_slice::<Value>(&edited).is_ok());
+        let mut longer = bytes.clone();
+        longer.push(b'\n');
+        for changed in [edited, longer, Vec::new()] {
+            let error = earlier_of(&changed).unwrap_err();
+            assert!(error.contains("is not the earlier pin's report"), "{error}");
+        }
+    }
+
+    /// The earlier pin's report is the file the hash names, it flew the earlier commit with
+    /// pull request #1196 applied here, and the committed report's comparison with it is
+    /// recomputed from the two. What the rewrite moved is far inside every bar HPR Sim's phase
+    /// is held to: a hundredth of the smallest, so the earlier comparison's reading stands.
+    #[test]
+    fn the_committed_report_compares_itself_with_the_earlier_pins() {
+        let root = crate::designs::root().unwrap();
+        let was = earlier(&root).unwrap();
+        let before = &was["flown"];
+        assert!(
+            text(before, "oracle")
+                .unwrap()
+                .contains("ebe1b775cd9270c93018dc6d7867313d6eed4e5c (pull request #920's merge)")
+        );
+        assert!(text(before, "equations").unwrap().contains("#1196"));
+        let report = committed();
+        let pinned = crate::refs::pinned_commit(&root, LOCK_NAME).unwrap();
+        assert_ne!(pinned, "ebe1b775cd9270c93018dc6d7867313d6eed4e5c");
+        assert!(
+            text(&report["flown"], "oracle")
+                .unwrap()
+                .contains("(pull request #1217's merge)")
+        );
+        let since = since_the_earlier_pin(&was, &report["flown"]).unwrap();
+        assert!(
+            crate::designs::same(&report["since_the_earlier_pin"], &since),
+            "{:?}",
+            crate::designs::difference(&report["since_the_earlier_pin"], &since)
+        );
+        assert_eq!(list(&since, "flights").unwrap().len(), 26);
+        assert_eq!(since["same_flights_past_the_bars"], true);
+        assert_eq!(since["carried_largest_difference"], 0.0);
+        let most = |figure: &str| number(&since["largest"][figure], "value").unwrap().abs();
+        use crate::tip_off_model::{
+            ANGLE_FLOOR_DEG, APOGEE_MOVE_BAR_PERCENT, LANDING_MOVE_BAR_PERCENT, RATE_FLOOR_DEG_S,
+        };
+        assert!(most("turning_rate_deg_s") < 0.01 * RATE_FLOOR_DEG_S);
+        assert!(most("angle_deg") < 0.01 * ANGLE_FLOOR_DEG);
+        assert!(most("apogee_move_percent_of_apogee") < 0.01 * APOGEE_MOVE_BAR_PERCENT);
+        assert!(most("landing_point_move_percent_of_apogee") < 0.01 * LANDING_MOVE_BAR_PERCENT);
+        // No flight's apogee or landing point moved by as much as 2 mm.
+        assert!(most("apogee_m") < 0.002);
+        assert!(most("landing_point_m") < 0.002);
+        // The page gives the same reading.
+        let page = markdown(&report).unwrap();
+        assert!(page.contains("the same flights are past each bar"));
+        assert!(page.contains("Each rocket carried the same in both"));
+        assert!(page.contains(&format!("`{EARLIER}`")));
+        assert!(page.contains(&format!("commit `{}`", &EARLIER_COMMIT[..8])));
+
+        // The flight page and the decision record give those figures as the report has them.
+        let words = |path: &str| {
+            let text = fs::read_to_string(root.join(path)).unwrap();
+            text.split_whitespace().collect::<Vec<_>>().join(" ")
+        };
+        let rate = fixed(most("turning_rate_deg_s"), 6);
+        let (apogee_mm, landing_mm) = (most("apogee_m") * 1000.0, most("landing_point_m") * 1000.0);
+        let farthest_mm = apogee_mm.max(landing_mm);
+        let flight_page = words("docs/physics/flight.md");
+        for fragment in [
+            format!("moved by at most {rate} deg/s"),
+            format!(
+                "by more than {} mm ({} in)",
+                fixed(farthest_mm, 2),
+                fixed(farthest_mm / 25.4, 2)
+            ),
+            "No figure on this page changed".to_owned(),
+            format!("(`{}`), flies the thirteen", &pinned[..8]),
+        ] {
+            assert!(
+                flight_page.contains(&fragment),
+                "the flight page lacks `{fragment}`"
+            );
+        }
+        let record = words(
+            "docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md",
+        );
+        for fragment in [
+            format!("turning rate moved by at most {rate} deg/s"),
+            format!("by at most {}°", fixed(most("angle_deg"), 7)),
+            format!(
+                "at most {}% of the apogee in the apogee",
+                fixed(most("apogee_move_percent_of_apogee"), 6)
+            ),
+            format!(
+                "{}% of the apogee in the landing point",
+                fixed(most("landing_point_move_percent_of_apogee"), 6)
+            ),
+            format!("apogee moved by more than {} mm", fixed(apogee_mm, 2)),
+            format!("landing point by more than {} mm", fixed(landing_mm, 2)),
+            format!("`{pinned}`"),
+            "The same flights are past the plan's bars".to_owned(),
+        ] {
+            assert!(
+                record.contains(&fragment),
+                "the decision record lacks `{fragment}`"
+            );
+        }
+        // "No figure on this page changed": every figure the flight page quotes from the
+        // report reads the same from the earlier pin's, at the places the page gives them.
+        let shown = |report: &Value| {
+            let flown = &report["flown"];
+            let guided = &flown["largest_from_guided"];
+            let off = &flown["largest"];
+            [
+                signed(number(&guided["apogee"], "apogee_percent").unwrap(), 3),
+                signed(number(&guided["apogee"], "apogee_m").unwrap(), 1),
+                fixed(
+                    number(&guided["landing_point"], "landing_point_percent_of_apogee").unwrap(),
+                    3,
+                ),
+                fixed(
+                    number(&guided["landing_point"], "landing_point_m").unwrap(),
+                    1,
+                ),
+                fixed(
+                    number(&off["landing_point"], "landing_point_percent_of_apogee").unwrap(),
+                    3,
+                ),
+                signed(number(&off["apogee"], "apogee_percent").unwrap(), 3),
+            ]
+        };
+        assert_eq!(shown(&report), shown(&was));
     }
 }
