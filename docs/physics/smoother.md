@@ -30,7 +30,7 @@ sensors, and how well its 90% intervals hold.
   launch has no pad to zero the barometer on, so the pad is assumed, the card says so, and its
   accelerometer is set aside ([A log written from launch](#a-log-written-from-launch), and
   [evidence row G33](../evidence.md#g33)). A log too long to hold in memory is withheld. So is a
-  track whose vertical speed passes 11,186 m/s, Earth's escape speed. That is an estimate that
+  track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. That is an estimate that
   ran away, not a rocket ([A track that runs away](#a-track-that-runs-away)).
 
 ## How it works
@@ -102,10 +102,10 @@ were withheld ([A track that runs away](#a-track-that-runs-away)). Of the 839 fl
 apogee truths lay below the interval, and only 82.2% inside it. Every set, logger and moment is
 in [the report][report].
 
-## A track that runs away
+### A track that runs away
 
-The smoother withholds a track whose vertical speed passes 11,186 m/s anywhere in the log. That
-is Earth's escape speed at its surface, the 11.186 km/s of NASA's Earth Fact Sheet. No rocket
+The smoother withholds a track whose vertical speed passes 11,186 m/s (36,699 ft/s) anywhere in
+the log. That is Earth's escape speed at its surface, the 11.186 km/s of NASA's Earth Fact Sheet. No rocket
 that comes back flew it, so a track that reads it is an estimate that ran away. `hpr analyze`
 then prints `withheld` and the reason on its `smoother` row instead of the track's numbers. The
 bound catches a runaway. It doesn't make a track under it right: the intervals and the health
@@ -126,10 +126,10 @@ taken back. Two rejections in a row lose it its trust, and it must agree with th
 2 s again. So only the barometer can be taken back, and the loop has one side. Trusted from
 liftoff, the receiver is taken back like any sensor, and the loop has both.
 
-An invented flight shows it (the smoother's own test). The rocket tops out at 98.1 m/s. Its
+An invented flight shows it (the smoother's own test). The rocket tops out at 98.1 m/s (322 ft/s). Its
 barometer logs at 20 Hz. Its receiver logs at 5 Hz and, from apogee on, runs off the truth at
-20 m/s, as no real receiver does. Trusted from liftoff, the track is withheld as diverged.
-Trusted by agreement, the same log smooths. The top speed reads within 2 m/s of 98.1. At
+20 m/s (66 ft/s), as no real receiver does. Trusted from liftoff, the track is withheld as diverged.
+Trusted by agreement, the same log smooths. The top speed reads within 2 m/s (6.6 ft/s) of that. At
 30 s, on the way down, the truth lies inside the interval.
 
 On the synthetic flights, trusting the receiver from liftoff runs away on 11 of the 185 logs

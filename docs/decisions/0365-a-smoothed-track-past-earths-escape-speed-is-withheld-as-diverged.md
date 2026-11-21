@@ -1,7 +1,7 @@
 # ADR-365: A smoothed track past Earth's escape speed is withheld as diverged (2026-11-21)
 
 - **Status:** accepted; adds a refusal to the smoother of [ADR-300][adr-300] and a count to its check's mutation; changes no rule of the filter, and no interval of a track that is still given
-- **Summary:** The nightly census failed on every platform ([#1590][issue]): one synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m, to three figures that no two builds agree on. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s, Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails on the rest. The same bound withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now.
+- **Summary:** The nightly census failed on every platform ([#1590](https://github.com/nrdptel/fusionspace-eridanus/issues/1590)). One synthetic flight's track, smoothed with its GNSS receiver trusted from liftoff, ran away, and the report held its standard error, 2,480,000 m (8,136,483 ft), to three figures that no two builds agree on. The smoother now withholds as diverged any track whose vertical speed passes 11,186 m/s (36,699 ft/s), Earth's escape speed. The mutation's diverged logs are counted and leave its cells, and it still fails on the rest. The same bound withholds 3 of the 1,058 real sample records, whose runaway tracks `hpr analyze` printed until now.
 
 [adr-300]: 0300-the-smoother-and-its-check.md
 [adr-362]: 0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
@@ -89,7 +89,7 @@ have no gap in them: they run from a few thousand m/s up.
 5. **Three real logs ran away as shipped, and are now withheld.** The survey of the sample
    logs smooths every record ([the survey][survey]). With the bound, 3 of its 1,058 records
    are withheld as diverged: one `altos-csv` log and two `held-table` logs. The smoothed count
-   falls from 549 to 546, and the smoothed apogees past the reading's bound from 32 to 30, so
+   falls from 549 to 546. The smoothed apogees past the reading's bound fall from 32 to 30, so
    the card had marked two of the three and not the third. The shipped rule takes no receiver
    back, so these ran away by another road. It isn't traced. That work belongs to the open
    issue on smoothed apogees past the reading's bound ([#1073][bound-issue]), which now
@@ -105,9 +105,9 @@ envelope. It can let a wrong track through, which decision 2 says.
   build and given on another. On this build the nearest are 1.3% below it (set A, 11,040 m/s)
   and 6.8% above (set B). The bound is a physical constant and wasn't moved to clear them.
   If one crosses, the census fails on a count of diverged logs and says so. The runaway that
-  failed the night's run had grown by eight orders of magnitude; a log near the bound has
-  grown by one or two, and both of this Mac's builds, the dev profile and the nightly's,
-  count the same logs.
+  failed the night's run had grown by eight orders of magnitude. A log near the bound has
+  grown by one or two. Both of this Mac's builds, the dev profile and the nightly's, count
+  the same logs.
 - The real logs' road to a runaway ([#1073][bound-issue]).
 
 **Consequences.**
