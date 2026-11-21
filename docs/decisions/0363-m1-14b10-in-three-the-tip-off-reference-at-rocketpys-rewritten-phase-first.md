@@ -38,9 +38,9 @@ Two things stand between today's code and that.
 - **The reference moved.** Until this record HPR Sim's phase was held to RocketPy's at the
   merge of RocketPy's [pull request #920][pr-920]. On 2026-11-17 RocketPy merged
   [pull request #1217][pr-1217], which rewrites the phase, corrects how it ends and takes
-  away its switch: the phase now runs in every flight on RocketPy's standard
-  six-degree-of-freedom equations whose two buttons start on the rail. A default should not
-  rest on a reference its own authors have since corrected ([issue #1550][i1550]).
+  away its switch: the phase now runs in every flight that uses RocketPy's standard
+  six-degree-of-freedom equations and starts with both buttons on the rail. A default should
+  not rest on a reference its own authors have since corrected ([issue #1550][i1550]).
 - **The default is wide.** A survey of the code before this record:
   - Today only the library offers the phase (`Simulation::with_tip_off`). The command line
     (`hpr sim`, `hpr mc`, `hpr compare`) and the Python package (`Flight`, `MonteCarlo`) carry
@@ -97,8 +97,9 @@ depend on the rest.
      - the private collection's logged flights are given in aggregate only, as
        [ADR-151][adr-151] (decision 2) and [ADR-184][adr-184] (decision 7) require: how many
        of its flights and of its designs have two or more guides at different stations, and
-       a count of those flights by the phase's apogee move in bins of 0.1% of the apogee. No
-       flight is named or numbered, and no apogee and no per-flight row is given. That limits
+       a count of those flights by the phase's apogee move in bins of 0.1% of the apogee, a
+       bin holding fewer than five flights merged with its neighbor. No flight is named or
+       numbered, and no apogee and no per-flight row is given. That limits
        ADR-357's "for each real flight": for the collection, M1.14b10's table is this
        aggregate;
      - for each of those three sets the table gives the mean absolute apogee error guided
@@ -139,18 +140,20 @@ depend on the rest.
      [ADR-358][adr-358] recorded on the earlier pin. On HPR Sim's own normal force the 13
      still-air flights are inside every bar and the 13 crosswind flights are not, as before.
    - **What the differences are, and are not.** They are differences between two commits
-     of RocketPy, 26 commits and 45 changed files apart, 15 of them under `rocketpy/`. They
-     are not the measured effect of the rewrite, and the report does not test which change
-     made each. Two things say the phase's own equations are not where they come from. The
-     largest apogee move, 1.04 mm, is in a flight without the phase, and the flights without
-     it moved by up to 1.04 mm in an apogee or landing point against 0.81 mm for those with
-     it. And pull request #1217's description puts its corrections in how the phase ends: a
-     parachute opening inside it, a rail too short for it, and the time of each rail exit,
-     now found by a root search on the solver's own interpolation of the step. That last
-     change reaches every flight, with the phase or without, since the upper button's exit
-     is found the same way. Moves of a millimeter in flights of hundreds to thousands of
-     meters are the size a changed root search and solver steps would leave, but that is a
-     reading, not a measurement.
+     of RocketPy, 26 commits apart by `git rev-list` and 45 changed files apart, 15 of them
+     under `rocketpy/`. They are not the measured effect of the rewrite, and the report does
+     not test which change made each. Two things bear on whether the phase's own equations
+     are where they come from. The largest apogee move, 1.04 mm, is in a flight without the
+     phase, and the flights without it moved by up to 1.04 mm in an apogee or landing point
+     against 0.81 mm for those with it. And pull request #1217's description lists three
+     corrections to how the phase ends (a parachute opening inside it, a rail too short for
+     it, and the time of each rail exit, now found by a root search on the solver's own
+     interpolation of the step), what RocketPy reports inside the phase (its accelerations
+     and the lower button's force) and a simpler `udot_rail2`, the phase's own function,
+     whose effect on a result it does not state. The root search reaches every flight, with
+     the phase or without, since the upper button's exit is found the same way. Moves of a
+     millimeter in flights of hundreds to thousands of meters are the size a changed root
+     search and solver steps would leave, but that is a reading, not a measurement.
 3. **The two defects pull request #1217 leaves open do not reach the comparison.** Its
    description names them as found on the way and not fixed.
    - **The rail-button forces with both buttons on the rail** "use a wrong lever arm and
@@ -161,9 +164,10 @@ depend on the rest.
      leaves, the apogee and the landing point, and none of the forces.
    - **"A rocket whose thrust starts below its weight never leaves the rail unless
      `max_time_step` is set."** The oracle sets it: every flight runs on
-     `validation/oracles/rocketpy/flight.py`'s solver settings, whose step is bounded at
-     0.05 s for this very failure, measured there on that suite's flights, whose thrust
-     curves ramp from zero. A flight that stayed on the rail could not pass unnoticed either. The oracle
+     `validation/oracles/rocketpy/flight.py`'s solver settings, which bound the step at
+     0.05 s for this very failure. That script measured it on its own whole flights, whose
+     thrust curves ramp from zero. A flight that stayed on the rail could not pass unnoticed
+     either. The oracle
      fails a flight that does not end before its time cap, whose apogee is not above the
      site, or, with the phase on, whose phase did not run. All 26 flights flew three ways.
 4. **The order.** M1.14b13 ships with this record. M1.14b14 is next, then M1.14b15, all ahead

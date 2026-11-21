@@ -24,9 +24,9 @@ license = "MIT; data files carry their own terms"
 mode = "fetched"
 
 # RocketPy's `develop` at the merge of its pull request #1217, which rewrote the tip-off phase
-# pull request #920 added and took away its switch: the phase runs in every flight on the
-# standard six-degree-of-freedom equations whose two buttons start on the rail. No release
-# carries it. Flown by `validation/oracles/rocketpy/tip_off.py` from this checkout instead of
+# pull request #920 added and took away its switch: the phase runs in every flight that uses
+# the standard six-degree-of-freedom equations and starts with both buttons on the rail. No
+# release carries it. Flown by `validation/oracles/rocketpy/tip_off.py` from this checkout instead of
 # the installed 1.13.0. Until ADR-363 the pin was #920's merge,
 # `ebe1b775cd9270c93018dc6d7867313d6eed4e5c`.
 [[git]]

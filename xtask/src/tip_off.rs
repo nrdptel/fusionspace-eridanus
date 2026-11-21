@@ -614,8 +614,8 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         w,
         "- **Phase off** is RocketPy as its releases fly: the rocket is free where its upper \
          button leaves the rail. The commit this report flies has no switch for the phase: it \
-         flies it in every flight on its standard six-degree-of-freedom equations whose two \
-         buttons start on the rail. So these flights take {}.\n\
+         flies it in every flight that uses its standard six-degree-of-freedom equations and \
+         starts with both buttons on the rail. So these flights take {}.\n\
          - **Phase on** adds the tip-off phase: from there the rocket slides on along the rail, \
          free to pitch and yaw about its lower button with roll held, until that button leaves \
          too.\n\
@@ -727,12 +727,13 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          - No flight's apogee moved by more than {} mm ({apogee_at}), nor its landing point by \
          more than {} mm ({landing_at}).\n  \
          - These are differences between two commits, not the measured effect of one change. \
-         The rewrite changed how the phase ends, and it also finds every flight's rail exit a \
-         new way, by a root search on the solver's own interpolation of the step. Other \
-         changes to RocketPy lie between the two pins as well. A flight without the phase \
-         moved by up to {} mm in its apogee or landing point and a flight with it by up to {} \
-         mm, so the moves are not the phase's alone. This report does not test which change \
-         made each.\n  \
+         By its description the rewrite simplified the phase's function, changed what RocketPy \
+         reports inside the phase and corrected how the phase ends. It also finds every \
+         flight's rail exit a new way, by a root search on the solver's own interpolation of \
+         the step. Other changes to RocketPy lie between the two pins as well. Over all the \
+         flights without the phase (phase off and guided), an apogee or landing point moved by \
+         up to {} mm; over those with it, by up to {} mm. The last table gives the guided \
+         flights' moves alone. {} This report does not test which change made each.\n  \
          - {}",
         linked_pulls(text(since, "oracle")?),
         linked_pulls(text(since, "equations")?),
@@ -754,6 +755,11 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         at_most(landing * 1000.0, 2),
         at_most(without_mm, 2),
         at_most(with_mm, 2),
+        if without_mm >= with_mm {
+            "So the moves are not the phase's alone."
+        } else {
+            "The flights with the phase moved the farthest."
+        },
         if carried == 0.0 {
             "Each rocket carried the same in both: its normal force at every Mach number, its \
              dry mass, its motor's total impulse, burn time and propellant mass, and its \
@@ -2061,11 +2067,11 @@ mod tests {
         let (without, with) = (farthest(&["phase off", "guided"]), farthest(&["phase on"]));
         assert!(without >= with, "{without} {with}");
         assert!(page.contains(&format!(
-            "A flight without the phase moved by up to {} mm in its apogee or landing point and \
-             a flight with it by up to {} mm",
+            "an apogee or landing point moved by up to {} mm; over those with it, by up to {} mm",
             at_most(without, 2),
             at_most(with, 2)
         )));
+        assert!(page.contains("So the moves are not the phase's alone."));
         assert!(page.contains("This report does not test which change made each."));
         assert!(page.contains(&format!("`{EARLIER}`")));
         assert!(page.contains(&format!("commit `{}`", &EARLIER_COMMIT[..8])));

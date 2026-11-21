@@ -93,7 +93,8 @@ Sources:
 - **[RP-TIP]** RocketPy's tip-off phase, `Flight.udot_rail2`, in its development branch (MIT;
   no release carries it). [Its pull request #920](https://github.com/RocketPy-Team/RocketPy/pull/920)
   added the phase and [#1217](https://github.com/RocketPy-Team/RocketPy/pull/1217) rewrote it.
-  By its description the rewrite changes how the phase ends: it finds the moment each button
+  By its description the rewrite simplifies the phase's function, changes what RocketPy
+  reports inside the phase, and corrects how the phase ends: it finds the moment each button
   leaves by a root search on the solver's own interpolation of a step, and it corrects what
   happened when a parachute opened inside the phase or the rail was too short for it. It
   also took away the phase's switch. HPR Sim's [tip-off phase](#tip-off) takes its form from

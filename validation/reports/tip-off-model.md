@@ -1,6 +1,6 @@
 # HPR Sim's tip-off phase against RocketPy's
 
-Written by `cargo xtask tip-off-model`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#tip-off). It is one code against another, on 26 flights of thirteen designs; RocketPy's phase is in its development branch, in no release, and no real flight checks either. RocketPy's side is [its own report](tip-off.md) (rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge); as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which this script checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever).
+Written by `cargo xtask tip-off-model`; don't edit it by hand. What it measures and how far to trust it: [rigid-body flight](../../docs/physics/flight.md#tip-off). It is one code against another, on 26 flights of thirteen designs; RocketPy's phase is in its development branch, in no release, and no real flight checks either. RocketPy's side is [its own report](tip-off.md) (rocketpy develop at 65b9838f23f62ce6155ac712798ccab01c45ea47 (pull request #1217's merge); as the pinned commit has them: it carries pull request #1196's correction to the sign of the center-of-mass vector, which the reference's script (tip_off.py) checks on the commit's source before it flies, and #1188's to the nozzle's jet-damping lever).
 
 How to read it:
 
