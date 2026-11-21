@@ -47,7 +47,10 @@
 # and `evidence --samples` (M2.10, ADR-278: each real sample the evidence register lists is there,
 # its SHA-256 matches and its test reads it without skipping), and the motor catalog's recount
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
-# ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
+# ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees),
+# and `corrections.py --check` (#1583: on sources built from the installed release, 1.13.0, the
+# whole flights' correction to RocketPy's equations tells a source carrying it from one that
+# doesn't, stops on one carrying part of it, and flies the release with all three edits).
 # The checks run side by side, each a lane of `scripts/lanes.sh` (#700). Each reads its own files,
 # and the three that write anything write what no other lane touches: `ghost --check` its
 # target/ghost-files/, `ork-cli --check` its target/ork-cli/, and `evidence --samples` the tests it
@@ -383,7 +386,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount'" ;;
+    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount' 'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check'" ;;
     *) return 1 ;;
   esac
 }
