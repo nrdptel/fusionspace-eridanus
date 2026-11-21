@@ -59,10 +59,12 @@ impl Correction {
 }
 
 /// A public flight flown beside its report's flight: with or without a [`Correction`], with or
-/// without the tip-off phase (`Simulation::with_tip_off`, M1.14b14), and in its report's wind or
-/// in still air. Everything else is as the flight's report flies it: still air keeps the
-/// report's air (its pressure, temperature and density) and takes out only the wind. With no
-/// correction, no phase and the report's wind it is that report's flight itself.
+/// without the tip-off phase (`Simulation::with_tip_off`; [what it moves on the real
+/// flights](https://hpr.fusionspace.co/physics/flight.html#the-tip-off-phase-on-the-real-flights)),
+/// and in its report's wind or in still air. Everything else is as the flight's report flies
+/// it: still air keeps the report's air (its pressure, temperature and density) and takes out
+/// only the wind. With no correction, no phase and the report's wind it is that report's flight
+/// itself.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Variant {
     /// The correction flown, or none: the motors and the drag as the report flies them.
