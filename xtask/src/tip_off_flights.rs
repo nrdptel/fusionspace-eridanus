@@ -107,9 +107,12 @@ pub struct Bin {
 /// it, then merged until every bin holds at least [`BIN_FLOOR`] flights: the bin with the fewest
 /// (the lowest of a tie) is merged with the smaller of its neighbors (the lower of a tie), and so
 /// on. Only bins holding a flight are bins, so a merged bin spans any empty ones between its
-/// parts. All the moves in one bin when there are fewer than [`BIN_FLOOR`] of them; none for no
-/// moves.
+/// parts. With fewer than [`BIN_FLOOR`] moves in all there are no bins: the count of flights is
+/// given alone, since even one bin would bound those few flights' moves.
 pub fn bins(moves_percent: &[f64]) -> Vec<Bin> {
+    if moves_percent.len() < BIN_FLOOR {
+        return Vec::new();
+    }
     let mut counts: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
     for &m in moves_percent {
         // Each move's bin by its multiple of the width, times the bins per per cent (10, exact)
@@ -374,8 +377,13 @@ impl CollectionTipOff {
              flights | {} | {} |\n| designs | {} | {} |\n",
             self.flights, self.flights_with_two_guides, self.designs, self.designs_with_two_guides
         );
-        if self.moves.is_empty() {
+        if self.flights_with_two_guides == 0 {
             md.push_str("No flight has two guides, so the phase moves none.\n\n");
+        } else if self.moves.is_empty() {
+            md.push_str(
+                "Fewer than five flights have two guides, so their moves are not binned: their \
+                 count is given alone.\n\n",
+            );
         } else {
             md.push_str(&bins_table("in the day's wind", &self.moves));
             md.push_str(&bins_table(
@@ -943,9 +951,10 @@ mod tests {
         let got = bins(&moves);
         assert_eq!(got.len(), 2);
         assert_eq!((got[0].flights, got[1].flights), (6, 6));
-        // Fewer than five in all: one bin; none for none.
-        assert_eq!(bins(&[0.5, 0.7]).len(), 1);
+        // Fewer than five in all: no bin, the count alone; none for none.
+        assert!(bins(&[0.5, 0.7, 0.9, 1.1]).is_empty());
         assert!(bins(&[]).is_empty());
+        assert_eq!(bins(&[0.5, 0.7, 0.9, 1.1, 1.3]).len(), 1);
     }
 
     #[test]
@@ -1011,14 +1020,17 @@ mod tests {
         // The collection's aggregate is the one its own report commits.
         let root = crate::designs::root().unwrap();
         assert_eq!(collection(&root).unwrap(), report.collection);
-        // Every published bin holds at least five flights, unless one bin holds them all.
+        // Every published bin holds at least five flights, and the bins hold every flight with
+        // two guides; fewer than five in all have no bins.
         let c = &report.collection;
-        assert_eq!(
-            c.moves.iter().map(|b| b.flights).sum::<usize>(),
-            c.flights_with_two_guides
-        );
-        if c.moves.len() > 1 {
-            assert!(c.moves.iter().all(|b| b.flights >= BIN_FLOOR));
+        for moves in [&c.moves, &c.still_air_moves] {
+            assert!(moves.iter().all(|b| b.flights >= BIN_FLOOR));
+            let binned = moves.iter().map(|b| b.flights).sum::<usize>();
+            if c.flights_with_two_guides < BIN_FLOOR {
+                assert_eq!(binned, 0);
+            } else {
+                assert_eq!(binned, c.flights_with_two_guides);
+            }
         }
     }
 }

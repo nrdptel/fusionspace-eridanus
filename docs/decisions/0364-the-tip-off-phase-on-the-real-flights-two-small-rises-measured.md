@@ -92,8 +92,10 @@ report's.
   page and its sums without refs/.
 - The collection's report gains its tip-off section, held by `fixture-flights --check`; its
   other figures reproduce unchanged.
-- The bins of the collection's moves keep [ADR-363][adr-363]'s floor of five flights: a bin
-  of fewer is merged with its smaller neighbor. A part of the split made of fewer than five
+- The bins of the collection's moves keep [ADR-363][adr-363]'s floor of five flights and settle
+  the cases it left open: the bin with the fewest flights is merged with its smaller neighbor,
+  again until every bin holds five or more, and with fewer than five flights in all the count is
+  given alone, with no bin. A part of the split made of fewer than five
   flights is held back the same way, stricter than the three of [ADR-346][adr-346]'s rule
   against figures given by subtraction. In the day's wind that leaves one bin of all 23
   flights; in still air, two.
