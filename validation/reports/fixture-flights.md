@@ -265,7 +265,7 @@ Each flight compared is flown again with the tip-off phase: once the guide ahead
 
 Of the flights with two guides, 11 fly from a vertical rail, where gravity has no moment about the last guide: the collection flies one wherever a flight's tilt is not known.
 
-The flights with two guides by the phase's apogee move in the day's wind, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+The phase's apogee moves in the day's wind, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
@@ -273,14 +273,14 @@ The flights with two guides by the phase's apogee move in the day's wind, in bin
 
 One bin holds all 23 flights.
 
-The flights with two guides by the phase's apogee move in still air, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+The phase's apogee moves in still air, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
 | -0.4% to 0.0% | 15 |
 | 0.0% to +0.1% | 8 |
 
-Of the 23 flights with two guides, the phase held back (a group of fewer than five flights) in the wind, and held back (a group of fewer than five flights) in still air. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points).
+Of the 23 flights with two guides: in the wind, how many it raised, left within 1 cm and lowered is held back; in still air, how many it raised, left within 1 cm and lowered is held back. A group of counts is held back where it would hold one to four flights. It moved 14 away from the log and 9 toward it. The change in the mean absolute error is the flights moved away's part (+0.0142 points) plus the flights moved toward's (-0.0110 points), each rounded on its own.
 
 Over every flight compared, guided, the mean absolute apogee error is 12.095% and the mean +8.007%; with the phase, 12.098% and +8.015%: a change of +0.0033 points in the mean absolute error.
 

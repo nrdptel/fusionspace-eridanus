@@ -1077,20 +1077,21 @@ record][adr-364]); the gate holds it (`--check`).
   2,950.2 m (9,679 ft), 6.39% low. With the phase it reads 2,976.7 m (9,766 ft), 5.55% low: 26.5 m
   (87 ft) higher. In still air the phase lowers it by 16.7 m (55 ft). That is more than the 11.33 m
   (37.2 ft) of [the comparison with RocketPy](#the-tip-off-phase-against-rocketpys), which flies
-  Juno III on one drag coefficient, not on the real-flight report's drag and launch-day air. Taking
-  out the wind changes the guided flight too, so the still-air and wind moves are not two parts of
-  one sum.
-- **What it leaves out.** The phase moves apogees by under 1%, against mean errors of 6% to 13%, so
-  no flight checks it. Landing points, where [RocketPy's flights](#what-leaving-tip-off-out-costs)
-  show the larger cost, wait for [landing points against the tracked
-  landings](../decisions-and-roadmap.md#m2-13). Two tests on the Valetudo pin which way a landing
-  point errs without the phase, and it depends on the rail and the wind. On a 5.3° tilted rail in
-  still air the guided flight lands about 51 m (167 ft) short, held between 50.5 m (166 ft) and
-  52 m (171 ft):
-  `without_tip_off_a_landing_point_errs_nearer_the_pad_on_a_tilted_rail_in_still_air`. On a
-  vertical rail in a 5 m/s (11 mph) crosswind it lands about 26 m (85 ft) farther from the pad,
-  held between 25 m (82 ft) and 26.5 m (87 ft):
+  Juno III on one drag coefficient, not on the real-flight report's drag and launch-day air; how
+  much of the gap that explains is not measured. Taking out the wind changes the guided flight too,
+  so the still-air and wind moves are not two parts of one sum.
+- **What it leaves out.** The phase moves apogees by under 1%, against mean absolute errors of 6% to
+  13%, so no flight checks it. Landing points, where [RocketPy's
+  flights](#what-leaving-tip-off-out-costs) show the larger cost, wait for [landing points against
+  the tracked landings](../decisions-and-roadmap.md#m2-13). Two tests on the Valetudo pin which way
+  a landing point errs without the phase; the direction depends on the rail and the wind. On a 5.3°
+  tilted rail in still air the guided flight lands about 51 m (167 ft) short, held between 50.5 m
+  (166 ft) and 52 m (171 ft):
+  `without_tip_off_a_landing_point_errs_nearer_the_pad_on_a_tilted_rail_in_still_air`. On a vertical
+  rail in a 5 m/s (11 mph) crosswind it lands about 26 m (85 ft) farther from the pad, held between
+  25 m (82 ft) and 26.5 m (87 ft):
   `without_tip_off_a_landing_point_errs_farther_from_the_pad_on_a_vertical_rail_in_a_crosswind`.
+  That second direction comes from the wind's part of the turn, the part not yet held to RocketPy's.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md

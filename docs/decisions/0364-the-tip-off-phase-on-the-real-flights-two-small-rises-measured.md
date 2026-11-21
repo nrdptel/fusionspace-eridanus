@@ -58,11 +58,13 @@ report's.
      −0.0021 points. Astra's move of 0.02 m adds +0.0001. The rise is gravity's lowering of a
      flight HPR Sim already flies low.
    - **The private collection, +0.0033 points.** 23 of its 60 flights fly a design with two
-     guides at different stations (20 of its 42 designs); 11 of the 23 fly from a vertical rail.
+     guides at different stations (20 of its 42 designs); 11 of the 23 fly from a vertical rail,
+     as the collection flies every flight whose tilt is not known.
      The phase moves 14 of the 23 away from their logs and 9 toward them. The flights moved away
-     give +0.0142 points, those moved toward −0.0110. The mean signed error rises from +8.007%
-     to +8.015%: on net the phase raises the apogees of a set HPR Sim flies 8.0% high on
-     average, so more move away than toward. How many it raises and how many it lowers is held
+     give +0.0142 points, those moved toward −0.0110 (each rounded on its own; their sum is
+     +0.0033 before rounding). The mean signed error rises from +8.007% to +8.015%: on net the
+     phase raises the apogees of a set HPR Sim flies 8.0% high on average. How many it raises
+     and how many it lowers is held
      back, in the wind and in still air (see the floor under *Consequences*). In the wind no
      flight moves by more than 0.4% of its apogee; in still air none rises by 0.1% or more.
    - **The compared-first flights fall, −0.091 points.** Juno III is the largest move: the phase
@@ -85,9 +87,10 @@ report's.
    the apogee by 4.35 m and RocketPy's lowers it by 3.90 m. Against the flight with the phase
    off, RocketPy's phase does raise Juno III in a crosswind (+0.321%, against −0.378% in still
    air), so a wind can turn the phase's lowering into a rise, but against the guided flight,
-   the comparison made here, it lowers it by 0.157%. So the collection's net rise and Juno
-   III's rise rest on the phase's least-checked part. They do not show that the phase is
-   wrong, and they do not show it right.
+   the comparison made here, it lowers it by 0.157%. So Juno III's rise rests on the phase's
+   least-checked part. The collection's net rise is measured in the day's wind, whose part of
+   the phase is the one not held, and the report does not split it into a wind part and a
+   gravity part. Neither shows that the phase is wrong, and neither shows it right.
 4. **M1.14b15 may make the phase the default.** Both rises are measured, smaller than the
    reports' rounding, and traced to their flights. The fall over the seven flights compared
    first is no argument for the default: it leans on Juno III's wind part, the part decision 3
@@ -106,8 +109,9 @@ report's.
   the cases it left open: the bin with the fewest flights is merged with its smaller neighbor,
   again until every bin holds five or more, and with fewer than five flights in all the count is
   given alone, with no bin. A group of counts (raised, not moved, lowered) is given only where
-  each holds no flight or at least five, and the split's two parts only where both the flights
-  moved away and those moved toward number five or more; otherwise they are held back. This is
+  each holds no flight or at least five. The split's counts and its two parts are given only
+  where the flights moved away, those moved toward and those left unchanged each number none or
+  five or more; otherwise they are held back, together. This is
   stricter than the three of [ADR-346][adr-346]'s rule against figures given by subtraction.
   In the day's wind that leaves one bin of all 23 flights and the counts held back; in still
   air, two bins and the counts held back.
@@ -119,9 +123,10 @@ report's.
 - **No real flight checks the phase.** The logs read an apogee, and the phase moves apogees by
   at most 0.9% here, against mean absolute errors of 6% to 13% over the three sets.
 - **The wind's part is held to nothing.** Until [M1.14b12][m1-14b12] holds the crosswind turn on
-  HPR Sim's own normal force, Juno III's rise and the collection's net rise rest on an
-  unchecked part of the phase.
+  HPR Sim's own normal force, Juno III's rise rests on an unchecked part of the phase, and the
+  collection's net rise is measured in the wind that part turns.
 - **Landing points.** None of these flights compares one, so what the phase does to a landing
   point is pinned by two tests on a design, not measured on a flight. Which way leaving the
   phase out errs depends on the rail's tilt and the wind: on a tilted rail in still air the
-  guided flight lands nearer the pad, on a vertical rail in a crosswind farther from it.
+  guided flight lands nearer the pad, on a vertical rail in a crosswind farther from it. The
+  second comes from the wind's part of the turn, the part not yet held to RocketPy's.

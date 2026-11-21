@@ -285,10 +285,10 @@ impl Split {
     pub fn sentence(&self, two_guides: usize) -> String {
         let ways = |ways: Option<Ways>| {
             ways.map_or_else(
-                || "held back (a group of fewer than five flights)".to_owned(),
+                || "how many it raised, left within 1 cm and lowered is held back".to_owned(),
                 |w| {
                     format!(
-                        "raised {}, left {} within 1 cm and lowered {}",
+                        "the phase raised {}, left {} within 1 cm and lowered {}",
                         w.raised, w.not_moved, w.lowered
                     )
                 },
@@ -298,15 +298,13 @@ impl Split {
             (Some(away), Some(toward), Some(a), Some(t)) => format!(
                 "It moved {away} away from the log and {toward} toward it. The change in the mean \
                  absolute error is the flights moved away's part ({a:+.4} points) plus the \
-                 flights moved toward's ({t:+.4} points)."
+                 flights moved toward's ({t:+.4} points), each rounded on its own."
             ),
-            _ => "Which way it moved them against their logs is held back (a group of fewer than \
-                  five flights)."
-                .to_owned(),
+            _ => "Which way it moved them against their logs is held back.".to_owned(),
         };
         format!(
-            "Of the {two_guides} flights with two guides, the phase {} in the wind, and {} in \
-             still air. {sides}\n\n",
+            "Of the {two_guides} flights with two guides: in the wind, {}; in still air, {}. A \
+             group of counts is held back where it would hold one to four flights. {sides}\n\n",
             ways(self.in_the_wind),
             ways(self.in_still_air)
         )
@@ -325,9 +323,9 @@ fn edge(percent: f64) -> String {
 /// A table of the phase's apogee moves by bin, flown `how`.
 fn bins_table(how: &str, bins: &[Bin]) -> String {
     let mut md = format!(
-        "The flights with two guides by the phase's apogee move {how}, in bins of 0.1% of the \
-         apogee guided, each from its lower edge up to its upper one, a bin holding fewer than \
-         five merged with its smaller neighbor:\n\n| move | flights |\n|---|---:|\n"
+        "The phase's apogee moves {how}, for the flights with two guides, in bins of 0.1% of \
+         the apogee guided, each from its lower edge up to its upper one, a bin holding fewer \
+         than five merged with its smaller neighbor:\n\n| move | flights |\n|---|---:|\n"
     );
     for bin in bins {
         let _ = writeln!(
@@ -647,7 +645,8 @@ impl Report {
              tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result \
              in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot \
              about its last guide once the guide ahead of it has left the rail ([the \
-             phase][flight]; held to RocketPy's in [the comparison](tip-off-model.md)). It is \
+             phase][flight]; compared with RocketPy's in [the comparison](tip-off-model.md), \
+             held in still air and not yet in a crosswind on HPR Sim's own normal force). It is \
              off by default. This report flies every real flight HPR Sim compares with the phase \
              and without it, before the phase becomes the default. It compares HPR Sim with \
              itself: it does not check the phase against a measurement.\n\n- **What is \
@@ -716,7 +715,7 @@ impl Report {
             let _ = writeln!(
                 md,
                 "With the phase the mean absolute apogee error is higher over {}{}. \
-                 [ADR-364][adr-364] measures the rises and their cause, as ADR-363 asks before \
+                 [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asks before \
                  the phase becomes the default.\n",
                 listed(&higher),
                 if lower.is_empty() {
@@ -734,7 +733,8 @@ impl Report {
              air gravity has no moment about the last guide. The change in a set's mean absolute \
              error is the sum of two parts: the rises in absolute error of the flights moved \
              away, and the falls of those moved toward, each summed and divided by the set's \
-             flights.\n\n| set | with two guides | in the wind: raised, not moved, lowered | in \
+             flights. The parts are rounded on their own, so their sum may differ from the \
+             change in its last digit.\n\n| set | with two guides | in the wind: raised, not moved, lowered | in \
              still air: raised, not moved, lowered | moved away | moved toward | away's part \
              (points) | toward's part (points) |\n|---|---:|---|---|---:|---:|---:|---:|\n",
         );

@@ -314,10 +314,12 @@ So far three are reported and three are refused; three are open.
 
 Beside the tip-off reference, the phase was also flown on every real flight HPR Sim compares,
 with it and without it. That compares HPR Sim with itself, not with a measurement. The phase
-moves each apogee by under 1%. The mean absolute apogee error falls by 0.091 percentage points
-over the seven public flights compared first, and rises by 0.0014 and 0.0033 points over the
-five predicted first and the private collection's 60. No landing point is compared yet
-([on the real flights](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
+moves each apogee by under 1%. On the seven public flights [the real-flight
+report](accuracy.md#real-flights) compared as soon as they were flown, the mean absolute apogee
+error falls by 0.091 percentage points. Juno III's rise alone makes that a fall, so it is not
+counted for the phase. On the five whose predictions were published before their comparison,
+and on the private collection's 60 flights, it rises by 0.0014 and 0.0033 points. No landing
+point is compared yet ([on the real flights](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
 
 ## The validation harness
 

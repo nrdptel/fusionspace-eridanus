@@ -1,6 +1,6 @@
 # What the tip-off phase moves on the real flights
 
-Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot about its last guide once the guide ahead of it has left the rail ([the phase][flight]; held to RocketPy's in [the comparison](tip-off-model.md)). It is off by default. This report flies every real flight HPR Sim compares with the phase and without it, before the phase becomes the default. It compares HPR Sim with itself: it does not check the phase against a measurement.
+Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot about its last guide once the guide ahead of it has left the rail ([the phase][flight]; compared with RocketPy's in [the comparison](tip-off-model.md), held in still air and not yet in a crosswind on HPR Sim's own normal force). It is off by default. This report flies every real flight HPR Sim compares with the phase and without it, before the phase becomes the default. It compares HPR Sim with itself: it does not check the phase against a measurement.
 
 - **What is flown:** each flight as its own report flies it, the phase the only change: the seven flights [the real-flight report](real-flights.md) compared as soon as they were flown (*compared first*), the five it compares after their predictions were merged (*predicted first*; [the predictions](public-predictions.md)), and the private collection's logged flights ([its report](fixture-flights.md#the-tip-off-phase-m114b14)), given in aggregate only.
 - **Guided** is the flight as HPR Sim flies it by default: held straight to its last guide, then freed with no turning rate.
@@ -26,11 +26,11 @@ Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-36
 | predicted first | 5 | 3 | 12.818% | 12.819% | +0.0014 | -11.161% | -11.167% |
 | the private collection | 60 | 23 | 12.095% | 12.098% | +0.0033 | +8.007% | +8.015% |
 
-With the phase the mean absolute apogee error is higher over predicted first by 0.0014 points, the private collection by 0.0033 points, and lower over compared first by 0.0909 points. [ADR-364][adr-364] measures the rises and their cause, as ADR-363 asks before the phase becomes the default.
+With the phase the mean absolute apogee error is higher over predicted first by 0.0014 points, the private collection by 0.0033 points, and lower over compared first by 0.0909 points. [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asks before the phase becomes the default.
 
 ## Where the change comes from
 
-For each set: which way the phase moved the apogees of the flights with two guides, in the wind each report flies and in still air, and whether the move took the apogee toward the log or away from it. A move under 1 cm (0.4 in) either way counts as not moved: on a vertical rail in still air gravity has no moment about the last guide. The change in a set's mean absolute error is the sum of two parts: the rises in absolute error of the flights moved away, and the falls of those moved toward, each summed and divided by the set's flights.
+For each set: which way the phase moved the apogees of the flights with two guides, in the wind each report flies and in still air, and whether the move took the apogee toward the log or away from it. A move under 1 cm (0.4 in) either way counts as not moved: on a vertical rail in still air gravity has no moment about the last guide. The change in a set's mean absolute error is the sum of two parts: the rises in absolute error of the flights moved away, and the falls of those moved toward, each summed and divided by the set's flights. The parts are rounded on their own, so their sum may differ from the change in its last digit.
 
 | set | with two guides | in the wind: raised, not moved, lowered | in still air: raised, not moved, lowered | moved away | moved toward | away's part (points) | toward's part (points) |
 |---|---:|---|---|---:|---:|---:|---:|
@@ -61,7 +61,7 @@ The parts are percentage points of the mean absolute error. For the private coll
 
 Of the 60 flights compared with their logs, 23 fly a design with two or more guides at different stations: 20 of the 42 designs. 11 of those flights fly from a vertical rail. No flight is named or numbered here and no apogee of one is given: the collection's terms allow aggregates only ([ADR-151][adr-151], [ADR-184][adr-184]).
 
-The flights with two guides by the phase's apogee move in the day's wind, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+The phase's apogee moves in the day's wind, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
@@ -69,7 +69,7 @@ The flights with two guides by the phase's apogee move in the day's wind, in bin
 
 One bin holds all 23 flights.
 
-The flights with two guides by the phase's apogee move in still air, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
+The phase's apogee moves in still air, for the flights with two guides, in bins of 0.1% of the apogee guided, each from its lower edge up to its upper one, a bin holding fewer than five merged with its smaller neighbor:
 
 | move | flights |
 |---|---:|
