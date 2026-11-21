@@ -751,8 +751,8 @@ impl Catalog {
         picked
     }
 
-    /// As [`Catalog::find`], for a motor going into a mount whose bore is `bore_mm` across: ADR-302
-    /// §1's diameter guard, which [`Catalog::find_for_design`] applies to a design file's motor,
+    /// As [`Catalog::find`], for a motor going into a mount whose bore is `bore_mm` across: the
+    /// diameter guard of [ADR-302][adr-302] §1, on looking a motor up by name, which [`Catalog::find_for_design`] applies to a design file's motor,
     /// applied to a motor named by hand. Where another motor the name matches, by designation or
     /// common name, fits the bore more closely by more than [`BORE_TOLERANCE_MM`] than every motor
     /// [`Catalog::find`] gives (or where none of those fits and another does), every match, so the
@@ -760,6 +760,8 @@ impl Catalog {
     /// it is no wider than the bore and the tolerance; the closer fit leaves less room around it.
     /// So `J360` in a 54 mm mount names both Cesaroni's 38 mm `J360` and its 54 mm `1016J360-15A`,
     /// and in a 38 mm mount the `J360` alone.
+    ///
+    /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
     pub fn find_for_bore<'a>(&'a self, name: &str, bore_mm: f64) -> Vec<&'a CatalogMotor> {
         let (maker, rest) = self.maker_and_name(name);
         let all = self.matching(rest, |motor| {
