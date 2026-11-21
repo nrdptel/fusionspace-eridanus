@@ -48,8 +48,9 @@
 # its SHA-256 matches and its test reads it without skipping), and the motor catalog's recount
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees),
-# and `corrections.py --check` (#1583: the whole flights' correction to RocketPy's equations tells
-# the installed release from one already carrying it, and stops on one carrying part of it).
+# and `corrections.py --check` (#1583: on sources built from the installed release, 1.13.0, the
+# whole flights' correction to RocketPy's equations tells a source carrying it from one that
+# doesn't, stops on one carrying part of it, and flies the release with all three edits).
 # The checks run side by side, each a lane of `scripts/lanes.sh` (#700). Each reads its own files,
 # and the three that write anything write what no other lane touches: `ghost --check` its
 # target/ghost-files/, `ork-cli --check` its target/ork-cli/, and `evidence --samples` the tests it

@@ -3,8 +3,8 @@
 This note lists the defects open in RocketPy's tracker that its own reports say move an apogee, with
 the size each report gives. It feeds [M2.9's RocketPy cells](../ROADMAP.md), whose rule is set by
 [ADR-246, the oracle-defects decision][adr-246]: name every open defect sized above 0.5%, and mark
-the unsized ones. Read on 2026-10-18. The latest release is **1.13.0** (GitHub and PyPI, 2026-07-22);
-the `develop` branch's head is `a50d07d` (2026-09-14). Every size below is a report's own number, on
+the unsized ones. Read on 2026-10-18, merge states again on 2026-11-21. The latest release is **1.13.0**
+(GitHub and PyPI, 2026-07-22); `develop` was at `a50d07d` then, `6b2a37f` now. Each size is a report's own, on
 RocketPy's own test rockets, unless it is marked **Inference** or credited to this project.
 
 **In short.**
@@ -40,8 +40,9 @@ RocketPy's own test rockets, unless it is marked **Inference** or credited to th
 **PR #1195, angular rates zeroed in the solid-propulsion equations** [4]. Read at head `f3c0c86`;
 merged into `develop` on 2026-11-17 (`2eb2ee34`), in no release.
 - **Cause.** `Flight.u_dot` sets the three body rates to zero right after reading the state
-  (`flight.py:1931` in 1.13.0), so no aerodynamic damping acts. The PR deletes that one line.
-- **Size and sign, from the PR's table** (Calisto, 5 to 15 m/s wind, flown to apogee): apogee
+  (`flight.py:1931` in 1.13.0), so no aerodynamic damping acts. At `f3c0c86` the PR deleted that line;
+  as merged (head `db3eeb49`) it also fixes the propellant offset's axis and an inertia rate in `u_dot`.
+- **Size and sign, from the PR's table at `f3c0c86`** (Calisto, 5 to 15 m/s wind, to apogee): apogee
   4,729 m before, 4,643 m after (−1.8%), and 4,632 m on the default equations. Peak pitch rate falls
   from 12.0 to 0.13 rad/s. The PR says the two equation sets then agree to about 0.25% on apogee.
 - **Which flights it touches.** `Flight.__init_equations_of_motion` binds `u_dot` only when
@@ -58,7 +59,7 @@ merged into `develop` on 2026-11-17 (`2eb2ee34`), in no release.
   Defiance, on top of #1188: 9,243.84 to 9,247.97 m (+0.045%).
 - **#1185, the CM offset's second derivative at ignition** [8]. Open, no PR. On calisto_hybrid_modded,
   removing the term moves apogee 0.90 m of 4,405 m (0.02%).
-- **#1202, the sign of `Flight.potential_energy`** [9]. Open; its fix, PR #1204 (head `cb85f0a`), merged
+- **#1202, the sign of `Flight.potential_energy`** [9]. Open; its fix, PR #1204 (read at `cb85f0a`), merged
   into `develop` 2026-11-16 (`da248699`), in no release. It moves the energy outputs, not the path.
 
 - **#1186's size depends on the rocket.** Its own report calls the apogee change small and the
@@ -104,13 +105,12 @@ merged into `develop` on 2026-11-17 (`2eb2ee34`), in no release.
   2026-09-09 (`799761b`). Calisto in custom wind: 3,423.27 to 3,423.88 m (+0.018%). Defiance:
   9,242.37 to 9,243.84 m (+0.016%).
 - **#1085, a thrust curve starting after t = 0 never left the rail** (#411) [13]. Merged 2026-08-08.
-  The delayed case went from 0 m to the on-time case's 10,329 m; ignition at t = 0 is byte-for-byte
-  unchanged.
+  The delayed case went from 0 m to the on-time case's 10,329 m; ignition at t = 0 is unchanged.
 - **#1056, `pressure_ISA` sampled from −2,000 m, not 0 m** [14]. Merged 2026-07-26. About 1e-5
   relative on trajectory quantities; 2.3% in pressure at −1,500 m.
-- **#920, an opt-in tip-off phase, `use_udot_rail2=True`** [15]. Merged 2026-09-14 (`ebe1b77`).
-  Its author: about −2 m on Calisto when on; off, bit-for-bit identical. ADR-357 measures 13 cases.
-  PR #1217 [17] (merged 2026-11-17) removed the switch: it runs with two buttons at different rail stations.
+- **#920, an opt-in tip-off phase, `use_udot_rail2=True`** [15]. Merged 2026-09-14 (`ebe1b77`); about
+  −2 m on Calisto, its author says (ADR-357: 13 cases). #1217 [17] (merged 2026-11-17) removed the
+  switch: a 6-DOF flight on the standard equations runs it with two buttons at different stations.
 - **#1121, parachute triggers evaluated once per time node** (#1086). Merged 2026-08-15. No size
   given (**Inference**: none for a trigger that fires at or after apogee).
 - **#1138, opt-in unbonded grains.** Merged 2026-08-15. No size given; the default keeps the grain
@@ -121,8 +121,8 @@ What these mean for M2.9:
 - **Release state.** None of these is in a release. PR #1194 (2026-09-14, `develop` into `master` for
   1.14.0) says only #1187 and #1190 join it, the rest waiting for 1.15 [16]; yet its head follows
   `develop`, `6b2a37f` on 2026-11-21, which holds #1188, #1195, #1196, #1204 and #1217.
-- **#920's 2 m** is under 0.1% of any Calisto apogee quoted above (**Inference**). Since #1217 the
-  phase has no switch, so a cell flown on `develop` with two buttons on the rail carries it.
+- **#920's 2 m** is under 0.1% of any Calisto apogee quoted above (**Inference**); #1217's own table
+  sizes the rewritten phase larger on steeper rails. With no switch, a cell flown on `develop` carries it.
 - **#1085 matters only for a late-igniting motor,** such as an air-started or delayed stage, which
   1.13.0 leaves on the pad. Of the seven public flights' notebooks, four give `burn_time` as one
   number, two read it from a parameter file and Juno III's sets none; only the liquid-motor example
@@ -153,7 +153,7 @@ What these mean for M2.9:
 - **ADR-246's example of #1195** reads as if it moved every RocketPy cell. A one-line note in the
   cell, not a new decision, would carry the path condition.
 - **Flown with the fixes:** the oracle already flies #1188 and #1196 ([ADR-026][adr-026]). When a
-  release carries both, `corrections.py` can drop them, as ADR-026 plans for #1188.
+  release carries both, `corrections.py` can drop them, as ADR-026 plans.
 - **Terms.** RocketPy is MIT (its `LICENSE`; the PyPI classifier says the same), so its code and
   diffs may be read, run and cached under `refs/` with attribution. Issue and PR text is its authors'
   and is cited here, numbers restated, not copied. The listings and diffs read for this note are
@@ -171,7 +171,7 @@ What these mean for M2.9:
 
 ## Sources
 
-All read on 2026-10-18.
+All read on 2026-10-18; the merge states of [4], [7], [9], [12], [15] and [16], and [17], on 2026-11-21.
 
 1. Open issues and PRs, REST listing: https://api.github.com/repos/RocketPy-Team/RocketPy/issues?state=open
 2. Closed since the release, sorted by update: same endpoint with `state=closed&since=2026-07-22`.
