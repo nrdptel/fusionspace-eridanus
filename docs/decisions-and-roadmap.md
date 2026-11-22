@@ -398,6 +398,7 @@ until someone rewrites it in plainer words.
 | [ADR-367: The tip-off phase is the default: what moved, and what flies held straight][adr-367] | A design with two or more rail guides at different stations now leaves the rail by the tip-off phase unless told not to, from the library, the command line and the Python package. Comparisons with OpenRocket and RocketPy 1.13.0, which have no such phase, fly with it off and say so. Every report that moves is regenerated. Of the accepted census's rows, 16 moved, 7 for the worse, each as [ADR-364][adr-364] measured before the default changed. The readings' and the fit's interval shares are refitted on synthetic flights flown on the default; one cell of the fit's test then fails and is recorded ([ADR-368][adr-368]). |  |
 | [ADR-368: The fit's drag interval fails set B's test on the default flight: recorded, not fitted away][adr-368] | With the tip-off phase the default ([ADR-367][adr-367]), the least-squares fit's 90% interval on the drag scale leaves 80 of set B's 1,000 truths below it, where a tail passes with 29 to 74. It read 71 before. The interval is not widened to pass: its shares come from the calibration set alone. The cell is recorded as failing on its lower tail, the report and the fit's page say so, the check stops if it passes or fails anywhere else, and [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix. |  |
 | [ADR-369: The fit's slice on another platform: one fit may stop otherwise][adr-369] | One fit of the slice, a flight of set B, ends at its step limit on macOS and Windows and converges on both of CI's Linux runners. Every other word of its lines agrees. The slice's check on another platform now lets one fit in a comparison stop otherwise than where the slice was written, names it, and fails on a second. The build that writes the slice still holds it byte for byte. [#1597](https://github.com/nrdptel/fusionspace-eridanus/issues/1597) holds the question of the fit itself. |  |
+| [ADR-370: The 2026-11-22 review: the next flight predicted from the last one's log][adr-370] | A flyer who has logged one flight of a rocket predicts the next from it. HPR Sim can fit its drag to the first flight's log; whether that fit makes the next flight's apogee, on another motor and another day, any better is unmeasured. Sixteen rockets in the private collection have two or more logged flights. The milestone fixes the rule, fits each earlier flight, and merges every prediction of the later flights before any error is computed; then it scores HPR Sim's carried fit against the plain prediction and against the by-hand ratio correction, for both programs, on new rows `accuracy.second-flight` and `bias.second-flight`. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -777,6 +778,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-15"></a>[M2.15][phase-1] | Drag in the coast against the logs | not yet done |
 | <a id="m2-15a"></a>[M2.15a][phase-1] | The rule, the readings and the predictions | not yet done |
 | <a id="m2-15b"></a>[M2.15b][phase-1] | The errors | not yet done |
+| <a id="m2-16"></a>[M2.16][phase-1] | The next flight from the last one's log | not yet done |
+| <a id="m2-16a"></a>[M2.16a][phase-1] | The rule, the fits and the predictions | not yet done |
+| <a id="m2-16b"></a>[M2.16b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1479,6 +1483,7 @@ is the milestone that added or will add that test.
 [adr-367]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0367-the-tip-off-phase-is-the-default-what-moved-and-what-flies-held-straight.md
 [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
 [adr-369]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0369-the-fits-slice-on-another-platform-one-fit-may-stop-otherwise.md
+[adr-370]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

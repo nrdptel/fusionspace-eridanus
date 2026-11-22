@@ -31,55 +31,56 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 4. M2.13 Landing points against the tracked landings
 5. M2.14 Speed off the rail against the accelerometer logs
 6. M2.15 Drag in the coast against the logs
-7. M2.3d4 A stage's override that adds to its parts
-8. M2.3c9 Every flight OpenRocket flies
-9. M2.8 Honest uncertainty
-10. M7.3 A flight against its simulation
-11. M10.2 Release 0.2: the flight analyzer
-12. M0.13 Awareness and care on the sites
-13. M0.9g The figures' digits and the command line's words
-14. M2.3c3 OpenRocket's newest release
-15. M2.6 An open benchmark
-16. M7.4 Fault diagnosis
-17. M10.3 Release 0.3: accuracy and diagnosis
-18. M2.11 Fin flutter held to measurement
-19. M2.3c7 Faster than sound: published flights
-20. M6.3 Challenge specs and presets
-21. M6.4 Airbrakes
-22. M6.2e Robust mode
-23. M6.6 Submission packs
-24. M6.7 Ejection charges
-25. M3.5 RASAero `.CDX1` import/export
-26. M3.6 RocketPy interop
-27. M2.9 The other tools' cells
-28. M6.8 Field kit: checklists, the settings check and the ground-test log
-29. M0.7b Rocketry explained: recovery, wind and motors
-30. M10.4 Release 0.4: the competition kit
-31. M4.4 C ABI and WASM
-32. M9.0 UI architecture ADR plus a spike
-33. M9.2 3D flight replay with a ghost
-34. M10.5 Release 0.5: the app preview
-35. M0.7c Rocketry explained: live figures
-36. M5.6a A catalog of hpr's own: format, search and a parts list
-37. M8.2 Edit model for UIs
-38. M9.1 Desktop app shell
-39. M5.6b Parachutes and recovery hardware
-40. M8.1 Design assistant
-41. M5.6c Motor hardware and rail buttons
-42. M5.6d More makers and electronics
-43. M3.4 RockSim `.rkt` import/export
-44. M9.3 Web PWA
-45. M10.6 Release 1.0: the app
-46. M0.7d Rocketry explained: the rest of the hobby
-47. M11.1 A motor of your own
-48. M11.2 Experimental solids
-49. M12.1 Parachute gores
-50. M12.2 Opening loads
-51. M9.4 Mobile
-52. M9.6 The four web tools, rebuilt
-53. M6.5 Roll control: tail-fin tabs and canards
-54. M13.3 Flight computer logic
-55. M13.1 Ground station
+7. M2.16 The next flight from the last one's log
+8. M2.3d4 A stage's override that adds to its parts
+9. M2.3c9 Every flight OpenRocket flies
+10. M2.8 Honest uncertainty
+11. M7.3 A flight against its simulation
+12. M10.2 Release 0.2: the flight analyzer
+13. M0.13 Awareness and care on the sites
+14. M0.9g The figures' digits and the command line's words
+15. M2.3c3 OpenRocket's newest release
+16. M2.6 An open benchmark
+17. M7.4 Fault diagnosis
+18. M10.3 Release 0.3: accuracy and diagnosis
+19. M2.11 Fin flutter held to measurement
+20. M2.3c7 Faster than sound: published flights
+21. M6.3 Challenge specs and presets
+22. M6.4 Airbrakes
+23. M6.2e Robust mode
+24. M6.6 Submission packs
+25. M6.7 Ejection charges
+26. M3.5 RASAero `.CDX1` import/export
+27. M3.6 RocketPy interop
+28. M2.9 The other tools' cells
+29. M6.8 Field kit: checklists, the settings check and the ground-test log
+30. M0.7b Rocketry explained: recovery, wind and motors
+31. M10.4 Release 0.4: the competition kit
+32. M4.4 C ABI and WASM
+33. M9.0 UI architecture ADR plus a spike
+34. M9.2 3D flight replay with a ghost
+35. M10.5 Release 0.5: the app preview
+36. M0.7c Rocketry explained: live figures
+37. M5.6a A catalog of hpr's own: format, search and a parts list
+38. M8.2 Edit model for UIs
+39. M9.1 Desktop app shell
+40. M5.6b Parachutes and recovery hardware
+41. M8.1 Design assistant
+42. M5.6c Motor hardware and rail buttons
+43. M5.6d More makers and electronics
+44. M3.4 RockSim `.rkt` import/export
+45. M9.3 Web PWA
+46. M10.6 Release 1.0: the app
+47. M0.7d Rocketry explained: the rest of the hobby
+48. M11.1 A motor of your own
+49. M11.2 Experimental solids
+50. M12.1 Parachute gores
+51. M12.2 Opening loads
+52. M9.4 Mobile
+53. M9.6 The four web tools, rebuilt
+54. M6.5 Roll control: tail-fin tabs and canards
+55. M13.3 Flight computer logic
+56. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -229,6 +230,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   - [ ] **M2.15a The rule, the readings and the predictions.** *Done when:* ADR-360 decision 1's
     for M2.15a.
   - [ ] **M2.15b The errors.** *Done when:* ADR-360 decision 1's for M2.15b.
+- [ ] **M2.16 The next flight from the last one's log** (ADR-370, in two; met when they are).
+  - [ ] **M2.16a The rule, the fits and the predictions.** *Done when:* ADR-370 decision 1's
+    for M2.16a.
+  - [ ] **M2.16b The errors.** *Done when:* ADR-370 decision 1's for M2.16b.
 - [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings
   are scored against at least three distinct fins measured fluttering (wind tunnel or flight, none
   of the wings Martin's line was drawn through; repeat runs of one design are one fin) from
