@@ -79,8 +79,8 @@ Fitted whole log: residual RMS 2.06 m, misfit share 0.0132, 51 simulations flown
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.020 | 0.103 | 0.873 to 1.150 |
-| impulse scale | 0.995 | 0.021 | 0.965 to 1.027 |
+| drag scale | 1.020 | 0.103 | 0.868 to 1.157 |
+| impulse scale | 0.995 | 0.021 | 0.965 to 1.028 |
 | burn time scale | 0.985 | 0.046 | none |
 | wind toward the east (m/s) | 0.842 | 3.840 | none |
 | wind toward the north (m/s) | 1.339 | 3.798 | none |
@@ -105,12 +105,12 @@ Fitted whole log: residual RMS 3.25 m, misfit share 0.0071, 87 simulations flown
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 0.710 | 0.073 | 0.607 to 0.802 |
-| impulse scale | 0.949 | 0.024 | 0.914 to 0.986 |
+| drag scale | 0.710 | 0.073 | 0.603 to 0.807 |
+| impulse scale | 0.949 | 0.024 | 0.914 to 0.987 |
 | burn time scale | 1.062 | 0.035 | none |
 | wind toward the east (m/s) | 13.804 | 3.587 | none |
 | wind toward the north (m/s) | 8.289 | 3.770 | none |
-| structure mass scale | 1.007 | 0.011 | 0.989 to 1.025 |
+| structure mass scale | 1.007 | 0.011 | 0.989 to 1.024 |
 
 Fitted up to the cut: residual RMS 3.37 m, misfit share 0.0131, 61 simulations flown.
 
@@ -131,11 +131,11 @@ Fitted whole log: residual RMS 24.49 m, misfit share 0.0185, 197 simulations flo
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 0.836 | 0.073 | 0.681 to 0.930 |
+| drag scale | 0.836 | 0.073 | 0.684 to 0.929 |
 | impulse scale | 1.016 | 0.026 | 0.968 to 1.055 |
 | burn time scale | 0.925 | 0.054 | none |
-| wind toward the east (m/s) | 11.206 | 3.874 | 6.209 to 16.629 |
-| wind toward the north (m/s) | 0.344 | 3.379 | -4.319 to 5.413 |
+| wind toward the east (m/s) | 11.206 | 3.874 | 5.976 to 16.551 |
+| wind toward the north (m/s) | 0.344 | 3.379 | -4.623 to 5.413 |
 | structure mass scale | 1.010 | 0.011 | 0.991 to 1.028 |
 
 ### Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)
@@ -154,11 +154,11 @@ Fitted whole log: residual RMS 10.70 m, misfit share 0.0122, 74 simulations flow
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.075 | 0.024 | 1.025 to 1.106 |
+| drag scale | 1.075 | 0.024 | 1.026 to 1.106 |
 | impulse scale | 0.972 | 0.012 | 0.949 to 0.991 |
 | burn time scale | 1.243 | 0.037 | none |
-| wind toward the east (m/s) | 12.207 | 0.837 | 11.127 to 13.379 |
-| wind toward the north (m/s) | 4.135 | 0.623 | 3.275 to 5.070 |
+| wind toward the east (m/s) | 12.207 | 0.837 | 11.077 to 13.362 |
+| wind toward the north (m/s) | 4.135 | 0.623 | 3.219 to 5.070 |
 | structure mass scale | 1.003 | 0.010 | 0.985 to 1.020 |
 
 ### Genesis, EuRoC 2023 (L995)
@@ -169,8 +169,8 @@ Fitted whole log: residual RMS 4.06 m, misfit share 0.0041, 104 simulations flow
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.024 | 0.058 | 0.942 to 1.097 |
-| impulse scale | 1.052 | 0.016 | 1.028 to 1.077 |
+| drag scale | 1.024 | 0.058 | 0.939 to 1.101 |
+| impulse scale | 1.052 | 0.016 | 1.028 to 1.078 |
 | burn time scale | 1.247 | 0.035 | none |
 | wind toward the east (m/s) | 1.937 | 3.866 | none |
 | wind toward the north (m/s) | 1.768 | 3.820 | none |
@@ -184,8 +184,8 @@ Fitted whole log: residual RMS 11.86 m, misfit share 0.0101, 139 simulations flo
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.344 | 0.058 | 1.261 to 1.418 |
-| impulse scale | 1.116 | 0.018 | 1.090 to 1.143 |
+| drag scale | 1.344 | 0.058 | 1.259 to 1.422 |
+| impulse scale | 1.116 | 0.018 | 1.090 to 1.144 |
 | burn time scale | 0.935 | 0.040 | none |
 | wind toward the east (m/s) | 1.597 | 3.851 | none |
 | wind toward the north (m/s) | 3.082 | 3.753 | none |

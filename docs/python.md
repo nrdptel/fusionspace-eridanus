@@ -290,7 +290,7 @@ print(f"{calisto.configuration}: apogee {flight.apogee_m:.0f} m, landing at {fli
 ```
 
 ```text
-example: apogee 2841 m, landing at 5.2 m/s
+example: apogee 2839 m, landing at 5.2 m/s
 ```
 
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with
@@ -330,7 +330,7 @@ Four options make it RocketPy's flight:
   other has left ([Tip-off](physics/flight.md#tip-off)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2,650 m (8,694 ft) above the pad:
+as in the section above, to 2,649 m (8,691 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])
@@ -341,7 +341,7 @@ print(f"apogee {flight.apogee_m:.0f} m")
 
 ```text
 C_D0 at Mach 0.6: 0.50 coasting, 0.45 burning
-apogee 2650 m
+apogee 2649 m
 ```
 
 The example
