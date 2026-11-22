@@ -12,7 +12,7 @@ rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 60 logged flights of fliers' own designs, its
-> apogee missed the logged one by 12.09% on average, either way. That's the mean absolute miss,
+> apogee missed the logged one by 12.10% on average, either way. That's the mean absolute miss,
 > outside the 5% target ([the register's row on these misses](evidence.md#g24)). With signs kept, it
 > averaged 8.01% above the logged one. It was within 10% on 31 and read low on 15, by at
 > most 20%

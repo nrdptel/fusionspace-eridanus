@@ -237,7 +237,8 @@ mod tests {
             kept.wind.wind(500.0).unwrap(),
             windy.wind.wind(500.0).unwrap()
         );
-        // Only the tip-off variants ask for the phase, and only a correction scales the rocket.
+        // The guided variants alone turn the phase off; a correction flies as the report does,
+        // with it. Only a correction scales the rocket.
         let simulation = || {
             Simulation::new(
                 &rocket,
@@ -253,7 +254,7 @@ mod tests {
             (Variant::TIP_OFF, true),
             (Variant::STILL_GUIDED, false),
             (Variant::STILL_TIP_OFF, true),
-            (Variant::corrected(Correction::NONE), false),
+            (Variant::corrected(Correction::NONE), true),
         ] {
             assert_eq!(variant.simulation(simulation()).unwrap().tip_off(), phase);
         }

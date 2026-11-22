@@ -272,19 +272,19 @@ each of those in a [reanalysis](glossary.md#reanalysis) of the weather, its own 
 and sets it against the team's altimeter.
 
 The tour takes the middle one by a rule, not by choice. Of the 7 flights compared along their
-whole climb, the one whose miss, without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*. EuRoC is the
-European Rocketry Challenge. If a rerun of the report moves the middle, the tour moves to the new
-one.
+whole climb, the one whose miss, without its sign, is the median is Cavour, Politecnico di Torino,
+EuRoC 2023, the report's case *cavour*. EuRoC is the European Rocketry Challenge. If a rerun of
+the report moves the middle, the tour moves to the new one.
 
-Genesis's altimeter read 2,916.7 m (9,569 ft) at the top, 23.3 s after the rocket passed 30 m
+Cavour's altimeter read 2,785.0 m (9,137 ft) at the top, 22.4 s after the rocket passed 30 m
 (98 ft) on the way up. An altimeter riding HPR Sim's flight of its design would have read
-2,746.0 m (9,009 ft), at 22.4 s. That's a miss of −5.85%, so HPR Sim read low. For a waiver or a
-field's ceiling, a low reading is the side that flatters: the rocket climbs past the height that
-was planned for.
+2,945.5 m (9,664 ft), at 22.7 s. That's a miss of +5.76%, so HPR Sim read high. For a waiver or a
+field's ceiling, a high reading mainly costs height: the rocket tops out below the height that
+was planned for. A low reading is the side that flatters a ceiling.
 
 The report puts the miss down to HPR Sim's drag: flown on the drag the team's example gives, the
-apogee missed by −0.08% ([report][real-report]). The example records no fin edges or finish, so
-the design's are placeholders.
+apogee missed by −2.17% ([report][real-report]). The example records no fin edges, so the
+design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 12 public flights HPR Sim's
 apogee missed by −29.16% to +10.39% one by one. It missed by 8.83% on average without signs, and

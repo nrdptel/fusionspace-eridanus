@@ -2622,20 +2622,29 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
     );
 
     // A prediction moved off its merged number, with no revision, does not hold together
-    // either, whichever way it moves: the mechanism the comparison must have (ADR-328 §1b).
-    for moved_m in [-1.0, 1.0] {
-        let mut moved = report.clone();
-        let row = &mut moved.predicted_first[0];
-        row.hpr_apogee_m += moved_m;
-        row.apogee_error_percent = 100.0 * (row.hpr_apogee_m - row.log_apogee_m) / row.log_apogee_m;
-        moved.summary = crate::real_flight::summarize(&moved.flights, &moved.predicted_first);
-        let error = moved
-            .check_consistent(&moved.to_markdown())
-            .expect_err("a moved prediction");
-        assert!(
-            error.contains("astra") && error.contains("REVISIONS"),
-            "{error}"
-        );
+    // either, whichever way it moves: the mechanism the comparison must have (ADR-328 §1b). Nor
+    // does a revised one moved off its revision's number. Astra, the first row, is revised (the
+    // tip-off phase, M1.14b15); the first row with no revision is held to its merged number.
+    let unrevised = report
+        .predicted_first
+        .iter()
+        .position(|row| REVISIONS.iter().all(|revision| revision.id != row.id))
+        .expect("a row that flies as it was merged");
+    assert_eq!(report.predicted_first[0].id, "astra");
+    for (index, says) in [(unrevised, "REVISIONS"), (0, "its revision says")] {
+        for moved_m in [-1.0, 1.0] {
+            let mut moved = report.clone();
+            let row = &mut moved.predicted_first[index];
+            let id = row.id.clone();
+            row.hpr_apogee_m += moved_m;
+            row.apogee_error_percent =
+                100.0 * (row.hpr_apogee_m - row.log_apogee_m) / row.log_apogee_m;
+            moved.summary = crate::real_flight::summarize(&moved.flights, &moved.predicted_first);
+            let error = moved
+                .check_consistent(&moved.to_markdown())
+                .expect_err("a moved prediction");
+            assert!(error.contains(&id) && error.contains(says), "{error}");
+        }
     }
 
     // Two edits to a committed row that CI, with no log, could otherwise not see. An assumed
@@ -3107,19 +3116,42 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
     );
     // A prediction moved from the number first merged, however it got into the file: the writer
     // checks the same thing before it writes, so it refuses a flown one that moved too.
+    // Astra's is revised (the tip-off phase, M1.14b15), so it is held to its revision's number;
+    // a design-file flight, with no revision, is held to its merged one.
     let moved = altered(&|report| report.flights[0].predicted_apogee_m += 0.5);
     let error = moved.check_consistent(&moved.to_markdown()).unwrap_err();
     assert!(
-        error.contains("astra") && error.contains("merged prediction is 3037.1 m"),
+        error.contains("astra") && error.contains("its revision says 3037.1 m"),
         "{error}"
     );
-    // Erebus 11 is held to its revision's height (ADR-362), not the one first merged.
+    let id = report.design_file_flights[0].id.clone();
+    assert!(
+        crate::public_predictions::REVISIONS
+            .iter()
+            .all(|revision| revision.id != id),
+        "{id} flies as it was merged"
+    );
+    let merged_m = crate::public_predictions::MERGED
+        .iter()
+        .find(|merged| merged.id == id)
+        .expect("its merged prediction")
+        .apogee_m;
+    let unrevised = altered(&|report| report.design_file_flights[0].predicted_apogee_m += 0.5);
+    let error = unrevised
+        .check_consistent(&unrevised.to_markdown())
+        .unwrap_err();
+    assert!(
+        error.contains(&id) && error.contains(&format!("merged prediction is {merged_m} m")),
+        "{error}"
+    );
+    // Erebus 11 is held to its revision's height (ADR-362, then the tip-off default), not the
+    // one first merged.
     let lower = altered(&|report| report.flights[2].predicted_height_apogee_m -= 0.2);
     assert!(
         lower
             .check_consistent(&lower.to_markdown())
             .unwrap_err()
-            .contains("its revision says 2856.5 m"),
+            .contains("its revision says 2856 m"),
         "{}",
         lower.check_consistent(&lower.to_markdown()).unwrap_err()
     );
@@ -3130,11 +3162,14 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
             .unwrap()
             .predicted_apogee_m += 0.2;
     });
+    // Andromeda's catalog curve is revised with its counted flight, so it is held to the
+    // revision's number too.
+    let error = recurved
+        .check_consistent(&recurved.to_markdown())
+        .unwrap_err();
     assert!(
-        recurved
-            .check_consistent(&recurved.to_markdown())
-            .unwrap_err()
-            .contains("merged prediction is 3050.3 m")
+        error.contains("catalog curve's apogee") && error.contains("its revision says 3050 m"),
+        "{error}"
     );
     let uncurved = altered(&|report| report.flights[1].catalog_curve = None);
     assert!(

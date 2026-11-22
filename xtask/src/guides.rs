@@ -486,8 +486,9 @@ fn trust_quotes() -> Vec<Quote> {
                 Ok(vec![
                     r.title(&flight)?.to_owned(),
                     meters(logged, 0),
-                    meters(simulated, 0),
-                    fixed(simulated, 0),
+                    // To the tenth: to the meter the page's subtraction would give +5.75%.
+                    meters(simulated, 1),
+                    fixed(simulated, 1),
                     fixed(logged, 0),
                     fixed(logged, 0),
                     signed_percent(miss, 2),
@@ -1855,7 +1856,8 @@ mod tests {
     #[test]
     fn the_worked_misses_add_up() {
         let (_, reports) = reports();
-        for (id, decimals) in [("cavour", 0), ("juno-iii", 1)] {
+        // Each flight's simulated and logged apogees, to the decimals its sentence writes them.
+        for (id, simulated_decimals, logged_decimals) in [("cavour", 1, 0), ("juno-iii", 1, 1)] {
             let flight = reports.flight(id).unwrap();
             let logged = reports
                 .number(REAL, &format!("{flight}/log_apogee_m"))
@@ -1866,8 +1868,9 @@ mod tests {
             let miss = reports
                 .number(REAL, &format!("{flight}/apogee_error_percent"))
                 .unwrap();
-            let worked = 100.0 * (written(simulated, decimals) - written(logged, decimals))
-                / written(logged, decimals);
+            let worked = 100.0
+                * (written(simulated, simulated_decimals) - written(logged, logged_decimals))
+                / written(logged, logged_decimals);
             assert_eq!(signed_percent(worked, 2), signed_percent(miss, 2), "{id}");
         }
     }
