@@ -231,7 +231,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     for M2.15a.
   - [ ] **M2.15b The errors.** *Done when:* ADR-360 decision 1's for M2.15b.
 - [ ] **M2.16 The next flight from the last one's log** (ADR-370, in two; met when they are).
-  - [ ] **M2.16a The rule, the fits and the predictions.** *Done when:* ADR-370 decision 1's
+  - [ ] **M2.16a The synthetic check, the fits and the predictions.** *Done when:* ADR-370 decision 1's
     for M2.16a.
   - [ ] **M2.16b The errors.** *Done when:* ADR-370 decision 1's for M2.16b.
 - [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings

@@ -779,7 +779,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-15a"></a>[M2.15a][phase-1] | The rule, the readings and the predictions | not yet done |
 | <a id="m2-15b"></a>[M2.15b][phase-1] | The errors | not yet done |
 | <a id="m2-16"></a>[M2.16][phase-1] | The next flight from the last one's log | not yet done |
-| <a id="m2-16a"></a>[M2.16a][phase-1] | The rule, the fits and the predictions | not yet done |
+| <a id="m2-16a"></a>[M2.16a][phase-1] | The synthetic check, the fits and the predictions | not yet done |
 | <a id="m2-16b"></a>[M2.16b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |

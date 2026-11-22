@@ -23,7 +23,6 @@
 [accuracy]: ../accuracy.md
 [collection]: ../accuracy.md#real-flights-of-the-private-collection
 [era5]: ../format/era5.md
-[sha]: ../glossary.md
 [score]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [or-features]: https://openrocket.readthedocs.io/en/latest/introduction/features.html
 [planner]: https://github.com/Hide-In-Minion/hpr-launch-planner
@@ -62,8 +61,10 @@ and another loading.
 
 The collection holds the test. Counted 2026-11-22 from its manifest and its catalog's rocket-name,
 flyer and motor fields, with no log opened (a rocket here is one name flown by one flyer, each
-lower-cased and trimmed). The manifest lists all 83 flights the collection pairs with a design;
-the [accuracy page][collection] compares the 60 of them that both programs fly.
+lower-cased and trimmed). The manifest lists all 83 flights the collection pairs with a design and
+marks 9 of them excluded, left out of every comparison: 7 had an airbrake or canard acting in the
+climb, one a motor anomaly, one another reason. The [accuracy page][collection] compares 60 of the
+83 with their logs.
 
 - 83 flights in the manifest, 49 rockets; 16 rockets have two or more flights, 50 flights in all;
 - 74 flights not marked excluded, in which the same 16 rockets hold 48 flights: 32 later flights,
@@ -76,8 +77,9 @@ Four hazards shape the rule.
 
 - **The flights aren't independent.** A rocket's later flights share its errors, so the test rests
   on 16 rockets, not 32 flights, and a few rockets hold many of the flights.
-- **Most of the answer is known already.** The fixture report already gives each flight's error
-  without a correction, for both programs; a correction by ratio follows from two of those. Only
+- **Most of the answer is known already.** The fixture report's run already computes each flight's
+  error without a correction, for both programs (the report publishes aggregates only); a
+  correction by ratio follows from two of those. Only
   the carried fit's error is new. So every choice that decides which flights count, and how, is
   fixed here, before any of these flights is fitted, not left to the milestone.
 - **The fit's ranges are priors, not walls.** A fitted scale can land outside its stated range, and
@@ -97,14 +99,18 @@ Four hazards shape the rule.
        by more than 1 mm) are kept, marked as changed, and counted apart.
      - **The order:** by the manifest's launch time; flights at the same time, by flight id. Each
        flight after a rocket's first is a later flight. Its source flight is the latest earlier
-       flight of its rocket that has a usable fit.
-     - **Which flights:** a later flight is compared when the fixture report compares it. A flight
-       with an early deployment noted is never a source flight, since a drogue or a split in its
-       coast isn't in the fit's model; as a later flight it is compared and counted apart.
+       flight of its rocket that has a usable fit. Where a launch time is marked assumed, the order
+       rests on it, and the record says so.
+     - **Which flights:** a later flight is compared when the fixture report compares it. A source
+       flight is one the manifest doesn't mark excluded. A flight with an early deployment noted
+       is never a source flight, since a drogue or a split in its coast isn't in the fit's model;
+       as a later flight it is compared and counted apart.
      - **The fit:** [M7.3][m7-3]'s least-squares fit as it stands at [M2.16a][m2-16a]'s merge, on
-       the source flight's log up to apogee, with that flight's own plan, motor file and the day's
-       [ERA5 file][era5], flown in ERA5's own wind, the air the predictions fly. Each unknown's
-       stated value and range are those the collection's predictions from the boost use, unchanged:
+       the source flight's logged heights up to apogee, with that flight's own plan, motor file and
+       the day's [ERA5 file][era5], flown in ERA5's own wind, the air the predictions fly. That is
+       new: the collection's fits solve for a constant wind and fly ERA5's only in a check after
+       (`era5_wind`). Here the wind is not solved for. The drag's, impulse's and mass's stated
+       values and ranges are those the collection's predictions from the boost use, unchanged:
        the impulse's range is not widened. A fit is usable when the fit stops by its own rule on a
        log it doesn't refuse; its value is used whatever it is, and the record gives it with how
        many of its range's standard deviations it lies from the stated value.
@@ -115,14 +121,15 @@ Four hazards shape the rule.
      - **The synthetic check.** Before any real flight is fitted, the method is checked on at
        least 200 synthetic pairs: one design flown on two motors on two days whose wind profiles
        differ, the truth flown on [set B's model][sets] (the synthetic flights' deliberately
-       different drag), its drag off by a scale drawn from the fit's stated range, each motor's
+       different drag, wind profile and thrust curve), its drag off by a scale drawn from the fit's stated range, each motor's
        impulse off its rating by a scale drawn around 0.94 ([ADR-348][adr-348]'s fitted value)
        with the fit's stated spread, and in at least 50 pairs the second flight past Mach 0.8 and
-       the first not. Each second flight is predicted with its true impulse, so only the drag
+       the first not. The fit is given the first day's true wind, as the real fits are given ERA5's,
+       and each second flight is predicted with its true impulse and wind, so only the drag
        differs. On the pairs whose drag scale is more than 5% from 1, the carried scale's absolute
        apogee error must be the smaller on more pairs than not by a one-sided sign test at the 5%
-       level, against carrying nothing. A probe that replaces each fitted scale with 1 must fail
-       it. The result is given on the pairs past Mach 0.8 apart.
+       level, against carrying nothing; ties are dropped, and a test with no untied pair fails. A
+       probe that replaces each fitted scale with 1 must fail it. The result is given on the pairs past Mach 0.8 apart.
      - **The predictions.** Each later flight gets six: (1) HPR Sim's apogee with the carried drag
        scale; (2) HPR Sim's apogee as the fixture report flies it, its plain prediction; (3) HPR
        Sim's plain prediction with both the drag and the impulse scales carried; (4) OpenRocket
@@ -133,12 +140,14 @@ Four hazards shape the rule.
        at 1,200 m becomes 1,080 m. The record also gives OpenRocket's apogee with its stages' drag
        coefficient overridden by one value, found by bisection so that the source flight's apogee
        matches its log, where the oracle can set that override; where it can't, the record says so
-       and gives the cause. A prediction reads only the later flight's plan, the fields [ADR-333][adr-333]
+       and gives the cause. Where a program can't fly the source flight, that program's ratio
+       correction has none, and its later flights are counted by that cause. A prediction reads only the later flight's plan, the fields [ADR-333][adr-333]
        lets a prediction read, its design file, its motor file and the day's ERA5 file; nothing
        comes from the later flight's log.
      - **The record.** For each later flight one record holds: its id and its source flight's;
        the rocket, by an anonymous id; whether the shapes changed; whether either flight has an
-       early deployment noted; the SHA-256 ([fingerprint][sha]) of both design files, both motor
+       early deployment noted; whether either launch time is assumed; the SHA-256 fingerprint (a hash
+       that changes if one byte does) of both design files, both motor
        files and both ERA5 files; the commit that flew it; the fitted scales and the fit's stop
        state; each prediction, or the cause it has none; and its cause if it is left out. A record
        is never written over an older one. No plan field is changed for this comparison.
@@ -159,8 +168,8 @@ Four hazards shape the rule.
        - how many predictions are high and how many low;
        - the difference in absolute error between the carried fit and each other prediction,
          averaged over rockets, paired by flight, with a 95% interval from a bootstrap that
-         resamples rockets and Hartigan's exact sign-flip interval on the rockets' differences
-         ([ADR-257][adr-257]).
+         resamples rockets and the exact sign-flip interval on the rockets' differences
+         ([ADR-257][adr-257]), Hartigan's, as [the fit's page][fit] uses it.
      - It gives the same on the changed-shape pairs, on the later flights with an early deployment
        noted, on those whose plain prediction passes Mach 0.8 while their source flight's doesn't,
        on each half of the collection by the later flight's half ([ADR-332][adr-332]), and on the
@@ -170,7 +179,7 @@ Four hazards shape the rule.
      - The scoreboard gains `accuracy.second-flight`, the mean absolute error over the rockets,
        lower better, and `bias.second-flight`, the mean signed error over the rockets, nearer zero
        better. HPR Sim's cell is the carried fit; OpenRocket 24.12's is its ratio correction over
-       the same later flights, which it can always be given. The rows show the other predictions
+       the same later flights. The rows show the other predictions
        beside, not held, and the bias row names which side flatters which plan
        ([which miss flatters][flatters]).
      - The scoreboard's check holds HPR Sim's two cells by the calibration half's figures, as it
@@ -186,7 +195,8 @@ Four hazards shape the rule.
    report exist. It follows them because reviews add their promotions in the order made.
 3. **What the rows can't say.** A carried drag scale holds what the fit puts in the drag: the
    drag model's error, the finish, and whatever of the source flight the fit can't tell from drag.
-   A mass or thrust error goes mostly into the scales the fit solves for them: a barometer's boost
+   A mass or thrust error can go into the scales the fit solves for them, and some may stay in
+   the drag: a barometer's boost
    can't tell a motor that delivered less from a rocket built heavier, and the impulse scale
    carries both ([the fit's page][fit]). With the impulse's range widened, the twelve
    calibration-half flights' impulse scales average 0.936, all below 1 (the same page), which may
@@ -220,7 +230,7 @@ README's feature list and its "Suggest tuning" step. OpenRocket's features page 
 altimeter data among planned features and overriding the drag coefficient of parts or stages among
 present ones. What the fit fits, how its
 ranges pull, the twelve impulse scales and the boost's mass-or-motor reading are from [the fit's
-page][fit]; that the collection's fits can fly ERA5's own wind is in `xtask`'s collection fits
-(`era5_wind`). The scoreboard has no `accuracy.second-flight` row and the fixture report no
+page][fit]; that the collection's fits fly ERA5's own wind only in a check after the fit is
+`era5_wind` in `xtask`'s collection fits. The excluded flights' causes are the manifest's. The scoreboard has no `accuracy.second-flight` row and the fixture report no
 carried-fit column, so both *done when*s fail today. `cargo test -p xtask` checks that the queue's
 ids are open in the roadmap.
