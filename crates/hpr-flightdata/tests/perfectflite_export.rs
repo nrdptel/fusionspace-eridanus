@@ -226,5 +226,10 @@ fn a_swinging_flights_opening_and_drogue_read_where_the_log_puts_them() {
     assert_eq!(format!("{:.2}", opening.time_s), "90.00");
     assert_eq!(format!("{:.2}", opening.bound_s), "0.76");
     assert_eq!(format!("{:.1}", drogue.rate_m_s), "17.3");
+    // Its bound, as `hpr analyze` prints it rounded up: within 1.4 m/s.
+    assert!(
+        drogue.bound_m_s > 1.3 && drogue.bound_m_s <= 1.4,
+        "{drogue:?}"
+    );
     assert_eq!(format!("{:.1}", main.rate_m_s), "4.2");
 }

@@ -6,8 +6,8 @@
 //! before landing, or the fit's span where that is longer, the last half of [`DESCENT_GUARD_S`]
 //! left out. The mark is [`MAIN_TOLERANCE_SHARE`] of it, or [`MAIN_TOLERANCE_M_S`] more if that is
 //! more: a rate within the mark is slow, the main's, and one past it fast. Where the descent's
-//! rate passes the mark once, the samples back from landing to the first fast one are the main's
-//! descent, and the first of them the opening: Debrief's walk. Where it passes more than once,
+//! rates go from fast to slow once, the samples back from landing to the first fast one are the
+//! main's descent, and the first of them the opening: Debrief's walk. Where they change more often,
 //! the main's descent starts at the likeliest place for one change in how often the rate is
 //! slow ([`likeliest_split`], [ADR-366][adr-366]): a fast stretch under the main, a swing or a
 //! coarse log's scatter, is weighed against the slow rates it would put in the drogue's leg.
@@ -42,9 +42,9 @@
 //! after the opening; the bound adds a second interval as margin. A canopy's filling time isn't
 //! in it: the synthetic flights open each canopy at once. Nor is a swing: the split is never
 //! later than Debrief's walk, whose start has every rate after it slow, so the later side of the
-//! bound holds as it did, and where the rate passes the mark once the two are the same sample.
-//! Where it passes more than once the bound is not proven, only held to the tests' flights and
-//! to one real flight, whose main bounced after it filled
+//! bound holds as it did, and where the rates go from fast to slow once the two are the same
+//! sample. Where they change more often the bound is not proven, only held to the tests'
+//! flights and to one real flight, whose rocket swings under its main
 //! ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
 //!
 //! **Each leg's rate** is the filtered height it loses over the time it takes: the drogue's from
@@ -87,13 +87,15 @@ use crate::filter::running_median;
 /// the whole descent is the main's if at least half its rates are slow (the answer is 0), and
 /// none of it otherwise (`slow.len()`).
 ///
-/// Where the rate passes the mark once, both sides are pure and `L = 0`: the first rate back
-/// from landing past the mark, the walk Debrief makes. Where it passes again under the main, as
-/// a swing under the canopy or a coarse log's scatter makes it, the walk stopped at the first
-/// of them, however short (#903); here a short fast stretch among the main's slow rates costs
-/// less than the main's slow rates would among the drogue's fast ones. The split is never later
-/// than the walk's: every rate after the walk's start is slow, and adding slow rates to the
-/// earlier side only lowers `l` there.
+/// Where the rates go from fast to slow once, after any slow ones of the start from rest at
+/// apogee, the split is the first rate back from landing past the mark, the walk Debrief makes
+/// (a test tries every such descent of its sizes). Where the rate passes the mark again under
+/// the main, as a swing under the canopy or a coarse log's scatter makes it, the walk stopped
+/// at the first of them, however short (#903); here a fast stretch among the main's slow rates
+/// is weighed against the slow rates before it, which the later split would put among the
+/// drogue's fast ones. Which costs more depends on their lengths and on the drogue's leg. The
+/// split is never later than the walk's: every rate after the walk's start is slow, and adding
+/// slow rates to an earlier side that holds a fast one only lowers `l` there.
 ///
 /// The rates aren't independent, a running median of overlapping fits, so the likelihood is the
 /// rule's reason and no stated confidence.
@@ -110,7 +112,8 @@ fn likeliest_split(slow: &[bool]) -> usize {
         }
         let (after, slow_before) = (n - split, all_slow - slow_after);
         // The later side is the main's, the slower: slow_after / after ≥ slow_before / split.
-        if slow_after * split < slow_before * after {
+        // The products pass 32 bits from 131,072 rates on, so they are taken wider.
+        if wide(slow_after) * wide(split) < wide(slow_before) * wide(after) {
             continue;
         }
         let likelihood = side(slow_before, split) + side(slow_after, after);
@@ -120,6 +123,11 @@ fn likeliest_split(slow: &[bool]) -> usize {
         }
     }
     best
+}
+
+/// A count as an integer wide enough for the product of two.
+const fn wide(count: usize) -> u128 {
+    count as u128
 }
 
 /// Two splits' log-likelihoods closer than this share of their size are as likely: the
@@ -473,21 +481,21 @@ mod tests {
         assert_eq!(likeliest_split(&rates(&[(slow, 10), (fast, 3)])), 0);
     }
 
-    /// Two cases by hand. In the first the main opens, bounces fast and settles:
-    /// F20 s4 F6 s20. Before the bounce's end (30), `L = l(4, 30) + l(20, 20)`
+    /// Cases by hand. The main opens, falls fast again for a moment and settles: F20 s4 F6 s20.
+    /// After the fast moment (30), `L = l(4, 30) + l(20, 20)`
     /// `= 4 ln(4/30) + 26 ln(26/30) + 0 = −11.780`. At the first slowing (20),
-    /// `L = 0 + l(24, 30) = 24 ln(24/30) + 6 ln(6/30) = −15.012`. The bounce is as long as the
-    /// slow rates before it, so the later split is the likelier. With the slow stretch at 12,
-    /// F20 s12 F6 s20, the earlier is: `l(32, 38) = 32 ln(32/38) + 6 ln(6/38) = −16.574`
-    /// against `l(12, 38) = 12 ln(12/38) + 26 ln(26/38) = −23.699`.
+    /// `L = 0 + l(24, 30) = 24 ln(24/30) + 6 ln(6/30) = −15.012`. The fast moment, 6 rates, is
+    /// longer than the 4 slow ones before it, and the later split is the likelier. With the slow
+    /// stretch at 12, F20 s12 F6 s20, the earlier is: `l(32, 38) = 32 ln(32/38) + 6 ln(6/38)`
+    /// `= −16.574` against `l(12, 38) = 12 ln(12/38) + 26 ln(26/38) = −23.699`.
     ///
-    /// After a long drogue's leg a bounce longer than the slow rates before it doesn't move the
-    /// split either, as #903's flight has it: F100 s8 F10 s30 splits at 100, with
+    /// After a long drogue's leg a fast moment longer than the slow rates before it doesn't
+    /// move the split either, the shape of #903's flight: F100 s8 F10 s30 splits at 100, with
     /// `l(38, 48) = −24.564` against `l(8, 118) = −29.252` at 118. Counting the rates on the
     /// wrong side of each split would take the later: 8 against 10.
     ///
-    /// In the second two splits are as likely: s3 F3 s3 F3 s3 at 6 and at 12, each
-    /// `l(3, 6) + l(6, 9) = −4.159 − 5.729`, and the one nearer landing is kept.
+    /// Two splits as likely: F3 s3 F3 s3 at 3, `0 + l(6, 9)`, and at 9, `l(3, 9) + 0`, each
+    /// `3 ln(3/9) + 6 ln(6/9) = −5.729`. The one nearer landing is kept.
     #[test]
     fn a_bounce_moves_the_split_only_if_the_slow_stretch_before_it_is_short() {
         let (fast, slow) = (false, true);
@@ -512,20 +520,45 @@ mod tests {
             likeliest_split(&rates(&[(fast, 20), (slow, 12), (fast, 6), (slow, 20)])),
             20
         );
+        assert!((l(6.0, 9.0) - -5.729).abs() < 5e-4);
+        assert!((l(3.0, 9.0) - -5.729).abs() < 5e-4);
         assert_eq!(
-            likeliest_split(&rates(&[
-                (slow, 3),
-                (fast, 3),
-                (slow, 3),
-                (fast, 3),
-                (slow, 3)
-            ])),
-            12
+            likeliest_split(&rates(&[(fast, 3), (slow, 3), (fast, 3), (slow, 3)])),
+            9
         );
     }
 
+    /// Slow at apogee, fast under the drogue, slow under the main: for every such descent of up
+    /// to 19, 40 and 40 rates the split is the walk's, the first rate back from landing past the
+    /// mark.
+    #[test]
+    fn one_change_from_fast_to_slow_splits_where_the_walk_did() {
+        for start in 0..20 {
+            for drogue in 1..=40 {
+                for main in 1..=40 {
+                    let made = rates(&[(true, start), (false, drogue), (true, main)]);
+                    assert_eq!(
+                        likeliest_split(&made),
+                        start + drogue,
+                        "{start} {drogue} {main}"
+                    );
+                }
+            }
+        }
+    }
+
+    /// A descent long enough for the products of its counts to pass 32 bits, as they would wrap
+    /// on a 32-bit target: 70,000 fast rates and 70,000 slow split at 70,000.
+    #[test]
+    fn a_long_descents_counts_do_not_wrap() {
+        let made = rates(&[(false, 70_000), (true, 70_000)]);
+        assert_eq!(likeliest_split(&made), 70_000);
+        assert!(wide(70_000) * wide(70_000) > u128::from(u32::MAX));
+    }
+
     /// The split against every split tried in turn with the likelihood written out, over 3,000
-    /// invented descents of up to 60 rates in runs of 1 to 12.
+    /// invented descents of 60 to 71 rates in runs of 1 to 12. None is later than the walk back
+    /// from landing.
     #[test]
     fn the_split_is_the_greatest_likelihood_of_every_split_tried() {
         let l = |k: usize, m: usize| {
@@ -574,7 +607,7 @@ mod tests {
             assert_eq!(likeliest_split(&made), best, "{made:?}");
             // Never later than the walk back from landing.
             let walk = n - made.iter().rev().take_while(|s| **s).count();
-            assert!(best <= walk || walk == 0 || best == n, "{made:?}");
+            assert!(best <= walk, "{made:?}");
             moved += usize::from(best != walk);
         }
         assert!(moved > 300, "{moved}");
@@ -913,13 +946,13 @@ mod tests {
         made
     }
 
-    /// #903, on a coarse and noisy log: at 5 Hz in 0.93 m steps (10 Pa near the ground), under
+    /// #903, on a coarse and noisy log: at 5 Hz in 0.93 m steps, the size of 10 Pa on the tuning
+    /// flight's log that showed it, under
     /// a barometer's noise of about 1 m, a one-second fit holds five samples and its rate
     /// scatters by 1.6 m/s. A rate past the mark for a moment, far down the main's leg, is not
     /// the main's opening. Over a sweep of the main's rate and of the noise, 732 logs, each
-    /// reads two canopies, with each leg's rate and the opening inside its bound. Walking back
-    /// from landing to the first rate past the mark, one of them read one canopy: the main at
-    /// 4.05 m/s under the third noise.
+    /// reads two canopies, with each leg's rate and the opening inside its bound. How the walk
+    /// back from landing read them is in ADR-366.
     #[test]
     fn a_coarse_logs_scatter_under_the_main_is_not_its_opening() {
         let opened = high_opening(18.0, 750.0);
