@@ -4875,9 +4875,10 @@ fn the_real_flights_page_credits_the_era5_weather() {
     }
 }
 
-/// The committed descent-wind report (M1.14b6): its bands are its samples', its page is its data's,
-/// it lists every public real flight in order, and while fewer than three flights are compared the
-/// validation plan's row calls the reconstruction a method, not yet a comparison.
+/// The committed descent-wind report (M1.14b6): its bands are its flights' sums', its page is its
+/// data's, it lists every flight of the report's table in order (the public flights HPR Sim flies
+/// or predicts first), it credits ERA5, and the validation plan's row calls the reconstruction a
+/// method, not yet a comparison, exactly while fewer than three flights are compared.
 #[test]
 fn the_descent_wind_report_holds_together() {
     use crate::descent_wind::{
@@ -4893,6 +4894,7 @@ fn the_descent_wind_report_holds_together() {
     let ids: Vec<&str> = report.flights.iter().map(|f| f.id.as_str()).collect();
     let required = crate::descent_wind::required_ids();
     assert_eq!(ids.get(..required.len()), Some(required.as_slice()));
+    assert_eq!(ids, crate::descent_wind::table_ids());
     for flight in &report.flights {
         match &flight.status {
             Status::NotRun(why) | Status::NotCompared(why) => {

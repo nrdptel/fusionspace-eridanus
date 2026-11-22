@@ -68,6 +68,14 @@ fn round(value: f64) -> f64 {
     (value * scale).round() / scale
 }
 
+/// A bound kept to the report's four decimal places, rounded up to hundredths for print: 1.344 prints as 1.35,
+/// and 0.07 stays 0.07 (taken in ten-thousandths first, so `0.07 × 100`'s binary excess doesn't
+/// round it up).
+#[must_use]
+pub fn up_to_hundredths(value: f64) -> f64 {
+    ((value * 1e4).round() / 1e2).ceil() / 1e2
+}
+
 /// How a track's heights are read.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Height {
@@ -623,10 +631,16 @@ fn columns(line: &str) -> Vec<&str> {
 }
 
 fn number(row: &[&str], column: usize, file: &str, line: usize) -> Result<f64, String> {
-    row.get(column)
+    let value = row
+        .get(column)
         .ok_or_else(|| format!("{file}:{line}: no column {column}"))?
         .parse::<f64>()
-        .map_err(|error| format!("{file}:{line}: column {column}: {error}"))
+        .map_err(|error| format!("{file}:{line}: column {column}: {error}"))?;
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err(format!("{file}:{line}: column {column} is {value}"))
+    }
 }
 
 /// `(time, value)` pairs from a CSV with one header line.
@@ -1143,6 +1157,12 @@ fn receivers(
     })
 }
 
+/// The ids of the report's table, in its order.
+#[must_use]
+pub fn table_ids() -> Vec<&'static str> {
+    PUBLIC.iter().map(|public| public.id).collect()
+}
+
 /// The ids of the public flights the report must list: the real-flights report's and the public
 /// predictions', in that order.
 #[must_use]
@@ -1209,6 +1229,20 @@ impl DescentWindReport {
     ///
     /// When they aren't.
     pub fn check_bands(&self) -> Result<(), String> {
+        for flight in &self.flights {
+            let expected = if flight.status == Status::Compared {
+                BAND_EDGES_M.len() + 1
+            } else {
+                0
+            };
+            if flight.bands.len() != expected {
+                return Err(format!(
+                    "`{}` holds {} bands' sums, not {expected}",
+                    flight.id,
+                    flight.bands.len()
+                ));
+            }
+        }
         let (bands, all) = bands(&self.flights);
         if self.bands != bands {
             return Err(format!(
@@ -1402,8 +1436,7 @@ impl DescentWindReport {
                     pair.last_fixes_apart_m,
                     pair.pairs,
                     pair.rms_vector_difference_m_s,
-                    // A bound, rounded up.
-                    (pair.max_vector_difference_m_s * 100.0).ceil() / 100.0
+                    up_to_hundredths(pair.max_vector_difference_m_s)
                 );
             }
         }
@@ -1439,5 +1472,18 @@ impl DescentWindReport {
                 "{REPORT_MD} is not the page of {REPORT_JSON}: run `cargo xtask descent-wind`"
             ))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::up_to_hundredths;
+
+    #[test]
+    fn a_bound_rounds_up_to_hundredths_and_keeps_an_exact_one() {
+        assert_eq!(up_to_hundredths(1.344), 1.35);
+        assert_eq!(up_to_hundredths(1.3401), 1.35);
+        assert_eq!(up_to_hundredths(0.07), 0.07);
+        assert_eq!(up_to_hundredths(1.35), 1.35);
     }
 }

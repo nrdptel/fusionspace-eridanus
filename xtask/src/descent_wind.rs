@@ -2,7 +2,7 @@
 //! descent, set beside ERA5's (M1.14b6), from the pinned RocketPy checkout under the gitignored
 //! `refs/`. It writes `validation/reports/descent-wind.{json,md}`; `--check` writes nothing and
 //! fails unless the committed report reproduces. CI, without `refs/`, recomputes the committed
-//! report's bands from its samples and its page from its data (`hpr_validate::tests`).
+//! report's bands from each flight's sums and its page from its data (`hpr_validate::tests`).
 
 use std::fs;
 
@@ -57,7 +57,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
             pair.pairs,
             pair.rms_vector_difference_m_s,
             // A bound, rounded up.
-            (pair.max_vector_difference_m_s * 100.0).ceil() / 100.0
+            hpr_validate::descent_wind::up_to_hundredths(pair.max_vector_difference_m_s)
         );
     }
     let markdown = report.to_markdown();
