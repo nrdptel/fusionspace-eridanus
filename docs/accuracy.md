@@ -1221,8 +1221,8 @@ their signs.
 
 The first row is HPR Sim as it flies by default: a design with two rail guides at different
 stations leaves the rail by [the tip-off phase](physics/flight.md#tip-off). OpenRocket has no
-such phase and holds every rocket straight until it is off the rail. So each row that compares
-with OpenRocket flies HPR Sim that way too, the phase off: the second row, the last two, and
+such phase. So each row that compares
+with OpenRocket flies HPR Sim held straight on the rail, the phase off: the second row, the last two, and
 every split of the gap below.
 
 The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positive

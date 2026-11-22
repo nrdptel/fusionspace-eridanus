@@ -150,7 +150,8 @@ pub struct FlightArgs {
     /// may not be physical
     #[arg(long)]
     pub accept_design_errors: bool,
-    /// Guide the rocket to its last rail guide and free it with no turn, as OpenRocket does.
+    /// Guide the rocket to its last rail guide and free it with no turn. Use it to compare
+    /// with a program that has no tip-off phase, such as OpenRocket.
     /// Without this, a design with two or more rail guides tips off: it turns about its last
     /// guide once the one ahead has left the rail
     #[arg(long)]

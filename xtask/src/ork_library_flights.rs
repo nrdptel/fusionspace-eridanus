@@ -1012,7 +1012,7 @@ pub(crate) fn page(report: &Value) -> String {
         "- Written by `cargo xtask ork-flights --library` ([M2.2e3][m2-2e3], hpr's flights of \
          the library; decision [ADR-072][adr-072]) from OpenRocket's flights of it \
          ([M2.2e2][m2-2e2]), flown and compared as in the public report, by the same \
-         definitions. The explanation is on the [documentation site][site].\n\
+         definitions: hpr's tip-off phase is off, as OpenRocket has no such phase. The explanation is on the [documentation site][site].\n\
          - A design is an id, `C01` onwards, in the order of its file's SHA-256 hash, and a \
          flight is the design's id and the configuration's place in the file: `C09/2` is the \
          second configuration of `C09`. The ids hold while the library's files do; `ids_sha256` \

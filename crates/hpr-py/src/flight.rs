@@ -327,8 +327,8 @@ impl DragTable {
 ///
 /// A rocket with two or more rail guides tips off the rail: once the guide ahead of the last has
 /// left, the rocket turns about its last guide until that one leaves too. With `tip_off=False`
-/// the rocket is guided to its last guide and freed with no turn, as OpenRocket and RocketPy's
-/// releases fly it. A rocket with fewer than two guides flies the same both ways.
+/// the rocket is guided to its last guide and freed with no turn: set it to compare with
+/// OpenRocket or RocketPy 1.13.0, which have no such phase. A rocket with fewer than two guides flies the same both ways.
 ///
 /// The flight is recorded every `interval_s` seconds, at least 0.001 s, and at every event. With
 /// no `interval_s`, it's recorded at every step of the integrator. The rocket is copied as the

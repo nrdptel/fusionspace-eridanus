@@ -451,8 +451,9 @@ impl Simulation {
     }
 
     /// Flies without the tip-off phase ([`Simulation::with_tip_off`]): the rocket is guided to
-    /// its last guide and leaves the rail with no angular velocity. That is what OpenRocket and
-    /// RocketPy's releases fly, so a comparison with either sets this.
+    /// its last guide and leaves the rail with no angular velocity. Neither OpenRocket nor
+    /// RocketPy 1.13.0 has such a phase (RocketPy 1.13.0 frees the rocket where its forward
+    /// button leaves the rail, with no pivot), so a comparison with either sets this.
     #[must_use]
     pub fn without_tip_off(mut self) -> Self {
         self.tip_off = false;

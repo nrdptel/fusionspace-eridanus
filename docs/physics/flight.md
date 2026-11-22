@@ -384,8 +384,9 @@ The phase is on by default. To turn it off:
   ([the Python page](../python.md#every-class-and-method)).
 
 With it off, the rocket is held straight until its last guide leaves the rail and is then freed
-with no turning rate, as OpenRocket and RocketPy 1.13.0 fly. So the comparisons with those two
-codes here fly with the phase off, and each says so.
+with no turning rate. Neither OpenRocket nor RocketPy 1.13.0 has such a phase: RocketPy 1.13.0
+frees the rocket where its forward button leaves the rail, with no pivot. So the comparisons
+with those two codes here fly with the phase off, and their reports say so.
 
 > **How far to trust it.** One code against another, and no real flight. On RocketPy's thirteen
 > example designs the phase agrees with RocketPy's when both fly RocketPy's normal force. The
@@ -432,7 +433,7 @@ linear, and friction is solved with them (below). Source:
   stretch and flies as before. A rail too short to hold both guides pivots the rocket from
   liftoff.
 - A rocket that stops on its last guide returns to the pad phase, at rest, as on the rail.
-- Flying the phase by default is [a later increment](../decisions-and-roadmap.md#m1-14b10).
+- The phase is the default ([tip-off by default](../decisions-and-roadmap.md#m1-14b15)).
 
 **For a burnt-out rocket in no air** the three conditions reduce to a pendulum hung from the
 guide. Write $\ell$ for the distance along the axis from the last guide to the center of mass.
@@ -905,7 +906,7 @@ its tolerances. [Accuracy][accuracy] gives every result.
 A flight with tip-off turned off, or flown by a code with no such phase, leaves the pivot out
 ([Tip-off](#tip-off)). RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
 the landing point and 0.414% in the apogee. RocketPy flew thirteen example designs. Both are measured
-from a rocket held straight to its last guide, as HPR Sim holds it. The landing point moves
+from a rocket held straight to its last guide, as HPR Sim holds it with the phase off. The landing point moves
 farther from the pad in most flights, and the largest apogee move is down. That is one code
 against another: the phase is in RocketPy's development branch, in no release, and no flight
 checks it. The landing point's cost is past the plan's bar of 1% of the apogee, so HPR Sim
@@ -938,7 +939,7 @@ with no turning rate.
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
   button, until that button leaves too. Guided, the phase is off on a rail longer by the
   distance between the buttons. That holds the rocket straight to where its last button leaves
-  the real rail, as HPR Sim holds it.
+  the real rail, as HPR Sim holds it with the phase off.
 - **What HPR Sim's release leaves out** is the phase on less the guided flight.
   - The apogee moves by at most −0.414%: −10.9 m (−36 ft) for Juno III in still air. None of
     the 26 apogees moves by 1%.
@@ -998,7 +999,7 @@ gate and CI hold it (`--check`). [The decision record][adr-358] gives what is
 held and what stays open.
 
 - **What flies.** The same thirteen designs, rails, sites, winds, parachutes and drag
-  coefficient as RocketPy's flights above. HPR Sim flies each guided, as it does by default,
+  coefficient as RocketPy's flights above. HPR Sim flies each guided, its phase off,
   and with the phase. A design whose dry mass, reference area, motor or distance between its
   last two guides differs from what
   RocketPy flew is refused.

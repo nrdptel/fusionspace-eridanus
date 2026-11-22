@@ -170,7 +170,7 @@ pub struct Revision {
 
 /// The revisions: three. Astra, Andromeda and Erebus 11 each have two rail buttons, and fly the
 /// tip-off phase since [ADR-363][adr-363] (decision 1) made it the default: each apogee fell by
-/// 0.1 to 0.5 m. Erebus 11's entry carries its earlier revision too: its apogee rose 46.0 m
+/// 0.02 to 0.51 m. Erebus 11's entry carries its earlier revision too: its apogee rose 46.0 m
 /// with the base drag behind a boattail that [ADR-362][adr-362] relieved. The other nine fly as
 /// they were merged.
 ///

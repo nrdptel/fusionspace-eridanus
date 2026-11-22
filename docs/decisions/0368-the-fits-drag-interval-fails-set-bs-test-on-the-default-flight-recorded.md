@@ -70,11 +70,15 @@ may be the path, and it is a guess until a run isolates it.
    A cell on the list must fail on its lower tail alone: the band on the share below above 5%,
    the bands on the share above and the share inside holding 5% and 90%. The run stops if the
    cell passes, so that the entry is removed when the gap closes. It stops if the cell fails on
-   another count too. Every other least-squares cell must pass as before, and every probe must
+   another count too. And it stops if the gap grows: the entry carries the 80 below as
+   recorded, and a run that writes the report stops at 81. On another platform, where counts
+   may stand 5 flights off ([ADR-316][adr-316]), it stops past 85. Every other least-squares cell must pass as before, and every probe must
    fail as before. The counts are pinned as all the report's are: the run that writes the
    report reproduces it to the byte, and other platforms within their stated room of 5 flights
    ([ADR-316][adr-316]). At 5 fewer, 75 below, the cell still fails, so the entry holds on
-   those platforms too. A test,
+   those platforms as far as its lower tail goes. Its 31 above are 2 over the fewest that
+   pass, so a platform that reads 28 there stops the run; on the flights held straight the
+   cell sat at 29, with no room at all. A test,
    `the_committed_report_keeps_its_rules_by_its_counts`, holds each of those rules on the
    committed report.
 
@@ -83,7 +87,7 @@ may be the path, and it is a guess until a run isolates it.
    its opening lines and where it gives the counts. The accuracy page's row and the evidence
    register's row for the fit say it too.
 
-6. **[#1108][issue] holds the fix and moves up to `P-high`.** It already asks for shares split
+6. **[#1108][issue] holds the fix, at `P-high`.** It already asks for shares split
    by how well a flight's heights fit, fitted on the calibration set alone, with each class
    passing on both sets. On the regenerated report, set B's drag interval holds 353 of the 439
    flights whose heights fit to 1 m or worse, with 58 below, and 536 of the 561 that fit better,
@@ -105,5 +109,5 @@ Bayesian option's counts, which have their own milestones.
   whose model differs as set B's does, where 5 are meant.
 - Until [#1108][issue] closes, no new surface prints a fitted drag scale's interval without
   that caveat beside it.
-- A later change that moves this cell further, or moves another least-squares cell out of its
-  band, stops `cargo xtask fit` as before.
+- A later change that adds one truth below this cell's interval, or moves another
+  least-squares cell out of its band, stops the `cargo xtask fit` run that would write it.

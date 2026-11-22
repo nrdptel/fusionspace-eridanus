@@ -53,7 +53,9 @@ moved and what was decided along the way.
    `Simulation::with_tip_off` stays and only undoes the opt-out.
 
 2. **A comparison with a code that has no such phase flies held straight on the rail.**
-   OpenRocket and RocketPy 1.13.0 hold a rocket straight until it is off the rail. So the
+   Neither OpenRocket nor RocketPy 1.13.0 has such a phase ([ADR-363][adr-363]'s survey of
+   the comparisons); RocketPy 1.13.0 frees the rocket where its forward button leaves the
+   rail, with no pivot. So the
    flights held to RocketPy 1.13.0 (`cargo xtask validate`), the flights held to OpenRocket's
    (`cargo xtask ork-flights` and the runs built on it), and in the collection's report every
    row that sets HPR Sim beside OpenRocket fly with the phase off: "hpr in OpenRocket's air",
@@ -61,8 +63,9 @@ moved and what was decided along the way.
    Mach band and by term. Those reports reproduce as they were. The collection's report gains
    a row, "hpr held straight on the rail", the flight those rows start from, beside "hpr", the
    default flight held to the logs ([the report][collection], in aggregate only:
-   [ADR-151][adr-151], [ADR-184][adr-184]). Each report says which of its flights fly with the
-   phase off.
+   [ADR-151][adr-151], [ADR-184][adr-184]). Each of those reports says that its flights beside
+   the other code fly with the phase off: the validation report, the two reports of HPR Sim
+   against OpenRocket's flights, and the collection's.
 
 3. **What moved on the real flights** is what [ADR-364][adr-364] measured with the phase on and
    off ([the table, regenerated on the default][flights-report]):

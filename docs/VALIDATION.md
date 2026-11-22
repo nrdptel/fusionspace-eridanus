@@ -540,6 +540,13 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 | Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
 
+Held in its words, one fit in a comparison (one part, or the whole slice at night) may differ in
+how it stopped: converged on one platform, at its step limit on another. The check names that fit
+and fails on a second ([the record of that allowance](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0369-the-fits-slice-on-another-platform-one-fit-may-stop-otherwise.md)).
+One least-squares verdict is held as failing, not passing: the drag scale's on set B
+([why it stands](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md);
+[the counts](physics/flight-fit.md#how-well-it-holds)).
+
 Each platform fits the slice in parts, in jobs of their own: part K of N fits every Nth fit of the
 slice's, from the Kth. By
 least squares alone one job took 20 min 3 s on windows-latest with nothing cached, over the 20

@@ -810,7 +810,7 @@ fn simulation_of(
 }
 
 /// [`simulation_of`] with the tip-off phase off: the flight held to OpenRocket, which has no
-/// such phase and holds every rocket straight until it is off the rail (M1.14b15, ADR-363).
+/// such phase (M1.14b15, ADR-363).
 fn guided_of(
     design: &ork::Design,
     configuration: &ork::MotorConfiguration,
@@ -1940,8 +1940,8 @@ impl Report {
              OpenRocket's air\" is hpr there too; \"hpr against OpenRocket\" is hpr's apogee less \
              OpenRocket's, over OpenRocket's. Nothing deploys in either. \"hpr\" flies as HPR Sim \
              does by default: a design with two rail guides at different stations leaves the rail \
-             by the tip-off phase. OpenRocket has no such phase and holds every rocket straight \
-             until it is off the rail, so the rows that compare with it fly hpr that way, the \
+             by the tip-off phase. OpenRocket has no such phase, so the rows that compare with it \
+             fly hpr held straight on the rail, the \
              phase off: \"{HELD_STRAIGHT}\", \"hpr in OpenRocket's air\" and \"hpr against \
              OpenRocket\", and the gap's split, the nose's line and the drag by Mach band and by \
              term below. The mean absolute \

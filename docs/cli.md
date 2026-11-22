@@ -760,7 +760,7 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
 | `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
 | `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` or `--wind-from`; `--elevation` must lie within its levels | standard |
-| `--no-tip-off` | holds the rocket straight until its last rail guide leaves the rail, then frees it with no turning rate, as OpenRocket does | off: a design with two or more rail guides tips off |
+| `--no-tip-off` | holds the rocket straight until its last rail guide leaves the rail, then frees it with no turning rate, to compare with a program that has no tip-off phase, such as OpenRocket | not given: a design with two or more rail guides tips off |
 
 **Tip-off.** A design with two or more rail guides (rail buttons or launch lugs) at different
 stations turns about its last guide once the guide ahead of it has left the rail, pushed by

@@ -10,7 +10,7 @@
 //!   with its phase on, and everything the flights carried.
 //! - **HPR Sim's flights** are [`hpr_validate::tip_off::fly`]'s: the public design built from
 //!   the same example, on that record's rail, site, wind, parachutes and drag coefficient,
-//!   guided as HPR Sim flies by default and with its phase. Each is flown twice: on RocketPy's
+//!   guided, its tip-off phase off, and with its phase. Each is flown twice: on RocketPy's
 //!   normal force, which the record holds, and on HPR Sim's own.
 //! - **The bars** are the tip-off decision record's ([ADR-357][adr-357], decision 4): where the
 //!   last guide leaves, the turning rate within 10% of RocketPy's or 0.1 deg/s and the angle off
@@ -587,7 +587,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
     .map_err(|e| e.to_string())?;
     out.push_str(
         "How to read it:\n\n\
-         - **Guided** is HPR Sim as it flies by default: held straight until its last guide \
+         - **Guided** is HPR Sim with its tip-off phase off: held straight until its last guide \
          leaves the rail. **Tip-off** adds the phase: once the guide ahead of the last one is \
          off the rail, the rocket slides on, free to pitch and yaw about its last guide with \
          roll held. **Moved** is the flight with the phase less the guided one, in each code \

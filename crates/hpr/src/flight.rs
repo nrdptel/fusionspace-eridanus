@@ -212,7 +212,8 @@ impl FlightBuilder<'_> {
     /// ahead of the aft-most one has left the rail, the rocket turns about its last guide until
     /// that one leaves too, and it leaves the rail turning
     /// ([`Simulation::with_tip_off`]). `false` guides the rocket to its last guide and frees it
-    /// with no turn, as OpenRocket and RocketPy's releases do: set it to compare with either.
+    /// with no turn: set it to compare with OpenRocket or RocketPy 1.13.0, which have no such
+    /// phase.
     /// A design with fewer than two such guides flies the same both ways.
     #[must_use]
     pub fn tip_off(mut self, tip_off: bool) -> Self {

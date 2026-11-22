@@ -2716,7 +2716,8 @@ pub(crate) fn page(report: &Value) -> String {
         "Written by `cargo xtask ork-flights` ([M2.2d2][m2-2d2], hpr's flights against \
          OpenRocket's; decision [ADR-069][adr-069]) from OpenRocket 24.12's calm-air flights in \
          `validation/fixtures/ork/openrocket-flights.json` ([M2.2d1][m2-2d1]). OR is \
-         OpenRocket. Each metric is taken by the definition hpr holds for OpenRocket 24.12: \
+         OpenRocket. hpr flies each with its tip-off phase off, held straight on the rail: \
+         OpenRocket has no such phase. Each metric is taken by the definition hpr holds for OpenRocket 24.12: \
          the apogee is the highest point above the launch position; the largest speed is the \
          peak speed (hpr's up to its apogee, since the flight compared for the climb flies no \
          parachute: its descent is compared apart, under *Descents*); the margin, in \

@@ -1,8 +1,8 @@
 //! What RocketPy's tip-off phase moves on its example rockets (M1.14b5), written by
 //! `cargo xtask tip-off` to `validation/reports/tip-off.json` and `.md`.
 //!
-//! - **The question.** HPR Sim guides a rocket until its last guide leaves the rail and frees it
-//!   with no turning rate. A real rocket pivots about its last guide once the one ahead is off
+//! - **The question.** With its tip-off phase off, HPR Sim guides a rocket until its last guide
+//!   leaves the rail and frees it with no turning rate. A real rocket pivots about its last guide once the one ahead is off
 //!   the rail: tip-off. This report measures what that pivot is worth, with RocketPy's own
 //!   tip-off phase, so the flight page can say what leaving it out costs.
 //! - **The oracle** is `validation/oracles/rocketpy/tip_off.py`: RocketPy's `develop` at the
@@ -595,9 +595,9 @@ pub fn markdown(report: &Value) -> Result<String, String> {
         "Written by `cargo xtask tip-off`; don't edit it by hand. What it measures and how far to \
          trust it: [rigid-body flight](../../docs/physics/flight.md#what-leaving-tip-off-out-costs). \
          It is one code against another: the phase is in RocketPy's development branch, in no \
-         release, and no flight checks it. By default HPR Sim frees a rocket with no turning rate \
-         where its last guide leaves the rail ([its opt-in tip-off phase against this \
-         report](tip-off-model.md)). This \
+         release, and no flight checks it. With its tip-off phase off, HPR Sim frees a rocket with no \
+         turning rate where its last guide leaves the rail ([its tip-off phase, the default, \
+         against this report](tip-off-model.md)). This \
          report measures the pivot about that guide which that leaves out, with RocketPy's tip-off \
          phase: {}. Equations: {}. Each example rocket of \
          `validation/fixtures/design/rocketpy-rocket-mass.json` flies from its example's rail and \
@@ -622,7 +622,7 @@ pub fn markdown(report: &Value) -> Result<String, String> {
          too.\n\
          - **Guided** is the phase off on a rail longer by the distance between the buttons: the \
          rocket is held straight until the lower button leaves the real rail, as HPR Sim holds \
-         it.\n\
+         it with its tip-off phase off.\n\
          - **Rocket** is the design's id. The two Calisto ids are two versions of one rocket, \
          from RocketPy's getting-started notebook and from its tests. Each ends in the motor's \
          position in meters, in the rocket's own coordinates as its source sets it: \

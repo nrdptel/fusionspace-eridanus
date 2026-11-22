@@ -325,7 +325,8 @@ Four options make it RocketPy's flight:
   in the order they were added. `add_parachute(..., released_by=1)` cuts this one away once the
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 - **No tip-off.** `Flight(..., tip_off=False)` holds the rocket straight until its last rail
-  button leaves the rail, then frees it with no turning rate, as RocketPy 1.13.0 does. By default
+  button leaves the rail, then frees it with no turning rate. RocketPy 1.13.0 has no such phase:
+  it frees the rocket where its forward button leaves the rail, with no pivot. By default
   HPR Sim lets a rocket with two rail buttons, as Calisto has, turn about its last one once the
   other has left ([Tip-off](physics/flight.md#tip-off)).
 

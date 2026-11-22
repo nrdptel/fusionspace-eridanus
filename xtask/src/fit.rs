@@ -687,10 +687,51 @@ impl Apart {
 
 /// Least-squares intervals that fail ADR-257's test and are recorded as failing (ADR-368): each
 /// has more truths below it than the 5% a 90% interval allows, on the set named, and holds its
-/// other two counts. A cell listed here must come out so. If it passes, or fails on another count,
-/// the run stops: a gap that closes leaves the list, and one that grows is news. The report's page
-/// and the fit's page both say which cells these are.
-const KNOWN_GAPS: [(Set, Asked); 1] = [(Set::B, Asked::DragScale)];
+/// other two counts. The number is the count below as recorded. A cell listed here must come
+/// out so. The run stops if it passes, so that a gap that closes leaves the list. It stops if
+/// the cell fails on another count. And it stops if the count below is past the recorded one:
+/// by any flight on the platform that writes the report, and by more than the other platforms'
+/// room ([`OTHER_PLATFORM_FLIGHTS`]) elsewhere. The report's page and the fit's page both say
+/// which cells these are.
+const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 80)];
+
+/// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
+/// list.
+fn known_gap(set: Set, asked: Asked) -> Option<u64> {
+    KNOWN_GAPS
+        .iter()
+        .find(|gap| (gap.0, gap.1) == (set, asked))
+        .map(|gap| gap.2)
+}
+
+/// The known gaps of `sets` that have grown: a count below more than `room` flights past the
+/// recorded one. `room` is 0 where the report is written or read as committed, and the other
+/// platforms' room where another platform makes the fits.
+fn grown_gaps(sets: &[SetReport], room: u64) -> Vec<String> {
+    let mut grown = Vec::new();
+    for set in sets {
+        for check in &set.checks {
+            let Some(recorded) = known_gap(set.set, check.asked) else {
+                continue;
+            };
+            let below = check.test.counts.below;
+            if below > recorded + room {
+                grown.push(format!(
+                    "{:?}, least squares, {}: {below} below, past the {recorded} recorded{}: the \
+                     known gap has grown (ADR-368)",
+                    set.set,
+                    check.asked.name(),
+                    if room == 0 {
+                        String::new()
+                    } else {
+                        format!(" and the {room} another platform may stand off")
+                    }
+                ));
+            }
+        }
+    }
+    grown
+}
 /// The record of the [`KNOWN_GAPS`], a file under `docs/decisions`.
 const KNOWN_GAPS_RECORD: &str =
     "0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md";
@@ -714,7 +755,7 @@ fn check_problems(set: Set, method: Method, checks: &[Check]) -> Vec<String> {
     let held = method == Method::LeastSquares;
     for check in checks {
         let c = check.test.counts;
-        let known = held && KNOWN_GAPS.contains(&(set, check.asked));
+        let known = held && known_gap(set, check.asked).is_some();
         if known && !fails_below_alone(&check.test) {
             broken.push(format!(
                 "{set:?}, {name}, {}: {} below, {} inside, {} above of {}: {}",
@@ -775,7 +816,7 @@ fn check_problems(set: Set, method: Method, checks: &[Check]) -> Vec<String> {
 /// GNSS receiver's alone, a residual past the misfit's cut, anything identified on pure noise, and
 /// shares other than the library's.
 fn report_problems(report: &Report) -> Vec<String> {
-    let mut broken = Vec::new();
+    let mut broken = grown_gaps(&report.sets, 0);
     for set in &report.sets {
         broken.extend(check_problems(set.set, Method::LeastSquares, &set.checks));
         broken.extend(check_problems(set.set, Method::Bayesian, &set.bayesian));
@@ -983,7 +1024,7 @@ fn page(report: &Report) -> String {
         );
         counts_table(&mut out, &set.checks);
         for check in &set.checks {
-            if KNOWN_GAPS.contains(&(set.set, check.asked)) {
+            if known_gap(set.set, check.asked).is_some() {
                 let _ = writeln!(
                     out,
                     "\nThe {}'s interval fails the test on this set, and is recorded as failing: \
@@ -1545,10 +1586,73 @@ fn shares_hold(got: Shares, in_force: Shares, exact: bool) -> bool {
     near(low, in_force.low) && near(high, in_force.high)
 }
 
+/// How many of the fits in one comparison of the slice, a part of it or the whole, may stop
+/// otherwise on another platform than on the one that wrote it: converged here and at its step
+/// limit there, or the other way (ADR-369). A fit that wanders in a flat valley meets its step
+/// limit on one math library and its stopping rule on another. One is what was measured, a
+/// flight of set B on both of CI's Linux runners, and it is inside the room the report's own
+/// count of such fits has ([`OTHER_PLATFORM_FLIGHTS`]). A second in one comparison fails it.
+const OTHER_PLATFORM_STOPS: usize = 1;
+
+/// A fit's first slice line with its stop written one way, so that two lines apart only in
+/// "converged" against "at its step limit" read the same.
+fn stop_aside(line: &str) -> String {
+    line.replacen(", at its step limit, ", ", converged, ", 1)
+}
+
+/// On another platform: the flights of `made` whose fit stopped otherwise than the committed
+/// slice at `path` says, their first lines the same in every other word
+/// ([`crate::slice::words`]). Each such flight's first line is set to the committed one, so that
+/// the comparison in words that follows holds everything else about it, and each is named in
+/// what comes back first. Past [`OTHER_PLATFORM_STOPS`] of them, the second thing back says so.
+fn other_platform_stops(path: &Path, made: &mut crate::slice::Slice) -> (Vec<String>, Vec<String>) {
+    let committed: crate::slice::Slice = match fs::read_to_string(path)
+        .map_err(|e| e.to_string())
+        .and_then(|text| serde_json::from_str(&text).map_err(|e| e.to_string()))
+    {
+        Ok(committed) => committed,
+        // The comparison that follows reads the file again and says what is wrong with it.
+        Err(_) => return (Vec::new(), Vec::new()),
+    };
+    let mut stops = Vec::new();
+    for flight in &mut made.flights {
+        let Some(there) = committed
+            .flights
+            .iter()
+            .find(|f| (f.set.as_str(), f.index) == (flight.set.as_str(), flight.index))
+        else {
+            continue;
+        };
+        let (Some(here), Some(there)) = (flight.made.first_mut(), there.made.first()) else {
+            continue;
+        };
+        let (a, b) = (crate::slice::words(here), crate::slice::words(there));
+        if a != b && stop_aside(&a) == stop_aside(&b) {
+            stops.push(format!(
+                "{} flight {}: its fit stops otherwise here than where the slice was written",
+                flight.set, flight.index
+            ));
+            here.clone_from(there);
+        }
+    }
+    let broken = if stops.len() > OTHER_PLATFORM_STOPS {
+        vec![format!(
+            "{} fits of the slice stop otherwise here than where it was written, past the \
+             {OTHER_PLATFORM_STOPS} another platform may (ADR-369):\n{}",
+            stops.len(),
+            stops.join("\n")
+        )]
+    } else {
+        Vec::new()
+    };
+    (stops, broken)
+}
+
 /// `--check --other-platform`: the report `made_runs` make, held to the committed report by
 /// [`Apart`]'s rules, the shares by its rule for a figure, and the slice in its words.
 fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), String> {
     let (report, mut broken) = report_of(made_runs)?;
+    broken.extend(grown_gaps(&report.sets, OTHER_PLATFORM_FLIGHTS));
     broken.extend(shares_problems(made_runs, false));
     let json_path = root.join(format!("{REPORT}.json"));
     let committed =
@@ -1565,9 +1669,15 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
         100.0 * apart.most_share
     );
     broken.extend(apart.broken);
-    let (slice, _) = slice_of(made_runs, &drawn_of(&report))?;
+    let (mut slice, _) = slice_of(made_runs, &drawn_of(&report))?;
+    let slice_path = root.join(format!("{REPORT}.slice.json"));
+    let (stops, past) = other_platform_stops(&slice_path, &mut slice);
+    for stop in &stops {
+        println!("fit: {stop} (ADR-369)");
+    }
+    broken.extend(past);
     broken.extend(crate::slice::compare(
-        &root.join(format!("{REPORT}.slice.json")),
+        &slice_path,
         &slice,
         crate::slice::Held::Words,
     ));
@@ -1624,9 +1734,18 @@ fn check_slice(
     }
     let start = Instant::now();
     let made = fit_runs(files, part.within(SLICE)?)?;
-    let (slice, mut broken) = slice_part_of(&made, &drawn_of(&report), part)?;
+    let (mut slice, mut broken) = slice_part_of(&made, &drawn_of(&report), part)?;
     broken.extend(report_problems(&report));
     let slice_path = root.join(format!("{REPORT}.slice.json"));
+    // The build that writes the slice holds it byte for byte; any other holds it in words, and
+    // there one fit may stop otherwise (ADR-369).
+    if held == crate::slice::Held::Words || part != Part::WHOLE {
+        let (stops, past) = other_platform_stops(&slice_path, &mut slice);
+        for stop in &stops {
+            println!("fit: {stop} (ADR-369)");
+        }
+        problems.extend(past);
+    }
     problems.extend(if part == Part::WHOLE {
         crate::slice::compare(&slice_path, &slice, held)
     } else {
@@ -1795,6 +1914,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
             let check = !args.is_empty();
             let made_runs = fit_runs(&files, Part::WHOLE)?;
             let (report, mut broken) = report_of(&made_runs)?;
+            broken.extend(grown_gaps(&report.sets, 0));
             broken.extend(shares_problems(&made_runs, true));
             let (slice, _) = slice_of(&made_runs, &drawn_of(&report))?;
             let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
@@ -2329,6 +2449,77 @@ mod tests {
             .collect()
     }
 
+    /// On another platform one fit of a comparison may stop otherwise than the committed slice
+    /// says, and no other word of it may differ; a second such fit fails the comparison
+    /// (ADR-369).
+    #[test]
+    fn another_platform_may_stop_one_fit_otherwise_and_no_more() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("slice.json");
+        let line = |stop: &str, side: &str| {
+            vec![
+                format!(
+                    "fit: fitted, with a track, {stop}, residual 0.001 of the spread, 767 flown"
+                ),
+                format!("drag scale: 0.791 ± 0.019, truth 0.822, share -1.624, {side}"),
+            ]
+        };
+        let flight = |index: u64, stop: &str, side: &str| crate::slice::Flight {
+            set: "b".to_owned(),
+            index,
+            made: line(stop, side),
+        };
+        let slice = |flights: Vec<crate::slice::Flight>| crate::slice::Slice {
+            about: "made up".to_owned(),
+            every: 21,
+            flights,
+        };
+        let committed = slice(vec![
+            flight(21, "at its step limit", "above"),
+            flight(42, "converged", "inside"),
+        ]);
+        fs::write(&path, crate::slice::json(&committed).unwrap()).unwrap();
+        let words = crate::slice::Held::Words;
+        // One fit stops otherwise, its numbers moved too: named, allowed, and the rest holds.
+        let mut one = committed.clone();
+        one.flights[0].made[0] =
+            "fit: fitted, with a track, converged, residual 0.002 of the spread, 203 flown".into();
+        assert!(crate::slice::compare(&path, &one, words).is_some());
+        let (stops, past) = other_platform_stops(&path, &mut one);
+        assert_eq!(
+            stops,
+            ["b flight 21: its fit stops otherwise here than where the slice was written"]
+        );
+        assert_eq!(past, Vec::<String>::new());
+        assert_eq!(crate::slice::compare(&path, &one, words), None);
+        // Its truth on another side as well: the stop is set aside, the side still fails.
+        let mut side = committed.clone();
+        side.flights[0] = flight(21, "converged", "inside");
+        let (stops, past) = other_platform_stops(&path, &mut side);
+        assert_eq!((stops.len(), past.len()), (1, 0));
+        let problem = crate::slice::compare(&path, &side, words).unwrap();
+        assert!(problem.contains("b flight 21"), "{problem}");
+        // Another word of the first line: not a stop set aside, and the comparison fails.
+        let mut other = committed.clone();
+        other.flights[0].made[0] = other.flights[0].made[0].replace("with a track", "height alone");
+        assert_eq!(
+            other_platform_stops(&path, &mut other).0,
+            Vec::<String>::new()
+        );
+        assert!(crate::slice::compare(&path, &other, words).is_some());
+        // Two fits stop otherwise: past the one allowed.
+        let mut two = committed.clone();
+        two.flights[0] = flight(21, "converged", "above");
+        two.flights[1] = flight(42, "at its step limit", "inside");
+        let (stops, past) = other_platform_stops(&path, &mut two);
+        assert_eq!(stops.len(), 2);
+        assert!(
+            past[0].contains("2 fits of the slice stop otherwise"),
+            "{past:?}"
+        );
+        assert_eq!(OTHER_PLATFORM_STOPS, 1);
+    }
+
     /// One fit changed writes other lines, in its numbers or its words, and a slice holding it
     /// fails, naming that flight alone; made again unchanged, it writes the same lines.
     #[test]
@@ -2650,8 +2841,38 @@ mod tests {
             assert_eq!(check.asked, Asked::DragScale);
             check
         }
-        assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale)]);
         let known = report.sets[1].checks[0].test;
+        assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale, 80)]);
+        assert_eq!(known.counts.below, 80);
+        // One more below than recorded is a gap that grew, on the platform that writes the
+        // report; another platform may stand 5 flights off, and no further.
+        let grown = |more: u64, room: u64| {
+            let mut r = report.clone();
+            let mut c = drag_b(&mut r).test.counts;
+            c.inside -= more;
+            c.below += more;
+            drag_b(&mut r).test = Test::of(c);
+            assert!(fails_below_alone(&drag_b(&mut r).test), "{c:?}");
+            grown_gaps(&r.sets, room)
+        };
+        assert_eq!(grown(0, 0), Vec::<String>::new());
+        assert_eq!(grown(5, OTHER_PLATFORM_FLIGHTS), Vec::<String>::new());
+        assert_eq!(
+            grown(6, OTHER_PLATFORM_FLIGHTS),
+            [
+                "B, least squares, drag scale: 86 below, past the 80 recorded and the 5 another \
+              platform may stand off: the known gap has grown (ADR-368)"
+            ]
+        );
+        fails(
+            &|r| {
+                let mut c = drag_b(r).test.counts;
+                c.inside -= 1;
+                c.below += 1;
+                drag_b(r).test = Test::of(c);
+            },
+            "B, least squares, drag scale: 81 below, past the 80 recorded: the known gap has grown",
+        );
         assert!(!known.passes() && fails_below_alone(&known), "{known:?}");
         fails(
             &|r| {
