@@ -637,8 +637,8 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | altimax-als | 1 | 1 given | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | altimax-xls | 1 | 1 given | 1 given | 0 given, 1 `ends_before_landing` | 0 given, 1 `ends_before_landing` |
 | altimetercloud-csv | 11 | 0 given, 11 `axis_unstated` | 11 given | 0 given, 11 `one_canopy` | 11 given |
-| altos-csv | 50 | 26 given, 3 `direction_unstated`, 4 `disturbed_top`, 16 `no_accelerometer`, 1 `no_climb` | 27 given, 4 `disturbed_top`, 1 `no_climb`, 2 `noisy_speed`, 1 `sampled_too_slowly`, 15 `transonic` | 19 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 8 `one_canopy`, 1 `sampled_too_slowly`, 1 `short_leg` | 27 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 1 `sampled_too_slowly`, 1 `short_leg` |
-| altos-eeprom | 14 | 5 given, 1 `disturbed_top`, 3 `no_accelerometer`, 5 `short_pad` | 5 given, 1 `disturbed_top`, 1 `receiver_lag`, 7 `short_pad` | 1 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 2 `one_canopy`, 1 `short_leg`, 7 `short_pad` | 4 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 7 `short_pad` |
+| altos-csv | 50 | 26 given, 3 `direction_unstated`, 4 `disturbed_top`, 16 `no_accelerometer`, 1 `no_climb` | 27 given, 4 `disturbed_top`, 1 `no_climb`, 2 `noisy_speed`, 1 `sampled_too_slowly`, 15 `transonic` | 22 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 4 `one_canopy`, 1 `sampled_too_slowly`, 2 `short_leg` | 27 given, 4 `disturbed_top`, 16 `ends_before_landing`, 1 `no_climb`, 1 `sampled_too_slowly`, 1 `short_leg` |
+| altos-eeprom | 14 | 5 given, 1 `disturbed_top`, 3 `no_accelerometer`, 5 `short_pad` | 5 given, 1 `disturbed_top`, 1 `receiver_lag`, 7 `short_pad` | 2 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 1 `one_canopy`, 1 `short_leg`, 7 `short_pad` | 4 given, 1 `disturbed_top`, 1 `ends_before_landing`, 1 `needs`, 7 `short_pad` |
 | altos-resaved-csv | 1 | 0 given, 1 `axis_unstated` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` | 0 given, 1 `clock_out_of_order` |
 | altos-table-csv | 1 | 0 given, 1 `no_accelerometer` | 1 given | 0 given, 1 `one_canopy` | 1 given |
 | altos-telem | 2 | 2 given | 2 given | 0 given, 1 `ends_before_landing`, 1 `sampled_too_slowly` | 0 given, 1 `ends_before_landing`, 1 `sampled_too_slowly` |
@@ -669,12 +669,12 @@ Every record read, taken by `hpr_flightdata::readings` (M7.2b, M7.2c): for each 
 | odf | 3 | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` | 0 given, 3 `short_pad` |
 | perfectflite-csv | 15 | 0 given, 15 `no_accelerometer` | 10 given, 2 `disturbed_top`, 3 `transonic` | 9 given, 2 `disturbed_top`, 2 `ends_before_landing`, 2 `one_canopy` | 11 given, 2 `disturbed_top`, 2 `ends_before_landing` |
 | perfectflite-txt | 6 | 0 given, 6 `no_accelerometer` | 5 given, 1 `disturbed_top` | 2 given, 1 `disturbed_top`, 3 `one_canopy` | 5 given, 1 `disturbed_top` |
-| pf2 | 175 | 0 given, 175 `no_accelerometer` | 116 given, 3 `disturbed_pad`, 15 `disturbed_top`, 1 `implausible_speed`, 40 `transonic` | 95 given, 15 `disturbed_top`, 11 `ends_before_landing`, 52 `one_canopy`, 2 `short_leg` | 149 given, 15 `disturbed_top`, 11 `ends_before_landing` |
+| pf2 | 175 | 0 given, 175 `no_accelerometer` | 116 given, 3 `disturbed_pad`, 15 `disturbed_top`, 1 `implausible_speed`, 40 `transonic` | 96 given, 15 `disturbed_top`, 11 `ends_before_landing`, 51 `one_canopy`, 2 `short_leg` | 149 given, 15 `disturbed_top`, 11 `ends_before_landing` |
 | pfa | 25 | 0 given, 25 `no_accelerometer` | 22 given, 2 `short_pad`, 1 `slower_than_free_coast` | 1 given, 1 `ends_before_landing`, 20 `one_canopy`, 2 `short_leg`, 1 `slower_than_free_coast` | 23 given, 1 `ends_before_landing`, 1 `slower_than_free_coast` |
 | phone-launch-csv | 27 | 0 given, 6 `axis_unstated`, 21 `no_accelerometer` | 0 given, 3 `disturbed_top`, 19 `no_height_track`, 1 `short_pad`, 4 `transonic` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` | 3 given, 3 `disturbed_top`, 1 `ends_before_landing`, 19 `no_height_track`, 1 `short_pad` |
 | radio-packets-rtf | 2 | 0 given, 2 `no_accelerometer` | 0 given, 2 `sampled_too_slowly` | 0 given, 2 `ends_before_landing` | 0 given, 2 `ends_before_landing` |
 | radio-packets-txt | 2 | 0 given, 2 `no_accelerometer` | 0 given, 1 `clock_out_of_order`, 1 `sampled_too_slowly` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` | 0 given, 1 `clock_out_of_order`, 1 `ends_before_landing` |
-| raven-csv | 80 | 63 given, 1 `direction_unstated`, 9 `disturbed_top`, 6 `gravity_unstated`, 1 `sampled_too_fast` | 67 given, 9 `disturbed_top`, 1 `sampled_too_fast`, 1 `sampled_too_slowly`, 2 `transonic` | 33 given, 9 `disturbed_top`, 4 `ends_before_landing`, 32 `one_canopy`, 1 `sampled_too_fast`, 1 `short_leg` | 66 given, 9 `disturbed_top`, 4 `ends_before_landing`, 1 `sampled_too_fast` |
+| raven-csv | 80 | 63 given, 1 `direction_unstated`, 9 `disturbed_top`, 6 `gravity_unstated`, 1 `sampled_too_fast` | 67 given, 9 `disturbed_top`, 1 `sampled_too_fast`, 1 `sampled_too_slowly`, 2 `transonic` | 35 given, 9 `disturbed_top`, 4 `ends_before_landing`, 30 `one_canopy`, 1 `sampled_too_fast`, 1 `short_leg` | 66 given, 9 `disturbed_top`, 4 `ends_before_landing`, 1 `sampled_too_fast` |
 | raven-fip-sheet-xlsx | 2 | 1 given, 1 `disturbed_top` | 1 given, 1 `disturbed_top` | 1 given, 1 `disturbed_top` | 1 given, 1 `disturbed_top` |
 | raven-fipa | 57 | 33 given, 1 `disturbed_pad`, 3 `disturbed_top`, 3 `gravity_unstated`, 17 `short_pad` | 35 given, 1 `disturbed_pad`, 3 `disturbed_top`, 17 `short_pad`, 1 `transonic` | 11 given, 1 `disturbed_pad`, 3 `disturbed_top`, 1 `ends_before_landing`, 24 `one_canopy`, 17 `short_pad` | 35 given, 1 `disturbed_pad`, 3 `disturbed_top`, 1 `ends_before_landing`, 17 `short_pad` |
 | record-dump | 2 | 0 given, 2 `no_accelerometer` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` | 0 given, 2 `no_height_track` |
@@ -717,8 +717,8 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `axis_unstated` | 136 | `02edef1d0ad13443` | none |
 | `gravity_unstated` | 10 | `3126596d71a32b10` | none |
 | `direction_unstated` | 6 | `4ed6012a31b4a214` | none |
-| `one_canopy` | 181 | `0040ac8c3e5af57b` | none |
-| `short_leg` | 11 | `17f790bd96cb9241` | none |
+| `one_canopy` | 173 | `0040ac8c3e5af57b` | none |
+| `short_leg` | 12 | `17f790bd96cb9241` | none |
 
 ### Disturbed pads against stated apogees
 

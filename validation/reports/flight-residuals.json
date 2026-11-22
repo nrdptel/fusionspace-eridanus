@@ -1365,8 +1365,16 @@
         {
           "what": "drogue_rate",
           "logged": {
-            "status": "withheld",
-            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 15.0 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 9.4 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+            "status": "read",
+            "value": 25.680753419217247,
+            "bound": 1.9307289884216268,
+            "interval": {
+              "low": 24.499147278303212,
+              "high": 26.8816668500155
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
           },
           "simulated": {
             "status": "read",
@@ -1377,13 +1385,18 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": null
+          "logged_minus_simulated": 1.9535001752787373
         },
         {
           "what": "main_opening",
           "logged": {
-            "status": "withheld",
-            "detail": "the descent shows one canopy"
+            "status": "read",
+            "value": 806.1780471801758,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
           },
           "simulated": {
             "status": "read",
@@ -1394,17 +1407,17 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": null
+          "logged_minus_simulated": 8.845556071801298
         },
         {
           "what": "main_rate",
           "logged": {
             "status": "read",
-            "value": 19.183564110726778,
-            "bound": 1.4309056884377083,
+            "value": 11.528792085101726,
+            "bound": 0.9281081758108498,
             "interval": {
-              "low": 18.345053377302282,
-              "high": 20.004903975890024
+              "low": 10.984920694076568,
+              "high": 12.061526178017154
             },
             "is_floor": false,
             "source": "barometer",
@@ -1419,7 +1432,7 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 7.588199587449932
+          "logged_minus_simulated": -0.06657243817512004
         }
       ]
     },

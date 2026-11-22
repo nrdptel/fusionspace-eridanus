@@ -20,7 +20,7 @@ withholds one instead of guessing.
   zero, as Pearson and colleagues define it. An accelerometer's trace is cleaned by the same
   filter at threshold five. The landing's thresholds and the least climb are those of Debrief, the
   project owner's earlier flight-log analyzer. The flat top of a clipped accelerometer and the
-  main's opening found back from landing are Debrief's too, each with HPR Sim's changes. The
+  marks that tell the main's descent from the drogue's are Debrief's too, each with HPR Sim's changes. The
   bounds' terms come from the noise model of [the synthetic flights](synthetic-flights.md) and the
   hypsometric equation. They also come from the safety codes' 3:1 thrust to weight and 20° rail.
   Another source is the National Weather Service's rate for a rapid change of pressure. Another is
@@ -569,8 +569,10 @@ marks it `is_floor`. A top speed withheld, as `transonic` on a fast flight, with
 ### The canopies
 
 Each canopy's descent rate comes from the filtered height track, its legs split where the main
-opens. The opening is found back from landing as Debrief finds it, with two changes of HPR Sim's
-([ADR-283][adr-283] §6).
+opens. The opening starts from Debrief's walk back from landing and its marks
+([ADR-283][adr-283] §6). HPR Sim compares rates at the ground's density, smooths them with a
+running median, and since [ADR-366][adr-366] takes the opening at the likeliest single change of
+the descent, not the walk's first stop.
 
 **The main's opening.** Near the ground the rocket hangs under its main. The descent's rate is
 the least-squares slope of the filtered track over 1 s, widened where needed to hold four of the
@@ -581,8 +583,92 @@ Walking back from landing, the run of samples whose rate stays within 1.6 times 
 main's descent. The limit is 3 m/s (9.8 ft/s) more than the main's rate if that is more. Its first sample is the opening.
 These marks are Debrief's, set on its own logs.
 
-HPR Sim walks on the rate's running median over 2 s, or twice the fit where that is longer. So a
-spike of the fit's noise on a long leg doesn't end the walk, while a step, the opening, stays where
+That walk stops at the first rate past the limit, however short. A real descent passes it more
+than once: the rocket swings under its main, and a coarse log's rates scatter. So HPR Sim asks
+where one change in the descent is likeliest ([ADR-366][adr-366]). Call a rate *slow* if it is
+within the limit and *fast* if it is past it. Split the descent's $n$ rates, from apogee to
+landing, at $s$, with $a$ slow ones among the $s$ before the split and $c$ among the $n - s$
+after it. If the rates were
+independent, slow with one chance before the split and another after, the split's log-likelihood
+at the best two chances would be
+
+$$
+\begin{aligned}
+L(s) &= \ell(a, s) + \ell(c, n - s), \\
+\ell(k, m) &= k \ln\frac{k}{m} \\
+&+ (m - k) \ln\frac{m - k}{m}
+\end{aligned}
+$$
+
+Here $\ell(k, m)$ is for a side of $m$ rates with $k$ slow ones, and a term with nothing in it
+counts as zero. This is the change-point of a two-valued sequence (D. V. Hinkley and E. A.
+Hinkley, "Inference about the change-point in a sequence of binomial variables", *Biometrika* 57,
+1970, pp. 477–488).
+A side that is all slow or all fast has $\ell = 0$, the most it can be. A side that mixes them
+has less, and the more evenly it mixes, the less. The main's descent starts at the split with the
+greatest $L$. HPR Sim adds one condition: the later side must hold the larger share of slow
+rates, since the main is the slower canopy. Of two splits as likely, the one nearer landing is
+taken.
+
+- **Where the rates go from fast to slow once**, after the slow start from rest at apogee, the
+  split is the walk's. A test tries every such descent of its sizes.
+- **A fast stretch under the main** is weighed against the slow rates before it. Moving the
+  split past it would put those slow rates into the drogue's leg. Which costs more depends on
+  the two lengths and on how long the drogue's leg is: the worked case below shows one balance.
+- **The split is never later than the walk's.** Every rate after the walk's start is slow, and
+  adding slow rates to an earlier side that holds a fast one only lowers its $\ell$.
+
+A worked case: 100 fast rates of a drogue, then 8 slow, a bounce of 10 fast, and 30 slow to
+landing. The walk stops after the bounce, after 118 rates. There
+$L = \ell(8, 118) + 0 = -29.25$: eight slow rates sit in the drogue's leg. After 100 rates, the
+first slowing, $L = 0 + \ell(38, 48) = -24.56$: ten fast rates sit in the main's. The split is
+there. With a drogue's leg of 20 rates and 4 slow ones before a bounce of 6, the balance falls
+the other way, and the split is after the bounce.
+
+The rates aren't independent, since they are a running median of overlapping fits. So the
+likelihood is the rule's reason and gives no confidence of its own. The opening's bound, under
+*The opening's bound* below, is derived for a descent whose rates go from fast to slow once. Where they
+change more often, the tests here hold the split's opening to that same bound, and nothing
+proves it. One shape is known to break it: a drogue falling near the limit, slow for a few
+seconds and then fast just before the main opens, reads its opening seconds early
+([issue #1593, the bound where the split is earlier than the walk](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)).
+
+Three tests hold the rule to the cases that showed the walk wrong
+([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)). Two invent a flight with
+a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
+
+- **A swing.** Under a main at 5 m/s (16 ft/s), 40 s after it opened, the rocket holds its height
+  for 2.25 s and then falls 4.5 m/s (14.8 ft/s) faster than the main's rate for 2.5 s. The walk
+  stopped at the swing. The split reads the opening and each leg's rate within its bound, on a
+  smooth log at 20 Hz, one in 0.3048 m (1 ft) steps, and one at 5 Hz.
+- **A coarse log.** 732 logs at 5 Hz in 0.93 m (3.1 ft) steps, with noise within 1.7 m (5.6 ft)
+  either way: the main at 4 to 7 m/s (13 to 23 ft/s) in steps of 0.05 m/s (0.16 ft/s), each under 12 draws of
+  the noise, 61 rates by 12 draws. The split reads two canopies on all 732, the opening and each
+  leg's rate within its bound.
+- **The real flight that showed the fault**, a StratoLogger CF's log from a public forum thread
+  (cited in the issue, not committed; the test reads it where it is cached, and reads
+  nothing elsewhere). Its rocket swings under the main. The issue measures the drogue's
+  descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
+  header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
+  drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s, with a bound of 0.76 s, and
+  17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The charge fired 2.85 s before the reading: the
+  bound leaves out the time a canopy takes to come out and fill.
+
+That is one real flight with a logged charge time ([evidence row G10](../evidence.md#g10)).
+A second, the public Genesis flight, has a simulation beside its log: the walk read the log as
+one canopy, and the split reads the main's opening 806.18 m (2,645 ft) up, where the simulation
+opens it at 797.33 m (2,616 ft). No bound is stated for that height, and the simulation's
+drogue rate is outside the log's interval, so this shows the two agree roughly, no more
+([the residuals report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)).
+How the split's opening compares with a logged charge time on others hasn't been measured, and a canopy's filling time is still outside the bound
+([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)). The survey's real logs
+have no truth to hold a reading to. On them the rule reads a drogue's descent on more logs than
+the walk did, and on fewer in no family of loggers; [ADR-366][adr-366] has the counts, and
+[the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)
+the readings as they stand.
+
+The rates it splits are their running median over 2 s, or twice the fit where that is longer. So a
+spike of the fit's noise on a long leg is taken out, while a step, the opening, stays where
 it is. The raw rate was tried when the rule was chosen. On 2 of the 87
 tuning flights whose main's opening their own logs give, the walk missed the drogue. A noise spike on a 125 s main leg stopped it 125 s
 after the opening.
@@ -1464,7 +1550,7 @@ withheld, by logger family and by reason
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#readings)).
 Of the 1,058 records, summed over the report's families, an apogee is given from 592, liftoff from
 549 and the top speed from 353. Landing is given from 471, the flight time from 404 and burnout
-from 426. The top acceleration is given from 160, the drogue's descent from 270 and the main's
+from 426. The top acceleration is given from 160, the drogue's descent from 277 and the main's
 from 458. Each of the 28
 reasons has a case. For 24, the case is the first file the survey withholds a reading of for it, by an
 anonymous id. For the four that none of
@@ -1490,7 +1576,7 @@ On one, the coast reads near +1 g, nose down, against a pad and a thrust that sa
 AltOS CSV records, gravity taken out, the pad says nothing and a short burn comes before a heavy
 drag. So the thrust says nothing either. On one, the accelerometer's thrust rises after liftoff's
 latest time by the heights, its clock running late against theirs. The drogue's descent is withheld
-as `short_leg` on 11, and as `one_canopy` on 181, where the descent showed no drogue's leg. With no
+as `short_leg` on 12, and as `one_canopy` on 173, where the descent showed no drogue's leg. With no
 truth beside the logs, that doesn't say how each rocket came down.
 
 ### What it leaves out
@@ -1716,6 +1802,7 @@ truth beside the logs, that doesn't say how each rocket came down.
 [adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 [adr-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
 [adr-283]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0283-the-rest-of-the-readings.md
+[adr-366]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0366-the-mains-opening-at-the-likeliest-split.md
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [noise]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-sensor-noise.md
