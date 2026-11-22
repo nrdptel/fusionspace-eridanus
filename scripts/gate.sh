@@ -105,7 +105,8 @@
 # Step site: `xtask site --locked --cache`. It lays out and measures again only the pages whose
 # built HTML changed since its last passing run (its date of issue left out), and reuses that run's results for the rest; every
 # page, with the canaries, when there is no usable cache or the checker, Chrome or any built file
-# other than a page, the search index and api/ changed (the cache is in target/site-check-cache).
+# other than a page, the search index and api/ changed (the cache is in the checkout's git folder,
+# `$(git rev-parse --git-dir)/site-check-cache`, so `cargo clean` keeps it).
 # CI's site job runs without --cache and checks every page. On 2026-11-02 (UTC) the whole step
 # took 801 s with no cache, 51 s with no page changed, and 92 to 96 s with one page edited (2 of
 # the 81 pages checked again).

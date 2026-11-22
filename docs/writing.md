@@ -730,13 +730,15 @@ has the rules in full):
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
 `scripts/gate.sh test site` runs both locally. The gate's site step adds `--cache`. It keeps the
-layout and vitals results of each passing run in `target/site-check-cache` and checks again only the
+layout and vitals results of each passing run in the checkout's git folder (`.git/site-check-cache`,
+where `cargo clean` doesn't delete them) and checks again only the
 pages whose built HTML changed since its last passing run, a page's date of issue left out. It checks every page if the checker,
 Chrome, the part (`--widths`), the operating system or the processor changed, or any built file
 other than the pages, the search index and `api/`. A run that reuses pages skips the canaries, and
 its lines say how many pages it checked now and how many it reused. CI never uses the cache and
-checks every page. To check every page locally, delete `target/site-check-cache` or run `cargo xtask
-site` without `--cache`. A
+checks every page. To check every page locally, delete `.git/site-check-cache` (in a worktree, the
+`site-check-cache` folder that `git rev-parse --git-dir` names) or run `cargo xtask site` without
+`--cache`. A
 failure names the page or figure, the widths, and the label or element with how far it reaches.
 
 `cargo xtask site` also loads pages built to fail, and fails if it stops finding them. The figure
