@@ -45,7 +45,7 @@ pub const BAND_EDGES_M: [f64; 6] = [0.0, 500.0, 1000.0, 2000.0, 3000.0, 5000.0];
 pub const FLIGHTS_FOR_A_COMPARISON: usize = 3;
 
 /// Two receivers' fixes are paired when their times are this close, s.
-const PAIR_S: f64 = 0.5;
+pub const PAIR_S: f64 = 0.5;
 
 /// Values are kept to this many decimals, so the committed report reads the same on every
 /// platform and CI can recompute its statistics from it.
