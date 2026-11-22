@@ -174,3 +174,57 @@ fn a_record_with_gaps_survives_its_json() {
         assert_eq!(serde_json::to_string(&back).unwrap(), json);
     }
 }
+
+/// The flight of [#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903), read where
+/// `refs/` holds it: a StratoLogger CF's `.pf2` from a public forum thread, cited and not
+/// committed, found by its SHA-256. The rocket swings under its main. Walking back from landing
+/// to the first rate past the main's mark stopped at a swing: the opening read 108.45 s and the
+/// drogue's descent 14.6 m/s. The issue measures the drogue's at about 17.3 m/s and puts the
+/// opening between 87 and 92 s: the log's header gives the main charge at 87.15 s.
+///
+/// The opening now reads inside that window and the drogue's rate within the issue's 1.5 m/s,
+/// and within its own bound. The last lines pin both readings, so a change shows.
+#[test]
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the test reads a file under refs/; not the pure core"
+)]
+fn a_swinging_flights_opening_and_drogue_read_where_the_log_puts_them() {
+    use sha2::{Digest, Sha256};
+    const SHA256: &str = "87e9cc91a911c9c20827eb577005c7ad2c44237212dd6eb78f103cbee100c29c";
+    let folder = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../refs/samples-search/G1/rocketryforum-135349");
+    let found = std::fs::read_dir(&folder).ok().and_then(|entries| {
+        entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.extension().is_some_and(|ext| ext == "pf2"))
+            .filter_map(|path| std::fs::read(path).ok())
+            .find(|bytes| {
+                let digest: String = Sha256::digest(bytes)
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect();
+                digest == SHA256
+            })
+    });
+    let Some(bytes) = found else {
+        println!("#903's log isn't under refs/: not read");
+        return;
+    };
+    let log = import::read(&bytes).unwrap();
+    let readings = hpr_flightdata::readings::read(&log);
+    let drogue = readings.drogue_descent.value().unwrap();
+    let main = readings.main_descent.value().unwrap();
+    let opening = main.opening.as_ref().unwrap();
+    assert!((87.0..=92.0).contains(&opening.time_s), "{opening:?}");
+    assert!((drogue.rate_m_s - 17.3).abs() <= 1.5, "{drogue:?}");
+    assert!(
+        (drogue.rate_m_s - 17.3).abs() <= drogue.bound_m_s,
+        "{drogue:?}"
+    );
+    assert_eq!(format!("{:.2}", opening.time_s), "90.00");
+    assert_eq!(format!("{:.2}", opening.bound_s), "0.76");
+    assert_eq!(format!("{:.1}", drogue.rate_m_s), "17.3");
+    assert_eq!(format!("{:.1}", main.rate_m_s), "4.2");
+}
