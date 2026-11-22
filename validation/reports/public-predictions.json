@@ -37,10 +37,10 @@
       "altimeter_evidence": "the notebook calls it a COTS altimeter's flight (astra_flight_sim.ipynb:383-385), one row a second beside a latitude and a longitude, and records no more: barometric assumed, as hobby altimeters are",
       "all_inputs_traced": true,
       "untraced": [],
-      "predicted_apogee_m": 3037.1127560279933,
-      "predicted_height_apogee_m": 3155.3563752661757,
-      "predicted_time_to_apogee_s": 24.396969343786495,
-      "hpr_max_mach": 0.9107866567317453,
+      "predicted_apogee_m": 3037.0918723809427,
+      "predicted_height_apogee_m": 3155.3345824138596,
+      "predicted_time_to_apogee_s": 24.396923330185196,
+      "hpr_max_mach": 0.9107863618582454,
       "catalog_curve": null,
       "files": [
         {
@@ -97,17 +97,17 @@
         "the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high",
         "the thrust file holds more impulse than the Cesaroni M2020 reload it is named for is certified at, so the notebook does not settle which motor the logged flight burned"
       ],
-      "predicted_apogee_m": 3580.9591363955515,
-      "predicted_height_apogee_m": 3729.530744661521,
-      "predicted_time_to_apogee_s": 26.297760374724934,
-      "hpr_max_mach": 1.0186103005458185,
+      "predicted_apogee_m": 3580.5928613847254,
+      "predicted_height_apogee_m": 3729.147845613415,
+      "predicted_time_to_apogee_s": 26.296178833125907,
+      "hpr_max_mach": 1.0186128217193204,
       "catalog_curve": {
         "motor": "Cesaroni 8429M2020-P",
         "why": "the reload the notebook names, on its certified curve as bundled, whole. Shown beside the counted prediction and never counted: every RocketPy flight here is counted on its example's own thrust file",
         "total_impulse_ns": 8428.6623225,
         "liftoff_mass_kg": 25.323,
-        "predicted_apogee_m": 3050.317905285291,
-        "predicted_height_apogee_m": 3176.101536207199
+        "predicted_apogee_m": 3049.9503309954316,
+        "predicted_height_apogee_m": 3175.7188531009892
       },
       "files": [
         {
@@ -161,10 +161,10 @@
       "altimeter_evidence": "the notebook calls it a COTS altimeter (erebus_flight_sim.ipynb:390-392), a file named filtered, and records no more: barometric assumed, as hobby altimeters are",
       "all_inputs_traced": true,
       "untraced": [],
-      "predicted_apogee_m": 2760.125062819257,
-      "predicted_height_apogee_m": 2856.514552203321,
-      "predicted_time_to_apogee_s": 22.694397870865757,
-      "hpr_max_mach": 0.877454120989001,
+      "predicted_apogee_m": 2759.61843158174,
+      "predicted_height_apogee_m": 2855.9887164882025,
+      "predicted_time_to_apogee_s": 22.692388269116222,
+      "hpr_max_mach": 0.8774522921037142,
       "catalog_curve": null,
       "files": [
         {

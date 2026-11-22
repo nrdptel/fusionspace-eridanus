@@ -168,8 +168,11 @@ pub struct Revision {
     pub because: &'static str,
 }
 
-/// The revisions: one. Erebus 11's apogee rose 46.0 m with the base drag behind a boattail
-/// that [ADR-362][adr-362] relieved; the other eleven fly as they were merged.
+/// The revisions: three. Astra, Andromeda and Erebus 11 each have two rail buttons, and fly the
+/// tip-off phase since [ADR-363][adr-363] (decision 1) made it the default: each apogee fell by
+/// 0.02 to 0.51 m. Erebus 11's entry carries its earlier revision too: its apogee rose 46.0 m
+/// with the base drag behind a boattail that [ADR-362][adr-362] relieved. The other nine fly as
+/// they were merged.
 ///
 /// An entry here is the only way a prediction may differ from [`MERGED`] by more than 0.05 m
 /// (`MERGED_WITHIN_M`): the real-flights
@@ -178,17 +181,44 @@ pub struct Revision {
 /// request that changes the number, by hand, with its reason; nothing writes one.
 ///
 /// [adr-362]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
-pub const REVISIONS: [Revision; 1] = [Revision {
-    id: "erebus-11",
-    apogee_m: 2760.1,
-    height_apogee_m: 2856.5,
-    catalog_apogee_m: None,
-    because: "M1.14i3 (ADR-362) changed HPR Sim's base drag below Mach 0.8: behind a boattail \
-              the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the \
-              Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 \
-              to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus \
-              11 has a boattail; nothing in its design or inputs changed.",
-}];
+/// [adr-363]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md
+pub const REVISIONS: [Revision; 3] = [
+    Revision {
+        id: "astra",
+        apogee_m: 3037.1,
+        height_apogee_m: 3155.3,
+        catalog_apogee_m: None,
+        because: "M1.14b15 (ADR-363, decision 1) made the tip-off phase the default. Astra has \
+                  two rail buttons, so between the forward button's leaving the rail and the \
+                  aft one's it turns about the aft button, and it leaves the rail turning \
+                  (ADR-357, ADR-358). Nothing in its design or inputs changed.",
+    },
+    Revision {
+        id: "andromeda",
+        apogee_m: 3580.6,
+        height_apogee_m: 3729.1,
+        catalog_apogee_m: Some(3050.0),
+        because: "M1.14b15 (ADR-363, decision 1) made the tip-off phase the default. Andromeda \
+                  has two rail buttons, so between the forward button's leaving the rail and \
+                  the aft one's it turns about the aft button, and it leaves the rail turning \
+                  (ADR-357, ADR-358). Nothing in its design or inputs changed.",
+    },
+    Revision {
+        id: "erebus-11",
+        apogee_m: 2759.6,
+        height_apogee_m: 2856.0,
+        catalog_apogee_m: None,
+        because: "Two changes to HPR Sim. M1.14i3 (ADR-362) changed its base drag below Mach \
+                  0.8: behind a boattail the base is d_B/d of a flat base's value (NASA TR \
+                  R-100, 1961, p. 11), set on the Hermes A-3A's measured base drag (NACA RM \
+                  SL55F15), where the old rule read 0.050 to 0.064 high on its largest \
+                  cross-section and the new one 0.025 to 0.035. Erebus 11 has a boattail, and \
+                  its apogee rose 46.0 m to 2760.1 m. Then M1.14b15 (ADR-363, decision 1) made \
+                  the tip-off phase the default: Erebus 11 has two rail buttons and leaves the \
+                  rail turning (ADR-357, ADR-358), which took 0.5 m off. Nothing in its design \
+                  or inputs changed.",
+    },
+];
 
 /// The apogee a flight's log is read at: the rule, never the value.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1589,7 +1619,7 @@ pub type VariedApogee = (String, Result<Varied, RealFlightError>);
 
 /// Each predicted flight flown as `variant`, by its id, as [`corrected_apogees`] flies a
 /// correction: its predicted apogee as the log's altimeter would read it, m, and whether its
-/// design has two guides at different stations. With [`Variant::GUIDED`] each is the
+/// design has two guides at different stations. With [`Variant::TIP_OFF`] each is the
 /// prediction [`run`] makes.
 ///
 /// # Errors

@@ -46,14 +46,14 @@ $$
 
 For example, the public flight of Cavour, Politecnico di Torino, EuRoC 2023 read 2,785 m
 (9,137 ft) on its altimeter at the top. An altimeter riding HPR Sim's flight of its design would
-have read 2,946 m (9,665 ft). The miss is (2,946 − 2,785) / 2,785 = +5.78%
+have read 2,945.5 m (9,664 ft). The miss is (2,945.5 − 2,785) / 2,785 = +5.76%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
 Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +8.01% above the logged
 one ([report][fixture-report]). Each flight was flown as drawn in its day's air. Each logged
 apogee there is the altimeter's reading turned into the height climbed in that day's air, so the
-comparison leans on that conversion too. Without their signs, the misses averaged 12.09%, and 31
+comparison leans on that conversion too. Without their signs, the misses averaged 12.10%, and 31
 were within 10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
@@ -71,8 +71,8 @@ checks how the first is coded, not what the two share.
 The 12 public flights are university teams' rockets and one other rocket that flew twice
 ([report][real-report]), 10 of them flown in a [reanalysis](glossary.md#reanalysis) of their
 days' weather, one of those in another year's. That rocket's two are flown as the
-simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 8.88% on
-average without signs, from −29.16% to +10.40% one by one. With signs the misses averaged −4.64%,
+simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 8.83% on
+average without signs, from −29.16% to +10.39% one by one. With signs the misses averaged −4.61%,
 low on 7 of the 12. The average without signs is still outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 60,
 the larger set and the less flattering one ([the trust note's decision record][adr-211]).
@@ -102,9 +102,9 @@ the height climbed, as the [atmosphere page](physics/atmosphere.md#the-standard-
 through.
 
 Juno III, one of the public flights, shows what the low side looks like. An altimeter riding HPR Sim's flight of Juno III,
-Projeto Jupiter, Spaceport America Cup 2023 would have read 2,950.2 m (9,679 ft) at the top. The
-team's altimeter read 3,151.5 m (10,340 ft), a miss of −6.39% ([report][real-report]). The real
-altimeter read 201.3 m (660 ft) higher than the simulated one, and its log ends just short of the
+Projeto Jupiter, Spaceport America Cup 2023 would have read 2,976.7 m (9,766 ft) at the top. The
+team's altimeter read 3,151.5 m (10,340 ft), a miss of −5.55% ([report][real-report]). The real
+altimeter read 174.8 m (573 ft) higher than the simulated one, and its log ends just short of the
 top. The report finds this miss consistent with the motor's impulse, as the example sets it.
 
 So plan a ceiling with room above the simulated apogee. How much room is the flier's and the

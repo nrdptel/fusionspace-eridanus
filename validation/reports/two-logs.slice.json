@@ -6,8 +6,8 @@
       "set": "pair-calibration",
       "index": 0,
       "made": [
-        "rrc3: 4585 samples, highest 3970 m",
-        "altos: 5797 samples, highest 3980 m",
+        "rrc3: 4584 samples, highest 3970 m",
+        "altos: 5797 samples, highest 3970 m",
         "offset: 309 s, truth 309 s, -0.032 of 1.62 s, inside"
       ]
     },
@@ -15,8 +15,8 @@
       "set": "pair-calibration",
       "index": 21,
       "made": [
-        "rrc3: 2985 samples, highest 2620 m",
-        "eggtimer: 3082 samples, highest 2640 m",
+        "rrc3: 2982 samples, highest 2620 m",
+        "eggtimer: 3079 samples, highest 2630 m",
         "offset: -482 s, truth -482 s, -0.070 of 1.75 s, above"
       ]
     },
@@ -24,8 +24,8 @@
       "set": "pair-calibration",
       "index": 42,
       "made": [
-        "perfectflite: 5808 samples, highest 2650 m",
-        "imu-500hz: 147842 samples, highest 2650 m",
+        "perfectflite: 5809 samples, highest 2650 m",
+        "imu-500hz: 147854 samples, highest 2650 m",
         "offset: -13.6 s, truth -13.6 s, -0.005 of 1.47 s, inside"
       ]
     },
@@ -33,7 +33,7 @@
       "set": "pair-calibration",
       "index": 63,
       "made": [
-        "imu-500hz: 145251 samples, highest 2730 m",
+        "imu-500hz: 145249 samples, highest 2730 m",
         "altos: 5727 samples, highest 2720 m",
         "offset: -312 s, truth -312 s, -0.021 of 1.36 s, inside"
       ]
@@ -42,8 +42,8 @@
       "set": "pair-calibration",
       "index": 84,
       "made": [
-        "eggtimer: 3055 samples, highest 2710 m",
-        "rrc3: 3233 samples, highest 2710 m",
+        "eggtimer: 3049 samples, highest 2700 m",
+        "rrc3: 3228 samples, highest 2700 m",
         "offset: -34.2 s, truth -34.2 s, 0.029 of 1.75 s, inside"
       ]
     },
@@ -51,7 +51,7 @@
       "set": "pair-calibration",
       "index": 105,
       "made": [
-        "imu-500hz: 30024 samples, highest 3130 m",
+        "imu-500hz: 30026 samples, highest 3130 m",
         "rrc3: 1377 samples, highest 3120 m",
         "offset: 64.6 s, truth 64.6 s, -0.014 of 1.53 s, inside"
       ]
@@ -60,7 +60,7 @@
       "set": "pair-calibration",
       "index": 126,
       "made": [
-        "imu-500hz: 36122 samples, highest 780 m",
+        "imu-500hz: 36113 samples, highest 779 m",
         "perfectflite: 1264 samples, highest 799 m",
         "offset: -164 s, truth -164 s, -0.082 of 1.53 s, above"
       ]
@@ -78,8 +78,8 @@
       "set": "pair-calibration",
       "index": 168,
       "made": [
-        "perfectflite: 5815 samples, highest 2740 m",
-        "rrc3: 5714 samples, highest 2760 m",
+        "perfectflite: 5814 samples, highest 2740 m",
+        "rrc3: 5713 samples, highest 2760 m",
         "offset: 321 s, truth 321 s, 0.013 of 1.67 s, inside"
       ]
     },
@@ -96,8 +96,8 @@
       "set": "pair-calibration",
       "index": 210,
       "made": [
-        "imu-500hz: 151972 samples, highest 3270 m",
-        "perfectflite: 6069 samples, highest 3270 m",
+        "imu-500hz: 151817 samples, highest 3270 m",
+        "perfectflite: 6063 samples, highest 3260 m",
         "offset: 221 s, truth 221 s, 0.032 of 1.52 s, inside"
       ]
     },
@@ -114,7 +114,7 @@
       "set": "pair-calibration",
       "index": 252,
       "made": [
-        "altos: 4681 samples, highest 2710 m",
+        "altos: 4644 samples, highest 2660 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -123,8 +123,8 @@
       "set": "pair-calibration",
       "index": 273,
       "made": [
-        "imu-500hz: 29500 samples, highest 576 m",
-        "eggtimer: 995 samples, highest 569 m",
+        "imu-500hz: 29484 samples, highest 575 m",
+        "eggtimer: 995 samples, highest 568 m",
         "offset: -460 s, truth -460 s, -0.030 of 1.51 s, inside"
       ]
     },
@@ -132,7 +132,7 @@
       "set": "pair-calibration",
       "index": 294,
       "made": [
-        "eggtimer: 4992 samples, highest 4310 m",
+        "eggtimer: 4987 samples, highest 4310 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -141,8 +141,8 @@
       "set": "pair-calibration",
       "index": 315,
       "made": [
-        "perfectflite: 10595 samples, highest 3700 m",
-        "imu-500hz: 260845 samples, highest 3690 m",
+        "perfectflite: 10589 samples, highest 3690 m",
+        "imu-500hz: 260698 samples, highest 3690 m",
         "offset: -295 s, truth -295 s, 0.015 of 1.45 s, inside"
       ]
     },
@@ -150,8 +150,8 @@
       "set": "pair-calibration",
       "index": 336,
       "made": [
-        "perfectflite: 10253 samples, highest 3480 m",
-        "altos: 8209 samples, highest 3450 m",
+        "perfectflite: 10234 samples, highest 3470 m",
+        "altos: 8198 samples, highest 3450 m",
         "offset: 215 s, truth 215 s, 0.027 of 1.51 s, inside"
       ]
     },
@@ -159,8 +159,8 @@
       "set": "pair-calibration",
       "index": 357,
       "made": [
-        "rrc3: 11484 samples, highest 4140 m",
-        "rrc3: 11641 samples, highest 4170 m",
+        "rrc3: 11442 samples, highest 4130 m",
+        "rrc3: 11599 samples, highest 4150 m",
         "offset: -103 s, truth -103 s, 0.012 of 1.72 s, inside"
       ]
     },
@@ -177,8 +177,8 @@
       "set": "pair-calibration",
       "index": 399,
       "made": [
-        "eggtimer: 1347 samples, highest 720 m",
-        "imu-500hz: 32742 samples, highest 745 m",
+        "eggtimer: 1345 samples, highest 719 m",
+        "imu-500hz: 32713 samples, highest 745 m",
         "offset: 388 s, truth 388 s, 0.018 of 1.48 s, inside"
       ]
     },
@@ -186,8 +186,8 @@
       "set": "pair-calibration",
       "index": 420,
       "made": [
-        "altos: 2656 samples, highest 749 m",
-        "rrc3: 1235 samples, highest 739 m",
+        "altos: 2652 samples, highest 746 m",
+        "rrc3: 1232 samples, highest 735 m",
         "offset: -208 s, truth -208 s, 0.023 of 1.53 s, inside"
       ]
     },
@@ -195,7 +195,7 @@
       "set": "pair-calibration",
       "index": 441,
       "made": [
-        "altos: 4447 samples, highest 3130 m",
+        "altos: 4445 samples, highest 3120 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -204,8 +204,8 @@
       "set": "pair-calibration",
       "index": 462,
       "made": [
-        "rrc3: 1415 samples, highest 731 m",
-        "altos: 2437 samples, highest 717 m",
+        "rrc3: 1409 samples, highest 727 m",
+        "altos: 2429 samples, highest 712 m",
         "offset: -129 s, truth -129 s, -0.043 of 1.64 s, inside"
       ]
     },
@@ -213,7 +213,7 @@
       "set": "pair-calibration",
       "index": 483,
       "made": [
-        "imu-500hz: 50812 samples, highest 1430 m",
+        "imu-500hz: 50806 samples, highest 1430 m",
         "eggtimer: 2106 samples, highest 1430 m",
         "offset: 287 s, truth 287 s, -0.029 of 1.51 s, inside"
       ]
@@ -222,7 +222,7 @@
       "set": "pair-calibration",
       "index": 504,
       "made": [
-        "imu-500hz: 36052 samples, highest 850 m",
+        "imu-500hz: 36027 samples, highest 850 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -232,7 +232,7 @@
       "index": 525,
       "made": [
         "altos: 5393 samples, highest 2790 m",
-        "eggtimer: 5680 samples, highest 2770 m",
+        "eggtimer: 5679 samples, highest 2770 m",
         "offset: -8.19 s, truth -8.22 s, 0.022 of 1.46 s, inside"
       ]
     },
@@ -249,8 +249,8 @@
       "set": "pair-calibration",
       "index": 567,
       "made": [
-        "imu-500hz: 77307 samples, highest 2570 m",
-        "altos: 4247 samples, highest 2550 m",
+        "imu-500hz: 76433 samples, highest 2540 m",
+        "altos: 4214 samples, highest 2510 m",
         "offset: 218 s, truth 218 s, 0.007 of 1.35 s, inside"
       ]
     },
@@ -259,7 +259,7 @@
       "index": 588,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "rrc3: 1398 samples, highest 3350 m",
+        "rrc3: 1397 samples, highest 3350 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -268,7 +268,7 @@
       "index": 609,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "rrc3: 4903 samples, highest 4030 m",
+        "rrc3: 4898 samples, highest 4020 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -276,8 +276,8 @@
       "set": "pair-calibration",
       "index": 630,
       "made": [
-        "eggtimer: 3648 samples, highest 2860 m",
-        "perfectflite: 3505 samples, highest 2870 m",
+        "eggtimer: 3652 samples, highest 2860 m",
+        "perfectflite: 3508 samples, highest 2870 m",
         "offset: 251 s, truth 251 s, -0.023 of 1.59 s, inside"
       ]
     },
@@ -286,7 +286,7 @@
       "index": 651,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "rrc3: 9827 samples, highest 3570 m",
+        "rrc3: 9821 samples, highest 3570 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -312,8 +312,8 @@
       "set": "pair-calibration",
       "index": 714,
       "made": [
-        "perfectflite: 1420 samples, highest 741 m",
-        "eggtimer: 1415 samples, highest 750 m",
+        "perfectflite: 1414 samples, highest 735 m",
+        "eggtimer: 1409 samples, highest 745 m",
         "offset: -127 s, truth -127 s, 0.044 of 1.57 s, inside"
       ]
     },
@@ -321,8 +321,8 @@
       "set": "pair-calibration",
       "index": 735,
       "made": [
-        "altos: 5393 samples, highest 3860 m",
-        "perfectflite: 4613 samples, highest 3870 m",
+        "altos: 5389 samples, highest 3860 m",
+        "perfectflite: 4608 samples, highest 3870 m",
         "offset: 270 s, truth 270 s, -0.039 of 1.52 s, inside"
       ]
     },
@@ -330,8 +330,8 @@
       "set": "pair-calibration",
       "index": 756,
       "made": [
-        "eggtimer: 5647 samples, highest 2830 m",
-        "imu-500hz: 140484 samples, highest 2830 m",
+        "eggtimer: 5646 samples, highest 2830 m",
+        "imu-500hz: 140448 samples, highest 2830 m",
         "offset: 73.2 s, truth 73.2 s, -0.019 of 1.45 s, inside"
       ]
     },
@@ -349,7 +349,7 @@
       "index": 798,
       "made": [
         "eggtimer: 2124 samples, highest 1470 m",
-        "eggtimer: 2098 samples, highest 1470 m",
+        "eggtimer: 2097 samples, highest 1470 m",
         "offset: -161 s, truth -161 s, -0.014 of 1.57 s, inside"
       ]
     },
@@ -366,7 +366,7 @@
       "set": "pair-calibration",
       "index": 840,
       "made": [
-        "imu-500hz: 53275 samples, highest 1590 m",
+        "imu-500hz: 53272 samples, highest 1590 m",
         "perfectflite: 2041 samples, highest 1570 m",
         "offset: -420 s, truth -420 s, -0.034 of 1.45 s, inside"
       ]
@@ -385,7 +385,7 @@
       "index": 882,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "altos: 5087 samples, highest 3840 m",
+        "altos: 5087 samples, highest 3850 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -393,8 +393,8 @@
       "set": "pair-calibration",
       "index": 903,
       "made": [
-        "altos: 3201 samples, highest 1330 m",
-        "rrc3: 2039 samples, highest 1320 m",
+        "altos: 3200 samples, highest 1330 m",
+        "rrc3: 2038 samples, highest 1320 m",
         "offset: 64.6 s, truth 64.6 s, -0.028 of 1.58 s, inside"
       ]
     },
@@ -402,8 +402,8 @@
       "set": "pair-calibration",
       "index": 924,
       "made": [
-        "altos: 4332 samples, highest 2720 m",
-        "eggtimer: 3514 samples, highest 2710 m",
+        "altos: 4334 samples, highest 2730 m",
+        "eggtimer: 3516 samples, highest 2720 m",
         "offset: -142 s, truth -142 s, -0.007 of 1.46 s, inside"
       ]
     },
@@ -412,7 +412,7 @@
       "index": 945,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "imu-500hz: 152307 samples, highest 2980 m",
+        "imu-500hz: 152304 samples, highest 2980 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -429,8 +429,8 @@
       "set": "pair-calibration",
       "index": 987,
       "made": [
-        "altos: 5980 samples, highest 2910 m",
-        "altos: 6212 samples, highest 2880 m",
+        "altos: 5974 samples, highest 2900 m",
+        "altos: 6207 samples, highest 2870 m",
         "offset: -118 s, truth -118 s, 0.033 of 1.36 s, inside"
       ]
     },
@@ -438,7 +438,7 @@
       "set": "pair-calibration",
       "index": 1008,
       "made": [
-        "rrc3: 5731 samples, highest 2880 m",
+        "rrc3: 5728 samples, highest 2870 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -447,8 +447,8 @@
       "set": "pair-calibration",
       "index": 1029,
       "made": [
-        "eggtimer: 2861 samples, highest 2480 m",
-        "imu-500hz: 69414 samples, highest 2480 m",
+        "eggtimer: 2862 samples, highest 2480 m",
+        "imu-500hz: 69447 samples, highest 2480 m",
         "offset: 101 s, truth 101 s, 0.012 of 1.51 s, inside"
       ]
     },
@@ -457,7 +457,7 @@
       "index": 1050,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "perfectflite: 4513 samples, highest 3720 m",
+        "perfectflite: 4511 samples, highest 3710 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -465,7 +465,7 @@
       "set": "pair-calibration",
       "index": 1071,
       "made": [
-        "imu-500hz: 138210 samples, highest 2750 m",
+        "imu-500hz: 138143 samples, highest 2750 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -474,8 +474,8 @@
       "set": "pair-calibration",
       "index": 1092,
       "made": [
-        "perfectflite: 1277 samples, highest 680 m",
-        "altos: 2349 samples, highest 685 m",
+        "perfectflite: 1271 samples, highest 675 m",
+        "altos: 2342 samples, highest 681 m",
         "offset: 358 s, truth 358 s, 0.032 of 1.56 s, inside"
       ]
     },
@@ -483,8 +483,8 @@
       "set": "pair-calibration",
       "index": 1113,
       "made": [
-        "altos: 8386 samples, highest 3620 m",
-        "perfectflite: 10386 samples, highest 3600 m",
+        "altos: 8361 samples, highest 3600 m",
+        "perfectflite: 10347 samples, highest 3580 m",
         "offset: -103 s, truth -103 s, -0.003 of 1.51 s, inside"
       ]
     },
@@ -502,7 +502,7 @@
       "index": 1155,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "perfectflite: 1256 samples, highest 3220 m",
+        "perfectflite: 1257 samples, highest 3230 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -510,7 +510,7 @@
       "set": "pair-calibration",
       "index": 1176,
       "made": [
-        "imu-500hz: 134995 samples, highest 2520 m",
+        "imu-500hz: 134985 samples, highest 2520 m",
         "perfectflite: 5473 samples, highest 2530 m",
         "offset: -74.4 s, truth -74.4 s, -0.039 of 1.47 s, inside"
       ]
@@ -528,8 +528,8 @@
       "set": "pair-calibration",
       "index": 1218,
       "made": [
-        "altos: 4297 samples, highest 2970 m",
-        "imu-500hz: 81332 samples, highest 2970 m",
+        "altos: 4304 samples, highest 2980 m",
+        "imu-500hz: 81508 samples, highest 2980 m",
         "offset: -17 s, truth -17 s, 0.003 of 1.46 s, inside"
       ]
     },
@@ -538,7 +538,7 @@
       "index": 1239,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "rrc3: 5592 samples, highest 2480 m",
+        "rrc3: 5586 samples, highest 2480 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -546,8 +546,8 @@
       "set": "pair-calibration",
       "index": 1260,
       "made": [
-        "imu-500hz: 51057 samples, highest 1360 m",
-        "imu-500hz: 51266 samples, highest 1370 m",
+        "imu-500hz: 51051 samples, highest 1360 m",
+        "imu-500hz: 51260 samples, highest 1370 m",
         "offset: -375 s, truth -375 s, -0.017 of 1.34 s, inside"
       ]
     },
@@ -564,7 +564,7 @@
       "set": "pair-calibration",
       "index": 1302,
       "made": [
-        "eggtimer: 1441 samples, highest 783 m",
+        "eggtimer: 1426 samples, highest 771 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -573,8 +573,8 @@
       "set": "pair-calibration",
       "index": 1323,
       "made": [
-        "altos: 5604 samples, highest 2690 m",
-        "imu-500hz: 147632 samples, highest 2700 m",
+        "altos: 5600 samples, highest 2690 m",
+        "imu-500hz: 147513 samples, highest 2700 m",
         "offset: 219 s, truth 220 s, -0.012 of 1.38 s, inside"
       ]
     },
@@ -582,8 +582,8 @@
       "set": "pair-calibration",
       "index": 1344,
       "made": [
-        "imu-500hz: 283973 samples, highest 4210 m",
-        "rrc3: 11521 samples, highest 4210 m",
+        "imu-500hz: 282551 samples, highest 4190 m",
+        "rrc3: 11464 samples, highest 4190 m",
         "offset: 104 s, truth 104 s, 0.004 of 1.53 s, inside"
       ]
     },
@@ -591,8 +591,8 @@
       "set": "pair-calibration",
       "index": 1365,
       "made": [
-        "altos: 1923 samples, highest 502 m",
-        "perfectflite: 946 samples, highest 499 m",
+        "altos: 1924 samples, highest 504 m",
+        "perfectflite: 947 samples, highest 500 m",
         "offset: 502 s, truth 502 s, 0.048 of 1.56 s, inside"
       ]
     },
@@ -600,8 +600,8 @@
       "set": "pair-calibration",
       "index": 1386,
       "made": [
-        "imu-500hz: 31885 samples, highest 2830 m",
-        "altos: 3496 samples, highest 2820 m",
+        "imu-500hz: 31897 samples, highest 2830 m",
+        "altos: 3498 samples, highest 2830 m",
         "offset: 300 s, truth 301 s, -0.012 of 1.34 s, inside"
       ]
     },
@@ -609,8 +609,8 @@
       "set": "pair-calibration",
       "index": 1407,
       "made": [
-        "eggtimer: 1341 samples, highest 844 m",
-        "altos: 2191 samples, highest 837 m",
+        "eggtimer: 1332 samples, highest 837 m",
+        "altos: 2182 samples, highest 829 m",
         "offset: 94.1 s, truth 94.1 s, -0.036 of 1.6 s, inside"
       ]
     },
@@ -618,8 +618,8 @@
       "set": "pair-calibration",
       "index": 1428,
       "made": [
-        "imu-500hz: 132485 samples, highest 2530 m",
-        "imu-500hz: 132994 samples, highest 2550 m",
+        "imu-500hz: 132432 samples, highest 2530 m",
+        "imu-500hz: 132941 samples, highest 2540 m",
         "offset: 90.8 s, truth 90.8 s, -0.003 of 1.34 s, inside"
       ]
     },
@@ -663,8 +663,8 @@
       "set": "pair-calibration",
       "index": 1533,
       "made": [
-        "imu-500hz: 138420 samples, highest 2720 m",
-        "imu-500hz: 140702 samples, highest 2710 m",
+        "imu-500hz: 138385 samples, highest 2720 m",
+        "imu-500hz: 140667 samples, highest 2710 m",
         "offset: 183 s, truth 183 s, 0.053 of 1.38 s, below"
       ]
     },
@@ -682,7 +682,7 @@
       "index": 1575,
       "made": [
         "rrc3: 3855 samples, highest 3060 m",
-        "imu-500hz: 94225 samples, highest 3090 m",
+        "imu-500hz: 94220 samples, highest 3090 m",
         "offset: -132 s, truth -132 s, -0.015 of 1.53 s, inside"
       ]
     },
@@ -691,7 +691,7 @@
       "index": 1596,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "imu-500hz: 93944 samples, highest 3060 m",
+        "imu-500hz: 93824 samples, highest 3050 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -699,8 +699,8 @@
       "set": "pair-calibration",
       "index": 1617,
       "made": [
-        "perfectflite: 1362 samples, highest 3230 m",
-        "eggtimer: 1279 samples, highest 3230 m",
+        "perfectflite: 1361 samples, highest 3220 m",
+        "eggtimer: 1278 samples, highest 3230 m",
         "offset: -314 s, truth -314 s, -0.016 of 1.57 s, inside"
       ]
     },
@@ -708,8 +708,8 @@
       "set": "pair-calibration",
       "index": 1638,
       "made": [
-        "perfectflite: 1384 samples, highest 3570 m",
-        "altos: 3513 samples, highest 3580 m",
+        "perfectflite: 1379 samples, highest 3570 m",
+        "altos: 3511 samples, highest 3570 m",
         "offset: -327 s, truth -327 s, 0.026 of 1.46 s, inside"
       ]
     },
@@ -717,8 +717,8 @@
       "set": "pair-calibration",
       "index": 1659,
       "made": [
-        "eggtimer: 10895 samples, highest 3750 m",
-        "eggtimer: 10950 samples, highest 3770 m",
+        "eggtimer: 10874 samples, highest 3750 m",
+        "eggtimer: 10930 samples, highest 3760 m",
         "offset: 271 s, truth 272 s, -0.038 of 1.57 s, inside"
       ]
     },
@@ -744,8 +744,8 @@
       "set": "pair-calibration",
       "index": 1722,
       "made": [
-        "rrc3: 3711 samples, highest 2950 m",
-        "eggtimer: 3867 samples, highest 2920 m",
+        "rrc3: 3710 samples, highest 2950 m",
+        "eggtimer: 3865 samples, highest 2920 m",
         "offset: 126 s, truth 126 s, -0.035 of 1.72 s, inside"
       ]
     },
@@ -754,7 +754,7 @@
       "index": 1743,
       "made": [
         "eggtimer: 2073 samples, highest 1400 m",
-        "rrc3: 1978 samples, highest 1400 m",
+        "rrc3: 1977 samples, highest 1400 m",
         "offset: -81.2 s, truth -81.2 s, -0.010 of 1.65 s, inside"
       ]
     },
@@ -762,8 +762,8 @@
       "set": "pair-calibration",
       "index": 1764,
       "made": [
-        "imu-500hz: 30907 samples, highest 2810 m",
-        "altos: 2958 samples, highest 2810 m",
+        "imu-500hz: 30931 samples, highest 2820 m",
+        "altos: 2960 samples, highest 2810 m",
         "offset: -82.6 s, truth -82.6 s, -0.020 of 1.43 s, inside"
       ]
     },
@@ -780,8 +780,8 @@
       "set": "pair-calibration",
       "index": 1806,
       "made": [
-        "altos: 7924 samples, highest 3700 m",
-        "eggtimer: 10523 samples, highest 3690 m",
+        "altos: 7920 samples, highest 3700 m",
+        "eggtimer: 10518 samples, highest 3690 m",
         "offset: -215 s, truth -215 s, -0.043 of 1.62 s, inside"
       ]
     },
@@ -789,7 +789,7 @@
       "set": "pair-calibration",
       "index": 1827,
       "made": [
-        "imu-500hz: 91252 samples, highest 2930 m",
+        "imu-500hz: 91243 samples, highest 2930 m",
         "rrc3: 3712 samples, highest 2940 m",
         "offset: 106 s, truth 106 s, -0.024 of 1.6 s, inside"
       ]
@@ -798,7 +798,7 @@
       "set": "pair-calibration",
       "index": 1848,
       "made": [
-        "rrc3: 11212 samples, highest 3880 m",
+        "rrc3: 11199 samples, highest 3870 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -807,7 +807,7 @@
       "set": "pair-calibration",
       "index": 1869,
       "made": [
-        "imu-500hz: 148665 samples, highest 2690 m",
+        "imu-500hz: 148661 samples, highest 2690 m",
         "rrc3: 5997 samples, highest 2710 m",
         "offset: -166 s, truth -166 s, 0.009 of 1.6 s, inside"
       ]
@@ -816,8 +816,8 @@
       "set": "pair-calibration",
       "index": 1890,
       "made": [
-        "rrc3: 10964 samples, highest 4060 m",
-        "eggtimer: 10859 samples, highest 4050 m",
+        "rrc3: 10957 samples, highest 4050 m",
+        "eggtimer: 10853 samples, highest 4050 m",
         "offset: -224 s, truth -224 s, -0.005 of 1.65 s, inside"
       ]
     },
@@ -835,7 +835,7 @@
       "index": 1932,
       "made": [
         "eggtimer: 1022 samples, highest 549 m",
-        "imu-500hz: 27859 samples, highest 540 m",
+        "imu-500hz: 27860 samples, highest 540 m",
         "offset: -203 s, truth -203 s, -0.012 of 1.48 s, inside"
       ]
     },
@@ -844,7 +844,7 @@
       "index": 1953,
       "made": [
         "rrc3: 2009 samples, highest 1360 m",
-        "imu-500hz: 49754 samples, highest 1360 m",
+        "imu-500hz: 49753 samples, highest 1360 m",
         "offset: 126 s, truth 126 s, -0.017 of 1.61 s, inside"
       ]
     },
@@ -852,8 +852,8 @@
       "set": "pair-calibration",
       "index": 1974,
       "made": [
-        "rrc3: 3898 samples, highest 3090 m",
-        "perfectflite: 3706 samples, highest 3080 m",
+        "rrc3: 3899 samples, highest 3100 m",
+        "perfectflite: 3707 samples, highest 3080 m",
         "offset: 153 s, truth 153 s, -0.001 of 1.67 s, inside"
       ]
     },
@@ -861,8 +861,8 @@
       "set": "pair-calibration",
       "index": 1995,
       "made": [
-        "altos: 3673 samples, highest 3210 m",
-        "imu-500hz: 33508 samples, highest 3200 m",
+        "altos: 3674 samples, highest 3210 m",
+        "imu-500hz: 33516 samples, highest 3200 m",
         "offset: -140 s, truth -140 s, -0.018 of 1.34 s, inside"
       ]
     },
@@ -870,8 +870,8 @@
       "set": "pair-a",
       "index": 0,
       "made": [
-        "altos: 5473 samples, highest 2780 m",
-        "eggtimer: 5975 samples, highest 2770 m",
+        "altos: 5469 samples, highest 2770 m",
+        "eggtimer: 5971 samples, highest 2770 m",
         "offset: 62.1 s, truth 62.1 s, 0.004 of 1.51 s, inside"
       ]
     },
@@ -879,7 +879,7 @@
       "set": "pair-a",
       "index": 21,
       "made": [
-        "eggtimer: 972 samples, highest 499 m",
+        "eggtimer: 972 samples, highest 498 m",
         "rrc3: 994 samples, highest 498 m",
         "offset: 187 s, truth 187 s, 0.043 of 1.84 s, inside"
       ]
@@ -906,8 +906,8 @@
       "set": "pair-a",
       "index": 84,
       "made": [
-        "eggtimer: 3735 samples, highest 2920 m",
-        "perfectflite: 3855 samples, highest 2920 m",
+        "eggtimer: 3731 samples, highest 2920 m",
+        "perfectflite: 3852 samples, highest 2910 m",
         "offset: -49.6 s, truth -49.7 s, 0.058 of 1.57 s, below"
       ]
     },
@@ -915,8 +915,8 @@
       "set": "pair-a",
       "index": 105,
       "made": [
-        "imu-500hz: 77904 samples, highest 2810 m",
-        "eggtimer: 3070 samples, highest 2820 m",
+        "imu-500hz: 77338 samples, highest 2780 m",
+        "eggtimer: 3047 samples, highest 2790 m",
         "offset: -166 s, truth -166 s, 0.021 of 1.45 s, inside"
       ]
     },
@@ -925,7 +925,7 @@
       "index": 126,
       "made": [
         "altos: 3315 samples, highest 1320 m",
-        "altos: 2732 samples, highest 1330 m",
+        "altos: 2731 samples, highest 1330 m",
         "offset: 336 s, truth 336 s, 0.008 of 1.4 s, inside"
       ]
     },
@@ -933,7 +933,7 @@
       "set": "pair-a",
       "index": 147,
       "made": [
-        "eggtimer: 1067 samples, highest 469 m",
+        "eggtimer: 1066 samples, highest 468 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -943,7 +943,7 @@
       "index": 168,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "imu-500hz: 142080 samples, highest 2910 m",
+        "imu-500hz: 141961 samples, highest 2910 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -951,8 +951,8 @@
       "set": "pair-a",
       "index": 189,
       "made": [
-        "altos: 5273 samples, highest 3600 m",
-        "altos: 5255 samples, highest 3590 m",
+        "altos: 5271 samples, highest 3600 m",
+        "altos: 5252 samples, highest 3590 m",
         "offset: 525 s, truth 525 s, -0.048 of 1.34 s, inside"
       ]
     },
@@ -969,8 +969,8 @@
       "set": "pair-a",
       "index": 231,
       "made": [
-        "imu-500hz: 33674 samples, highest 3520 m",
-        "imu-500hz: 35798 samples, highest 3510 m",
+        "imu-500hz: 33653 samples, highest 3510 m",
+        "imu-500hz: 35777 samples, highest 3510 m",
         "offset: 146 s, truth 146 s, -0.015 of 1.35 s, inside"
       ]
     },
@@ -978,8 +978,8 @@
       "set": "pair-a",
       "index": 252,
       "made": [
-        "altos: 8676 samples, highest 3930 m",
-        "altos: 8742 samples, highest 3960 m",
+        "altos: 8672 samples, highest 3920 m",
+        "altos: 8738 samples, highest 3960 m",
         "offset: -168 s, truth -168 s, -0.017 of 1.34 s, inside"
       ]
     },
@@ -987,8 +987,8 @@
       "set": "pair-a",
       "index": 273,
       "made": [
-        "rrc3: 1011 samples, highest 517 m",
-        "rrc3: 1083 samples, highest 518 m",
+        "rrc3: 1010 samples, highest 516 m",
+        "rrc3: 1082 samples, highest 518 m",
         "offset: -57.2 s, truth -57.1 s, -0.031 of 1.78 s, inside"
       ]
     },
@@ -1014,8 +1014,8 @@
       "set": "pair-a",
       "index": 336,
       "made": [
-        "perfectflite: 11012 samples, highest 3820 m",
-        "altos: 8390 samples, highest 3790 m",
+        "perfectflite: 10980 samples, highest 3810 m",
+        "altos: 8369 samples, highest 3780 m",
         "offset: 257 s, truth 257 s, -0.001 of 1.46 s, inside"
       ]
     },
@@ -1023,8 +1023,8 @@
       "set": "pair-a",
       "index": 357,
       "made": [
-        "eggtimer: 3398 samples, highest 2990 m",
-        "perfectflite: 3220 samples, highest 3000 m",
+        "eggtimer: 3357 samples, highest 2940 m",
+        "perfectflite: 3179 samples, highest 2950 m",
         "offset: -82.9 s, truth -82.9 s, 0.006 of 1.7 s, inside"
       ]
     },
@@ -1032,8 +1032,8 @@
       "set": "pair-a",
       "index": 378,
       "made": [
-        "imu-500hz: 296263 samples, highest 4300 m",
-        "rrc3: 11714 samples, highest 4280 m",
+        "imu-500hz: 296429 samples, highest 4300 m",
+        "rrc3: 11720 samples, highest 4280 m",
         "offset: 170 s, truth 170 s, -0.025 of 1.53 s, inside"
       ]
     },
@@ -1042,7 +1042,7 @@
       "index": 399,
       "made": [
         "eggtimer: 2130 samples, highest 1510 m",
-        "imu-500hz: 52911 samples, highest 1490 m",
+        "imu-500hz: 52909 samples, highest 1490 m",
         "offset: 38 s, truth 38.1 s, -0.046 of 1.52 s, inside"
       ]
     },
@@ -1050,8 +1050,8 @@
       "set": "pair-a",
       "index": 420,
       "made": [
-        "eggtimer: 12187 samples, highest 4320 m",
-        "altos: 9250 samples, highest 4340 m",
+        "eggtimer: 12158 samples, highest 4310 m",
+        "altos: 9231 samples, highest 4320 m",
         "offset: -379 s, truth -379 s, 0.021 of 1.46 s, inside"
       ]
     },
@@ -1060,7 +1060,7 @@
       "index": 441,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "eggtimer: 1515 samples, highest 827 m",
+        "eggtimer: 1510 samples, highest 823 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1068,8 +1068,8 @@
       "set": "pair-a",
       "index": 462,
       "made": [
-        "imu-500hz: 75356 samples, highest 2840 m",
-        "perfectflite: 3032 samples, highest 2850 m",
+        "imu-500hz: 75172 samples, highest 2830 m",
+        "perfectflite: 3025 samples, highest 2850 m",
         "offset: 263 s, truth 263 s, -0.036 of 1.47 s, inside"
       ]
     },
@@ -1077,7 +1077,7 @@
       "set": "pair-a",
       "index": 483,
       "made": [
-        "perfectflite: 1168 samples, highest 612 m",
+        "perfectflite: 1167 samples, highest 612 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1086,8 +1086,8 @@
       "set": "pair-a",
       "index": 504,
       "made": [
-        "perfectflite: 5725 samples, highest 2630 m",
-        "imu-500hz: 140842 samples, highest 2620 m",
+        "perfectflite: 5723 samples, highest 2630 m",
+        "imu-500hz: 140782 samples, highest 2620 m",
         "offset: 13 s, truth 13.1 s, -0.067 of 1.56 s, above"
       ]
     },
@@ -1095,8 +1095,8 @@
       "set": "pair-a",
       "index": 525,
       "made": [
-        "rrc3: 5482 samples, highest 2620 m",
-        "perfectflite: 5582 samples, highest 2630 m",
+        "rrc3: 5476 samples, highest 2620 m",
+        "perfectflite: 5576 samples, highest 2620 m",
         "offset: -414 s, truth -414 s, 0.005 of 1.65 s, inside"
       ]
     },
@@ -1104,8 +1104,8 @@
       "set": "pair-a",
       "index": 546,
       "made": [
-        "rrc3: 1020 samples, highest 406 m",
-        "altos: 2004 samples, highest 433 m",
+        "rrc3: 1018 samples, highest 405 m",
+        "altos: 2002 samples, highest 430 m",
         "offset: -51.8 s, truth -51.8 s, 0.005 of 1.56 s, inside"
       ]
     },
@@ -1113,7 +1113,7 @@
       "set": "pair-a",
       "index": 567,
       "made": [
-        "eggtimer: 10741 samples, highest 3690 m",
+        "eggtimer: 10739 samples, highest 3690 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1123,7 +1123,7 @@
       "index": 588,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "imu-500hz: 38769 samples, highest 792 m",
+        "imu-500hz: 38730 samples, highest 790 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1132,7 +1132,7 @@
       "index": 609,
       "made": [
         "rrc3: 1348 samples, highest 3310 m",
-        "imu-500hz: 33356 samples, highest 3320 m",
+        "imu-500hz: 33342 samples, highest 3320 m",
         "offset: -163 s, truth -163 s, 0.038 of 1.53 s, inside"
       ]
     },
@@ -1149,8 +1149,8 @@
       "set": "pair-a",
       "index": 651,
       "made": [
-        "perfectflite: 1503 samples, highest 814 m",
-        "rrc3: 1534 samples, highest 816 m",
+        "perfectflite: 1499 samples, highest 812 m",
+        "rrc3: 1530 samples, highest 814 m",
         "offset: -16.5 s, truth -16.5 s, 0.022 of 1.72 s, inside"
       ]
     },
@@ -1158,7 +1158,7 @@
       "set": "pair-a",
       "index": 672,
       "made": [
-        "rrc3: 11627 samples, highest 4160 m",
+        "rrc3: 11600 samples, highest 4150 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1167,8 +1167,8 @@
       "set": "pair-a",
       "index": 693,
       "made": [
-        "imu-500hz: 35253 samples, highest 873 m",
-        "imu-500hz: 40097 samples, highest 883 m",
+        "imu-500hz: 35058 samples, highest 867 m",
+        "imu-500hz: 39902 samples, highest 877 m",
         "offset: -335 s, truth -335 s, 0.010 of 1.38 s, inside"
       ]
     },
@@ -1176,8 +1176,8 @@
       "set": "pair-a",
       "index": 714,
       "made": [
-        "perfectflite: 3305 samples, highest 3110 m",
-        "perfectflite: 3440 samples, highest 3100 m",
+        "perfectflite: 3278 samples, highest 3080 m",
+        "perfectflite: 3414 samples, highest 3070 m",
         "offset: -278 s, truth -278 s, 0.017 of 1.63 s, inside"
       ]
     },
@@ -1194,8 +1194,8 @@
       "set": "pair-a",
       "index": 756,
       "made": [
-        "perfectflite: 4747 samples, highest 3980 m",
-        "altos: 5359 samples, highest 3980 m",
+        "perfectflite: 4746 samples, highest 3980 m",
+        "altos: 5358 samples, highest 3980 m",
         "offset: -109 s, truth -109 s, 0.019 of 1.51 s, inside"
       ]
     },
@@ -1203,8 +1203,8 @@
       "set": "pair-a",
       "index": 777,
       "made": [
-        "rrc3: 5870 samples, highest 2830 m",
-        "eggtimer: 5803 samples, highest 2850 m",
+        "rrc3: 5871 samples, highest 2830 m",
+        "eggtimer: 5804 samples, highest 2850 m",
         "offset: 55.4 s, truth 55.4 s, -0.017 of 1.73 s, inside"
       ]
     },
@@ -1212,7 +1212,7 @@
       "set": "pair-a",
       "index": 798,
       "made": [
-        "imu-500hz: 137202 samples, highest 2640 m",
+        "imu-500hz: 137143 samples, highest 2640 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1221,8 +1221,8 @@
       "set": "pair-a",
       "index": 819,
       "made": [
-        "imu-500hz: 89290 samples, highest 2730 m",
-        "altos: 4374 samples, highest 2730 m",
+        "imu-500hz: 89187 samples, highest 2730 m",
+        "altos: 4370 samples, highest 2720 m",
         "offset: -435 s, truth -435 s, -0.004 of 1.34 s, inside"
       ]
     },
@@ -1230,7 +1230,7 @@
       "set": "pair-a",
       "index": 840,
       "made": [
-        "perfectflite: 5739 samples, highest 2790 m",
+        "perfectflite: 5737 samples, highest 2790 m",
         "altos: 5330 samples, highest 2790 m",
         "offset: -197 s, truth -197 s, -0.003 of 1.46 s, inside"
       ]
@@ -1257,8 +1257,8 @@
       "set": "pair-a",
       "index": 903,
       "made": [
-        "imu-500hz: 115026 samples, highest 4090 m",
-        "perfectflite: 4649 samples, highest 4080 m",
+        "imu-500hz: 114903 samples, highest 4080 m",
+        "perfectflite: 4644 samples, highest 4070 m",
         "offset: -19.5 s, truth -19.5 s, -0.021 of 1.45 s, inside"
       ]
     },
@@ -1266,8 +1266,8 @@
       "set": "pair-a",
       "index": 924,
       "made": [
-        "imu-500hz: 156285 samples, highest 3050 m",
-        "imu-500hz: 158593 samples, highest 3050 m",
+        "imu-500hz: 156287 samples, highest 3050 m",
+        "imu-500hz: 158594 samples, highest 3050 m",
         "offset: -310 s, truth -310 s, 0.031 of 1.34 s, inside"
       ]
     },
@@ -1275,8 +1275,8 @@
       "set": "pair-a",
       "index": 945,
       "made": [
-        "altos: 2178 samples, highest 716 m",
-        "perfectflite: 1192 samples, highest 718 m",
+        "altos: 2175 samples, highest 712 m",
+        "perfectflite: 1189 samples, highest 718 m",
         "offset: -90.4 s, truth -90.4 s, -0.012 of 1.5 s, inside"
       ]
     },
@@ -1284,8 +1284,8 @@
       "set": "pair-a",
       "index": 966,
       "made": [
-        "rrc3: 11716 samples, highest 4180 m",
-        "altos: 8930 samples, highest 4180 m",
+        "rrc3: 11710 samples, highest 4180 m",
+        "altos: 8926 samples, highest 4170 m",
         "offset: -386 s, truth -386 s, -0.015 of 1.7 s, inside"
       ]
     },
@@ -1293,8 +1293,8 @@
       "set": "pair-a",
       "index": 987,
       "made": [
-        "eggtimer: 1522 samples, highest 837 m",
-        "altos: 2477 samples, highest 853 m",
+        "eggtimer: 1520 samples, highest 835 m",
+        "altos: 2474 samples, highest 851 m",
         "offset: -25.8 s, truth -25.7 s, -0.048 of 1.5 s, inside"
       ]
     },
@@ -1303,7 +1303,7 @@
       "index": 0,
       "made": [
         "perfectflite: 5793 samples, highest 2840 m",
-        "perfectflite: 5750 samples, highest 2840 m",
+        "perfectflite: 5749 samples, highest 2840 m",
         "offset: -384 s, truth -384 s, 0.045 of 1.57 s, inside"
       ]
     },
@@ -1311,8 +1311,8 @@
       "set": "pair-b",
       "index": 21,
       "made": [
-        "altos: 5667 samples, highest 3000 m",
-        "altos: 6123 samples, highest 2990 m",
+        "altos: 5665 samples, highest 3000 m",
+        "altos: 6121 samples, highest 2990 m",
         "offset: -22.1 s, truth -22.2 s, 0.077 of 1.34 s, below"
       ]
     },
@@ -1321,7 +1321,7 @@
       "index": 42,
       "made": [
         "rrc3: 4693 samples, highest 4230 m",
-        "imu-500hz: 121163 samples, highest 4240 m",
+        "imu-500hz: 121148 samples, highest 4240 m",
         "offset: -7.82 s, truth -7.93 s, 0.065 of 1.6 s, below"
       ]
     },
@@ -1330,7 +1330,7 @@
       "index": 63,
       "made": [
         "rrc3: 5714 samples, highest 2820 m",
-        "imu-500hz: 143971 samples, highest 2840 m",
+        "imu-500hz: 143973 samples, highest 2840 m",
         "offset: 117 s, truth 117 s, 0.042 of 1.53 s, inside"
       ]
     },
@@ -1338,8 +1338,8 @@
       "set": "pair-b",
       "index": 84,
       "made": [
-        "imu-500hz: 129597 samples, highest 4850 m",
-        "perfectflite: 5023 samples, highest 4840 m",
+        "imu-500hz: 129649 samples, highest 4850 m",
+        "perfectflite: 5025 samples, highest 4840 m",
         "offset: 122 s, truth 122 s, -0.018 of 1.57 s, inside"
       ]
     },
@@ -1347,8 +1347,8 @@
       "set": "pair-b",
       "index": 105,
       "made": [
-        "perfectflite: 3039 samples, highest 2730 m",
-        "rrc3: 3094 samples, highest 2740 m",
+        "perfectflite: 3045 samples, highest 2740 m",
+        "rrc3: 3101 samples, highest 2740 m",
         "offset: -87.4 s, truth -87.5 s, 0.065 of 1.65 s, below"
       ]
     },
@@ -1356,8 +1356,8 @@
       "set": "pair-b",
       "index": 126,
       "made": [
-        "imu-500hz: 93883 samples, highest 2690 m",
-        "imu-500hz: 88013 samples, highest 2700 m",
+        "imu-500hz: 93906 samples, highest 2700 m",
+        "imu-500hz: 88036 samples, highest 2700 m",
         "offset: -76.4 s, truth -76.3 s, -0.021 of 1.34 s, inside"
       ]
     },
@@ -1374,8 +1374,8 @@
       "set": "pair-b",
       "index": 168,
       "made": [
-        "imu-500hz: 52996 samples, highest 1540 m",
-        "rrc3: 2175 samples, highest 1550 m",
+        "imu-500hz: 52991 samples, highest 1540 m",
+        "rrc3: 2174 samples, highest 1550 m",
         "offset: 3.21 s, truth 3.27 s, -0.033 of 1.53 s, inside"
       ]
     },
@@ -1383,7 +1383,7 @@
       "set": "pair-b",
       "index": 189,
       "made": [
-        "altos: 3376 samples, highest 3060 m",
+        "altos: 3375 samples, highest 3060 m",
         "eggtimer: 1207 samples, highest 3050 m",
         "offset: -82.8 s, truth -82.9 s, 0.032 of 1.46 s, inside"
       ]
@@ -1393,7 +1393,7 @@
       "index": 210,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "perfectflite: 1304 samples, highest 752 m",
+        "perfectflite: 1303 samples, highest 751 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1401,7 +1401,7 @@
       "set": "pair-b",
       "index": 231,
       "made": [
-        "imu-500hz: 87607 samples, highest 2690 m",
+        "imu-500hz: 87601 samples, highest 2690 m",
         "perfectflite: 3585 samples, highest 2690 m",
         "offset: 293 s, truth 293 s, -0.036 of 1.48 s, inside"
       ]
@@ -1410,8 +1410,8 @@
       "set": "pair-b",
       "index": 252,
       "made": [
-        "imu-500hz: 32670 samples, highest 680 m",
-        "perfectflite: 1459 samples, highest 685 m",
+        "imu-500hz: 32706 samples, highest 681 m",
+        "perfectflite: 1461 samples, highest 686 m",
         "offset: 200 s, truth 200 s, -0.017 of 1.51 s, inside"
       ]
     },
@@ -1419,7 +1419,7 @@
       "set": "pair-b",
       "index": 273,
       "made": [
-        "imu-500hz: 24507 samples, highest 519 m",
+        "imu-500hz: 24473 samples, highest 517 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1428,8 +1428,8 @@
       "set": "pair-b",
       "index": 294,
       "made": [
-        "altos: 2233 samples, highest 710 m",
-        "imu-500hz: 35386 samples, highest 711 m",
+        "altos: 2224 samples, highest 703 m",
+        "imu-500hz: 35198 samples, highest 705 m",
         "offset: -109 s, truth -109 s, 0.049 of 1.39 s, inside"
       ]
     },
@@ -1438,7 +1438,7 @@
       "index": 315,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "perfectflite: 5753 samples, highest 2800 m",
+        "perfectflite: 5755 samples, highest 2800 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1446,8 +1446,8 @@
       "set": "pair-b",
       "index": 336,
       "made": [
-        "rrc3: 1426 samples, highest 765 m",
-        "perfectflite: 1199 samples, highest 767 m",
+        "rrc3: 1429 samples, highest 769 m",
+        "perfectflite: 1203 samples, highest 769 m",
         "offset: 376 s, truth 376 s, 0.009 of 1.67 s, inside"
       ]
     },
@@ -1465,7 +1465,7 @@
       "index": 378,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "altos: 6247 samples, highest 3260 m",
+        "altos: 6244 samples, highest 3260 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1473,7 +1473,7 @@
       "set": "pair-b",
       "index": 399,
       "made": [
-        "altos: 4573 samples, highest 2880 m",
+        "altos: 4574 samples, highest 2880 m",
         "eggtimer: 3569 samples, highest 2880 m",
         "offset: 304 s, truth 304 s, 0.024 of 1.56 s, inside"
       ]
@@ -1482,8 +1482,8 @@
       "set": "pair-b",
       "index": 420,
       "made": [
-        "rrc3: 5740 samples, highest 2700 m",
-        "eggtimer: 5819 samples, highest 2690 m",
+        "rrc3: 5731 samples, highest 2700 m",
+        "eggtimer: 5810 samples, highest 2680 m",
         "offset: -426 s, truth -426 s, -0.001 of 1.74 s, inside"
       ]
     },
@@ -1492,7 +1492,7 @@
       "index": 441,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "altos: 2872 samples, highest 3070 m",
+        "altos: 2874 samples, highest 3070 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1500,8 +1500,8 @@
       "set": "pair-b",
       "index": 462,
       "made": [
-        "rrc3: 1378 samples, highest 736 m",
-        "eggtimer: 1314 samples, highest 761 m",
+        "rrc3: 1377 samples, highest 736 m",
+        "eggtimer: 1313 samples, highest 760 m",
         "offset: 34.4 s, truth 34.4 s, 0.023 of 1.65 s, inside"
       ]
     },
@@ -1509,8 +1509,8 @@
       "set": "pair-b",
       "index": 483,
       "made": [
-        "imu-500hz: 79118 samples, highest 2700 m",
-        "rrc3: 3003 samples, highest 2680 m",
+        "imu-500hz: 79226 samples, highest 2700 m",
+        "rrc3: 3008 samples, highest 2690 m",
         "offset: 189 s, truth 189 s, 0.028 of 1.63 s, inside"
       ]
     },
@@ -1518,8 +1518,8 @@
       "set": "pair-b",
       "index": 504,
       "made": [
-        "altos: 2273 samples, highest 822 m",
-        "rrc3: 1394 samples, highest 828 m",
+        "altos: 2271 samples, highest 820 m",
+        "rrc3: 1392 samples, highest 826 m",
         "offset: 61.3 s, truth 61.2 s, 0.079 of 1.53 s, below"
       ]
     },
@@ -1527,8 +1527,8 @@
       "set": "pair-b",
       "index": 525,
       "made": [
-        "eggtimer: 3250 samples, highest 3060 m",
-        "altos: 4622 samples, highest 3060 m",
+        "eggtimer: 3239 samples, highest 3050 m",
+        "altos: 4611 samples, highest 3040 m",
         "offset: -235 s, truth -235 s, -0.004 of 1.46 s, inside"
       ]
     },
@@ -1536,8 +1536,8 @@
       "set": "pair-b",
       "index": 546,
       "made": [
-        "rrc3: 3337 samples, highest 3090 m",
-        "eggtimer: 3477 samples, highest 3120 m",
+        "rrc3: 3299 samples, highest 3040 m",
+        "eggtimer: 3440 samples, highest 3070 m",
         "offset: -249 s, truth -249 s, -0.034 of 1.65 s, inside"
       ]
     },
@@ -1545,8 +1545,8 @@
       "set": "pair-b",
       "index": 567,
       "made": [
-        "perfectflite: 5840 samples, highest 2780 m",
-        "eggtimer: 5751 samples, highest 2760 m",
+        "perfectflite: 5835 samples, highest 2770 m",
+        "eggtimer: 5746 samples, highest 2750 m",
         "offset: -36.6 s, truth -36.6 s, 0.041 of 1.57 s, inside"
       ]
     },
@@ -1554,8 +1554,8 @@
       "set": "pair-b",
       "index": 588,
       "made": [
-        "perfectflite: 5515 samples, highest 2580 m",
-        "rrc3: 5389 samples, highest 2600 m",
+        "perfectflite: 5511 samples, highest 2570 m",
+        "rrc3: 5386 samples, highest 2590 m",
         "offset: 151 s, truth 151 s, -0.018 of 1.81 s, inside"
       ]
     },
@@ -1563,8 +1563,8 @@
       "set": "pair-b",
       "index": 609,
       "made": [
-        "imu-500hz: 25440 samples, highest 541 m",
-        "imu-500hz: 24681 samples, highest 562 m",
+        "imu-500hz: 25432 samples, highest 541 m",
+        "imu-500hz: 24673 samples, highest 562 m",
         "offset: -144 s, truth -144 s, -0.004 of 1.44 s, inside"
       ]
     },
@@ -1572,8 +1572,8 @@
       "set": "pair-b",
       "index": 630,
       "made": [
-        "rrc3: 6114 samples, highest 3000 m",
-        "eggtimer: 6122 samples, highest 3020 m",
+        "rrc3: 6112 samples, highest 3000 m",
+        "eggtimer: 6120 samples, highest 3020 m",
         "offset: 73.8 s, truth 73.8 s, -0.046 of 1.65 s, inside"
       ]
     },
@@ -1581,7 +1581,7 @@
       "set": "pair-b",
       "index": 651,
       "made": [
-        "rrc3: 1285 samples, highest 3140 m",
+        "rrc3: 1284 samples, highest 3130 m",
         "perfectflite: 1288 samples, highest 3140 m",
         "offset: -98.6 s, truth -98.6 s, -0.009 of 1.65 s, inside"
       ]
@@ -1590,8 +1590,8 @@
       "set": "pair-b",
       "index": 672,
       "made": [
-        "eggtimer: 1197 samples, highest 567 m",
-        "altos: 2188 samples, highest 581 m",
+        "eggtimer: 1197 samples, highest 566 m",
+        "altos: 2188 samples, highest 580 m",
         "offset: -177 s, truth -177 s, 0.035 of 1.63 s, inside"
       ]
     },
@@ -1599,8 +1599,8 @@
       "set": "pair-b",
       "index": 693,
       "made": [
-        "altos: 5933 samples, highest 2680 m",
-        "rrc3: 5785 samples, highest 2650 m",
+        "altos: 5930 samples, highest 2670 m",
+        "rrc3: 5782 samples, highest 2650 m",
         "offset: -563 s, truth -563 s, 0.034 of 1.54 s, inside"
       ]
     },
@@ -1608,8 +1608,8 @@
       "set": "pair-b",
       "index": 714,
       "made": [
-        "perfectflite: 3840 samples, highest 3270 m",
-        "rrc3: 3860 samples, highest 3270 m",
+        "perfectflite: 3836 samples, highest 3270 m",
+        "rrc3: 3856 samples, highest 3260 m",
         "offset: 142 s, truth 142 s, 0.022 of 1.75 s, inside"
       ]
     },
@@ -1617,8 +1617,8 @@
       "set": "pair-b",
       "index": 735,
       "made": [
-        "altos: 5476 samples, highest 2620 m",
-        "imu-500hz: 138553 samples, highest 2630 m",
+        "altos: 5473 samples, highest 2620 m",
+        "imu-500hz: 138449 samples, highest 2630 m",
         "offset: -580 s, truth -580 s, 0.022 of 1.4 s, inside"
       ]
     },
@@ -1627,7 +1627,7 @@
       "index": 756,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "eggtimer: 1282 samples, highest 750 m",
+        "eggtimer: 1281 samples, highest 750 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1644,8 +1644,8 @@
       "set": "pair-b",
       "index": 798,
       "made": [
-        "eggtimer: 5849 samples, highest 3020 m",
-        "imu-500hz: 146604 samples, highest 3020 m",
+        "eggtimer: 5844 samples, highest 3020 m",
+        "imu-500hz: 146480 samples, highest 3020 m",
         "offset: -195 s, truth -195 s, 0.009 of 1.56 s, inside"
       ]
     },
@@ -1653,8 +1653,8 @@
       "set": "pair-b",
       "index": 819,
       "made": [
-        "imu-500hz: 34058 samples, highest 707 m",
-        "eggtimer: 1373 samples, highest 717 m",
+        "imu-500hz: 33902 samples, highest 701 m",
+        "eggtimer: 1367 samples, highest 712 m",
         "offset: 195 s, truth 195 s, -0.057 of 1.51 s, above"
       ]
     },
@@ -1662,7 +1662,7 @@
       "set": "pair-b",
       "index": 840,
       "made": [
-        "rrc3: 1030 samples, highest 517 m",
+        "rrc3: 1031 samples, highest 517 m",
         "perfectflite: 950 samples, highest 520 m",
         "offset: -300 s, truth -300 s, -0.042 of 1.75 s, inside"
       ]
@@ -1680,8 +1680,8 @@
       "set": "pair-b",
       "index": 882,
       "made": [
-        "altos: 9184 samples, highest 4190 m",
-        "perfectflite: 11871 samples, highest 4200 m",
+        "altos: 9185 samples, highest 4190 m",
+        "perfectflite: 11874 samples, highest 4200 m",
         "offset: -157 s, truth -157 s, -0.044 of 1.46 s, inside"
       ]
     },
@@ -1689,7 +1689,7 @@
       "set": "pair-b",
       "index": 903,
       "made": [
-        "rrc3: 4644 samples, highest 3920 m",
+        "rrc3: 4639 samples, highest 3910 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1699,7 +1699,7 @@
       "index": 924,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "eggtimer: 4678 samples, highest 4230 m",
+        "eggtimer: 4675 samples, highest 4230 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1707,7 +1707,7 @@
       "set": "pair-b",
       "index": 945,
       "made": [
-        "perfectflite: 1090 samples, highest 583 m",
+        "perfectflite: 1090 samples, highest 584 m",
         "altos: 2457 samples, highest 598 m",
         "offset: 348 s, truth 348 s, 0.001 of 1.46 s, inside"
       ]
@@ -1717,7 +1717,7 @@
       "index": 966,
       "made": [
         "altos: 3331 samples, highest 1390 m",
-        "imu-500hz: 48526 samples, highest 1380 m",
+        "imu-500hz: 48520 samples, highest 1380 m",
         "offset: -25.8 s, truth -25.8 s, -0.006 of 1.41 s, inside"
       ]
     },
@@ -1725,7 +1725,7 @@
       "set": "pair-b",
       "index": 987,
       "made": [
-        "imu-500hz: 33356 samples, highest 3100 m",
+        "imu-500hz: 33352 samples, highest 3100 m",
         "rrc3: 1336 samples, highest 3100 m",
         "offset: -232 s, truth -232 s, -0.008 of 1.56 s, inside"
       ]
@@ -1734,8 +1734,8 @@
       "set": "staged",
       "index": 0,
       "made": [
-        "rrc3: 13631 samples, highest 2840 m",
-        "altos: 1924 samples, highest 712 m",
+        "rrc3: 13637 samples, highest 2840 m",
+        "altos: 1925 samples, highest 712 m",
         "offset: -22.1 s, truth -22.1 s, 0.018 of 1.53 s, inside"
       ]
     },
@@ -1743,7 +1743,7 @@
       "set": "staged",
       "index": 21,
       "made": [
-        "altos: 9386 samples, highest 3110 m",
+        "altos: 9385 samples, highest 3110 m",
         "eggtimer: 1089 samples, highest 716 m",
         "offset: 308 s, truth 308 s, -0.025 of 1.48 s, inside"
       ]
@@ -1752,8 +1752,8 @@
       "set": "staged",
       "index": 42,
       "made": [
-        "altos: 9167 samples, highest 2800 m",
-        "imu-500hz: 26895 samples, highest 690 m",
+        "altos: 9166 samples, highest 2800 m",
+        "imu-500hz: 26894 samples, highest 690 m",
         "offset: -479 s, truth -479 s, 0.008 of 1.34 s, inside"
       ]
     },
@@ -1762,7 +1762,7 @@
       "index": 63,
       "made": [
         "gnss-tracker: 0 samples, no height",
-        "imu-500hz: 28947 samples, highest 688 m",
+        "imu-500hz: 28949 samples, highest 688 m",
         "offset: withheld (ReceiverDropout)"
       ]
     },
@@ -1770,7 +1770,7 @@
       "set": "staged",
       "index": 84,
       "made": [
-        "perfectflite: 16850 samples, highest 3390 m",
+        "perfectflite: 16849 samples, highest 3390 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]
@@ -1788,8 +1788,8 @@
       "set": "staged",
       "index": 126,
       "made": [
-        "perfectflite: 13181 samples, highest 2630 m",
-        "eggtimer: 1136 samples, highest 680 m",
+        "perfectflite: 13173 samples, highest 2630 m",
+        "eggtimer: 1136 samples, highest 679 m",
         "offset: 255 s, truth 255 s, 0.002 of 1.57 s, inside"
       ]
     },
@@ -1798,7 +1798,7 @@
       "index": 147,
       "made": [
         "perfectflite: 15505 samples, highest 3260 m",
-        "imu-500hz: 29321 samples, highest 995 m",
+        "imu-500hz: 29320 samples, highest 995 m",
         "offset: -353 s, truth -353 s, 0.029 of 1.56 s, inside"
       ]
     },
@@ -1806,8 +1806,8 @@
       "set": "staged",
       "index": 168,
       "made": [
-        "rrc3: 13947 samples, highest 2750 m",
-        "perfectflite: 1072 samples, highest 730 m",
+        "rrc3: 13940 samples, highest 2750 m",
+        "perfectflite: 1072 samples, highest 729 m",
         "offset: 56.6 s, truth 56.6 s, -0.005 of 1.67 s, inside"
       ]
     },
@@ -1815,7 +1815,7 @@
       "set": "staged",
       "index": 189,
       "made": [
-        "altos: 9400 samples, highest 2830 m",
+        "altos: 9399 samples, highest 2830 m",
         "gnss-tracker: 0 samples, no height",
         "offset: withheld (ReceiverDropout)"
       ]

@@ -1126,6 +1126,9 @@ pub struct Launch {
     /// The air flown: `standard`, the 1976 US Standard Atmosphere, or `profile <file>`, the air
     /// and winds of the weather profile `--weather` gave, by its file name.
     pub atmosphere: String,
+    /// Whether the flight tips off the rail on its last guide where the design has two or more
+    /// guides: true unless `--no-tip-off` was given.
+    pub tip_off: bool,
 }
 
 /// A flight's metrics, as the library's `hpr_sim::metrics::FlightSummary` gives them, each peak

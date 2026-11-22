@@ -307,7 +307,7 @@ So far three are reported and three are refused; three are open.
 | ARL-TN-1128 | refused | The report defines a shape, the High-Speed Army Reference Vehicle, and gives no coefficient, test or Mach number ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#3-arl-tn-1128-a-shape-no-data)). |
 | A wind-tunnel drag point at Mach 2.45 | refused | Its authors doubt their own force measurement, and its license bars committing a value ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/finner-reference-data.md#4-the-mach-245-drag-point)). |
 | NASA's six-degree-of-freedom check cases | cases 1 to 3 and 6 to 10 reported | A free body flies cases 1 to 3 and 6 to 10 against each code's published history. Cases 1 to 3 and 6 to 8 differ from the codes by more than the codes differ from each other; a named difference between the models brings each inside that spread at each code's largest difference. Cases 9 and 10 are inside it ([Rigid-body flight](physics/flight.md#a-free-body-against-nasas-check-cases)). Cases 4, 5 and 11 to 17 are refused: 4 and 5 need gravitation on a round Earth, 11 to 16 fly an aircraft, and 17 is past Mach 9. None of the cases is a reference for Mach 1.5 to 2.5: they check frames, gravity and rigid-body motion ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/nesc-check-cases.md)). |
-| Tip-off, against RocketPy's | reported | RocketPy's tip-off phase, flown on thirteen example designs in still air and in a 20 mph (8.94 m/s) crosswind, moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, from a rocket guided to its last button ([Rigid-body flight](physics/flight.md#what-leaving-tip-off-out-costs)). That is past the plan's bar of 1% of the apogee, so HPR Sim gained [an opt-in tip-off phase](decisions-and-roadmap.md#m1-14b11). On RocketPy's normal force it is within the bars of RocketPy's on all 26 flights. On HPR Sim's own it is inside them on the 13 still-air flights and on none of the 13 crosswind flights ([the comparison](physics/flight.md#the-tip-off-phase-against-rocketpys); [the open increment](decisions-and-roadmap.md#m1-14b12)). One code against another; no flight checks it. |
+| Tip-off, against RocketPy's | reported | RocketPy's tip-off phase, flown on thirteen example designs in still air and in a 20 mph (8.94 m/s) crosswind, moves the landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, from a rocket guided to its last button ([Rigid-body flight](physics/flight.md#what-leaving-tip-off-out-costs)). That is past the plan's bar of 1% of the apogee, so HPR Sim gained [a tip-off phase](decisions-and-roadmap.md#m1-14b11), flown [by default](decisions-and-roadmap.md#m1-14b15). On RocketPy's normal force it is within the bars of RocketPy's on all 26 flights. On HPR Sim's own it is inside them on the 13 still-air flights and on none of the 13 crosswind flights ([the comparison](physics/flight.md#the-tip-off-phase-against-rocketpys); [the open increment](decisions-and-roadmap.md#m1-14b12)). One code against another; no flight checks it. |
 | Wind reconstructed from the GPS descent | open | [Its increment](decisions-and-roadmap.md#m1-14b6) ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/wind-from-descent.md)). |
 | A validation uncertainty for each real flight (ASME V&V 20) | open | [Its increment](decisions-and-roadmap.md#m1-14b7). |
 | MAPLEAF, as another simulator to compare with | open | [Its increment](decisions-and-roadmap.md#m1-14b8). |
@@ -540,6 +540,13 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 | Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
 
+Held word for word, its numbers aside, one fit in a comparison (one part, or the whole slice at night) may differ in
+how it stopped: converged on one platform, at its step limit on another. The check names that fit
+and fails on a second ([the record of that allowance](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0369-the-fits-slice-on-another-platform-one-fit-may-stop-otherwise.md)).
+One least-squares verdict is held as failing, not passing: the drag scale's on set B
+([why it stands](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md);
+[the counts](physics/flight-fit.md#how-well-it-holds)).
+
 Each platform fits the slice in parts, in jobs of their own: part K of N fits every Nth fit of the
 slice's, from the Kth. By
 least squares alone one job took 20 min 3 s on windows-latest with nothing cached, over the 20
@@ -716,12 +723,12 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean absolute error is 8.88% over 12 flights, outside the target, and 6.06% over the
+Today the mean absolute error is 8.83% over 12 flights, outside the target, and 5.97% over the
 seven compared first. Five of the seven are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
 impulse. Four of the five predicted first are outside 5% too, with no explanation claimed. Seven
 of the 12 altimeters' kinds are assumed barometric (evidence rows [G21](evidence.md#g21) and
-[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 9.01%.
+[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 8.96%.
 
 ### Public flights predicted first
 

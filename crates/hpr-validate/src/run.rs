@@ -876,7 +876,10 @@ fn fly_whole_flight(
                 },
                 ..FlightSettings::default()
             },
-        )?;
+        )?
+        // RocketPy 1.13.0 frees the rocket with no turn where its upper button leaves the
+        // rail: it has no tip-off phase, so the flight held to it flies without HPR Sim's.
+        .without_tip_off();
         // Predicted mode flies the design's own aerodynamics: no table.
         let simulation = match &declared {
             Some(rows) => {

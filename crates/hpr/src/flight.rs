@@ -32,6 +32,8 @@ pub struct FlightBuilder<'a> {
     drag_table: Option<DragTable>,
     /// The stack coming apart in flight, in the order it does: none where unset.
     separations: Vec<Separation>,
+    /// Whether the flight tips off the rail on its last guide: the default.
+    tip_off: bool,
 }
 
 impl FlightBuilder<'_> {
@@ -205,6 +207,20 @@ impl FlightBuilder<'_> {
         self
     }
 
+    /// Whether the flight tips off the rail. `true`, the default, flies tip-off as a phase of
+    /// its own on a design with two or more rail guides at different stations: once the guide
+    /// ahead of the aft-most one has left the rail, the rocket turns about its last guide until
+    /// that one leaves too, and it leaves the rail turning
+    /// ([`Simulation::with_tip_off`]). `false` guides the rocket to its last guide and frees it
+    /// with no turn: set it to compare with OpenRocket or RocketPy 1.13.0, which have no such
+    /// phase.
+    /// A design with fewer than two such guides flies the same both ways.
+    #[must_use]
+    pub fn tip_off(mut self, tip_off: bool) -> Self {
+        self.tip_off = tip_off;
+        self
+    }
+
     /// The [`Simulation`] [`FlightBuilder::fly`] runs, for what the facade doesn't offer: user
     /// events, staging, mass shifts and the rest of [`hpr_sim`].
     ///
@@ -263,6 +279,7 @@ impl FlightBuilder<'_> {
             inputs.drag = Some(DragOverride::Table(table.clone()));
         }
         inputs.separations.clone_from(&self.separations);
+        inputs.tip_off = self.tip_off;
         Ok(inputs)
     }
 
@@ -416,6 +433,7 @@ impl Flight {
             drag_model: None,
             drag_table: None,
             separations: Vec::new(),
+            tip_off: true,
         }
     }
 

@@ -3103,7 +3103,7 @@ gives no side force: RASAero II's rockets are symmetric.
 | [Valetudo](../glossary.md#example-rockets) at 100 m/s (328 ft/s) on a table of 1.5 times HPR Sim's slope with the center of pressure 5 cm (2.0 in) further aft, against the small-angle equations of motion, in pitch and in yaw | period 1.104077 s against 1.104073 s, within the test's 3e-5 (1.44965 s on HPR Sim's own); the decay within 0.03%, the test's bound 1% | `hpr_sim::tests::pitch_oscillation_follows_a_normal_force_table` |
 | Tables of HPR Sim's own normal force flown in a crosswind: every 0.5° and every Mach 0.01, and at 0°, 2° and 4° only, where the flight uses the continuation past 4° | apogee within 7.8 mm (0.31 in) and 5.5 cm (2.2 in) of HPR Sim's own flight, the test's bounds 5 cm (2.0 in) and 10 cm (3.9 in) | `hpr_sim::tests::a_table_of_hpr_s_own_normal_force_flies_as_hpr_does` |
 | The continuation past the last angle: a table shaped as RASAero II's (a part linear in the angle, one as $\sin^2\alpha$), and random tables | the $\sin^2\alpha$ part continues to 1e-12; the force never turns round, the center of pressure stays within the rocket, and nothing jumps as the table's values change with Mach number | `hpr_aero::table::tests` |
-| Calisto from a 5.2 m (17 ft) rail at 85° in a 5 m/s (16 ft/s) crosswind, up to Mach 0.747: on the export, on HPR Sim's own normal force, and on HPR Sim's own as a table at the export's angles | the export: apogee 2,827.09 m (9,275.2 ft) against 2,828.21 m (9,278.9 ft), 12.6 m (41 ft) further into the wind. HPR Sim's own as a table moves it 0.02 m (0.066 ft): the table's method, apart from its numbers. Each flight spends 2.2 to 2.3 s past 4° before apogee | [`normal-force-override.json`][override-fixture] |
+| Calisto from a 5.2 m (17 ft) rail at 85° in a 5 m/s (16 ft/s) crosswind, up to Mach 0.747: on the export, on HPR Sim's own normal force, and on HPR Sim's own as a table at the export's angles | the export: apogee 2,825.45 m (9,269.8 ft) against 2,826.84 m (9,274.4 ft), 17.0 m (56 ft) further into the wind. HPR Sim's own as a table moves it 0.01 m (0.033 ft): the table's method, apart from its numbers. Each flight spends 2.1 to 2.2 s past 4° before apogee | [`normal-force-override.json`][override-fixture] |
 
 The Calisto flights show how much the change matters. They are not a check of accuracy: nothing
 measured flew. `cargo xtask aero` writes the fixture from the export, which isn't committed, and
@@ -4695,7 +4695,8 @@ OpenRocket's apogee on average
 a faster flight, on HPR Sim's own thrust and mass rather than OpenRocket's. On its one supersonic
 flight the swap alone moves the apogee from +13.60% to +31.73% of OpenRocket's. With OpenRocket's
 base rule as well, it comes to +0.45%
-([a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
+([a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag),
+[the library's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)).
 
 What stays open: whether the equivalent cone's value matches a measured tangent ogive
 ([evidence row G40, the nose's pressure drag past Mach 1](../evidence.md#g40),

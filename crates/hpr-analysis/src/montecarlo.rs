@@ -139,6 +139,10 @@ pub struct FlightInputs {
     /// The stack's separations, in the order they fire, none for a flight that stays whole
     /// ([`Simulation::with_separations`]).
     pub separations: Vec<Separation>,
+    /// Whether the flight tips off the rail on its last guide, which is the default
+    /// ([`Simulation::with_tip_off`]); `false` guides the rocket to its last guide and frees it
+    /// with no turn ([`Simulation::without_tip_off`]).
+    pub tip_off: bool,
 }
 
 impl FlightInputs {
@@ -160,6 +164,7 @@ impl FlightInputs {
             drag: None,
             drag_scale: 1.0,
             separations: Vec::new(),
+            tip_off: true,
         }
     }
 
@@ -182,6 +187,9 @@ impl FlightInputs {
             self.rail,
             self.settings,
         )?;
+        if !self.tip_off {
+            simulation = simulation.without_tip_off();
+        }
         match &self.drag {
             Some(DragOverride::Table(table)) => {
                 simulation = simulation.with_drag_table(table.clone());

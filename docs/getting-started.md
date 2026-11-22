@@ -11,7 +11,7 @@ variations. It needs some Rust, but no knowledge of this project.
 > **How far to trust it.** A simulation, not validated
 > ([the evidence register's row on real flights](evidence.md#g24)): this rocket left no flight
 > log to check it against. On 12 public logged flights of other rockets, HPR Sim's apogees missed
-> by 8.88% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
+> by 8.83% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
 > from a private collection, they were +8.01% above the logs, and OpenRocket's were +6.72%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)).
 >
@@ -142,18 +142,18 @@ Not yet validated: see the Accuracy page before trusting these numbers.
 event                time (s)   CG height (m)   speed (m/s)
 liftoff                  0.00             0.9           0.0
 rail exit                0.37             3.9          16.2
-burnout                  3.26           216.0         111.0
-apogee                  13.83           778.7           6.4
-drogue charge fires     13.83           778.7           6.4
-drogue opens            14.33           777.6           7.7
-main charge fires       39.23           150.0          27.0
-main opens              40.23           123.5          27.0
-landing                 58.93             0.0           8.1
+burnout                  3.26           216.1         111.0
+apogee                  13.83           780.0           5.1
+drogue charge fires     13.83           780.0           5.1
+drogue opens            14.33           778.8           6.6
+main charge fires       39.26           150.0          27.0
+main opens              40.26           123.5          27.0
+landing                 58.96             0.0           8.1
 
-Apogee:     778.7 m (2555 ft) above the pad, 88.7 m from it at a bearing of 270°, at 13.83 s
+Apogee:     780.0 m (2559 ft) above the pad, 70.5 m from it at a bearing of 270°, at 13.83 s
 Top speed:  112.3 m/s (Mach 0.34), at 3.0 s
 Rail exit:  16.2 m/s
-Landing:    90.2 m from the pad at a bearing of 90°, falling at 6.4 m/s, at 58.93 s
+Landing:    113.8 m from the pad at a bearing of 90°, falling at 6.4 m/s, at 58.96 s
 ```
 
 The heights are the center of gravity's, above the launch site. [Flight metrics](physics/metrics.md)
@@ -218,12 +218,12 @@ the motor as it burns.
   ([Rigid-body flight](physics/flight.md#equations-of-motion)).
 
 The speed is over the ground, so it includes the drift. At apogee the rocket is still moving
-sideways at 6.4 m/s (21 ft/s). At landing it falls at 6.4 m/s (21 ft/s) while the 5 m/s (11 mph)
+sideways at 5.1 m/s (17 ft/s). At landing it falls at 6.4 m/s (21 ft/s) while the 5 m/s (11 mph)
 wind carries it east. That's 8.1 m/s (27 ft/s) in all ($\sqrt{6.4^2 + 5^2} \approx 8.1$).
 
 Below the table:
 
-- Apogee is the highest point, in meters and feet, and where it was: 88.7 m (291 ft) from the pad
+- Apogee is the highest point, in meters and feet, and where it was: 70.5 m (231 ft) from the pad
   at a [bearing](glossary.md#bearing) of 270°. A bearing is a direction clockwise from north, so 270°
   is due west.
 - Top speed is the fastest the rocket went, over the ground, with its
@@ -236,7 +236,7 @@ Below the table:
   [what is left out](how-a-flight-is-simulated.md#what-is-left-out)). The simulator sets no minimum
   rail-exit speed and doesn't judge whether this one is enough. That call is your range safety
   officer's.
-- Landing is where the rocket came down, 90.2 m (296 ft) due east of the pad, and how fast it was
+- Landing is where the rocket came down, 113.8 m (373 ft) due east of the pad, and how fast it was
   falling. The rocket [weathercocks](glossary.md#weathercocking): it turns into the wind as it
   climbs, so its apogee is west of the pad. It then drifts east under its parachutes, past the
   pad.
@@ -298,13 +298,13 @@ Below the table:
   Valetudo's apogee under three drag models, from a 3 m rail in 5 m/s of wind
 
   drag coefficient                             apogee (m)
-  hpr's own, from the design                       778.7
-  0.728, from the rocket's OpenRocket file         753.3
-  1.05, from RocketPy's example curve              711.5
+  hpr's own, from the design                       780.0
+  0.728, from the rocket's OpenRocket file         754.5
+  1.05, from RocketPy's example curve              712.7
   ```
 
-  For this rocket, the three drag values on record move the apogee from 778.7 m (2,555 ft) to
-  711.5 m (2,334 ft), 8.6% lower. That's a spread, not a bound:
+  For this rocket, the three drag values on record move the apogee from 780.0 m (2,559 ft) to
+  712.7 m (2,338 ft), 8.6% lower. That's a spread, not a bound:
 
   - It shows how much this rocket's apogee depends on its drag. It doesn't say how far the
     simulator's apogee is from the truth.

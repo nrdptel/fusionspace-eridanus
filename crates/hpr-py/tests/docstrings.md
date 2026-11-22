@@ -78,9 +78,14 @@ A flight: `rocket` launched in `environment` from a rail `rail_length_m` long, f
 ground as soon as it is made.
 
 `Flight(rocket, environment, rail_length_m, *, inclination_deg=90.0, heading_deg=0.0,
-interval_s=None, drag_table=None, drag=None)`: the rail is measured from the rocket's aft end
-to the rail's top. It leans `inclination_deg` above the horizon (90 is vertical) toward
-`heading_deg`, clockwise from true north.
+interval_s=None, drag_table=None, drag=None, tip_off=True)`: the rail is measured from the
+rocket's aft end to the rail's top. It leans `inclination_deg` above the horizon (90 is
+vertical) toward `heading_deg`, clockwise from true north.
+
+A rocket with two or more rail guides tips off the rail: once the guide ahead of the last has
+left, the rocket turns about its last guide until that one leaves too. With `tip_off=False`
+the rocket is guided to its last guide and freed with no turn: set it to compare with
+OpenRocket or RocketPy 1.13.0, which have no such phase. A rocket with fewer than two guides flies the same both ways.
 
 The flight is recorded every `interval_s` seconds, at least 0.001 s, and at every event. With
 no `interval_s`, it's recorded at every step of the integrator. The rocket is copied as the
@@ -356,11 +361,11 @@ A Monte Carlo run, flown as soon as it is made: `rocket` flown `runs` times from
 in `environment`. Each flight's inputs are drawn at random about the nominal flight's.
 
 `MonteCarlo(rocket, environment, rail_length_m, *, runs=100, seed=0, inclination_deg=90.0,
-heading_deg=0.0, drag_table=None, drag=None, mass_sd_fraction=0.0, cg_sd_m=0.0,
+heading_deg=0.0, drag_table=None, drag=None, tip_off=True, mass_sd_fraction=0.0, cg_sd_m=0.0,
 drag_sd_fraction=0.0, impulse_sd_fraction=0.0, burn_time_sd_fraction=0.0, delay_sd_s=0.0,
 wind_sd_fraction=0.0, wind_from_sd_deg=0.0, inclination_sd_deg=0.0, heading_sd_deg=0.0,
 deployment_lag_sd_s=0.0)`: the rocket, the environment and the rail as `Flight` takes them.
-The keyword arguments after `drag` are standard deviations, one for each input the run
+The keyword arguments after `tip_off` are standard deviations, one for each input the run
 scatters, each 0 (not scattered) unless given. They're `hpr mc`'s options, with the same names
 as its JSON output:
 

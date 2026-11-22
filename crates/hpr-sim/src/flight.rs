@@ -428,19 +428,19 @@ impl Simulation {
             configuration_id: configuration_id.to_owned(),
             aero_overridden: false,
             recovery_held: false,
-            tip_off: false,
+            tip_off: true,
         })
     }
 
-    /// Flies tip-off as a phase of its own: once the guide ahead of the aft-most one has left
-    /// the rail, the rocket slides on along the rail, free to pitch and yaw about its last guide
-    /// with roll held, until that guide leaves too ([`Phase::TipOff`]; the equations are
-    /// [`crate::rail`]'s, `docs/physics/flight.md`). It leaves the rail turning. Without this
-    /// the rocket is guided to its last guide and leaves with no angular velocity.
+    /// Flies tip-off as a phase of its own, which is the default: once the guide ahead of the
+    /// aft-most one has left the rail, the rocket slides on along the rail, free to pitch and yaw
+    /// about its last guide with roll held, until that guide leaves too ([`Phase::TipOff`]; the
+    /// equations are [`crate::rail`]'s, `docs/physics/flight.md`). It leaves the rail turning.
+    /// Calling this only undoes [`Simulation::without_tip_off`].
     ///
     /// A design with fewer than two guides at different stations has no such stretch, and flies
-    /// as it does without this. On a rail so short that only the last guide starts on it, the
-    /// rocket pivots from liftoff.
+    /// as it does without the phase. On a rail so short that only the last guide starts on it,
+    /// the rocket pivots from liftoff.
     ///
     /// The phase is held code to code against RocketPy's on thirteen designs
     /// (`validation/reports/tip-off-model.md`); no flight checks it.
@@ -450,7 +450,17 @@ impl Simulation {
         self
     }
 
-    /// Whether the flight has a tip-off phase.
+    /// Flies without the tip-off phase ([`Simulation::with_tip_off`]): the rocket is guided to
+    /// its last guide and leaves the rail with no angular velocity. Neither OpenRocket nor
+    /// RocketPy 1.13.0 has such a phase (RocketPy 1.13.0 frees the rocket where its forward
+    /// button leaves the rail, with no pivot), so a comparison with either sets this.
+    #[must_use]
+    pub fn without_tip_off(mut self) -> Self {
+        self.tip_off = false;
+        self
+    }
+
+    /// Whether the flight has a tip-off phase when its design has two guides to give it one.
     #[must_use]
     pub fn tip_off(&self) -> bool {
         self.tip_off

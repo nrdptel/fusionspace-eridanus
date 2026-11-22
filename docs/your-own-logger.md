@@ -199,12 +199,12 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 3 channels: Alt (altitude above ground), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
 liftoff           1.20 s, within 1.05 s, 90% interval 0.69 to 0.99 s
-apogee            409.5 m (1344 ft) above the pad, within 33.1 m (109 ft), 90% interval 388.4 to 430.4 m (1274 to 1412 ft); at 10.50 s, within 0.99 s, 90% interval 10.27 to 10.83 s, 9.30 s after liftoff
+apogee            409.5 m (1344 ft) above the pad, within 33.1 m (109 ft), 90% interval 388.4 to 430.4 m (1274 to 1412 ft); at 10.50 s, within 0.99 s, 90% interval 10.28 to 10.84 s, 9.30 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
-landing           48.60 s, within 2.24 s, 90% interval 48.25 to 49.35 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.7 m/s (31 to 39 ft/s)
-flight time       47.40 s, within 3.28 s, 90% interval 47.83 to 48.65 s
+landing           48.60 s, within 2.24 s, 90% interval 48.32 to 49.35 s; 38.10 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.7 m/s (31 to 39 ft/s)
+flight time       47.40 s, within 3.28 s, 90% interval 47.84 to 48.66 s
 drogue descent    19.3 m/s (63 ft/s), within 1.9 m/s (7 ft/s), 90% interval 18.1 to 20.5 m/s (59 to 68 ft/s), from apogee at 10.50 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
-main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.22 to 23.82 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.0 m (3 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.23 to 23.81 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.0 m (3 ft) up
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   406.9 m (1335 ft), 90% interval 378.4 to 435.3 m (1241 to 1429 ft), at 10.40 s
@@ -291,10 +291,10 @@ readings from the logger's barometric altitude, sampled every 0.200 s in steps o
 6 channels: Axial Accel (Gs) (acceleration), bILBA (number), Baro (Atm) (pressure), bILBA (number), [Altitude (Baro-Ft-AGL)] (altitude above ground), bILBA (number)
 
 liftoff           1.40 s, within 1.10 s, 90% interval 0.87 to 1.18 s
-apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft), 90% interval 257.8 to 288.1 m (845 to 946 ft); at 9.90 s, within 1.03 s, 90% interval 9.66 to 10.24 s, 8.50 s after liftoff
+apogee            273.0 m (896 ft) above the pad, within 23.9 m (79 ft), 90% interval 257.8 to 288.1 m (845 to 946 ft); at 9.90 s, within 1.03 s, 90% interval 9.67 to 10.25 s, 8.50 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
-landing           37.40 s, within 1.46 s, 90% interval 37.17 to 37.89 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 8.8 to 10.9 m/s (29 to 36 ft/s)
-flight time       36.00 s, within 2.55 s, 90% interval 36.33 to 36.97 s
+landing           37.40 s, within 1.46 s, 90% interval 37.21 to 37.89 s; 27.50 s from apogee, at 9.9 m/s (32 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 8.8 to 11.0 m/s (29 to 36 ft/s)
+flight time       36.00 s, within 2.55 s, 90% interval 36.34 to 36.98 s
 drogue descent    withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 16.0 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 10.0 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee
 main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), 90% interval 9.3 to 10.5 m/s (30 to 35 ft/s), from apogee at 9.90 s to landing at 37.40 s, 273.0 m (896 ft) to 0.7 m (2 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
 top acceleration  withheld: the accelerometer `Axial Accel (Gs)`: no pad is read to tell by; no coast to apogee is read to tell by; its thrust says neither: as written, it never reads past 2 g either way up from liftoff's earliest time (the log's start where liftoff is withheld) to apogee: none of them says which way up it reads
@@ -364,12 +364,12 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
 liftoff           1.20 s, within 1.06 s, 90% interval 0.69 to 0.99 s
-apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft), 90% interval 388.3 to 430.5 m (1274 to 1413 ft); at 10.60 s, within 1.00 s, 90% interval 10.37 to 10.93 s, 9.40 s after liftoff
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft), 90% interval 388.3 to 430.5 m (1274 to 1413 ft); at 10.60 s, within 1.00 s, 90% interval 10.37 to 10.94 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
-landing           48.60 s, within 2.27 s, 90% interval 48.24 to 49.36 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.8 m/s (31 to 39 ft/s)
-flight time       47.40 s, within 3.33 s, 90% interval 47.83 to 48.66 s
+landing           48.60 s, within 2.27 s, 90% interval 48.31 to 49.36 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.8 m/s (31 to 39 ft/s)
+flight time       47.40 s, within 3.33 s, 90% interval 47.84 to 48.68 s
 drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), 90% interval 18.2 to 20.7 m/s (60 to 68 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
-main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.22 to 23.82 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.23 to 23.81 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   407.0 m (1335 ft), 90% interval 385.0 to 428.9 m (1263 to 1408 ft), at 10.40 s
@@ -410,12 +410,12 @@ readings from the pressure, by the 1976 standard atmosphere, sampled every 0.200
 3 channels: Alt (ft) (altitude), Pressure (Pa) (pressure), Accel X (g) (acceleration)
 
 liftoff           1.20 s, within 1.06 s, 90% interval 0.69 to 0.99 s
-apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft), 90% interval 388.3 to 430.5 m (1274 to 1413 ft); at 10.60 s, within 1.00 s, 90% interval 10.37 to 10.93 s, 9.40 s after liftoff
+apogee            409.5 m (1344 ft) above the pad, within 33.2 m (109 ft), 90% interval 388.3 to 430.5 m (1274 to 1413 ft); at 10.60 s, within 1.00 s, 90% interval 10.37 to 10.94 s, 9.40 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
-landing           48.60 s, within 2.27 s, 90% interval 48.24 to 49.36 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.8 m/s (31 to 39 ft/s)
-flight time       47.40 s, within 3.33 s, 90% interval 47.83 to 48.66 s
+landing           48.60 s, within 2.27 s, 90% interval 48.31 to 49.36 s; 38.00 s from apogee, at 10.7 m/s (35 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.7 to 11.8 m/s (31 to 39 ft/s)
+flight time       47.40 s, within 3.33 s, 90% interval 47.84 to 48.68 s
 drogue descent    19.5 m/s (64 ft/s), within 2.0 m/s (7 ft/s), 90% interval 18.2 to 20.7 m/s (60 to 68 ft/s), from apogee at 10.60 s to the main's opening at 24.00 s, 409.5 m (1344 ft) to 148.7 m (488 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
-main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.22 to 23.82 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 24.00 s, within 1.36 s, 90% interval 23.23 to 23.81 s, to landing at 48.60 s, 148.7 m (488 ft) to 1.1 m (4 ft) up
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   407.0 m (1335 ft), 90% interval 385.0 to 428.9 m (1263 to 1408 ft), at 10.40 s

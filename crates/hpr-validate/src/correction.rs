@@ -63,8 +63,8 @@ impl Correction {
 /// flights](https://hpr.fusionspace.co/physics/flight.html#the-tip-off-phase-on-the-real-flights)),
 /// and in its report's wind or in still air. Everything else is as the flight's report flies
 /// it: still air keeps the report's air (its pressure, temperature and density) and takes out
-/// only the wind. With no correction, no phase and the report's wind it is that report's flight
-/// itself.
+/// only the wind. With no correction, the phase and the report's wind it is that report's flight
+/// itself: the phase is HPR Sim's default.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct Variant {
@@ -77,14 +77,14 @@ pub struct Variant {
 }
 
 impl Variant {
-    /// The report's own flight: no correction, no tip-off phase.
+    /// The report's flight held straight to its last guide: no correction, the tip-off phase off.
     pub const GUIDED: Self = Self {
         correction: None,
         tip_off: false,
         still_air: false,
     };
 
-    /// The report's flight with the tip-off phase and no correction.
+    /// The report's own flight: the tip-off phase, HPR Sim's default, and no correction.
     pub const TIP_OFF: Self = Self {
         correction: None,
         tip_off: true,
@@ -103,12 +103,12 @@ impl Variant {
         ..Self::TIP_OFF
     };
 
-    /// `correction` flown, without the tip-off phase.
+    /// `correction` flown as the report flies, with the tip-off phase.
     #[must_use]
     pub fn corrected(correction: Correction) -> Self {
         Self {
             correction: Some(correction),
-            ..Self::GUIDED
+            ..Self::TIP_OFF
         }
     }
 
@@ -145,7 +145,7 @@ impl Variant {
         Ok(if self.tip_off {
             simulation.with_tip_off()
         } else {
-            simulation
+            simulation.without_tip_off()
         })
     }
 }
@@ -237,7 +237,8 @@ mod tests {
             kept.wind.wind(500.0).unwrap(),
             windy.wind.wind(500.0).unwrap()
         );
-        // Only the tip-off variants ask for the phase, and only a correction scales the rocket.
+        // The guided variants alone turn the phase off; a correction flies as the report does,
+        // with it. Only a correction scales the rocket.
         let simulation = || {
             Simulation::new(
                 &rocket,
@@ -253,7 +254,7 @@ mod tests {
             (Variant::TIP_OFF, true),
             (Variant::STILL_GUIDED, false),
             (Variant::STILL_TIP_OFF, true),
-            (Variant::corrected(Correction::NONE), false),
+            (Variant::corrected(Correction::NONE), true),
         ] {
             assert_eq!(variant.simulation(simulation()).unwrap().tip_off(), phase);
         }

@@ -46,7 +46,7 @@ wrote 67 rows of 5 columns, a path of 67 points
   flight.parquet, 3228 bytes
   flight.geojson
   flight.kml
-landed at 32.99000° N, 106.96904° W, 90 m from the pad, at 58.9 s
+landed at 32.99000° N, 106.96878° W, 114 m from the pad, at 59.0 s
 ```
 
 CI runs it on macOS, Windows and Linux and fails if it prints anything else. The files hold every

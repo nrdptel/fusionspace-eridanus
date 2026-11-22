@@ -12,7 +12,7 @@ rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 60 logged flights of fliers' own designs, its
-> apogee missed the logged one by 12.09% on average, either way. That's the mean absolute miss,
+> apogee missed the logged one by 12.10% on average, either way. That's the mean absolute miss,
 > outside the 5% target ([the register's row on these misses](evidence.md#g24)). With signs kept, it
 > averaged 8.01% above the logged one. It was within 10% on 31 and read low on 15, by at
 > most 20%
@@ -238,7 +238,7 @@ flights](physics/synthetic-flights.md)). In the library, twelve readings also st
 liftoff, the apogee's height and time, the top speed, landing, the flight time, the mean descent rate,
 the top acceleration, burnout, each canopy's rate and the main's opening. Each passes a two-sided test
 on synthetic flights held apart from the 2,000 its points were fitted on; the top speed only below
-227.7 m/s (747 ft/s), on 286 readings on each set, where the height's have 820 and 845. A floor, whose truth
+227.7 m/s (747 ft/s), on 286 and 288 readings, where the height's have 820 and 845. A floor, whose truth
 may lie any amount above it, states a lower end in its place, tested on that test's lower tail; a
 clipped top's on tops written near a clip imposed on the log. The misses of the
 height, the top speed and the rates of descent fall on the coldest and warmest days, a warm day reading
@@ -248,8 +248,8 @@ bound, unless the reading is a floor, which has no upper figure ([The
 90% intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer
 and GNSS receiver into the height and vertical speed at every sample, each with a 90% interval. At
-four moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.2%
-and 99.4% of the truths, and two logger cells 88.7% and 89.2%, which the check allows. Those sets
+four moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.1%
+and 98.8% of the truths, and two logger cells 88.7% and 80%, which the check allows. Those sets
 were seen while its rules were set. It isn't yet checked against a real flight's ([The
 smoother](physics/smoother.md)).
 
@@ -257,10 +257,10 @@ smoother](physics/smoother.md)).
 simulated, phase by phase, and each reading beside the simulation's, read the same way
 ([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing.
 In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,
-a constant wind and the mass to a log, each with a 90% interval that passes its test on the synthetic
-flights (the wind's on logs with a track), on sets seen while its model was chosen. No `hpr` command runs it yet, and no real flight has checked its intervals.
+a constant wind and the mass to a log. Each has a 90% interval tested on the synthetic
+flights (the wind's on logs with a track), on sets seen while its model was chosen. All pass but one. On the set flown with a model unlike the simulator's own, the true drag falls below its interval too often. There the fitted drag reads high, and a flight predicted with it would come out low ([how well it holds](physics/flight-fit.md#how-well-it-holds)). No `hpr` command runs it yet, and no real flight has checked its intervals.
 A [Bayesian option](physics/flight-fit.md#the-bayesian-option) gives a second kind of interval from the same fit; it doesn't pass its test yet, so use the least-squares ones.
-The library also [predicts apogee from a log cut after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It is run on 7 of the 12 public flights, those compared along their climb. It predicts 2 of the 7, too few to say whether it beats the forward simulation: Bella Lui at +1.2% (forward +1.1%) and NDRT 2020 at −3.6% (forward +10.4%), both cut after the burn. The other 5 reach that speed before a cut ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). In the private collection it predicts the 21 flights it can cut and fit, the slower ones: 36 others reach that speed before a cut. It reads each log up to the cut, which the forward simulation doesn't. Its mean absolute apogee error is 3.17% against the forward simulation's 9.37% on the 12 flights of the calibration half. On the 9 held out from later model choices (but not blind), it is 3.60% against 16.75%. Without the flights that deployed something before apogee, it is 3.00% against 10.12% on the calibration half's 8 and 3.08% against 10.40% on the held-out half's 3, too few for an interval ([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists it as `accuracy.from-boost`.
+The library also [predicts apogee from a log cut after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It is run on 7 of the 12 public flights, those compared along their climb. It predicts 2 of the 7, too few to say whether it beats the forward simulation: Bella Lui at +1.2% (forward +1.1%) and NDRT 2020 at −3.6% (forward +10.4%), both cut after the burn. The other 5 reach that speed before a cut ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). In the private collection it predicts the 21 flights it can cut and fit, the slower ones: 36 others reach that speed before a cut. It reads each log up to the cut, which the forward simulation doesn't. Its mean absolute apogee error is 3.19% against the forward simulation's 9.37% on the 12 flights of the calibration half. On the 9 held out from later model choices (but not blind), it is 3.53% against 16.76%. Without the flights that deployed something before apogee, it is 3.00% against 10.11% on the calibration half's 8 and 3.04% against 10.41% on the held-out half's 3, too few for an interval ([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists it as `accuracy.from-boost`.
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
@@ -398,13 +398,13 @@ motors have burnt out.
 
 These are left out of a flight, or approximated:
 
-- [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail. Its cost is
-  [measured with RocketPy's](physics/flight.md#what-leaving-tip-off-out-costs). The Rust library
-  flies [a tip-off phase](physics/flight.md#tip-off) when asked. It is held to RocketPy's in
-  still air, and not yet in a crosswind on HPR Sim's own normal force. On the real flights it
-  moves each apogee by under 1%. It moves each set's mean error by a tenth of a point or less
-  ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)).
-  [Flying it by default is planned](decisions-and-roadmap.md#m1-14b15);
+- [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail, is approximated. A
+  design with two rail guides flies [a tip-off phase](physics/flight.md#tip-off) by default.
+  The phase is held to RocketPy's in still air, and not yet in a crosswind on HPR Sim's own
+  normal force; no flight checks it. On the real flights it moves each apogee by under 1%. It
+  moves each set's mean error by a tenth of a point or less
+  ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)). `--no-tip-off` on
+  the command line and `tip_off=False` in Python fly without it;
 - thrust misalignment, a motor pushing slightly off the rocket's axis;
 - turbulence: the model exists, but a flight doesn't use it. No milestone plans these last two
   yet, though turbulence has
@@ -626,9 +626,9 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   drag is well below the example's for two rockets. It's above it at high speed for Prometheus
   2022, which flies through Mach 1
   ([Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)).
-- **Against 12 public real flights, HPR Sim's apogees miss by 8.88% on average,** outside the 5%
+- **Against 12 public real flights, HPR Sim's apogees miss by 8.83% on average,** outside the 5%
   target ([the register's row on these misses](evidence.md#g24)). One by one they miss by
-  −29.16% to +10.40%. HPR Sim's
+  −29.16% to +10.39%. HPR Sim's
   height is read the way each log's barometric altimeter reads the air. Seven of the 12
   altimeters are assumed to be barometric. Four are from the seven flights compared first
   ([the register's row on those altimeters](evidence.md#g21)), and three from EuRoC 2022

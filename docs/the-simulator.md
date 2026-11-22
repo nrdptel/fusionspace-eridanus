@@ -10,9 +10,9 @@ and shows it working.
 
 > **How far to trust it.** A test reads every number on this page from a committed report.
 > HPR Sim's apogees have been set against 12 public flights, university rockets and one other
-> rocket, where they missed by 8.88% on average without signs and by −4.64% with them, outside the
+> rocket, where they missed by 8.83% on average without signs and by −4.61% with them, outside the
 > project's own 5% target
-> ([report][real-report]). Against 60 logged flights of fliers' own designs they missed by 12.09%
+> ([report][real-report]). Against 60 logged flights of fliers' own designs they missed by 12.10%
 > without signs and averaged +8.01% above the logged ones. OpenRocket, flying the same files,
 > missed by 11.26% without signs and averaged +6.72% above ([report][fixture-report]). Those
 > comparisons check apogee alone. HPR Sim gives ranges, not verdicts. The safety code and the

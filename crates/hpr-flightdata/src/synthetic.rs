@@ -291,10 +291,10 @@ mod tests {
         );
         assert!((apogee.height_m - truth.apogee_m).abs() <= apogee.bound_m);
         // The 90% intervals, as the guide's worked example gives them: 390.144 m less 0.637 and
-        // plus 0.631 of its 31.83 m bound, 369.87 to 410.23 m, holding the truth's 390.31 m.
+        // plus 0.630 of its 31.83 m bound, 369.87 to 410.20 m, holding the truth's 390.31 m.
         let height = apogee.height_interval_m.unwrap();
         assert!((height.low - 369.868).abs() < 0.01, "{height:?}");
-        assert!((height.high - 410.229).abs() < 0.01, "{height:?}");
+        assert!((height.high - 410.197).abs() < 0.01, "{height:?}");
         assert!(height.low <= truth.apogee_m && truth.apogee_m <= height.high);
         let time = apogee.time_interval_s.unwrap();
         assert!(

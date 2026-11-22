@@ -70,6 +70,9 @@ Options:
       --accept-design-errors
           Fly a design whose checks find errors, such as a motor wider than its mount. The flight may not be physical
 
+      --no-tip-off
+          Guide the rocket to its last rail guide and free it with no turn. Use it to compare with a program that has no tip-off phase, such as OpenRocket. Without this, a design with two or more rail guides tips off: it turns about its last guide once the one ahead has left the rail
+
       --offline
           Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only, never on the network
 

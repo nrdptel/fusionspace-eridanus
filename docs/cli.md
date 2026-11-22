@@ -760,6 +760,14 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
 | `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
 | `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` or `--wind-from`; `--elevation` must lie within its levels | standard |
+| `--no-tip-off` | holds the rocket straight until its last rail guide leaves the rail, then frees it with no turning rate, to compare with a program that has no tip-off phase, such as OpenRocket | not given: a design with two or more rail guides tips off |
+
+**Tip-off.** A design with two or more rail guides (rail buttons or launch lugs) at different
+stations turns about its last guide once the guide ahead of it has left the rail, pushed by
+gravity and by a crosswind ([Tip-off](physics/flight.md#tip-off)). That is the default, and no
+flight has checked it: the phase is held to another code's, in still air. `--no-tip-off` flies
+without it, to compare with OpenRocket or with an older result. `hpr mc` and `hpr compare` take
+the option too, and the JSON output's `launch.tip_off` says which was flown.
 
 OpenRocket measures its launch rod's angle from the vertical instead, so its 5° is 85 here. This
 flies the same rocket from Spaceport America's field, on a rail leaning 5° into a west wind:
@@ -2077,13 +2085,13 @@ readings from the logger's barometric altitude, sampled every 0.050 s in steps o
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
 liftoff           0.80 s, within 0.81 s, 90% interval 0.41 to 0.64 s
-apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% interval 369.8 to 410.3 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.07 to 10.57 s, 9.47 s after liftoff
+apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% interval 369.8 to 410.2 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.08 to 10.58 s, 9.47 s after liftoff
                   highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
 top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), 90% interval 72.8 to 82.8 m/s (239 to 272 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
-landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.51 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to 12.0 m/s (32 to 40 ft/s)
-flight time       45.00 s, within 2.91 s, 90% interval 45.38 to 46.11 s
+landing           45.80 s, within 2.11 s, 90% interval 45.53 to 46.51 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to 12.0 m/s (32 to 40 ft/s)
+flight time       45.00 s, within 2.91 s, 90% interval 45.39 to 46.12 s
 drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to 23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
-main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to 6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval 20.79 to 21.26 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to 6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval 20.80 to 21.26 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount; 95% lower end 2.24 s
 smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at 10.25 s
@@ -2128,12 +2136,12 @@ readings from the barometric altitude channel, sampled every 0.010 s in steps of
 2 channels: Baro Alt AGL (m) (altitude above ground), Axial accel (g) (acceleration)
 
 liftoff           2.30 s, within 0.67 s, 90% interval 1.98 to 2.17 s
-apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft), 90% interval 257.7 to 286.7 m (845 to 941 ft); at 9.91 s, within 0.80 s, 90% interval 9.72 to 10.17 s, 7.61 s after liftoff
+apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft), 90% interval 257.7 to 286.6 m (845 to 941 ft); at 9.91 s, within 0.80 s, 90% interval 9.72 to 10.18 s, 7.61 s after liftoff
 top speed         68.9 m/s (226 ft/s), within 20.7 m/s (68 ft/s), 90% interval 63.4 to 73.5 m/s (208 to 241 ft/s), at 3.48 s, 55.9 m (183 ft) up: derived from the heights
-landing           40.77 s, within 1.82 s, 90% interval 40.48 to 41.38 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s), 90% interval 7.8 to 9.6 m/s (25 to 32 ft/s)
-flight time       38.47 s, within 2.48 s, 90% interval 38.79 to 39.41 s
+landing           40.77 s, within 1.82 s, 90% interval 40.54 to 41.38 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s), 90% interval 7.8 to 9.6 m/s (25 to 32 ft/s)
+flight time       38.47 s, within 2.48 s, 90% interval 38.80 to 39.43 s
 drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), 90% interval 17.9 to 20.9 m/s (58 to 69 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
-main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 16.26 s, within 0.98 s, 90% interval 15.70 to 16.13 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 16.26 s, within 0.98 s, 90% interval 15.71 to 16.13 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
 top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², 90% interval 61.3 to 68.9 m/s², at 2.59 s
 burnout           3.45 s, within 0.07 s, 90% interval 3.44 to 3.46 s, 1.15 s after liftoff: from the accelerometer
 smoothed apogee   269.5 m (884 ft), 90% interval 255.4 to 283.6 m (838 to 931 ft), at 9.64 s
@@ -2196,7 +2204,7 @@ readings from the barometric altitude channel, sampled every 0.200 s in steps of
 1 channel: Baro Alt AGL (m) (altitude above ground)
 
 liftoff           1.20 s, within 1.05 s, 90% interval 0.69 to 0.99 s
-apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft), 90% interval 520.3 to 574.9 m (1707 to 1887 ft); at 13.10 s, within 0.99 s, 90% interval 12.87 to 13.43 s, 11.90 s after liftoff
+apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft), 90% interval 520.3 to 574.9 m (1707 to 1886 ft); at 13.10 s, within 0.99 s, 90% interval 12.88 to 13.44 s, 11.90 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. It ends before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
 flight time       withheld: the flight time needs landing, which is withheld above
@@ -2259,8 +2267,8 @@ log 2  second-board.csv: unknown
 log 2's clock less log 1's: -53.50 s, within 1.61 s, 90% interval -53.59 to -53.41 s
 
 apogee, above each log's own pad
-  log 1  989.8 m (3247 ft), within 74.6 m (245 ft), 90% interval 942.3 to 1036.9 m (3091 to 3402 ft)
-  log 2  1001.3 m (3285 ft), within 75.4 m (248 ft), 90% interval 953.2 to 1048.9 m (3127 to 3442 ft)
+  log 1  989.8 m (3247 ft), within 74.6 m (245 ft), 90% interval 942.3 to 1036.8 m (3091 to 3402 ft)
+  log 2  1001.3 m (3285 ft), within 75.4 m (248 ft), 90% interval 953.2 to 1048.8 m (3127 to 3441 ft)
   spread 11.5 m (38 ft)
 
 apogee's time, after each log's liftoff
@@ -2274,8 +2282,8 @@ smoothed apogee
   spread 12.0 m (39 ft)
 
 top speed
-  log 1  176.4 m/s (579 ft/s), within 51.2 m/s (168 ft/s), 90% interval 162.8 to 187.6 m/s (534 to 616 ft/s)
-  log 2  177.6 m/s (583 ft/s), within 41.2 m/s (135 ft/s), 90% interval 166.7 to 186.6 m/s (546 to 613 ft/s)
+  log 1  176.4 m/s (579 ft/s), within 51.2 m/s (168 ft/s), 90% interval 162.8 to 187.5 m/s (534 to 616 ft/s)
+  log 2  177.6 m/s (583 ft/s), within 41.2 m/s (135 ft/s), 90% interval 166.7 to 186.6 m/s (546 to 612 ft/s)
   spread 1.2 m/s (4 ft/s)
 
 top acceleration
@@ -2287,8 +2295,8 @@ burnout, after each log's liftoff
   log 2  2.00 s, within 2.23 s, a floor: the true value may lie any amount above it
 
 flight time
-  log 1  61.70 s, within 1.37 s, 90% interval 61.87 to 62.22 s
-  log 2  61.70 s, within 1.56 s, 90% interval 61.90 to 62.29 s
+  log 1  61.70 s, within 1.37 s, 90% interval 61.88 to 62.23 s
+  log 2  61.70 s, within 1.56 s, 90% interval 61.90 to 62.30 s
   spread 0.00 s
 
 drogue descent

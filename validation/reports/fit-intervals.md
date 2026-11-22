@@ -6,129 +6,131 @@ Written by `cargo xtask fit`. How to read it: [the fit's page](../../docs/physic
 
 ## Set A: 1000 flights counted
 
-Of its first 1216, 216 had nothing to fit and aren't counted, 216 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 3 reached the fit's step limit. The largest residual of any of them is 0.0208 of the spread of the heights read; past 0.1 a fit says nothing.
+Of its first 1216, 216 had nothing to fit and aren't counted, 216 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 2 reached the fit's step limit. The largest residual of any of them is 0.0227 of the spread of the heights read; past 0.1 a fit says nothing.
 
 ### Least squares
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 34 | 903 | 63 | passes | fails, fails, fails | -0.00173 | 0.115 / 0.36 | yes |
-| impulse scale | 34 | 910 | 56 | passes | fails, fails, fails | 0.000364 | 0.04 / 0.108 | yes |
-| wind toward the east, m/s | 90 | 1346 | 61 | passes | fails, fails, fails | -0.00706 | 0.348 / 12.7 | yes |
-| wind toward the north, m/s | 66 | 1366 | 65 | passes | fails, fails, fails | 0.00584 | 0.372 / 12.7 | yes |
-| mass on the weighed mass | 40 | 911 | 49 | passes | fails, fails, fails | -0.000398 | 0.035 / 0.036 | no |
+| drag scale | 32 | 909 | 59 | passes | fails, fails, fails | -0.00155 | 0.117 / 0.36 | yes |
+| impulse scale | 35 | 910 | 55 | passes | fails, fails, fails | 0.000262 | 0.0402 / 0.108 | yes |
+| wind toward the east, m/s | 77 | 1350 | 70 | passes | fails, fails, fails | -0.00664 | 0.38 / 12.7 | yes |
+| wind toward the north, m/s | 57 | 1382 | 58 | passes | fails, fails, fails | 0.00691 | 0.414 / 12.7 | yes |
+| mass on the weighed mass | 40 | 908 | 52 | passes | fails, fails, fails | -0.000389 | 0.0349 / 0.036 | no |
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 3 / 76 / 13 | 1 / 88 / 3 | 10 / 126 / 10 | 8 / 131 / 7 | 5 / 84 / 3 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 5 / 87 / 4 | 3 / 87 / 6 | 8 / 140 / 6 | 5 / 147 / 2 | 3 / 86 / 7 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 3 / 96 / 3 | 4 / 91 / 7 | 9 / 131 / 1 | 6 / 129 / 6 | 2 / 96 / 4 |
-| rocketpy-cavour | 6 / 94 / 0 | 6 / 91 / 3 | 18 / 146 / 7 | 7 / 147 / 17 | 9 / 86 / 5 |
-| rocketpy-genesis | 6 / 95 / 6 | 4 / 93 / 10 | 12 / 140 / 2 | 7 / 141 / 6 | 4 / 94 / 9 |
-| rocketpy-juno-iii | 3 / 82 / 8 | 1 / 91 / 1 | 5 / 136 / 7 | 6 / 137 / 5 | 4 / 85 / 4 |
-| rocketpy-lince | 1 / 84 / 7 | 3 / 80 / 9 | 9 / 129 / 12 | 12 / 128 / 10 | 5 / 80 / 7 |
-| rocketpy-ndrt-2020-nose-to-tail | 1 / 118 / 4 | 6 / 110 / 7 | 2 / 142 / 2 | 3 / 143 / 0 | 3 / 117 / 3 |
-| rocketpy-prometheus-2022-generic-motor | 4 / 82 / 10 | 5 / 85 / 6 | 12 / 132 / 13 | 10 / 138 / 9 | 2 / 88 / 6 |
-| rocketpy-valetudo | 2 / 89 / 8 | 1 / 94 / 4 | 5 / 124 / 1 | 2 / 125 / 3 | 3 / 95 / 1 |
+| rocketpy-bella-lui | 2 / 77 / 13 | 1 / 88 / 3 | 10 / 125 / 11 | 6 / 133 / 7 | 5 / 83 / 4 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 5 / 87 / 4 | 3 / 87 / 6 | 5 / 142 / 7 | 3 / 149 / 2 | 3 / 86 / 7 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 3 / 96 / 3 | 4 / 91 / 7 | 8 / 132 / 1 | 4 / 132 / 5 | 2 / 95 / 5 |
+| rocketpy-cavour | 6 / 94 / 0 | 6 / 92 / 2 | 15 / 147 / 9 | 6 / 148 / 17 | 9 / 86 / 5 |
+| rocketpy-genesis | 4 / 97 / 6 | 5 / 93 / 9 | 9 / 143 / 2 | 4 / 147 / 3 | 4 / 93 / 10 |
+| rocketpy-juno-iii | 4 / 81 / 8 | 1 / 91 / 1 | 5 / 135 / 8 | 6 / 140 / 2 | 4 / 85 / 4 |
+| rocketpy-lince | 1 / 85 / 6 | 4 / 79 / 9 | 7 / 129 / 14 | 13 / 127 / 10 | 5 / 80 / 7 |
+| rocketpy-ndrt-2020-nose-to-tail | 1 / 118 / 4 | 6 / 110 / 7 | 2 / 142 / 2 | 2 / 144 / 0 | 3 / 117 / 3 |
+| rocketpy-prometheus-2022-generic-motor | 5 / 83 / 8 | 4 / 85 / 7 | 11 / 131 / 15 | 10 / 139 / 8 | 2 / 88 / 6 |
+| rocketpy-valetudo | 1 / 91 / 7 | 1 / 94 / 4 | 5 / 124 / 1 | 3 / 123 / 4 | 3 / 95 / 1 |
 
 By how well the flight's heights fit (below / inside / above):
 
 | Residual | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| heights fit within 1 m | 18 / 602 / 26 | 12 / 600 / 34 | 57 / 1096 / 28 | 44 / 1103 / 34 | 21 / 599 / 26 |
-| heights fit to 1 m or worse | 16 / 301 / 37 | 22 / 310 / 22 | 33 / 250 / 33 | 22 / 263 / 31 | 19 / 312 / 23 |
+| heights fit within 1 m | 14 / 608 / 19 | 11 / 597 / 33 | 48 / 1098 / 31 | 36 / 1110 / 31 | 21 / 594 / 26 |
+| heights fit to 1 m or worse | 18 / 301 / 40 | 24 / 313 / 22 | 29 / 252 / 39 | 21 / 272 / 27 | 19 / 314 / 26 |
 
 ### Bayesian
 
-The posterior's 5% and 95% points, as they come. Of the 2276 flights counted here or for the wind with a posterior drawn, 559 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 46.8 and a median of 153. Of the 1138000 draws made, the pilots' included, 129 failed; 0 flights with something to fit have no posterior.
+The posterior's 5% and 95% points, as they come. Of the 2276 flights counted here or for the wind with a posterior drawn, 541 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 49.4 and a median of 154. Of the 1138000 draws made, the pilots' included, 170 failed; 0 flights with something to fit have no posterior.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 30 | 885 | 85 | fails | fails, fails, fails | -0.0106 | 0.0919 / 0.36 | yes |
-| impulse scale | 72 | 875 | 53 | passes | fails, fails, fails | 0.00133 | 0.0391 / 0.108 | yes |
-| wind toward the east, m/s | 57 | 1381 | 59 | passes | fails, fails, fails | -0.00861 | 0.36 / 12.7 | yes |
-| wind toward the north, m/s | 56 | 1382 | 59 | passes | fails, fails, fails | 0.00981 | 0.357 / 12.7 | yes |
-| mass on the weighed mass | 56 | 882 | 62 | passes | fails, fails, fails | -0.000173 | 0.034 / 0.036 | no |
+| drag scale | 30 | 885 | 85 | fails | fails, fails, fails | -0.0103 | 0.0916 / 0.36 | yes |
+| impulse scale | 70 | 877 | 53 | passes | fails, fails, fails | 0.0012 | 0.039 / 0.108 | yes |
+| wind toward the east, m/s | 59 | 1382 | 56 | passes | fails, fails, fails | -0.00638 | 0.383 / 12.7 | yes |
+| wind toward the north, m/s | 58 | 1382 | 57 | passes | fails, fails, fails | 0.00959 | 0.395 / 12.7 | yes |
+| mass on the weighed mass | 53 | 885 | 62 | passes | fails, fails, fails | -0.000118 | 0.034 / 0.036 | no |
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 6 / 80 / 6 | 8 / 80 / 4 | 4 / 129 / 13 | 7 / 134 / 5 | 8 / 76 / 8 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 / 79 / 13 | 4 / 85 / 7 | 3 / 146 / 5 | 8 / 142 / 4 | 3 / 86 / 7 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 1 / 96 / 5 | 4 / 93 / 5 | 6 / 132 / 3 | 4 / 129 / 8 | 3 / 93 / 6 |
-| rocketpy-cavour | 5 / 91 / 4 | 9 / 89 / 2 | 8 / 157 / 6 | 9 / 152 / 10 | 13 / 81 / 6 |
-| rocketpy-genesis | 2 / 92 / 13 | 7 / 90 / 10 | 6 / 142 / 6 | 3 / 144 / 7 | 5 / 92 / 10 |
-| rocketpy-juno-iii | 3 / 79 / 11 | 10 / 80 / 3 | 3 / 141 / 4 | 3 / 142 / 3 | 7 / 81 / 5 |
-| rocketpy-lince | 1 / 81 / 10 | 5 / 79 / 8 | 9 / 138 / 3 | 8 / 138 / 4 | 7 / 79 / 6 |
-| rocketpy-ndrt-2020-nose-to-tail | 1 / 116 / 6 | 10 / 109 / 4 | 6 / 134 / 6 | 6 / 136 / 4 | 4 / 114 / 5 |
-| rocketpy-prometheus-2022-generic-motor | 5 / 78 / 13 | 8 / 81 / 7 | 7 / 139 / 11 | 5 / 144 / 8 | 3 / 85 / 8 |
-| rocketpy-valetudo | 2 / 93 / 4 | 7 / 89 / 3 | 5 / 123 / 2 | 3 / 121 / 6 | 3 / 95 / 1 |
+| rocketpy-bella-lui | 5 / 79 / 8 | 8 / 80 / 4 | 5 / 129 / 12 | 7 / 134 / 5 | 8 / 77 / 7 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 5 / 80 / 11 | 5 / 85 / 6 | 4 / 146 / 4 | 7 / 142 / 5 | 3 / 86 / 7 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 1 / 96 / 5 | 4 / 93 / 5 | 7 / 130 / 4 | 4 / 130 / 7 | 2 / 94 / 6 |
+| rocketpy-cavour | 6 / 89 / 5 | 9 / 88 / 3 | 8 / 158 / 5 | 9 / 154 / 8 | 12 / 82 / 6 |
+| rocketpy-genesis | 3 / 93 / 11 | 5 / 91 / 11 | 6 / 144 / 4 | 4 / 143 / 7 | 5 / 92 / 10 |
+| rocketpy-juno-iii | 2 / 79 / 12 | 8 / 83 / 2 | 1 / 145 / 2 | 6 / 139 / 3 | 7 / 81 / 5 |
+| rocketpy-lince | 1 / 81 / 10 | 6 / 76 / 10 | 10 / 136 / 4 | 8 / 136 / 6 | 7 / 78 / 7 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 117 / 6 | 10 / 110 / 3 | 7 / 133 / 6 | 6 / 136 / 4 | 4 / 114 / 5 |
+| rocketpy-prometheus-2022-generic-motor | 5 / 78 / 13 | 7 / 82 / 7 | 8 / 136 / 13 | 5 / 145 / 7 | 3 / 85 / 8 |
+| rocketpy-valetudo | 2 / 93 / 4 | 8 / 89 / 2 | 3 / 125 / 2 | 2 / 123 / 5 | 2 / 96 / 1 |
 
 ## Set B: 1000 flights counted
 
-Of its first 1193, 193 had nothing to fit and aren't counted, 193 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 8 reached the fit's step limit. The largest residual of any of them is 0.0265 of the spread of the heights read; past 0.1 a fit says nothing.
+Of its first 1193, 193 had nothing to fit and aren't counted, 193 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 6 reached the fit's step limit. The largest residual of any of them is 0.0254 of the spread of the heights read; past 0.1 a fit says nothing.
 
 ### Least squares
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 71 | 900 | 29 | passes | fails, fails, fails | 0.00522 | 0.123 / 0.36 | yes |
-| impulse scale | 54 | 909 | 37 | passes | fails, fails, fails | 0.00164 | 0.0409 / 0.108 | yes |
-| wind toward the east, m/s | 76 | 1352 | 69 | passes | fails, fails, fails | -0.0224 | 0.411 / 12.7 | yes |
-| wind toward the north, m/s | 73 | 1360 | 64 | passes | fails, fails, fails | -0.00695 | 0.445 / 12.7 | yes |
-| mass on the weighed mass | 41 | 900 | 59 | passes | fails, fails, fails | -0.000138 | 0.035 / 0.036 | no |
+| drag scale | 80 | 889 | 31 | fails | fails, fails, fails | 0.00711 | 0.126 / 0.36 | yes |
+| impulse scale | 50 | 914 | 36 | passes | fails, fails, fails | 0.00126 | 0.0413 / 0.108 | yes |
+| wind toward the east, m/s | 71 | 1353 | 73 | passes | fails, fails, fails | -0.0226 | 0.442 / 12.7 | yes |
+| wind toward the north, m/s | 63 | 1372 | 62 | passes | fails, fails, fails | -0.00586 | 0.503 / 12.7 | yes |
+| mass on the weighed mass | 42 | 900 | 58 | passes | fails, fails, fails | -0.000147 | 0.0349 / 0.036 | no |
+
+The drag scale's interval fails the test on this set, and is recorded as failing: more of its truths lie below it than the 5% a 90% interval allows. Its other two counts hold. Why it stands, and what tracks it: [ADR-368](../../docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md).
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 0 / 97 / 0 | 0 / 96 / 1 | 6 / 131 / 7 | 4 / 133 / 7 | 4 / 90 / 3 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 5 / 96 / 0 | 7 / 90 / 4 | 7 / 160 / 5 | 4 / 165 / 3 | 7 / 86 / 8 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 11 / 101 / 5 | 2 / 107 / 8 | 3 / 149 / 4 | 2 / 152 / 2 | 4 / 101 / 12 |
-| rocketpy-cavour | 7 / 85 / 1 | 5 / 87 / 1 | 11 / 114 / 9 | 12 / 111 / 11 | 2 / 85 / 6 |
-| rocketpy-genesis | 13 / 92 / 2 | 5 / 98 / 4 | 6 / 120 / 7 | 8 / 122 / 3 | 0 / 103 / 4 |
-| rocketpy-juno-iii | 5 / 93 / 5 | 3 / 97 / 3 | 9 / 142 / 5 | 11 / 140 / 5 | 6 / 91 / 6 |
-| rocketpy-lince | 8 / 82 / 5 | 14 / 76 / 5 | 12 / 121 / 15 | 15 / 122 / 11 | 6 / 82 / 7 |
-| rocketpy-ndrt-2020-nose-to-tail | 3 / 79 / 1 | 1 / 80 / 2 | 2 / 132 / 0 | 1 / 133 / 0 | 3 / 76 / 4 |
-| rocketpy-prometheus-2022-generic-motor | 19 / 68 / 9 | 17 / 75 / 4 | 17 / 131 / 13 | 13 / 127 / 21 | 5 / 89 / 2 |
-| rocketpy-valetudo | 0 / 107 / 1 | 0 / 103 / 5 | 3 / 152 / 4 | 3 / 155 / 1 | 4 / 97 / 7 |
+| rocketpy-bella-lui | 0 / 97 / 0 | 0 / 96 / 1 | 6 / 131 / 7 | 4 / 133 / 7 | 5 / 89 / 3 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 5 / 96 / 0 | 7 / 90 / 4 | 8 / 159 / 5 | 4 / 165 / 3 | 7 / 86 / 8 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 11 / 101 / 5 | 2 / 109 / 6 | 4 / 148 / 4 | 2 / 152 / 2 | 3 / 102 / 12 |
+| rocketpy-cavour | 9 / 81 / 3 | 5 / 87 / 1 | 10 / 114 / 10 | 12 / 111 / 11 | 2 / 85 / 6 |
+| rocketpy-genesis | 15 / 89 / 3 | 4 / 99 / 4 | 4 / 126 / 3 | 4 / 128 / 1 | 0 / 103 / 4 |
+| rocketpy-juno-iii | 8 / 91 / 4 | 3 / 96 / 4 | 10 / 138 / 8 | 5 / 146 / 5 | 5 / 92 / 6 |
+| rocketpy-lince | 9 / 82 / 4 | 11 / 79 / 5 | 10 / 124 / 14 | 14 / 123 / 11 | 6 / 83 / 6 |
+| rocketpy-ndrt-2020-nose-to-tail | 3 / 79 / 1 | 1 / 81 / 1 | 1 / 133 / 0 | 1 / 133 / 0 | 3 / 76 / 4 |
+| rocketpy-prometheus-2022-generic-motor | 19 / 67 / 10 | 17 / 75 / 4 | 15 / 130 / 16 | 15 / 125 / 21 | 7 / 87 / 2 |
+| rocketpy-valetudo | 1 / 106 / 1 | 0 / 102 / 6 | 3 / 150 / 6 | 2 / 156 / 1 | 4 / 97 / 7 |
 
 By how well the flight's heights fit (below / inside / above):
 
 | Residual | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| heights fit within 1 m | 19 / 530 / 1 | 14 / 517 / 19 | 29 / 919 / 32 | 32 / 925 / 23 | 19 / 496 / 35 |
-| heights fit to 1 m or worse | 52 / 370 / 28 | 40 / 392 / 18 | 47 / 433 / 37 | 41 / 435 / 41 | 22 / 404 / 24 |
+| heights fit within 1 m | 22 / 536 / 3 | 11 / 531 / 19 | 29 / 920 / 32 | 22 / 938 / 21 | 20 / 505 / 36 |
+| heights fit to 1 m or worse | 58 / 353 / 28 | 39 / 383 / 17 | 42 / 433 / 41 | 41 / 434 / 41 | 22 / 395 / 22 |
 
 ### Bayesian
 
-The posterior's 5% and 95% points, as they come. Of the 2296 flights counted here or for the wind with a posterior drawn, 712 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 28.6 and a median of 138. Of the 1148000 draws made, the pilots' included, 152 failed; 0 flights with something to fit have no posterior.
+The posterior's 5% and 95% points, as they come. Of the 2296 flights counted here or for the wind with a posterior drawn, 722 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 24.6 and a median of 139. Of the 1148000 draws made, the pilots' included, 281 failed; 0 flights with something to fit have no posterior.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 74 | 872 | 54 | passes | fails, passes, fails | -0.00324 | 0.0982 / 0.36 | yes |
-| impulse scale | 84 | 883 | 33 | fails | fails, fails, fails | 0.00241 | 0.0402 / 0.108 | yes |
-| wind toward the east, m/s | 58 | 1353 | 86 | passes | fails, fails, fails | -0.0362 | 0.427 / 12.7 | yes |
-| wind toward the north, m/s | 70 | 1348 | 79 | passes | fails, fails, fails | -0.0302 | 0.443 / 12.7 | yes |
-| mass on the weighed mass | 63 | 869 | 68 | passes | fails, fails, fails | -0.000115 | 0.034 / 0.036 | no |
+| drag scale | 79 | 865 | 56 | fails | fails, passes, fails | -0.0011 | 0.0978 / 0.36 | yes |
+| impulse scale | 79 | 884 | 37 | fails | fails, fails, fails | 0.00214 | 0.04 / 0.108 | yes |
+| wind toward the east, m/s | 68 | 1344 | 85 | passes | fails, fails, fails | -0.0239 | 0.462 / 12.7 | yes |
+| wind toward the north, m/s | 85 | 1320 | 92 | passes | fails, fails, fails | -0.0247 | 0.475 / 12.7 | yes |
+| mass on the weighed mass | 62 | 869 | 69 | passes | fails, fails, fails | -0.0000564 | 0.034 / 0.036 | no |
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 0 / 97 / 0 | 7 / 90 / 0 | 3 / 137 / 4 | 5 / 136 / 3 | 7 / 86 / 4 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 / 92 / 5 | 11 / 84 / 6 | 2 / 167 / 3 | 4 / 165 / 3 | 9 / 82 / 10 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 9 / 103 / 5 | 5 / 109 / 3 | 0 / 149 / 7 | 3 / 149 / 4 | 7 / 99 / 11 |
-| rocketpy-cavour | 10 / 80 / 3 | 9 / 82 / 2 | 10 / 111 / 13 | 6 / 116 / 12 | 5 / 79 / 9 |
-| rocketpy-genesis | 10 / 91 / 6 | 6 / 97 / 4 | 6 / 119 / 8 | 7 / 115 / 11 | 5 / 98 / 4 |
-| rocketpy-juno-iii | 10 / 82 / 11 | 7 / 89 / 7 | 3 / 147 / 6 | 6 / 144 / 6 | 8 / 84 / 11 |
-| rocketpy-lince | 12 / 73 / 10 | 15 / 74 / 6 | 13 / 119 / 16 | 14 / 121 / 13 | 7 / 81 / 7 |
-| rocketpy-ndrt-2020-nose-to-tail | 0 / 80 / 3 | 1 / 81 / 1 | 4 / 128 / 2 | 2 / 130 / 2 | 3 / 76 / 4 |
-| rocketpy-prometheus-2022-generic-motor | 19 / 66 / 11 | 20 / 74 / 2 | 15 / 125 / 21 | 21 / 121 / 19 | 7 / 89 / 0 |
-| rocketpy-valetudo | 0 / 108 / 0 | 3 / 103 / 2 | 2 / 151 / 6 | 2 / 151 / 6 | 5 / 95 / 8 |
+| rocketpy-bella-lui | 0 / 97 / 0 | 7 / 90 / 0 | 4 / 135 / 5 | 4 / 137 / 3 | 7 / 86 / 4 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 3 / 92 / 6 | 11 / 84 / 6 | 2 / 167 / 3 | 5 / 162 / 5 | 9 / 82 / 10 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 9 / 102 / 6 | 4 / 109 / 4 | 1 / 147 / 8 | 4 / 147 / 5 | 7 / 99 / 11 |
+| rocketpy-cavour | 9 / 82 / 2 | 8 / 83 / 2 | 9 / 111 / 14 | 9 / 112 / 13 | 4 / 80 / 9 |
+| rocketpy-genesis | 13 / 87 / 7 | 4 / 99 / 4 | 9 / 118 / 6 | 8 / 115 / 10 | 4 / 100 / 3 |
+| rocketpy-juno-iii | 10 / 85 / 8 | 6 / 89 / 8 | 4 / 149 / 3 | 6 / 143 / 7 | 7 / 83 / 13 |
+| rocketpy-lince | 12 / 73 / 10 | 14 / 76 / 5 | 13 / 119 / 16 | 18 / 113 / 17 | 8 / 80 / 7 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 80 / 3 | 1 / 81 / 1 | 4 / 127 / 3 | 2 / 130 / 2 | 3 / 76 / 4 |
+| rocketpy-prometheus-2022-generic-motor | 22 / 60 / 14 | 19 / 73 / 4 | 19 / 120 / 22 | 26 / 107 / 28 | 8 / 87 / 1 |
+| rocketpy-valetudo | 1 / 107 / 0 | 5 / 100 / 3 | 3 / 151 / 5 | 3 / 154 / 2 | 5 / 96 / 7 |
 
 ## Pure noise in place of the log
 
@@ -141,33 +143,33 @@ The smallest residual is that of the fits that came to one, a share of the sprea
 | ±5 m | none | the reader | 200 | 200 | none | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
 | ±5 m | none | the reader | 200 | 200 | none | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
 | ±5 m | none | the reader | 200 | 200 | none | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±1000 m | none | the reader | 200 | 200 | 0.994 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±1000 m | none | the reader | 200 | 200 | 0.994 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±1000 m | none | the reader | 200 | 200 | 0.994 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | none | the reader | 200 | 200 | 0.994 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | none | the reader | 200 | 200 | 0.994 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±5 m | none | the fit | 200 | 200 | 0.958 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±5 m | none | the fit | 200 | 200 | 0.958 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±5 m | none | the fit | 200 | 200 | 0.958 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±5 m | none | the fit | 200 | 200 | 0.958 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±5 m | none | the fit | 200 | 200 | 0.958 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±50 m | none | the fit | 200 | 200 | 0.986 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±50 m | none | the fit | 200 | 200 | 0.986 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±50 m | none | the fit | 200 | 200 | 0.986 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±50 m | none | the fit | 200 | 200 | 0.986 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±50 m | none | the fit | 200 | 200 | 0.986 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±1000 m | none | the fit | 200 | 200 | 0.984 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±1000 m | none | the fit | 200 | 200 | 0.984 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±1000 m | none | the fit | 200 | 200 | 0.984 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | none | the fit | 200 | 200 | 0.984 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | none | the fit | 200 | 200 | 0.984 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±5 m | ±5 m | the fit | 200 | 200 | 0.982 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±5 m | ±5 m | the fit | 200 | 200 | 0.982 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±5 m | ±5 m | the fit | 200 | 200 | 0.982 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±5 m | ±5 m | the fit | 200 | 200 | 0.982 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±5 m | ±5 m | the fit | 200 | 200 | 0.982 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
-| ±1000 m | ±5 m | the fit | 200 | 200 | 0.957 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
-| ±1000 m | ±5 m | the fit | 200 | 200 | 0.957 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
-| ±1000 m | ±5 m | the fit | 200 | 200 | 0.957 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | ±5 m | the fit | 200 | 200 | 0.957 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
-| ±1000 m | ±5 m | the fit | 200 | 200 | 0.957 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.995 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.995 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.995 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.995 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.995 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±5 m | none | the fit | 200 | 200 | 1.01 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±5 m | none | the fit | 200 | 200 | 1.01 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±5 m | none | the fit | 200 | 200 | 1.01 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±5 m | none | the fit | 200 | 200 | 1.01 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±5 m | none | the fit | 200 | 200 | 1.01 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±50 m | none | the fit | 200 | 200 | 0.967 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±50 m | none | the fit | 200 | 200 | 0.967 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±50 m | none | the fit | 200 | 200 | 0.967 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±50 m | none | the fit | 200 | 200 | 0.967 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±50 m | none | the fit | 200 | 200 | 0.967 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±1000 m | none | the fit | 200 | 200 | 0.974 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±1000 m | none | the fit | 200 | 200 | 0.974 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±1000 m | none | the fit | 200 | 200 | 0.974 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | none | the fit | 200 | 200 | 0.974 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | none | the fit | 200 | 200 | 0.974 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±5 m | ±5 m | the fit | 200 | 200 | 0.986 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±5 m | ±5 m | the fit | 200 | 200 | 0.986 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±5 m | ±5 m | the fit | 200 | 200 | 0.986 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±5 m | ±5 m | the fit | 200 | 200 | 0.986 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±5 m | ±5 m | the fit | 200 | 200 | 0.986 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |
+| ±1000 m | ±5 m | the fit | 200 | 200 | 0.95 | drag scale | 0.36 / 0.36 | no | 0.36 / 0.36 | no |
+| ±1000 m | ±5 m | the fit | 200 | 200 | 0.95 | impulse scale | 0.108 / 0.108 | no | 0.108 / 0.108 | no |
+| ±1000 m | ±5 m | the fit | 200 | 200 | 0.95 | wind toward the east, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | ±5 m | the fit | 200 | 200 | 0.95 | wind toward the north, m/s | 12.7 / 12.7 | no | 12.7 / 12.7 | no |
+| ±1000 m | ±5 m | the fit | 200 | 200 | 0.95 | mass on the weighed mass | 0.036 / 0.036 | no | 0.036 / 0.036 | no |

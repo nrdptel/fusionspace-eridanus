@@ -290,7 +290,7 @@ print(f"{calisto.configuration}: apogee {flight.apogee_m:.0f} m, landing at {fli
 ```
 
 ```text
-example: apogee 2841 m, landing at 5.2 m/s
+example: apogee 2839 m, landing at 5.2 m/s
 ```
 
 This flight uses HPR Sim's own drag, in calm air. The validation suite flies the same design with
@@ -308,7 +308,7 @@ RocketPy script across. Both codes fly the same drag and the same inputs. So the
 the rest of the physics: the equations of motion, the atmosphere, the rail and the parachutes. It's
 a comparison between two codes, not with a real flight.
 
-Three options make it RocketPy's flight:
+Four options make it RocketPy's flight:
 
 - **A drag table.** `DragTable` holds a zero-lift drag coefficient $C_{D0}$ against Mach number, as
   RocketPy's `power_off_drag` and `power_on_drag` do. Its power-on curve is flown while the motor
@@ -324,9 +324,14 @@ Three options make it RocketPy's flight:
   together every one that is open. `released_by` is another parachute's number, counted from 0
   in the order they were added. `add_parachute(..., released_by=1)` cuts this one away once the
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
+- **No tip-off.** `Flight(..., tip_off=False)` holds the rocket straight until its last rail
+  button leaves the rail, then frees it with no turning rate. RocketPy 1.13.0 has no such phase:
+  it frees the rocket where its forward button leaves the rail, with no pivot. By default
+  HPR Sim lets a rocket with two rail buttons, as Calisto has, turn about its last one once the
+  other has left ([Tip-off](physics/flight.md#tip-off)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2,650 m (8,694 ft) above the pad:
+as in the section above, to 2,649 m (8,691 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])
@@ -337,7 +342,7 @@ print(f"apogee {flight.apogee_m:.0f} m")
 
 ```text
 C_D0 at Mach 0.6: 0.50 coasting, 0.45 burning
-apogee 2650 m
+apogee 2649 m
 ```
 
 The example
@@ -646,8 +651,8 @@ parachute's drag coefficient times its area in m², as RocketPy's `cd_s` is.
 | `add_mass(mass_kg, position=, offset_m=, packed_length_m=, packed_diameter_m=, name=)` | a mass, at a point or packed in a cylinder |
 | `set_motor(motor)`, `add_parachute(name, ..., released_by=)` | the motor, and a parachute, cut away once parachute `released_by` is fully open |
 | `mass_properties(time_s=)`, `static_margin_cal(time_s=, mach=)`, `margin(time_s=, mach=)`, `design_json()` | the mass, center of gravity and inertia; the margin; the design as JSON |
-| `Flight(rocket, environment, rail_length_m, inclination_deg=, heading_deg=, interval_s=, drag_table=, drag=)` | the flight, `drag=` a drag function, `drag(mach, thrusting) -> C_D0` ([Drag and wind of your own](#drag-and-wind-of-your-own)); its `apogee_m`, `apogee_time_s`, `max_speed_m_s`, `max_mach`, `rail_exit_speed_m_s`, `landing`, `envelope_flags`, `issue_warnings`, `summary`, `events`, `columns`, `series`, `flight[name]` and `to_json()` |
-| `MonteCarlo(rocket, environment, rail_length_m, runs=, seed=, inclination_deg=, heading_deg=, drag_table=, drag=, mass_sd_fraction=, ...)` | a Monte Carlo run, the eleven standard deviations as [Monte Carlo](#monte-carlo) lists them; its `runs`, `seed`, `flown`, `failed`, `failures`, `nominal`, `dispersion`, `columns`, `run[name]`, `spread(name)` and `to_csv()` |
+| `Flight(rocket, environment, rail_length_m, inclination_deg=, heading_deg=, interval_s=, drag_table=, drag=, tip_off=)` | the flight, `drag=` a drag function, `drag(mach, thrusting) -> C_D0` ([Drag and wind of your own](#drag-and-wind-of-your-own)), `tip_off=False` to hold the rocket straight off the rail ([Tip-off](physics/flight.md#tip-off)); its `apogee_m`, `apogee_time_s`, `max_speed_m_s`, `max_mach`, `rail_exit_speed_m_s`, `landing`, `envelope_flags`, `issue_warnings`, `summary`, `events`, `columns`, `series`, `flight[name]` and `to_json()` |
+| `MonteCarlo(rocket, environment, rail_length_m, runs=, seed=, inclination_deg=, heading_deg=, drag_table=, drag=, tip_off=, mass_sd_fraction=, ...)` | a Monte Carlo run, `tip_off=` as `Flight`'s, the eleven standard deviations as [Monte Carlo](#monte-carlo) lists them; its `runs`, `seed`, `flown`, `failed`, `failures`, `nominal`, `dispersion`, `columns`, `run[name]`, `spread(name)` and `to_csv()` |
 | `FlightLog.read(path, mapping=, layout=, sheet=, recording=, fip_header=)`, `FlightLog.header_mapping(path, sheet=)` | a flight log, read by its format's own reader, by a column mapping, by a record layout or, for a Raven FIP export below no header, by a FIP header, each a dict or a JSON file's path ([Reading your own logger](your-own-logger.md#from-python)); `sheet=` picks a workbook's sheet, `recording=` a raw dump's recording, each from 0 ([A file of several records](cli.md#a-file-of-several-records)); its `format`, `logger`, `serial_number`, `firmware`, `flight_number`, `time_s`, `altitude_m`, `channels`, `events`, `stated`, `notes`, `to_dict()`, `smoothed()`, [the smoother](physics/smoother.md)'s track and health card, and `readings()`, a dict of the `liftoff`, `apogee`, `max_speed`, `max_acceleration` and `landing` readings `hpr analyze` takes, each within its bound, some with a 90% interval, or withheld ([Flight-log readings](physics/log-readings.md#the-90-intervals)); and what a table's header states, as a mapping to edit |
 
 

@@ -47,7 +47,7 @@ Residuals, logged less simulated
 
 Readings, the simulation read as the log is
   apogee, above the pad
-    logged     1015.6 m (3332 ft) (measured), within 76.9 m (253 ft), 90% interval 966.6 to 1064.2 m (3171 to 3492 ft)
+    logged     1015.6 m (3332 ft) (measured), within 76.9 m (253 ft), 90% interval 966.6 to 1064.1 m (3171 to 3491 ft)
     simulated  1064.4 m (3492 ft)
     logged less simulated  -48.9 m (-160 ft)
   apogee's time, after liftoff
@@ -61,7 +61,7 @@ Readings, the simulation read as the log is
   burnout, after liftoff
     withheld on both: burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 269.4 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose
   flight time
-    logged     243.90 s (measured), within 4.95 s, 90% interval 244.55 to 245.78 s
+    logged     243.90 s (measured), within 4.95 s, 90% interval 244.56 to 245.80 s
     simulated  245.20 s
     logged less simulated  -1.30 s
   drogue descent

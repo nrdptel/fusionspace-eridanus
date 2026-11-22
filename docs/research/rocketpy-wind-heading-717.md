@@ -135,9 +135,9 @@ rocket and ERA5 file), with only the wind or the heading changed [7]. Parachute 
 - **Sign and size.** A reversed wind changes the mean absolute apogee by 2.24% over the seven, a mirrored heading by
   2.05%. Juno III dominates: it leaves the rail at 15.7 m/s in a 10.8 m/s ground wind on its quarter, so the wind
   sets how far it turns. The fast rails of Cavour, Genesis and Lince (42 to 49 m/s) keep them within 1.5%.
-- **Against HPR Sim's real-flight score** (mean absolute apogee error 6.06% on the seven flights compared first, [Accuracy](../accuracy.md)), a
+- **Against HPR Sim's real-flight score** (mean absolute apogee error 5.97% on the seven flights compared first, [Accuracy](../accuracy.md)), a
   convention error of this kind would be about a third of the mean, and on Juno III as large as the largest misses
-  (−8.90% to +10.40%) (**Inference**: these are RocketPy's flights, so they size the sensitivity, not HPR Sim's).
+  (−9.22% to +10.39%) (**Inference**: these are RocketPy's flights, so they size the sensitivity, not HPR Sim's).
 
 **Which convention the logs support.** Juno III's GNSS log [4] puts its highest fix 1,027 m from the pad toward
 185°, and its fixes then move 1,948 m toward 53° under the drogue. RocketPy with the wind as given puts apogee

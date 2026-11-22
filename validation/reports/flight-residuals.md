@@ -23,7 +23,7 @@ Height:
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | ascent | 0.00 | 10.39 | 176 | -0.6 | 3.5 | +9.3 | 1.86 |
-| descent | 10.39 | 34.32 | 393 | -10.4 | 11.6 | -20.4 | 28.62 |
+| descent | 10.39 | 34.32 | 393 | -10.4 | 11.5 | -20.4 | 28.62 |
 
 Speed:
 
@@ -36,15 +36,15 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 458.96 | 431.34 to 486.32 | measured | 463.99 | -5.03 |
+| apogee (m) | 458.96 | 431.34 to 486.27 | measured | 464.01 | -5.06 |
 | time to apogee (s) | 10.39 | none stated | measured | 10.41 | -0.02 |
-| top vertical speed (m/s) | 91.54 | 85.39 to 96.60 | derived | 85.72 | +5.82 |
+| top vertical speed (m/s) | 91.54 | 85.39 to 96.58 | derived | 85.72 | +5.82 |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | at least 1.86 | none stated | derived | at least 2.04 |  |
-| flight time (s) | 34.32 | 34.65 to 35.27 | measured | 35.22 | -0.90 |
+| flight time (s) | 34.32 | 34.66 to 35.28 | measured | 35.22 | -0.90 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | withheld |  |  | withheld |  |
-| descent under the main (m/s) | 19.16 | 18.20 to 20.11 | derived | 18.64 | +0.52 |
+| descent under the main (m/s) | 19.16 | 18.19 to 20.11 | derived | 18.65 | +0.51 |
 
 ## NDRT 2020, Notre Dame Rocketry Team (L1395)
 
@@ -54,8 +54,8 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 16.75 | 335 | -83.8 | 92.6 | -135.0 | 16.70 |
-| descent | 16.75 | 84.30 | 1352 | -69.5 | 83.5 | -156.0 | 19.55 |
+| ascent | 0.00 | 16.75 | 335 | -83.7 | 92.6 | -134.9 | 16.70 |
+| descent | 16.75 | 84.30 | 1352 | -69.4 | 83.4 | -155.9 | 19.55 |
 
 Speed:
 
@@ -68,49 +68,49 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 1319.68 | 1256.25 to 1382.51 | measured | 1457.60 | -137.92 |
+| apogee (m) | 1319.68 | 1256.25 to 1382.41 | measured | 1457.46 | -137.78 |
 | time to apogee (s) | 16.75 | none stated | measured | 17.47 | -0.72 |
-| top vertical speed (m/s) | 168.48 | 152.09 to 181.96 | derived | 180.07 | -11.59 |
+| top vertical speed (m/s) | 168.48 | 152.09 to 181.90 | derived | 180.06 | -11.58 |
 | top acceleration (m/s²) | 105.91 | 70.18 to 137.05 | measured | 77.41 | +28.50 |
 | burnout (s) | at least 4.60 | none stated | derived | 3.20 |  |
-| flight time (s) | 84.30 | 85.01 to 86.34 | measured | 94.35 | -10.05 |
-| descent under the drogue (m/s) | 22.41 | 21.35 to 23.50 | derived | 27.54 | -5.13 |
-| main's opening (m) | 39.87 | none stated | derived | 137.65 | -97.78 |
+| flight time (s) | 84.30 | 85.03 to 86.37 | measured | 94.35 | -10.05 |
+| descent under the drogue (m/s) | 22.41 | 21.34 to 23.50 | derived | 27.54 | -5.13 |
+| main's opening (m) | 39.87 | none stated | derived | 137.62 | -97.75 |
 | descent under the main (m/s) | 3.62 | 3.08 to 4.14 | derived | 4.69 | -1.07 |
 
 ## Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)
 
-Altimeter: barometric, read as a barometer. 5712 log samples; clocks lined up within 1.37 s; the log reads a landing; 266 samples after the simulated flight had ended.
+Altimeter: barometric, read as a barometer. 5712 log samples; clocks lined up within 1.37 s; the log reads a landing; 273 samples after the simulated flight had ended.
 
 Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| boost | 0.00 | 4.67 | 467 | -127.3 | 165.8 | -310.7 | 4.54 |
-| coast | 4.67 | 28.69 | 2402 | +100.9 | 207.5 | +353.0 | 28.64 |
-| descent | 28.69 | 223.01 | 2326 | +291.5 | 311.5 | +405.2 | 37.87 |
+| boost | 0.00 | 4.67 | 467 | -126.8 | 165.1 | -309.2 | 4.54 |
+| coast | 4.67 | 28.69 | 2402 | +108.6 | 214.2 | +366.1 | 28.64 |
+| descent | 28.69 | 223.01 | 2319 | +301.5 | 322.2 | +418.6 | 37.87 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| boost | 0.00 | 4.67 | 467 | -79.2 | 88.2 | -119.6 | 4.14 |
-| coast | 4.67 | 28.69 | 2402 | +30.1 | 42.5 | +100.0 | 8.35 |
-| descent | 28.69 | 223.01 | 2326 | -0.7 | 6.2 | -21.5 | 157.51 |
+| boost | 0.00 | 4.67 | 467 | -78.9 | 87.8 | -119.0 | 4.14 |
+| coast | 4.67 | 28.69 | 2402 | +30.5 | 42.8 | +100.5 | 8.35 |
+| descent | 28.69 | 223.01 | 2319 | -0.8 | 6.3 | -21.5 | 157.51 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3892.09 | 3711.78 to 4070.70 | measured | 3549.26 | +342.83 |
-| time to apogee (s) | 28.69 | none stated | measured | 27.26 | +1.43 |
+| apogee (m) | 3892.09 | 3711.78 to 4070.42 | measured | 3536.60 | +355.49 |
+| time to apogee (s) | 28.69 | none stated | measured | 27.21 | +1.48 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | 99.40 | 90.12 to 107.48 | measured | 92.99 | +6.41 |
 | burnout (s) | 4.67 | none stated | measured | 4.63 | +0.04 |
-| flight time (s) | 223.01 | 223.43 to 224.22 | measured | 202.75 | +20.26 |
-| descent under the drogue (m/s) | 26.50 | 25.30 to 27.73 | derived | 26.72 | -0.21 |
-| main's opening (m) | 411.51 | none stated | derived | 418.88 | -7.37 |
-| descent under the main (m/s) | 6.50 | 6.17 to 6.84 | derived | 7.15 | -0.64 |
+| flight time (s) | 223.01 | 223.44 to 224.24 | measured | 202.30 | +20.71 |
+| descent under the drogue (m/s) | 26.50 | 25.30 to 27.73 | derived | 26.70 | -0.20 |
+| main's opening (m) | 411.51 | none stated | derived | 418.85 | -7.34 |
+| descent under the main (m/s) | 6.50 | 6.16 to 6.84 | derived | 7.15 | -0.64 |
 
 ## Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)
 
@@ -120,27 +120,27 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.95 | 600 | +267.5 | 474.3 | +7784.7 | 29.90 |
+| flight | 0.00 | 29.95 | 600 | +254.1 | 467.1 | +7756.8 | 29.90 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.95 | 600 | +0.8 | 25.1 | -122.2 | 3.10 |
+| flight | 0.00 | 29.95 | 600 | -0.1 | 25.2 | -122.9 | 3.10 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | withheld |  |  | 2950.15 |  |
-| time to apogee (s) | withheld |  |  | 26.58 |  |
-| top vertical speed (m/s) | withheld |  |  | 226.78 |  |
+| apogee (m) | withheld |  |  | 2976.66 |  |
+| time to apogee (s) | withheld |  |  | 26.73 |  |
+| top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
-| burnout (s) | withheld |  |  | at least 4.50 |  |
-| flight time (s) | withheld |  |  | 156.70 |  |
+| burnout (s) | withheld |  |  | withheld |  |
+| flight time (s) | withheld |  |  | 157.80 |  |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | withheld |  |  | withheld |  |
-| descent under the main (m/s) | withheld |  |  | 22.66 |  |
+| descent under the main (m/s) | withheld |  |  | 22.69 |  |
 
 ## Cavour, Politecnico di Torino, EuRoC 2023 (L995)
 
@@ -150,7 +150,7 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 23.50 | 128 | -96.4 | 118.0 | -164.9 | 23.40 |
+| ascent | 0.00 | 23.50 | 128 | -96.2 | 117.7 | -164.4 | 23.40 |
 
 Speed:
 
@@ -162,7 +162,7 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2785.00 | 2641.57 to 2927.08 | measured | 2945.92 | -160.92 |
+| apogee (m) | 2785.00 | 2641.57 to 2926.85 | measured | 2945.42 | -160.42 |
 | time to apogee (s) | 23.50 | none stated | measured | 23.30 | +0.20 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
@@ -170,34 +170,34 @@ Readings, the simulation read as the log is:
 
 ## Genesis, EuRoC 2023 (L995)
 
-Altimeter: barometric, assumed, read as a barometer. 17933 log samples; clocks lined up within 1.40 s; the log reads a landing; 154 samples after the simulated flight had ended.
+Altimeter: barometric, assumed, read as a barometer. 17933 log samples; clocks lined up within 1.40 s; the log reads a landing; 157 samples after the simulated flight had ended.
 
 Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 23.69 | 2369 | +54.4 | 96.7 | +171.0 | 23.68 |
-| descent | 23.69 | 175.53 | 15031 | +65.5 | 89.1 | +208.6 | 28.94 |
+| ascent | 0.00 | 23.69 | 2369 | +54.8 | 97.1 | +171.8 | 23.68 |
+| descent | 23.69 | 175.53 | 15028 | +66.1 | 89.7 | +209.4 | 28.94 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 23.69 | 2369 | +78.0 | 191.9 | +705.2 | 8.24 |
-| descent | 23.69 | 175.53 | 15031 | -1.0 | 2.3 | +6.1 | 23.69 |
+| ascent | 0.00 | 23.69 | 2369 | +78.1 | 191.9 | +705.2 | 8.24 |
+| descent | 23.69 | 175.53 | 15028 | -1.0 | 2.3 | +6.1 | 23.69 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2915.34 | 2779.95 to 3049.45 | measured | 2745.93 | +169.41 |
+| apogee (m) | 2915.34 | 2779.95 to 3049.24 | measured | 2745.16 | +170.18 |
 | time to apogee (s) | 23.69 | none stated | measured | 23.04 | +0.65 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 175.53 | 175.75 to 176.17 | measured | 173.76 | +1.77 |
-| descent under the drogue (m/s) | 25.68 | 24.50 to 26.88 | derived | 23.73 | +1.95 |
-| main's opening (m) | 806.18 | none stated | derived | 797.33 | +8.85 |
+| flight time (s) | 175.53 | 175.76 to 176.18 | measured | 173.72 | +1.81 |
+| descent under the drogue (m/s) | 25.68 | 24.49 to 26.88 | derived | 23.73 | +1.95 |
+| main's opening (m) | 806.18 | none stated | derived | 797.30 | +8.88 |
 | descent under the main (m/s) | 11.53 | 10.98 to 12.06 | derived | 11.60 | -0.07 |
 
 ## Lince, EuRoC 2023 (M1101)
@@ -208,29 +208,29 @@ Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 25.91 | 2591 | -5.2 | 68.5 | -138.4 | 25.89 |
-| descent | 25.91 | 430.91 | 40501 | -529.4 | 554.5 | -907.4 | 27.63 |
+| ascent | 0.00 | 25.91 | 2591 | -3.1 | 67.4 | -134.2 | 25.89 |
+| descent | 25.91 | 430.91 | 40501 | -525.2 | 550.5 | -902.9 | 27.63 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ascent | 0.00 | 25.91 | 2591 | +3.2 | 95.4 | +375.9 | 15.11 |
+| ascent | 0.00 | 25.91 | 2591 | +3.4 | 95.4 | +376.1 | 15.11 |
 | descent | 25.91 | 430.91 | 40501 | +16.7 | 354.3 | +10210.8 | 29.09 |
 
 Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3586.66 | 3420.58 to 3751.18 | measured | 3732.48 | -145.82 |
-| time to apogee (s) | 25.91 | none stated | measured | 27.16 | -1.25 |
+| apogee (m) | 3586.66 | 3420.58 to 3750.92 | measured | 3728.01 | -141.34 |
+| time to apogee (s) | 25.91 | none stated | measured | 27.13 | -1.22 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 430.91 | 431.31 to 432.07 | measured | 552.45 | -121.54 |
+| flight time (s) | 430.91 | 431.32 to 432.09 | measured | 551.86 | -120.95 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | 3403.33 | none stated | derived | withheld |  |
-| descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.48 |
+| descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.49 |
 
 ## Sources
 

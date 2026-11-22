@@ -16,9 +16,9 @@ sensors, and how well its 90% intervals hold.
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-300, the smoother and its check][adr-300].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
-  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.4% to 98.1% of
+  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.1% to 97.5% of
   set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). Two
-  logger cells fall under 90%: 88.7% on set B and 89.2% on set A, which the check's rule allows. Sets
+  logger cells fall under 90%: 88.7% on set B and 80% on the tuning set, which the check's rule allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)). Tracking from the ground can't stand in for one: a
@@ -82,26 +82,27 @@ was:
 
 | Moment | Height | Speed | Median standard error (height, speed) |
 |---|---:|---:|---:|
-| Burnout | 96.8% | 96.4% | 59.3 m (195 ft), 11.2 m/s (37 ft/s) |
-| Top speed | 97.4% | 94.4% | 62.3 m (204 ft), 11.1 m/s (36 ft/s) |
-| Apogee | 97.3% | 96.9% | 85.3 m (280 ft), 1.23 m/s (4.04 ft/s) |
-| A drawn moment | 97.3% | 98.1% | 18.5 m (61 ft), 1.02 m/s (3.35 ft/s) |
+| Burnout | 96.8% | 96.8% | 59.3 m (195 ft), 11.2 m/s (37 ft/s) |
+| Top speed | 97.4% | 94.1% | 62 m (203 ft), 10.9 m/s (36 ft/s) |
+| Apogee | 97.3% | 96% | 85.1 m (279 ft), 1.24 m/s (4.07 ft/s) |
+| A drawn moment | 97.2% | 97.5% | 18.5 m (61 ft), 1.02 m/s (3.35 ft/s) |
 
 The intervals are wide on purpose. Two terms are expected to lead the height interval: the
 day's air, which a log without a GNSS receiver can't measure, and the port's error. The widest
-are on barometer-only loggers, in the report's JSON per logger: up to 407 m (1,335 ft) at
+are on barometer-only loggers, in the report's JSON per logger: up to 403 m (1,322 ft) at
 burnout and 260 m/s (853 ft/s) at a drawn moment.
 
-Across the three sets, each set's cells run from 94.2% to 99.4%. Per logger, the lowest cells
-are 88.7% on set B and 89.2% on set A, both the GNSS logger's apogee height. The rule still
-allows them: their misses aren't shown to pass 5% a side.
+Across the three sets, each set's cells run from 94.1% to 98.8%. Per logger, the lowest cells
+are 88.7% on set B and 90.3% on set A, both the GNSS logger's apogee height, and 80% on the
+tuning set, the RRC3's speed at apogee: of its 30 truths, 6 lay above the interval. The rule
+still allows them: their misses aren't shown to pass 5% a side.
 
 The check also runs a setting made to fail. Each log with a GNSS track is smoothed again with
 its receiver trusted from liftoff, which is wrong on purpose: a receiver lags a climb. `hpr
 analyze` can't be set that way. The check must catch it, and it does. B's 186 smoothed logs with
 a GNSS track were smoothed again that way, the rest left as they were. Six of them ran away and
 were withheld ([A track that runs away](#a-track-that-runs-away)). That leaves 839 of B's 845
-smoothed flights. Of those, 144 apogee truths lay below the interval, and only 82.2% inside it.
+smoothed flights. Of those, 144 apogee truths lay below the interval, and only 82.4% inside it.
 Every set and moment is in [the report][mutation].
 
 ### A track that runs away
@@ -155,8 +156,8 @@ liftoff, the track is withheld as diverged. Trusted by agreement, as shipped, th
 smooths. Its top speed reads within 2 m/s (6.6 ft/s) of the true 98.1 m/s (322 ft/s). At 30 s,
 on the way down, the true height and speed lie inside their 90% intervals.
 
-On the synthetic flights, the wrong setting runs away on 11 of the 185 logs set A smooths
-again. It does so on 6 of set B's 186 and on none of the tuning set's 33
+On the synthetic flights, the wrong setting runs away on 8 of the 185 logs set A smooths
+again. It does so on 6 of set B's 186 and on 1 of the tuning set's 33
 ([the report][mutation]). Those logs leave the wrong setting's cells, and it still fails on the
 rest, as it must. As shipped, the check fails if a single synthetic log with a barometer is
 withheld, for this reason or another, and none is.
@@ -184,7 +185,7 @@ assumes it:
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the
 logger's true zero, so the test holds no error in that zero. On the [report][launch]'s sets A and B, every cell
-holds, overall and per logger (the command fails otherwise): 95.6% to 98.7% of truths lie inside the
+holds, overall and per logger (the command fails otherwise): 94.7% to 98.7% of truths lie inside the
 90% intervals overall. Real logs have no such truth ([evidence row G33](../evidence.md#g33)). Their
 smoothed apogee falls outside the reading's bound on 11 of the 372 on an assumed pad and 19 of the
 174 on their own. A log's own pad doesn't prevent it
@@ -199,7 +200,7 @@ so, and the reading is the one to go by.
 A barometer-only log from the tuning set, as the report prints it:
 
 ```text,wrap
-barometer: 5632 samples, 5632 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.678; largest test ratio 0.632 at 141 s, Mach 0.01
+barometer: 5625 samples, 5625 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.714; largest test ratio 0.646 at 141 s, Mach 0.01
 barometer de-weighted: charge 28.1–30.1 s
 pass back: every step smoothed
 ```

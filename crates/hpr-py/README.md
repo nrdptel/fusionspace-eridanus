@@ -15,7 +15,7 @@ flights as NumPy arrays.
 
 Every figure it gives is an estimate from a model, not a measurement, and never a go/no-go
 verdict. Against 60 logged flights of fliers' own designs, the simulated apogee
-missed by 12.09% on average (mean absolute), outside the 5% target. On average the apogee read high
+missed by 12.10% on average (mean absolute), outside the 5% target. On average the apogee read high
 by 8.01%. It can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee
 reads low ([Accuracy](https://hpr.fusionspace.co/accuracy.html)). The motor's printed data and your
 range safety officer (RSO) are authoritative. The 60 flights' weather is ERA5, generated using

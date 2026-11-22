@@ -48,13 +48,14 @@ Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-
 
 ## Apogee errors
 
-Each simulator's apogee less the logged one, over the logged one, per cent. hpr flies the whole ERA5 profile; OpenRocket the standard atmosphere through the pad's temperature and pressure, in the same wind every 50 m; "hpr in OpenRocket's air" is hpr there too; "hpr against OpenRocket" is hpr's apogee less OpenRocket's, over OpenRocket's. Nothing deploys in either. The mean absolute error averages the errors without their signs; "within 5%" and "within 10%" count the errors strictly smaller either way. The histogram's bins are bounded at -30, -25, -20, -15, -10, -5, +0, +5, +10, +15, +20, +25, +30%, each closed below.
+Each simulator's apogee less the logged one, over the logged one, per cent. hpr flies the whole ERA5 profile; OpenRocket the standard atmosphere through the pad's temperature and pressure, in the same wind every 50 m; "hpr in OpenRocket's air" is hpr there too; "hpr against OpenRocket" is hpr's apogee less OpenRocket's, over OpenRocket's. Nothing deploys in either. "hpr" flies as HPR Sim does by default: a design with two rail guides at different stations leaves the rail by the tip-off phase. OpenRocket has no such phase, so the rows that compare with it fly hpr held straight on the rail, the phase off: "hpr held straight on the rail", "hpr in OpenRocket's air" and "hpr against OpenRocket", and the gap's split, the nose's line and the drag by Mach band and by term below. The mean absolute error averages the errors without their signs; "within 5%" and "within 10%" count the errors strictly smaller either way. The histogram's bins are bounded at -30, -25, -20, -15, -10, -5, +0, +5, +10, +15, +20, +25, +30%, each closed below.
 
 ### every flight compared (60 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +8.01% | +7.60% | 12.09% | 15.42% | 12 | 31 | 0 0 0 1 4 6 4 8 13 11 2 5 4 2 |
+| hpr | +8.01% | +7.60% | 12.10% | 15.42% | 12 | 31 | 0 0 0 1 4 6 4 8 13 11 2 5 4 2 |
+| hpr held straight on the rail | +8.01% | +7.60% | 12.09% | 15.42% | 12 | 31 | 0 0 0 1 4 6 4 8 13 11 2 5 4 2 |
 | OpenRocket | +6.72% | +6.08% | 11.26% | 14.25% | 13 | 31 | 0 0 0 1 6 6 3 10 12 8 5 6 1 2 |
 | hpr in OpenRocket's air | +8.15% | +7.60% | 12.19% | 15.52% | 12 | 30 | 0 0 0 1 4 6 4 8 12 10 4 6 3 2 |
 | hpr against OpenRocket | +1.18% | +0.95% | 1.73% | 2.35% | 59 | 60 | 0 0 0 0 0 0 13 46 1 0 0 0 0 0 |
@@ -63,7 +64,8 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +3.70% | +5.69% | 9.46% | 11.07% | 8 | 25 | 0 0 0 1 4 6 3 5 11 8 0 1 2 0 |
+| hpr | +3.71% | +5.69% | 9.46% | 11.06% | 8 | 25 | 0 0 0 1 4 6 3 5 11 8 0 1 2 0 |
+| hpr held straight on the rail | +3.70% | +5.69% | 9.46% | 11.07% | 8 | 25 | 0 0 0 1 4 6 3 5 11 8 0 1 2 0 |
 | OpenRocket | +2.41% | +4.26% | 8.81% | 10.22% | 9 | 25 | 0 0 0 1 6 5 3 6 11 6 1 2 0 0 |
 | hpr in OpenRocket's air | +3.85% | +6.07% | 9.54% | 11.14% | 8 | 24 | 0 0 0 1 4 6 3 5 10 9 0 2 1 0 |
 | hpr against OpenRocket | +1.25% | +1.10% | 1.79% | 2.41% | 40 | 41 | 0 0 0 0 0 0 9 31 1 0 0 0 0 0 |
@@ -72,7 +74,8 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +7.30% | +7.10% | 11.60% | 14.12% | 9 | 26 | 0 0 0 0 4 6 4 5 11 8 2 4 4 1 |
+| hpr | +7.30% | +7.10% | 11.59% | 14.12% | 9 | 26 | 0 0 0 0 4 6 4 5 11 8 2 4 4 1 |
+| hpr held straight on the rail | +7.30% | +7.10% | 11.60% | 14.12% | 9 | 26 | 0 0 0 0 4 6 4 5 11 8 2 4 4 1 |
 | OpenRocket | +6.09% | +5.84% | 10.84% | 13.08% | 10 | 26 | 0 0 0 0 6 6 2 8 10 5 5 5 1 1 |
 | hpr in OpenRocket's air | +7.43% | +7.08% | 11.69% | 14.22% | 9 | 26 | 0 0 0 0 4 6 4 5 11 6 4 5 3 1 |
 | hpr against OpenRocket | +1.13% | +0.94% | 1.74% | 2.40% | 48 | 49 | 0 0 0 0 0 0 12 36 1 0 0 0 0 0 |
@@ -85,7 +88,8 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +4.56% | +4.21% | 9.45% | 11.59% | 10 | 22 | 0 0 0 1 2 6 2 8 6 8 1 1 2 0 |
+| hpr | +4.58% | +4.21% | 9.46% | 11.60% | 10 | 22 | 0 0 0 1 2 6 2 8 6 8 1 1 2 0 |
+| hpr held straight on the rail | +4.56% | +4.21% | 9.45% | 11.59% | 10 | 22 | 0 0 0 1 2 6 2 8 6 8 1 1 2 0 |
 | OpenRocket | +3.64% | +3.41% | 8.95% | 11.02% | 11 | 23 | 0 0 0 1 4 4 3 8 8 4 2 2 1 0 |
 | hpr in OpenRocket's air | +4.70% | +3.80% | 9.56% | 11.73% | 10 | 22 | 0 0 0 1 2 6 2 8 6 7 2 1 2 0 |
 | hpr against OpenRocket | +0.89% | +0.94% | 1.71% | 2.20% | 37 | 37 | 0 0 0 0 0 0 10 27 0 0 0 0 0 0 |
@@ -94,7 +98,8 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +13.56% | +12.69% | 16.34% | 20.10% | 2 | 9 | 0 0 0 0 2 0 2 0 7 3 1 4 2 2 |
+| hpr | +13.54% | +12.69% | 16.33% | 20.09% | 2 | 9 | 0 0 0 0 2 0 2 0 7 3 1 4 2 2 |
+| hpr held straight on the rail | +13.56% | +12.69% | 16.34% | 20.10% | 2 | 9 | 0 0 0 0 2 0 2 0 7 3 1 4 2 2 |
 | OpenRocket | +11.68% | +11.69% | 14.98% | 18.28% | 2 | 8 | 0 0 0 0 2 2 0 2 4 4 3 4 0 2 |
 | hpr in OpenRocket's air | +13.71% | +13.03% | 16.43% | 20.16% | 2 | 8 | 0 0 0 0 2 0 2 0 6 3 2 5 1 2 |
 | hpr against OpenRocket | +1.65% | +1.09% | 1.76% | 2.56% | 22 | 23 | 0 0 0 0 0 0 3 19 1 0 0 0 0 0 |
@@ -256,7 +261,7 @@ Power off, HPR Sim's value is 3.0 to 5.1 times the measured. The jet raises the 
 
 ## The tip-off phase (M1.14b14)
 
-Each flight compared is flown again with the tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. Guided is the flight as HPR Sim flies it by default, held straight to its last guide. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided; still air is the day's air with its wind taken out, so that what the phase moves there is gravity's turn about the last guide alone. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
+Each flight compared is flown with the tip-off phase, HPR Sim's default, and again guided. With the phase, once the guide ahead of the aft-most one leaves the rail, the rocket pivots about its last guide until that one leaves too. Guided is the flight with the phase off, held straight to its last guide: the row "hpr held straight on the rail" above. A design with fewer than two guides at different stations has no such stretch and flies as it did. The move is the apogee with the phase less the apogee guided, over the apogee guided; still air is the day's air with its wind taken out, so that what the phase moves there is gravity's turn about the last guide alone. The public flights' table and what it means are in [the tip-off flights' report](tip-off-flights.md).
 
 | | compared | with two or more guides at different stations |
 |---|---:|---:|

@@ -19,30 +19,30 @@ Written by `cargo xtask real-flights` ([M2.3b][m2-3b], decision [ADR-082][adr-08
 ## Summary
 
 - Flights: 12: 7 compared as soon as they were flown, 5 predicted first.
-- Mean absolute apogee error: 8.88% against a target of 5%: outside target.
-- Mean apogee error with its sign: -4.64%.
-- Over the 7 compared first: mean absolute apogee error 6.06%, with its sign +0.03%.
-- Over the 5 predicted first: mean absolute apogee error 12.82%, with its sign -11.16%.
-- Over the 2 tagged, with their predictions, as having every input traced: mean absolute apogee error 7.29%, with its sign -7.29%. The flights compared first were compared before tags existed and carry none, so they are not counted here.
-- Over the 10 flown in ERA5 weather: mean absolute apogee error 6.12%, with its sign -1.03%.
-- On the predictions as first merged, each revised one put back: mean absolute apogee error 9.01%, with its sign -4.76%.
-- Mean absolute apogee error were every log a height, not a barometric reading: 7.90%.
-- Mean absolute apogee error with only the logs known to be barometric read so, the assumed ones as heights: 9.01%.
-- Largest trace RMS, over the 7 compared first: 6.95% of its log's apogee.
+- Mean absolute apogee error: 8.83% against a target of 5%: outside target.
+- Mean apogee error with its sign: -4.61%.
+- Over the 7 compared first: mean absolute apogee error 5.97%, with its sign +0.07%.
+- Over the 5 predicted first: mean absolute apogee error 12.82%, with its sign -11.17%.
+- Over the 2 tagged, with their predictions, as having every input traced: mean absolute apogee error 7.30%, with its sign -7.30%. The flights compared first were compared before tags existed and carry none, so they are not counted here.
+- Over the 10 flown in ERA5 weather: mean absolute apogee error 6.05%, with its sign -0.99%.
+- On the predictions as first merged, each revised one put back: mean absolute apogee error 8.95%, with its sign -4.74%.
+- Mean absolute apogee error were every log a height, not a barometric reading: 8.00%.
+- Mean absolute apogee error with only the logs known to be barometric read so, the assumed ones as heights: 8.96%.
+- Largest trace RMS, over the 7 compared first: 6.80% of its log's apogee.
 - Outside the target: ndrt-2020, prometheus-2022, juno-iii, cavour, genesis, astra, erebus-11, macie-xl-1, macie-xl-2.
-- On each example's own drag, the diagnostic flight, over the 7 compared first: mean absolute apogee error 3.48%.
+- On each example's own drag, the diagnostic flight, over the 7 compared first: mean absolute apogee error 3.33%.
 
 ## Flights compared first
 
 | flight | altimeter | log apogee (m) | hpr apogee (m) | apogee error | hpr apogee as a height (m) | log time to apogee (s) | hpr time to apogee (s) | trace RMS (m) | trace RMS (% of apogee) | rows | hpr's largest Mach |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | barometric, assumed | 459.0 | 464.0 | +1.10% | 464.7 | 9.46 | 9.50 | 3.7 | 0.80% | 161 | 0.265 |
-| NDRT 2020, Notre Dame Rocketry Team (L1395) | barometric | 1320.4 | 1457.6 | +10.40% | 1432.8 | 15.76 | 16.71 | 89.9 | 6.81% | 316 | 0.536 |
-| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | barometric | 3895.8 | 3549.3 | -8.90% | 3809.9 | 28.44 | 26.55 | 190.9 | 4.90% | 2875 | 0.959 |
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | barometric | 3151.5 | 2950.2 | -6.39% | 3203.1 | 23.62 | 25.63 | 219.2 | 6.95% | 473 | 0.733 |
-| Cavour, Politecnico di Torino, EuRoC 2023 (L995) | barometric, assumed | 2785.0 | 2946.0 | +5.78% | 3052.1 | 22.38 | 22.68 | 124.6 | 4.47% | 120 | 0.933 |
-| Genesis, EuRoC 2023 (L995) | barometric, assumed | 2916.7 | 2746.0 | -5.85% | 2875.3 | 23.33 | 22.45 | 95.2 | 3.26% | 2244 | 0.854 |
-| Lince, EuRoC 2023 (M1101) | barometric, assumed | 3587.7 | 3732.5 | +4.04% | 3898.7 | 25.25 | 26.51 | 69.9 | 1.95% | 2526 | 0.994 |
+| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | barometric, assumed | 459.0 | 464.1 | +1.11% | 464.8 | 9.46 | 9.50 | 3.7 | 0.81% | 161 | 0.265 |
+| NDRT 2020, Notre Dame Rocketry Team (L1395) | barometric | 1320.4 | 1457.5 | +10.39% | 1432.7 | 15.76 | 16.71 | 89.8 | 6.80% | 316 | 0.536 |
+| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | barometric | 3895.8 | 3536.6 | -9.22% | 3796.4 | 28.44 | 26.50 | 196.2 | 5.04% | 2870 | 0.959 |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | barometric | 3151.5 | 2976.7 | -5.55% | 3231.4 | 23.62 | 25.76 | 207.4 | 6.58% | 473 | 0.732 |
+| Cavour, Politecnico di Torino, EuRoC 2023 (L995) | barometric, assumed | 2785.0 | 2945.5 | +5.76% | 3051.6 | 22.38 | 22.68 | 124.2 | 4.46% | 120 | 0.933 |
+| Genesis, EuRoC 2023 (L995) | barometric, assumed | 2916.7 | 2745.2 | -5.88% | 2874.5 | 23.33 | 22.44 | 95.6 | 3.28% | 2244 | 0.854 |
+| Lince, EuRoC 2023 (M1101) | barometric, assumed | 3587.7 | 3728.0 | +3.91% | 3894.0 | 25.25 | 26.49 | 68.9 | 1.92% | 2526 | 0.994 |
 
 ## Predicted before they were compared
 
@@ -50,9 +50,9 @@ Each of these flights' predictions was merged before its log was read as numbers
 
 | flight | altimeter | log apogee (m) | merged prediction (m) | hpr apogee today (m) | apogee error | merged prediction's error | every input traced | hpr apogee as a height (m) | log rows | hpr's largest Mach | impulse flown (N s) |
 |---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|
-| Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350) | barometric, assumed | 3249.5 | 3037.1 | 3037.1 | -6.53% | -6.54% | yes | 3155.4 | 64 | 0.911 | 4280.2 |
-| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | barometric, assumed | 3438.5 | 3581.0 | 3581.0 | +4.14% | +4.14% | no: not traced | 3729.5 | 1139 | 1.019 | 9866.7 |
-| Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K) | barometric, assumed | 3001.8 | 2714.1 | 2760.1 | -8.05% | -9.58% | yes | 2856.5 | 746 | 0.877 | 2418.2 |
+| Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350) | barometric, assumed | 3249.5 | 3037.1 | 3037.1 | -6.54% | -6.54% | yes | 3155.3 | 64 | 0.911 | 4280.2 |
+| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | barometric, assumed | 3438.5 | 3581.0 | 3580.6 | +4.13% | +4.14% | no: not traced | 3729.1 | 1139 | 1.019 | 9866.7 |
+| Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K) | barometric, assumed | 3001.8 | 2714.1 | 2759.6 | -8.07% | -9.58% | yes | 2856.0 | 746 | 0.877 | 2418.2 |
 | Macie XL, flight 1 (AeroTech I284W) | barometric | 842.8 | 706.2 | 706.2 | -16.20% | -16.21% | no: not traced | 706.3 | 2952 | 0.354 | 599.5 |
 | Macie XL, flight 2 (Cesaroni 601I350-16A) | barometric | 977.8 | 692.6 | 692.6 | -29.16% | -29.17% | no: not traced | 692.7 | 2312 | 0.362 | 600.8 |
 
@@ -60,13 +60,13 @@ Shown beside them and never counted in a mean:
 
 | flight | what | apogee (m) | error against the log |
 |---|---|---:|---:|
-| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | on the catalog's curve, Cesaroni 8429M2020-P | 3050.3 | -11.29% |
+| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | on the catalog's curve, Cesaroni 8429M2020-P | 3050.0 | -11.30% |
 | Macie XL, flight 1 (AeroTech I284W) | OpenRocket 24.12's simulation stored in the design file | 704.6 | -16.40% |
 | Macie XL, flight 2 (Cesaroni 601I350-16A) | OpenRocket 24.12's simulation stored in the design file | 691.6 | -29.26% |
 
-- **Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350)** (`astra`): the design built from RocketPy's example, `rocketpy-astra`, flown in the ERA5 weather of 2022-10-13T15:00Z, on 4280.2 N s of impulse. The log is `refs/rocketpy/data/rockets/astra/flight_data.csv`, 64 rows. Its apogee is read as the highest reading of the log's `alt` column, in meters, the log read whole. Every input is traced to its record.
-- **Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve)** (`andromeda`): the design built from RocketPy's example, `rocketpy-andromeda`, flown in the ERA5 weather of 2022-10-14T13:00Z, on 9866.7 N s of impulse, +17.1% against the 8428.7 N s of the catalog's curve shown above. The log is `refs/rocketpy/data/rockets/andromeda/flight_data.csv`, 1139 rows. Its apogee is read as the highest reading of the log's `alt(m)` column, the log read whole. Not traced: the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high; the thrust file holds more impulse than the Cesaroni M2020 reload it is named for is certified at, so the notebook does not settle which motor the logged flight burned.
-- **Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)** (`erebus-11`): the design built from RocketPy's example, `rocketpy-erebus-11`, flown in the ERA5 weather of 2022-10-15T15:00Z, on 2418.2 N s of impulse. The log is `refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv`, 746 rows. Its apogee is read as the highest reading of the log's `alt` column, in meters, the log read whole. Revised, because M1.14i3 (ADR-362) changed HPR Sim's base drag below Mach 0.8: behind a boattail the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus 11 has a boattail; nothing in its design or inputs changed. Every input is traced to its record.
+- **Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350)** (`astra`): the design built from RocketPy's example, `rocketpy-astra`, flown in the ERA5 weather of 2022-10-13T15:00Z, on 4280.2 N s of impulse. The log is `refs/rocketpy/data/rockets/astra/flight_data.csv`, 64 rows. Its apogee is read as the highest reading of the log's `alt` column, in meters, the log read whole. Revised, because M1.14b15 (ADR-363, decision 1) made the tip-off phase the default. Astra has two rail buttons, so between the forward button's leaving the rail and the aft one's it turns about the aft button, and it leaves the rail turning (ADR-357, ADR-358). Nothing in its design or inputs changed. Every input is traced to its record.
+- **Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve)** (`andromeda`): the design built from RocketPy's example, `rocketpy-andromeda`, flown in the ERA5 weather of 2022-10-14T13:00Z, on 9866.7 N s of impulse, +17.1% against the 8428.7 N s of the catalog's curve shown above. The log is `refs/rocketpy/data/rockets/andromeda/flight_data.csv`, 1139 rows. Its apogee is read as the highest reading of the log's `alt(m)` column, the log read whole. Revised, because M1.14b15 (ADR-363, decision 1) made the tip-off phase the default. Andromeda has two rail buttons, so between the forward button's leaving the rail and the aft one's it turns about the aft button, and it leaves the rail turning (ADR-357, ADR-358). Nothing in its design or inputs changed. Not traced: the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high; the thrust file holds more impulse than the Cesaroni M2020 reload it is named for is certified at, so the notebook does not settle which motor the logged flight burned.
+- **Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)** (`erebus-11`): the design built from RocketPy's example, `rocketpy-erebus-11`, flown in the ERA5 weather of 2022-10-15T15:00Z, on 2418.2 N s of impulse. The log is `refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv`, 746 rows. Its apogee is read as the highest reading of the log's `alt` column, in meters, the log read whole. Revised, because Two changes to HPR Sim. M1.14i3 (ADR-362) changed its base drag below Mach 0.8: behind a boattail the base is d_B/d of a flat base's value (NASA TR R-100, 1961, p. 11), set on the Hermes A-3A's measured base drag (NACA RM SL55F15), where the old rule read 0.050 to 0.064 high on its largest cross-section and the new one 0.025 to 0.035. Erebus 11 has a boattail, and its apogee rose 46.0 m to 2760.1 m. Then M1.14b15 (ADR-363, decision 1) made the tip-off phase the default: Erebus 11 has two rail buttons and leaves the rail turning (ADR-357, ADR-358), which took 0.5 m off. Nothing in its design or inputs changed. Every input is traced to its record.
 - **Macie XL, flight 1 (AeroTech I284W)** (`macie-xl-1`): the design file `refs/public-flights/rocketry-files/macie/macie-xl.ork` as saved, as its stored simulation `maciexl-1-or` flies it, flown in the 1976 US Standard Atmosphere, for the stored simulation's `isa`, on 599.5 N s of impulse. The log is `refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-1-sl.pf2`, 2952 rows. Its apogee is read as the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot), which leaves out the ejection spike among the samples; never the highest sample. Its highest sample is 1052.8 m, +210.0 m from that apogee: shown, not compared. Not traced: no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones; no record says the rocket was weighed as flown: the file's parts and overrides are flown; the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown; the motor flies the bundled catalog's masses for it, 313.6 g of propellant and 555.52 g loaded, as every catalog motor does, where the curve file the design's digest names, and OpenRocket's own record of that digest, give 310.016 g and 555.072 g (the table's `mass_difference`).
 - **Macie XL, flight 2 (Cesaroni 601I350-16A)** (`macie-xl-2`): the design file `refs/public-flights/rocketry-files/macie/macie-xl.ork` as saved, as its stored simulation `maciexl-2-or` flies it, flown in the 1976 US Standard Atmosphere, for the stored simulation's `isa`, on 600.8 N s of impulse. The log is `refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-2-sl.pf2`, 2312 rows. Its apogee is read as the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot); never the highest sample. Its highest sample is 978.7 m, +0.9 m from that apogee: shown, not compared. Not traced: no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones; no record says the rocket was weighed as flown: the file's parts and overrides are flown; the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown.
 
@@ -76,13 +76,13 @@ A diagnostic, not a prediction, flown for the flights compared first: the same f
 
 | flight | example's drag | apogee (m) | apogee error | trace RMS (m) |
 |---|---|---:|---:|---:|
-| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | bella_lui_flight_sim.ipynb:94-95, :453-484 (power off and on, times 1) | 460.1 | +0.24% | 2.0 |
-| NDRT 2020, Notre Dame Rocketry Team (L1395) | ndrt_2020_flight_sim.ipynb:91 and :316-317 (the drag coefficient, power off and on) | 1322.6 | +0.17% | 31.7 |
-| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | prometheus_2022_flight_sim.ipynb:224-261 (`prometheus_cd_at_ma` from Mach 0.15, where it starts to change, and power on 1.02 times it) | 3913.5 | +0.45% | 98.4 |
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | juno3_flight_sim.ipynb:244-251, :356-359 (`drag_curve.csv`, scaled to 0.38 at Mach 0.6 "from CFD analysis") | 2866.1 | -9.05% | 255.3 |
-| Cavour, Politecnico di Torino, EuRoC 2023 (L995) | cavour_flight_sim.ipynb:250-251 | 2725.0 | -2.15% | 26.9 |
-| Genesis, EuRoC 2023 (L995) | genesis_flight_sim.ipynb:241-242 | 2914.5 | -0.08% | 32.7 |
-| Lince, EuRoC 2023 (M1101) | lince_flight_sim.ipynb:240-241 | 3149.9 | -12.20% | 279.9 |
+| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | bella_lui_flight_sim.ipynb:94-95, :453-484 (power off and on, times 1) | 460.1 | +0.24% | 2.1 |
+| NDRT 2020, Notre Dame Rocketry Team (L1395) | ndrt_2020_flight_sim.ipynb:91 and :316-317 (the drag coefficient, power off and on) | 1322.5 | +0.16% | 31.7 |
+| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | prometheus_2022_flight_sim.ipynb:224-261 (`prometheus_cd_at_ma` from Mach 0.15, where it starts to change, and power on 1.02 times it) | 3899.3 | +0.09% | 95.9 |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | juno3_flight_sim.ipynb:244-251, :356-359 (`drag_curve.csv`, scaled to 0.38 at Mach 0.6 "from CFD analysis") | 2891.7 | -8.24% | 243.2 |
+| Cavour, Politecnico di Torino, EuRoC 2023 (L995) | cavour_flight_sim.ipynb:250-251 | 2724.6 | -2.17% | 27.1 |
+| Genesis, EuRoC 2023 (L995) | genesis_flight_sim.ipynb:241-242 | 2913.6 | -0.10% | 32.7 |
+| Lince, EuRoC 2023 (M1101) | lince_flight_sim.ipynb:240-241 | 3146.2 | -12.31% | 281.9 |
 
 ## On the thrust file as recorded
 
@@ -90,7 +90,7 @@ A second diagnostic, where an example reshapes its thrust file to a burn time an
 
 | flight | impulse as recorded (N s) | impulse reshaped (N s) | apogee (m) | apogee error |
 |---|---:|---:|---:|---:|
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 9251.7 | 8802.6 | 3219.7 | +2.16% |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 9251.7 | 8802.6 | 3246.6 | +3.02% |
 
 ## Against the logs' own pressure and satellite heights
 

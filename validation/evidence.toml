@@ -541,7 +541,7 @@ found = "the three answers, of 307, 296 and 60 records, now committed unchanged 
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss 12 public real flights by 8.88% on average and 60 private ones by 12.09%, both outside the 5% target"
+claim = "The simulation's apogees miss 12 public real flights by 8.83% on average and 60 private ones by 12.10%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",
@@ -746,7 +746,7 @@ found = "pad and rest noise for four families, upper bounds that mix in wind and
 [[row]]
 id = "G33"
 surface = "The smoother"
-claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.2% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 88.7% and 89.2%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (95.6% to 98.7% overall on A and B, on the true zero)"
+claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.1% and 98.8% of the synthetic flights' truths in the three sets' cells, and two logger cells 88.7% and 80%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.7% to 98.7% overall on A and B, on the true zero)"
 pages = ["physics/smoother.md#in-short", "accuracy.md#where-each-model-stands", "reading-a-flight-log.md#the-90-intervals-and-the-health-card"]
 kind = "calibration"
 wanted = "real"
@@ -1015,7 +1015,7 @@ found = "no other program's CZML or glTF of a real rocket flight to set beside a
 [[row]]
 id = "G38"
 surface = "The least-squares fit"
-claim = "Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen"
+claim = "Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval tested on two sets of synthetic flights, seen while its model was chosen. All pass on both sets but the drag scale's on set B, which fails on its lower tail: too many truths lie below it, so its fitted drag reads high there"
 pages = ["physics/flight-fit.md#in-short", "accuracy.md#where-each-model-stands"]
 kind = "calibration"
 wanted = "real"

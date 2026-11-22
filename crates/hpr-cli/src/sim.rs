@@ -150,6 +150,12 @@ pub struct FlightArgs {
     /// may not be physical
     #[arg(long)]
     pub accept_design_errors: bool,
+    /// Guide the rocket to its last rail guide and free it with no turn. Use it to compare
+    /// with a program that has no tip-off phase, such as OpenRocket.
+    /// Without this, a design with two or more rail guides tips off: it turns about its last
+    /// guide once the one ahead has left the rail
+    #[arg(long)]
+    pub no_tip_off: bool,
     /// Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only,
     /// never on the network
     #[arg(long)]
@@ -640,7 +646,7 @@ impl Setup {
                 ..FlightSettings::default()
             });
         }
-        builder
+        builder.tip_off(!flight.no_tip_off)
     }
 
     /// The motors flown, as the output lists them.
@@ -744,6 +750,7 @@ pub(crate) fn launch(flight: &FlightArgs) -> Launch {
             Some(path) => format!("profile {}", file_name(path)),
             None => "standard".to_owned(),
         },
+        tip_off: !flight.no_tip_off,
     }
 }
 
@@ -1205,6 +1212,9 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
     option("wind", flight.wind.map(|v| v.to_string()));
     option("wind-from", unless(flight.wind_from, 0.0));
     option("weather", word(&flight.weather));
+    if flight.no_tip_off {
+        typed.push("--no-tip-off".to_owned());
+    }
     typed
 }
 

@@ -1,13 +1,13 @@
 //! `cargo xtask tip-off-flights`: what the tip-off phase moves on the real flights HPR Sim
 //! compares (M1.14b14, ADR-363 decision 1).
 //!
-//! - **The question.** HPR Sim's tip-off phase ([`hpr_sim::Simulation::with_tip_off`]) is held
-//!   code to code against RocketPy's (`validation/reports/tip-off-model.md`), and is opt-in.
-//!   Before it becomes the default (M1.14b15), this measures what it does to the real flights'
-//!   apogee errors.
+//! - **The question.** HPR Sim's tip-off phase is held code to code against RocketPy's
+//!   (`validation/reports/tip-off-model.md`). It was opt-in when this was first measured and is
+//!   the default since M1.14b15 ([`hpr_sim::Simulation::without_tip_off`] turns it off). This
+//!   measures what it does to the real flights' apogee errors.
 //! - **The flights.** Three sets, each flown as its own report flies it, once guided to the last
-//!   guide as today and once with the phase ([`hpr_validate::correction::Variant`]): the seven
-//!   flights the real-flight report compared as soon as they were flown, the five it compares
+//!   guide, the phase off, and once with the phase ([`hpr_validate::correction::Variant`]): the
+//!   seven flights the real-flight report compared as soon as they were flown, the five it compares
 //!   after their predictions were merged, and the private collection's logged flights. The
 //!   collection's flights are flown by `cargo xtask fixture-flights`, which writes only their
 //!   aggregate ([`CollectionTipOff`]) into its own report (ADR-151 decision 2, ADR-184 decision
@@ -37,10 +37,11 @@ pub const USAGE: &str = "\
 
 pub const REPORT: &str = "validation/reports/tip-off-flights.json";
 pub const REPORT_MD: &str = "validation/reports/tip-off-flights.md";
-/// How far a guided flight may land from the apogee its committed report gives, m. On the
+/// How far a flight with the phase, which is its report's own flight since the phase became
+/// the default (M1.14b15), may land from the apogee its committed report gives, m. On the
 /// platform that wrote the report it lands on it to the bit; this leaves room for another
 /// platform's rounding, and is 20 times smaller than the smallest move the report gives.
-pub const GUIDED_WITHIN_M: f64 = 0.001;
+pub const REPORT_WITHIN_M: f64 = 0.001;
 /// A move smaller than this, m, either way, counts as not moved: on a vertical rail in still air
 /// gravity has no moment about the last guide, and the public vertical rail's flight moves by
 /// under a millimeter there (`validation/reports/tip-off-flights.json`, NDRT 2020).
@@ -466,10 +467,11 @@ impl CollectionTipOff {
     /// Its section of the collection's report.
     pub(crate) fn markdown(&self) -> String {
         let mut md = String::from(
-            "\n## The tip-off phase (M1.14b14)\n\nEach flight compared is flown again with the \
-             tip-off phase: once the guide ahead of the aft-most one leaves the rail, the rocket \
-             pivots about its last guide until that one leaves too. Guided is the flight as \
-             HPR Sim flies it by default, held straight to its last guide. A design with fewer \
+            "\n## The tip-off phase (M1.14b14)\n\nEach flight compared is flown with the tip-off \
+             phase, HPR Sim's default, and again guided. With the phase, once the guide ahead of \
+             the aft-most one leaves the rail, the rocket pivots about its last guide until that \
+             one leaves too. Guided is the flight with the phase off, held straight to its last \
+             guide: the row \"hpr held straight on the rail\" above. A design with fewer \
              than two guides at different stations has no such stretch and flies as it did. The \
              move is the apogee with the phase less the apogee guided, over the apogee guided; \
              still air is the day's air with its wind taken out, so that what the phase moves \
@@ -647,8 +649,9 @@ impl Report {
              about its last guide once the guide ahead of it has left the rail ([the \
              phase][flight]; compared with RocketPy's in [the comparison](tip-off-model.md), \
              held in still air and not yet in a crosswind on HPR Sim's own normal force). It is \
-             off by default. This report flies every real flight HPR Sim compares with the phase \
-             and without it, before the phase becomes the default. It compares HPR Sim with \
+             HPR Sim's default and can be turned off. This report flies every real flight HPR \
+             Sim compares with the phase and without it; it was first written while the phase \
+             was opt-in, to measure it before it became the default. It compares HPR Sim with \
              itself: it does not check the phase against a measurement.\n\n- **What is \
              flown:** each flight as its own report flies it, the phase the only change: the \
              seven flights [the real-flight report](real-flights.md) compared as soon as they \
@@ -656,7 +659,7 @@ impl Report {
              merged (*predicted first*; [the predictions](public-predictions.md)), and the \
              private collection's logged flights ([its \
              report](fixture-flights.md#the-tip-off-phase-m114b14)), given in aggregate \
-             only.\n- **Guided** is the flight as HPR Sim flies it by default: held straight to \
+             only.\n- **Guided** is the flight with the phase off: held straight to \
              its last guide, then freed with no turning rate.\n- **Two guides:** a design with \
              fewer than two guides (rail buttons or launch lugs) at different stations has no \
              stretch on its last guide alone, so the phase moves nothing; such a flight is \
@@ -715,8 +718,8 @@ impl Report {
             let _ = writeln!(
                 md,
                 "With the phase the mean absolute apogee error is higher over {}{}. \
-                 [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asks before \
-                 the phase becomes the default.\n",
+                 [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asked before \
+                 the phase became the default.\n",
                 listed(&higher),
                 if lower.is_empty() {
                     String::new()
@@ -838,19 +841,20 @@ const VARIANTS: [Variant; 4] = [
     Variant::STILL_TIP_OFF,
 ];
 
-/// One public flight's row from its four flights ([`VARIANTS`]' order), after checking the guided
-/// one is its report's and that a design with fewer than two guides moved in neither air.
+/// One public flight's row from its four flights ([`VARIANTS`]' order), after checking the one
+/// with the phase is its report's and that a design with fewer than two guides moved in neither
+/// air.
 fn row(
     (id, title, set): (&str, &str, &str),
     log_apogee_m: f64,
     committed_m: f64,
     [guided, tip_off, still_guided, still_tip_off]: [Varied; 4],
 ) -> Result<FlightRow, String> {
-    let distance = (guided.apogee_m - committed_m).abs();
-    if !distance.is_finite() || distance > GUIDED_WITHIN_M {
+    let distance = (tip_off.apogee_m - committed_m).abs();
+    if !distance.is_finite() || distance > REPORT_WITHIN_M {
         return Err(format!(
-            "{id}: flown guided, it lands {distance:.4} m from its committed apogee; run its \
-             report again"
+            "{id}: flown with the phase, as its report flies it, it lands {distance:.4} m from \
+             its committed apogee; run its report again"
         ));
     }
     if [tip_off, still_guided, still_tip_off]
@@ -962,8 +966,8 @@ fn collection(root: &Path) -> Result<CollectionTipOff, String> {
         .map_err(|error| format!("reading {path}'s tip_off: {error}"))
 }
 
-/// The guided figures of each public set held to the real-flight report's summary, to the two
-/// decimals it prints: the same flights, by the same error.
+/// The figures with the phase of each public set held to the real-flight report's summary, to
+/// the two decimals it prints: the same flights, by the same error.
 fn check_against_summary(root: &Path, report: &Report) -> Result<(), String> {
     let text = fs::read_to_string(root.join(real_flight::REPORT_JSON))
         .map_err(|error| format!("reading {}: {error}", real_flight::REPORT_JSON))?;
@@ -981,16 +985,16 @@ fn check_against_summary(root: &Path, report: &Report) -> Result<(), String> {
             .ok_or_else(|| format!("no set {name}"))?;
         let two = |v: f64| format!("{v:.2}");
         if set.flights != means.flights
-            || two(set.guided.mean_absolute_percent)
+            || two(set.tip_off.mean_absolute_percent)
                 != two(means.mean_absolute_apogee_error_percent)
-            || two(set.guided.mean_percent) != two(means.mean_apogee_error_percent)
+            || two(set.tip_off.mean_percent) != two(means.mean_apogee_error_percent)
         {
             return Err(format!(
-                "the set {name} flown guided is not the real-flight report's: {} flights, {:.2}% \
-                 and {:+.2}% against {} flights, {:.2}% and {:+.2}%",
+                "the set {name} flown with the phase is not the real-flight report's: {} \
+                 flights, {:.2}% and {:+.2}% against {} flights, {:.2}% and {:+.2}%",
                 set.flights,
-                set.guided.mean_absolute_percent,
-                set.guided.mean_percent,
+                set.tip_off.mean_absolute_percent,
+                set.tip_off.mean_percent,
                 means.flights,
                 means.mean_absolute_apogee_error_percent,
                 means.mean_apogee_error_percent
@@ -1170,9 +1174,10 @@ mod tests {
     }
 
     #[test]
-    fn the_committed_guided_apogees_are_the_real_flight_reports() {
-        // Without refs/: the report's guided apogees are the ones the real-flight report
-        // commits, so a regenerated real-flight report with this one left stale fails here.
+    fn the_committed_apogees_with_the_phase_are_the_real_flight_reports() {
+        // Without refs/: the report's apogees with the phase are the ones the real-flight report
+        // commits, which flies the phase by default (M1.14b15), so a regenerated real-flight
+        // report with this one left stale fails here.
         let root = crate::designs::root().unwrap();
         let text = fs::read_to_string(root.join(real_flight::REPORT_JSON)).unwrap();
         let real: RealFlightReport = serde_json::from_str(&text).unwrap();
@@ -1189,7 +1194,7 @@ mod tests {
                         .map(|r| r.hpr_apogee_m)
                 })
                 .unwrap();
-            assert_eq!(f.guided_apogee_m, committed_m, "{}", f.id);
+            assert_eq!(f.tip_off_apogee_m, committed_m, "{}", f.id);
         }
     }
 

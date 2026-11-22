@@ -41,12 +41,12 @@ as its motor burns.
   been compared with their logs, on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)),
-  turbulence and thrust misalignment. Tip-off (the pivot as the rocket leaves the rail) is left
-  out unless a flight asks for it ([Tip-off](#tip-off)), and that phase is held to RocketPy's
-  on RocketPy's normal force, and on HPR Sim's own in still air only. RocketPy's tip-off
-  phase puts the pivot's cost at up to 3.765% of the apogee in the landing point and 0.414% in
-  the apogee, one code against another with no flight to check it
-  ([below](#what-leaving-tip-off-out-costs)). Its
+  turbulence and thrust misalignment. Tip-off (the pivot as the rocket leaves the rail) is
+  flown by default for a design with two rail guides ([Tip-off](#tip-off)). That phase is held
+  to RocketPy's on RocketPy's normal force, and on HPR Sim's own in still air only. RocketPy's
+  tip-off phase puts the pivot's size at up to 3.765% of the apogee in the landing point and
+  0.414% in the apogee, one code against another with no flight to check it
+  ([below](#what-leaving-tip-off-out-costs)). HPR Sim's
   small-angle aerodynamics are used at every angle of attack (the angle between the rocket's axis
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
   aerodynamic models, stops with an error. The rotational equations leave out the Earth's rate;
@@ -339,22 +339,25 @@ $$
   a = \frac{\mathbf{T}_{20} \cdot \mathbf{z}_B - \mu \lvert \mathbf{T}_{20\perp} \rvert}{m}
   $$
 
-  - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
-    rail. In a flight that asks for tip-off it ends sooner, when the guide next ahead of that
-    one does. With no guides, it ends when the aft end does.
+  - With two or more guides (rail buttons or launch lugs) at different stations, it ends when
+    the guide next ahead of the aft-most one passes the top of the rail, and the tip-off phase
+    follows. With one guide, or with tip-off turned off, it ends when the aft edge of the
+    aft-most guide passes the top. With no guides, it ends when the aft end does.
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where
     it stopped. It is held there, even if the force down the rail exceeds friction and a real
     rocket would slide back.
-- **Tip-off.** Only when the flight asks for it: between the rail and free flight, the rocket
-  slides on its last guide alone and pivots about it ([Tip-off](#tip-off)).
+- **Tip-off.** For a design with two or more guides at different stations, unless the flight
+  turns it off: between the rail and free flight, the rocket slides on its last guide alone and
+  pivots about it ([Tip-off](#tip-off)).
 - **Free.** Six degrees of freedom until the ground.
 - **Rail geometry.**
   - A button's axial extent is its outer diameter, and a lug's is its length.
   - The rocket leaves after traveling $L - (s_{\mathrm{aft}} - s_{\mathrm{guide}})$. RocketPy ends its rail phase when
     the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
     rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
-  - The pivot about the last guide ("tip-off") is left out unless the flight asks for it
-    ([Tip-off](#tip-off)). Without it the rocket leaves the rail with no angular velocity. On thirteen
+  - The pivot about the last guide ("tip-off") is flown where the design has two guides
+    ([Tip-off](#tip-off)). With one guide, or with the phase turned off, the rocket leaves the
+    rail with no angular velocity. On thirteen
     example designs, RocketPy's tip-off phase moves the
     landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, one code
     against another ([what leaving tip-off out costs](#what-leaving-tip-off-out-costs)).
@@ -365,12 +368,25 @@ $$
 
 ### Tip-off
 
-A flight that asks for it flies one more phase between the rail and free flight. That phase is
-tip-off, the turn a rocket picks up on its last guide alone. A guide is a rail button or a
-launch lug, and the last one is the aft-most. Ask for the phase with
-`Simulation::with_tip_off` in the Rust library. The command line and the Python package don't
-offer it yet. It is off by default, so every flight on this
-site and in the reports flies without it unless it says otherwise.
+A design with two or more guides at different stations flies one more phase between the rail
+and free flight. That phase is tip-off, the turn a rocket picks up on its last guide alone. A
+guide is a rail button or a launch lug, and the last one is the aft-most. A design with one
+guide, or none, has no such stretch, and its flights are unchanged.
+
+The phase is on by default. To turn it off:
+
+- in the Rust library, `Simulation::without_tip_off`, or `FlightBuilder::tip_off(false)` in the
+  `hpr` crate;
+- on the command line, `--no-tip-off` on `hpr sim`, `hpr mc` and `hpr compare`
+  ([the launch options](../cli.md#the-launch)); the JSON output's `launch.tip_off` says which was
+  flown;
+- in the Python package, `tip_off=False` on `Flight` and `MonteCarlo`
+  ([the Python page](../python.md#every-class-and-method)).
+
+With it off, the rocket is held straight until its last guide leaves the rail and is then freed
+with no turning rate. Neither OpenRocket nor RocketPy 1.13.0 has such a phase: RocketPy 1.13.0
+frees the rocket where its forward button leaves the rail, with no pivot. So the comparisons
+with those two codes here fly with the phase off, and their reports say so.
 
 > **How far to trust it.** One code against another, and no real flight. On RocketPy's thirteen
 > example designs the phase agrees with RocketPy's when both fly RocketPy's normal force. The
@@ -417,7 +433,7 @@ linear, and friction is solved with them (below). Source:
   stretch and flies as before. A rail too short to hold both guides pivots the rocket from
   liftoff.
 - A rocket that stops on its last guide returns to the pad phase, at rest, as on the rail.
-- Flying the phase by default is [a later increment](../decisions-and-roadmap.md#m1-14b10).
+- The phase is the default ([tip-off by default](../decisions-and-roadmap.md#m1-14b15)).
 
 **For a burnt-out rocket in no air** the three conditions reduce to a pendulum hung from the
 guide. Write $\ell$ for the distance along the axis from the last guide to the center of mass.
@@ -887,20 +903,22 @@ its tolerances. [Accuracy][accuracy] gives every result.
 
 ### What leaving tip-off out costs
 
-HPR Sim flies without tip-off unless a flight asks for it ([Tip-off](#tip-off)). RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
+A flight with tip-off turned off, or flown by a code with no such phase, leaves the pivot out
+([Tip-off](#tip-off)). RocketPy's tip-off phase puts the cost at up to 3.765% of the apogee in
 the landing point and 0.414% in the apogee. RocketPy flew thirteen example designs. Both are measured
-from a rocket held straight to its last guide, as HPR Sim holds it. The landing point moves
+from a rocket held straight to its last guide, as HPR Sim holds it with the phase off. The landing point moves
 farther from the pad in most flights, and the largest apogee move is down. That is one code
 against another: the phase is in RocketPy's development branch, in no release, and no flight
 checks it. The landing point's cost is past the plan's bar of 1% of the apogee, so HPR Sim
-gained [a model of the pivot](../decisions-and-roadmap.md#m1-14b11). It is held to RocketPy's
+gained [a model of the pivot](../decisions-and-roadmap.md#m1-14b11), and flies it [by
+default](../decisions-and-roadmap.md#m1-14b15). It is held to RocketPy's
 on RocketPy's normal force and in still air, not yet in a crosswind on HPR Sim's own
 ([below](#the-tip-off-phase-against-rocketpys)).
 
 Tip-off is the turn a rocket picks up between its guides leaving the rail. Once the forward
 guide is off, the last one holds the rocket alone, and gravity and the wind turn it about that
-guide. By default HPR Sim keeps the rocket straight until the last guide leaves, then frees it
-with no turning rate.
+guide. With the phase off, HPR Sim keeps the rocket straight until the last guide leaves, then
+frees it with no turning rate.
 
 `cargo xtask tip-off` flies the comparison and writes [the report][tip-off]
 ([the decision record][adr-357]):
@@ -921,7 +939,7 @@ with no turning rate.
   leaves the rail. With it on, the rocket slides on, free to pitch and yaw about its last
   button, until that button leaves too. Guided, the phase is off on a rail longer by the
   distance between the buttons. That holds the rocket straight to where its last button leaves
-  the real rail, as HPR Sim holds it.
+  the real rail, as HPR Sim holds it with the phase off.
 - **What HPR Sim's release leaves out** is the phase on less the guided flight.
   - The apogee moves by at most −0.414%: −10.9 m (−36 ft) for Juno III in still air. None of
     the 26 apogees moves by 1%.
@@ -981,7 +999,7 @@ gate and CI hold it (`--check`). [The decision record][adr-358] gives what is
 held and what stays open.
 
 - **What flies.** The same thirteen designs, rails, sites, winds, parachutes and drag
-  coefficient as RocketPy's flights above. HPR Sim flies each guided, as it does by default,
+  coefficient as RocketPy's flights above. HPR Sim flies each guided, its phase off,
   and with the phase. A design whose dry mass, reference area, motor or distance between its
   last two guides differs from what
   RocketPy flew is refused.
@@ -1043,17 +1061,17 @@ flights compared as soon as they were flown; the *predicted first* are the five 
 predictions were published before their comparison. On the seven compared first the phase brings
 the mean absolute apogee error down from 6.065% to 5.974%. On the five predicted first, and on
 the private collection's 60 logged flights, it raises it by 0.0014 and 0.0033 percentage points.
-No real flight's landing point is compared yet, so this measures apogees only. The phase is
-still off unless a flight asks for it; [the next increment](../decisions-and-roadmap.md#m1-14b15)
-may make it the default.
+No real flight's landing point is compared yet, so this measures apogees only. On this
+measurement the phase became [the default](../decisions-and-roadmap.md#m1-14b15), so the
+real-flight reports now fly it; *guided* below is the flight with the phase turned off.
 
 `cargo xtask tip-off-flights` writes [the report][tip-off-flights] ([the decision
 record][adr-364]); the gate holds it (`--check`).
 
 - **What flies.** Every real flight HPR Sim compares, each as its own report flies it: the twelve
   public flights of [the real-flight report](../accuracy.md#real-flights), and the private
-  collection's flights, given in aggregate only. Each flies *guided*, held straight to its last
-  guide and then freed, as by default, and with the phase. A design needs two guides (rail buttons
+  collection's flights, given in aggregate only. Each flies with the phase, as by default, and
+  *guided*: held straight to its last guide and then freed, the phase turned off. A design needs two guides (rail buttons
   or launch lugs) at different stations for the phase to move it: 10 of the 12 public flights have
   them, and 23 of the collection's 60. Each flies again in still air: the same air with its wind
   taken out, so that what the phase moves there is gravity's turn about the last guide alone.
@@ -1070,8 +1088,8 @@ record][adr-364]); the gate holds it (`--check`).
   +8.015%, on a set HPR Sim flies 8.0% high on average, and moves 14 of the 23 flights with two
   guides away from their logs and 9 toward them. How many it raises is held back, so that no figure
   gives a few flights' own moves. Both rises are smaller than the hundredth of a point the reports
-  print. The decision record traces each to its flights and lets the next increment make the phase
-  the default; the fall over the compared-first flights rests on Juno III's rise, so it is not
+  print. The decision record traces each to its flights and let the phase become the default;
+  the fall over the compared-first flights rests on Juno III's rise, so it is not
   counted for the phase.
 - **A worked example.** Juno III's log reads 3,151.5 m (10,340 ft). Guided, HPR Sim's apogee reads
   2,950.2 m (9,679 ft), 6.39% low. With the phase it reads 2,976.7 m (9,766 ft), 5.55% low: 26.5 m

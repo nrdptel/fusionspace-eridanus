@@ -6,7 +6,7 @@
 //! built from its examples, in still air and in a crosswind, with everything each flight carried. [`fly`]
 //! flies one of those flights in HPR Sim from that record: the public design built from the same
 //! example, the record's rail, site, wind, parachutes and declared drag coefficient, guided to
-//! the last guide as HPR Sim flies by default, or with its tip-off phase
+//! the last guide, HPR Sim's tip-off phase off, or with that phase
 //! ([`hpr_sim::Simulation::with_tip_off`]).
 //!
 //! [Loft lesson L75][l75]: the inputs come from the oracle's own record of what it flew, and the
@@ -254,7 +254,7 @@ pub fn fly(
     let simulation = if tip_off {
         simulation.with_tip_off()
     } else {
-        simulation
+        simulation.without_tip_off()
     };
 
     // L75: the same rocket has to weigh the same, fly its drag on the same area, burn the same

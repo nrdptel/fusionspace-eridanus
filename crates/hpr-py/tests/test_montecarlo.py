@@ -20,6 +20,8 @@ from fusionspace import hpr
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
 DESIGN = "validation/fixtures/ork/guides/level-1.ork"
+# A design with two rail buttons at different stations, for the tip-off phase.
+TWO_BUTTONS = "validation/designs/synthetic-54mm-three-fin.json"
 RUNS = 40
 SEED = 11
 # Spaceport America, as the guide's Calisto flies from.
@@ -43,14 +45,14 @@ DISPERSION = {
 }
 
 
-def hpr_mc(cli, *options):
-    """`hpr mc`, the command line `cli`, on the design, from the site and rail above, with
+def hpr_mc(cli, *options, design=DESIGN):
+    """`hpr mc`, the command line `cli`, on `design`, from the site and rail above, with
     `options`; its JSON output."""
     latitude, longitude, elevation = SITE
     command = [
         str(cli),
         "mc",
-        str(REPO / DESIGN),
+        str(REPO / design),
         "--offline",
         "--json",
         f"--latitude={latitude!r}",
@@ -255,3 +257,31 @@ def test_a_drag_function_flies_in_every_flight(repo):
     # The function's drag, scattered as hpr's is.
     scaled = flown(drag=drag, drag_sd_fraction=0.1)
     assert len(set(scaled["apogee_m"].tolist())) == 3
+
+
+def test_a_flight_tips_off_by_default_and_tip_off_false_holds_it_straight(repo, hpr_cli):
+    """M1.14b15: a design with two rail buttons tips off the rail unless `tip_off=False`. Each
+    way, `Flight` and `MonteCarlo` fly what `hpr mc` flies without and with `--no-tip-off`. The
+    guide's design has no rail guide, so the switch moves nothing on it."""
+    unguided = hpr.Rocket.from_file(repo / DESIGN, recovery=True)
+    site = hpr.Environment(*SITE, **WIND)
+    assert (
+        hpr.Flight(unguided, site, **RAIL, tip_off=False).summary
+        == hpr.Flight(unguided, site, **RAIL).summary
+    )
+    rocket = hpr.Rocket.from_file(repo / TWO_BUTTONS)
+    height = lambda summary: summary["apogee"]["height_above_ground_m"]  # noqa: E731
+    default = hpr.Flight(rocket, site, **RAIL)
+    held = hpr.Flight(rocket, site, **RAIL, tip_off=False)
+    # The default is the phase: asking for it changes nothing, and turning it off does.
+    assert height(hpr.Flight(rocket, site, **RAIL, tip_off=True).summary) == height(default.summary)
+    assert height(held.summary) != height(default.summary)
+    for options, flight, flag in [
+        ({}, default, ()),
+        ({"tip_off": False}, held, ("--no-tip-off",)),
+    ]:
+        run = hpr.MonteCarlo(rocket, site, **RAIL, runs=2, seed=SEED, **options)
+        output = hpr_mc(hpr_cli, "--runs=2", f"--seed={SEED}", *flag, design=TWO_BUTTONS)
+        assert output["launch"]["tip_off"] is (not flag)
+        assert height(run.nominal) == output["nominal"]["apogee_m"]
+        assert height(run.nominal) == height(flight.summary)

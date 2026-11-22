@@ -23,11 +23,11 @@ const MAX_RUNS: u64 = 100_000;
 /// in `environment`. Each flight's inputs are drawn at random about the nominal flight's.
 ///
 /// `MonteCarlo(rocket, environment, rail_length_m, *, runs=100, seed=0, inclination_deg=90.0,
-/// heading_deg=0.0, drag_table=None, drag=None, mass_sd_fraction=0.0, cg_sd_m=0.0,
+/// heading_deg=0.0, drag_table=None, drag=None, tip_off=True, mass_sd_fraction=0.0, cg_sd_m=0.0,
 /// drag_sd_fraction=0.0, impulse_sd_fraction=0.0, burn_time_sd_fraction=0.0, delay_sd_s=0.0,
 /// wind_sd_fraction=0.0, wind_from_sd_deg=0.0, inclination_sd_deg=0.0, heading_sd_deg=0.0,
 /// deployment_lag_sd_s=0.0)`: the rocket, the environment and the rail as `Flight` takes them.
-/// The keyword arguments after `drag` are standard deviations, one for each input the run
+/// The keyword arguments after `tip_off` are standard deviations, one for each input the run
 /// scatters, each 0 (not scattered) unless given. They're `hpr mc`'s options, with the same names
 /// as its JSON output:
 ///
@@ -93,7 +93,8 @@ impl MonteCarlo {
     #[new]
     #[pyo3(signature = (
         rocket, environment, rail_length_m, *, runs = 100, seed = 0, inclination_deg = 90.0,
-        heading_deg = 0.0, drag_table = None, drag = None, mass_sd_fraction = 0.0, cg_sd_m = 0.0,
+        heading_deg = 0.0, drag_table = None, drag = None, tip_off = true,
+        mass_sd_fraction = 0.0, cg_sd_m = 0.0,
         drag_sd_fraction = 0.0, impulse_sd_fraction = 0.0, burn_time_sd_fraction = 0.0,
         delay_sd_s = 0.0, wind_sd_fraction = 0.0, wind_from_sd_deg = 0.0,
         inclination_sd_deg = 0.0, heading_sd_deg = 0.0, deployment_lag_sd_s = 0.0
@@ -113,6 +114,7 @@ impl MonteCarlo {
         heading_deg: f64,
         drag_table: Option<&DragTable>,
         drag: Option<Py<PyAny>>,
+        tip_off: bool,
         mass_sd_fraction: f64,
         cg_sd_m: f64,
         drag_sd_fraction: f64,
@@ -171,7 +173,8 @@ impl MonteCarlo {
         let environment = environment.bound(py, &raised);
         let builder = hpr::Flight::builder(&rocket, &environment, rail_length_m)
             .inclination_deg(inclination_deg)
-            .heading_deg(heading_deg);
+            .heading_deg(heading_deg)
+            .tip_off(tip_off);
         let builder = with_drag(builder, drag_table, drag, &raised)?;
         // The nominal flight first, as `hpr mc` flies it: a rocket that can't fly at all is
         // refused with the library's error, not counted as `runs` failed flights.
