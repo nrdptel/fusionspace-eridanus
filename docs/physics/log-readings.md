@@ -627,7 +627,7 @@ the other way, and the split is after the bounce.
 
 The rates aren't independent, since they are a running median of overlapping fits. So the
 likelihood is the rule's reason and gives no confidence of its own. The opening's bound, under
-*Its bound* below, is derived for a descent whose rates go from fast to slow once. Where they
+*The opening's bound* below, is derived for a descent whose rates go from fast to slow once. Where they
 change more often, the tests here hold the split's opening to that same bound, and nothing
 proves it. One shape is known to break it: a drogue falling near the limit, slow for a few
 seconds and then fast just before the main opens, reads its opening seconds early
@@ -646,8 +646,8 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   the noise, 61 rates by 12 draws. The split reads two canopies on all 732, the opening and each
   leg's rate within its bound.
 - **The real flight that showed the fault**, a StratoLogger CF's log from a public forum thread
-  (cited in the issue, not committed; the test reads it where it is cached, and is skipped
-  elsewhere). Its rocket swings under the main. The issue measures the drogue's
+  (cited in the issue, not committed; the test reads it where it is cached, and reads
+  nothing elsewhere). Its rocket swings under the main. The issue measures the drogue's
   descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s, with a bound of 0.76 s, and
