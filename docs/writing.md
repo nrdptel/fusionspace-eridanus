@@ -731,7 +731,8 @@ has the rules in full):
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
 `scripts/gate.sh test site` runs both locally. The gate's site step adds `--cache`. It keeps the
 layout and vitals results of each passing run in the checkout's git folder (`.git/site-check-cache`,
-where `cargo clean` doesn't delete them) and checks again only the
+where `cargo clean` doesn't delete them; `target/site-check-cache` where git can't name that folder)
+and checks again only the
 pages whose built HTML changed since its last passing run, a page's date of issue left out. It checks every page if the checker,
 Chrome, the part (`--widths`), the operating system or the processor changed, or any built file
 other than the pages, the search index and `api/`. A run that reuses pages skips the canaries, and

@@ -91,40 +91,41 @@ continued](ideas-accuracy-2.md); the milestone it promoted, drag in the coast ag
 Placed with [ADR-370][adr-370], which promotes the first; the other three are SOON.
 
 - PROMOTED ([M2.16][m2-16]): the next flight predicted from the last one's log. User: a flyer with a
-  logged flight of a rocket, planning its next on another motor. Workflow: the fit's drag scale on
-  the earlier flight's log is carried to the later flight; the fixture report sets it against the
-  plain prediction and a by-hand ratio for both programs, every prediction sealed first. Moves: new
-  rows `accuracy.second-flight` and `bias.second-flight`. *Done when:* [M2.16][m2-16]'s.
-- SOON: the apogee in the morning's forecast air. User: a flyer setting a waiver ceiling or a
-  contest target on launch morning, who has a forecast, not the reanalysis the collection's rows fly
-  in. 50 of the collection's 74 flights not marked excluded have a launch time that isn't assumed
-  (counted 2026-11-22). Workflow: the fixture report flies each of them again in a GFS forecast
-  issued before the launch hour, read from a public archive of past runs (NOMADS, which `hpr-net`
-  reads, keeps only recent ones), beside the same flight in the day's ERA5 air. Moves:
-  `accuracy.collection` and `bias.collection`, as shown figures in forecast air beside the held
-  ones. *Done when:* the rule fixes the forecast's lead time before any flight is flown; the report
-  gives both programs' mean absolute and signed errors in both airs on the same flights, with each
-  flight lacking an archived forecast counted by cause; and a test refuses a forecast issued after
-  the launch hour.
+  logged flight of a rocket, planning its next on another motor. Workflow: the fit's drag scale on the
+  earlier flight's log is carried to the later flight; the fixture report sets it against the plain
+  prediction and a by-hand ratio for both programs, every prediction sealed first. Moves: new rows
+  `accuracy.second-flight` and `bias.second-flight`. *Done when:* [M2.16][m2-16]'s.
+- SOON: the apogee in the morning's forecast air. User: a flyer setting a waiver ceiling or a contest
+  target on launch morning, who has a forecast, not the reanalysis the collection's rows fly in. 50 of
+  the collection's 74 flights not marked excluded have a launch time that isn't assumed (counted
+  2026-11-22). Workflow: the fixture report flies each of them again in a GFS forecast issued before
+  the launch hour, read from a public archive of past runs whose terms allow it (NOMADS, which
+  `hpr-net` reads, keeps only recent ones), beside the same flight in the day's ERA5 air. Moves:
+  `accuracy.collection` and `bias.collection`, as shown figures in forecast air beside the held ones.
+  *Done when:* the rule fixes the forecast's lead time before any flight is flown; the report gives
+  both programs' mean absolute and signed errors in both airs on the same flights, with each flight
+  lacking an archived forecast counted by cause; and a test refuses a forecast issued after the launch
+  hour.
 - SOON: the Monte Carlo's drag scatter, measured. User: a flyer reading `hpr mc`'s 90% apogee range
-  for a waiver. The drag's scatter is today a guessed spread around HPR Sim's own drag
-  ([trusting a simulation](../trusting-a-simulation.md)). Workflow: from [M2.16a][m2-16a]'s fits,
-  the report gives the fitted drag scale's spread across rockets (the drag error a first flight
-  carries) and between flights of one rocket (what a carried fit leaves); [M2.8][m2-8]'s run takes
-  the first as its drag scatter. Moves: `uncertainty.range-50` and `uncertainty.range-90`, HPR Sim's
-  cells. *Done when:* both spreads are given with their count of rockets and a bootstrap 95%
-  interval; the scatter is merged before any coverage is computed; and the report gives how many
-  logged apogees fall in the 50% and 90% ranges, with Clopper–Pearson intervals, with the measured
-  scatter and with today's.
-- SOON: a rocket's log book, its next flight flown from its last. User: the flyer of
-  [M2.16][m2-16], once its rows land. Workflow: `hpr` keeps a local file of one rocket's flights,
-  each with its design file and log; asked for the next flight, it fits the latest log by
-  [M2.16a][m2-16a]'s rule and flies the new plan with that drag scale, printing beside the apogee
-  the committed `accuracy.second-flight` figure and the count of rockets it rests on. Moves:
-  `accuracy.second-flight`, from a report to a command, and `steps.command-line`, a new task
-  counted. *Done when:* a test flies a synthetic pair through the command and matches the report's
-  carried-fit apogee to the meter; the command refuses a log the fit refuses, with its cause; and
-  its page gives the measured error with its count and date.
+  for a waiver. The drag's scatter is today a guessed spread around HPR Sim's own drag ([trusting a
+  simulation](../trusting-a-simulation.md)). Workflow: from [M2.16a][m2-16a]'s fits, the report gives
+  the fitted drag scale's spread across rockets (the drag error a first flight carries) and between
+  flights of one rocket (what a carried fit leaves), each less the share a fit's own noise adds, read
+  from the synthetic sets' fitted scales around their truths; [M2.8][m2-8]'s run takes the first as
+  its drag scatter. A fitted scale also holds some of what the run scatters apart (mass, impulse,
+  wind), so the spread is set beside those scatters, not added blind. Moves: `uncertainty.range-50`
+  and `uncertainty.range-90`, HPR Sim's cells. *Done when:* both spreads are given with their count of
+  rockets and a bootstrap 95% interval; the scatter is merged before any coverage is computed; and the
+  report gives how many logged apogees fall in the 50% and 90% ranges, with Clopper–Pearson intervals,
+  with the measured scatter and with today's, each rocket scored on a spread made without it.
+- SOON: a rocket's log book, its next flight flown from its last. User: the flyer of [M2.16][m2-16],
+  once its rows land. Workflow: `hpr` keeps a local file of one rocket's flights, each with its design
+  file and log; asked for the next flight, it fits the latest log by [M2.16a][m2-16a]'s rule and flies
+  the new plan with that drag scale, printing beside the apogee the committed `accuracy.second-flight`
+  figure and the count of rockets it rests on. Moves: `accuracy.second-flight`, from a report's figure
+  to a command a flyer runs. *Done when:* a test flies a synthetic pair through the command and
+  matches the report's carried-fit apogee to the meter; the command refuses a log the fit refuses,
+  with its cause; and its page gives the measured error with its count and date.
 
 ## MAINTAINER'S CALL (money, outreach)
 

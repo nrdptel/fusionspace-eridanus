@@ -53,22 +53,37 @@ const FALLBACK: &str = "target/site-check-cache";
 
 /// Where the caches are kept for the checkout at `root`: [`DIR`] in its own git folder (`.git`,
 /// or `.git/worktrees/<name>` for a worktree), else [`FALLBACK`]. Under `target/`, `cargo clean`
-/// deleted them: four of the main checkout's ten gates from 2026-11-19 to 11-22 laid out every
-/// page again, 792 to 831 s against 55 to 59 s with the cache, two of them just after a clean
-/// (the 2026-11-22 review). Each checkout keeps its own, as before, so a worktree on another
-/// branch, whose key differs, doesn't overwrite the main checkout's.
+/// deleted them. Of the main checkout's ten full gates from 2026-11-19 15:33 UTC to 11-22, four
+/// checked every page, in 792 to 831 s, against 49 to 218 s for the rest; two of the four came
+/// just after a `cargo clean` (the 2026-11-22 review). Each checkout keeps its own, as before, so
+/// a worktree on another branch, whose key differs, doesn't overwrite the main checkout's.
+///
+/// Git is asked with `--absolute-git-dir` (git 2.13 on), and its answer is taken only when it is
+/// one line naming a folder that exists by an absolute path: an older git that doesn't know the
+/// option prints it back and still succeeds. Git's own variables are cleared, so a `GIT_DIR` set
+/// around the run doesn't send the cache to another repository.
 pub(super) fn dir(root: &Path) -> PathBuf {
-    std::process::Command::new("git")
-        .arg("-C")
+    let mut git = std::process::Command::new("git");
+    git.arg("-C")
         .arg(root)
-        .args(["rev-parse", "--path-format=absolute", "--git-dir"])
-        .output()
+        .args(["rev-parse", "--absolute-git-dir"]);
+    for variable in [
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+    ] {
+        git.env_remove(variable);
+    }
+    git.output()
         .ok()
         .filter(|out| out.status.success())
         .and_then(|out| String::from_utf8(out.stdout).ok())
-        .map(|text| text.trim().to_owned())
-        .filter(|text| !text.is_empty())
-        .map_or_else(|| root.join(FALLBACK), |git| PathBuf::from(git).join(DIR))
+        .map(|text| text.trim_end_matches(['\r', '\n']).to_owned())
+        .filter(|text| !text.is_empty() && !text.contains('\n'))
+        .map(PathBuf::from)
+        .filter(|folder| folder.is_absolute() && folder.is_dir())
+        .map_or_else(|| root.join(FALLBACK), |folder| folder.join(DIR))
 }
 /// The cache files' format. A file of another is not read, and every page is checked.
 const FORMAT: u32 = 1;
@@ -1050,6 +1065,13 @@ mod tests {
             kept.ends_with(DIR) && !kept.starts_with(root.join("target")),
             "{}",
             kept.display()
+        );
+        // The folder git named is a real git folder: it holds a HEAD.
+        let folder = kept.parent().expect("the cache sits in a folder");
+        assert!(
+            folder.is_absolute() && folder.join("HEAD").is_file(),
+            "{}",
+            folder.display()
         );
         // A folder git doesn't know keeps the cache beside the site, as before.
         let outside = std::env::temp_dir().join(format!("hpr-site-cache-{}", std::process::id()));
