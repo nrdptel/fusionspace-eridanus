@@ -917,8 +917,8 @@ on RocketPy's normal force and in still air, not yet in a crosswind on HPR Sim's
 
 Tip-off is the turn a rocket picks up between its guides leaving the rail. Once the forward
 guide is off, the last one holds the rocket alone, and gravity and the wind turn it about that
-guide. By default HPR Sim keeps the rocket straight until the last guide leaves, then frees it
-with no turning rate.
+guide. With the phase off, HPR Sim keeps the rocket straight until the last guide leaves, then
+frees it with no turning rate.
 
 `cargo xtask tip-off` flies the comparison and writes [the report][tip-off]
 ([the decision record][adr-357]):

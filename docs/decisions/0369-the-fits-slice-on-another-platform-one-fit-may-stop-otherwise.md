@@ -25,9 +25,10 @@ converge. macOS and both Windows runners agreed with the slice. Every other word
 flight's lines agreed on all five: the side of each interval its truths fall on, by least
 squares and by the Bayesian option.
 
-A fit that meets its stopping rule on one math library and its step limit on another is moving
-along a flat valley of its misfit, where the last digits of a step decide whether the rule is
-met in time. The report already allows for this in its totals: the count of fits that reached
+A fit that meets its stopping rule on one math library and its step limit on another may be
+moving along a flat valley of its misfit, where the last digits of a step decide whether the
+rule is met in time. That is not measured ([#1597][issue]). The report already allows for a
+fit stopping otherwise in its totals: the count of fits that reached
 the step limit may stand 5 flights off on another platform ([ADR-316][adr-316]). The slice
 had no such room, and until now no fit in it had needed any.
 
@@ -48,8 +49,8 @@ had no such room, and until now no fit in it had needed any.
    several thousand fits; the slice holds 444 flights, and a comparison a part of them. If a
    second fit of one comparison stops otherwise, that is new, and the check should say so.
 
-4. **The fit is not excused.** [#1597][issue] asks which unknowns that fit trades along its
-   valley and how far its answer moves between the two stops. If the stopping rule is mended,
+4. **The fit is not excused.** [#1597][issue] asks why that fit stops two ways, which unknowns
+   it trades if it is in a valley, and how far its answer moves between the two stops. If the stopping rule is mended,
    the allowance goes back to none.
 
 **What this does not decide.** Whether the fit's answer for that flight is the same to its

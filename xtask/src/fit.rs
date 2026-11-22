@@ -1588,9 +1588,9 @@ fn shares_hold(got: Shares, in_force: Shares, exact: bool) -> bool {
 
 /// How many of the fits in one comparison of the slice, a part of it or the whole, may stop
 /// otherwise on another platform than on the one that wrote it: converged here and at its step
-/// limit there, or the other way (ADR-369). A fit that wanders in a flat valley meets its step
-/// limit on one math library and its stopping rule on another. One is what was measured, a
-/// flight of set B on both of CI's Linux runners, and it is inside the room the report's own
+/// limit there, or the other way (ADR-369). Such a fit may be wandering in a flat valley, where
+/// a math library's last digits decide which comes first; that isn't measured. One is what was
+/// measured, a flight of set B on both of CI's Linux runners, and it is inside the room the report's own
 /// count of such fits has ([`OTHER_PLATFORM_FLIGHTS`]). A second in one comparison fails it.
 const OTHER_PLATFORM_STOPS: usize = 1;
 

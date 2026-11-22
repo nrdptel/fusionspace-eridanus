@@ -540,7 +540,7 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 | Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
 
-Held in its words, one fit in a comparison (one part, or the whole slice at night) may differ in
+Held word for word, its numbers aside, one fit in a comparison (one part, or the whole slice at night) may differ in
 how it stopped: converged on one platform, at its step limit on another. The check names that fit
 and fails on a second ([the record of that allowance](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0369-the-fits-slice-on-another-platform-one-fit-may-stop-otherwise.md)).
 One least-squares verdict is held as failing, not passing: the drag scale's on set B

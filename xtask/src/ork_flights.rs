@@ -1017,8 +1017,8 @@ fn fly(
         ..FlightSettings::default()
     };
     let descended = descent.map(|recovery| {
-        // OpenRocket guides the rocket to the rail's end and frees it with no turn: it has no
-        // tip-off phase, so each flight held to it here flies without HPR Sim's.
+        // OpenRocket has no tip-off phase, so each flight held to it here flies without
+        // HPR Sim's.
         let flown = Simulation::new(rocket, configuration, environment.clone(), rail, settings)
             .map(Simulation::without_tip_off);
         flown.map_or_else(

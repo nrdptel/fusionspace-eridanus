@@ -1,8 +1,7 @@
 # The least-squares fit
 
 See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation for drag,
-impulse, wind and mass. It also says where the fit fails its tests: one of the least-squares
-intervals' and three of the Bayesian option's.
+impulse, wind and mass, and where the fit fails its tests.
 
 ## In short
 

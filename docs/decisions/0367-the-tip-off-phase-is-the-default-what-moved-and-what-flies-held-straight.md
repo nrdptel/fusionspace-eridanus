@@ -60,7 +60,7 @@ moved and what was decided along the way.
    (`cargo xtask ork-flights` and the runs built on it), and in the collection's report every
    row that sets HPR Sim beside OpenRocket fly with the phase off: "hpr in OpenRocket's air",
    "hpr against OpenRocket", the split of the gap by cause, the nose's line and the drag by
-   Mach band and by term. Those reports reproduce as they were. The collection's report gains
+   Mach band and by term. Those reports reproduce in every number. The collection's report gains
    a row, "hpr held straight on the rail", the flight those rows start from, beside "hpr", the
    default flight held to the logs ([the report][collection], in aggregate only:
    [ADR-151][adr-151], [ADR-184][adr-184]). Each of those reports says that its flights beside
