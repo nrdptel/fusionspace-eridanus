@@ -44,8 +44,11 @@
 //! shares.
 //!
 //! **How far to trust it.** The errors are linearized about the solution, so they say nothing of a
-//! second solution elsewhere. The 90% intervals hold on synthetic flights ([`crate::synthetic::fits`]
-//! and the committed report), where the fit knows the design, rail, site and day's air: on a real
+//! second solution elsewhere. The 90% intervals are tested on synthetic flights
+//! ([`crate::synthetic::fits`] and the committed report), where the fit knows the design, rail,
+//! site and day's air. They hold there but for the drag scale's on the set flown with a model
+//! unlike the fit's own: too many of its truths lie below the interval, so the fitted drag reads
+//! high ([ADR-368][adr-368], a recorded gap). On a real
 //! flight its model's errors go into the scales with nothing to say so. A scale is the factor that
 //! best fits one flight, not the rocket's drag at every Mach.
 //!
@@ -54,6 +57,7 @@
 //! [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 //! [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 //! [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
+//! [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
 
 use std::cell::{Cell, RefCell};
 

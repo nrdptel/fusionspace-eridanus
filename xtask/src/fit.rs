@@ -24,6 +24,8 @@ use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::fits::{
     self, ASKED, Asked, Check, FlightFit, Identification, Method, POSTERIOR_DRAWS, POSTERIOR_PILOT,
 };
+use hpr_forensics::synthetic::intervals::{INSIDE_SHARE, Test};
+use hpr_forensics::synthetic::smoothed::MISS_SHARE;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +36,9 @@ pub const USAGE: &str =
                            validation/reports/fit-intervals.{json,md} and the slice,
                            fit-intervals.slice.json. --check writes nothing and fails unless the
                            fits reproduce all three. Either fails if a least-squares interval
-                           fails ADR-257's test or a probe of it passes, if by either method a
+                           fails ADR-257's test or a probe of it passes, but for the one known
+                           gap, set B's drag scale, which must fail on its lower tail alone
+                           (ADR-368); if by either method a
                            scale isn't identified on set A or anything is identified on pure
                            noise, or if the calibration set doesn't give the library's shares.
                            The Bayesian option's counts and probes are held as committed but
@@ -681,9 +685,26 @@ impl Apart {
     }
 }
 
+/// Least-squares intervals that fail ADR-257's test and are recorded as failing (ADR-368): each
+/// has more truths below it than the 5% a 90% interval allows, on the set named, and holds its
+/// other two counts. A cell listed here must come out so. If it passes, or fails on another count,
+/// the run stops: a gap that closes leaves the list, and one that grows is news. The report's page
+/// and the fit's page both say which cells these are.
+const KNOWN_GAPS: [(Set, Asked); 1] = [(Set::B, Asked::DragScale)];
+/// The record of the [`KNOWN_GAPS`], a file under `docs/decisions`.
+const KNOWN_GAPS_RECORD: &str =
+    "0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md";
+
+/// Whether `test` fails as a known gap does ([`KNOWN_GAPS`]): the band on the share below lies
+/// above 5%, and the bands on the share above and the share inside hold 5% and 90%.
+fn fails_below_alone(test: &Test) -> bool {
+    test.below.low > MISS_SHARE && test.above.holds(MISS_SHARE) && test.inside.holds(INSIDE_SHARE)
+}
+
 /// What doesn't come out as it must in `set`'s `checks` by `method`: a least-squares interval
 /// failing ADR-257's test or a probe of it passing, and on set A a scale not identified by either
-/// method. The Bayesian option's counts and probes break nothing yet: they don't pass on either
+/// method. A least-squares interval among the [`KNOWN_GAPS`] must fail as recorded instead. The
+/// Bayesian option's counts and probes break nothing yet: they don't pass on either
 /// set, and passing is M7.3c4's (ADR-320 §8). It reads each test's stored bands, worked out from
 /// its counts when the report was made; `fit --slice` reads a committed report's so, and doesn't
 /// work them out again.
@@ -693,7 +714,23 @@ fn check_problems(set: Set, method: Method, checks: &[Check]) -> Vec<String> {
     let held = method == Method::LeastSquares;
     for check in checks {
         let c = check.test.counts;
-        if held && !check.test.passes() {
+        let known = held && KNOWN_GAPS.contains(&(set, check.asked));
+        if known && !fails_below_alone(&check.test) {
+            broken.push(format!(
+                "{set:?}, {name}, {}: {} below, {} inside, {} above of {}: {}",
+                check.asked.name(),
+                c.below,
+                c.inside,
+                c.above,
+                c.given,
+                if check.test.passes() {
+                    "passes the test: take it off the known gaps (ADR-368)"
+                } else {
+                    "fails the test past its lower tail, the known gap (ADR-368)"
+                }
+            ));
+        }
+        if held && !known && !check.test.passes() {
             broken.push(format!(
                 "{set:?}, {name}, {}: {} below, {} inside, {} above of {}: fails the test",
                 check.asked.name(),
@@ -945,6 +982,18 @@ fn page(report: &Report) -> String {
             hpr_forensics::fit::MISFIT_SHARE,
         );
         counts_table(&mut out, &set.checks);
+        for check in &set.checks {
+            if KNOWN_GAPS.contains(&(set.set, check.asked)) {
+                let _ = writeln!(
+                    out,
+                    "\nThe {}'s interval fails the test on this set, and is recorded as failing: \
+                     more of its truths lie below it than the 5% a 90% interval allows. Its other \
+                     two counts hold. Why it stands, and what tracks it: \
+                     [ADR-368](../../docs/decisions/{KNOWN_GAPS_RECORD}).",
+                    check.asked.name()
+                );
+            }
+        }
         let _ = writeln!(out, "\nBy design (below / inside / above):\n");
         design_table(&mut out, &set.checks);
         let header: Vec<&str> = set.checks.iter().map(|c| c.asked.name()).collect();
@@ -1529,7 +1578,8 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
         ));
     }
     println!(
-        "fit: by least squares every parameter passes on sets A and B, and every probe fails; the \
+        "fit: by least squares every parameter passes on sets A and B but set B's drag scale, which \
+         fails on its lower tail as recorded (ADR-368), and every probe fails; the \
          Bayesian option's counts stand within the other-platform room of the committed ones; the \
          calibration set gives the library's shares, and the slice's {} fits hold \
          {REPORT}.slice.json {}",
@@ -1782,7 +1832,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 ));
             }
             println!(
-                "fit: by least squares every parameter passes on sets A and B, and every probe \
+                "fit: by least squares every parameter passes on sets A and B but set B's drag \
+                 scale, which fails on its lower tail as recorded (ADR-368), and every probe \
                  fails; the Bayesian option's counts {}; the calibration set gives the library's \
                  shares; the slice's {} fits {}",
                 if check {
@@ -1811,7 +1862,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
 )]
 mod tests {
     use super::*;
-    use hpr_forensics::synthetic::intervals::Test;
     use hpr_forensics::synthetic::logger::Profile;
 
     fn files() -> DesignFiles {
@@ -2590,6 +2640,50 @@ mod tests {
                 r.sets[0].checks[0].test = Test::of(c);
             },
             "A, least squares, drag scale: ",
+        );
+        // Set B's drag scale is the one known gap (ADR-368): it must fail on its lower tail alone.
+        // Passing breaks the rules, and so does failing on its upper tail too; another parameter
+        // of set B failing as it does breaks them as any failure would.
+        fn drag_b(r: &mut Report) -> &mut Check {
+            assert_eq!(r.sets[1].set, Set::B);
+            let check = &mut r.sets[1].checks[0];
+            assert_eq!(check.asked, Asked::DragScale);
+            check
+        }
+        assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale)]);
+        let known = report.sets[1].checks[0].test;
+        assert!(!known.passes() && fails_below_alone(&known), "{known:?}");
+        fails(
+            &|r| {
+                let passing = r.sets[0].checks[0].test;
+                drag_b(r).test = passing;
+            },
+            "B, least squares, drag scale: 32 below, 909 inside, 59 above of 1000: passes the test: \
+             take it off the known gaps",
+        );
+        fails(
+            &|r| {
+                let mut c = drag_b(r).test.counts;
+                c.inside -= 60;
+                c.above += 60;
+                drag_b(r).test = Test::of(c);
+            },
+            "B, least squares, drag scale: 80 below, 829 inside, 91 above of 1000: fails the test \
+             past its lower tail",
+        );
+        fails(
+            &|r| {
+                let failing = r.sets[1].checks[0].test;
+                r.sets[1].checks[1].test = failing;
+            },
+            "B, least squares, impulse scale: 80 below, 889 inside, 31 above of 1000: fails the test",
+        );
+        fails(
+            &|r| {
+                let failing = r.sets[1].checks[0].test;
+                r.sets[0].checks[0].test = failing;
+            },
+            "A, least squares, drag scale: 80 below, 889 inside, 31 above of 1000: fails the test",
         );
         // The Bayesian option's counts and probes break nothing until M7.3c4 (ADR-320 §8); its
         // identification does, on set A and on noise.

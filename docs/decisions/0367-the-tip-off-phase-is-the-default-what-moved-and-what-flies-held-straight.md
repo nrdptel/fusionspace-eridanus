@@ -1,7 +1,7 @@
 # ADR-367: The tip-off phase is the default: what moved, and what flies held straight (2026-11-22)
 
 - **Status:** accepted; carries out [M1.14b15][m1-14b15] under [ADR-363][adr-363] decision 1; changes the flight HPR Sim flies by default for a design with two or more rail guides at different stations
-- **Summary:** A design with two or more rail guides at different stations now leaves the rail by the tip-off phase unless told not to, from the library, the command line and the Python package. Comparisons with OpenRocket and RocketPy 1.13.0, which have no such phase, fly with it off and say so. Every report that moves is regenerated. Of the accepted census's rows, 16 moved, 7 for the worse, each as [ADR-364][adr-364] measured before the default changed. The readings' and the fit's interval shares are refitted on synthetic flights flown on the default.
+- **Summary:** A design with two or more rail guides at different stations now leaves the rail by the tip-off phase unless told not to, from the library, the command line and the Python package. Comparisons with OpenRocket and RocketPy 1.13.0, which have no such phase, fly with it off and say so. Every report that moves is regenerated. Of the accepted census's rows, 16 moved, 7 for the worse, each as [ADR-364][adr-364] measured before the default changed. The readings' and the fit's interval shares are refitted on synthetic flights flown on the default; one cell of the fit's test then fails and is recorded ([ADR-368][adr-368]).
 - **Scoreboard:** `accuracy.collection.hpr`, `bias.collection.hpr` and `accuracy.from-boost.hpr` worse in release 0.2: on the collection's calibration half the phase moves the mean absolute error from 9.45% to 9.46% and the mean error from +4.56% to +4.58%, and the error of the apogee predicted from the boost from 3.17% to 3.19%. [ADR-364][adr-364] measured the collection's rise to its flights before the default changed; the phase itself rests on its derivation and on RocketPy's rewritten phase in still air ([ADR-357][adr-357], [ADR-363][adr-363]), not on these flights.
 
 [m1-14b12]: ../decisions-and-roadmap.md#m1-14b12
@@ -17,6 +17,8 @@
 [adr-362]: 0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md
 [adr-363]: 0363-m1-14b10-in-three-the-tip-off-reference-at-rocketpys-rewritten-phase-first.md
 [adr-364]: 0364-the-tip-off-phase-on-the-real-flights-two-small-rises-measured.md
+[adr-368]: 0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
+[fit-report]: ../../validation/reports/fit-intervals.md
 [flights-report]: ../../validation/reports/tip-off-flights.md
 [collection]: ../../validation/reports/fixture-flights.md
 [real]: ../../validation/reports/real-flights.md
@@ -104,7 +106,10 @@ moved and what was decided along the way.
    again and fails unless they equal the library's ([calibrated intervals][adr-257]). The
    readings' shares move by at most 0.031 of a bound (landing's 95% point, 0.156 to 0.125); the
    fit's by at most 0.09. The readings' two test sets, which the shares never saw, pass the
-   same tests with them ([report][synthetic]).
+   same tests with them ([report][synthetic]). The fit's do but for one cell: on set B the
+   least-squares interval on the drag scale now leaves 80 of 1,000 truths below it, where a
+   tail passes with 29 to 74 and it read 71. That cell is recorded as failing, not fitted
+   away ([ADR-368][adr-368], [the fit's report][fit-report]).
 
 8. **The tour's worked flight follows its rule.** The guide's tour takes the public flight whose
    miss is the median of those compared along their climb. Juno III's move makes that Cavour,
@@ -124,3 +129,5 @@ worse with it.
   HPR Sim to match.
 - The scoreboard's three cells above are worse by 0.01 to 0.02 points in release 0.2
   ([the ratchet][adr-240]).
+- The least-squares fit's drag interval fails its test on set B, a known gap with its own
+  record ([ADR-368][adr-368]).
