@@ -760,6 +760,14 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
 | `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
 | `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` or `--wind-from`; `--elevation` must lie within its levels | standard |
+| `--no-tip-off` | holds the rocket straight until its last rail guide leaves the rail, then frees it with no turning rate, as OpenRocket does | off: a design with two or more rail guides tips off |
+
+**Tip-off.** A design with two or more rail guides (rail buttons or launch lugs) at different
+stations turns about its last guide once the guide ahead of it has left the rail, pushed by
+gravity and by a crosswind ([Tip-off](physics/flight.md#tip-off)). That is the default, and no
+flight has checked it: the phase is held to another code's, in still air. `--no-tip-off` flies
+without it, to compare with OpenRocket or with an older result. `hpr mc` and `hpr compare` take
+the option too, and the JSON output's `launch.tip_off` says which was flown.
 
 OpenRocket measures its launch rod's angle from the vertical instead, so its 5° is 85 here. This
 flies the same rocket from Spaceport America's field, on a rail leaning 5° into a west wind:
