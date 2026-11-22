@@ -24,7 +24,7 @@
       ],
       "log_rows": 768,
       "height_read_as": "barometric",
-      "clock_bound_s": 2.2460221863497196,
+      "clock_bound_s": 2.2463670292404228,
       "reaches_landing": true,
       "descent_flown": true,
       "past_simulation": 0,
@@ -34,9 +34,9 @@
           "start_s": 0.0,
           "end_s": 10.395,
           "samples": 176,
-          "mean": -0.6011148920225683,
-          "rms": 3.5260776237614246,
-          "largest": 9.2597740928843,
+          "mean": -0.6146975218547314,
+          "rms": 3.5358461094951448,
+          "largest": 9.257672709259111,
           "largest_at_s": 1.8599999999999999
         },
         {
@@ -44,9 +44,9 @@
           "start_s": 10.395,
           "end_s": 34.32,
           "samples": 393,
-          "mean": -10.397601498972147,
-          "rms": 11.56637614487658,
-          "largest": -20.42702196366099,
+          "mean": -10.381115255034588,
+          "rms": 11.54951050632447,
+          "largest": -20.40564183440199,
           "largest_at_s": 28.619999999999997
         }
       ],
@@ -56,9 +56,9 @@
           "start_s": 0.0,
           "end_s": 10.395,
           "samples": 176,
-          "mean": -0.5465651154447436,
-          "rms": 1.7188974262666037,
-          "largest": 7.171126701962294,
+          "mean": -0.5493405400931786,
+          "rms": 1.7199039328155294,
+          "largest": 7.168803358597145,
           "largest_at_s": 1.5
         },
         {
@@ -66,9 +66,9 @@
           "start_s": 10.395,
           "end_s": 34.32,
           "samples": 393,
-          "mean": -0.4753980380126237,
-          "rms": 1.9549226322574458,
-          "largest": -5.048148241652797,
+          "mean": -0.4732123215403219,
+          "rms": 1.954693128507531,
+          "largest": -5.048167629689445,
           "largest_at_s": 26.4
         }
       ],
@@ -90,14 +90,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 463.9857577810425,
-            "bound": 36.70691027183093,
+            "value": 464.0146898273472,
+            "bound": 36.71330757549898,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -5.028757781042486
+          "logged_minus_simulated": -5.05768982734719
         },
         {
           "what": "apogee_time",
@@ -113,7 +113,7 @@
           "simulated": {
             "status": "read",
             "value": 10.41000000000001,
-            "bound": 1.6011466752992791,
+            "bound": 1.6017731301081282,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -137,14 +137,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 85.7195930208201,
-            "bound": 17.8309268278231,
+            "value": 85.72280453051857,
+            "bound": 17.83170199041296,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 5.8240762298258915
+          "logged_minus_simulated": 5.8208647201274175
         },
         {
           "what": "top_acceleration",
@@ -172,7 +172,7 @@
           "simulated": {
             "status": "read",
             "value": 2.0400000000000027,
-            "bound": 2.0885364915871847,
+            "bound": 2.0888813344778874,
             "interval": null,
             "is_floor": true,
             "source": null,
@@ -197,7 +197,7 @@
           "simulated": {
             "status": "read",
             "value": 35.22000000000003,
-            "bound": 1.3509444767796213,
+            "bound": 1.3515359800526525,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -245,14 +245,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 18.64473125831004,
-            "bound": 1.598865947293152,
+            "value": 18.64675354486317,
+            "bound": 1.599185215397797,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 0.5161882819198453
+          "logged_minus_simulated": 0.5141659953667137
         }
       ]
     },
@@ -280,7 +280,7 @@
       ],
       "log_rows": 1819,
       "height_read_as": "barometric",
-      "clock_bound_s": 1.6586385506751036,
+      "clock_bound_s": 1.6584491177423268,
       "reaches_landing": true,
       "descent_flown": true,
       "past_simulation": 0,
@@ -290,9 +290,9 @@
           "start_s": 0.0,
           "end_s": 16.749999999999996,
           "samples": 335,
-          "mean": -83.80664333684493,
-          "rms": 92.64987752633165,
-          "largest": -135.02643228876536,
+          "mean": -83.74658206190199,
+          "rms": 92.57882580466959,
+          "largest": -134.8945785808114,
           "largest_at_s": 16.7
         },
         {
@@ -300,9 +300,9 @@
           "start_s": 16.749999999999996,
           "end_s": 84.3,
           "samples": 1352,
-          "mean": -69.53460147755544,
-          "rms": 83.5184046177022,
-          "largest": -156.02614175786925,
+          "mean": -69.42116384678926,
+          "rms": 83.41345321980018,
+          "largest": -155.8686733366908,
           "largest_at_s": 19.55
         }
       ],
@@ -312,9 +312,9 @@
           "start_s": 0.0,
           "end_s": 16.749999999999996,
           "samples": 335,
-          "mean": -8.127540445762893,
-          "rms": 11.215578561563309,
-          "largest": -42.542139367137196,
+          "mean": -8.119655512105567,
+          "rms": 11.210217146531036,
+          "largest": -42.532915002657234,
           "largest_at_s": 4.25
         },
         {
@@ -322,9 +322,9 @@
           "start_s": 16.749999999999996,
           "end_s": 84.3,
           "samples": 1352,
-          "mean": 1.3183747324349717,
-          "rms": 5.0605815085739385,
-          "largest": -16.308191676688818,
+          "mean": 1.3163998527831813,
+          "rms": 5.062043613396027,
+          "largest": -16.308203902241083,
           "largest_at_s": 67.19999999999999
         }
       ],
@@ -346,14 +346,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 1457.6002342993947,
-            "bound": 108.06022961959721,
+            "value": 1457.4622779141043,
+            "bound": 108.04795909968443,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -137.92251805939463
+          "logged_minus_simulated": -137.78456167410422
         },
         {
           "what": "apogee_time",
@@ -369,7 +369,7 @@
           "simulated": {
             "status": "read",
             "value": 17.474999999999625,
-            "bound": 1.5716079586761176,
+            "bound": 1.571263828616542,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -393,14 +393,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 180.07228861320309,
-            "bound": 36.81540188212098,
+            "value": 180.06267902548308,
+            "bound": 36.812268075031156,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -11.593811522294004
+          "logged_minus_simulated": -11.584201934573997
         },
         {
           "what": "top_acceleration",
@@ -419,7 +419,7 @@
           "simulated": {
             "status": "read",
             "value": 77.41300143212061,
-            "bound": 22.671761389353268,
+            "bound": 22.67175712657832,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -441,7 +441,7 @@
           "simulated": {
             "status": "read",
             "value": 3.199999999999932,
-            "bound": 0.8890742027316018,
+            "bound": 0.8888847697988251,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -466,7 +466,7 @@
           "simulated": {
             "status": "read",
             "value": 94.34999999999799,
-            "bound": 3.5740962285090734,
+            "bound": 3.5730517434615123,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -490,14 +490,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 27.542069502153357,
-            "bound": 2.1176630855764977,
+            "value": 27.53979957825668,
+            "bound": 2.117450712957808,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -5.128614847162112
+          "logged_minus_simulated": -5.126344923265435
         },
         {
           "what": "main_opening",
@@ -512,14 +512,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 137.6465534087233,
+            "value": 137.61738312618135,
             "bound": null,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -97.7770979687233
+          "logged_minus_simulated": -97.74792768618136
         },
         {
           "what": "main_rate",
@@ -537,14 +537,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 4.686474807390952,
-            "bound": 0.5586226032206685,
+            "value": 4.686289330036883,
+            "bound": 0.558527292012338,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -1.0681870071995658
+          "logged_minus_simulated": -1.0680015298454966
         }
       ]
     },
@@ -575,16 +575,16 @@
       "clock_bound_s": 1.363481703791933,
       "reaches_landing": true,
       "descent_flown": true,
-      "past_simulation": 266,
+      "past_simulation": 273,
       "height_m": [
         {
           "phase": "boost",
           "start_s": 0.0,
           "end_s": 4.669999999999997,
           "samples": 467,
-          "mean": -127.31525175781958,
-          "rms": 165.83555574254086,
-          "largest": -310.74614503924374,
+          "mean": -126.80573532227736,
+          "rms": 165.1407140730133,
+          "largest": -309.2465502474131,
           "largest_at_s": 4.539999999999999
         },
         {
@@ -592,19 +592,19 @@
           "start_s": 4.669999999999997,
           "end_s": 28.69,
           "samples": 2402,
-          "mean": 100.896807890548,
-          "rms": 207.54202436656652,
-          "largest": 352.95329970812145,
+          "mean": 108.6051854044304,
+          "rms": 214.21886513336042,
+          "largest": 366.12533223647415,
           "largest_at_s": 28.64
         },
         {
           "phase": "descent",
           "start_s": 28.69,
           "end_s": 223.01000000000002,
-          "samples": 2326,
-          "mean": 291.483548579324,
-          "rms": 311.4979761976918,
-          "largest": 405.1703361976088,
+          "samples": 2319,
+          "mean": 301.46631761737797,
+          "rms": 322.1825114766225,
+          "largest": 418.5572939267058,
           "largest_at_s": 37.870000000000005
         }
       ],
@@ -614,9 +614,9 @@
           "start_s": 0.0,
           "end_s": 4.669999999999997,
           "samples": 467,
-          "mean": -79.21116540942454,
-          "rms": 88.19380166345509,
-          "largest": -119.58015409245954,
+          "mean": -78.87338192070543,
+          "rms": 87.80440696582778,
+          "largest": -118.96146552645567,
           "largest_at_s": 4.14
         },
         {
@@ -624,19 +624,19 @@
           "start_s": 4.669999999999997,
           "end_s": 28.69,
           "samples": 2402,
-          "mean": 30.058817550263885,
-          "rms": 42.480822469724025,
-          "largest": 99.98066588145076,
+          "mean": 30.541924826722273,
+          "rms": 42.8287673357304,
+          "largest": 100.51781537616904,
           "largest_at_s": 8.35
         },
         {
           "phase": "descent",
           "start_s": 28.69,
           "end_s": 223.01000000000002,
-          "samples": 2326,
-          "mean": -0.7372840246440325,
-          "rms": 6.207465317104049,
-          "largest": -21.50174043884122,
+          "samples": 2319,
+          "mean": -0.79071322734882,
+          "rms": 6.269929631214529,
+          "largest": -21.502845383150603,
           "largest_at_s": 157.51000000000002
         }
       ],
@@ -658,14 +658,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 3549.257971389369,
-            "bound": 258.2082088371999,
+            "value": 3536.602356814621,
+            "bound": 257.2995944667163,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 342.83202861063137
+          "logged_minus_simulated": 355.48764318537906
         },
         {
           "what": "apogee_time",
@@ -680,14 +680,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 27.255000000004262,
+            "value": 27.20500000000425,
             "bound": 1.4508553672607252,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 1.434999999995739
+          "logged_minus_simulated": 1.4849999999957504
         },
         {
           "what": "top_speed",
@@ -697,7 +697,7 @@
           },
           "simulated": {
             "status": "withheld",
-            "detail": "the climb's speed reaches 299.2 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+            "detail": "the climb's speed reaches 298.6 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
           },
           "logged_minus_simulated": null
         },
@@ -717,14 +717,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 92.98653060073526,
-            "bound": 10.025507602522229,
+            "value": 92.98710483009621,
+            "bound": 10.025497359404664,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 6.410119399264744
+          "logged_minus_simulated": 6.409545169903794
         },
         {
           "what": "burnout",
@@ -764,14 +764,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 202.7500000000317,
-            "bound": 2.5667594631154302,
+            "value": 202.30000000003162,
+            "bound": 2.565624179295591,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 20.25999999996833
+          "logged_minus_simulated": 20.709999999968403
         },
         {
           "what": "drogue_rate",
@@ -789,14 +789,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 26.717653890048364,
-            "bound": 1.9831323565566708,
+            "value": 26.70110643603441,
+            "bound": 1.982121771333484,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -0.21308489827254817
+          "logged_minus_simulated": -0.19653744425859543
         },
         {
           "what": "main_opening",
@@ -811,14 +811,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 418.88405336136225,
+            "value": 418.8476638105752,
             "bound": null,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -7.374053361362257
+          "logged_minus_simulated": -7.337663810575236
         },
         {
           "what": "main_rate",
@@ -836,14 +836,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 7.147696844778027,
-            "bound": 0.6306108812343255,
+            "value": 7.147492380440568,
+            "bound": 0.6305962137611723,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -0.6429349400161222
+          "logged_minus_simulated": -0.6427304756786629
         }
       ]
     },
@@ -881,9 +881,9 @@
           "start_s": 0.0,
           "end_s": 29.95,
           "samples": 600,
-          "mean": 267.5401381356574,
-          "rms": 474.2874702932315,
-          "largest": 7784.693221818264,
+          "mean": 254.14995208389146,
+          "rms": 467.10220097894086,
+          "largest": 7756.828690790665,
           "largest_at_s": 29.9
         }
       ],
@@ -893,9 +893,9 @@
           "start_s": 0.0,
           "end_s": 29.95,
           "samples": 600,
-          "mean": 0.842292424359087,
-          "rms": 25.12058693488792,
-          "largest": -122.24137392754128,
+          "mean": -0.08624974446364286,
+          "rms": 25.247569933697754,
+          "largest": -122.91003158560045,
           "largest_at_s": 3.0999999999999996
         }
       ],
@@ -909,8 +909,8 @@
           },
           "simulated": {
             "status": "read",
-            "value": 2950.147263779018,
-            "bound": 215.268534080079,
+            "value": 2976.657429853211,
+            "bound": 217.17251987427622,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -926,7 +926,7 @@
           },
           "simulated": {
             "status": "read",
-            "value": 26.575000000000376,
+            "value": 26.72500000000038,
             "bound": 1.5708553672607222,
             "interval": null,
             "is_floor": false,
@@ -942,13 +942,8 @@
             "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
           },
           "simulated": {
-            "status": "read",
-            "value": 226.7752306719684,
-            "bound": 26.701951080314604,
-            "interval": null,
-            "is_floor": false,
-            "source": null,
-            "provenance": null
+            "status": "withheld",
+            "detail": "the climb's speed reaches 227.8 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
           },
           "logged_minus_simulated": null
         },
@@ -971,13 +966,8 @@
             "detail": "burnout from the speed's peak needs the top speed, which is withheld: the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
           },
           "simulated": {
-            "status": "read",
-            "value": 4.500000000000064,
-            "bound": 2.0583761265400478,
-            "interval": null,
-            "is_floor": true,
-            "source": null,
-            "provenance": null
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 227.8 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
           },
           "logged_minus_simulated": null
         },
@@ -989,8 +979,8 @@
           },
           "simulated": {
             "status": "read",
-            "value": 156.70000000000223,
-            "bound": 1.3598498841680577,
+            "value": 157.80000000000226,
+            "bound": 1.3606781154561562,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -1030,8 +1020,8 @@
           },
           "simulated": {
             "status": "read",
-            "value": 22.65762141507197,
-            "bound": 1.6870675701172302,
+            "value": 22.694895407855245,
+            "bound": 1.689403002889655,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -1075,9 +1065,9 @@
           "start_s": 0.0,
           "end_s": 23.5,
           "samples": 128,
-          "mean": -96.44220773552948,
-          "rms": 118.0081568389083,
-          "largest": -164.91848614114178,
+          "mean": -96.15925935874768,
+          "rms": 117.69737755691091,
+          "largest": -164.42064653295938,
           "largest_at_s": 23.400000000000002
         }
       ],
@@ -1087,9 +1077,9 @@
           "start_s": 0.0,
           "end_s": 23.5,
           "samples": 128,
-          "mean": -8.392108266267671,
-          "rms": 22.924842352573414,
-          "largest": 76.31422103648731,
+          "mean": -8.372006105651874,
+          "rms": 22.916898428180925,
+          "largest": 76.34349130650384,
           "largest_at_s": 2.5999999999999996
         }
       ],
@@ -1111,14 +1101,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 2945.9184861411413,
-            "bound": 214.9415134447332,
+            "value": 2945.420646532959,
+            "bound": 214.90580037526394,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -160.91848614114133
+          "logged_minus_simulated": -160.42064653295893
         },
         {
           "what": "apogee_time",
@@ -1207,26 +1197,26 @@
       "clock_bound_s": 1.3935869360110253,
       "reaches_landing": true,
       "descent_flown": true,
-      "past_simulation": 154,
+      "past_simulation": 157,
       "height_m": [
         {
           "phase": "ascent",
           "start_s": 0.0,
           "end_s": 23.69,
           "samples": 2369,
-          "mean": 54.417100776911454,
-          "rms": 96.681857346193,
-          "largest": 171.0251162658028,
+          "mean": 54.812944847521884,
+          "rms": 97.09058081254281,
+          "largest": 171.82304542729617,
           "largest_at_s": 23.68
         },
         {
           "phase": "descent",
           "start_s": 23.69,
           "end_s": 175.53,
-          "samples": 15031,
-          "mean": 65.47370642394158,
-          "rms": 89.14956545511987,
-          "largest": 208.56551838357655,
+          "samples": 15028,
+          "mean": 66.07442896106235,
+          "rms": 89.71239802300988,
+          "largest": 209.38695525152843,
           "largest_at_s": 28.94
         }
       ],
@@ -1236,19 +1226,19 @@
           "start_s": 0.0,
           "end_s": 23.69,
           "samples": 2369,
-          "mean": 78.04414526964682,
-          "rms": 191.8866099609775,
-          "largest": 705.1564537070212,
+          "mean": 78.07783642642302,
+          "rms": 191.9025589703663,
+          "largest": 705.192766976234,
           "largest_at_s": 8.24
         },
         {
           "phase": "descent",
           "start_s": 23.69,
           "end_s": 175.53,
-          "samples": 15031,
-          "mean": -0.9947457836249768,
-          "rms": 2.2806393531529303,
-          "largest": 6.1076293179085175,
+          "samples": 15028,
+          "mean": -0.9975938351758117,
+          "rms": 2.286435277074047,
+          "largest": 6.149008575037411,
           "largest_at_s": 23.69
         }
       ],
@@ -1270,14 +1260,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 2745.9331637668247,
-            "bound": 200.51752978844806,
+            "value": 2745.16036254086,
+            "bound": 200.46209204622107,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 169.4051617336636
+          "logged_minus_simulated": 170.17796295962808
         },
         {
           "what": "apogee_time",
@@ -1353,14 +1343,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 173.76,
-            "bound": 1.7411346669611487,
+            "value": 173.72,
+            "bound": 1.741069451783047,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 1.7700000000000102
+          "logged_minus_simulated": 1.8100000000000023
         },
         {
           "what": "drogue_rate",
@@ -1370,8 +1360,8 @@
           },
           "simulated": {
             "status": "read",
-            "value": 23.72725324393851,
-            "bound": 1.7905912985393724,
+            "value": 23.726943740343597,
+            "bound": 1.7905959517260899,
             "interval": null,
             "is_floor": false,
             "source": null,
@@ -1387,7 +1377,7 @@
           },
           "simulated": {
             "status": "read",
-            "value": 797.3324911083745,
+            "value": 797.2969161773527,
             "bound": null,
             "interval": null,
             "is_floor": false,
@@ -1412,14 +1402,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 11.595364523276846,
-            "bound": 0.9342698124211194,
+            "value": 11.59520236924528,
+            "bound": 0.9342709317847492,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 7.588199587449932
+          "logged_minus_simulated": 7.5883617414814974
         }
       ]
     },
@@ -1447,7 +1437,7 @@
       ],
       "log_rows": 44454,
       "height_read_as": "barometric",
-      "clock_bound_s": 1.317339533531198,
+      "clock_bound_s": 1.3173396726817304,
       "reaches_landing": true,
       "descent_flown": true,
       "past_simulation": 0,
@@ -1457,9 +1447,9 @@
           "start_s": 0.0,
           "end_s": 25.91,
           "samples": 2591,
-          "mean": -5.214305454657567,
-          "rms": 68.45350657998756,
-          "largest": -138.44695892410255,
+          "mean": -3.1405410615682636,
+          "rms": 67.35949344095592,
+          "largest": -134.1829962429838,
           "largest_at_s": 25.89
         },
         {
@@ -1467,9 +1457,9 @@
           "start_s": 25.91,
           "end_s": 430.90999999999997,
           "samples": 40501,
-          "mean": -529.4287275249868,
-          "rms": 554.5004533240491,
-          "largest": -907.4165569060365,
+          "mean": -525.1599235523591,
+          "rms": 550.4794610823301,
+          "largest": -902.8883792734368,
           "largest_at_s": 27.63
         }
       ],
@@ -1479,9 +1469,9 @@
           "start_s": 0.0,
           "end_s": 25.91,
           "samples": 2591,
-          "mean": 3.199888034116941,
-          "rms": 95.43124452157093,
-          "largest": 375.8865471672409,
+          "mean": 3.36450939226586,
+          "rms": 95.43922924316111,
+          "largest": 376.0518062556581,
           "largest_at_s": 15.11
         },
         {
@@ -1489,9 +1479,9 @@
           "start_s": 25.91,
           "end_s": 430.90999999999997,
           "samples": 40501,
-          "mean": 16.706190615174506,
-          "rms": 354.2529442674858,
-          "largest": 10210.79460514935,
+          "mean": 16.70545369968284,
+          "rms": 354.254535965546,
+          "largest": 10210.807258081883,
           "largest_at_s": 29.09
         }
       ],
@@ -1513,14 +1503,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 3732.4824575816283,
-            "bound": 271.349920710505,
+            "value": 3728.0061898816534,
+            "bound": 271.0285124881893,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -145.81918090926501
+          "logged_minus_simulated": -141.34291320929015
         },
         {
           "what": "apogee_time",
@@ -1535,14 +1525,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 27.155000000000005,
-            "bound": 1.4508557602607515,
+            "value": 27.134999999999994,
+            "bound": 1.4508560130272419,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -1.2450000000000045
+          "logged_minus_simulated": -1.2249999999999943
         },
         {
           "what": "top_speed",
@@ -1552,7 +1542,7 @@
           },
           "simulated": {
             "status": "withheld",
-            "detail": "the climb's speed reaches 321.3 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+            "detail": "the climb's speed reaches 321.1 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
           },
           "logged_minus_simulated": null
         },
@@ -1576,7 +1566,7 @@
           },
           "simulated": {
             "status": "withheld",
-            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 321.3 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 321.1 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
           },
           "logged_minus_simulated": null
         },
@@ -1596,14 +1586,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 552.45,
-            "bound": 3.7610066614481603,
+            "value": 551.86,
+            "bound": 3.7593476520703506,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": -121.54000000000008
+          "logged_minus_simulated": -120.95000000000005
         },
         {
           "what": "drogue_rate",
@@ -1650,14 +1640,14 @@
           },
           "simulated": {
             "status": "read",
-            "value": 7.1017776325975515,
-            "bound": 0.5359433951406386,
+            "value": 7.100939606807694,
+            "bound": 0.5358957627247876,
             "interval": null,
             "is_floor": false,
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 1.4847546767070412
+          "logged_minus_simulated": 1.4855927024968985
         }
       ]
     }

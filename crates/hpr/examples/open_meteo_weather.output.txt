@@ -20,5 +20,5 @@ height above the pad (m)   pressure (hPa)   temperature (°C)   density (kg/m³)
   3000 standard                     585.2              -13.6            0.7854
 
 Calisto to apogee      apogee (m above the pad)   east of the pad (m)   north (m)
-Open-Meteo                                 2913.5                  15.3      -158.4
-standard, calm                             2854.5                  -5.2         0.0
+Open-Meteo                                 2913.6                  14.2      -155.0
+standard, calm                             2854.5                  -5.3         0.0

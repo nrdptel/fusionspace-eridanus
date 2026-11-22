@@ -2448,8 +2448,9 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
         );
     }
     // Each row's reason is its revision's in the code's list, and the means on the merged
-    // predictions are given exactly when that list holds one. Today it holds one: Erebus 11,
-    // revised by M1.14i3's base drag behind a boattail (ADR-362).
+    // predictions are given exactly when that list holds one. Today it holds three: Astra,
+    // Andromeda and Erebus 11, each revised by the tip-off phase's becoming the default
+    // (M1.14b15, ADR-363), Erebus 11 by M1.14i3's base drag behind a boattail too (ADR-362).
     for row in &report.predicted_first {
         let listed = REVISIONS.iter().find(|revision| revision.id == row.id);
         assert_eq!(
@@ -2469,8 +2470,8 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
     );
     assert_eq!(
         REVISIONS.map(|revision| revision.id),
-        ["erebus-11"],
-        "this record: one revised when written"
+        ["astra", "andromeda", "erebus-11"],
+        "this record: three revised when written"
     );
 
     // The means, worked here from the rows: over all 12, and over each part.

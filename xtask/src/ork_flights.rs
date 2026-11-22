@@ -1017,7 +1017,10 @@ fn fly(
         ..FlightSettings::default()
     };
     let descended = descent.map(|recovery| {
-        let flown = Simulation::new(rocket, configuration, environment.clone(), rail, settings);
+        // OpenRocket guides the rocket to the rail's end and frees it with no turn: it has no
+        // tip-off phase, so each flight held to it here flies without HPR Sim's.
+        let flown = Simulation::new(rocket, configuration, environment.clone(), rail, settings)
+            .map(Simulation::without_tip_off);
         flown.map_or_else(
             |error| Err(format!("{at}: {error}")),
             |simulation| {
@@ -1028,7 +1031,8 @@ fn fly(
         )
     });
     let simulation = Simulation::new(rocket, configuration, environment, rail, settings)
-        .map_err(|error| format!("{at}: {error}"))?;
+        .map_err(|error| format!("{at}: {error}"))?
+        .without_tip_off();
     let all_stagings = stagings;
     let stagings =
         climbing(stagings, simulation.assembly()).map_err(|error| format!("{at}: {error}"))?;
@@ -1045,7 +1049,8 @@ fn fly(
             rail,
             settings,
         )
-        .map_err(|error| format!("{at}: {error}"))?;
+        .map_err(|error| format!("{at}: {error}"))?
+        .without_tip_off();
         Some(coasting(coasted, all_stagings, recorded).map_err(|error| format!("{at}: {error}"))?)
     };
     let simulation = if stagings.is_empty() {

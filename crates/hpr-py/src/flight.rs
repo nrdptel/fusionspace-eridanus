@@ -321,9 +321,14 @@ impl DragTable {
 /// ground as soon as it is made.
 ///
 /// `Flight(rocket, environment, rail_length_m, *, inclination_deg=90.0, heading_deg=0.0,
-/// interval_s=None, drag_table=None, drag=None)`: the rail is measured from the rocket's aft end
-/// to the rail's top. It leans `inclination_deg` above the horizon (90 is vertical) toward
-/// `heading_deg`, clockwise from true north.
+/// interval_s=None, drag_table=None, drag=None, tip_off=True)`: the rail is measured from the
+/// rocket's aft end to the rail's top. It leans `inclination_deg` above the horizon (90 is
+/// vertical) toward `heading_deg`, clockwise from true north.
+///
+/// A rocket with two or more rail guides tips off the rail: once the guide ahead of the last has
+/// left, the rocket turns about its last guide until that one leaves too. With `tip_off=False`
+/// the rocket is guided to its last guide and freed with no turn, as OpenRocket and RocketPy's
+/// releases fly it. A rocket with fewer than two guides flies the same both ways.
 ///
 /// The flight is recorded every `interval_s` seconds, at least 0.001 s, and at every event. With
 /// no `interval_s`, it's recorded at every step of the integrator. The rocket is copied as the
@@ -355,7 +360,7 @@ const MIN_INTERVAL_S: f64 = 0.001;
 #[pymethods]
 impl Flight {
     #[new]
-    #[pyo3(signature = (rocket, environment, rail_length_m, *, inclination_deg = 90.0, heading_deg = 0.0, interval_s = None, drag_table = None, drag = None))]
+    #[pyo3(signature = (rocket, environment, rail_length_m, *, inclination_deg = 90.0, heading_deg = 0.0, interval_s = None, drag_table = None, drag = None, tip_off = true))]
     #[expect(
         clippy::too_many_arguments,
         reason = "Python's keyword arguments, one per option of a flight"
@@ -370,6 +375,7 @@ impl Flight {
         interval_s: Option<f64>,
         drag_table: Option<&DragTable>,
         drag: Option<Py<PyAny>>,
+        tip_off: bool,
     ) -> PyResult<Self> {
         if let Some(interval_s) = interval_s
             && (interval_s.is_nan() || interval_s < MIN_INTERVAL_S)
@@ -387,7 +393,8 @@ impl Flight {
         let environment = environment.bound(py, &raised);
         let builder = hpr::Flight::builder(&rocket, &environment, rail_length_m)
             .inclination_deg(inclination_deg)
-            .heading_deg(heading_deg);
+            .heading_deg(heading_deg)
+            .tip_off(tip_off);
         let builder = with_drag(builder, drag_table, drag, &raised)?;
         // The flight holds the GIL only while a Python function runs, so other Python threads run
         // while it flies.

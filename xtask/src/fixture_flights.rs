@@ -1269,7 +1269,10 @@ fn fly_all(
             let flown = |simulation: Simulation| {
                 climbed_m(&simulation).map_err(|error| format!("{at}: in still air: {error}"))
             };
-            Some((flown(still()?)?, flown(still()?.with_tip_off())?))
+            Some((
+                flown(still()?.without_tip_off())?,
+                flown(still()?.with_tip_off())?,
+            ))
         } else {
             None
         };

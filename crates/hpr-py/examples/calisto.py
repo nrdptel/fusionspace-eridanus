@@ -65,6 +65,10 @@ table = hpr.DragTable(
 # point starts `h0` above the ground: 1.25 m here, the first line the example prints. Heights are measured from `h0`, and the main
 # opens `h0` higher than RocketPy's 800 m, so that both open at the same place. A first flight,
 # before the parachutes are added, shows where the rocket stands on the rail.
+#
+# RocketPy 1.13.0 frees the rocket with no turn where its upper button leaves the rail. hpr's own
+# flight tips off the rail on its last guide, so both flights here pass `tip_off=False` to fly as
+# RocketPy does.
 
 # %%
 DRY_CG_M = np.array(calisto.mass_properties(1.0e6)["cg_m"])  # long after burnout
@@ -86,6 +90,7 @@ standing = hpr.Flight(
     inclination_deg=rail["inclination_deg"],
     heading_deg=rail["heading_deg"],
     drag_table=table,
+    tip_off=False,
 )
 
 
@@ -119,6 +124,7 @@ flight = hpr.Flight(
     inclination_deg=rail["inclination_deg"],
     heading_deg=rail["heading_deg"],
     drag_table=table,
+    tip_off=False,
 )
 print(f"The dry center of mass starts {h0:.3f} m above the ground.")
 

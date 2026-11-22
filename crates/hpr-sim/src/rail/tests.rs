@@ -208,7 +208,8 @@ fn rail_exit_is_when_the_last_button_leaves() {
                 ..FlightSettings::default()
             },
         )
-        .unwrap();
+        .unwrap()
+        .without_tip_off();
         let start = sim.initial_state();
         let result = sim.run(&mut ()).unwrap();
         assert_eq!(result.termination, Termination::TimeCap);
@@ -338,9 +339,16 @@ fn tip_off_turns_the_rocket_about_its_last_guide_and_keeps_that_guide_on_the_rai
     let rocket = design("rocketpy-valetudo");
     for friction in [0.0, 0.3] {
         let rail = valetudo_rail(friction);
-        let guided = first_second(&rocket, rail);
-        let tipping = first_second(&rocket, rail).with_tip_off();
+        let guided = first_second(&rocket, rail).without_tip_off();
+        // The phase is the default; `with_tip_off` only undoes the opt-out.
+        let tipping = first_second(&rocket, rail);
         assert!(tipping.tip_off() && !guided.tip_off());
+        assert!(
+            first_second(&rocket, rail)
+                .without_tip_off()
+                .with_tip_off()
+                .tip_off()
+        );
         let start = tipping.initial_state();
         let guides = tipping.guides();
         let pivot = DVec3::new(0.0, 0.0, -guides.pivot_station_m.unwrap());
@@ -432,12 +440,12 @@ fn tip_off_changes_nothing_for_a_rocket_with_one_guide_or_none_to_turn_it() {
     // bit.
     let one = with_buttons(1, 0.0);
     let rail = valetudo_rail(0.0);
-    let guided = first_second(&one, rail).run(&mut ()).unwrap();
-    let mut steps = Steps::default();
-    let asked = first_second(&one, rail)
-        .with_tip_off()
-        .run(&mut steps)
+    let guided = first_second(&one, rail)
+        .without_tip_off()
+        .run(&mut ())
         .unwrap();
+    let mut steps = Steps::default();
+    let asked = first_second(&one, rail).run(&mut steps).unwrap();
     assert!(
         steps
             .0
@@ -498,9 +506,9 @@ fn a_rocket_that_stops_on_its_last_guide_is_held_there() {
         )
         .unwrap();
         let simulation = if tip_off {
-            simulation.with_tip_off()
-        } else {
             simulation
+        } else {
+            simulation.without_tip_off()
         };
         let start = simulation.initial_state();
         let mut steps = Steps::default();
@@ -625,7 +633,7 @@ fn a_rail_exit_in_the_step_tip_off_begins_frees_the_rocket() {
         let result = simulation.run(&mut steps).unwrap();
         (steps, result)
     };
-    let (_, guided) = fly(first_second(&rocket, rail));
+    let (_, guided) = fly(first_second(&rocket, rail).without_tip_off());
     for gap_m in [1e-15, 4e-16] {
         let simulation = first_second(&rocket, rail).with_tip_off();
         let mut guides = simulation.guides();
@@ -705,9 +713,9 @@ fn landing(rocket: &hpr_design::Rocket, rail: Rail, wind_m_s: f64, tip_off: bool
     )
     .unwrap();
     let simulation = if tip_off {
-        simulation.with_tip_off()
-    } else {
         simulation
+    } else {
+        simulation.without_tip_off()
     };
     let result = simulation.run(&mut ()).unwrap();
     assert_eq!(result.termination, Termination::GroundHit);

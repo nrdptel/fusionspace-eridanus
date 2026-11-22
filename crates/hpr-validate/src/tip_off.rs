@@ -254,7 +254,7 @@ pub fn fly(
     let simulation = if tip_off {
         simulation.with_tip_off()
     } else {
-        simulation
+        simulation.without_tip_off()
     };
 
     // L75: the same rocket has to weigh the same, fly its drag on the same area, burn the same

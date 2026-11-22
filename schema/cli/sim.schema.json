@@ -724,6 +724,10 @@
           "type": "number",
           "format": "double"
         },
+        "tip_off": {
+          "description": "Whether the flight tips off the rail on its last guide where the design has two or more\nguides: true unless `--no-tip-off` was given.",
+          "type": "boolean"
+        },
         "wind_from_deg": {
           "description": "The direction the wind blows from, clockwise from true north, degrees; null when a\nweather profile gives the winds.",
           "type": [
@@ -748,7 +752,8 @@
         "rail_length_m",
         "inclination_deg",
         "heading_deg",
-        "atmosphere"
+        "atmosphere",
+        "tip_off"
       ]
     },
     "Margin": {

@@ -925,13 +925,14 @@ mod tests {
         for landing in &landings {
             assert!(landing.height_above_ground_m.abs() < 1e-6, "{landing:?}");
         }
-        // Measured: apogee at 14.985 s; the nose cone (0.063 kg) lands at 559.21 s, 2 048 m
-        // downwind, the airframe (0.556 kg) at 331.76 s and the payload (0.250 kg), let out at
-        // 261.17 s, at 331.33 s, both near 1 135 m.
+        // Measured, on the default flight, which tips off the rail: apogee at 14.987 s; the nose
+        // cone (0.063 kg) lands at 559.33 s, 2 052 m downwind, the airframe (0.556 kg) at
+        // 331.82 s and the payload (0.250 kg), let out at 261.23 s, at 331.40 s, both near
+        // 1 139 m.
         let pinned = [
-            (559.212, 2_047.87),
-            (331.760, 1_136.24),
-            (331.332, 1_134.53),
+            (559.330, 2_052.04),
+            (331.824, 1_140.22),
+            (331.396, 1_138.51),
         ];
         for (landing, (time_s, east_m)) in landings.iter().zip(pinned) {
             assert!((landing.time_s - time_s).abs() < 0.05, "{landing:?}");

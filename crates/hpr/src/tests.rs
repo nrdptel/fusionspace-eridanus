@@ -1854,6 +1854,47 @@ fn synthetic(motor: Option<&str>, buttonless: bool) -> Rocket {
     Rocket::from_design(design, &id).unwrap()
 }
 
+/// M1.14b15 (ADR-363, decision 1): a flight of a design with two rail guides tips off unless
+/// told not to, and one with none flies the same both ways.
+#[test]
+fn a_flight_tips_off_the_rail_by_default_and_the_builder_turns_it_off() {
+    let environment = Environment::new(32.99, -106.97, 1400.0).unwrap();
+    let rate_at_exit = |rocket: &Rocket, tip_off: Option<bool>| {
+        let mut launch = Flight::builder(rocket, &environment, 1.8).inclination_deg(85.0);
+        if let Some(tip_off) = tip_off {
+            launch = launch.tip_off(tip_off);
+        }
+        assert_eq!(
+            launch.simulation().unwrap().tip_off(),
+            tip_off.unwrap_or(true)
+        );
+        let flight = launch.fly().unwrap();
+        let exit = flight
+            .result()
+            .event(hpr_sim::EventKind::RailExit)
+            .unwrap()
+            .sample;
+        (
+            exit.state.body_rate_rad_s.length(),
+            flight.apogee_m().unwrap(),
+        )
+    };
+    let buttons = synthetic(None, false);
+    let (default_rate, default_apogee) = rate_at_exit(&buttons, None);
+    // Leaning 5° off the vertical, gravity turns the rocket about its last guide.
+    assert!(default_rate > 1e-3, "{default_rate} rad/s");
+    assert_eq!(
+        rate_at_exit(&buttons, Some(true)),
+        (default_rate, default_apogee)
+    );
+    let (guided_rate, guided_apogee) = rate_at_exit(&buttons, Some(false));
+    assert_eq!(guided_rate, 0.0);
+    assert_ne!(guided_apogee, default_apogee);
+    // No guides: no last guide to turn about, and the switch moves nothing.
+    let bare = synthetic(None, true);
+    assert_eq!(rate_at_exit(&bare, None), rate_at_exit(&bare, Some(false)));
+}
+
 fn numbers(flight: &Flight) -> Vec<u32> {
     flight
         .issue_warnings()

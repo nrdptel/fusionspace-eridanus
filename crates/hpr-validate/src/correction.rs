@@ -145,7 +145,7 @@ impl Variant {
         Ok(if self.tip_off {
             simulation.with_tip_off()
         } else {
-            simulation
+            simulation.without_tip_off()
         })
     }
 }
