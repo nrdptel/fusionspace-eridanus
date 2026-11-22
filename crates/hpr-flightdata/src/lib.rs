@@ -142,6 +142,7 @@ pub mod blueraven;
 pub mod blueraven_usb;
 pub mod capture;
 pub mod custom;
+pub mod descent_wind;
 pub mod eggtimer;
 pub mod entacore;
 pub mod entacore_raw;

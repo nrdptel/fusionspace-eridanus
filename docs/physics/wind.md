@@ -21,7 +21,9 @@ read from a forecast's table of levels.
   descents with wind, the total [drift](../glossary.md#drift) agrees within 0.28%, and each east or
   north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Ten real flights have been
   flown in ERA5 winds, nine of them in their own day's. Only their heights are compared, not their drift
-  ([Accuracy: real flights](../accuracy.md#real-flights)).
+  ([Accuracy: real flights](../accuracy.md#real-flights)). The wind read back from a GPS-tracked
+  descent is pinned on synthetic descents and set beside ERA5 on two public flights
+  ([Wind from a GPS-tracked descent](#wind-from-a-gps-tracked-descent)).
 - **What it leaves out:** wind varying in time or across the field, vertical wind, terrain, and
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or
   log law, which keeps growing with height, can't hand over to winds aloft.
@@ -437,6 +439,92 @@ fn speed_and_direction_from(velocity_enu_m_s: DVec3) -> (f64, f64) {
 }
 ```
 
+## Wind from a GPS-tracked descent
+
+A rocket falling under a parachute drifts with the wind, a little late, so its GPS track measures
+the wind at the flight's own place and minutes. This section gives how HPR Sim reads that wind
+from a log, and what it showed against ERA5, the [reanalysis](../glossary.md#era5) the real
+flights fly in. **How far to trust it:** the method is pinned on synthetic descents whose wind is
+known. On real descents nothing bounds what the canopy itself does (below), and only two public
+flights could be compared, so the comparison is a method, not yet a comparison: read its
+differences as one example of how far a launch-field wind can sit from ERA5's, not as ERA5's
+measured miss.
+
+### The method
+
+A body under a parachute takes up a change in the wind with a time constant equal to its descent
+rate over gravity: under a 6 m/s (20 ft/s) main that is 0.6 s, under a 25 m/s (82 ft/s) drogue
+2.5 s. The wind is therefore the ground velocity plus that lag times the ground velocity's rate
+of change. It is the dropsonde's equation, from Hock and Franklin (1999, the appendix, after Lally
+and Leviton 1958; Kepert 2008, eq. 4):
+
+$$
+\mathbf{u} = \mathbf{v} + \frac{w}{g}\,\frac{\mathrm{d}\mathbf{v}}{\mathrm{d}t}
+$$
+
+with $\mathbf{u}$ the horizontal wind, $\mathbf{v}$ the horizontal ground velocity, $w$ the
+descent rate and $g$ gravity. It assumes a steady fall, much faster than the body slips sideways
+through the air, with the same drag in every direction
+([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/wind-from-descent.md),
+§1 and §2).
+
+At each fix, a quadratic in time is fitted to the east, north and up positions of the fixes
+within 10 s around it: its slope is the velocity and twice its curvature the acceleration. A
+window of 10 s spans several periods of a swing on the shock cord, which it averages out. A fix
+is read only where the body falls steadily, at 2 to 35 m/s (7 to 115 ft/s) with a vertical
+acceleration of at most 0.5 m/s². That drops the fall from apogee before a canopy holds, each
+canopy's opening and the landing. Code:
+[`hpr_flightdata::descent_wind`](../api/hpr_flightdata/descent_wind/index.html).
+
+**A worked example.** In a wind that strengthens by 2 m/s (4.5 mph) for every 100 m (328 ft) of
+height, a body falling at 25 m/s meets 0.02 × 25 = 0.5 m/s more wind each second. With a lag of
+25 / 9.807 = 2.55 s, its ground velocity trails the wind by 2.55 × 0.5 = 1.27 m/s (2.8 mph). Under
+a 5 m/s (16 ft/s) main the same wind leaves 0.05 m/s (0.1 mph). On a real flight, Juno III fell
+under its drogue at 24.07 m/s (79 ft/s) through 929 m (3,048 ft) above the pad, a lag of
+24.07 / 9.807 = 2.45 s. Its ground velocity was 13.03 m/s east and 5.15 m/s north, and slowing
+by 0.55 and 0.17 m/s each second. So the wind was 13.03 − 2.45 × 0.55 = 11.68 m/s east and
+5.15 − 2.45 × 0.17 = 4.75 m/s north: 12.61 m/s (28.2 mph), against a ground speed of 14.01 m/s
+(31.3 mph). ERA5's wind there was 14.74 m/s (33.0 mph).
+
+### Against ERA5
+
+The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
+reads every public flight the real-flights report flies:
+
+- **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) to 421 m (1,381 ft) above the
+  pad, and Genesis, under its main below 666 m (2,185 ft). Genesis's receiver held one position
+  through most of its drogue descent, so those minutes are a gap in its track and aren't read.
+- **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
+- **Not run:** Cavour fell at 75 m/s (246 ft/s), faster than any canopy the method is held to;
+  Bella Lui, NDRT 2020 and Lince logged no position.
+
+Over the two compared flights, the reconstructed wind's speed is 1.39 m/s (3.1 mph) above ERA5's
+on average, and 3.96 m/s (8.9 mph) from it root-mean-square, over 158 fixes. By band the mean
+runs from 4.86 m/s (10.9 mph) below ERA5's between 500 and 1,000 m (1,640 and 3,281 ft) above the
+pad to 6.19 m/s (13.8 mph) above it from 3,000 m (9,843 ft) up. That is two to three times the
+1.4 to 1.9 m/s (3.1 to 4.3 mph) by which ERA5 misses soundings through the lowest 3 km
+(Taszarek et al. 2021, in the research note's §5); with two flights, how much is ERA5's miss at a
+launch field and how much the canopy's, nothing here tells apart.
+
+Prometheus carried two GPS receivers. Reconstructed apart, their winds differ by 0.65 m/s
+(1.5 mph) RMS over 169 shared fixes, 2.25 m/s (5.0 mph) at most: the receivers' and the method's
+own noise, since any glide or swing moved both alike.
+
+### What it leaves unbounded
+
+- **Glide.** A canopy that glides at an angle $\gamma$ moves across the wind by $w\tan\gamma$:
+  model canopies at 10 ft/s (3.0 m/s) glided at up to 45° (Knacke, NWC TP 6575, p. 5-16), a speed
+  as large as the descent itself. A turning canopy partly averages its glide out; how much is
+  left, no source measures for hobby canopies.
+- **Swing.** A rocket swinging by $\theta$ on a shock cord of length $L$ moves at up to
+  $\theta\sqrt{gL}$, about 0.95 m/s (2.1 mph) at 10° on 3 m (10 ft). The 10 s window spans
+  about two and a half periods of a 4 s swing and averages it out; a longer, slower swing it
+  does not.
+- **Drogues and tumbling bodies.** The lag assumes the same drag in every direction; a tumbling
+  airframe or a fluttering streamer has no measured response.
+- **ERA5's hour and place.** ERA5 is read at the launch hour and site; the descent is minutes
+  later and drifts hundreds of meters.
+
 ## Input and limits
 
 How a wind model is written in JSON, and what is not modeled yet.
@@ -493,5 +581,19 @@ levels aloft. How to join them isn't decided yet
     north part of NDRT 2020's drift, +2.865% (the
     [validation report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md)).
 - The example above, which CI runs and compares with its committed output.
+- The wind from a GPS-tracked descent, in `descent_wind::tests`:
+  - `the_lagged_reading_recovers_the_wind_and_the_ground_velocity_misses_it_under_a_drogue`: a
+    body with quadratic drag falls at 5, 25 and 33 m/s (16, 82 and 108 ft/s) through a wind that
+    strengthens by 2 m/s (4.5 mph) every 100 m (328 ft), sampled once a second. The method
+    recovers the wind within 0.3 m/s (0.7 mph) RMS at each; the ground velocity taken as the wind
+    misses it by the lag the worked example gives, within 10%, past 0.3 m/s at 25 and 33 m/s.
+  - `the_lagged_reading_is_near_exact_on_a_noiseless_track`: within 0.05 m/s (0.1 mph).
+  - `the_lagged_reading_holds_the_line_with_receiver_noise`: with 0.5 m (1.6 ft) of noise east and
+    north and 1 m (3.3 ft) up on each fix, within 0.3 m/s on each of 200 seeds.
+  - `the_steady_fall_rule_drops_an_opening_and_the_landing`, and the refusals of a bad track or
+    setting.
+- `cargo xtask descent-wind --check`, in the gate's `refs` step, reproduces the report from the
+  logs; in CI, `the_descent_wind_report_holds_together` recomputes its bands from its samples and
+  its page from its data.
 
 [lock]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml

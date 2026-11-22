@@ -4701,6 +4701,9 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // `real-flights.json` already holds, flown again with and without the phase, and the
         // private collection's aggregate. Apogees and errors only: no Mach number in it.
         "tip-off-flights.json",
+        // The wind from the public flights' GPS descents beside ERA5's (M1.14b6): winds,
+        // heights and descent rates under a canopy only: no Mach number in it.
+        "descent-wind.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
@@ -4868,6 +4871,55 @@ fn the_real_flights_page_credits_the_era5_weather() {
         assert!(
             paragraph.contains(words),
             "the notices' entry lacks {words}"
+        );
+    }
+}
+
+/// The committed descent-wind report (M1.14b6): its bands are its samples', its page is its data's,
+/// it lists every public real flight in order, and while fewer than three flights are compared the
+/// validation plan's row calls the reconstruction a method, not yet a comparison.
+#[test]
+fn the_descent_wind_report_holds_together() {
+    use crate::descent_wind::{
+        DescentWindReport, FLIGHTS_FOR_A_COMPARISON, REPORT_JSON, REPORT_MD, Status,
+    };
+    let report: DescentWindReport =
+        serde_json::from_str(&std::fs::read_to_string(root().join(REPORT_JSON)).unwrap()).unwrap();
+    report.check_bands().unwrap();
+    report
+        .check_page(&std::fs::read_to_string(root().join(REPORT_MD)).unwrap())
+        .unwrap();
+    let ids: Vec<&str> = report.flights.iter().map(|f| f.id.as_str()).collect();
+    let public: Vec<&str> = crate::real_flight::FLIGHTS.iter().map(|f| f.id).collect();
+    assert_eq!(ids, public);
+    for flight in &report.flights {
+        match &flight.status {
+            Status::NotRun(why) | Status::NotCompared(why) => {
+                assert!(!why.is_empty(), "{}", flight.id)
+            }
+            Status::Compared => {
+                assert!(!flight.samples.is_empty(), "{}", flight.id);
+                assert!(
+                    flight.samples.iter().all(|s| s.era5_m_s.is_some()),
+                    "{}",
+                    flight.id
+                );
+            }
+        }
+        if matches!(flight.status, Status::NotRun(_)) {
+            assert!(flight.samples.is_empty(), "{}", flight.id);
+        }
+    }
+    let plan = std::fs::read_to_string(root().join("docs/VALIDATION.md")).unwrap();
+    let row = plan
+        .lines()
+        .find(|line| line.starts_with("| Wind reconstructed from the GPS descent |"))
+        .expect("the validation plan's row for the wind from the GPS descent");
+    if report.compared() < FLIGHTS_FOR_A_COMPARISON {
+        assert!(
+            row.contains("a method, not yet a comparison"),
+            "{} flights compared: the row must say the reconstruction is a method, not yet a comparison",
+            report.compared()
         );
     }
 }
