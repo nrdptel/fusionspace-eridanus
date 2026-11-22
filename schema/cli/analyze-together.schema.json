@@ -2241,7 +2241,7 @@
           "const": "too_long"
         },
         {
-          "description": "The estimate left the finite numbers somewhere in the log: it is withheld whole rather\nthan given with a hole.",
+          "description": "The estimate left the finite numbers somewhere in the log, or its vertical speed passed\nEarth's escape speed, 11,186 m/s ([`DIVERGED_SPEED_M_S`]): it is withheld whole rather\nthan given with a hole, or with numbers no rocket flew.",
           "type": "string",
           "const": "diverged"
         }

@@ -1,6 +1,6 @@
 # ADR-149: M0.5e to g, reviews while CI runs, a faster gate and a split CI (2026-10-04)
 
-- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights, two logs and the fit; the budget checked)
+- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights, two logs and the fit; the budget checked); amended 2026-11-21 by [ADR-365][adr-365], decision 6: the repair of a failed night merges on a passing full run of its own head
 - **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, and every 21st fit of the fit, held line for line to a committed slice; `cargo xtask ci-budget` checks the budget before a pull request opens and before it merges.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
@@ -8,6 +8,7 @@
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
 [adr-312]: 0312-two-logs-on-one-timeline.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
+[adr-365]: 0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md
 [m0-16]: ../decisions-and-roadmap.md#m0-16
 [ci]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/.github/workflows/ci.yml
 [pr1146]: https://github.com/nrdptel/fusionspace-eridanus/pull/1146
@@ -111,7 +112,10 @@ again.
 3. **A nightly failure comes first.** A nightly run that fails, or in which a census didn't run,
    files one P-critical issue, or comments on the one still open, and the work that broke the
    census is fixed before other work ([ADR-144][adr-144] §4). A run started by hand with `full`
-   files none: whoever started it reads its result.
+   files none: whoever started it reads its result. Amended 2026-11-21
+   ([ADR-365][adr-365], decision 6): the budget's check takes a passing full run on the
+   repair's own head in place of main's night, so a night older than 26 hours can still be
+   repaired.
 4. **Before a merge.** `scripts/gate.sh` runs the three whole on the Mac, as before, on the
    platform that writes the reports. What a pull request loses is the synthetic flights' and two
    logs' runs on the other four platforms and in the optimized build, and the fit's run on Linux:

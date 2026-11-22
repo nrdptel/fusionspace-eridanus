@@ -300,6 +300,28 @@ pub const ASSUMED_SETTLE_SAMPLES: usize = 10;
 /// under this one takes tens of seconds and gigabytes, by a run in review, not a committed test.
 pub const MAX_STEPS: usize = 2_000_000;
 
+/// The vertical speed past which a smoothed track is withheld as [`Reason::Diverged`], m/s:
+/// Earth's escape speed at its surface, `√(2 GM/R)` with `GM` = 398,600 km³/s² and the mean radius
+/// `R` = 6,371.0 km, the 11.186 km/s of NASA's *Earth Fact Sheet* (D. R. Williams, NASA Space
+/// Science Data Coordinated Archive, Goddard Space Flight Center). Nothing that climbs on a hobby
+/// motor and comes back passes it, so an estimate that does is the filter's, not the rocket's.
+///
+/// It is a bound on a diverged estimate, not a test of a good one. A take-back
+/// ([`GATE_RESET_S`]) reads a sensor's gap as motion the filter missed and widens the speed's
+/// and the acceleration's variances by it. With two height sensors that disagree past their
+/// gates and can both be taken back, the other sensor's samples, fused against those variances,
+/// swing the speed, and the next take-back can meet a wider gap, without limit:
+/// [`GnssTrust::FromLiftoff`] does it on some of the synthetic flights ([#1590]).
+/// [`GnssTrust::Agreement`] never takes the receiver back, and the synthetic flights' check
+/// fails if it withholds one of their logs so. Three of the sample logs' 1,058 records still
+/// run away under it, by a road not traced yet ([#1073]), and are withheld
+/// (`validation/reports/log-import.md`, *The smoother*).
+///
+/// [#1073]: https://github.com/nrdptel/fusionspace-eridanus/issues/1073
+///
+/// [#1590]: https://github.com/nrdptel/fusionspace-eridanus/issues/1590
+pub const DIVERGED_SPEED_M_S: f64 = 11_186.0;
+
 /// How the GNSS receiver is trusted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -331,8 +353,9 @@ pub enum Reason {
     NoLiftoff,
     /// More than [`MAX_STEPS`] samples.
     TooLong,
-    /// The estimate left the finite numbers somewhere in the log: it is withheld whole rather
-    /// than given with a hole.
+    /// The estimate left the finite numbers somewhere in the log, or its vertical speed passed
+    /// Earth's escape speed, 11,186 m/s ([`DIVERGED_SPEED_M_S`]): it is withheld whole rather
+    /// than given with a hole, or with numbers no rocket flew.
     Diverged,
 }
 
@@ -771,6 +794,18 @@ pub fn smooth_with(
             detail: format!(
                 "the smoother's estimate isn't a finite number at {} s",
                 smoothed.time_s[k]
+            ),
+        });
+    }
+    if let Some(k) =
+        (0..smoothed.time_s.len()).find(|&k| smoothed.speed_m_s[k].abs() > DIVERGED_SPEED_M_S)
+    {
+        return Err(Withheld {
+            reason: Reason::Diverged,
+            detail: format!(
+                "the smoother's vertical speed reads {:.0} m/s at {:.2} s, past Earth's escape \
+                 speed, {:.0} m/s either way: the estimate ran away",
+                smoothed.speed_m_s[k], smoothed.time_s[k], DIVERGED_SPEED_M_S
             ),
         });
     }
@@ -3002,6 +3037,63 @@ mod tests {
         };
         let from_liftoff = smoothed(&log, options);
         assert_eq!(gnss(&from_liftoff).unweighed, 0);
+    }
+
+    /// The flight with a 5 Hz GNSS receiver whose altitude runs off the truth at 20 m/s from
+    /// apogee on, as no receiver's does: two height sensors that disagree past their gates.
+    fn with_a_receiver_that_runs_off(mut log: FlightLog) -> FlightLog {
+        let times: Vec<f64> = (0..365).map(|i| f64::from(i) * 0.2).collect();
+        let values = times
+            .iter()
+            .map(|&t| 300.0 + truth(t).0 + 20.0 * (t - 17.0).max(0.0))
+            .collect();
+        log.channels
+            .push(Channel::new("gnss", Quantity::GnssAltitude, times, values));
+        log
+    }
+
+    #[test]
+    fn a_track_past_escape_speed_is_withheld_as_diverged() {
+        // Trusted from liftoff, the receiver and the barometer are both taken back, each
+        // take-back read as motion missed, and the smoothed speed runs away past escape speed
+        // on a flight whose top speed is 98.1 m/s (#1590). The track is withheld, not given.
+        let log = with_a_receiver_that_runs_off(log());
+        let options = Options {
+            gnss_trust: GnssTrust::FromLiftoff,
+        };
+        let withheld =
+            smooth_with(&log, &readings::read(&log), options).expect_err("a speed no rocket flew");
+        assert_eq!(withheld.reason, Reason::Diverged);
+        assert!(
+            withheld
+                .detail
+                .contains("past Earth's escape speed, 11186 m/s either way: the estimate ran away"),
+            "{}",
+            withheld.detail
+        );
+
+        // Trusted by agreement, the receiver is never taken back, and the same log smooths: the
+        // top speed is the flight's, and the truth lies inside the interval on the way down.
+        let smoothed = smoothed(&log, Options::default());
+        let top = smoothed
+            .speed_m_s
+            .iter()
+            .fold(0.0_f64, |top, v| top.max(v.abs()));
+        assert!((top - 98.1).abs() < 2.0, "{top}");
+        holds_at(&smoothed, 30.0, 20.0, 5.0);
+    }
+
+    #[test]
+    fn the_diverged_speed_is_earths_escape_speed() {
+        // √(2 GM/R): GM = 398,600.4418 km³/s² (IERS Conventions 2010, table 1.1), the mean
+        // radius 6,371.0 km; NASA's fact sheet prints 11.186 km/s.
+        let escape_m_s = (2.0 * 3.986_004_418e14_f64 / 6.371e6).sqrt();
+        assert!(
+            (DIVERGED_SPEED_M_S - escape_m_s).abs() < 0.5,
+            "{escape_m_s}"
+        );
+        // Past any flight in HPR Sim's envelope, Mach 3.5 at sea level, by a factor of nine.
+        const { assert!(DIVERGED_SPEED_M_S > 9.0 * 3.5 * 340.3) };
     }
 
     #[test]

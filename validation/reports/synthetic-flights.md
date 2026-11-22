@@ -698,19 +698,20 @@ The share inside the interval, each set's flights by logger.
 
 ### Trusting the GNSS receiver from liftoff
 
-The same flights, each log with a GNSS track smoothed again with its receiver trusted from liftoff rather than once its speed agrees with the smoother's. A receiver lags a climb, so this must fail.
+The same flights, each log with a GNSS track smoothed again with its receiver trusted from liftoff rather than once its speed agrees with the smoother's. A receiver lags a climb, so this must fail. On some flights the receiver and the barometer then disagree past their gates, both are taken back, and the estimate runs away: a track whose speed passes 11,186 m/s, Earth's escape speed, is withheld as diverged and leaves the cells, which then count fewer flights than the check's.
 
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|
 | Flights smoothed again | | 33 | 185 | 186 |
-| burnout | height | 93.6% (5 / 6) | 94% (21 / 28) | 92.5% (28 / 35) |
-| burnout | speed | 89.5% (6 / 12) | 86.7% (74 / 35) **fails** | 88.9% (59 / 35) |
-| top speed | height | 93.6% (5 / 6) | 95% (18 / 23) | 94.2% (24 / 25) |
-| top speed | speed | 87.1% (15 / 7) | 88.4% (73 / 22) **fails** | 84.6% (99 / 31) **fails** |
-| apogee | height | 86.5% (22 / 1) **fails** | 81.2% (148 / 6) **fails** | 81.8% (147 / 7) **fails** |
-| apogee | speed | 90.1% (7 / 10) | 93.5% (16 / 37) | 94.2% (15 / 34) |
-| a drawn moment | height | 88.9% (14 / 5) | 84.1% (112 / 18) **fails** | 85.1% (112 / 14) **fails** |
-| a drawn moment | speed | 95.9% (5 / 2) | 94.5% (22 / 23) | 96% (19 / 15) |
+| Of them, withheld as diverged | | 0 | 11 | 6 |
+| burnout | height | 93.6% (5 / 6) | 94.7% (20 / 23) | 92.8% (28 / 32) |
+| burnout | speed | 89.5% (6 / 12) | 87.4% (72 / 30) **fails** | 89.5% (58 / 30) |
+| top speed | height | 93.6% (5 / 6) | 95.2% (18 / 21) | 94.4% (24 / 23) |
+| top speed | speed | 87.1% (15 / 7) | 89% (72 / 17) **fails** | 85.1% (98 / 27) **fails** |
+| apogee | height | 86.5% (22 / 1) **fails** | 81.8% (143 / 4) **fails** | 82.2% (144 / 5) **fails** |
+| apogee | speed | 90.1% (7 / 10) | 94.2% (13 / 34) | 94.6% (13 / 32) |
+| a drawn moment | height | 88.9% (14 / 5) | 84.8% (110 / 13) **fails** | 85.3% (111 / 12) **fails** |
+| a drawn moment | speed | 95.9% (5 / 2) | 94.8% (20 / 22) | 96.1% (18 / 15) |
 
 ### Logs written from launch
 
