@@ -94,8 +94,8 @@ place) at a typical size. Project notes are linked; their own primary sources ar
 - **Logged apogee.** Two units on one rocket differ by a median 0.37% over 59 flights, one pair in five over 2%;
   as two independent units, about 0.4% each, with a heavy tail ([n1] §5). At 3,892 m, 0.4% is 16 m: "3,892 m".
 - **Simulated apogee.** The committed 60-flight report's mean error +7.76% and RMS 15.43% give a sample SD of 13.4%;
-  the 7 public errors, −8.90% to +10.40%, 7.3% (**Inference**, n − 1). As a prediction "3,400 m", not "3,412 m"
-  (Rule G in §6, one place looser, would pass "3,410 m"); a per-flight error "+10.4%", not "+10.40%".
+  the 7 public errors, −9.22% to +10.39%, 7.2% (**Inference**, n − 1). As a prediction "3,400 m", not "3,412 m"
+  (Rule G in §6, one place looser, would pass "3,410 m"); a per-flight error "+10.4%", not "+10.39%".
 - **CP and margin** is a model error, not a σ: HPR Sim's linear fin terms put two finners' CP 0.15 to 0.22 and 0.7
   to 0.9 caliber ahead of the measured (a third report's own theory, 0.34 to 0.70), so the margin reads low. Taken as
   u, 0.15 to 0.29 allows hundredths and 0.36 to 0.9 tenths; a margin also carries the CG, which no note sizes, so
