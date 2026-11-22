@@ -30,24 +30,24 @@ the flight. It holds this:
 time [s],height above ground [m],vertical speed [m/s],airspeed [m/s],cg east [m],cg north [m],cg up [m]
 0.000,0.9,0.0,5.0,0.0,0.0,0.9
 0.002,0.9,0.0,5.0,0.0,0.0,0.9
-0.371,3.9,16.2,17.0,0.0,0.0,3.9
-3.259,216.0,110.6,111.4,-9.7,0.0,216.0
-5.000,390.8,90.3,91.3,-24.1,0.0,390.8
-10.000,707.8,37.5,39.4,-62.1,0.0,707.8
-13.830,778.7,0.0,11.4,-88.7,0.0,778.7
-14.330,777.6,-4.5,12.0,-91.9,0.0,777.6
-15.000,772.6,-10.2,14.3,-95.6,0.0,772.6
-20.000,665.5,-26.4,26.5,-98.4,0.1,665.5
-25.000,531.1,-27.0,27.0,-78.6,0.1,531.1
-30.000,396.4,-26.8,26.8,-54.4,0.1,396.4
-35.000,262.6,-26.7,26.7,-29.5,0.1,262.6
-39.234,150.0,-26.5,26.5,-8.4,0.1,150.0
-40.000,129.7,-26.5,26.5,-4.5,0.0,129.7
-40.234,123.5,-26.5,26.5,-3.3,0.0,123.5
-45.000,89.0,-6.4,6.4,20.5,0.0,89.0
-50.000,57.0,-6.4,6.4,45.5,0.0,57.0
-55.000,25.1,-6.4,6.4,70.5,0.0,25.1
-58.933,0.0,-6.4,6.4,90.2,0.0,0.0
+0.371,3.9,16.2,16.9,0.0,0.0,3.9
+3.259,216.1,110.7,111.4,-7.1,0.0,216.1
+5.000,391.1,90.5,91.2,-18.7,0.0,391.1
+10.000,708.6,37.6,39.1,-49.3,0.0,708.6
+13.834,780.0,0.0,10.1,-70.5,0.0,780.0
+14.334,778.8,-4.6,10.8,-72.9,0.0,778.8
+15.000,773.8,-10.3,13.5,-75.8,0.0,773.8
+20.000,666.2,-26.4,26.5,-75.5,0.0,666.2
+25.000,531.7,-27.0,27.0,-55.2,0.0,531.7
+30.000,397.1,-26.8,26.8,-30.9,0.0,397.1
+35.000,263.3,-26.7,26.7,-6.0,0.0,263.3
+39.259,150.0,-26.5,26.5,15.3,0.0,150.0
+40.000,130.3,-26.5,26.5,19.0,0.0,130.3
+40.259,123.5,-26.5,26.5,20.3,0.0,123.5
+45.000,89.2,-6.4,6.4,44.0,0.0,89.2
+50.000,57.2,-6.4,6.4,69.0,0.0,57.2
+55.000,25.2,-6.4,6.4,94.0,0.0,25.2
+58.958,0.0,-6.4,6.4,113.8,0.0,0.0
 ```
 
 Like the first flight's, this output is committed in
@@ -75,31 +75,31 @@ happened:
 | 0.002 | [liftoff](glossary.md#liftoff): the push up the rail first beats the weight, and the rocket starts to move |
 | 0.371 | the rocket leaves the 3 m (9.8 ft) rail |
 | 3.259 | burnout |
-| 13.830 | apogee; the drogue's charge fires at the same moment, so it shares this row |
-| 14.330 | the drogue opens, half a second later |
-| 39.234 | the main's charge fires, as the rocket falls past 150 m (492 ft) |
-| 40.234 | the main opens, a second later |
-| 58.933 | landing |
+| 13.834 | apogee; the drogue's charge fires at the same moment, so it shares this row |
+| 14.334 | the drogue opens, half a second later |
+| 39.259 | the main's charge fires, as the rocket falls past 150 m (492 ft) |
+| 40.259 | the main opens, a second later |
+| 58.958 | landing |
 
 What the numbers show:
 
 - On the pad the airspeed is 5.0 m/s (11 mph) with the rocket standing still. That's the wind.
 - The rocket climbs into the wind. The wind blows from the west, and off the rail a stable rocket
   turns its nose toward the wind it feels ([weathercocking](glossary.md#weathercocking)). So it
-  drifts west: `cg_east_m` is −88.7 m (−291 ft) at apogee.
+  drifts west: `cg_east_m` is −70.5 m (−231 ft) at apogee.
 - Under the drogue alone it falls at about 27 m/s (89 ft/s), and the wind carries it east.
 - The main slows it from 26.5 m/s (87 ft/s) to 6.4 m/s (21 ft/s) between the row where it opens
-  (40.234) and the next (45.000).
-- It lands at 6.4 m/s (21 ft/s), 90.2 m (296 ft) east of the pad.
-- `cg_north_m` shows 0.1 m (0.3 ft) for a while, with no wind from the south. The Earth's rotation
+  (40.259) and the next (45.000).
+- It lands at 6.4 m/s (21 ft/s), 113.8 m (373 ft) east of the pad.
+- `cg_north_m` is not exactly zero, though there is no wind from the south. The Earth's rotation
   nudges a moving rocket sideways, to the right of its motion in the northern hemisphere
   ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that's
-  north. It drifts up to 6.3 cm (2.5 in), which the table rounds to 0.0 or 0.1 m (0.3 ft).
+  north. In every row here the drift is under 5 cm (2 in), which the table rounds to 0.0 m.
 - `cg_up_m` and `height_above_ground_m` agree here, and don't in general. The launch frame is a
   flat plane, and the Earth curves away below it. So `cg_up_m` reads low far from the pad.
 
-  On the ground 10 km (6.2 mi) from the pad, it's −7.8 m (−26 ft). At this landing, 90.2 m (296 ft)
-  out, it's under a millimeter low. For heights, use `height_above_ground_m`.
+  On the ground 10 km (6.2 mi) from the pad, it's −7.8 m (−26 ft). At this landing, 113.8 m (373 ft)
+  out, it's about 1 mm (0.04 in) low. For heights, use `height_above_ground_m`.
 
 ## Record something else
 

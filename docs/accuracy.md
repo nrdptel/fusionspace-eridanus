@@ -1050,7 +1050,7 @@ fields' values survived bit for bit ([ERA5 weather files](format/era5.md#convert
 It flew air brakes, and nothing public says whether, when or how far they opened. If they did, a
 flight with none, like this one, reads high by an unknown amount. Its thrust file also holds
 9,866.7 N·s, more than the 8,428.7 N·s on the bundled certified curve of the Cesaroni M2020 it is
-named for. On that curve the same design, at the same mass, is predicted at 3,050.0 m (10,008 ft).
+named for. On that curve the same design, at the same mass, is predicted at 3,050.0 m (10,007 ft).
 That figure is shown for scale and enters no average of errors. Against the log it reads
 −11.30% ([report][real-report]). The counted prediction is the
 team's file's, as every RocketPy flight here flies its example's own thrust file. It is also the

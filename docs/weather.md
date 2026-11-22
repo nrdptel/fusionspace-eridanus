@@ -153,8 +153,8 @@ height above the pad (m)   pressure (hPa)   temperature (°C)   density (kg/m³)
   3000 standard                     585.2              -13.6            0.7854
 
 Calisto to apogee      apogee (m above the pad)   east of the pad (m)   north (m)
-Open-Meteo                                 2913.5                  15.3      -158.4
-standard, calm                             2854.5                  -5.2         0.0
+Open-Meteo                                 2913.6                  14.2      -155.0
+standard, calm                             2854.5                  -5.3         0.0
 ```
 
 `freshness: Fetched` means the answer came from the transport, not the cache. A second call within
@@ -164,12 +164,12 @@ the hour would say `Cached`. The ground is at 1,400 m (4,593 ft), so the five le
 That June morning was 24 °C warmer at the pad than the standard atmosphere. The air was 8% less
 dense there, and 4% less dense 3 km (9,843 ft) up. Calisto climbs 2.1% higher in it.
 
-At apogee it's 158 m (518 ft) south of the pad and 15 m (49 ft) east, upwind. The wind blows from
+At apogee it's 155 m (509 ft) south of the pad and 14 m (46 ft) east, upwind. The wind blows from
 the south-southeast at the ground. It turns to the southwest by 600 m (1,969 ft) above the pad,
 2,014 m (6,608 ft) above sea level. A rocket just off the rail, still slow, turns into the wind
 ([weathercocking](glossary.md#weathercocking)) and flies that way.
 
-The calm flight's 5.2 m (17 ft) west is Earth's rotation: a climbing rocket is pushed west (the
+The calm flight's 5.3 m (17 ft) west is Earth's rotation: a climbing rocket is pushed west (the
 Coriolis effect). With the rotation turned off, the calm flight drifts 0.006 m (0.2 in).
 
 ## How it is checked
