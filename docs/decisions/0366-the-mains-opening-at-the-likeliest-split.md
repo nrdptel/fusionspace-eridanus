@@ -8,6 +8,7 @@
 [page]: ../physics/log-readings.md#the-canopies
 [report]: ../../validation/reports/synthetic-flights.md
 [survey]: ../../validation/reports/log-import.md
+[residuals]: ../../validation/reports/flight-residuals.md
 
 **Context.** [ADR-283][adr-283] §6 finds the main's opening as Debrief does. The rate near the
 ground sets a mark, 1.6 times that rate or 3 m/s more if that is more. Walking back from landing
@@ -72,6 +73,9 @@ Taking each side's chance from its own share fixes both, with no number added.
 | the coarse log, invented: 732 logs | 1 read as one canopy (the main at 4.05 m/s) | 732 read two canopies, in bound |
 | the real flight's opening (issue: 87 to 92 s) | 108.45 s | 90.00 s, bound 0.76 s |
 | the real flight's drogue rate (issue: about 17.3 m/s) | 14.6 m/s | 17.3 m/s, within 1.4 m/s |
+| Genesis (EuRoC 2023), a public flight: the drogue's rate (simulated 23.73 m/s) | withheld: one canopy | 25.68 m/s |
+| Genesis: the main's opening height (simulated 797.33 m) | withheld | 806.18 m |
+| Genesis: the main's rate (simulated 11.60 m/s) | 19.18 m/s, the whole descent's | 11.53 m/s |
 | `cargo xtask synthetic --check`, 2,200 flights | passes | passes, no cell moved |
 
 Seven mutations of the split each fail a test: ties taken away from landing, the later side's
@@ -83,9 +87,15 @@ On the real logs of [the survey][survey] the readings that say one canopy go fro
 The drogue's descent is given on 7 more logs, in four families, and one more is withheld for a
 short leg. No family's count of drogue's descents given falls.
 
-**What is left.** One real flight with a logged charge time is thin. The opening's bound is
-proven where the rate passes the mark once; past that it is held to the tests' flights and this
-one. A canopy's filling time is still outside it
+The Genesis rows are [the residuals report][residuals]'s, which lists a public flight's log
+beside its simulation. The simulation takes nothing from the log's canopies, so the log's
+806 m against its 797 m is a second real check of the split, on a flight the rule wasn't made
+on.
+
+**What is left.** One real flight with a logged charge time and one beside its simulation are
+thin.
+The opening's bound is proven where the rate passes the mark once; past that it is held to the
+tests' flights and these two. A canopy's filling time is still outside it
 ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)).
 
 **Which way it errs.** The split is never later than the walk. A drogue's leg that ended late

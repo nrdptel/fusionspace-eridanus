@@ -196,9 +196,9 @@ Readings, the simulation read as the log is:
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
 | flight time (s) | 175.53 | 175.75 to 176.17 | measured | 173.76 | +1.77 |
-| descent under the drogue (m/s) | withheld |  |  | 23.73 |  |
-| main's opening (m) | withheld |  |  | 797.33 |  |
-| descent under the main (m/s) | 19.18 | 18.35 to 20.00 | derived | 11.60 | +7.59 |
+| descent under the drogue (m/s) | 25.68 | 24.50 to 26.88 | derived | 23.73 | +1.95 |
+| main's opening (m) | 806.18 | none stated | derived | 797.33 | +8.85 |
+| descent under the main (m/s) | 11.53 | 10.98 to 12.06 | derived | 11.60 | -0.07 |
 
 ## Lince, EuRoC 2023 (M1101)
 
