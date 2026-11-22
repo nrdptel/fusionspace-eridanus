@@ -178,8 +178,9 @@ touches_physics() {
   # and new flights' predictions (M2.7b, ADR-333), and what it reads, writes and seals: CI has no
   # private collection to run it on.
   grep -qE "^xtask/src/(fixture_flights|collection_boost|collection_errors|predict_first|tip_off_flights|descent_wind).rs$" <<<"$changed" && return 0
-  # What `descent-wind --check` reads the public GPS tracks and ERA5 files with (M1.14b6).
-  grep -qx "crates/hpr-validate/src/descent_wind.rs" <<<"$changed" && return 0
+  # What `descent-wind --check` reads the public GPS tracks and ERA5 files with (M1.14b6): its
+  # tables, and the real-flights and predictions tables it takes the flights' sites and hours from.
+  grep -qE "^crates/hpr-validate/src/(descent_wind|real_flight|public_predictions).rs$" <<<"$changed" && return 0
   grep -qE "^validation/reports/(descent-wind\.(md|json)|tip-off-flights\.(md|json)|fixture-flights\.(md|json)|collection-boost\.(md|json)|predictions\.sha256|m2\.7a-flights\.sha256|held-out(-fits)?\.sha256)$" <<<"$changed" && return 0
   return 1
 }

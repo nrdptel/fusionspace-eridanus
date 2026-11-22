@@ -4889,37 +4889,61 @@ fn the_descent_wind_report_holds_together() {
     report
         .check_page(&std::fs::read_to_string(root().join(REPORT_MD)).unwrap())
         .unwrap();
+    // Every public flight is listed, the real-flights report's and the predictions' first.
     let ids: Vec<&str> = report.flights.iter().map(|f| f.id.as_str()).collect();
-    let public: Vec<&str> = crate::real_flight::FLIGHTS.iter().map(|f| f.id).collect();
-    assert_eq!(ids, public);
+    let required = crate::descent_wind::required_ids();
+    assert_eq!(ids.get(..required.len()), Some(required.as_slice()));
     for flight in &report.flights {
         match &flight.status {
             Status::NotRun(why) | Status::NotCompared(why) => {
-                assert!(!why.is_empty(), "{}", flight.id)
+                assert!(!why.is_empty(), "{}", flight.id);
+                assert!(flight.bands.is_empty(), "{}", flight.id);
             }
             Status::Compared => {
-                assert!(!flight.samples.is_empty(), "{}", flight.id);
-                assert!(
-                    flight.samples.iter().all(|s| s.era5_m_s.is_some()),
-                    "{}",
-                    flight.id
-                );
+                // Each read fix is compared, or counted outside ERA5's levels.
+                let counted: usize = flight.bands.iter().map(|band| band.count).sum();
+                assert_eq!(counted + flight.outside_era5, flight.read, "{}", flight.id);
+                assert!(counted > 0, "{}", flight.id);
             }
         }
         if matches!(flight.status, Status::NotRun(_)) {
-            assert!(flight.samples.is_empty(), "{}", flight.id);
+            assert_eq!(flight.read, 0, "{}", flight.id);
+        }
+        // Fixes, where committed, are every read fix.
+        if !flight.samples.is_empty() {
+            assert_eq!(flight.samples.len(), flight.read, "{}", flight.id);
+            let compared = flight
+                .samples
+                .iter()
+                .filter(|s| s.era5_m_s.is_some())
+                .count();
+            let expected = if flight.status == Status::Compared {
+                flight.read - flight.outside_era5
+            } else {
+                0
+            };
+            assert_eq!(compared, expected, "{}", flight.id);
         }
     }
+    // The page credits Copernicus for the ERA5 it is computed in.
+    let page = std::fs::read_to_string(root().join(REPORT_MD)).unwrap();
+    assert!(
+        page.contains(&format!(
+            "## Sources\n\n{}",
+            crate::real_flight::ERA5_CREDIT
+        )),
+        "{REPORT_MD} must end with the ERA5 credit"
+    );
     let plan = std::fs::read_to_string(root().join("docs/VALIDATION.md")).unwrap();
     let row = plan
         .lines()
         .find(|line| line.starts_with("| Wind reconstructed from the GPS descent |"))
         .expect("the validation plan's row for the wind from the GPS descent");
-    if report.compared() < FLIGHTS_FOR_A_COMPARISON {
-        assert!(
-            row.contains("a method, not yet a comparison"),
-            "{} flights compared: the row must say the reconstruction is a method, not yet a comparison",
-            report.compared()
-        );
-    }
+    assert_eq!(
+        row.contains("a method, not yet a comparison"),
+        report.compared() < FLIGHTS_FOR_A_COMPARISON,
+        "{} flights compared: the row must call the reconstruction a method, not yet a \
+         comparison, exactly while fewer than {FLIGHTS_FOR_A_COMPARISON} are",
+        report.compared()
+    );
 }

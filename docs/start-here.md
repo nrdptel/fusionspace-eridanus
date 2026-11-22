@@ -118,9 +118,9 @@ Wind profiles can be constant, layered, power-law or logarithmic.
 [Turbulence](glossary.md#turbulence-dryden), random gusts, comes from a random-number generator
 started from a [seed](glossary.md#seed), a number you choose. The same seed gives exactly the same
 gusts every time on the same platform (operating system and processor). The library also reads
-the wind back from a log's GPS track of the descent under a parachute; on two public flights it
-sat 1.39 m/s (3.1 mph) above ERA5's on average, a method so far, not yet a comparison
-([Wind from a GPS-tracked descent](physics/wind.md#wind-from-a-gps-tracked-descent)). The detail
+the wind back from a log's GPS track of the descent under a parachute. On four public flights its
+speed was 3.50 m/s (7.8 mph) from ERA5's RMS, which holds the canopy's own glide as well as ERA5's
+miss ([Wind from a GPS-tracked descent](physics/wind.md#wind-from-a-gps-tracked-descent)). The detail
 is in [Wind](physics/wind.md) and [Turbulence](physics/turbulence.md).
 
 ### Motors

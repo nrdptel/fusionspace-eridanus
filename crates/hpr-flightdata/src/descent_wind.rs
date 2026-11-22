@@ -32,11 +32,13 @@
 //! equation assumes does not hold.
 //!
 //! **How far to trust it.** The tests here pin it on synthetic descents, with the true wind
-//! known. On real descents nothing bounds what the canopy itself does: a canopy that glides
+//! known, built on the method's own assumptions: quadratic drag, the same in every direction, and
+//! no glide. On real descents nothing bounds what the canopy itself does: a canopy that glides
 //! moves across the wind by `w tan γ` at a glide angle `γ`, up to the descent rate itself at
 //! 45° (Knacke, NWC TP 6575, p. 5-16), and a swing on the shock cord adds up to `θ√(gL)` at an
-//! angle `θ` on a line of length `L`, about 1 m/s at 10° on 3 m. The window averages a swing out
-//! when it spans several periods; a glide it does not. Neither is measured for hobby canopies.
+//! angle `θ` on a line of length `L`, about 1 m/s at 10° on 3 m. On a synthetic swing of that
+//! size, with a 2 to 5 s period and a fix a second, the window leaves under 0.15 m/s RMS (a test
+//! here); a glide it leaves whole. Neither is measured for hobby canopies.
 //!
 //! [m1-14b6]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6
 
@@ -272,8 +274,9 @@ fn fit(points: &[TrackPoint], center_s: f64) -> Option<[(f64, f64); 3]> {
 /// The wind at each fix of `track` where the body falls steadily, as [`Settings`] defines it.
 ///
 /// A fix is read only when its window holds at least [`Settings::min_points`] fixes and reaches
-/// a quarter of the window on each side, so no fix's velocity is extrapolated past the track's
-/// ends or across a gap in it.
+/// a quarter of the window on each side. So a fix near the track's ends is not read, nor one with
+/// no fix within a quarter of the window on one side, as beside a gap; a shorter gap inside a
+/// window is fitted across.
 ///
 /// # Errors
 ///
@@ -556,13 +559,74 @@ mod tests {
             assert!(sample.vertical_acceleration_m_s2.abs() <= 0.5, "{sample:?}");
             assert!((sample.wind_m_s[0] - 3.0).abs() < 1e-9, "{sample:?}");
         }
-        // Nothing is read on the ground or within half a window of the opening's change.
+        // Nothing is read on the ground or within 2 s of the opening's change.
         assert!(samples.iter().all(|s| s.up_m > 0.0));
         let opening = track.iter().find(|p| p.up_m < 600.0).unwrap().time_s;
         assert!(
             samples.iter().all(|s| (s.time_s - opening).abs() >= 2.0),
             "{samples:?}"
         );
+    }
+
+    /// A swing on the shock cord: the rocket's ground velocity is the wind's plus a sinusoid of
+    /// 0.95 m/s amplitude (`θ√(gL)` at 10° on 3 m) and a 2 to 5 s period, fixes once a second.
+    /// The window cuts it to under 0.15 m/s RMS (0.10 at most on these cases), at 5 and at 25
+    /// m/s, where the lag term multiplies the swing's acceleration by up to 2.5 s.
+    #[test]
+    fn the_window_cuts_a_swing_on_the_shock_cord() {
+        let wind = 5.0;
+        let amplitude = 0.95;
+        for descent in [5.0, 25.0] {
+            for period in [2.0, 3.5, 5.0] {
+                let omega = std::f64::consts::TAU / period;
+                let track: Vec<TrackPoint> = (0..300)
+                    .map(|i| {
+                        let t = f64::from(i);
+                        TrackPoint {
+                            time_s: t,
+                            east_m: wind * t + amplitude / omega * (1.0 - (omega * t).cos()),
+                            north_m: 0.0,
+                            up_m: 2000.0 - descent * t,
+                        }
+                    })
+                    .collect();
+                let samples = reconstruct(&track, &Settings::default()).unwrap();
+                assert_eq!(samples.len(), 294, "{descent} m/s, {period} s");
+                let squares: f64 = samples
+                    .iter()
+                    .map(|s| (s.wind_m_s[0] - wind).powi(2) + s.wind_m_s[1].powi(2))
+                    .sum();
+                // Counts here are below 2^53, exact as f64.
+                let rms = (squares / samples.len() as f64).sqrt();
+                assert!(rms < 0.15, "{descent} m/s, {period} s: {rms}");
+            }
+        }
+    }
+
+    /// A gap: no fix from 10 s to 29 s. A fix with no fix within a quarter of the window on one
+    /// side (7 to 9 s before the gap, 30 to 32 s after it) is not read; one that reaches both
+    /// sides is.
+    #[test]
+    fn a_fix_beside_a_gap_is_not_read() {
+        let track: Vec<TrackPoint> = (0..60)
+            .filter(|i| !(10..30).contains(i))
+            .map(|i| {
+                let time_s = f64::from(i);
+                TrackPoint {
+                    time_s,
+                    east_m: 4.0 * time_s,
+                    north_m: 0.0,
+                    up_m: 1000.0 - 10.0 * time_s,
+                }
+            })
+            .collect();
+        let read: Vec<f64> = reconstruct(&track, &Settings::default())
+            .unwrap()
+            .iter()
+            .map(|sample| sample.time_s)
+            .collect();
+        let expected: Vec<f64> = (3..=6).chain(33..=56).map(f64::from).collect();
+        assert_eq!(read, expected);
     }
 
     #[test]

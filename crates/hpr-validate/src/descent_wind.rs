@@ -1,22 +1,32 @@
 //! The wind reconstructed from each public flight's GPS-tracked descent, set beside ERA5's
-//! ([M1.14b6][m1-14b6]), written by `cargo xtask descent-wind` to
+//! ([M1.14b6, wind from the GPS descent][m1-14b6]), written by `cargo xtask descent-wind` to
 //! `validation/reports/descent-wind.json` and `.md`.
 //!
-//! - **The flights** are the public real flights the real-flights report flies
-//!   ([`real_flight::FLIGHTS`]): RocketPy's example rockets with a flight log. Each is listed:
-//!   read, with its receiver and columns ([`SOURCES`]), or not, with the reason.
+//! - **The flights** ([`required_ids`] and the report's table) are every public flight the
+//!   project has a log of: the seven the real-flights report flies, the five public flights
+//!   predicted before their logs were compared, and three more public example logs in RocketPy's
+//!   checkout whose rockets HPR Sim doesn't fly, since they burn their teams' own motors (Camões,
+//!   Halcyon, Hedy). The wind needs no motor, so each is read. Each is listed: read, with its
+//!   receiver, or not, with the reason.
 //! - **The reconstruction** is [`hpr_flightdata::descent_wind`] at its default settings.
-//! - **ERA5** is the file and hour the real-flights report flies the flight in, read as HPR Sim
-//!   reads it ([`real_flight::launch_day`]): the wind it flies, interpolated by components in
-//!   height. A flight whose file is not of its day is reconstructed and not compared.
+//! - **ERA5** is read at the launch site and hour as HPR Sim reads a sounding
+//!   ([`real_flight::launch_day`]): for a flight the real-flights report flies, its file and
+//!   hour; for the other example logs, the file and hour their notebooks give. It is
+//!   interpolated by components to each fix's height above sea level, as read from the log. A
+//!   flight with no ERA5 file of its day is reconstructed and not compared.
+//! - **What is committed.** Each compared flight's sums by height band, from which CI recomputes
+//!   the pooled bands. Each fix's wind is committed only for logs read whole from RocketPy's MIT
+//!   repository: the EuRoC logs of CATS's flight computers give statistics only, since CATS
+//!   publishes its EuRoC logs under GPL-3.0 and three of RocketPy's copies are those files
+//!   (`THIRD-PARTY-NOTICES.md`, `rocketpy`).
 //! - **Two receivers.** Prometheus carried two Altus Metrum flight computers, each with its own
-//!   GPS receiver. The report reconstructs both and gives how far the two winds differ: a floor
-//!   for the receivers' and the method's own noise, which no canopy motion enters, since both
-//!   rode the same rocket.
+//!   GPS receiver, and the report gives how far their two winds differ: a floor on the noise
+//!   between two receivers, not the method's error, since a lag model's error or a motion both
+//!   receivers share cancels in their difference.
 //!
 //! The logs and ERA5 files are read from the pinned RocketPy checkout under the gitignored
 //! `refs/`, so the report is regenerated and checked where that checkout is (the gate's `refs`
-//! step). CI, without it, recomputes the bands from the committed samples and the page from the
+//! step). CI, without it, recomputes the bands from the committed sums and the page from the
 //! committed report (`hpr_validate::tests`).
 //!
 //! [m1-14b6]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6
@@ -29,16 +39,17 @@ use hpr_core::geodesy::Geodetic;
 use hpr_flightdata::descent_wind::{Settings, TrackPoint, WindSample, reconstruct};
 use serde::{Deserialize, Serialize};
 
-use crate::real_flight::{self, FLIGHTS, ROCKETPY, RealFlight, RealFlightError, read_bytes};
+use crate::public_predictions::{DESIGN_FILE_FLIGHTS, NEW_FLIGHTS};
+use crate::real_flight::{self, ERA5_CREDIT, FLIGHTS, ROCKETPY, read_bytes};
 
 /// The committed report.
 pub const REPORT_JSON: &str = "validation/reports/descent-wind.json";
 /// Its page.
 pub const REPORT_MD: &str = "validation/reports/descent-wind.md";
 
-/// The height bands the comparison is pooled in, m above the pad: lower edges, and the last
-/// band's top.
-pub const BAND_EDGES_M: [f64; 6] = [0.0, 500.0, 1000.0, 2000.0, 3000.0, 5000.0];
+/// The edges between the height bands the comparison is pooled in, m above the pad: the first
+/// band is everything below the first edge, the last everything from the last edge up.
+pub const BAND_EDGES_M: [f64; 4] = [500.0, 1000.0, 2000.0, 3000.0];
 
 /// The fewest flights a comparison needs before the validation plan may call it one rather than a
 /// method ([the plan's line for M1.14b6, the wind from the GPS descent](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6)).
@@ -58,78 +69,93 @@ fn round(value: f64) -> f64 {
 
 /// How a track's heights are read.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Height {
+pub(crate) enum Height {
     /// The receiver's own altitude above sea level, in a column of the track's file, with meters
     /// per unit. The pad is the first fix's.
-    Gnss {
-        /// The column (zero-based).
-        column: usize,
-        /// Meters per unit.
-        meters_per_unit: f64,
-    },
-    /// A barometric height above the pad from another file on the same clock, interpolated
-    /// linearly to each fix's time; above sea level it is that plus the site's elevation, as the
-    /// real-flights report flies it.
+    Gnss { column: usize, meters_per_unit: f64 },
+    /// A barometric height above the pad from a file on the same clock, interpolated linearly to
+    /// each fix's time; above sea level it is that plus the site's elevation.
     Barometric {
-        /// The file, under `refs/rocketpy/data/rockets/`.
         file: &'static str,
-        /// The column of time, s (zero-based).
         time_column: usize,
-        /// The column of height, m (zero-based).
         height_column: usize,
     },
 }
 
 /// How a new fix is told from a repeated row.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum NewFix {
+pub(crate) enum NewFix {
     /// A row is a new fix when the receiver's own position differs from the last fix's: its
     /// latitude and longitude, and its altitude where the track reads the receiver's
     /// ([`Height::Gnss`]). A receiver repeats its last fix between updates and after it loses
-    /// lock, so a run of repeats is a gap in the track: no fix is read whose window does not
-    /// reach a quarter of its width past it on each side.
+    /// lock, so a run of repeats is a gap in the track.
     PositionChanges,
     /// AltOS's CSV repeats the last fix on every sensor row; a row is a new fix when its GPS
-    /// clock (hour, minute, second columns) changes and its `locked` column is 1.
-    GpsClock {
-        /// The hour, minute and second columns.
-        clock: [usize; 3],
-        /// The `locked` column.
-        locked: usize,
-    },
+    /// clock (hour, minute, second columns) changes and its `locked` column is 1. The fix is
+    /// timed on the GPS clock, from the log's time at the first fix, since the log's rows fall
+    /// up to a quarter of a second off the receiver's second.
+    GpsClock { clock: [usize; 3], locked: usize },
 }
 
 /// Where a flight's GPS track is and how to read it.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Track {
+pub(crate) struct Track {
     /// The receiver, in words.
-    pub receiver: &'static str,
+    receiver: &'static str,
     /// The CSV file, under `refs/rocketpy/data/rockets/`.
-    pub file: &'static str,
+    file: &'static str,
     /// The column of time, s (zero-based).
-    pub time_column: usize,
+    time_column: usize,
     /// The columns of latitude and longitude, degrees (zero-based).
-    pub position_columns: [usize; 2],
+    position_columns: [usize; 2],
     /// The heights.
-    pub height: Height,
+    height: Height,
     /// How a fix is told from a repeat.
-    pub new_fix: NewFix,
+    new_fix: NewFix,
 }
 
 /// What a public flight's log holds for the descent.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Source {
+pub(crate) enum Source {
     /// No GPS track of the descent: the reason.
     None(&'static str),
     /// A GPS track, and a second receiver's on the same rocket, if one was carried.
     Gps {
-        /// The track.
         track: &'static Track,
-        /// A second receiver on the same rocket.
         second: Option<&'static Track>,
-        /// Why its ERA5 file can't be compared with it, if it can't.
-        not_compared: Option<&'static str>,
+        /// Whether each fix's wind may be committed.
+        publish_fixes: bool,
     },
+}
+
+/// Where a flight's site, hour and ERA5 file come from.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum Day {
+    /// The real-flights report's: [`real_flight::FLIGHTS`], by id.
+    RealFlights,
+    /// The public predictions': title and site from `public_predictions`, by id. Their weather
+    /// is not read here, so a flight that reads is reconstructed, not compared: why.
+    Predicted { not_compared: &'static str },
+    /// A public log HPR Sim doesn't fly: its notebook's site (latitude and longitude, degrees;
+    /// elevation, m), launch hour in UTC and ERA5 file, under `refs/rocketpy/data/weather/`.
+    Notebook {
+        site: (f64, f64, f64),
+        utc: (i32, u32, u32, u32),
+        weather: &'static str,
+        source: &'static str,
+    },
+}
+
+/// One public flight.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct Public {
+    id: &'static str,
+    /// The title, for a flight the other tables don't give one.
+    title: &'static str,
+    day: Day,
+    source: Source,
+    /// Why the flight's ERA5 file can't be compared with its track, where it can't.
+    not_compared: Option<&'static str>,
 }
 
 const TELEMETRUM: Track = Track {
@@ -162,30 +188,95 @@ const TELEMEGA: Track = Track {
     },
 };
 
-/// Each public flight's source, by id, in [`FLIGHTS`]' order.
-pub const SOURCES: [(&str, Source); 7] = [
-    (
-        "bella-lui",
-        Source::None("its log holds a filtered height and speed only, no position"),
-    ),
-    (
-        "ndrt-2020",
-        Source::None("its log holds acceleration and a barometric height only, no position"),
-    ),
-    (
-        "prometheus-2022",
-        Source::Gps {
+/// A CATS flight computer's EuRoC log: a GNSS file of time, latitude and longitude, and a
+/// filtered barometric height above the pad in another, both on the flight computer's clock.
+const fn cats(receiver: &'static str, gnss: &'static str, heights: &'static str) -> Track {
+    Track {
+        receiver,
+        file: gnss,
+        time_column: 0,
+        position_columns: [1, 2],
+        height: Height::Barometric {
+            file: heights,
+            time_column: 0,
+            height_column: 1,
+        },
+        new_fix: NewFix::PositionChanges,
+    }
+}
+
+const GENESIS: Track = cats(
+    "the GNSS log (`gnss_faraday.csv`): latitude and longitude, 1 to 10 fixes a second; height \
+     from the flight log's barometric filter",
+    "genesis/gnss_faraday.csv",
+    "genesis/flight_data_faraday.csv",
+);
+
+const CAMOES: Track = cats(
+    "the CATS flight computer's GNSS log (`gnss_flight.csv`): latitude and longitude; height \
+     from its barometric filter (`flight_data.csv`)",
+    "camoes/gnss_flight.csv",
+    "camoes/flight_data.csv",
+);
+
+const HALCYON: Track = cats(
+    "the CATS flight computer's GNSS log (`gnss_halcyon.csv`): latitude and longitude; height \
+     from its barometric filter (`altimeter_halcyon.csv`)",
+    "astg/gnss_halcyon.csv",
+    "astg/altimeter_halcyon.csv",
+);
+
+const HEDY: Track = cats(
+    "the CATS flight computer's GNSS log (`gnssInfo.csv`): latitude and longitude; height from \
+     its barometric filter (`filteredDataInfo.csv`)",
+    "hedy/cats_tust/gnssInfo.csv",
+    "hedy/cats_tust/filteredDataInfo.csv",
+);
+
+const MACIE_XL: &str = "its logs hold heights, speeds and accelerations, no position; the \
+                        positions in the OpenRocket file beside them are a simulation's";
+
+const PREDICTED_NOT_COMPARED: &str = "the public predictions' weather, EuRoC 2022's converted \
+                                      ERA5 file, is not read here";
+
+/// Every public flight, in the report's order: the real-flights report's, the predictions', then
+/// the example logs HPR Sim doesn't fly.
+pub(crate) const PUBLIC: [Public; 15] = [
+    Public {
+        id: "bella-lui",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::None("its log holds a filtered height and speed only, no position"),
+        not_compared: None,
+    },
+    Public {
+        id: "ndrt-2020",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::None(
+            "its log holds acceleration and a barometric height only, no position",
+        ),
+        not_compared: None,
+    },
+    Public {
+        id: "prometheus-2022",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::Gps {
             track: &TELEMETRUM,
             second: Some(&TELEMEGA),
-            not_compared: Some(
-                "RocketPy's ERA5 file for it is of 24 June 2023, a year after the flight, and no \
-                 file of its day is pinned",
-            ),
+            publish_fixes: true,
         },
-    ),
-    (
-        "juno-iii",
-        Source::Gps {
+        not_compared: Some(
+            "RocketPy's ERA5 file for it is of 24 June 2023, a year after the flight, and no \
+             file of its day is pinned",
+        ),
+    },
+    Public {
+        id: "juno-iii",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::Gps {
             track: &Track {
                 receiver: "the COTS GNSS log (`cots_GNSS.csv`), 1 fix a second in the descent; \
                            the team's own telemetry, which the README calls possibly noisy, is \
@@ -200,12 +291,15 @@ pub const SOURCES: [(&str, Source); 7] = [
                 new_fix: NewFix::PositionChanges,
             },
             second: None,
-            not_compared: None,
+            publish_fixes: true,
         },
-    ),
-    (
-        "cavour",
-        Source::Gps {
+        not_compared: None,
+    },
+    Public {
+        id: "cavour",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::Gps {
             track: &Track {
                 receiver: "the CATS Vega's radio telemetry: latitude and longitude sent to four \
                            decimals (about 11 m north and 9 m east), height from its barometric \
@@ -221,33 +315,138 @@ pub const SOURCES: [(&str, Source); 7] = [
                 new_fix: NewFix::PositionChanges,
             },
             second: None,
-            not_compared: None,
+            publish_fixes: false,
         },
-    ),
-    (
-        "genesis",
-        Source::Gps {
+        not_compared: None,
+    },
+    Public {
+        id: "genesis",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::Gps {
+            track: &GENESIS,
+            second: None,
+            publish_fixes: false,
+        },
+        not_compared: None,
+    },
+    Public {
+        id: "lince",
+        title: "",
+        day: Day::RealFlights,
+        source: Source::None("its log holds a filtered height and acceleration only, no position"),
+        not_compared: None,
+    },
+    Public {
+        id: "astra",
+        title: "",
+        day: Day::Predicted {
+            not_compared: PREDICTED_NOT_COMPARED,
+        },
+        source: Source::Gps {
             track: &Track {
-                receiver: "the GNSS log (`gnss_faraday.csv`): latitude and longitude, 1 to 10 \
-                           fixes a second; height from the flight log's barometric filter",
-                file: "genesis/gnss_faraday.csv",
+                receiver: "the flight log (`flight_data.csv`): latitude and longitude to four \
+                           decimals about once a second; height from its `alt` column, read as \
+                           barometric above the pad",
+                file: "astra/flight_data.csv",
                 time_column: 0,
-                position_columns: [1, 2],
+                position_columns: [2, 3],
                 height: Height::Barometric {
-                    file: "genesis/flight_data_faraday.csv",
+                    file: "astra/flight_data.csv",
                     time_column: 0,
                     height_column: 1,
                 },
                 new_fix: NewFix::PositionChanges,
             },
             second: None,
-            not_compared: None,
+            publish_fixes: true,
         },
-    ),
-    (
-        "lince",
-        Source::None("its log holds a filtered height and acceleration only, no position"),
-    ),
+        not_compared: None,
+    },
+    Public {
+        id: "andromeda",
+        title: "",
+        day: Day::Predicted {
+            not_compared: PREDICTED_NOT_COMPARED,
+        },
+        source: Source::None("its log holds a height and a vertical speed only, no position"),
+        not_compared: None,
+    },
+    Public {
+        id: "erebus-11",
+        title: "",
+        day: Day::Predicted {
+            not_compared: PREDICTED_NOT_COMPARED,
+        },
+        source: Source::None("its log holds a filtered height only, no position"),
+        not_compared: None,
+    },
+    Public {
+        id: "macie-xl-1",
+        title: "",
+        day: Day::Predicted { not_compared: "" },
+        source: Source::None(MACIE_XL),
+        not_compared: None,
+    },
+    Public {
+        id: "macie-xl-2",
+        title: "",
+        day: Day::Predicted { not_compared: "" },
+        source: Source::None(MACIE_XL),
+        not_compared: None,
+    },
+    Public {
+        id: "camoes",
+        title: "Camões, EuRoC 2023 (the team's own motor, not flown by HPR Sim)",
+        day: Day::Notebook {
+            site: (39.390_003_204_345_7, -8.289_538_383_483_8, 107.0),
+            utc: (2023, 10, 14, 13),
+            weather: "euroc_2023_all_windows.nc",
+            source: "camoes_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1",
+        },
+        source: Source::Gps {
+            track: &CAMOES,
+            second: None,
+            publish_fixes: false,
+        },
+        not_compared: None,
+    },
+    Public {
+        id: "halcyon",
+        title: "Halcyon, EuRoC 2023 (the team's own motor, not flown by HPR Sim)",
+        day: Day::Notebook {
+            site: (39.388_692, -8.287_814, 130.0),
+            utc: (2023, 10, 13, 13),
+            weather: "euroc_2023_all_windows.nc",
+            source: "halcyon_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1",
+        },
+        source: Source::Gps {
+            track: &HALCYON,
+            second: None,
+            publish_fixes: false,
+        },
+        not_compared: None,
+    },
+    Public {
+        id: "hedy",
+        title: "Hedy, EuRoC 2025 (the team's own motor, not flown by HPR Sim)",
+        day: Day::Notebook {
+            site: (39.390_460_968_017_58, -8.288_534_164_428_711, 160.0),
+            utc: (2025, 10, 12, 16),
+            weather: "hedy_euroc_2025_weather_data.nc",
+            source: "hedy_flight_sim.ipynb's environment: 16:00 UTC, and the site's elevation \
+                     as the notebook prints it",
+        },
+        source: Source::Gps {
+            track: &HEDY,
+            second: None,
+            publish_fixes: false,
+        },
+        not_compared: Some(
+            "its ERA5 file is netCDF-4, which HPR Sim reads only through a converted copy checked \
+             against the source, as EuRoC 2022's is; no such copy is made for this file yet",
+        ),
+    },
 ];
 
 /// Where a flight stands in the report.
@@ -261,7 +460,7 @@ pub enum Status {
     NotRun(String),
 }
 
-/// One read fix of a descent.
+/// One read fix of a descent, where its log's fixes may be committed.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Sample {
     /// The fix's time on the log's clock, s.
@@ -274,42 +473,57 @@ pub struct Sample {
     pub descent_m_s: f64,
     /// The ground velocity, east and north, m/s.
     pub ground_m_s: [f64; 2],
+    /// Its rate of change, east and north, m/s².
+    pub ground_acceleration_m_s2: [f64; 2],
     /// The reconstructed wind, east and north, m/s.
     pub wind_m_s: [f64; 2],
     /// ERA5's wind at the same height, east and north, m/s, where compared.
     pub era5_m_s: Option<[f64; 2]>,
 }
 
-impl Sample {
-    fn speed(wind: [f64; 2]) -> f64 {
-        wind[0].hypot(wind[1])
+/// Sums over one flight's compared fixes in one band, from which a band's mean and
+/// root-mean-square differences are recomputed.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+pub struct Sums {
+    /// The fixes.
+    pub count: usize,
+    /// The sum of the reconstructed speed less ERA5's, m/s.
+    pub speed: f64,
+    /// The sum of its squares, m²/s².
+    pub speed_squares: f64,
+    /// The sum of the squared lengths of the reconstructed wind less ERA5's, m²/s².
+    pub vector_squares: f64,
+}
+
+impl Sums {
+    fn add(&mut self, speed: f64, vector: f64) {
+        self.count += 1;
+        self.speed += speed;
+        self.speed_squares += speed * speed;
+        self.vector_squares += vector * vector;
     }
 
-    /// The reconstructed speed less ERA5's, m/s, where compared.
-    #[must_use]
-    pub fn speed_difference_m_s(&self) -> Option<f64> {
-        self.era5_m_s
-            .map(|era5| Self::speed(self.wind_m_s) - Self::speed(era5))
+    fn join(&mut self, other: &Self) {
+        self.count += other.count;
+        self.speed += other.speed;
+        self.speed_squares += other.speed_squares;
+        self.vector_squares += other.vector_squares;
     }
 
-    /// The length of the reconstructed wind less ERA5's, m/s, where compared.
-    #[must_use]
-    pub fn vector_difference_m_s(&self) -> Option<f64> {
-        self.era5_m_s
-            .map(|era5| (self.wind_m_s[0] - era5[0]).hypot(self.wind_m_s[1] - era5[1]))
-    }
-
-    /// What the lag correction adds to the ground velocity, m/s.
-    #[must_use]
-    pub fn correction_m_s(&self) -> f64 {
-        (self.wind_m_s[0] - self.ground_m_s[0]).hypot(self.wind_m_s[1] - self.ground_m_s[1])
+    fn rounded(self) -> Self {
+        Self {
+            count: self.count,
+            speed: round(self.speed),
+            speed_squares: round(self.speed_squares),
+            vector_squares: round(self.vector_squares),
+        }
     }
 }
 
 /// One public flight.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FlightEntry {
-    /// The flight's id in the real-flights report.
+    /// The flight's id.
     pub id: String,
     /// The rocket, the team and the event.
     pub title: String,
@@ -317,22 +531,39 @@ pub struct FlightEntry {
     pub status: Status,
     /// The receiver read, in words; empty when none.
     pub receiver: String,
+    /// Where its site, launch hour and ERA5 file come from, when not from the real-flights
+    /// report; empty otherwise.
+    pub day: String,
     /// The fixes the track holds.
     pub fixes: usize,
+    /// The rows dropped as a repeat of the fix before.
+    pub repeats: usize,
+    /// The longest time between two fixes, s.
+    pub longest_gap_s: f64,
     /// The fixes read as a steady fall.
+    pub read: usize,
+    /// The lowest and highest of them, m above the pad.
+    pub heights_m: Option<[f64; 2]>,
+    /// Their slowest and fastest descent, m/s.
+    pub descent_m_s: Option<[f64; 2]>,
+    /// The mean length of what the lag adds to the ground velocity, m/s.
+    pub mean_lag_correction_m_s: Option<f64>,
+    /// The read fixes whose height lies outside ERA5's levels, and so are not compared.
+    pub outside_era5: usize,
+    /// The comparison's sums in each band, in [`BAND_EDGES_M`]' order; empty when not compared.
+    pub bands: Vec<Sums>,
+    /// Each read fix, where its log's fixes may be committed; empty otherwise.
     pub samples: Vec<Sample>,
 }
 
 /// The comparison pooled over one height band.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Band {
-    /// The band's bottom, m above the pad.
-    pub lower_m: f64,
-    /// Its top, m above the pad.
-    pub upper_m: f64,
-    /// The compared flights with a sample in it.
+    /// The band, in words, m above the pad.
+    pub label: String,
+    /// The compared flights with a fix in it.
     pub flights: usize,
-    /// Their samples in it.
+    /// Their fixes in it.
     pub samples: usize,
     /// The reconstructed speed less ERA5's: the mean, m/s.
     pub mean_speed_difference_m_s: f64,
@@ -349,6 +580,10 @@ pub struct Receivers {
     pub id: String,
     /// The second receiver, in words.
     pub second: String,
+    /// Each receiver's highest fix, m above sea level.
+    pub highest_m: [f64; 2],
+    /// The distance between the two receivers' last fixes, m.
+    pub last_fixes_apart_m: f64,
     /// The fixes of the two read at times within [`PAIR_S`] of each other.
     pub pairs: usize,
     /// The root-mean-square length of the difference of their winds, m/s.
@@ -423,8 +658,8 @@ struct Fix {
     height_msl_m: f64,
 }
 
-/// The track's fixes, in time order, each new.
-fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<Vec<Fix>, String> {
+/// A track's fixes, in time order, each new, and the rows dropped as repeats.
+fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<(Vec<Fix>, usize), String> {
     let path = format!("{ROCKETPY}/data/rockets/{}", track.file);
     let bytes = read_bytes(root, &path, "a GPS track").map_err(|e| e.to_string())?;
     let text = String::from_utf8_lossy(&bytes);
@@ -447,7 +682,9 @@ fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<Vec<Fix>, Strin
         Height::Gnss { .. } => None,
     };
     let mut out: Vec<Fix> = Vec::new();
-    let mut last_clock: Option<[f64; 3]> = None;
+    let mut repeats = 0;
+    let mut last_clock: Option<f64> = None;
+    let mut clock_origin: Option<(f64, f64)> = None;
     let mut pad_msl: Option<f64> = None;
     for (index, line) in text.lines().enumerate().skip(1) {
         if line.trim().is_empty() {
@@ -455,7 +692,7 @@ fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<Vec<Fix>, Strin
         }
         let row = columns(line);
         let at = |column| number(&row, column, track.file, index + 1);
-        let time_s = at(track.time_column)?;
+        let mut time_s = at(track.time_column)?;
         let latitude_deg = at(track.position_columns[0])?;
         let longitude_deg = at(track.position_columns[1])?;
         if latitude_deg == 0.0 && longitude_deg == 0.0 {
@@ -466,11 +703,14 @@ fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<Vec<Fix>, Strin
             if at(locked)? != 1.0 {
                 continue;
             }
-            let now = [at(clock[0])?, at(clock[1])?, at(clock[2])?];
+            let now = at(clock[0])? * 3600.0 + at(clock[1])? * 60.0 + at(clock[2])?;
             if last_clock == Some(now) {
+                repeats += 1;
                 continue;
             }
             last_clock = Some(now);
+            let (log_at_first, clock_at_first) = *clock_origin.get_or_insert((time_s, now));
+            time_s = log_at_first + (now - clock_at_first);
         }
         let (height_m, height_msl_m) = match (track.height, &barometric) {
             (
@@ -513,15 +753,16 @@ fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<Vec<Fix>, Strin
                 && fix.longitude_deg == previous.longitude_deg
                 && (!receivers_height || fix.height_msl_m == previous.height_msl_m)
             {
+                repeats += 1;
                 continue;
             }
         }
         out.push(fix);
     }
-    Ok(out)
+    Ok((out, repeats))
 }
 
-/// The steady-fall samples of a track, with their fixes' heights.
+/// The steady-fall samples of a track, with their fixes.
 fn read_track(fixes: &[Fix], settings: &Settings) -> Result<Vec<(WindSample, Fix)>, String> {
     let Some(first) = fixes.first() else {
         return Ok(Vec::new());
@@ -549,8 +790,8 @@ fn read_track(fixes: &[Fix], settings: &Settings) -> Result<Vec<(WindSample, Fix
         .collect())
 }
 
-/// The descent rates a track's fitted windows give, steady or not, after its highest fix: what
-/// the report says of a track with no steady fall.
+/// The descent rates over 2 m/s that a track's fitted windows give, steady or not: what the
+/// report says of a track with no steady fall.
 fn fall_rates(fixes: &[Fix]) -> Result<Vec<f64>, String> {
     let open = Settings {
         min_descent_m_s: 1e-9,
@@ -565,160 +806,291 @@ fn fall_rates(fixes: &[Fix]) -> Result<Vec<f64>, String> {
         .collect())
 }
 
-fn band(lower_m: f64, upper_m: f64, flights: &[FlightEntry]) -> Band {
-    let mut ids = 0;
-    let mut count = 0_usize;
-    let mut sum = 0.0;
-    let mut sum_squares = 0.0;
-    let mut vector_squares = 0.0;
-    for flight in flights {
-        if flight.status != Status::Compared {
-            continue;
+/// The band a height above the pad falls in.
+fn band_of(height_m: f64) -> usize {
+    BAND_EDGES_M.partition_point(|edge| *edge <= height_m)
+}
+
+fn band_label(index: usize) -> String {
+    let words = |m: f64| {
+        if m >= 1000.0 {
+            // The edges are whole hundreds of meters.
+            format!("{:.0},{:03.0}", (m / 1000.0).floor(), m % 1000.0)
+        } else {
+            format!("{m:.0}")
         }
-        let mut any = false;
-        for sample in &flight.samples {
-            if !(lower_m..upper_m).contains(&sample.height_m) {
-                continue;
-            }
-            let (Some(speed), Some(vector)) = (
-                sample.speed_difference_m_s(),
-                sample.vector_difference_m_s(),
-            ) else {
-                continue;
-            };
-            any = true;
-            count += 1;
-            sum += speed;
-            sum_squares += speed * speed;
-            vector_squares += vector * vector;
-        }
-        if any {
-            ids += 1;
-        }
+    };
+    let lower = index.checked_sub(1).and_then(|i| BAND_EDGES_M.get(i));
+    match (lower, BAND_EDGES_M.get(index)) {
+        (None, Some(upper)) => format!("below {}", words(*upper)),
+        (Some(lower), Some(upper)) => format!("{} to {}", words(*lower), words(*upper)),
+        (Some(lower), None) => format!("{} and up", words(*lower)),
+        (None, None) => String::new(),
+    }
+}
+
+fn pooled(label: String, sums: &[Sums]) -> Band {
+    let mut total = Sums::default();
+    for one in sums {
+        total.join(one);
     }
     // Sample counts are far below 2^53, exact as f64.
-    let n = count as f64;
-    let of = |total: f64| if count == 0 { 0.0 } else { round(total) };
+    let n = total.count as f64;
+    let of = |value: f64| if total.count == 0 { 0.0 } else { round(value) };
     Band {
-        lower_m,
-        upper_m,
-        flights: ids,
-        samples: count,
-        mean_speed_difference_m_s: of(sum / n),
-        rms_speed_difference_m_s: of((sum_squares / n).sqrt()),
-        rms_vector_difference_m_s: of((vector_squares / n).sqrt()),
+        label,
+        flights: sums.iter().filter(|one| one.count > 0).count(),
+        samples: total.count,
+        mean_speed_difference_m_s: of(total.speed / n),
+        rms_speed_difference_m_s: of((total.speed_squares / n).sqrt()),
+        rms_vector_difference_m_s: of((total.vector_squares / n).sqrt()),
     }
 }
 
-/// The bands, and all of them together, from the flights' samples.
+/// The bands, and all of them together, from the compared flights' sums.
 #[must_use]
 pub fn bands(flights: &[FlightEntry]) -> (Vec<Band>, Band) {
-    let bands = BAND_EDGES_M
-        .windows(2)
-        .map(|edges| band(edges[0], edges[1], flights))
+    let compared: Vec<&FlightEntry> = flights
+        .iter()
+        .filter(|flight| flight.status == Status::Compared)
         .collect();
-    let all = band(
-        BAND_EDGES_M[0],
-        BAND_EDGES_M[BAND_EDGES_M.len() - 1],
-        flights,
-    );
-    (bands, all)
+    let bands = (0..=BAND_EDGES_M.len())
+        .map(|index| {
+            let sums: Vec<Sums> = compared
+                .iter()
+                .map(|flight| flight.bands.get(index).copied().unwrap_or_default())
+                .collect();
+            pooled(band_label(index), &sums)
+        })
+        .collect();
+    let totals: Vec<Sums> = compared
+        .iter()
+        .map(|flight| {
+            let mut total = Sums::default();
+            for one in &flight.bands {
+                total.join(one);
+            }
+            total
+        })
+        .collect();
+    (bands, pooled("all".to_owned(), &totals))
 }
 
-fn era5_wind(root: &Path, flight: &RealFlight) -> Result<hpr_atmos::LayeredWind, RealFlightError> {
-    let weather_path = format!("{ROCKETPY}/data/weather/{}", flight.weather);
-    let bytes = read_bytes(root, &weather_path, "an ERA5 file")?;
-    let (_, sounding) = real_flight::launch_day(flight, &weather_path, &bytes)?;
-    sounding
+fn real_flight_of(id: &str) -> Result<&'static real_flight::RealFlight, String> {
+    FLIGHTS
+        .iter()
+        .find(|flight| flight.id == id)
+        .ok_or_else(|| format!("`{id}` is not among the real-flights report's flights"))
+}
+
+/// The flight's ERA5 wind, or why it is not compared.
+fn era5_wind(
+    root: &Path,
+    public: &Public,
+) -> Result<Result<hpr_atmos::LayeredWind, String>, String> {
+    let (site, utc, weather) = match public.day {
+        Day::RealFlights => {
+            let flight = real_flight_of(public.id)?;
+            (flight.site, flight.utc, flight.weather)
+        }
+        Day::Predicted { not_compared } => return Ok(Err(not_compared.to_owned())),
+        Day::Notebook {
+            site, utc, weather, ..
+        } => (site, utc, weather),
+    };
+    let weather_path = format!("{ROCKETPY}/data/weather/{weather}");
+    let bytes = read_bytes(root, &weather_path, "an ERA5 file").map_err(|e| e.to_string())?;
+    let (_, sounding) = real_flight::launch_day_at(public.id, site, utc, &weather_path, &bytes)
+        .map_err(|e| e.to_string())?;
+    let wind = sounding
         .wind()
         .cloned()
-        .ok_or_else(|| RealFlightError::Input {
-            flight: flight.id.to_owned(),
-            what: format!("{weather_path} gives no wind"),
-        })
+        .ok_or_else(|| format!("{weather_path} gives no wind"))?;
+    Ok(Ok(wind))
 }
 
-fn entry(root: &Path, flight: &RealFlight, source: &Source) -> Result<FlightEntry, String> {
+/// A public flight's title and its site's elevation, m.
+fn title_and_elevation(public: &Public) -> Result<(String, f64), String> {
+    match public.day {
+        Day::RealFlights => {
+            let flight = real_flight_of(public.id)?;
+            Ok((flight.title.to_owned(), flight.site.2))
+        }
+        Day::Predicted { .. } => {
+            if let Some(flight) = NEW_FLIGHTS.iter().find(|f| f.id == public.id) {
+                return Ok((flight.title.to_owned(), flight.site.2));
+            }
+            DESIGN_FILE_FLIGHTS
+                .iter()
+                .find(|f| f.id == public.id)
+                // A design-file flight's logs hold no position, so it is never read and its
+                // site's elevation is never used.
+                .map(|f| (f.title.to_owned(), 0.0))
+                .ok_or_else(|| format!("`{}` is not among the public predictions", public.id))
+        }
+        Day::Notebook { site, .. } => Ok((public.title.to_owned(), site.2)),
+    }
+}
+
+fn entry(root: &Path, public: &Public) -> Result<FlightEntry, String> {
     let settings = Settings::default();
+    let (title, elevation_m) = title_and_elevation(public)?;
     let mut out = FlightEntry {
-        id: flight.id.to_owned(),
-        title: flight.title.to_owned(),
+        id: public.id.to_owned(),
+        title,
         status: Status::Compared,
         receiver: String::new(),
+        day: match public.day {
+            Day::Notebook { source, .. } => source.to_owned(),
+            _ => String::new(),
+        },
         fixes: 0,
+        repeats: 0,
+        longest_gap_s: 0.0,
+        read: 0,
+        heights_m: None,
+        descent_m_s: None,
+        mean_lag_correction_m_s: None,
+        outside_era5: 0,
+        bands: Vec::new(),
         samples: Vec::new(),
     };
-    let (track, not_compared) = match source {
+    let (track, publish_fixes) = match public.source {
         Source::None(reason) => {
-            out.status = Status::NotRun((*reason).to_owned());
+            out.status = Status::NotRun(reason.to_owned());
             return Ok(out);
         }
         Source::Gps {
             track,
-            not_compared,
+            publish_fixes,
             ..
-        } => (track, not_compared),
+        } => (track, publish_fixes),
     };
     out.receiver = track.receiver.to_owned();
-    let fixes = fixes(root, track, flight.site.2)?;
+    let (fixes, repeats) = fixes(root, track, elevation_m)?;
     out.fixes = fixes.len();
+    out.repeats = repeats;
+    out.longest_gap_s = round(
+        fixes
+            .windows(2)
+            .map(|pair| pair[1].time_s - pair[0].time_s)
+            .fold(0.0, f64::max),
+    );
     let read = read_track(&fixes, &settings)?;
+    out.read = read.len();
     if read.is_empty() {
         let mut rates = fall_rates(&fixes)?;
         rates.sort_by(f64::total_cmp);
         let why = match rates.get(rates.len() / 2) {
-            Some(median) => format!(
-                "no fix falls steadily inside the settings: the median descent rate after \
-                 apogee is {median:.0} m/s, past the {:.0} m/s the method is held to, so no canopy \
-                 held the fall",
+            Some(median) if *median > settings.max_descent_m_s => format!(
+                "no fix falls steadily inside the settings: the median descent rate the fitted \
+                 windows give is {median:.0} m/s, past the {:.0} m/s the method is held to",
                 settings.max_descent_m_s
             ),
-            None => "no fix falls steadily inside the settings".to_owned(),
+            Some(median) => format!(
+                "no fix falls steadily inside the settings: the median descent rate the fitted \
+                 windows give is {median:.0} m/s, but no window is steady enough or reaches both \
+                 sides"
+            ),
+            None => "no fitted window falls faster than 2 m/s".to_owned(),
         };
         out.status = Status::NotRun(why);
         return Ok(out);
     }
-    let wind = match not_compared {
-        Some(why) => {
-            out.status = Status::NotCompared((*why).to_owned());
+    let range = |f: &dyn Fn(&(WindSample, Fix)) -> f64| {
+        let low = read.iter().map(f).fold(f64::INFINITY, f64::min);
+        let high = read.iter().map(f).fold(f64::NEG_INFINITY, f64::max);
+        [round(low), round(high)]
+    };
+    out.heights_m = Some(range(&|(_, fix)| fix.height_m));
+    out.descent_m_s = Some(range(&|(sample, _)| sample.descent_m_s));
+    let lag = |sample: &WindSample| {
+        (sample.wind_m_s[0] - sample.ground_velocity_m_s[0])
+            .hypot(sample.wind_m_s[1] - sample.ground_velocity_m_s[1])
+    };
+    // Read counts are far below 2^53, exact as f64.
+    out.mean_lag_correction_m_s = Some(round(
+        read.iter().map(|(sample, _)| lag(sample)).sum::<f64>() / read.len() as f64,
+    ));
+    let wind = match public.not_compared {
+        Some(why) => Err(why.to_owned()),
+        None => era5_wind(root, public)?,
+    };
+    let wind = match wind {
+        Ok(wind) => Some(wind),
+        Err(why) => {
+            out.status = Status::NotCompared(why);
             None
         }
-        None => Some(era5_wind(root, flight).map_err(|e| e.to_string())?),
     };
-    for (sample, fix) in read {
+    let mut sums = vec![Sums::default(); BAND_EDGES_M.len() + 1];
+    for (sample, fix) in &read {
         let era5 = match &wind {
             Some(wind) => {
                 let at = wind.wind(fix.height_msl_m).map_err(|e| e.to_string())?;
                 // A height outside ERA5's levels is held at the nearest level by HPR Sim; it is
                 // not compared here.
-                at.extrapolated
-                    .is_none()
-                    .then_some([round(at.velocity_enu_m_s.x), round(at.velocity_enu_m_s.y)])
+                if at.extrapolated.is_some() {
+                    out.outside_era5 += 1;
+                    None
+                } else {
+                    Some([at.velocity_enu_m_s.x, at.velocity_enu_m_s.y])
+                }
             }
             None => None,
         };
-        out.samples.push(Sample {
-            time_s: round(sample.time_s),
-            height_m: round(fix.height_m),
-            height_msl_m: round(fix.height_msl_m),
-            descent_m_s: round(sample.descent_m_s),
-            ground_m_s: sample.ground_velocity_m_s.map(round),
-            wind_m_s: sample.wind_m_s.map(round),
-            era5_m_s: era5,
-        });
+        if let Some(era5) = era5 {
+            let speed = sample.wind_m_s[0].hypot(sample.wind_m_s[1]) - era5[0].hypot(era5[1]);
+            let vector = (sample.wind_m_s[0] - era5[0]).hypot(sample.wind_m_s[1] - era5[1]);
+            sums[band_of(fix.height_m)].add(speed, vector);
+        }
+        if publish_fixes {
+            out.samples.push(Sample {
+                time_s: round(sample.time_s),
+                height_m: round(fix.height_m),
+                height_msl_m: round(fix.height_msl_m),
+                descent_m_s: round(sample.descent_m_s),
+                ground_m_s: sample.ground_velocity_m_s.map(round),
+                ground_acceleration_m_s2: sample.ground_acceleration_m_s2.map(round),
+                wind_m_s: sample.wind_m_s.map(round),
+                era5_m_s: era5.map(|e| e.map(round)),
+            });
+        }
+    }
+    if wind.is_some() {
+        out.bands = sums.into_iter().map(Sums::rounded).collect();
     }
     Ok(out)
 }
 
 fn receivers(
     root: &Path,
-    flight: &RealFlight,
+    public: &Public,
     first: &Track,
     second: &Track,
 ) -> Result<Receivers, String> {
     let settings = Settings::default();
-    let one = read_track(&fixes(root, first, flight.site.2)?, &settings)?;
-    let two = read_track(&fixes(root, second, flight.site.2)?, &settings)?;
+    let (_, elevation_m) = title_and_elevation(public)?;
+    let (one_fixes, _) = fixes(root, first, elevation_m)?;
+    let (two_fixes, _) = fixes(root, second, elevation_m)?;
+    let highest = |fixes: &[Fix]| {
+        round(
+            fixes
+                .iter()
+                .map(|fix| fix.height_msl_m)
+                .fold(f64::NEG_INFINITY, f64::max),
+        )
+    };
+    let (Some(a), Some(b)) = (one_fixes.last(), two_fixes.last()) else {
+        return Err(format!("{}: a receiver holds no fix", public.id));
+    };
+    let origin = Geodetic::from_degrees(a.latitude_deg, a.longitude_deg, a.height_msl_m)
+        .map_err(|e| e.to_string())?;
+    let other = Geodetic::from_degrees(b.latitude_deg, b.longitude_deg, b.height_msl_m)
+        .map_err(|e| e.to_string())?;
+    let apart = TrackPoint::from_geodetic(0.0, origin, other);
+    let one = read_track(&one_fixes, &settings)?;
+    let two = read_track(&two_fixes, &settings)?;
     let mut pairs = 0_usize;
     let mut squares = 0.0;
     let mut largest: f64 = 0.0;
@@ -742,43 +1114,59 @@ fn receivers(
     if pairs == 0 {
         return Err(format!(
             "{}: the two receivers share no read fix",
-            flight.id
+            public.id
         ));
     }
     // Pair counts are far below 2^53, exact as f64.
     Ok(Receivers {
-        id: flight.id.to_owned(),
+        id: public.id.to_owned(),
         second: second.receiver.to_owned(),
+        highest_m: [highest(&one_fixes), highest(&two_fixes)],
+        last_fixes_apart_m: round(apart.east_m.hypot(apart.north_m)),
         pairs,
         rms_vector_difference_m_s: round((squares / pairs as f64).sqrt()),
         max_vector_difference_m_s: round(largest),
     })
 }
 
+/// The ids of the public flights the report must list: the real-flights report's and the public
+/// predictions', in that order.
+#[must_use]
+pub fn required_ids() -> Vec<&'static str> {
+    FLIGHTS
+        .iter()
+        .map(|flight| flight.id)
+        .chain(NEW_FLIGHTS.iter().map(|flight| flight.id))
+        .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| flight.id))
+        .collect()
+}
+
 /// Reads every public flight and builds the report.
 ///
 /// # Errors
 ///
-/// A file under `refs/` that can't be read or doesn't read as its source says, or a source
-/// table that doesn't list [`FLIGHTS`] in order.
+/// A file under `refs/` that can't be read or doesn't read as its source says, or a table that
+/// doesn't list the [`required_ids`] first, in order.
 pub fn run(root: &Path) -> Result<DescentWindReport, String> {
+    let required = required_ids();
+    let listed: Vec<&str> = PUBLIC.iter().map(|public| public.id).collect();
+    if listed.get(..required.len()) != Some(required.as_slice()) {
+        return Err(format!(
+            "the report's table lists {listed:?}; it must start with the public flights \
+             {required:?}"
+        ));
+    }
     let mut flights = Vec::new();
     let mut pairs = Vec::new();
-    for (flight, (id, source)) in FLIGHTS.iter().zip(SOURCES.iter()) {
-        if flight.id != *id {
-            return Err(format!(
-                "the sources list `{id}` where the flights list `{}`",
-                flight.id
-            ));
-        }
-        flights.push(entry(root, flight, source)?);
+    for public in &PUBLIC {
+        flights.push(entry(root, public)?);
         if let Source::Gps {
             track,
             second: Some(second),
             ..
-        } = source
+        } = public.source
         {
-            pairs.push(receivers(root, flight, track, second)?);
+            pairs.push(receivers(root, public, track, second)?);
         }
     }
     let (bands, all) = bands(&flights);
@@ -801,21 +1189,22 @@ impl DescentWindReport {
             .count()
     }
 
-    /// Whether the bands are the ones the samples give.
+    /// Whether the bands are the ones the flights' sums give.
     ///
     /// # Errors
     ///
-    /// The first band that differs.
+    /// When they aren't.
     pub fn check_bands(&self) -> Result<(), String> {
         let (bands, all) = bands(&self.flights);
-        for (got, want) in self.bands.iter().zip(&bands) {
-            if got != want {
-                return Err(format!("band {got:?} is not the samples' {want:?}"));
-            }
-        }
-        if self.bands.len() != bands.len() || self.all != all {
+        if self.bands != bands {
             return Err(format!(
-                "the bands or their total ({:?}) are not the samples'",
+                "the bands {:?} are not the flights' sums' {bands:?}",
+                self.bands
+            ));
+        }
+        if self.all != all {
+            return Err(format!(
+                "the total {:?} is not the flights' sums' {all:?}",
                 self.all
             ));
         }
@@ -830,11 +1219,12 @@ impl DescentWindReport {
         let _ = writeln!(md, "# Wind from the GPS descent, against ERA5\n");
         let _ = writeln!(
             md,
-            "Written by `cargo xtask descent-wind` (M1.14b6); don't edit it by hand. The wind is reconstructed from each \
-             public flight's GPS track of its descent as the ground velocity plus `w/g` times its \
-             rate of change, `w` the descent rate (Hock and Franklin 1999; \
-             [the method](../../docs/physics/wind.md#wind-from-a-gps-tracked-descent)), and set \
-             beside the ERA5 wind HPR Sim flies the flight in.\n"
+            "Written by `cargo xtask descent-wind` (M1.14b6); don't edit it by hand. The wind is \
+             reconstructed from each public flight's GPS track of its descent as the ground \
+             velocity plus `w/g` times its rate of change, `w` the descent rate (Hock and \
+             Franklin 1999; [the method](../../docs/physics/wind.md#wind-from-a-gps-tracked-descent)). \
+             It is set beside ERA5's wind at each fix's height above sea level, read at the \
+             launch site and hour. A fix is one position the receiver reported.\n"
         );
         let compared = self.compared();
         if compared < FLIGHTS_FOR_A_COMPARISON {
@@ -842,15 +1232,21 @@ impl DescentWindReport {
                 md,
                 "**A method, not yet a comparison.** {compared} of the public flights {} compared \
                  with ERA5; the plan asks for at least {FLIGHTS_FOR_A_COMPARISON} before the \
-                 differences below are read as ERA5's miss at a launch field.\n",
+                 differences below are read as a comparison.\n",
                 if compared == 1 { "is" } else { "are" }
+            );
+        } else {
+            let _ = writeln!(
+                md,
+                "**{compared} public flights compared.** The differences below hold ERA5's miss at \
+                 the field and whatever the canopy did, which nothing here tells apart.\n"
             );
         }
         let _ = writeln!(
             md,
             "**Settings.** A quadratic in time fitted over {} s around each fix, at least {} \
-             fixes reaching a quarter of the window on each side; a fix is read where the body \
-             falls at {} to {} m/s with a vertical acceleration of at most {} m/s²; `g` = {} \
+             fixes reaching a quarter of the window on each side. A fix is read where the body \
+             falls at {} to {} m/s with a vertical acceleration of at most {} m/s². `g` = {} \
              m/s².\n",
             s.window_s,
             s.min_points,
@@ -862,89 +1258,107 @@ impl DescentWindReport {
         let _ = writeln!(md, "## The flights\n");
         let _ = writeln!(
             md,
-            "| Flight | Status | Fixes | Read | Heights read (m above the pad) | Descent (m/s) | \
-             Lag correction, mean (m/s) | Speed less ERA5's, mean (m/s) |"
+            "Repeats are rows dropped as a repeat of the fix before; read fixes are those read as \
+             a steady fall. The lag correction is the mean length of what `w/g` times the ground \
+             velocity's rate of change adds to it.\n"
         );
-        let _ = writeln!(md, "|---|---|---|---|---|---|---|---|");
+        let _ = writeln!(
+            md,
+            "| Flight | Status | Fixes | Repeats | Longest gap (s) | Read | Heights read (m above \
+             the pad) | Descent (m/s) | Lag correction (m/s) | Speed less ERA5's, mean (m/s) | \
+             Vector difference, RMS (m/s) |"
+        );
+        let _ = writeln!(md, "|---|---|---|---|---|---|---|---|---|---|---|");
         for flight in &self.flights {
             let status = match &flight.status {
                 Status::Compared => "compared".to_owned(),
                 Status::NotCompared(why) => format!("not compared: {why}"),
                 Status::NotRun(why) => format!("not run: {why}"),
             };
-            let samples = &flight.samples;
-            let range = |f: fn(&Sample) -> f64| {
-                let low = samples.iter().map(f).fold(f64::INFINITY, f64::min);
-                let high = samples.iter().map(f).fold(f64::NEG_INFINITY, f64::max);
-                (low, high)
+            let pair = |range: Option<[f64; 2]>, digits: usize| {
+                range.map_or(String::new(), |[low, high]| {
+                    format!("{low:.digits$} to {high:.digits$}")
+                })
             };
-            let (heights, descents, correction, speed) = if samples.is_empty() {
-                ("".to_owned(), "".to_owned(), "".to_owned(), "".to_owned())
+            let mut total = Sums::default();
+            for one in &flight.bands {
+                total.join(one);
+            }
+            // Sample counts are far below 2^53, exact as f64.
+            let (speed, vector) = if total.count == 0 {
+                (String::new(), String::new())
             } else {
-                let (h0, h1) = range(|x| x.height_m);
-                let (d0, d1) = range(|x| x.descent_m_s);
-                // Sample counts are far below 2^53, exact as f64.
-                let n = samples.len() as f64;
-                let lag = samples.iter().map(Sample::correction_m_s).sum::<f64>() / n;
-                let differences: Vec<f64> = samples
-                    .iter()
-                    .filter_map(Sample::speed_difference_m_s)
-                    .collect();
-                let speed = if differences.is_empty() {
+                let n = total.count as f64;
+                (
+                    format!("{:+.2}", total.speed / n),
+                    format!("{:.2}", (total.vector_squares / n).sqrt()),
+                )
+            };
+            let counted = |n: usize| {
+                if flight.receiver.is_empty() {
                     String::new()
                 } else {
-                    format!(
-                        "{:+.2}",
-                        differences.iter().sum::<f64>() / differences.len() as f64
-                    )
-                };
-                (
-                    format!("{h0:.0} to {h1:.0}"),
-                    format!("{d0:.1} to {d1:.1}"),
-                    format!("{lag:.2}"),
-                    speed,
-                )
+                    n.to_string()
+                }
+            };
+            let gap = if flight.fixes < 2 {
+                String::new()
+            } else {
+                format!("{:.1}", flight.longest_gap_s)
             };
             let _ = writeln!(
                 md,
-                "| {} (`{}`) | {status} | {} | {} | {heights} | {descents} | {correction} | {speed} |",
+                "| {} (`{}`) | {status} | {} | {} | {gap} | {} | {} | {} | {} | {speed} | {vector} |",
                 flight.title,
                 flight.id,
-                flight.fixes,
-                samples.len()
+                counted(flight.fixes),
+                counted(flight.repeats),
+                counted(flight.read),
+                pair(flight.heights_m, 0),
+                pair(flight.descent_m_s, 1),
+                flight
+                    .mean_lag_correction_m_s
+                    .map_or(String::new(), |lag| format!("{lag:.2}")),
             );
         }
         let _ = writeln!(md, "\nThe receivers read:\n");
         for flight in self.flights.iter().filter(|f| !f.receiver.is_empty()) {
-            let _ = writeln!(md, "- `{}`: {}.", flight.id, flight.receiver);
+            let _ = write!(md, "- `{}`: {}", flight.id, flight.receiver);
+            if flight.day.is_empty() {
+                let _ = writeln!(md, ".");
+            } else {
+                let _ = writeln!(md, ". Its site and hour: {}.", flight.day);
+            }
         }
+        let outside: usize = self.flights.iter().map(|f| f.outside_era5).sum();
         let _ = writeln!(md, "\n## Reconstructed less ERA5, by height band\n");
         let _ = writeln!(
             md,
             "Over the compared flights. A difference in speed is the reconstructed wind's speed \
              less ERA5's; the vector difference is the length of the one wind less the other. \
-             The samples of one flight are not independent: each fix's fit shares its window \
-             with its neighbors', and one flight's wind and ERA5's miss are each correlated over \
-             hundreds of meters.\n"
+             Neighboring fixes share their fit's window, so the fixes of one flight are not \
+             independent. {outside} read {} outside ERA5's levels and {} not compared.\n",
+            if outside == 1 {
+                "fix lies"
+            } else {
+                "fixes lie"
+            },
+            if outside == 1 { "is" } else { "are" }
         );
         let _ = writeln!(
             md,
-            "| Band (m above the pad) | Flights | Samples | Mean speed difference (m/s) | RMS \
-             speed difference (m/s) | RMS vector difference (m/s) |"
+            "| Band (m above the pad) | Flights | Fixes | Mean speed difference (m/s) | RMS speed \
+             difference (m/s) | RMS vector difference (m/s) |"
         );
         let _ = writeln!(md, "|---|---|---|---|---|---|");
         for row in self.bands.iter().chain(std::iter::once(&self.all)) {
-            let label = if std::ptr::eq(row, &self.all) {
-                "all".to_owned()
-            } else {
-                format!("{:.0} to {:.0}", row.lower_m, row.upper_m)
-            };
             if row.samples == 0 {
-                let _ = writeln!(md, "| {label} | 0 | 0 | | | |");
+                let _ = writeln!(md, "| {} | 0 | 0 | | | |", row.label);
             } else {
                 let _ = writeln!(
                     md,
-                    "| {label} | {} | {} | {:+.2} | {:.2} | {:.2} |",
+                    "| {} | {} | {} | {:+.2} | {:.2} | {:.2} |",
+                    row.label,
                     row.flights,
                     row.samples,
                     row.mean_speed_difference_m_s,
@@ -957,16 +1371,21 @@ impl DescentWindReport {
             let _ = writeln!(md, "\n## Two receivers on one rocket\n");
             let _ = writeln!(
                 md,
-                "Both rode the same rocket, so the canopy's glide and swing are the same in both: \
-                 their difference is the receivers' and the method's own noise.\n"
+                "Each receiver's track is reconstructed alone. The difference of their winds is a \
+                 floor on the noise between two receivers, not the method's error: an error of \
+                 the lag model, or a motion both receivers share, cancels in it.\n"
             );
             for pair in &self.receivers {
                 let _ = writeln!(
                     md,
-                    "- `{}`, with {}: {} fixes read by both within {PAIR_S} s; their winds differ \
-                     by {:.2} m/s RMS, {:.2} m/s at most.",
+                    "- `{}`, with {}: the two highest fixes are {:.0} m and {:.0} m above sea \
+                     level and the last fixes {:.0} m apart. {} fixes are read by both within \
+                     {PAIR_S} s; their winds differ by {:.2} m/s RMS, {:.2} m/s at most.",
                     pair.id,
                     pair.second,
+                    pair.highest_m[0],
+                    pair.highest_m[1],
+                    pair.last_fixes_apart_m,
                     pair.pairs,
                     pair.rms_vector_difference_m_s,
                     pair.max_vector_difference_m_s
@@ -980,12 +1399,14 @@ impl DescentWindReport {
              γ` at a glide angle `γ`; a swing on the shock cord moves the rocket back and forth. \
              Neither is measured for hobby canopies, so neither is bounded: the differences above \
              hold them along with ERA5's miss.\n\
-             - **ERA5's hour and place.** ERA5 is read at the hour the real-flights report flies \
-             the flight in and at the launch site; the descent is minutes later and drifts \
-             hundreds of meters.\n\
+             - **ERA5's hour and place.** ERA5 is read at the launch site and hour; the descent \
+             is minutes later and away from the site.\n\
              - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every \
-             direction; a tumbling airframe or a streamer has no measured response."
+             direction; a tumbling airframe or a streamer has no measured response.\n\
+             - **Each fix of the EuRoC logs.** CATS publishes its EuRoC logs under GPL-3.0, so \
+             the logs of its flight computers give statistics here, not rows."
         );
+        let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
         md
     }
 
@@ -995,7 +1416,7 @@ impl DescentWindReport {
     ///
     /// When it isn't.
     pub fn check_page(&self, markdown: &str) -> Result<(), String> {
-        if markdown == self.to_markdown() {
+        if markdown.replace("\r\n", "\n") == self.to_markdown() {
             Ok(())
         } else {
             Err(format!(

@@ -22,7 +22,7 @@ read from a forecast's table of levels.
   north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Ten real flights have been
   flown in ERA5 winds, nine of them in their own day's. Only their heights are compared, not their drift
   ([Accuracy: real flights](../accuracy.md#real-flights)). A wind read back from a GPS-tracked
-  descent is pinned on synthetic descents. It is set beside ERA5 on two public flights
+  descent is pinned on synthetic descents. It is set beside ERA5 on four public flights
   ([Wind from a GPS-tracked descent](#wind-from-a-gps-tracked-descent)).
 - **What it leaves out:** wind varying in time or across the field, vertical wind, terrain, and
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or
@@ -443,13 +443,15 @@ fn speed_and_direction_from(velocity_enu_m_s: DVec3) -> (f64, f64) {
 
 A rocket under a parachute drifts with the wind, a little late. So its GPS track measures the
 wind at the flight's own place and minutes. This section gives how HPR Sim reads that wind from a
-log, and how it compared with ERA5, the [reanalysis](../glossary.md#era5) the real flights fly in.
+log, and how it compares with ERA5, the [reanalysis](../glossary.md#era5) the real flights fly in.
+A *fix* is one position the receiver reported.
 
 > **How far to trust it.** The wind it reads is a measurement's reconstruction. On synthetic
-> descents, whose wind is known, it is within 0.3 m/s (0.7 mph) RMS. On real descents nothing
-> bounds what the canopy itself does (below). Only two public flights could be compared, so this
-> is a method, not yet a comparison. Read its differences as one example of a launch-field wind
-> beside ERA5's, not as ERA5's measured miss; for ERA5's own miss, rely on the soundings below.
+> descents built on the method's own assumptions, whose wind is known, it is within 0.3 m/s
+> (0.7 mph) RMS. On real descents nothing bounds what the canopy itself does (below). Four public
+> flights are compared with ERA5, but one of them gives four fixes in five. Read the differences
+> as what four launch-field winds did beside ERA5's, not as ERA5's measured miss. For ERA5's own
+> miss, rely on the soundings below.
 
 ### The method
 
@@ -470,51 +472,57 @@ It also assumes the same drag in every direction
 §1 and §2).
 
 At each fix, a quadratic in time is fitted to the positions of the fixes within 10 s around it.
-Its slope is the velocity, and twice its curvature the acceleration. A window of 10 s spans
-several periods of a swing on the shock cord, which it averages out. A fix is read only where the
-body falls steadily: at 2 to 35 m/s (7 to 115 ft/s), with a vertical acceleration of at most
-0.5 m/s². That drops the fall from apogee before a canopy holds, each canopy's opening and the
-landing. Code: [`hpr_flightdata::descent_wind`](../api/hpr_flightdata/descent_wind/index.html).
+Its slope is the velocity, and twice its curvature the acceleration. A fix is read only where its
+window reaches 2.5 s to each side, so a fix beside a gap or at the track's end is not read. It is
+read only where the body falls steadily: at 2 to 35 m/s (7 to 115 ft/s), with a vertical
+acceleration of at most 0.5 m/s². That drops the fall from apogee before a canopy holds, each
+canopy's opening and the landing. Code:
+[`hpr_flightdata::descent_wind`](../api/hpr_flightdata/descent_wind/index.html).
 
 **A worked example.** Take a wind that strengthens by 2 m/s (4.5 mph) for every 100 m (328 ft) of
-height. A body falling through it at 25 m/s (82 ft/s) meets 0.02 × 25 = 0.5 m/s more wind each second. Its
-lag is 25 / 9.807 = 2.55 s, so its ground velocity trails the wind by 2.55 × 0.5 = 1.27 m/s
-(2.8 mph). Under a 5 m/s (16 ft/s) main, the same wind leaves 0.05 m/s (0.1 mph).
+height. A body falling through it at 25 m/s (82 ft/s) meets 0.02 × 25 = 0.5 m/s less wind each
+second. Its lag is 25 / 9.807 = 2.55 s, so its ground velocity runs 2.55 × 0.5 = 1.27 m/s
+(2.8 mph) above the wind it is in. Under a 5 m/s (16 ft/s) main, the same wind leaves 0.05 m/s
+(0.1 mph).
 
-On a real flight, Juno III fell under its drogue at 24.07 m/s (79 ft/s). At 929 m (3,048 ft)
-above the pad, its lag was 24.07 / 9.807 = 2.45 s. Its ground velocity was 13.03 m/s (29.2 mph) east
-and 5.15 m/s (11.5 mph) north. Each second it slowed by 0.55 m/s (1.2 mph) east and 0.17 m/s
-(0.4 mph) north. So the wind was:
+On a real flight, Juno III fell under its drogue at 24.071 m/s (79 ft/s); the fix is the report's.
+At 929 m (3,048 ft) above the pad, its lag was 24.071 / 9.807 = 2.455 s. Its ground velocity was
+13.033 m/s (29.2 mph) east and 5.153 m/s (11.5 mph) north. Each second it slowed by 0.552 m/s
+(1.2 mph) east and 0.166 m/s (0.4 mph) north. So the wind was:
 
-- east: 13.03 − 2.45 × 0.55 = 11.68 m/s;
-- north: 5.15 − 2.45 × 0.17 = 4.75 m/s.
+- east: 13.033 − 2.455 × 0.552 = 11.678 m/s;
+- north: 5.153 − 2.455 × 0.166 = 4.745 m/s.
 
-That is 12.61 m/s (28.2 mph), against a ground speed of 14.01 m/s (31.3 mph). ERA5's wind there
+That is 12.60 m/s (28.2 mph), against a ground speed of 14.01 m/s (31.3 mph). ERA5's wind there
 was 14.74 m/s (33.0 mph).
 
 ### Against ERA5
 
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
-reads every public flight the real-flights report flies:
+reads every public flight with a log: the seven the real-flights report flies, the five predicted
+first, and three more of RocketPy's example logs.
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
-  the pad. And Genesis, under its main below 666 m (2,185 ft). Genesis's receiver held one
-  position through most of its drogue descent; that gap isn't read.
+  the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
+  new fix. Camões, under its drogue from 2,677 m (8,783 ft) down. Halcyon, under its main from
+  3,336 m (10,945 ft) down, at 1,951 fixes.
 - **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
-- **Not run:** Cavour fell at 75 m/s (246 ft/s), faster than any canopy the method is held to.
-  Bella Lui, NDRT 2020 and Lince logged no position.
+  Hedy, whose ERA5 file HPR Sim can't read without a checked conversion.
+- **Not run:** Cavour fell at 75 m/s (246 ft/s) and Astra at 98 m/s (321 ft/s), faster than any
+  canopy the method is held to. Seven more logged no position.
 
-Over the two compared flights and 158 fixes, the reconstructed speed is 1.39 m/s (3.1 mph) above
-ERA5's on average. Root-mean-square, it is 3.96 m/s (8.9 mph) from it. By band, the mean runs from
-4.86 m/s (10.9 mph) below ERA5's to 6.19 m/s (13.8 mph) above it. The first is from 500 m (1,640 ft) to
-1,000 m (3,281 ft) above the pad; the second from 3,000 m (9,843 ft) up. ERA5 misses
-soundings by 1.4 to 1.9 m/s (3.1 to 4.3 mph) through the lowest 3 km (1.9 mi) (Taszarek et al. 2021, in
-the research note's §5). These differences are two to three times that. With two flights, nothing
-here tells ERA5's miss at a launch field apart from the canopy's.
+Over the four compared flights and 2,462 fixes, the reconstructed speed is 0.87 m/s (1.9 mph)
+below ERA5's on average. Root-mean-square, it is 3.50 m/s (7.8 mph) from it. Each flight alone
+differs on average by 1.1 to 1.5 m/s (2.6 to 3.4 mph): above ERA5's on three, below it on
+Halcyon. Halcyon gives four fixes in five, so the pooled mean is mostly its own. ERA5 misses
+soundings by 1.4 to 1.9 m/s (3.1 to 4.3 mph) RMS in speed through the lowest 3 km (1.9 mi)
+(Taszarek et al. 2021, in the research note's §5). The RMS here is 1.8 to 2.5 times that.
+Nothing here tells ERA5's miss at a launch field apart from the canopy's.
 
-Prometheus carried two GPS receivers. Read apart, their winds differ by 0.65 m/s (1.5 mph) RMS
-over 169 shared fixes, and 2.25 m/s (5.0 mph) at most. Any glide or swing moved both alike, so
-that is the receivers' and the method's own noise.
+Prometheus carried two GPS receivers, whose highest fixes are 1 m (3.3 ft) apart in height and whose last
+fixes are 2.4 m (8 ft) apart. Read apart, their winds differ by 0.51 m/s (1.1 mph) RMS over 170
+shared fixes, and 1.34 m/s (3.0 mph) at most. That is a floor on the noise between receivers. It
+can't show the lag model's error or a motion both shared, which cancel in the difference.
 
 ### What it leaves unbounded
 
@@ -523,13 +531,25 @@ that is the receivers' and the method's own noise.
   speed as large as the descent itself. A turning canopy partly averages its glide out; how much
   is left, no source measures for hobby canopies.
 - **Swing.** A rocket swinging by $\theta$ on a shock cord of length $L$ moves at up to
-  $\theta\sqrt{gL}$. That is about 0.95 m/s (2.1 mph) at 10° on 3 m (10 ft). The 10 s window
-  spans two and a half periods of a 4 s swing and averages it out. A longer, slower swing it
-  does not.
+  $\theta\sqrt{gL}$. That is about 0.95 m/s (2.1 mph) at 10° on 3 m (10 ft). On a synthetic
+  swing that size, with a 2 to 5 s period, the 10 s window leaves under 0.15 m/s (0.3 mph) RMS.
+  A slower swing it averages less.
 - **Drogues and tumbling bodies.** The lag assumes the same drag in every direction; a tumbling
   airframe or a fluttering streamer has no measured response.
 - **ERA5's hour and place.** ERA5 is read at the launch hour and site; the descent is minutes
-  later and drifts hundreds of meters.
+  later and away from the site.
+
+### Sources
+
+- Hock, T. F., and Franklin, J. L. (1999). The NCAR GPS dropwindsonde. *Bulletin of the American
+  Meteorological Society* 80, pp. 407–420
+  ([DOI](https://doi.org/10.1175/1520-0477%281999%29080%3C0407%3ATNGD%3E2.0.CO%3B2)).
+- Kepert, J. D. (2008). Dropsonde turbulence. AMS 28th Conference on Hurricanes and Tropical
+  Meteorology, eq. 4.
+- Taszarek, M., and others (2021). Comparison of convective parameters derived from ERA5 and
+  MERRA-2 with rawinsonde data over Europe and North America. *Journal of Climate* 34,
+  pp. 3211–3237, doi:10.1175/JCLI-D-20-0484.1.
+- Knacke, T. W. (1991). *Parachute Recovery Systems Design Manual*, NWC TP 6575, p. 5-16.
 
 ## Input and limits
 
@@ -596,10 +616,12 @@ levels aloft. How to join them isn't decided yet
   - `the_lagged_reading_is_near_exact_on_a_noiseless_track`: within 0.05 m/s (0.1 mph).
   - `the_lagged_reading_holds_the_line_with_receiver_noise`. Each fix gets 0.5 m (1.6 ft) of noise
     east and north and 1 m (3.3 ft) up; the method holds 0.3 m/s (0.7 mph) on each of 200 seeds.
-  - `the_steady_fall_rule_drops_an_opening_and_the_landing`, and the refusals of a bad track or
-    setting.
+  - `the_window_cuts_a_swing_on_the_shock_cord`: a 0.95 m/s (2.1 mph) swing of 2 to 5 s period,
+    a fix a second, leaves under 0.15 m/s (0.3 mph) RMS at 5 m/s (16 ft/s) and 25 m/s (82 ft/s).
+  - `the_steady_fall_rule_drops_an_opening_and_the_landing`, `a_fix_beside_a_gap_is_not_read`,
+    and the refusals of a bad track or setting.
 - `cargo xtask descent-wind --check`, in the gate's `refs` step, reproduces the report from the
-  logs. In CI, `the_descent_wind_report_holds_together` recomputes its bands and its page from its
-  committed data.
+  logs. In CI, `the_descent_wind_report_holds_together` recomputes its bands from each flight's
+  committed sums and its page from its data, and checks the page's ERA5 credit.
 
 [lock]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml

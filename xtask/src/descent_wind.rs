@@ -35,17 +35,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
             Status::NotRun(why) => format!("not run: {why}"),
         };
         println!(
-            "descent-wind: {:<16} {:>4} fixes {:>4} read  {status}",
-            flight.id,
-            flight.fixes,
-            flight.samples.len()
+            "descent-wind: {:<16} {:>4} fixes {:>4} repeats {:>4} read  {status}",
+            flight.id, flight.fixes, flight.repeats, flight.read
         );
     }
     for band in report.bands.iter().chain(std::iter::once(&report.all)) {
         println!(
-            "descent-wind: {:>5.0} to {:>5.0} m  {} flights {:>4} samples  speed mean {:+.2} RMS {:.2}  vector RMS {:.2} m/s",
-            band.lower_m,
-            band.upper_m,
+            "descent-wind: {:<14} m  {} flights {:>4} samples  speed mean {:+.2} RMS {:.2}  vector RMS {:.2} m/s",
+            band.label,
             band.flights,
             band.samples,
             band.mean_speed_difference_m_s,
