@@ -11,7 +11,7 @@ variations. It needs some Rust, but no knowledge of this project.
 > **How far to trust it.** A simulation, not validated
 > ([the evidence register's row on real flights](evidence.md#g24)): this rocket left no flight
 > log to check it against. On 12 public logged flights of other rockets, HPR Sim's apogees missed
-> by 8.88% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
+> by 8.83% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
 > from a private collection, they were +8.01% above the logs, and OpenRocket's were +6.72%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)).
 >

@@ -540,7 +540,7 @@ up to there flies on to 1,273 m (4,177 ft), as the barometer reads it. The log's
 moves it down 3.8 points: the rocket reaches 1,407 m (4,616 ft), 6.6% high. Fitting the boost
 moves it down another 10.1 points, past the log, to the 3.6% low. The log up to the cut says
 little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It reads the impulse
-0.955. The whole log reads the impulse 0.95 and the drag 0.71. The other flights are in
+0.954. The whole log reads the impulse 0.95 and the drag 0.71. The other flights are in
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 ## Sources

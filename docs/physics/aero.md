@@ -4695,7 +4695,8 @@ OpenRocket's apogee on average
 a faster flight, on HPR Sim's own thrust and mass rather than OpenRocket's. On its one supersonic
 flight the swap alone moves the apogee from +13.60% to +31.73% of OpenRocket's. With OpenRocket's
 base rule as well, it comes to +0.45%
-([a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
+([a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag),
+[the library's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-library-flights.md)).
 
 What stays open: whether the equivalent cone's value matches a measured tangent ogive
 ([evidence row G40, the nose's pressure drag past Mach 1](../evidence.md#g40),

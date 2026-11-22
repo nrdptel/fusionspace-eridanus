@@ -16,7 +16,7 @@ the page that covers it in full.
 > The guide rocket's flights are simulations, not measurements: it has no flight log.
 >
 > The tour ends on a public flight. It's one of 12 public logged flights, where HPR
-> Sim's apogee missed by 8.88% on average without signs ([report][real-report]). Those flights check
+> Sim's apogee missed by 8.83% on average without signs ([report][real-report]). Those flights check
 > apogee alone. The tour gives ranges, not verdicts. The safety code and the range safety officer
 > (the RSO) decide whether a rocket flies.
 
@@ -287,8 +287,8 @@ apogee missed by −0.08% ([report][real-report]). The example records no fin ed
 the design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 12 public flights HPR Sim's
-apogee missed by −29.16% to +10.40% one by one. It missed by 8.88% on average without signs, and
-by −4.64% with them. The average without signs is outside the project's own 5% target
+apogee missed by −29.16% to +10.39% one by one. It missed by 8.83% on average without signs, and
+by −4.61% with them. The average without signs is outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)).
 
 On these flights the misses go both ways and lean low, 7 of the 12 that way. On 60 logged flights

@@ -716,12 +716,12 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean absolute error is 8.88% over 12 flights, outside the target, and 6.06% over the
+Today the mean absolute error is 8.83% over 12 flights, outside the target, and 5.97% over the
 seven compared first. Five of the seven are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
 impulse. Four of the five predicted first are outside 5% too, with no explanation claimed. Seven
 of the 12 altimeters' kinds are assumed barometric (evidence rows [G21](evidence.md#g21) and
-[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 9.01%.
+[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 8.96%.
 
 ### Public flights predicted first
 
