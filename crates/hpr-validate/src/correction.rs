@@ -64,7 +64,7 @@ impl Correction {
 /// and in its report's wind or in still air. Everything else is as the flight's report flies
 /// it: still air keeps the report's air (its pressure, temperature and density) and takes out
 /// only the wind. With no correction, the phase and the report's wind it is that report's flight
-/// itself: the phase is HPR Sim's default (M1.14b15).
+/// itself: the phase is HPR Sim's default.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct Variant {
