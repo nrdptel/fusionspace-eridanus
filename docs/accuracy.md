@@ -281,7 +281,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [A log against its simulation](comparing-a-flight.md) | ✓ the sign, a barometer's reading on a warm day and the clock on constructed flights; a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft) | no | partial: [each of the 7 public flights compared along the climb](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md) is reported, and its simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event; this reports residuals, and checks no claim about them | no |
 | [Ghost files](format/ghost-files.md) | ✓ each format read back by outside readers and held to the others within 1 cm (0.39 in) | no | ✓ [all 22 real flight logs in RocketPy's repository](evidence.md#g37) with an altitude or a GNSS track: of the 16 logs with a barometer's or a filtered height, 13 peak within 2% of a recorded apogee in RocketPy's notebooks and 3 about 0.3% from its simulated one; the two with only a receiver's altitude 4.9% and 5.9% over | no |
 | [The least-squares fit](physics/flight-fit.md) | ✓ each parameter's 90% interval passes on sets A and B of the synthetic flights, the wind's on logs with a track, sets seen while its model was chosen | no | no | no: no real flight with its inputs measured apart from its log yet ([evidence row G38](evidence.md#g38)) |
-| [The smoother](physics/smoother.md) | ✓ at burnout, the top speed, apogee and a drawn moment, the three sets' cells hold between 94.2% and 99.4% of the synthetic flights' truths inside its 90% intervals; two logger cells fall under 90%, 88.7% on set B and 89.2% on set A, which the check's rule allows; the test sets were seen while its rules were set ([how well](physics/smoother.md#how-well-it-holds)) | no | no | no: no real log with a truth taken apart from it yet ([evidence row G33](evidence.md#g33)) |
+| [The smoother](physics/smoother.md) | ✓ at burnout, the top speed, apogee and a drawn moment, the three sets' cells hold between 94.1% and 98.8% of the synthetic flights' truths inside its 90% intervals; two logger cells fall under 90%, 88.7% on set B and 80% on the tuning set, which the check's rule allows; the test sets were seen while its rules were set ([how well](physics/smoother.md#how-well-it-holds)) | no | no | no: no real log with a truth taken apart from it yet ([evidence row G33](evidence.md#g33)) |
 | [Interpolation](physics/interpolation.md) | ✓ | no | no | no |
 | [Quadrature](physics/quadrature.md) | ✓ | no | no | no |
 
@@ -970,9 +970,11 @@ simulations saved in that design file, in standard air: no record gives the day'
 predicted [apogees](glossary.md#apogee) were merged, that is, committed to the project's public
 history, before any of them was compared with its log
 ([the predictions][predictions]; decisions: [the three][adr-334], [the two][adr-337]). Against
-their logs they miss by −6.53%, +4.14%, −8.07%, −16.20% and −29.16%. That is 12.82% on average,
-and −11.17% with its sign ([report][real-report], [the decision][adr-342]). One prediction was
-revised after it merged, Erebus 11's, by a change to the base drag; both numbers are kept.**
+their logs they miss by −6.54%, +4.13%, −8.07%, −16.20% and −29.16%. That is 12.82% on average,
+and −11.17% with its sign ([report][real-report], [the decision][adr-342]). Three predictions
+were revised after they merged: Erebus 11's by a change to the base drag, then Astra's,
+Andromeda's and Erebus 11's when the tip-off phase became the default. Both numbers are kept
+for each.**
 
 The seven flights above were compared as soon as they were flown. A number published only after
 its comparison could have been tuned to its own miss, even without meaning to. These five went the
@@ -984,16 +986,21 @@ prediction below beside its error
 | flight | impulse flown (N·s) | merged prediction (m) | flown today (m) | log apogee (m) | apogee error | as a height climbed (m) | every input traced |
 |---|---:|---:|---:|---:|---:|---:|---|
 | [Astra][real-report] ([Cesaroni 4263L1350-P][predictions]) | 4,280.2 | 3,037.1 | 3,037.1 | 3,249.5 | **−6.54%** | 3,155.3 | yes |
-| [Andromeda][real-report] ([its team's thrust file][predictions]) | 9,866.7 | 3,581.0 | 3,581.0 | 3,438.5 | +4.14% | 3,729.1 | no |
-| [Erebus 11][real-report] ([a Cesaroni Pro54 K, the example's thrust file][predictions]) | 2,418.2 | 2,714.1 | 2,760.1 | 3,001.8 | **−8.07%** | 2,856.0 | yes |
+| [Andromeda][real-report] ([its team's thrust file][predictions]) | 9,866.7 | 3,581.0 | 3,580.6 | 3,438.5 | +4.13% | 3,729.1 | no |
+| [Erebus 11][real-report] ([a Cesaroni Pro54 K, the example's thrust file][predictions]) | 2,418.2 | 2,714.1 | 2,759.6 | 3,001.8 | **−8.07%** | 2,856.0 | yes |
 | [Macie XL, flight 1][real-report] ([AeroTech I284W][predictions]) | 599.5 | 706.2 | 706.2 | 842.8 | **−16.20%** | 706.3 | no |
 | [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
 
-The error is of the apogee flown today, which for four of the five is the merged prediction to
-the digit printed. Worked from the printed numbers, the errors are −6.54%, −16.21% and −29.17%
-for Astra and the two Macie XL flights, and the same for the other two. Erebus 11 flies 46.0 m (151 ft)
-higher than its merged prediction since [ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md) relieved the base behind a boattail below Mach
-0.8; its merged prediction missed by −9.58% ([report][real-report]).
+The error is of the apogee flown today, which for three of the five is the merged prediction to
+the digit printed: Astra, which the tip-off phase moves by 0.02 m (0.07 ft), and the two Macie XL
+flights, which have no rail guide. Worked from the printed numbers, their errors are −6.54%,
+−16.21% and −29.17%. Andromeda flies 0.4 m (1.3 ft) lower than its merged prediction since
+[the tip-off phase became the default](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0367-the-tip-off-phase-is-the-default-what-moved-and-what-flies-held-straight.md);
+its merged prediction missed by +4.14%. Erebus 11 flies higher than its merged prediction. It
+rose 46.0 m (151 ft) when
+[ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)
+relieved the base behind a boattail below Mach 0.8, then fell 0.5 m (1.6 ft) with the tip-off
+phase; its merged prediction missed by −9.58% ([report][real-report]).
 
 **What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
 [report][real-report] claims no explanation for them. The two diagnostics it flies among the seven, each team's drag
@@ -1850,7 +1857,7 @@ rest.
   apogees more than 5% from their logs are consistent with HPR Sim's drag
   ([real flights](#real-flights), [real-flight report][real-report]).
 - **Four of the five public flights predicted first miss by more than 5%,** and no explanation
-  is claimed for them. The five miss by −29.16% to +4.14%, four of them low
+  is claimed for them. The five miss by −29.16% to +4.13%, four of them low
   ([predicted before compared](#predicted-before-compared), [real-flight report][real-report]).
 - **Drag faster than sound reads high** against NASA's wind tunnel, above all with fins. With the
   fins on, it's +39.4% at Mach 1.5 to +154.0% at 4.63. The fins take a blunt leading edge's formula.

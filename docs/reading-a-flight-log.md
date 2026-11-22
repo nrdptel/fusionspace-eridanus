@@ -65,7 +65,7 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each
 > states a bound on its error, held on HPR Sim's synthetic flights. They're 171 simulated flights,
 > 71 with an accelerometer too, each logged at every rate from 500 to half a sample a second. On
-> them, every reading stayed within its bound, and the largest error took 0.737 of it.
+> them, every reading stayed within its bound, and the largest error took 0.833 of it.
 >
 > The bounds were tuned on those same flights, and no real log has a truth beside it to test
 > them. They hold on [six simulated logger profiles](physics/synthetic-flights.md#the-loggers) and
@@ -334,7 +334,7 @@ below reads 7.2 ft/s here and 8 ft/s there.
   top speed's time by any amount. The true burnout is 2.10 s.
 
   The floor is loose by design: on the synthetic flights' tuning set, the top speed came 0.24 s
-  before the true burnout on average. The top speed's time ranged from 1.03 s before the true
+  before the true burnout on average. The top speed's time ranged from 1.33 s before the true
   burnout to 0.718 s after it. The floor lies its bound, about 1.3 s, earlier still
   ([Checked against](physics/log-readings.md#checked-against)).
 - **Landing**, 45.80 s, within 2.11 s: the first sample back within the pad's allowance. The
@@ -437,7 +437,7 @@ a waiver or a load, unless the reading is a floor, which has no upper figure. A 
 
 An interval can lie wholly to one side of its reading, as the reading's error leans one way. Liftoff
 is read late, so its interval lies earlier (0.80 s, interval 0.41 to 0.64 s). The flight time, landing
-less liftoff, reads short, so its interval lies later (45.00 s, interval 45.38 to 46.11 s).
+less liftoff, reads short, so its interval lies later (45.00 s, interval 45.39 to 46.12 s).
 
 The last rows are [the smoother](physics/smoother.md)'s, every sensor together, also unchecked on a
 real flight ([evidence row G33](evidence.md#g33)). Its apogee is a cross-check: report the reading.
