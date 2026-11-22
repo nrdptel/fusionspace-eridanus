@@ -2396,6 +2396,100 @@ fn sim_flies_an_hpr_design_from_a_given_launch() {
     assert!(east > west + 10.0, "{east} m, {west} m");
 }
 
+/// M1.14b15 (ADR-363, decision 1): `hpr sim`, `hpr mc` and `hpr compare` fly the tip-off phase
+/// on a design with two rail guides unless `--no-tip-off` is given, and then they fly the
+/// library's flight held straight to its last guide.
+#[test]
+fn no_tip_off_flies_held_straight_in_sim_mc_and_compare() {
+    let path = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let launch = ["--rail-length", "1.5", "--inclination", "85"];
+    fn with<'a>(command: &[&'a str], launch: [&'a str; 4], flag: bool) -> Vec<&'a str> {
+        let mut args = command.to_vec();
+        args.extend(launch);
+        if flag {
+            args.push("--no-tip-off");
+        }
+        args
+    }
+    let design: hpr::hpr_design::Rocket =
+        serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let environment = hpr::Environment::new(32.99, -106.97, 1400.0).unwrap();
+    let library = |tip_off: Option<bool>| {
+        library_flight(design.clone(), "i175", "", None, &environment, |b| {
+            let b = b.inclination_deg(85.0);
+            match tip_off {
+                Some(tip_off) => b.tip_off(tip_off),
+                None => b,
+            }
+        })
+        .0
+    };
+    let site = [
+        "--latitude",
+        "32.99",
+        "--longitude",
+        "-106.97",
+        "--elevation",
+        "1400",
+    ];
+    let sim = |flag: bool| {
+        let mut args = with(&["sim", &path], launch, flag);
+        args.extend(site);
+        json(&args, 0, "sim.schema.json")
+    };
+    // By default the command flies the library's default flight, which tips off.
+    let (tipped, held) = (sim(false), sim(true));
+    assert_eq!(tipped["launch"]["tip_off"], true);
+    same_flight(&tipped, &library(None));
+    // With the flag it flies the library's flight with the phase off, which is another flight.
+    assert_eq!(held["launch"]["tip_off"], false);
+    same_flight(&held, &library(Some(false)));
+    let apogee = |document: &Value| {
+        document["summary"]["apogee"]["height_above_ground_m"]
+            .as_f64()
+            .unwrap()
+    };
+    assert_ne!(apogee(&tipped), apogee(&held));
+    // `hpr mc`: its nominal flight is `hpr sim`'s, each way.
+    let mc = |flag: bool| {
+        let mut args = with(&["mc", &path, "--runs", "2", "--seed", "1"], launch, flag);
+        args.extend(site);
+        json(&args, 0, "mc.schema.json")
+    };
+    for (flag, flown) in [(false, &tipped), (true, &held)] {
+        let document = mc(flag);
+        assert_eq!(document["launch"]["tip_off"], !flag);
+        assert_eq!(
+            document["nominal"]["apogee_m"].as_f64().unwrap(),
+            apogee(flown),
+            "--no-tip-off: {flag}"
+        );
+    }
+    // `hpr compare`: the simulation a log is set against moves with the flag.
+    let log = repo_file(SYNTHETIC_LOG);
+    let simulated = |flag: bool| {
+        let args = with(&["compare", &log, &path, "--json"], launch, flag);
+        let output = hpr(&args);
+        assert_eq!(output.status.code(), Some(0), "{output:?}");
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        validate("compare.schema.json", &document);
+        document["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["what"] == "apogee_height")
+            .unwrap()["simulated"]["value"]
+            .as_f64()
+            .unwrap()
+    };
+    let (tipped_m, held_m) = (simulated(false), simulated(true));
+    assert_ne!(tipped_m, held_m);
+    // Gravity turns the rocket nose-down about its last guide, so in still air the held flight
+    // is the higher, in each command.
+    assert!(held_m > tipped_m, "{held_m} m against {tipped_m} m");
+    assert!(apogee(&held) > apogee(&tipped));
+}
+
 /// What `hpr sim` refuses, each with status 1 and an error document naming the reason.
 #[test]
 fn sim_refuses_what_it_cant_fly() {
