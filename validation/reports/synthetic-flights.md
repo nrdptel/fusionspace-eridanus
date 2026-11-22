@@ -965,7 +965,7 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 | A | descent rate | 94 / 634 / 92, fails | 1 / 816 / 3, fails | 0 / 563 / 257, fails |
 | A | top acceleration | 23 / 292 / 41, fails | 1 / 350 / 5, fails | 0 / 258 / 98, fails |
 | A | burnout | 22 / 257 / 28, fails | 4 / 303 / 0, fails | 1 / 148 / 158, fails |
-| A | drogue rate | 64 / 312 / 52, fails | 0 / 428 / 0, fails | 0 / 286 / 142, fails |
+| A | drogue rate | 64 / 313 / 51, fails | 0 / 428 / 0, fails | 0 / 286 / 142, fails |
 | A | main opening | 68 / 300 / 60, fails | 7 / 415 / 6, fails | 1 / 332 / 95, fails |
 | A | main rate | 108 / 608 / 104, fails | 0 / 820 / 0, fails | 0 / 545 / 275, fails |
 | B | liftoff | 80 / 657 / 108, fails | 26 / 807 / 12, fails | 10 / 474 / 361, fails |
