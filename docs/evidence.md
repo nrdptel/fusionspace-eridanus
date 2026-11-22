@@ -153,7 +153,7 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found a source to cite only. Thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights. None has `geoidheight`. Beside them is the receiver's raw NMEA, whose GGA sentences state the geoid separation. GitHub's GPX files with `geoidheight` are everyday phone tracks (#645).
 - [G1](#g1), November 22, 2026, looked at:
-  - GitHub repositories created or pushed since 2026-11-18, for rocketry, altimeter and tracker terms
+  - GitHub repositories created or pushed since November 18, 2026, for rocketry, altimeter and tracker terms
   - Kaggle, Mendeley Data, Harvard Dataverse and Dryad, for rocket flight data
   - a web search for tracks from phones flown in payloads and their GPX exports
 
@@ -180,7 +180,7 @@ The register holds 41 rows, as of November 22, 2026.
 - [G3](#g3), November 22, 2026, looked at:
   - GitHub code search for `.telem` files and the AltOS header
   - the MIT Rocket Team's public wiki, its flight pages' attachments
-  - rocketry repositories new since 2026-11-18
+  - rocketry repositories new since November 18, 2026
 
   It found two recorded `.telem` files of a 2019 TeleMega flight on the MIT Rocket Team's wiki (no license stated: cite only). Nearly all their packets are of the five types the samples already hold; the few others look like damaged frames. Nothing of the eleven missing types.
 - [G4](#g4), October 17, 2026, looked at:
@@ -196,7 +196,7 @@ The register holds 41 rows, as of November 22, 2026.
   It found a lead for the TeleMetrum v1's converter: ISSUIUC/flight-data holds a TeleMetrum v1.2 `.eeprom` in log format 1 with AltosUI's export beside it (no license; cache under refs/ only). No TeleMega v4 file whose IMU ran. Format 5, 9 and 19 samples were found earlier and are listed in the CATS and Juno sample note (docs/research/sample-logs-cats-juno.md); the October 17 search's none was too narrow.
 - [G4](#g4), November 22, 2026, looked at:
   - GitHub exact-phrase code search for the `.eeprom` header's log-format field
-  - GitHub commits since 2026-11-19 with TeleMega and TeleMetrum terms
+  - GitHub commits since November 19, 2026 with TeleMega and TeleMetrum terms
   - the MIT Rocket Team's public wiki, its flight pages' attachments
 
   It found four `.eeprom` files of 2017 and 2018 on the MIT Rocket Team's wiki (no license stated: cite only): three TeleMetrum v2.0 in format 7 and one TeleMega v3.0 in format 15. None is a TeleMetrum v1, a TeleMega v4 or format 5, 9 or 19.
@@ -230,7 +230,7 @@ The register holds 41 rows, as of November 22, 2026.
   It found 16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (June 20, 2026). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data.
 - [G7](#g7), November 22, 2026, looked at:
   - GitHub code search for Featherweight summary fields in metric units
-  - GitHub repositories new since 2026-11-18
+  - GitHub repositories new since November 18, 2026
 
   It found nothing new: the one new summary pair (#1088) is in feet, like all the others.
 - [G8](#g8), October 17, 2026, looked at:
@@ -261,7 +261,7 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found these, under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files, whose summary statistics the team's note describes. RIT's two Blue Raven flights' summaries state the peak, the first burnout's time and each channel's firing time. RMIT-Hive-Rocketry/GCS has a Blue Raven flight with its summary. None is in the private collection but 5 of the RRC3 exports. The other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds.
 - [G10](#g10), November 22, 2026, looked at:
-  - GitHub commits since 2026-11-19 with flight-data and altimeter terms
+  - GitHub commits since November 19, 2026 with flight-data and altimeter terms
   - GitHub exact-phrase code search for RRC3, AltOS and Featherweight headers
 
   It found two sets with no license (cite only) where a logger's own figures sit beside its log: Blue Raven flights with their summaries in dreveron10/Data-compare, and RRC3 exports beside a TeleMetrum export of the same flight in osu-bsli/Airbrake-Control-Verification.
@@ -270,7 +270,7 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44): the team's airbrake controller writes `data.csv` with units in each column name (`accel_x__m_s2`), a `params.csv` and a raw capture. The airbrake-test README states the files' columns, units and meanings. On the two testbed flights a Blue Raven flew beside it. None of these files is in the private collection; they're cached under refs/samples-search/G11/rit-flight-data. Lmx154's flight computer log with unit-named columns and alignment notes is already held privately; curtscraw/osu_rocketry_data states its units in `data_units.txt` but has no license.
 - [G11](#g11), November 22, 2026, looked at:
-  - GitHub repositories new since 2026-11-18, for team flight computers
+  - GitHub repositories new since November 18, 2026, for team flight computers
   - Mendeley Data's onboard-computer dataset
 
   It found nothing new: the new flight computers carry no flight logs, and the Mendeley dataset holds simulated test data only (CC BY-NC).
@@ -293,7 +293,7 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On November 18, 2023 they're two StratoLoggers; on March 23, 2024, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (October 1, 2023). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log.
 - [G13](#g13), November 22, 2026, looked at:
-  - GitHub repositories new since 2026-11-18, for two-stage terms
+  - GitHub repositories new since November 18, 2026, for two-stage terms
   - a web search for 2026 competition technical reports on staged flights
 
   It found nothing new: the one new two-stage repository, an altimeter design study, says it had no altimeter logs and flies simulations only.
@@ -369,7 +369,7 @@ The register holds 41 rows, as of November 22, 2026.
   - GitHub code search for the RASAero export column `CA Power-Off`
   - a web search for RASAero II set beside flight data
 
-  It found a RASAero II design beside logs of a supersonic flight: the MIT wiki's Hermes Flight 1 page attaches `hermes.CDX1`, a TeleMetrum `.eeprom` and a Raven `.FIPa` of a 2018 flight its postflight review gives as Mach 1.7 (no license stated: cite only). The design is not yet checked as flown, the motor is team-built, and a `.CDX1` is a design, not an export. A RASAero export to 20° added to NUSTARS/launch-vehicle on 2026-11-19 is of a vehicle not yet flown.
+  It found a RASAero II design beside logs of a supersonic flight: the MIT wiki's Hermes Flight 1 page attaches `hermes.CDX1`, a TeleMetrum `.eeprom` and a Raven `.FIPa` of a 2018 flight its postflight review gives as Mach 1.7 (no license stated: cite only). The design is not yet checked as flown, the motor is team-built, and a `.CDX1` is a design, not an export. A RASAero export to 20° added to NUSTARS/launch-vehicle on November 19, 2026 is of a vehicle not yet flown.
 - [G20](#g20), October 17, 2026, looked at:
   - web searches for measured deployments: onboard video or accelerometer traces of ejection, nose cone and drogue separation
   - student post-flight reports (Stanford SSI wiki, NAU capstone)
@@ -527,7 +527,7 @@ The register holds 41 rows, as of November 22, 2026.
 - [G31](#g31), November 22, 2026, looked at:
   - GitHub exact-phrase code search for the RRC3 export header
   - a web search for the units of mDACS's exported columns
-  - GitHub commits since 2026-11-19 with RRC3 terms
+  - GitHub commits since November 19, 2026 with RRC3 terms
 
   It found an RRC3 primary and backup in osu-bsli/Airbrake-Control-Verification (no license stated: cite only) that match a 2021 TeleMetrum export's peak height and apogee time, so likely one flight. Their Temperature reads closer to the TeleMetrum's as °F than as °C, in a file whose altitude is in feet; the pairing is inferred, not stated. A second RRC3 export, MIT-licensed, in victoria-field7/Student-Project-Soar-NASA-Student-Launch has nothing beside it to check. No statement of units from mDACS itself.
 - [G32](#g32), October 17, 2026, looked at:
@@ -536,7 +536,7 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise. It found no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth.
 - [G32](#g32), November 22, 2026, looked at:
-  - GitHub repositories new since 2026-11-18
+  - GitHub repositories new since November 18, 2026
   - GitHub code search for RRC3 and AltOS exports
 
   It found nothing for a family without a profile: the new files are Blue Raven and RRC3 exports, both families already profiled.
@@ -547,7 +547,7 @@ The register holds 41 rows, as of November 22, 2026.
   It found one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2.5 m (8.2 ft); GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only.
 - [G33](#g33), November 22, 2026, looked at:
   - GitHub exact-phrase code search for RRC3 and AltOS headers
-  - GitHub repositories new since 2026-11-18
+  - GitHub repositories new since November 18, 2026
 
   It found two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle.
 - [G34](#g34), October 31, 2026, looked at:
@@ -558,7 +558,7 @@ The register holds 41 rows, as of November 22, 2026.
   It found one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight.
 - [G34](#g34), November 22, 2026, looked at:
   - GitHub exact-phrase code search for RRC3 and AltOS headers
-  - GitHub repositories new since 2026-11-18
+  - GitHub repositories new since November 18, 2026
 
   It found two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle.
 - [G35](#g35), November 2, 2026, looked at:
@@ -568,10 +568,10 @@ The register holds 41 rows, as of November 22, 2026.
 
   It found a real pair whose clocks differ by about 4,028 s. On the October 31, 2026 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost.
 - [G35](#g35), November 22, 2026, looked at:
-  - GitHub repositories created since 2026-11-18
-  - GitHub commits since 2026-11-19 with Blue Raven terms
+  - GitHub repositories created since November 18, 2026
+  - GitHub commits since November 19, 2026 with Blue Raven terms
 
-  It found dreveron10/Data-compare (created 2026-11-21, no license stated: cite only): a Blue Raven on its own clock and a Featherweight tracker on GPS time, paired in the repository as one flight. Only the tracker has GPS time, and the files don't state that they are the same flight.
+  It found dreveron10/Data-compare (created November 21, 2026, no license stated: cite only): a Blue Raven on its own clock and a Featherweight tracker on GPS time, paired in the repository as one flight. Only the tracker has GPS time, and the files don't state that they are the same flight.
 - [G36](#g36), November 2, 2026, looked at:
   - GitHub code search for `extension:pf2` (250 hits in 31 repositories) and `extension:telem` (17 hits, every rocketry repository already named in the project's notes)
   - GitHub code search for CSV files with booster and sustainer words
@@ -581,7 +581,7 @@ The register holds 41 rows, as of November 22, 2026.
   It found no log from each stage of one flight. No `.pf2` or telemetry file is named for a booster or sustainer, and the CSV hits are not rocket logs.
 - [G36](#g36), November 22, 2026, looked at:
   - GitHub code search pairing booster and sustainer with each logger's header
-  - two-stage repositories new since 2026-11-18
+  - two-stage repositories new since November 18, 2026
 
   It found nothing new: no staged flight with a log from each stage.
 - [G37](#g37), November 2, 2026, looked at:

@@ -57,7 +57,7 @@ found = "a source to cite only. Thread 135349 (2016, no terms stated, cached und
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub repositories created or pushed since 2026-11-18, for rocketry, altimeter and tracker terms",
+  "GitHub repositories created or pushed since November 18, 2026, for rocketry, altimeter and tracker terms",
   "Kaggle, Mendeley Data, Harvard Dataverse and Dryad, for rocket flight data",
   "a web search for tracks from phones flown in payloads and their GPX exports",
 ]
@@ -116,7 +116,7 @@ on = "2026-11-22"
 looked = [
   "GitHub code search for `.telem` files and the AltOS header",
   "the MIT Rocket Team's public wiki, its flight pages' attachments",
-  "rocketry repositories new since 2026-11-18",
+  "rocketry repositories new since November 18, 2026",
 ]
 found = "two recorded `.telem` files of a 2019 TeleMega flight on the MIT Rocket Team's wiki (no license stated: cite only). Nearly all their packets are of the five types the samples already hold; the few others look like damaged frames. Nothing of the eleven missing types"
 
@@ -151,7 +151,7 @@ found = "a lead for the TeleMetrum v1's converter: ISSUIUC/flight-data holds a T
 on = "2026-11-22"
 looked = [
   "GitHub exact-phrase code search for the `.eeprom` header's log-format field",
-  "GitHub commits since 2026-11-19 with TeleMega and TeleMetrum terms",
+  "GitHub commits since November 19, 2026 with TeleMega and TeleMetrum terms",
   "the MIT Rocket Team's public wiki, its flight pages' attachments",
 ]
 found = "four `.eeprom` files of 2017 and 2018 on the MIT Rocket Team's wiki (no license stated: cite only): three TeleMetrum v2.0 in format 7 and one TeleMega v3.0 in format 15. None is a TeleMetrum v1, a TeleMega v4 or format 5, 9 or 19"
@@ -233,7 +233,7 @@ found = "16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initia
 on = "2026-11-22"
 looked = [
   "GitHub code search for Featherweight summary fields in metric units",
-  "GitHub repositories new since 2026-11-18",
+  "GitHub repositories new since November 18, 2026",
 ]
 found = "nothing new: the one new summary pair (#1088) is in feet, like all the others"
 
@@ -322,7 +322,7 @@ found = "these, under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports be
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub commits since 2026-11-19 with flight-data and altimeter terms",
+  "GitHub commits since November 19, 2026 with flight-data and altimeter terms",
   "GitHub exact-phrase code search for RRC3, AltOS and Featherweight headers",
 ]
 found = "two sets with no license (cite only) where a logger's own figures sit beside its log: Blue Raven flights with their summaries in dreveron10/Data-compare, and RRC3 exports beside a TeleMetrum export of the same flight in osu-bsli/Airbrake-Control-Verification"
@@ -347,7 +347,7 @@ found = "RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44): the team's air
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub repositories new since 2026-11-18, for team flight computers",
+  "GitHub repositories new since November 18, 2026, for team flight computers",
   "Mendeley Data's onboard-computer dataset",
 ]
 found = "nothing new: the new flight computers carry no flight logs, and the Mendeley dataset holds simulated test data only (CC BY-NC)"
@@ -412,7 +412,7 @@ found = "a partial answer, to cite only: ISSUIUC/flight-data (no license) holds 
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub repositories new since 2026-11-18, for two-stage terms",
+  "GitHub repositories new since November 18, 2026, for two-stage terms",
   "a web search for 2026 competition technical reports on staged flights",
 ]
 found = "nothing new: the one new two-stage repository, an altimeter design study, says it had no altimeter logs and flies simulations only"
@@ -594,7 +594,7 @@ looked = [
   "GitHub code search for the RASAero export column `CA Power-Off`",
   "a web search for RASAero II set beside flight data",
 ]
-found = "a RASAero II design beside logs of a supersonic flight: the MIT wiki's Hermes Flight 1 page attaches `hermes.CDX1`, a TeleMetrum `.eeprom` and a Raven `.FIPa` of a 2018 flight its postflight review gives as Mach 1.7 (no license stated: cite only). The design is not yet checked as flown, the motor is team-built, and a `.CDX1` is a design, not an export. A RASAero export to 20° added to NUSTARS/launch-vehicle on 2026-11-19 is of a vehicle not yet flown"
+found = "a RASAero II design beside logs of a supersonic flight: the MIT wiki's Hermes Flight 1 page attaches `hermes.CDX1`, a TeleMetrum `.eeprom` and a Raven `.FIPa` of a 2018 flight its postflight review gives as Mach 1.7 (no license stated: cite only). The design is not yet checked as flown, the motor is team-built, and a `.CDX1` is a design, not an export. A RASAero export to 20° added to NUSTARS/launch-vehicle on November 19, 2026 is of a vehicle not yet flown"
 
 [[row]]
 id = "G20"
@@ -980,7 +980,7 @@ on = "2026-11-22"
 looked = [
   "GitHub exact-phrase code search for the RRC3 export header",
   "a web search for the units of mDACS's exported columns",
-  "GitHub commits since 2026-11-19 with RRC3 terms",
+  "GitHub commits since November 19, 2026 with RRC3 terms",
 ]
 found = "an RRC3 primary and backup in osu-bsli/Airbrake-Control-Verification (no license stated: cite only) that match a 2021 TeleMetrum export's peak height and apogee time, so likely one flight. Their Temperature reads closer to the TeleMetrum's as °F than as °C, in a file whose altitude is in feet; the pairing is inferred, not stated. A second RRC3 export, MIT-licensed, in victoria-field7/Student-Project-Soar-NASA-Student-Launch has nothing beside it to check. No statement of units from mDACS itself"
 
@@ -1005,7 +1005,7 @@ found = "pad and rest noise for four families, upper bounds that mix in wind and
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub repositories new since 2026-11-18",
+  "GitHub repositories new since November 18, 2026",
   "GitHub code search for RRC3 and AltOS exports",
 ]
 found = "nothing for a family without a profile: the new files are Blue Raven and RRC3 exports, both families already profiled"
@@ -1032,7 +1032,7 @@ found = "one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logg
 on = "2026-11-22"
 looked = [
   "GitHub exact-phrase code search for RRC3 and AltOS headers",
-  "GitHub repositories new since 2026-11-18",
+  "GitHub repositories new since November 18, 2026",
 ]
 found = "two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle"
 
@@ -1059,7 +1059,7 @@ found = "one flight on June 7, 2026 with two barometric loggers and two GPS rece
 on = "2026-11-22"
 looked = [
   "GitHub exact-phrase code search for RRC3 and AltOS headers",
-  "GitHub repositories new since 2026-11-18",
+  "GitHub repositories new since November 18, 2026",
 ]
 found = "two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle"
 
@@ -1085,10 +1085,10 @@ found = "a real pair whose clocks differ by about 4,028 s. On the October 31, 20
 [[row.searched]]
 on = "2026-11-22"
 looked = [
-  "GitHub repositories created since 2026-11-18",
-  "GitHub commits since 2026-11-19 with Blue Raven terms",
+  "GitHub repositories created since November 18, 2026",
+  "GitHub commits since November 19, 2026 with Blue Raven terms",
 ]
-found = "dreveron10/Data-compare (created 2026-11-21, no license stated: cite only): a Blue Raven on its own clock and a Featherweight tracker on GPS time, paired in the repository as one flight. Only the tracker has GPS time, and the files don't state that they are the same flight"
+found = "dreveron10/Data-compare (created November 21, 2026, no license stated: cite only): a Blue Raven on its own clock and a Featherweight tracker on GPS time, paired in the repository as one flight. Only the tracker has GPS time, and the files don't state that they are the same flight"
 
 [[row]]
 id = "G36"
@@ -1114,7 +1114,7 @@ found = "no log from each stage of one flight. No `.pf2` or telemetry file is na
 on = "2026-11-22"
 looked = [
   "GitHub code search pairing booster and sustainer with each logger's header",
-  "two-stage repositories new since 2026-11-18",
+  "two-stage repositories new since November 18, 2026",
 ]
 found = "nothing new: no staged flight with a log from each stage"
 
