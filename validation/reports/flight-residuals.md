@@ -36,15 +36,15 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 458.96 | 431.34 to 486.32 | measured | 464.01 | -5.06 |
+| apogee (m) | 458.96 | 431.34 to 486.27 | measured | 464.01 | -5.06 |
 | time to apogee (s) | 10.39 | none stated | measured | 10.41 | -0.02 |
-| top vertical speed (m/s) | 91.54 | 85.39 to 96.60 | derived | 85.72 | +5.82 |
+| top vertical speed (m/s) | 91.54 | 85.39 to 96.58 | derived | 85.72 | +5.82 |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | at least 1.86 | none stated | derived | at least 2.04 |  |
-| flight time (s) | 34.32 | 34.65 to 35.27 | measured | 35.22 | -0.90 |
+| flight time (s) | 34.32 | 34.66 to 35.28 | measured | 35.22 | -0.90 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | withheld |  |  | withheld |  |
-| descent under the main (m/s) | 19.16 | 18.20 to 20.11 | derived | 18.65 | +0.51 |
+| descent under the main (m/s) | 19.16 | 18.19 to 20.11 | derived | 18.65 | +0.51 |
 
 ## NDRT 2020, Notre Dame Rocketry Team (L1395)
 
@@ -68,13 +68,13 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 1319.68 | 1256.25 to 1382.51 | measured | 1457.46 | -137.78 |
+| apogee (m) | 1319.68 | 1256.25 to 1382.41 | measured | 1457.46 | -137.78 |
 | time to apogee (s) | 16.75 | none stated | measured | 17.47 | -0.72 |
-| top vertical speed (m/s) | 168.48 | 152.09 to 181.96 | derived | 180.06 | -11.58 |
+| top vertical speed (m/s) | 168.48 | 152.09 to 181.90 | derived | 180.06 | -11.58 |
 | top acceleration (m/s²) | 105.91 | 70.18 to 137.05 | measured | 77.41 | +28.50 |
 | burnout (s) | at least 4.60 | none stated | derived | 3.20 |  |
-| flight time (s) | 84.30 | 85.01 to 86.34 | measured | 94.35 | -10.05 |
-| descent under the drogue (m/s) | 22.41 | 21.35 to 23.50 | derived | 27.54 | -5.13 |
+| flight time (s) | 84.30 | 85.03 to 86.37 | measured | 94.35 | -10.05 |
+| descent under the drogue (m/s) | 22.41 | 21.34 to 23.50 | derived | 27.54 | -5.13 |
 | main's opening (m) | 39.87 | none stated | derived | 137.62 | -97.75 |
 | descent under the main (m/s) | 3.62 | 3.08 to 4.14 | derived | 4.69 | -1.07 |
 
@@ -102,15 +102,15 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3892.09 | 3711.78 to 4070.70 | measured | 3536.60 | +355.49 |
+| apogee (m) | 3892.09 | 3711.78 to 4070.42 | measured | 3536.60 | +355.49 |
 | time to apogee (s) | 28.69 | none stated | measured | 27.21 | +1.48 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | 99.40 | 90.12 to 107.48 | measured | 92.99 | +6.41 |
 | burnout (s) | 4.67 | none stated | measured | 4.63 | +0.04 |
-| flight time (s) | 223.01 | 223.43 to 224.22 | measured | 202.30 | +20.71 |
+| flight time (s) | 223.01 | 223.44 to 224.24 | measured | 202.30 | +20.71 |
 | descent under the drogue (m/s) | 26.50 | 25.30 to 27.73 | derived | 26.70 | -0.20 |
 | main's opening (m) | 411.51 | none stated | derived | 418.85 | -7.34 |
-| descent under the main (m/s) | 6.50 | 6.17 to 6.84 | derived | 7.15 | -0.64 |
+| descent under the main (m/s) | 6.50 | 6.16 to 6.84 | derived | 7.15 | -0.64 |
 
 ## Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)
 
@@ -162,7 +162,7 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2785.00 | 2641.57 to 2927.08 | measured | 2945.42 | -160.42 |
+| apogee (m) | 2785.00 | 2641.57 to 2926.85 | measured | 2945.42 | -160.42 |
 | time to apogee (s) | 23.50 | none stated | measured | 23.30 | +0.20 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
@@ -190,15 +190,15 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 2915.34 | 2779.95 to 3049.45 | measured | 2745.16 | +170.18 |
+| apogee (m) | 2915.34 | 2779.95 to 3049.24 | measured | 2745.16 | +170.18 |
 | time to apogee (s) | 23.69 | none stated | measured | 23.04 | +0.65 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 175.53 | 175.75 to 176.17 | measured | 173.72 | +1.81 |
-| descent under the drogue (m/s) | withheld |  |  | 23.73 |  |
-| main's opening (m) | withheld |  |  | 797.30 |  |
-| descent under the main (m/s) | 19.18 | 18.35 to 20.00 | derived | 11.60 | +7.59 |
+| flight time (s) | 175.53 | 175.76 to 176.18 | measured | 173.72 | +1.81 |
+| descent under the drogue (m/s) | 25.68 | 24.49 to 26.88 | derived | 23.73 | +1.95 |
+| main's opening (m) | 806.18 | none stated | derived | 797.30 | +8.88 |
+| descent under the main (m/s) | 11.53 | 10.98 to 12.06 | derived | 11.60 | -0.07 |
 
 ## Lince, EuRoC 2023 (M1101)
 
@@ -222,12 +222,12 @@ Readings, the simulation read as the log is:
 
 | reading | logged | its 90% interval | provenance | simulated | logged less simulated |
 |---|---:|---:|---|---:|---:|
-| apogee (m) | 3586.66 | 3420.58 to 3751.18 | measured | 3728.01 | -141.34 |
+| apogee (m) | 3586.66 | 3420.58 to 3750.92 | measured | 3728.01 | -141.34 |
 | time to apogee (s) | 25.91 | none stated | measured | 27.13 | -1.22 |
 | top vertical speed (m/s) | withheld |  |  | withheld |  |
 | top acceleration (m/s²) | withheld |  |  | withheld |  |
 | burnout (s) | withheld |  |  | withheld |  |
-| flight time (s) | 430.91 | 431.31 to 432.07 | measured | 551.86 | -120.95 |
+| flight time (s) | 430.91 | 431.32 to 432.09 | measured | 551.86 | -120.95 |
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | 3403.33 | none stated | derived | withheld |  |
 | descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.49 |

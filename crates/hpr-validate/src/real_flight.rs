@@ -1545,7 +1545,7 @@ pub fn fly_corrected(
 
 /// [`fly`]'s flight flown as `variant`, as [`fly_corrected`] flies a correction: its apogee as
 /// the log's altimeter would read it and whether its design has two guides at different
-/// stations. With [`Variant::GUIDED`] it is the report's flight itself, apogee for apogee.
+/// stations. With [`Variant::TIP_OFF`] it is the report's flight itself, apogee for apogee.
 ///
 /// # Errors
 ///

@@ -898,16 +898,16 @@ pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
 #[must_use]
 pub fn shares(asked: Asked, drift: bool) -> Shares {
     let (low, high) = match (asked, drift) {
-        (Asked::DragScale, false) => (-1.26, 1.43),
-        (Asked::ImpulseScale, false) => (-1.53, 1.47),
-        (Asked::WindEast, false) => (-0.374, 3.25),
-        (Asked::WindNorth, false) => (-1.71, 1.74),
-        (Asked::MassScale, false) => (-1.66, 1.67),
-        (Asked::DragScale, true) => (-1.29, 2.12),
+        (Asked::DragScale, false) => (-1.33, 1.48),
+        (Asked::ImpulseScale, false) => (-1.58, 1.48),
+        (Asked::WindEast, false) => (-0.412, 3.23),
+        (Asked::WindNorth, false) => (-1.8, 1.78),
+        (Asked::MassScale, false) => (-1.65, 1.67),
+        (Asked::DragScale, true) => (-1.28, 2.09),
         (Asked::ImpulseScale, true) => (-1.5, 1.84),
-        (Asked::WindEast, true) => (-1.4, 1.29),
-        (Asked::WindNorth, true) => (-1.5, 1.38),
-        (Asked::MassScale, true) => (-1.68, 1.7),
+        (Asked::WindEast, true) => (-1.38, 1.35),
+        (Asked::WindNorth, true) => (-1.5, 1.47),
+        (Asked::MassScale, true) => (-1.68, 1.72),
     };
     Shares { low, high }
 }

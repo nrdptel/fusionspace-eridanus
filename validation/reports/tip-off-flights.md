@@ -1,9 +1,9 @@
 # What the tip-off phase moves on the real flights
 
-Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot about its last guide once the guide ahead of it has left the rail ([the phase][flight]; compared with RocketPy's in [the comparison](tip-off-model.md), held in still air and not yet in a crosswind on HPR Sim's own normal force). It is off by default. This report flies every real flight HPR Sim compares with the phase and without it, before the phase becomes the default. It compares HPR Sim with itself: it does not check the phase against a measurement.
+Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-363][adr-363]; the result in [ADR-364][adr-364]); do not edit. HPR Sim's tip-off phase lets the rocket pivot about its last guide once the guide ahead of it has left the rail ([the phase][flight]; compared with RocketPy's in [the comparison](tip-off-model.md), held in still air and not yet in a crosswind on HPR Sim's own normal force). It is HPR Sim's default and can be turned off. This report flies every real flight HPR Sim compares with the phase and without it; it was first written while the phase was opt-in, to measure it before it became the default. It compares HPR Sim with itself: it does not check the phase against a measurement.
 
 - **What is flown:** each flight as its own report flies it, the phase the only change: the seven flights [the real-flight report](real-flights.md) compared as soon as they were flown (*compared first*), the five it compares after their predictions were merged (*predicted first*; [the predictions](public-predictions.md)), and the private collection's logged flights ([its report](fixture-flights.md#the-tip-off-phase-m114b14)), given in aggregate only.
-- **Guided** is the flight as HPR Sim flies it by default: held straight to its last guide, then freed with no turning rate.
+- **Guided** is the flight with the phase off: held straight to its last guide, then freed with no turning rate.
 - **Two guides:** a design with fewer than two guides (rail buttons or launch lugs) at different stations has no stretch on its last guide alone, so the phase moves nothing; such a flight is listed as not moved.
 - **Still air:** each flight with two guides flies again, guided and with the phase, in its report's air with the wind taken out. What the phase moves there is gravity's turn about the last guide alone. Taking out the wind changes the guided flight too, so the move in still air and the move in the wind are not two parts of one sum.
 - **The errors** are each set's own report's: for the public flights, HPR Sim's apogee as the log's altimeter would read it, less the log's apogee, over the log's apogee; for the collection, the apogee as a height climbed in the day's air, against the logged apogee read the same way.
@@ -26,7 +26,7 @@ Written by `cargo xtask tip-off-flights` ([M1.14b14][m1-14b14], decision [ADR-36
 | predicted first | 5 | 3 | 12.818% | 12.819% | +0.0014 | -11.161% | -11.167% |
 | the private collection | 60 | 23 | 12.095% | 12.098% | +0.0033 | +8.007% | +8.015% |
 
-With the phase the mean absolute apogee error is higher over predicted first by 0.0014 points, the private collection by 0.0033 points, and lower over compared first by 0.0909 points. [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asks before the phase becomes the default.
+With the phase the mean absolute apogee error is higher over predicted first by 0.0014 points, the private collection by 0.0033 points, and lower over compared first by 0.0909 points. [ADR-364][adr-364] measures the rises and their cause, as [ADR-363][adr-363] asked before the phase became the default.
 
 ## Where the change comes from
 

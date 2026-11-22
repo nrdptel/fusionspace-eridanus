@@ -1619,7 +1619,7 @@ pub type VariedApogee = (String, Result<Varied, RealFlightError>);
 
 /// Each predicted flight flown as `variant`, by its id, as [`corrected_apogees`] flies a
 /// correction: its predicted apogee as the log's altimeter would read it, m, and whether its
-/// design has two guides at different stations. With [`Variant::GUIDED`] each is the
+/// design has two guides at different stations. With [`Variant::TIP_OFF`] each is the
 /// prediction [`run`] makes.
 ///
 /// # Errors

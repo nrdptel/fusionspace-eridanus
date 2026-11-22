@@ -21,8 +21,11 @@
 //!   nothing deployed and writes [`RECORD`];
 //! - this flies hpr in the whole ERA5 profile, and again in OpenRocket's air (the standard
 //!   atmosphere anchored at the pad, [`Ussa76::anchored`], in the same wind), with nothing
-//!   deployed; turns each logged barometric apogee into the height climbed in the day's air
-//!   ([`Barometer::height_m`]); and writes only aggregates, [`REPORT_JSON`] and [`REPORT_MD`].
+//!   deployed. The flight held to the log flies as HPR Sim does by default, the tip-off phase
+//!   where the design has two guides; each flight held to OpenRocket flies with the phase off,
+//!   as OpenRocket has none (M1.14b15, ADR-363). It turns each logged barometric apogee into
+//!   the height climbed in the day's air ([`Barometer::height_m`]), and writes only aggregates,
+//!   [`REPORT_JSON`] and [`REPORT_MD`].
 //! - `validation/oracles/openrocket/histories.py` records OpenRocket's thrust, mass, center of
 //!   mass and drag coefficient along each of its flights ([`crate::histories`], M2.3c11), and
 //!   this flies HPR Sim on them, one swapped in after another, to split the gap between the two
@@ -783,7 +786,8 @@ fn hpr_apogee(
 
 /// The flight of `configuration` in `environment` as the comparison flies it: whatever HPR Sim's
 /// checks find in the design, as OpenRocket flies it, with the separations the climb flies and
-/// nothing deployed.
+/// nothing deployed. A design with two rail guides leaves the rail by the tip-off phase, HPR
+/// Sim's default (M1.14b15): this is the flight held to the log.
 fn simulation_of(
     design: &ork::Design,
     configuration: &ork::MotorConfiguration,
@@ -803,6 +807,17 @@ fn simulation_of(
     )
     .map_err(|error| error.to_string())?;
     as_flown(simulation, configuration)
+}
+
+/// [`simulation_of`] with the tip-off phase off: the flight held to OpenRocket, which has no
+/// such phase and holds every rocket straight until it is off the rail (M1.14b15, ADR-363).
+fn guided_of(
+    design: &ork::Design,
+    configuration: &ork::MotorConfiguration,
+    environment: Environment,
+    rail: Rail,
+) -> Result<Simulation, String> {
+    Ok(simulation_of(design, configuration, environment, rail)?.without_tip_off())
 }
 
 /// Flies `simulation` and gives the height its center of mass climbed: its height at apogee
@@ -899,6 +914,7 @@ struct Compared {
     /// Its manifest id, which only the guard on the calibration half reads.
     flight_id: String,
     hpr_percent: f64,
+    hpr_guided_percent: f64,
     openrocket_percent: f64,
     hpr_in_openrocket_air_percent: f64,
     hpr_over_openrocket_percent: f64,
@@ -912,10 +928,12 @@ fn percent(simulated: f64, reference: f64) -> f64 {
     100.0 * (simulated - reference) / reference
 }
 
-/// One flight's apogees, m: hpr's in the day's air and in OpenRocket's, OpenRocket's, and the
-/// logged one as the height climbed.
+/// One flight's apogees, m: hpr's in the day's air as it flies by default; hpr's held straight
+/// on the rail (the tip-off phase off, as OpenRocket flies) in the day's air and in OpenRocket's;
+/// OpenRocket's; and the logged one as the height climbed.
 struct Apogees {
     hpr_m: f64,
+    hpr_guided_m: f64,
     openrocket_m: f64,
     hpr_standard_m: f64,
     logged_m: f64,
@@ -927,6 +945,7 @@ impl Compared {
     fn of(flight_id: &str, apogees: Apogees, early: bool, below_tier_a: bool) -> Self {
         let Apogees {
             hpr_m,
+            hpr_guided_m,
             openrocket_m,
             hpr_standard_m,
             logged_m,
@@ -935,9 +954,10 @@ impl Compared {
             flight_id: flight_id.to_owned(),
             held_out: crate::collection_boost::held_out(flight_id),
             hpr_percent: percent(hpr_m, logged_m),
+            hpr_guided_percent: percent(hpr_guided_m, logged_m),
             openrocket_percent: percent(openrocket_m, logged_m),
             hpr_in_openrocket_air_percent: percent(hpr_standard_m, logged_m),
-            hpr_over_openrocket_percent: percent(hpr_m, openrocket_m),
+            hpr_over_openrocket_percent: percent(hpr_guided_m, openrocket_m),
             early,
             below_tier_a,
         }
@@ -1025,7 +1045,8 @@ fn fly_all(
         let (earth, day) = day(entry, &weather)?;
         let rail = rail(entry);
 
-        // hpr, in the whole profile and in OpenRocket's air.
+        // hpr, in the whole profile as it flies by default, and held straight on the rail in the
+        // whole profile and in OpenRocket's air for the comparisons with OpenRocket.
         let mut openrocket_air = None;
         let hpr = match &chosen.left_out {
             Some(out) => Err(named_cause(
@@ -1043,8 +1064,11 @@ fn fly_all(
                         .map_err(|error| format!("{at}: {error}"))?;
                 let standard = Environment::new(earth, anchored, weather.wind.clone());
                 openrocket_air = Some(standard.clone());
+                let guided = |environment: Environment| {
+                    climbed_m(&guided_of(&design, chosen, environment, rail)?)
+                };
                 hpr_apogee(&design, chosen, day.clone(), rail)
-                    .and_then(|day| Ok((day, hpr_apogee(&design, chosen, standard, rail)?)))
+                    .and_then(|hpr_m| Ok((hpr_m, guided(day.clone())?, guided(standard)?)))
                     .map_err(|error| {
                         let cause = named_cause(&error, FLIGHT_FAILED);
                         if cause == FLIGHT_FAILED {
@@ -1078,7 +1102,8 @@ fn fly_all(
         if let Err(cause) = &openrocket {
             *causes.entry((OPENROCKET, cause.clone())).or_default() += 1;
         }
-        let (Ok((hpr_m, hpr_standard_m)), Ok(openrocket_m)) = (hpr, openrocket) else {
+        let (Ok((hpr_m, hpr_guided_m, hpr_standard_m)), Ok(openrocket_m)) = (hpr, openrocket)
+        else {
             kept.insert(at.clone(), Err(no_forward_reason(None, hpr_flew)));
             continue;
         };
@@ -1100,13 +1125,13 @@ fn fly_all(
                 crate::gap_split::Air::Day => day.clone(),
                 crate::gap_split::Air::OpenRocket => openrocket_air.clone(),
             };
-            simulation_of(&design, chosen, environment, rail)
+            guided_of(&design, chosen, environment, rail)
         };
         let split = crate::gap_split::split(
             &build,
             &climbed_m,
             recorded,
-            (hpr_m, openrocket_m),
+            (hpr_guided_m, openrocket_m),
             crate::histories::own::OWN_HISTORY_BOUND,
         )
         .map_err(|error| format!("{at}: {error}"))?;
@@ -1211,7 +1236,7 @@ fn fly_all(
             });
             bands.len() - 1
         });
-        splits.push((percent(hpr_m, openrocket_m), split));
+        splits.push((percent(hpr_guided_m, openrocket_m), split));
         if let Some(class) = &entry.excluded_class {
             *excluded.entry(class.clone()).or_default() += 1;
             kept.insert(at.clone(), Err(LEFT_OUT));
@@ -1250,11 +1275,12 @@ fn fly_all(
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
         let below_tier_a = entry.catalog_tier != CatalogTier::A;
         counts.below_tier_a += usize::from(below_tier_a);
-        // The same flight with the tip-off phase (M1.14b14): written in aggregate only.
-        let tipped = simulation_of(&design, chosen, day.clone(), rail)?.with_tip_off();
-        let two_guides = tipped.guides().next_guide_station_m.is_some();
-        let tip_off_m =
-            climbed_m(&tipped).map_err(|error| format!("{at}: with the tip-off phase: {error}"))?;
+        // What the tip-off phase moves (M1.14b14), written in aggregate only: the flight above,
+        // which flies the phase where the design has two guides, beside the one held straight.
+        let two_guides = simulation_of(&design, chosen, day.clone(), rail)?
+            .guides()
+            .next_guide_station_m
+            .is_some();
         // And both in still air, the day's air with its wind taken out: what gravity's turn about
         // the last guide moves alone. A design with fewer than two guides doesn't move in it.
         let still = if two_guides {
@@ -1281,8 +1307,8 @@ fn fly_all(
                 &fs::read(root.join(&entry.design)).map_err(|error| format!("{at}: {error}"))?,
             ),
             two_guides,
-            guided_m: hpr_m,
-            tip_off_m,
+            guided_m: hpr_guided_m,
+            tip_off_m: hpr_m,
             still,
             // 90° to radians may land an ulp off π/2.
             vertical_rail: (rail.elevation_rad - std::f64::consts::FRAC_PI_2).abs() < 1e-12,
@@ -1292,6 +1318,7 @@ fn fly_all(
             at,
             Apogees {
                 hpr_m,
+                hpr_guided_m,
                 openrocket_m,
                 hpr_standard_m,
                 logged_m,
@@ -1386,6 +1413,9 @@ pub(crate) const CALIBRATION_HALF: &str = "the calibration half";
 /// M2.7's held-out half.
 pub(crate) const HELD_OUT_HALF: &str = "the held-out half";
 
+/// The row of hpr's flights with the tip-off phase off, as each comparison with OpenRocket flies.
+const HELD_STRAIGHT: &str = "hpr held straight on the rail";
+
 /// The errors over each set: every flight compared, those without an early deployment, those
 /// the catalog keeps in tier A, then M2.7's calibration and held-out halves. The scoreboard's
 /// ratchet holds its collection rows by the calibration half's numbers, a threshold across
@@ -1396,6 +1426,7 @@ fn error_sets(compared: &[Compared]) -> Result<Vec<ErrorSet>, String> {
         name: name.to_owned(),
         flights: rows.len(),
         hpr: Stats::of(rows.iter().map(|r| r.hpr_percent)),
+        hpr_guided: Stats::of(rows.iter().map(|r| r.hpr_guided_percent)),
         openrocket: Stats::of(rows.iter().map(|r| r.openrocket_percent)),
         hpr_in_openrocket_air: Stats::of(rows.iter().map(|r| r.hpr_in_openrocket_air_percent)),
         hpr_over_openrocket: Stats::of(rows.iter().map(|r| r.hpr_over_openrocket_percent)),
@@ -1539,12 +1570,17 @@ impl Spread {
 pub(crate) struct ErrorSet {
     pub name: String,
     pub flights: usize,
+    /// hpr as it flies by default: a design with two rail guides leaves the rail by the tip-off
+    /// phase (M1.14b15).
     pub hpr: Stats,
+    /// hpr held straight until it is off the rail, the tip-off phase off: what the comparisons
+    /// with OpenRocket fly, since OpenRocket has no such phase.
+    pub hpr_guided: Stats,
     pub openrocket: Stats,
-    /// hpr in OpenRocket's air: the standard atmosphere through the pad's temperature and
-    /// pressure, in the same wind; what of the gap is the atmosphere.
+    /// hpr, held straight on the rail, in OpenRocket's air: the standard atmosphere through the
+    /// pad's temperature and pressure, in the same wind; what of the gap is the atmosphere.
     pub hpr_in_openrocket_air: Stats,
-    /// hpr's apogee against OpenRocket's, in their own airs.
+    /// hpr's apogee, held straight on the rail, against OpenRocket's, in their own airs.
     pub hpr_over_openrocket: Stats,
 }
 
@@ -1722,6 +1758,7 @@ impl Report {
             }
             for (what, stats) in [
                 ("hpr", &set.hpr),
+                (HELD_STRAIGHT, &set.hpr_guided),
                 ("OpenRocket", &set.openrocket),
                 ("hpr in OpenRocket's air", &set.hpr_in_openrocket_air),
                 ("hpr against OpenRocket", &set.hpr_over_openrocket),
@@ -1752,7 +1789,7 @@ impl Report {
             .check_consistent(
                 self.split.split,
                 c.compared,
-                (three(&every.hpr), three(&every.openrocket)),
+                (three(&every.hpr_guided), three(&every.openrocket)),
             )
             .or_else(fail)?;
         // The split's third part is the drag (`gap_split::PARTS`), checked there to be four.
@@ -1769,15 +1806,21 @@ impl Report {
                 self.tip_off.flights, c.compared
             ));
         }
-        // Flown guided, the aggregate's flights are every flight compared, by the same error.
-        if let Some(guided) = self.tip_off.guided
-            && (round(guided.mean_absolute_percent, 2) != every.hpr.mean_absolute_percent
-                || round(guided.mean_percent, 2) != every.hpr.mean_percent)
-        {
-            return fail(format!(
-                "the tip-off phase's guided errors {:.2}% and {:+.2}% are not every flight's",
-                guided.mean_absolute_percent, guided.mean_percent
-            ));
+        // The aggregate's flights are every flight compared, by the same error: flown guided they
+        // are the row held straight, and with the phase the row hpr flies by default.
+        for (what, errors, row) in [
+            ("guided", self.tip_off.guided, &every.hpr_guided),
+            ("default", self.tip_off.tip_off, &every.hpr),
+        ] {
+            if let Some(errors) = errors
+                && (round(errors.mean_absolute_percent, 2) != row.mean_absolute_percent
+                    || round(errors.mean_percent, 2) != row.mean_percent)
+            {
+                return fail(format!(
+                    "the tip-off phase's {what} errors {:.2}% and {:+.2}% are not every flight's",
+                    errors.mean_absolute_percent, errors.mean_percent
+                ));
+            }
         }
         if page != self.to_markdown() {
             return Err(format!(
@@ -1895,7 +1938,13 @@ impl Report {
              flies the whole ERA5 profile; OpenRocket the standard atmosphere through the pad's \
              temperature and pressure, in the same wind every {WIND_STEP_M} m; \"hpr in \
              OpenRocket's air\" is hpr there too; \"hpr against OpenRocket\" is hpr's apogee less \
-             OpenRocket's, over OpenRocket's. Nothing deploys in either. The mean absolute \
+             OpenRocket's, over OpenRocket's. Nothing deploys in either. \"hpr\" flies as HPR Sim \
+             does by default: a design with two rail guides at different stations leaves the rail \
+             by the tip-off phase. OpenRocket has no such phase and holds every rocket straight \
+             until it is off the rail, so the rows that compare with it fly hpr that way, the \
+             phase off: \"{HELD_STRAIGHT}\", \"hpr in OpenRocket's air\" and \"hpr against \
+             OpenRocket\", and the gap's split, the nose's line and the drag by Mach band and by \
+             term below. The mean absolute \
              error averages the errors without their signs; \"within 5%\" and \"within 10%\" \
              count the errors strictly smaller either way. The histogram's bins are bounded at \
              {}%, each closed below.",
@@ -1935,6 +1984,7 @@ impl Report {
             );
             for (what, s) in [
                 ("hpr", &set.hpr),
+                (HELD_STRAIGHT, &set.hpr_guided),
                 ("OpenRocket", &set.openrocket),
                 ("hpr in OpenRocket's air", &set.hpr_in_openrocket_air),
                 ("hpr against OpenRocket", &set.hpr_over_openrocket),
@@ -2054,11 +2104,13 @@ mod tests {
     #[test]
     fn a_low_simulated_apogee_is_a_negative_miss() {
         // Each simulator's own apogee against the log, in the row the report is built from: hpr
-        // low, OpenRocket high, hpr in OpenRocket's air low.
+        // low, OpenRocket high, hpr in OpenRocket's air low. The flight held straight on the rail
+        // has its own apogee, so that the column held to OpenRocket shows which flight it reads.
         let row = Compared::of(
             "example-flight-1",
             Apogees {
                 hpr_m: 90.0,
+                hpr_guided_m: 88.0,
                 openrocket_m: 110.0,
                 hpr_standard_m: 95.0,
                 logged_m: 100.0,
@@ -2067,9 +2119,12 @@ mod tests {
             false,
         );
         assert_eq!(row.hpr_percent, -10.0);
+        assert_eq!(row.hpr_guided_percent, -12.0);
         assert_eq!(row.openrocket_percent, 10.0);
         assert_eq!(row.hpr_in_openrocket_air_percent, -5.0);
-        assert!(row.hpr_over_openrocket_percent < 0.0);
+        // Against OpenRocket it is the flight held straight, 88 m over 110 m, not the default
+        // flight's 90 m: OpenRocket has no tip-off phase (M1.14b15).
+        assert_eq!(row.hpr_over_openrocket_percent, -20.0);
         let zero = BINS_PERCENT.iter().position(|&bound| bound == 0.0).unwrap();
         let low = Stats::of([percent(99.0, 100.0)].into_iter());
         assert_eq!(
@@ -2159,6 +2214,7 @@ mod tests {
                 held_out: crate::collection_boost::held_out(&flight_id),
                 flight_id,
                 hpr_percent: percent,
+                hpr_guided_percent: percent,
                 openrocket_percent: percent,
                 hpr_in_openrocket_air_percent: percent,
                 hpr_over_openrocket_percent: 0.0,

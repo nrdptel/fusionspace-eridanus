@@ -82,7 +82,7 @@
             "bound": 43.35967920758214,
             "interval": {
               "low": 431.33688434477017,
-              "high": 486.3169575799843
+              "high": 486.27359790077674
             },
             "is_floor": false,
             "source": "barometer",
@@ -129,7 +129,7 @@
             "bound": 23.2093208979277,
             "interval": {
               "low": 85.39319921269515,
-              "high": 96.60330120639424
+              "high": 96.5800918854963
             },
             "is_floor": false,
             "source": "barometer",
@@ -187,8 +187,8 @@
             "value": 34.32,
             "bound": 2.5021718452274744,
             "interval": {
-              "low": 34.65028668357003,
-              "high": 35.26832312934121
+              "low": 34.65779319910571,
+              "high": 35.28083398856735
             },
             "is_floor": false,
             "source": "barometer",
@@ -236,7 +236,7 @@
             "value": 19.160919540229884,
             "bound": 1.645008117094732,
             "interval": {
-              "low": 18.19694478361237,
+              "low": 18.19365476737818,
               "high": 20.10515419944226
             },
             "is_floor": false,
@@ -338,7 +338,7 @@
             "bound": 99.57568518569637,
             "interval": {
               "low": 1256.2480047767115,
-              "high": 1382.5099735921744
+              "high": 1382.410397906989
             },
             "is_floor": false,
             "source": "barometer",
@@ -385,7 +385,7 @@
             "bound": 61.86084016262239,
             "interval": {
               "low": 152.08535444781415,
-              "high": 181.96414024636076
+              "high": 181.90227940619815
             },
             "is_floor": false,
             "source": "barometer",
@@ -456,8 +456,8 @@
             "value": 84.3,
             "bound": 5.3897615205947655,
             "interval": {
-              "low": 85.0114485207185,
-              "high": 86.34271961630542
+              "low": 85.02761780528029,
+              "high": 86.3696684239084
             },
             "is_floor": false,
             "source": "barometer",
@@ -481,7 +481,7 @@
             "value": 22.413454654991245,
             "bound": 1.7410914592814029,
             "interval": {
-              "low": 21.347906681911027,
+              "low": 21.342683407533183,
               "high": 23.49641354266428
             },
             "is_floor": false,
@@ -528,7 +528,7 @@
             "value": 3.618287800191386,
             "bound": 0.9132949271983841,
             "interval": {
-              "low": 3.083096972853133,
+              "low": 3.0812703829987362,
               "high": 4.142519088403258
             },
             "is_floor": false,
@@ -650,7 +650,7 @@
             "bound": 283.0598726742399,
             "interval": {
               "low": 3711.7808611065093,
-              "high": 4070.7007796574453
+              "high": 4070.417719784771
             },
             "is_floor": false,
             "source": "barometer",
@@ -755,8 +755,8 @@
             "value": 223.01000000000002,
             "bound": 3.1981775758366533,
             "interval": {
-              "low": 223.43215944001045,
-              "high": 224.2221093012421
+              "low": 223.44175397273796,
+              "high": 224.2381001891213
             },
             "is_floor": false,
             "source": "barometer",
@@ -780,7 +780,7 @@
             "value": 26.504568991775816,
             "bound": 1.9635617471146007,
             "interval": {
-              "low": 25.30286920254168,
+              "low": 25.296978517300335,
               "high": 27.7259043984811
             },
             "is_floor": false,
@@ -827,7 +827,7 @@
             "value": 6.504761904761905,
             "bound": 0.5795069213522268,
             "interval": {
-              "low": 6.1651708488495,
+              "low": 6.164011835006796,
               "high": 6.8373988776180825
             },
             "is_floor": false,
@@ -1093,7 +1093,7 @@
             "bound": 225.1642656225095,
             "interval": {
               "low": 2641.5703627984612,
-              "high": 2927.0786516078033
+              "high": 2926.853487342181
             },
             "is_floor": false,
             "source": "barometer",
@@ -1252,7 +1252,7 @@
             "bound": 212.54123686641,
             "interval": {
               "low": 2779.949557616585,
-              "high": 3049.451845963193
+              "high": 3049.2393047263267
             },
             "is_floor": false,
             "source": "barometer",
@@ -1334,8 +1334,8 @@
             "value": 175.53,
             "bound": 1.6920158598545747,
             "interval": {
-              "low": 175.7533460935008,
-              "high": 176.17127401088487
+              "low": 175.75842214108036,
+              "high": 176.17973409018416
             },
             "is_floor": false,
             "source": "barometer",
@@ -1355,8 +1355,16 @@
         {
           "what": "drogue_rate",
           "logged": {
-            "status": "withheld",
-            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 15.0 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 9.4 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+            "status": "read",
+            "value": 25.680753419217247,
+            "bound": 1.9307289884216268,
+            "interval": {
+              "low": 24.493355091337946,
+              "high": 26.8816668500155
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
           },
           "simulated": {
             "status": "read",
@@ -1367,13 +1375,18 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": null
+          "logged_minus_simulated": 1.9538096788736503
         },
         {
           "what": "main_opening",
           "logged": {
-            "status": "withheld",
-            "detail": "the descent shows one canopy"
+            "status": "read",
+            "value": 806.1780471801758,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
           },
           "simulated": {
             "status": "read",
@@ -1384,17 +1397,17 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": null
+          "logged_minus_simulated": 8.881131002823054
         },
         {
           "what": "main_rate",
           "logged": {
             "status": "read",
-            "value": 19.183564110726778,
-            "bound": 1.4309056884377083,
+            "value": 11.528792085101726,
+            "bound": 0.9281081758108498,
             "interval": {
-              "low": 18.345053377302282,
-              "high": 20.004903975890024
+              "low": 10.983064477724946,
+              "high": 12.061526178017154
             },
             "is_floor": false,
             "source": "barometer",
@@ -1409,7 +1422,7 @@
             "source": null,
             "provenance": null
           },
-          "logged_minus_simulated": 7.5883617414814974
+          "logged_minus_simulated": -0.06641028414355432
         }
       ]
     },
@@ -1495,7 +1508,7 @@
             "bound": 260.73148851426055,
             "interval": {
               "low": 3420.5773184887794,
-              "high": 3751.1848459248617
+              "high": 3750.9241144363473
             },
             "is_floor": false,
             "source": "barometer",
@@ -1577,8 +1590,8 @@
             "value": 430.90999999999997,
             "bound": 3.062353373733897,
             "interval": {
-              "low": 431.3142306453328,
-              "high": 432.0706319286451
+              "low": 431.32341770545406,
+              "high": 432.0859436955138
             },
             "is_floor": false,
             "source": "barometer",
@@ -1631,7 +1644,7 @@
             "value": 8.586532309304593,
             "bound": 0.6461095456490014,
             "interval": {
-              "low": 8.207912115554278,
+              "low": 8.20661989646298,
               "high": 8.95739918850712
             },
             "is_floor": false,
