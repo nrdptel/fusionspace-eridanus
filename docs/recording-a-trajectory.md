@@ -94,7 +94,7 @@ What the numbers show:
 - `cg_north_m` is not exactly zero, though there is no wind from the south. The Earth's rotation
   nudges a moving rocket sideways, to the right of its motion in the northern hemisphere
   ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that's
-  north. In every row here the drift is under 5 cm (2 in), which the table rounds to 0.0 m.
+  north. In every row here the drift is under 5 cm (2 in), which the table rounds to zero.
 - `cg_up_m` and `height_above_ground_m` agree here, and don't in general. The launch frame is a
   flat plane, and the Earth curves away below it. So `cg_up_m` reads low far from the pad.
 
