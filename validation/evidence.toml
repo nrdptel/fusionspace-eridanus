@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-11-20"
+as_of = "2026-11-22"
 
 [[row]]
 id = "G1"
@@ -54,6 +54,15 @@ looked = [
 ]
 found = "a source to cite only. Thread 135349 (2016, no terms stated, cached under refs/samples-search/G1) holds four GPX files of an Eggfinder's track of two flights. None has `geoidheight`. Beside them is the receiver's raw NMEA, whose GGA sentences state the geoid separation. GitHub's GPX files with `geoidheight` are everyday phone tracks (#645)"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub repositories created or pushed since 2026-11-18, for rocketry, altimeter and tracker terms",
+  "Kaggle, Mendeley Data, Harvard Dataverse and Dryad, for rocket flight data",
+  "a web search for tracks from phones flown in payloads and their GPX exports",
+]
+found = "nothing new: no GPX of a rocket flight. The one new tracker file is a Featherweight tracker CSV (#1088), not GPX"
+
 [[row]]
 id = "G2"
 surface = "Flight-log readers"
@@ -74,6 +83,14 @@ looked = [
 ]
 found = "nothing usable: the one public decimal-comma export found is a SpaceTeam Aachen RRC3 export (2021) in the GPL-3.0 repositories M0WW0M/European-FlightData and catsystems/euroc21-team-data. Its European-FlightData copy is byte for byte a file the private collection already holds. None of 126 private workbooks (copies included) and 11 public course workbooks uses the 1904 date system. No public `.rtx` was found; the Minnesota `.FIPa` (no license) records a June flight"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search for semicolon-split AltOS, RRC3 and Blue Raven headers",
+  "Kaggle, Mendeley Data, Harvard Dataverse and Dryad, for altimeter exports",
+]
+found = "nothing new: the only semicolon-split RRC3 exports are the Space Team Aachen files already known. No 1904 workbook, `.FIPa` below freezing or RTx fix at (0, 0)"
+
 [[row]]
 id = "G3"
 surface = "Flight-log readers"
@@ -93,6 +110,15 @@ looked = [
   "PSAS's launch repositories",
 ]
 found = "a partial answer: real packets of 3 of the 11 undecoded types under MIT, but no flight and no export beside them. A TeleMega's pad recording is in lunng/HART_CS_2020 (MIT): types 0x08 and 0x09, 538 of each. UCC-Rocket-and-Space-Exploration/CosmoSoft (MIT) holds a TeleMini v3's pad packets (type 0x11), beside an AltosUI CSV of a later flight that a spreadsheet re-saved. Flights with types 0x08, 0x09 and 0x14 exist with no license (Maeswoon/UNHSEDS, with AltosUI's telemetry CSV beside it; AIAANortheastern/KarmanSims; Mines-Rocketry-Club/JEFF-modular-rocket-system). No export found has a GPS ground speed, climb rate or course column"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search for `.telem` files and the AltOS header",
+  "the MIT Rocket Team's public wiki, its flight pages' attachments",
+  "rocketry repositories new since 2026-11-18",
+]
+found = "two recorded `.telem` files of a 2019 TeleMega flight on the MIT Rocket Team's wiki (no license stated: cite only). Nearly all their packets are of the five types the samples already hold; the few others look like damaged frames. Nothing of the eleven missing types"
 
 [[row]]
 id = "G4"
@@ -121,6 +147,15 @@ looked = [
 ]
 found = "a lead for the TeleMetrum v1's converter: ISSUIUC/flight-data holds a TeleMetrum v1.2 `.eeprom` in log format 1 with AltosUI's export beside it (no license; cache under refs/ only). No TeleMega v4 file whose IMU ran. Format 5, 9 and 19 samples were found earlier and are listed in the CATS and Juno sample note (docs/research/sample-logs-cats-juno.md); the October 17 search's none was too narrow"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub exact-phrase code search for the `.eeprom` header's log-format field",
+  "GitHub commits since 2026-11-19 with TeleMega and TeleMetrum terms",
+  "the MIT Rocket Team's public wiki, its flight pages' attachments",
+]
+found = "four `.eeprom` files of 2017 and 2018 on the MIT Rocket Team's wiki (no license stated: cite only): three TeleMetrum v2.0 in format 7 and one TeleMega v3.0 in format 15. None is a TeleMetrum v1, a TeleMega v4 or format 5, 9 or 19"
+
 [[row]]
 id = "G5"
 surface = "Flight-log readers"
@@ -140,6 +175,14 @@ looked = [
   "web searches for DataAnalyzer documents",
 ]
 found = "a partial answer: the manual says the recording rate is set per flight profile in DataAnalyzer (p. 7). The memory fills in 82 s to 26 min, depending on the rate (p. 9). The sensors are read at 200 Hz whatever rate is recorded (p. 16), so files at other rates can exist. PSAS's 2009 and June 27, 2010 ARTS2 tables (no license) each hold 16,384 or 16,385 records 0.020 s apart. At 200 a second, 16,384 records last 82 s. By inference, the memory holds 16,384 records, and the rates run from about 10 to 200 a second. PSAS's checklist sets 50 Hz in both profiles. No file at another rate, and no document of where the `.odf` keeps the rate, was found. Each sample flight also carried a TeleMetrum, whose liftoff and deployment times could time the ARTS2's records"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for the sample rate of an ARTS2 `.odf` and the DataAnalyzer program",
+  "GitHub code search for `.odf` files and G-Wiz terms",
+]
+found = "nothing new: no document giving where the `.odf` keeps its rate, and no second ARTS2 file"
 
 [[row]]
 id = "G6"
@@ -161,6 +204,14 @@ looked = [
 ]
 found = "7 RRC3 `.rff` files in RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44), saved by mDACS 1.61 from 3 launches in 2023 and 2024. 6 have mDACS's CSV export beside them. 4 of the exports have units typed into their headers by hand, as the team's procedure says. The team's notes record avionics-bay failures in flight on two vehicles. The private collection holds 5 of the exports and none of the `.rff`; all are cached under refs/samples-search/G6/rit-flight-data. AIM `.xtra`: the course page lists 15 `.xtra` files of 2017 beside AIM CSV exports. Every `.xtra` link returned HTTP 404 and the mirror's one link is an empty file; only the CSVs download. AltiMAX: the only public `.ALS` found is the sample already held. A second AltiMAX flight in the same GPL-3.0 repository has its Excel export only"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub exact-phrase code search for the RRC3 export header",
+  "GitHub code search for `.rff`, `.ALS` and `.xtra` files",
+]
+found = "nothing new: the new RRC3 files (#683) are CSV exports with no `.rff` beside them, and no `.ALS` or `.xtra` turned up"
+
 [[row]]
 id = "G7"
 surface = "Flight-log readers"
@@ -177,6 +228,14 @@ looked = [
   "GitHub code search for Featherweight's summary header (`Rocket Name`, `Launch time UTC`) in CSV files",
 ]
 found = "16 summaries in 10 repositories, 3 of them under MIT. RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44) holds two Blue Raven flights, each with its summary, low-rate and high-rate CSVs. It also holds a Featherweight GPS tracker's summary beside its track; RMIT-Hive-Rocketry/GCS (MIT) a Blue Raven summary with both rate CSVs (June 20, 2026). Neither is in the private collection. Lmx154/RL-RocketPy-Notebook (MIT) has a summary and low-rate pair the private collection already holds. The RIT files are cached under refs/samples-search/G7/rit-flight-data"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search for Featherweight summary fields in metric units",
+  "GitHub repositories new since 2026-11-18",
+]
+found = "nothing new: the one new summary pair (#1088) is in feet, like all the others"
 
 [[row]]
 id = "G8"
@@ -195,6 +254,14 @@ looked = [
   "the Harvey Mudd College course page's AIM KML files",
 ]
 found = "two MIT flights each with a tracker file (RIT's a summary CSV, Lmx154's a track), a KML and a Blue Raven barometric log. Their KMLs are `altitudeMode` absolute. One is RIT-Launch-Initiative/flight-data's second airbrake testbed flight (the app's and the desktop's KML). Its two files disagree on the date (April 7, 2026 by the Blue Raven's clock, May 16, 2026 by the tracker's UTC): their pairing has to be shown first. The other is Lmx154/RL-RocketPy-Notebook's Lonestar 2026 flight, whose CSVs the private collection already holds and whose KML is new. Peaks read 3.6% and 3.8% higher on the tracker than on the Blue Raven. The course page's KML links return HTTP 404. Both are cached under refs/samples-search/G8"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search for the Featherweight tracker's header",
+  "a web search for phone-app tracks of rocket flights (phyphox, Sensor Logger, phones in payloads)",
+]
+found = "one more Featherweight tracker CSV beside a Blue Raven's barometric log of what the repository pairs as the same flight (#1088; no license stated: cite only). That kind of pair is already known; there is still no phone-app track or KML"
 
 [[row]]
 id = "G9"
@@ -222,6 +289,15 @@ looked = [
 ]
 found = "nothing usable for the listed formats. The CATS hits are the GPL-3.0 catsystems/cats-logs and euroc21 files already known. The only new logger files are two Eggtimer Quantum CSVs (lower-case header, GPL-3.0, Skyward's 2022 flight), a device the list doesn't name"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search for CATS and the other listed formats",
+  "Kaggle and Mendeley Data, for flight-computer logs",
+  "Codeberg's search, which refused the requests",
+]
+found = "nothing new for CATS or the other listed formats"
+
 [[row]]
 id = "G10"
 surface = "The flight analyzer"
@@ -243,6 +319,14 @@ looked = [
 ]
 found = "these, under MIT: RIT-Launch-Initiative/flight-data's 6 RRC3 exports beside their `.rff` files, whose summary statistics the team's note describes. RIT's two Blue Raven flights' summaries state the peak, the first burnout's time and each channel's firing time. RMIT-Hive-Rocketry/GCS has a Blue Raven flight with its summary. None is in the private collection but 5 of the RRC3 exports. The other repositories have no license, except Lmx154/RL-RocketPy-Notebook (MIT), whose files the private collection already holds"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub commits since 2026-11-19 with flight-data and altimeter terms",
+  "GitHub exact-phrase code search for RRC3, AltOS and Featherweight headers",
+]
+found = "two sets with no license (cite only) where a logger's own figures sit beside its log: Blue Raven flights with their summaries in dreveron10/Data-compare, and RRC3 exports beside a TeleMetrum export of the same flight in osu-bsli/Airbrake-Control-Verification"
+
 [[row]]
 id = "G11"
 surface = "The flight analyzer"
@@ -259,6 +343,14 @@ looked = [
   "team repositories whose own flight computer's files come with a stated layout and another record of the same flight: RIT-Launch-Initiative/flight-data, Lmx154/RL-RocketPy-Notebook, curtscraw/osu_rocketry_data, ISSUIUC/flight-data",
 ]
 found = "RIT-Launch-Initiative/flight-data (MIT, commit ffa9f44): the team's airbrake controller writes `data.csv` with units in each column name (`accel_x__m_s2`), a `params.csv` and a raw capture. The airbrake-test README states the files' columns, units and meanings. On the two testbed flights a Blue Raven flew beside it. None of these files is in the private collection; they're cached under refs/samples-search/G11/rit-flight-data. Lmx154's flight computer log with unit-named columns and alignment notes is already held privately; curtscraw/osu_rocketry_data states its units in `data_units.txt` but has no license"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub repositories new since 2026-11-18, for team flight computers",
+  "Mendeley Data's onboard-computer dataset",
+]
+found = "nothing new: the new flight computers carry no flight logs, and the Mendeley dataset holds simulated test data only (CC BY-NC)"
 
 [[row]]
 id = "G12"
@@ -282,6 +374,15 @@ looked = [
   "the team repositories found for the rows above, for wind records beside their logs",
 ]
 found = "nothing usable: the dispersion work found is simulation or wind-weighting studies. No team repository found holds a measured wind profile beside its flight logs"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for hobby flights with an anemometer, radiosonde or pibal wind beside the log",
+  "Harvard Dataverse and Mendeley Data, for rocket flight data",
+  "the arXiv index, for sounding rockets with measured wind",
+]
+found = "nothing new: no hobby-class flight with a wind measured beside it"
 
 [[row]]
 id = "G13"
@@ -307,6 +408,14 @@ looked = [
   "Minnesota Space Grant's Midwest Rocketry Competition reports, whose rockets drop a booster after burnout",
 ]
 found = "a partial answer, to cite only: ISSUIUC/flight-data (no license) holds booster logs of two two-stage flights with the sustainer's beside them. On November 18, 2023 they're two StratoLoggers; on March 23, 2024, a TeleMega v6 `.eeprom` with a CSV export beside it. There are also files named for a booster alone (October 1, 2023). Every booster file checked is already in the private collection, and no design file was found. The competition's reports describe booster descents but link no log"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub repositories new since 2026-11-18, for two-stage terms",
+  "a web search for 2026 competition technical reports on staged flights",
+]
+found = "nothing new: the one new two-stage repository, an altimeter design study, says it had no altimeter logs and flies simulations only"
 
 [[row]]
 id = "G14"
@@ -338,6 +447,15 @@ looked = [
 ]
 found = "one free flight whose base drag curves, power on and power off, run below Mach 0.8: NACA RM SL55F15's Hermes A-3A drag model A(1), whose base drag under power is more than twice its power-off value. HPR Sim's rule, its motor case wider than its base, leaves none and reads low; given the nozzle exit it reads high, as the whole base does. It is now a validation reference (validation/fixtures/aero/base-drag-under-power.json). Its jet is overexpanded and carries jet vanes, and its base is behind a long boattail, so it is not a hobby rocket's. No measurement on a hobby rocket under power was found"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "archive.org's mirror of DTIC reports, by plume, jet, base-pressure and boattail titles",
+  "a web search of DTIC and NTRS for base pressure behind a burning motor",
+  "the CORE index, for boattails with a rocket jet",
+]
+found = "Rubin, MICOM RD-TR-71-17 (1971; DTIC AD0730669; US Government work, approved for public release): tunnel base pressures from Mach 0.5 to 1.2 behind boattails and flares against thrust coefficient, with cold-air jets. The jets are cold, so it meets the want only in part"
+
 [[row]]
 id = "G15"
 surface = "Flight models"
@@ -354,6 +472,15 @@ looked = [
   "web searches for flight tests of rockets with a measured lateral center-of-gravity offset or mass asymmetry and their drift under thrust",
 ]
 found = "nothing usable: only simulation and dispersion analyses, none a logged flight with a known offset"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for model rockets flown with a lateral center-of-gravity offset or thrust misalignment",
+  "the arXiv index, for rockets with thrust misalignment or center-of-mass offset",
+  "Indonesia's BRIN repository, for center-of-gravity offset studies",
+]
+found = "nothing new: the hits are 1960s sounding-rocket roll studies and a calculation-only paper, with no logged calm flight"
 
 [[row]]
 id = "G16"
@@ -372,6 +499,14 @@ looked = [
   "openrocket/openrocket issues found by searching for angle, rotation, rail button and mirror (#940, #1548, #1640)",
 ]
 found = "a partial answer: #940 puts 0 degrees at the top of the rocket and #1548 discusses pods' angles with rear-view pictures. No source states which way the angle turns. The OpenRocket 24.12 jar, run on a probe with one part turned by a known angle, remains the way to settle it. This search didn't run it"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "OpenRocket's GitHub issues, pull requests and discussions, for rotation and radial-direction terms",
+  "OpenRocket's user guide and its `.ork` file specification on Read the Docs",
+]
+found = "nothing new: the file specification defines `radialdirection` only as an angular direction, and no issue, pull request or page says which way a positive angle turns"
 
 [[row]]
 id = "G17"
@@ -398,6 +533,15 @@ looked = [
 ]
 found = "nothing usable: the forum threads found describe sustainers that didn't light. The UTN paper is a wind-tunnel study of a first stage, CC BY-NC 4.0, with no flight. The private collection holds 148 flights of designs with two or more stages that carry a log. None is yet screened for a sustainer unstable after the split. No flights of one design off both a rod and a rail were found"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for two-stage flights with an unstable or tumbling sustainer",
+  "WPI's rocketry club files, in the Wayback Machine",
+  "the arXiv index, for high-power and student rockets",
+]
+found = "nothing usable: WPI's 2022 Spaceport America Cup failure report is a breakup at burnout, not an unstable sustainer"
+
 [[row]]
 id = "G18"
 surface = "`.ork` import"
@@ -414,6 +558,15 @@ looked = [
   "the private collection's 714 .ork files (copies included), opened and counted for inner tubes and centering rings set to `auto`",
 ]
 found = "that no file holds OpenRocket's computed radii, as the issue says, but the designs exist. 43 files have an inner tube with an automatic outer radius (43 tubes), 446 have rings with an automatic bore (1,179 rings), 35 have both. Reading OpenRocket's own values needs its jar run on them as an oracle. A GitHub code search is no help, as .ork files are zipped"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "OpenRocket's `.ork` file specification on Read the Docs, for `auto` radii",
+  "OpenRocket's GitHub issues on automatic diameters (1652 and 871)",
+  "OpenRocket's rocket design pages on Read the Docs",
+]
+found = "text only, no values: the specification writes `auto` for the radii with no computed value, and an issue of 2022 says in words that a ring's automatic diameter inside a transition follows its inner wall"
 
 [[row]]
 id = "G19"
@@ -434,6 +587,15 @@ looked = [
 ]
 found = "a partial answer: anbanpillay/ASRI-PyROPS@76cd2a46 holds a RASAero II CSV export (rocketpy_migration/data/aerodynamics/rasaero_data.csv) to Mach 5 at 0°, 2° and 4°. Its workbooks Inputs/RASAeroII15 Detailed.xlsx and RASAeroII15.xlsx hold RASAero II output at 0° to 15°, 20° and 25° at Mach 0.1, 0.5, 1.1, 2 and 5. These would check the values assumed past 4° and at 0° faster than Mach 1.3. No license, so cite only; no flight log with them. The other exports found hold 0° only. The private collection has 76 RASAero design files (copies included) and no exports. 12 of their flights carry a log, a few of them past about 255 m/s (837 ft/s) by a plausible logged speed. So RASAero II exports of them would meet the row"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "the MIT Rocket Team's public wiki, searched for `.CDX1` attachments and flight data",
+  "GitHub code search for the RASAero export column `CA Power-Off`",
+  "a web search for RASAero II set beside flight data",
+]
+found = "a RASAero II design beside logs of a supersonic flight: the MIT wiki's Hermes Flight 1 page attaches `hermes.CDX1`, a TeleMetrum `.eeprom` and a Raven `.FIPa` of a 2018 flight its postflight review gives as Mach 1.7 (no license stated: cite only). The design is not yet checked as flown, the motor is team-built, and a `.CDX1` is a design, not an export. A RASAero export to 20° added to NUSTARS/launch-vehicle on 2026-11-19 is of a vehicle not yet flown"
+
 [[row]]
 id = "G20"
 surface = "Flight models"
@@ -453,6 +615,15 @@ looked = [
   "the private collection's logs, counted only",
 ]
 found = "nothing usable: the reports describe outcomes, not which end each part left through. The private collection has 227 logs (copies included) on 94 flights with tilt, gyroscope or orientation channels (Blue Raven, AltOS and team loggers). They show how a body pointed at deployment, not which end a part left through, and there's no video"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for deployments recorded by a camera or an IMU on each section",
+  "WPI's 2022 Spaceport America Cup failure report, in the Wayback Machine",
+  "Mendeley Data and Harvard Dataverse, for rocket flight data",
+]
+found = "nothing usable: WPI's report times a separation at speed from ground photos and telemetry, a failure rather than a charge deployment logged on each part"
 
 [[row]]
 id = "G21"
@@ -476,6 +647,15 @@ looked = [
 ]
 found = "a partial answer: the Vega paper (§2.4, p. 3) says its one-axis Kalman filter trusts the IMU most during the burn. As the speed falls in the coast, the filter weights the barometer more, so a Vega height near apogee rests mostly on its barometer. The euroc23 ground-station CSVs give only altitude and velocity, and the raw .cfl logs' layout is published only in GPL code. EPFLRocketTeam/BellaLui (no license, cite only) has driver folders for a BME280 barometer and a BNO055 IMU on the 2020 flight computer. Nothing says which made the logged height; no fin-edge drawings were found for any of the four"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "an EPFL master's thesis on guidance and control (de Lajarte, 2021)",
+  "the EPFL Rocket Team's GitHub organization",
+  "RocketPy's notebooks for the four teams' flights",
+]
+found = "a partial answer for one team: the thesis says the EPFL team's 2020 avionics logged barometric altitude at 16.7 Hz from BME280 barometers, for a different flight than the public log's; the public log's rate is consistent with that. Nothing new for the other three"
+
 [[row]]
 id = "G22"
 surface = "Fin flutter"
@@ -496,6 +676,15 @@ looked = [
   "the same group's Materials 2025 test of 3D-printed PLA plates, cited in the hardware line's note",
 ]
 found = "a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analysis of Tapered Composite Fins: Analysis and Experiment', FME Transactions 50 (2022) 576 to 585. In its Table 4, p. 583, five clamped e-glass fins fluttered at 19.6 to 21.5 m/s (64 to 71 ft/s) in a wind tunnel. They're 0.65 mm (0.026 in) thick, 180 mm (7.1 in) root, 90 mm (3.5 in) tip, 262 mm (10.3 in) span. The paper evaluates TN 4197's speed on thickness over the mean chord and an effective shear modulus of 7.96 GPa. That gives 15.3 m/s (50 ft/s), 21.9% to 28.8% below. HPR Sim's reading, thickness over the root chord, gives about 10.7 m/s (35 ft/s) at sea level on that modulus, 45% to 50% below. Both are on the safe side for the speed, on that one fin, which HPR Sim's deciding check (Martin's figure 3) doesn't score yet. The paper is copyright the Faculty of Mechanical Engineering, Belgrade, all rights reserved, so cite only. Its fins are clamped plates at low speed, not fins glued to a tube. The Materials 2025 plates, which fluttered at about 10 to 12 m/s (33 to 39 ft/s), are the same group's, so not an independent test. The Cal Poly report found no measured flutter speed, and the WPI report says flutter wasn't tested. The 2024 Aerospace article (CC BY) couldn't be reached (HTTP 403)"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "the CORE index, for titles with fin flutter",
+  "the Aviation journal (Vilnius Tech), its 2025 fin flutter paper",
+  "the TU Delft repository, for rocket fin aeroelasticity",
+]
+found = "nothing new: Ekadj et al. 2025 (doi 10.3846/aviation.2025.25310, CC BY 4.0) computes flutter speeds and measures only modal frequencies by hammer test"
 
 [[row]]
 id = "G23"
@@ -567,6 +756,15 @@ looked = [
 ]
 found = "a partial answer: three loggers' records of one 2021 flight in euroc21-team-data@ef54912c (STA-CARL2: AltiMAX, RRC3, Eggtimer). No design file was found for it. The private collection pairs a design with a parsing log on 339 flights, 53 of them compared so far. So the samples a held-out set needs exist. RIT-Launch-Initiative/flight-data (MIT) also holds public pairs: `rocket.ork` designs beside their Featherweight flight logs and an OpenRocket simulation export (2026/AirbrakesL1Tests). What's missing is the held-out protocol: a set fixed and predictions written before its logs are read"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "the MIT Rocket Team's public wiki, its flight pages",
+  "GitHub code search for RASAero and flight terms",
+  "university teams' GitHub organizations (EPFL, Faraday, BME)",
+]
+found = "two candidates with no license stated (cite only), not yet checked as flown: the MIT wiki's Raziel Flight 2 (2017) with an OpenRocket design saved the day before and two loggers' files, and Virgo Flight 1 (2017) with a design and a TeleMetrum file. No apogee was read"
+
 [[row]]
 id = "G25"
 surface = "Design export"
@@ -585,6 +783,15 @@ looked = [
   "The Rocketry Forum threads on RockSim and OpenRocket files",
 ]
 found = "nothing usable: no source says whether RockSim opens .ork files. OpenRocket's documents describe only OpenRocket writing RockSim's .rkt files. The maker's page offers RockSim 11 for Mac and Windows with a 30-day trial, so the check needs RockSim itself run on files `hpr convert` wrote"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "Apogee's RockSim information and FAQ pages",
+  "OpenRocket's features page on Read the Docs, its comparison with RockSim",
+  "a web search for RockSim importing `.ork`",
+]
+found = "a statement that doesn't meet the want: OpenRocket's comparison lists RockSim 10's file formats as RKT only, and Apogee's RockSim 11 pages name no `.ork` import"
 
 [[row]]
 id = "G26"
@@ -609,6 +816,15 @@ looked = [
 ]
 found = "a partial answer: no RASAero design file or measured drag curve of any of them was found. RocketPaper@23d9271d holds Valetudo's real RRC3 log (Valetudo_RRC3/RRC3_original.csv, MIT, with a note that some values make no sense). Valetudo's RASAero II curve is one of those compared, and a drag could be inferred from its coast once its mass and motor are settled"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search for drag measurements or RASAero II reports on Projeto Jupiter's Juno III and Valetudo",
+  "RocketPy's example pages for its rockets",
+  "the arXiv index, for model rocket aerodynamics",
+]
+found = "nothing new: only RocketPy's own example pages"
+
 [[row]]
 id = "G27"
 surface = "Aerodynamics"
@@ -630,6 +846,15 @@ looked = [
   "the private collection's .ork files, counted only",
 ]
 found = "no wind-tunnel or flight measurement of a tube fin's lift or center. The private collection has 8 .ork files (copies included) with a tube fin set. 1 of their flights has a parsing log, which can check an apogee but not the lift or center"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "the CORE index, for tube-fin and tubular-fin titles",
+  "NC State's undergraduate fin-configuration tunnel page",
+  "archive.org's mirror of DTIC reports, by ring-tail, annular and lattice-fin titles",
+]
+found = "nothing new: the NC State low-speed test publishes no data and doesn't say it tested tube fins"
 
 [[row]]
 id = "G28"
@@ -656,6 +881,14 @@ looked = [
 ]
 found = "candidates, all US government work, public use permitted. TM X-653 measured normal-force slope and center of pressure of sharp and blunted cone-cylinders with 10° and 20° conical flares. Its range is Mach 0.60 to 5.82 (figs. 4 and 6). Its 20° flare separated at Mach 1.20 and 1.37 (fig. 7), below the speed where a 20° wedge's shock attaches. So it covers a flare past its corner's limit. TM X-30 gives flare-alone normal-force slopes and centers for 80 cone-cylinder-flare bodies with flares of 5° to 20° at Mach 2.18, 2.81 and 4.04. It sets them beside the second-order shock-expansion method. RM A57I30 measures flares at Mach 3.0 to 6.3; RM L57J29 has no force data. The Redstone reports 6R3P, 6R3N2 and 6R3N1 weren't found online"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "archive.org's mirror of DTIC reports, by flare, flared-body and skirt titles",
+  "the CORE index, for plumes on boattail and flare bodies",
+]
+found = "Washington and Humphrey, MICOM RD-TM-69-11 (1969; DTIC AD0699359; US Government work, approved for public release): tabulated surface pressures at angle of attack, Mach 1.75 to 4.5, on 4°, 6° and 8° conical flares behind a cone-cylinder, which integrate to a normal force. A second measured flare; none is past its corner's limit"
+
 [[row]]
 id = "G29"
 surface = "Aerodynamics"
@@ -677,6 +910,15 @@ looked = [
 ]
 found = "candidates, US government work, public use permitted. RM A52E22 tabulates lift, drag and moment against angle (tables V to VIII) for 3/4-power and 1/2-power blunt bodies of fineness 3 and 5. They're at Mach 2.75 to 5.00, blunt tips that aren't sphere-cones. RM E54B11's table I gives pressure coefficients by meridian at 3° and 9° over four boattails at Mach 3.12. The boattail's own share of the normal force can be integrated from it, though the project uses it only for drag. TM X-653's blunted nose is another sphere-cone"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "archive.org's mirror of DTIC reports, by boattail and nose-bluntness titles",
+  "AEDC's boattail static-stability reports",
+  "a BRL report on small nose bluntness",
+]
+found = "two reports (US Government work, approved for public release). AEDC-TR-75-40 (DTIC ADA013795), Fig. 6: measured normal-force slope and center of pressure from Mach 0.5 to 2.5 for one-caliber boattails of 0° to 7.5°. BRL-MR-3535 (DTIC ADA171734): normal force and center of pressure at Mach 3.02 with sharp, flat and hemispherical tips. Both as plots"
+
 [[row]]
 id = "G30"
 surface = "Flight-log readers"
@@ -696,6 +938,14 @@ looked = [
   "the private collection's AltiMAX files, counted only",
 ]
 found = "a candidate: STA-CARL2/sta-carl2-altimax/sta-carl2-altimax.xls, a second real AltiMAX Excel export (9,940 rows, GPL-3.0, cache under refs/ only). Its header and events are in German (`ZEIT`, `RAMPE`); an RRC3 and an Eggtimer log of the same flight come with it. Of its five voltage channels, one stays near 0.5 V and one holds about 8.2 V throughout. Two fall from about 7.7 V to about 0.5 V within 0.1 s after the export's own pyro events (24.9 s and 123.1 s). The RRC3 logs its drogue at 23.8 s, the AltiMAX's apogee time, and its main at 121.4 s. That checks the voltages' behavior and their tie to the flight, not a second measurement of the same battery. The private collection has one AltiMAX Excel export"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "a web search in German and English for the AltiMAX export's voltage columns",
+  "GitHub code search for AltiMAX files",
+]
+found = "nothing new: no maker's statement of the units and no voltage measured another way"
 
 [[row]]
 id = "G31"
@@ -725,6 +975,15 @@ looked = [
 ]
 found = "two RRC3 exports in feet, one in °C by three other sensors on its flight and one in °F by its airport's air, named in [§4 of the public-logs note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-logs-evidence-gaps.md#4-reader-paths-second-flights-and-units-g2-g6-g7-g30-g31). Their voltages fit volts, a weak check"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub exact-phrase code search for the RRC3 export header",
+  "a web search for the units of mDACS's exported columns",
+  "GitHub commits since 2026-11-19 with RRC3 terms",
+]
+found = "an RRC3 primary and backup in osu-bsli/Airbrake-Control-Verification (no license stated: cite only) that match a 2021 TeleMetrum export's peak height and apogee time, so likely one flight. Their Temperature reads closer to the TeleMetrum's as °F than as °C, in a file whose altitude is in feet; the pairing is inferred, not stated. A second RRC3 export, MIT-licensed, in victoria-field7/Student-Project-Soar-NASA-Student-Launch has nothing beside it to check. No statement of units from mDACS itself"
+
 [[row]]
 id = "G32"
 surface = "The synthetic flights"
@@ -743,6 +1002,14 @@ looked = [
 ]
 found = "pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise. It found no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub repositories new since 2026-11-18",
+  "GitHub code search for RRC3 and AltOS exports",
+]
+found = "nothing for a family without a profile: the new files are Blue Raven and RRC3 exports, both families already profiled"
+
 [[row]]
 id = "G33"
 surface = "The smoother"
@@ -760,6 +1027,14 @@ looked = [
   "the private collection, by file hash",
 ]
 found = "one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2.5 m (8.2 ft); GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub exact-phrase code search for RRC3 and AltOS headers",
+  "GitHub repositories new since 2026-11-18",
+]
+found = "two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle"
 
 [[row]]
 id = "G34"
@@ -780,6 +1055,14 @@ looked = [
 ]
 found = "one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub exact-phrase code search for RRC3 and AltOS headers",
+  "GitHub repositories new since 2026-11-18",
+]
+found = "two flights with no license stated (cite only), each recorded by a second device on the same rocket: a tracker beside a Blue Raven (dreveron10/Data-compare) and a TeleMetrum beside two RRC3s (osu-bsli/Airbrake-Control-Verification). Neither is a truth from outside the vehicle"
+
 [[row]]
 id = "G35"
 surface = "Two logs of one flight on one timeline"
@@ -798,6 +1081,14 @@ looked = [
   "rlhatcher/rocketry-files (MIT, commit 2ddcaf88)",
 ]
 found = "a real pair whose clocks differ by about 4,028 s. On the October 31, 2026 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub repositories created since 2026-11-18",
+  "GitHub commits since 2026-11-19 with Blue Raven terms",
+]
+found = "dreveron10/Data-compare (created 2026-11-21, no license stated: cite only): a Blue Raven on its own clock and a Featherweight tracker on GPS time, paired in the repository as one flight. Only the tracker has GPS time, and the files don't state that they are the same flight"
 
 [[row]]
 id = "G36"
@@ -818,6 +1109,14 @@ looked = [
   "a web search for a two-stage flight's booster log",
 ]
 found = "no log from each stage of one flight. No `.pf2` or telemetry file is named for a booster or sustainer, and the CSV hits are not rocket logs"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "GitHub code search pairing booster and sustainer with each logger's header",
+  "two-stage repositories new since 2026-11-18",
+]
+found = "nothing new: no staged flight with a log from each stage"
 
 [[row]]
 id = "G37"
@@ -1031,6 +1330,15 @@ looked = [
 ]
 found = "a lead with no log. The Florida State report states the launch-ready vehicle's final mass, its sections' weights, the wind speed and a TeleMetrum's apogee, but publishes no log or motor test. It is cited only, cached under refs/samples-search/G38. The data sites hold no flight log with a weighed mass, a static test or a measured wind"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "Harvard Dataverse and Mendeley Data, for rocket flight data",
+  "the arXiv index, for fits to model-rocket flights",
+  "a web search of student launch reports with measured mass or wind",
+]
+found = "nothing new: arXiv 2512.22248 fits eight real flights from apogee alone, with no separately measured mass, impulse or wind"
+
 [[row]]
 id = "G39"
 surface = "Public flights predicted first"
@@ -1052,6 +1360,15 @@ looked = [
   "each flight's folder under RocketPy's data/rockets",
 ]
 found = "no answer. Each notebook imports its log under the name COTS Altimeter Flight and names no make or sensor; Astra's also labels the series Telemetry. The folders hold the log, a drag curve and, for two, a thrust file. The logs are a time and a height (Astra's with a position, Andromeda's with a vertical speed), and none has a header naming a device"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "EuRoC 2022's Design, Test and Evaluation Guide (v03, on euroc.pt)",
+  "the Eggtimer TRS user's guide (2.07)",
+  "RocketPy's notebooks and GitHub, for the three teams",
+]
+found = "the competition's rule: EuRoC 2022's guide requires single-stage rockets to fly an operational Eggtimer TRS for official altitude logging, its apogee from the TRS's barometric sensor (§3.5, p. 19; no license stated: cite only). That names where the official apogees came from, not what wrote each public log"
 
 [[row]]
 id = "G40"
@@ -1076,6 +1393,15 @@ looked = [
 ]
 found = "four NACA and Air Force reports that give a tangent ogive's pressure drag past Mach 1.3, one of them, NACA Report 1386, with a point at Mach 1.24 too; TR R-100 holds no ogive. They are read in docs/research/ogive-wave-drag.md, with the note's own arithmetic to take friction out, and none is committed as data yet"
 
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "archive.org's mirror of DTIC reports, by ogive, ogival and nose-shape titles with drag or pressure",
+  "the CORE and arXiv indexes, for supersonic ogive drag",
+  "a web search of DTIC and J-STAGE for tangent-ogive pressures at Mach 1.1 to 1.2",
+]
+found = "nothing new: a Princeton Mach 3 tangent-ogive report (DTIC ADA065131) has its pressure taps on the cylinder only, and AEDC-TR-76-161's forebody drag from Mach 0.6 to 1.4 is of a fighter-shaped body"
+
 [[row]]
 id = "G41"
 surface = "Aerodynamics"
@@ -1096,3 +1422,12 @@ looked = [
   "NACA RM E54I13 (Salmi) and NACA RM L51L03 (Stoney), for measured base pressures behind cones held without a rear sting",
 ]
 found = "a rule and three measurements. TR R-100 gives the base drag of a conical afterbody as the cylinder's times (r_b/R) cubed on the largest cross-section, and Hoerner's eq. 35 has the same dependence. Salmi's jet-off base pressures behind 5.6° cones at Mach 0.9 and Stoney's free-flight body from Mach 0.6 to 0.85, read by eye, both put the base drag below that rule, as the Hermes A-3A's flight does. None is a hobby rocket"
+
+[[row.searched]]
+on = "2026-11-22"
+looked = [
+  "archive.org's mirror of DTIC reports, by boattail, base-pressure and strut-support titles",
+  "a web search for subsonic boattail base drag of model rockets in tunnel tests and theses",
+  "the TU Delft repository, for rocket base flow",
+]
+found = "Rubin, MICOM RD-TR-71-17 (1971; DTIC AD0730669; US Government work, approved for public release): a 2.5 in body with an ogive nose and boattails, held on a swept side strut so there is no sting at the base. Its Fig. 17 gives boattail base pressure at Mach 0.7, 0.9, 1.0 and 1.2, jet off included, as plots. A dummy nozzle sits in the base, and it is a tunnel model, not a hobby rocket's flight"
