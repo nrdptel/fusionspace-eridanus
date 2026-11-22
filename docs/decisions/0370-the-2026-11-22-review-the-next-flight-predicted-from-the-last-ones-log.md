@@ -1,9 +1,10 @@
 # ADR-370: The 2026-11-22 review: the next flight predicted from the last one's log (2026-11-22)
 
 - **Status:** accepted; promotes [M2.16][m2-16] to the [queue][queue], seventh, after [M2.15][m2-15] (drag in the coast against the logs), in two increments: [M2.16a][m2-16a], the synthetic check, the fits and the predictions merged first, then [M2.16b][m2-16b], the errors, with HPR Sim's carried fit set against the corrections a flyer can make by hand.
-- **Summary:** A flyer who has logged one flight of a rocket predicts the next from it. HPR Sim can fit its drag to the first flight's log; whether that fit makes the next flight's apogee, on another motor and another day, any better is unmeasured. Sixteen rockets in the private collection have two or more logged flights. This record fixes the rule now, before any of those flights is fitted; the milestone checks the method on synthetic pairs, fits each earlier flight, merges every prediction, and then scores HPR Sim's carried fit against the uncorrected prediction and against corrections by hand, on new rows `accuracy.second-flight` and `bias.second-flight`.
+- **Summary:** A flyer who has logged one flight of a rocket predicts the next from it. HPR Sim can fit its drag to the first flight's log; whether that fit makes the next flight's apogee, on another motor and another day, any better is unmeasured. Fifteen rockets in the private collection have two or more logged flights that count. This record fixes the rule now, before any of those flights is fitted; the milestone checks the method on synthetic pairs, fits each earlier flight, merges every prediction, and then scores HPR Sim's carried fit against the uncorrected prediction and against corrections by hand, on new rows `accuracy.second-flight` and `bias.second-flight`.
 
 [m2-16]: ../decisions-and-roadmap.md#m2-16
+[m2-3c5]: ../decisions-and-roadmap.md#m2-3c5
 [m2-16a]: ../decisions-and-roadmap.md#m2-16a
 [m2-16b]: ../decisions-and-roadmap.md#m2-16b
 [m2-15]: ../decisions-and-roadmap.md#m2-15
@@ -62,25 +63,26 @@ and another loading.
 The collection holds the test. Counted 2026-11-22 from its manifest and its catalog's rocket-name,
 flyer and motor fields, with no log opened (a rocket here is one name flown by one flyer, each
 lower-cased and trimmed). The manifest lists all 83 flights the collection pairs with a design and
-marks 9 of them excluded, left out of every comparison: 7 had an airbrake or canard acting in the
-climb, one a motor anomaly, one another reason. The [accuracy page][collection] compares 60 of the
+marks 11 of them excluded, left out of the errors against a log: 7 had an airbrake or canard
+acting in the climb, one a motor anomaly, one a design that isn't the flown rocket, two another
+reason. The [accuracy page][collection] compares 60 of the
 83 with their logs.
 
 - 83 flights in the manifest, 49 rockets; 16 rockets have two or more flights, 50 flights in all;
-- 74 flights not marked excluded, in which the same 16 rockets hold 48 flights: 32 later flights,
-  each with an earlier flight of its rocket to fit;
-- on those 48 flights, 13 of the 16 rockets flew more than one motor, by the catalog's motor field;
-- of the 74, those with no early deployment noted: 11 rockets with two or more flights, 32 flights,
-  21 later flights.
+- 72 flights not marked excluded, in which 15 rockets have two or more flights, 45 flights in all:
+  30 later flights, each with an earlier flight of its rocket to fit;
+- on those 45 flights, 12 of the 15 rockets flew more than one motor, by the catalog's motor field;
+- of the 72, those with no early deployment noted: 11 rockets with two or more flights, 31 flights,
+  20 later flights.
 
 Four hazards shape the rule.
 
 - **The flights aren't independent.** A rocket's later flights share its errors, so the test rests
-  on 16 rockets, not 32 flights, and a few rockets hold many of the flights.
+  on 15 rockets, not 30 flights, and a few rockets hold many of the flights.
 - **Most of the answer is known already.** The fixture report's run already computes each flight's
   error without a correction, for both programs (the report publishes aggregates only); a
-  correction by ratio follows from two of those. Only
-  the carried fit's error is new. So every choice that decides which flights count, and how, is
+  correction by ratio follows from two of those. So four of the six predictions below have errors
+  that could be computed today; only those that use a fit are new. So every choice that decides which flights count, and how, is
   fixed here, before any of these flights is fitted, not left to the milestone.
 - **The fit's ranges are priors, not walls.** A fitted scale can land outside its stated range, and
   widening a range moves the fitted value itself. So the ranges are fixed here, unchanged from the
@@ -108,8 +110,8 @@ Four hazards shape the rule.
      - **The fit:** [M7.3][m7-3]'s least-squares fit as it stands at [M2.16a][m2-16a]'s merge, on
        the source flight's logged heights up to apogee, with that flight's own plan, motor file and
        the day's [ERA5 file][era5], flown in ERA5's own wind, the air the predictions fly. That is
-       new: the collection's fits solve for a constant wind and fly ERA5's only in a check after
-       (`era5_wind`). Here the wind is not solved for. The drag's, impulse's and mass's stated
+       new: the collection's fits solve for a constant wind and fly ERA5's only in a check before
+       the fit (`era5_wind`). Here the wind is not solved for. The drag's, impulse's and mass's stated
        values and ranges are those the collection's predictions from the boost use, unchanged:
        the impulse's range is not widened. A fit is usable when the fit stops by its own rule on a
        log it doesn't refuse; its value is used whatever it is, and the record gives it with how
@@ -125,8 +127,8 @@ Four hazards shape the rule.
        impulse off its rating by a scale drawn around 0.94 ([ADR-348][adr-348]'s fitted value)
        with the fit's stated spread, and in at least 50 pairs the second flight past Mach 0.8 and
        the first not. The fit is given the first day's true wind, as the real fits are given ERA5's,
-       and each second flight is predicted with its true impulse and wind, so only the drag
-       differs. On the pairs whose drag scale is more than 5% from 1, the carried scale's absolute
+       and each second flight is predicted with its true impulse and wind, so what differs is the
+       drag and set B's tilt of the thrust curve. On the pairs whose drag scale is more than 5% from 1, the carried scale's absolute
        apogee error must be the smaller on more pairs than not by a one-sided sign test at the 5%
        level, against carrying nothing; ties are dropped, and a test with no untied pair fails. A
        probe that replaces each fitted scale with 1 must fail it. The result is given on the pairs past Mach 0.8 apart.
@@ -217,20 +219,21 @@ Four hazards shape the rule.
   on the roadmap, with the corrections a flyer can make by hand beside it.
 - When it lands, the paired differences say, rocket by rocket, whether the fit carries better than
   a ratio, and whether either beats no correction.
-- With 16 rockets, the intervals will be wide; the rows are honest only with them beside, so
+- With 15 rockets, the intervals will be wide; the rows are honest only with them beside, so
   [M2.16b][m2-16b]'s *done when* asks for them.
 - The review's new ideas are in [the backlog][ideas], under its date.
 
 **How it was checked.** The counts were made 2026-11-22 from the manifest's flight id, excluded,
 early-deployment and launch-time fields, and the catalog's rocket name, flyer and motor fields,
 grouping by name and flyer; no log or design file was opened. By the manifest's motor names, which
-write one motor two ways, 14 of the 16 rockets flew more than one; by the catalog's motor field,
-13. No two flights of one rocket share a launch time. The planner's tuning feature is in its
+write one motor two ways, 13 of the 15 rockets flew more than one; by the catalog's motor field,
+12. The manifest read is the one the fixture report reads, after [M2.3c5][m2-3c5]'s recheck of the
+collection. No two flights of one rocket share a launch time. The planner's tuning feature is in its
 README's feature list and its "Suggest tuning" step. OpenRocket's features page lists importing
 altimeter data among planned features and overriding the drag coefficient of parts or stages among
 present ones. What the fit fits, how its
 ranges pull, the twelve impulse scales and the boost's mass-or-motor reading are from [the fit's
-page][fit]; that the collection's fits fly ERA5's own wind only in a check after the fit is
+page][fit]; that the collection's fits fly ERA5's own wind only in a check before the fit is
 `era5_wind` in `xtask`'s collection fits. The excluded flights' causes are the manifest's. The scoreboard has no `accuracy.second-flight` row and the fixture report no
 carried-fit column, so both *done when*s fail today. `cargo test -p xtask` checks that the queue's
 ids are open in the roadmap.

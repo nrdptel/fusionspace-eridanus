@@ -96,8 +96,8 @@ Placed with [ADR-370][adr-370], which promotes the first; the other three are SO
   prediction and a by-hand ratio for both programs, every prediction sealed first. Moves: new rows
   `accuracy.second-flight` and `bias.second-flight`. *Done when:* [M2.16][m2-16]'s.
 - SOON: the apogee in the morning's forecast air. User: a flyer setting a waiver ceiling or a contest
-  target on launch morning, who has a forecast, not the reanalysis the collection's rows fly in. 50 of
-  the collection's 74 flights not marked excluded have a launch time that isn't assumed (counted
+  target on launch morning, who has a forecast, not the reanalysis the collection's rows fly in. 48 of
+  the collection's 72 flights not marked excluded have a launch time that isn't assumed (counted
   2026-11-22). Workflow: the fixture report flies each of them again in a GFS forecast issued before
   the launch hour, read from a public archive of past runs whose terms allow it (NOMADS, which
   `hpr-net` reads, keeps only recent ones), beside the same flight in the day's ERA5 air. Moves:
