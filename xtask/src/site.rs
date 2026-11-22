@@ -132,7 +132,8 @@ pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]
                            pages only; --locked is passed on to `cargo doc`; --widths K/N
                            checks the built pages' layout at part K of N of the widths,
                            for CI to spread over N machines; --cache keeps passing results
-                           in target/site-check-cache and checks again only the pages whose
+                           in the checkout's git folder (site-check-cache under
+                           `git rev-parse --git-dir`) and checks again only the pages whose
                            HTML changed (the date of issue left out), or every page if
                            the checker, Chrome, the part, the operating system or
                            processor, or a built file other than the

@@ -142,12 +142,12 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 
 ## From the 2026-10-31 planning review ([ADR-310][adr-310], [ADR-311][adr-311])
 
-- SOON: a second flight on the first flight's drag. User: a Level 3 flyer planning a second flight
-  of a rocket with one good log. Workflow: fit the drag on the first log ([M7.3][m7-3]), then
-  `hpr sim` the next flight with that fit, testing whether per-flight drag shrinks
-  `bias.collection` (+7.76%). Moves: new row `accuracy.second-flight`. *Done when:* the row gives the count of designs with two
-  logged flights and the error with and without the fit; a synthetic pair pins the fit; the row
-  says so plainly where the count is too small to mean anything.
+- PROMOTED ([M2.16][m2-16], [ADR-370][adr-370]): a second flight on the first flight's drag. User: a
+  Level 3 flyer planning a second flight of a rocket with one good log. Workflow: fit the drag on the
+  first log ([M7.3][m7-3]), then `hpr sim` the next flight with that fit, testing whether per-flight
+  drag shrinks `bias.collection` (+7.76%). Moves: new row `accuracy.second-flight`. *Done when:* the
+  row gives the count of designs with two logged flights and the error with and without the fit; a
+  synthetic pair pins the fit; the row says so plainly where the count is too small to mean anything.
 - SOON: the intervals' width, held. User: a flyer quoting a log's apogee with its interval. A noisier
   reader, once refitted, passes the coverage test ([ADR-308][adr-308]) on wider intervals. Workflow:
   the synthetic flights' report records each reading's mean width. Moves: new rows `readings.width`,
@@ -196,3 +196,5 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim
 [m2-12]: ../decisions-and-roadmap.md#m2-12
+[m2-16]: ../decisions-and-roadmap.md#m2-16
+[adr-370]: ../decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md

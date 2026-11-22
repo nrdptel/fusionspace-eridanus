@@ -3,7 +3,7 @@
 //! without, and checks every page and canary every time.
 //!
 //! The layout check ([`super::pages`]) and the vitals check ([`super::vitals`]) each keep a file
-//! under [`DIR`], outside the site, which each build clears. A file holds its run's key and, for
+//! in the checkout's cache folder ([`dir`]), outside the site, which each build clears. A file holds its run's key and, for
 //! each page that passed, the SHA-256 of the page's HTML (its date of issue left out), when it was checked and what the check
 //! measured of it: the lines of its prose, or its vitals. A run reuses a page's result when its key
 //! is the cache's and the page's HTML is the same but for its date of issue ([`undated`]); it
@@ -45,9 +45,46 @@ use sha2::{Digest, Sha256};
 
 use super::pages::{self, Part};
 
-/// Where the caches are kept, relative to the workspace root: beside the site, which each build
-/// clears, not in it.
-pub(super) const DIR: &str = "target/site-check-cache";
+/// The caches' folder, in the checkout's own git folder ([`dir`]).
+const DIR: &str = "site-check-cache";
+/// Where the caches are kept when git can't name the checkout's folder, relative to the workspace
+/// root: beside the site, which each build clears, not in it.
+const FALLBACK: &str = "target/site-check-cache";
+
+/// Where the caches are kept for the checkout at `root`: [`DIR`] in its own git folder (`.git`,
+/// or `.git/worktrees/<name>` for a worktree), else [`FALLBACK`]. Under `target/`, `cargo clean`
+/// deleted them. Of the main checkout's ten full gates from 2026-11-19 15:33 UTC to 11-22, four
+/// checked every page, in 792 to 831 s, against 49 to 218 s for the rest; two of the four came
+/// just after a `cargo clean` (the 2026-11-22 review). Each checkout keeps its own, as before, so
+/// a worktree on another branch, whose key differs, doesn't overwrite the main checkout's.
+///
+/// Git is asked with `--absolute-git-dir` (git 2.13 on), and its answer is taken only when it is
+/// one line naming a folder that exists by an absolute path: an older git that doesn't know the
+/// option prints it back and still succeeds. Git's own variables are cleared, so a `GIT_DIR` set
+/// around the run doesn't send the cache to another repository.
+pub(super) fn dir(root: &Path) -> PathBuf {
+    let mut git = std::process::Command::new("git");
+    git.arg("-C")
+        .arg(root)
+        .args(["rev-parse", "--absolute-git-dir"]);
+    for variable in [
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+    ] {
+        git.env_remove(variable);
+    }
+    git.output()
+        .ok()
+        .filter(|out| out.status.success())
+        .and_then(|out| String::from_utf8(out.stdout).ok())
+        .map(|text| text.trim_end_matches(['\r', '\n']).to_owned())
+        .filter(|text| !text.is_empty() && !text.contains('\n'))
+        .map(PathBuf::from)
+        .filter(|folder| folder.is_absolute() && folder.is_dir())
+        .map_or_else(|| root.join(FALLBACK), |folder| folder.join(DIR))
+}
 /// The cache files' format. A file of another is not read, and every page is checked.
 const FORMAT: u32 = 1;
 /// The site's search index, which a page loads only when the search is opened.
@@ -82,7 +119,7 @@ impl Check {
         }
     }
 
-    /// The check's cache file, in [`DIR`].
+    /// The check's cache file, in [`dir`].
     fn file(self) -> String {
         format!("{}.json", self.name())
     }
@@ -363,8 +400,8 @@ impl<T> Plan<T> {
                 "Chrome's version couldn't be read (`--version`), so nothing is reused or kept"
                     .to_owned()
             }
-            Basis::Absent => format!("there is no cache in {DIR}"),
-            Basis::Unreadable => format!("{DIR}/{} is not a cache of this format", check.file()),
+            Basis::Absent => "there is no cache".to_owned(),
+            Basis::Unreadable => format!("its cache file, {}, is not of this format", check.file()),
             Basis::Changed => "the checker, Chrome, the part (`--widths`), the system or another \
                                file of the built site changed since the cache's run"
                 .to_owned(),
@@ -390,7 +427,7 @@ fn dates<'a>(dates: impl Iterator<Item = &'a str>) -> String {
 /// What a run with `--cache` reads once for both checks: the built site's files, the browser and
 /// the time.
 pub(super) struct Run {
-    /// Where the cache files are, [`DIR`] under the workspace root.
+    /// Where the cache files are ([`dir`]).
     dir: PathBuf,
     /// Every file of the site a check may read, to the SHA-256 of its bytes, a page's with its
     /// date of issue left out ([`snapshot`]).
@@ -409,7 +446,7 @@ impl Run {
     pub(super) fn start(root: &Path, output: &Path, part: Part) -> Result<Run, String> {
         let chrome = pages::find_chrome()?;
         Ok(Run {
-            dir: root.join(DIR),
+            dir: dir(root),
             site: snapshot(output)?,
             version: chrome_version(&chrome),
             chrome: chrome.display().to_string(),
@@ -1002,7 +1039,7 @@ mod tests {
         assert_eq!(
             line,
             "page vitals cache: every page measured now (2) and the canaries, as there is no \
-             cache in target/site-check-cache"
+             cache"
         );
         assert_eq!(
             dates(["2026-11-01 14:02 UTC", "2026-10-30 09:12 UTC"].into_iter()),
@@ -1015,5 +1052,32 @@ mod tests {
         let now = now();
         assert_eq!(now.len(), "2026-11-01 14:02 UTC".len(), "{now}");
         assert!(now.ends_with(" UTC") && now.as_bytes()[13] == b':', "{now}");
+    }
+
+    #[test]
+    fn the_cache_is_kept_in_the_checkouts_git_folder_where_cargo_clean_leaves_it() {
+        // The workspace is a git checkout here and on CI, so its cache is in its git folder.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("xtask sits in the workspace's root");
+        let kept = dir(root);
+        assert!(
+            kept.ends_with(DIR) && !kept.starts_with(root.join("target")),
+            "{}",
+            kept.display()
+        );
+        // The folder git named is a real git folder: it holds a HEAD.
+        let folder = kept.parent().expect("the cache sits in a folder");
+        assert!(
+            folder.is_absolute() && folder.join("HEAD").is_file(),
+            "{}",
+            folder.display()
+        );
+        // A folder git doesn't know keeps the cache beside the site, as before.
+        let outside = std::env::temp_dir().join(format!("hpr-site-cache-{}", std::process::id()));
+        fs::create_dir_all(&outside).expect("a scratch folder");
+        let fallback = dir(&outside);
+        fs::remove_dir_all(&outside).expect("the scratch folder removed");
+        assert_eq!(fallback, outside.join(FALLBACK));
     }
 }
