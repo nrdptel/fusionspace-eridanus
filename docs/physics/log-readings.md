@@ -590,8 +590,11 @@ independent, slow with one chance before the split and another after, the split'
 at the best two chances would be
 
 $$
-L(s) = \ell(a, s) + \ell(c, n - s), \qquad
-\ell(k, m) = k \ln\frac{k}{m} + (m - k) \ln\frac{m - k}{m}
+\begin{aligned}
+L(s) &= \ell(a, s) + \ell(c, n - s), \\
+\ell(k, m) &= k \ln\frac{k}{m} \\
+&+ (m - k) \ln\frac{m - k}{m}
+\end{aligned}
 $$
 
 This is the change-point of a two-valued sequence (D. V. Hinkley and E. A. Hinkley, "Inference
