@@ -1,7 +1,7 @@
 # ADR-371: M1.14b6, wind from the GPS descent: the method's settings and what is compared (2026-11-22)
 
 - **Status:** accepted; carries out [ADR-351][adr-351] decision 2's line for M1.14b6
-- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s. Of the seven public flights, two are compared with ERA5, one is reconstructed without its day's ERA5 file, one fell too fast for any canopy and three logged no position. With fewer than three compared, the validation plan calls it a method, not yet a comparison. Prometheus's two receivers give the method's own noise on a real descent: 0.65 m/s RMS.
+- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). Of the seven public flights, two are compared with ERA5, one is reconstructed without its day's ERA5 file, one fell too fast for any canopy and three logged no position. With fewer than three compared, the validation plan calls it a method, not yet a comparison. Prometheus's two receivers give the method's own noise on a real descent: 0.65 m/s (1.5 mph) RMS.
 
 [adr-351]: 0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [note]: ../research/wind-from-descent.md
