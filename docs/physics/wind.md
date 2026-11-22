@@ -502,8 +502,8 @@ was 14.74 m/s (33.0 mph).
 ### Against ERA5
 
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
-reads every public flight with a log: the seven the real-flights report flies, the five predicted
-first, and four more of RocketPy's example logs (Camões, Halcyon, Hedy and Valkyrie).
+reads every public flight HPR Sim flies or predicts, and RocketPy's other example logs: the seven
+the real-flights report flies, the five predicted first, and Camões, Halcyon, Hedy and Valkyrie.
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a

@@ -17,8 +17,9 @@
 //! - **What is committed.** Each compared flight's sums by height band, from which CI recomputes
 //!   the pooled bands. Each fix's wind is committed only for logs read whole from RocketPy's MIT
 //!   repository: the EuRoC logs of CATS's flight computers give statistics only, since CATS
-//!   publishes EuRoC logs under GPL-3.0 and three of RocketPy's copies are files of its 2023
-//!   repository (`THIRD-PARTY-NOTICES.md`, `rocketpy`).
+//!   publishes EuRoC logs under GPL-3.0 and three of RocketPy's copies are files of
+//!   RocketPy-Team's GPL-3.0 fork of its 2023 repository (`THIRD-PARTY-NOTICES.md`,
+//!   `rocketpy`).
 //! - **Two receivers.** Prometheus carried two Altus Metrum flight computers, each with its own
 //!   GPS receiver, and the report gives how far their two winds differ: a floor on the noise
 //!   between two receivers, not the method's error, since a lag model's error or a motion both
@@ -1418,8 +1419,8 @@ impl DescentWindReport {
              - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every \
              direction; a tumbling airframe or a streamer has no measured response.\n\
              - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three \
-             of RocketPy's copies are files of its 2023 repository, so the logs of its flight \
-             computers give statistics here, not rows."
+             of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 \
+             repository, so the logs of its flight computers give statistics here, not rows."
         );
         let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
         md

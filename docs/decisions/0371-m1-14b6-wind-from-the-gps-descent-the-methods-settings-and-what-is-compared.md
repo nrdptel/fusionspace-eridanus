@@ -1,7 +1,7 @@
 # ADR-371: M1.14b6, wind from the GPS descent: the method's settings and what is compared (2026-11-22)
 
 - **Status:** accepted; carries out [ADR-351][adr-351] decision 2's line for M1.14b6
-- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on all sixteen public flights with a log: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers.
+- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on sixteen public flights, every one HPR Sim flies or predicts and RocketPy's other example logs: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers.
 
 [adr-351]: 0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [note]: ../research/wind-from-descent.md
@@ -19,8 +19,9 @@ fixes are a steady fall, and what a log's repeated fixes mean.
 The public flights with a log are the seven the real-flights report flies, the five predicted
 before their logs were compared (three EuRoC 2022 flights and two Macie XL flights), and four
 more example logs in RocketPy's checkout whose rockets HPR Sim doesn't fly: Camões and Halcyon
-(EuRoC 2023), Hedy (EuRoC 2025) and Valkyrie (2025). Their notebooks give each one's site, hour
-and ERA5 file. Eight of the sixteen logs hold a position.
+(EuRoC 2023), Hedy (EuRoC 2025) and Valkyrie (2025). The notebooks give Camões's, Halcyon's and
+Hedy's site, hour and ERA5 file; Valkyrie's reads a live forecast, and its log holds no position.
+Eight of the sixteen logs hold a position.
 
 **Decision.**
 
@@ -64,8 +65,9 @@ and ERA5 file. Eight of the sixteen logs hold a position.
    the mean and RMS of the difference in speed and the RMS of the vector difference.
 8. **What is committed.** Each compared flight's sums by band, from which CI recomputes the
    bands, and each fix's wind only where the log is read whole from RocketPy's MIT repository.
-   CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of its 2023
-   repository (the notices' `rocketpy` row), so CATS logs give statistics only. The page ends with the
+   CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of
+   RocketPy-Team's GPL-3.0 fork of its 2023 repository (the notices' `rocketpy` row), so CATS
+   logs give statistics only. The page ends with the
    Copernicus credit.
 9. **Held.** `cargo xtask descent-wind --check` reproduces the report in the gate's `refs` step.
    In CI, a test recomputes its bands from the committed sums and its page from its data, checks

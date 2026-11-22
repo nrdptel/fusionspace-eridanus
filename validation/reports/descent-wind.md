@@ -64,7 +64,7 @@ Each receiver's track is reconstructed alone. The difference of their winds is a
 - **The canopy's own motion.** A canopy that glides moves across the wind by `w tan γ` at a glide angle `γ`; a swing on the shock cord moves the rocket back and forth. Neither is measured for hobby canopies, so neither is bounded: the differences above hold them along with ERA5's miss.
 - **ERA5's hour and place.** ERA5 is read at the launch site and hour; the descent is minutes later and away from the site.
 - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every direction; a tumbling airframe or a streamer has no measured response.
-- **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of its 2023 repository, so the logs of its flight computers give statistics here, not rows.
+- **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 repository, so the logs of its flight computers give statistics here, not rows.
 
 ## Sources
 
