@@ -41,7 +41,7 @@ pub const REPORT_MD: &str = "validation/reports/descent-wind.md";
 pub const BAND_EDGES_M: [f64; 6] = [0.0, 500.0, 1000.0, 2000.0, 3000.0, 5000.0];
 
 /// The fewest flights a comparison needs before the validation plan may call it one rather than a
-/// method (the plan's line for M1.14b6).
+/// method ([the plan's line for M1.14b6, the wind from the GPS descent](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6)).
 pub const FLIGHTS_FOR_A_COMPARISON: usize = 3;
 
 /// Two receivers' fixes are paired when their times are this close, s.
