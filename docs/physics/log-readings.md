@@ -638,8 +638,8 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s, within 0.76 s, and 17.3 m/s
   (57 ft/s), within 1.4 m/s (5 ft/s).
 
-That is one real flight. How the split's opening compares with a logged charge time on others
-hasn't been measured, and a canopy's filling time is still outside the bound
+That is one real flight ([evidence row G10](../evidence.md#g10)). How the split's opening
+compares with a logged charge time on others hasn't been measured, and a canopy's filling time is still outside the bound
 ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)). The survey's real logs
 have no truth to hold a reading to. On them the rule reads a drogue's descent on more logs than
 the walk did, and on fewer in no family of loggers; [ADR-366][adr-366] has the counts, and

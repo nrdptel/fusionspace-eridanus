@@ -137,7 +137,7 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
 
 ## 7. What HPR Sim reads today
 
-`hpr analyze <file>` on a build of 2026-10-23; the readers' code checked on main at `0ece4ab8`. None refused.
+`hpr analyze <file>`, 2026-10-23 (main `0ece4ab8`); none refused. Since ADR-366 the `.pf2`'s opening reads 90.00 s.
 
 | File (SHA-256 prefix) | Outcome |
 |---|---|
@@ -154,9 +154,6 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
   be 17.3 m/s on the header's main time (1,406.3 m to 211.5 m over 68.9 s). **Inference** (`readings/canopies.rs`): the
   walk back from landing stops where the 2 s running median of 1 s fits first passes its mark (about 5.8 m/s: the
   near-ground rate, 2.8 m/s, plus 3), at T+107 to 108.4 s; the faster T+88 to 99 s stretch is never reached.
-- **Since 2026-11-21 the `.pf2`'s opening reads 90.00 s within 0.76 s**, and the drogue's rate 17.3 m/s within
-  1.4 m/s: the opening is now the likeliest single change of the descent's rate (ADR-366, issue #903), not the walk's
-  first stop. A test reads the cached file and pins both.
 - The withheld reason says a GNSS filter "overshoots its top"; both real tracks peaked far below it instead.
 
 ## What this suggests
