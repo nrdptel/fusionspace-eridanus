@@ -27,6 +27,7 @@ Repeats are rows dropped as a repeat of the fix before; read fixes are those rea
 | Camões, EuRoC 2023 (the team's own motor, not flown by HPR Sim) (`camoes`) | compared | 422 | 78 | 9.8 | 353 | 114 to 2677 | 24.7 to 28.2 | 1.07 | +1.39 | 3.68 |
 | Halcyon, EuRoC 2023 (the team's own motor, not flown by HPR Sim) (`halcyon`) | compared | 2012 | 44 | 6.5 | 1951 | 623 to 3336 | 3.9 to 5.4 | 0.38 | -1.46 | 5.07 |
 | Hedy, EuRoC 2025 (the team's own motor, not flown by HPR Sim) (`hedy`) | not compared: its ERA5 file is netCDF-4, which HPR Sim reads only through a converted copy checked against the source, as EuRoC 2022's is; no such copy is made for this file yet | 154 | 234 | 68.0 | 94 | 126 to 3310 | 20.8 to 26.4 | 0.56 |  |  |
+| Valkyrie, 2025 (not flown by HPR Sim) (`valkyrie`) | not run: its log holds a height only, no position |  |  |  |  |  |  |  |  |  |
 
 The receivers read:
 
@@ -56,14 +57,14 @@ Over the compared flights. A difference in speed is the reconstructed wind's spe
 
 Each receiver's track is reconstructed alone. The difference of their winds is a floor on the noise between two receivers, not the method's error: an error of the lag model, or a motion both receivers share, cancels in it.
 
-- `prometheus-2022`, with the TeleMega's GPS (Altus Metrum), 1 fix a second: the two highest fixes are 5523 m and 5524 m above sea level and the last fixes 2 m apart. 170 fixes are read by both within 0.5 s; their winds differ by 0.51 m/s RMS, 1.34 m/s at most.
+- `prometheus-2022`, with the TeleMega's GPS (Altus Metrum), 1 fix a second: the two highest fixes are 5523 m and 5524 m above sea level and the last fixes 2.4 m apart. 170 fixes are read by both within 0.5 s; their winds differ by 0.51 m/s RMS, 1.35 m/s at most.
 
 ## What it leaves out
 
 - **The canopy's own motion.** A canopy that glides moves across the wind by `w tan γ` at a glide angle `γ`; a swing on the shock cord moves the rocket back and forth. Neither is measured for hobby canopies, so neither is bounded: the differences above hold them along with ERA5's miss.
 - **ERA5's hour and place.** ERA5 is read at the launch site and hour; the descent is minutes later and away from the site.
 - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every direction; a tumbling airframe or a streamer has no measured response.
-- **Each fix of the EuRoC logs.** CATS publishes its EuRoC logs under GPL-3.0, so the logs of its flight computers give statistics here, not rows.
+- **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of its 2023 repository, so the logs of its flight computers give statistics here, not rows.
 
 ## Sources
 

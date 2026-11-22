@@ -4,10 +4,10 @@
 //!
 //! - **The flights** ([`required_ids`] and the report's table) are every public flight the
 //!   project has a log of: the seven the real-flights report flies, the five public flights
-//!   predicted before their logs were compared, and three more public example logs in RocketPy's
-//!   checkout whose rockets HPR Sim doesn't fly, since they burn their teams' own motors (Camões,
-//!   Halcyon, Hedy). The wind needs no motor, so each is read. Each is listed: read, with its
-//!   receiver, or not, with the reason.
+//!   predicted before their logs were compared, and four more public example logs in RocketPy's
+//!   checkout whose rockets HPR Sim doesn't fly (Camões, Halcyon, Hedy, Valkyrie). The wind needs
+//!   no motor, so each with a position is read. Each is listed: read, with its receiver, or not,
+//!   with the reason.
 //! - **The reconstruction** is [`hpr_flightdata::descent_wind`] at its default settings.
 //! - **ERA5** is read at the launch site and hour as HPR Sim reads a sounding
 //!   ([`real_flight::launch_day`]): for a flight the real-flights report flies, its file and
@@ -17,8 +17,8 @@
 //! - **What is committed.** Each compared flight's sums by height band, from which CI recomputes
 //!   the pooled bands. Each fix's wind is committed only for logs read whole from RocketPy's MIT
 //!   repository: the EuRoC logs of CATS's flight computers give statistics only, since CATS
-//!   publishes its EuRoC logs under GPL-3.0 and three of RocketPy's copies are those files
-//!   (`THIRD-PARTY-NOTICES.md`, `rocketpy`).
+//!   publishes EuRoC logs under GPL-3.0 and three of RocketPy's copies are files of its 2023
+//!   repository (`THIRD-PARTY-NOTICES.md`, `rocketpy`).
 //! - **Two receivers.** Prometheus carried two Altus Metrum flight computers, each with its own
 //!   GPS receiver, and the report gives how far their two winds differ: a floor on the noise
 //!   between two receivers, not the method's error, since a lag model's error or a motion both
@@ -136,6 +136,9 @@ pub(crate) enum Day {
     /// The public predictions': title and site from `public_predictions`, by id. Their weather
     /// is not read here, so a flight that reads is reconstructed, not compared: why.
     Predicted { not_compared: &'static str },
+    /// A public log HPR Sim doesn't fly and that holds no position, so no site or weather is
+    /// read.
+    LogOnly,
     /// A public log HPR Sim doesn't fly: its notebook's site (latitude and longitude, degrees;
     /// elevation, m), launch hour in UTC and ERA5 file, under `refs/rocketpy/data/weather/`.
     Notebook {
@@ -241,7 +244,7 @@ const PREDICTED_NOT_COMPARED: &str = "the public predictions' weather, EuRoC 202
 
 /// Every public flight, in the report's order: the real-flights report's, the predictions', then
 /// the example logs HPR Sim doesn't fly.
-pub(crate) const PUBLIC: [Public; 15] = [
+pub(crate) const PUBLIC: [Public; 16] = [
     Public {
         id: "bella-lui",
         title: "",
@@ -446,6 +449,13 @@ pub(crate) const PUBLIC: [Public; 15] = [
             "its ERA5 file is netCDF-4, which HPR Sim reads only through a converted copy checked \
              against the source, as EuRoC 2022's is; no such copy is made for this file yet",
         ),
+    },
+    Public {
+        id: "valkyrie",
+        title: "Valkyrie, 2025 (not flown by HPR Sim)",
+        day: Day::LogOnly,
+        source: Source::None("its log holds a height only, no position"),
+        not_compared: None,
     },
 ];
 
@@ -897,6 +907,7 @@ fn era5_wind(
         Day::Notebook {
             site, utc, weather, ..
         } => (site, utc, weather),
+        Day::LogOnly => return Ok(Err("its log holds no position".to_owned())),
     };
     let weather_path = format!("{ROCKETPY}/data/weather/{weather}");
     let bytes = read_bytes(root, &weather_path, "an ERA5 file").map_err(|e| e.to_string())?;
@@ -929,6 +940,8 @@ fn title_and_elevation(public: &Public) -> Result<(String, f64), String> {
                 .ok_or_else(|| format!("`{}` is not among the public predictions", public.id))
         }
         Day::Notebook { site, .. } => Ok((public.title.to_owned(), site.2)),
+        // A log with no position is never read, so its site's elevation is never used.
+        Day::LogOnly => Ok((public.title.to_owned(), 0.0)),
     }
 }
 
@@ -1379,7 +1392,7 @@ impl DescentWindReport {
                 let _ = writeln!(
                     md,
                     "- `{}`, with {}: the two highest fixes are {:.0} m and {:.0} m above sea \
-                     level and the last fixes {:.0} m apart. {} fixes are read by both within \
+                     level and the last fixes {:.1} m apart. {} fixes are read by both within \
                      {PAIR_S} s; their winds differ by {:.2} m/s RMS, {:.2} m/s at most.",
                     pair.id,
                     pair.second,
@@ -1388,7 +1401,8 @@ impl DescentWindReport {
                     pair.last_fixes_apart_m,
                     pair.pairs,
                     pair.rms_vector_difference_m_s,
-                    pair.max_vector_difference_m_s
+                    // A bound, rounded up.
+                    (pair.max_vector_difference_m_s * 100.0).ceil() / 100.0
                 );
             }
         }
@@ -1403,8 +1417,9 @@ impl DescentWindReport {
              is minutes later and away from the site.\n\
              - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every \
              direction; a tumbling airframe or a streamer has no measured response.\n\
-             - **Each fix of the EuRoC logs.** CATS publishes its EuRoC logs under GPL-3.0, so \
-             the logs of its flight computers give statistics here, not rows."
+             - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three \
+             of RocketPy's copies are files of its 2023 repository, so the logs of its flight \
+             computers give statistics here, not rows."
         );
         let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
         md

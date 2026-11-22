@@ -450,8 +450,8 @@ A *fix* is one position the receiver reported.
 > descents built on the method's own assumptions, whose wind is known, it is within 0.3 m/s
 > (0.7 mph) RMS. On real descents nothing bounds what the canopy itself does (below). Four public
 > flights are compared with ERA5, but one of them gives four fixes in five. Read the differences
-> as what four launch-field winds did beside ERA5's, not as ERA5's measured miss. For ERA5's own
-> miss, rely on the soundings below.
+> as four examples of a reconstructed wind beside ERA5's, not as ERA5's measured miss. For ERA5's
+> own miss, rely on the soundings below.
 
 ### The method
 
@@ -473,7 +473,8 @@ It also assumes the same drag in every direction
 
 At each fix, a quadratic in time is fitted to the positions of the fixes within 10 s around it.
 Its slope is the velocity, and twice its curvature the acceleration. A fix is read only where its
-window reaches 2.5 s to each side, so a fix beside a gap or at the track's end is not read. It is
+window holds at least five fixes and reaches 2.5 s to each side, so a fix beside a gap or at the
+track's end is not read. It is
 read only where the body falls steadily: at 2 to 35 m/s (7 to 115 ft/s), with a vertical
 acceleration of at most 0.5 m/s². That drops the fall from apogee before a canopy holds, each
 canopy's opening and the landing. Code:
@@ -482,25 +483,27 @@ canopy's opening and the landing. Code:
 **A worked example.** Take a wind that strengthens by 2 m/s (4.5 mph) for every 100 m (328 ft) of
 height. A body falling through it at 25 m/s (82 ft/s) meets 0.02 × 25 = 0.5 m/s less wind each
 second. Its lag is 25 / 9.807 = 2.55 s, so its ground velocity runs 2.55 × 0.5 = 1.27 m/s
-(2.8 mph) above the wind it is in. Under a 5 m/s (16 ft/s) main, the same wind leaves 0.05 m/s
-(0.1 mph).
+(2.8 mph) above the wind it is in. Under a 5 m/s (16 ft/s) main, the same wind puts the ground
+velocity only 0.05 m/s (0.1 mph) off the wind.
 
-On a real flight, Juno III fell under its drogue at 24.071 m/s (79 ft/s); the fix is the report's.
+On a real flight, Juno III fell under its drogue at 24.071 m/s (79 ft/s). This is one fix from
+the report's data file (`descent-wind.json`, Juno III at 124.4 s).
 At 929 m (3,048 ft) above the pad, its lag was 24.071 / 9.807 = 2.455 s. Its ground velocity was
 13.033 m/s (29.2 mph) east and 5.153 m/s (11.5 mph) north. Each second it slowed by 0.552 m/s
-(1.2 mph) east and 0.166 m/s (0.4 mph) north. So the wind was:
+(1.2 mph) east and 0.166 m/s (0.4 mph) north. The rate of change is negative, so the correction
+lowers the ground velocity, and the wind was:
 
 - east: 13.033 − 2.455 × 0.552 = 11.678 m/s;
 - north: 5.153 − 2.455 × 0.166 = 4.745 m/s.
 
-That is 12.60 m/s (28.2 mph), against a ground speed of 14.01 m/s (31.3 mph). ERA5's wind there
+That is 12.605 m/s (28.2 mph), against a ground speed of 14.01 m/s (31.3 mph). ERA5's wind there
 was 14.74 m/s (33.0 mph).
 
 ### Against ERA5
 
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
 reads every public flight with a log: the seven the real-flights report flies, the five predicted
-first, and three more of RocketPy's example logs.
+first, and four more of RocketPy's example logs (Camões, Halcyon, Hedy and Valkyrie).
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
@@ -509,19 +512,19 @@ first, and three more of RocketPy's example logs.
 - **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
   Hedy, whose ERA5 file HPR Sim can't read without a checked conversion.
 - **Not run:** Cavour fell at 75 m/s (246 ft/s) and Astra at 98 m/s (321 ft/s), faster than any
-  canopy the method is held to. Seven more logged no position.
+  canopy the method is held to. Eight more logged no position.
 
 Over the four compared flights and 2,462 fixes, the reconstructed speed is 0.87 m/s (1.9 mph)
 below ERA5's on average. Root-mean-square, it is 3.50 m/s (7.8 mph) from it. Each flight alone
-differs on average by 1.1 to 1.5 m/s (2.6 to 3.4 mph): above ERA5's on three, below it on
+differs on average by 1.1 to 1.5 m/s (2.5 to 3.4 mph): above ERA5's on three, below it on
 Halcyon. Halcyon gives four fixes in five, so the pooled mean is mostly its own. ERA5 misses
 soundings by 1.4 to 1.9 m/s (3.1 to 4.3 mph) RMS in speed through the lowest 3 km (1.9 mi)
-(Taszarek et al. 2021, in the research note's §5). The RMS here is 1.8 to 2.5 times that.
+(Taszarek et al. 2021, in the research note's §5). The pooled RMS here is 1.8 to 2.5 times that.
 Nothing here tells ERA5's miss at a launch field apart from the canopy's.
 
 Prometheus carried two GPS receivers, whose highest fixes are 1 m (3.3 ft) apart in height and whose last
 fixes are 2.4 m (8 ft) apart. Read apart, their winds differ by 0.51 m/s (1.1 mph) RMS over 170
-shared fixes, and 1.34 m/s (3.0 mph) at most. That is a floor on the noise between receivers. It
+shared fixes, and 1.35 m/s (3.0 mph) at most. That is a floor on the noise between receivers. It
 can't show the lag model's error or a motion both shared, which cancel in the difference.
 
 ### What it leaves unbounded
@@ -533,7 +536,7 @@ can't show the lag model's error or a motion both shared, which cancel in the di
 - **Swing.** A rocket swinging by $\theta$ on a shock cord of length $L$ moves at up to
   $\theta\sqrt{gL}$. That is about 0.95 m/s (2.1 mph) at 10° on 3 m (10 ft). On a synthetic
   swing that size, with a 2 to 5 s period, the 10 s window leaves under 0.15 m/s (0.3 mph) RMS.
-  A slower swing it averages less.
+  A slower swing is not tested.
 - **Drogues and tumbling bodies.** The lag assumes the same drag in every direction; a tumbling
   airframe or a fluttering streamer has no measured response.
 - **ERA5's hour and place.** ERA5 is read at the launch hour and site; the descent is minutes

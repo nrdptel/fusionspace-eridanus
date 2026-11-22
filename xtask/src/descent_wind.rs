@@ -53,7 +53,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
     for pair in &report.receivers {
         println!(
             "descent-wind: {} two receivers: {} pairs, {:.2} m/s RMS, {:.2} m/s at most",
-            pair.id, pair.pairs, pair.rms_vector_difference_m_s, pair.max_vector_difference_m_s
+            pair.id,
+            pair.pairs,
+            pair.rms_vector_difference_m_s,
+            // A bound, rounded up.
+            (pair.max_vector_difference_m_s * 100.0).ceil() / 100.0
         );
     }
     let markdown = report.to_markdown();

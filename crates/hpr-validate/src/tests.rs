@@ -4932,7 +4932,7 @@ fn the_descent_wind_report_holds_together() {
             "## Sources\n\n{}",
             crate::real_flight::ERA5_CREDIT
         )),
-        "{REPORT_MD} must end with the ERA5 credit"
+        "{REPORT_MD} must carry the ERA5 credit under its sources"
     );
     let plan = std::fs::read_to_string(root().join("docs/VALIDATION.md")).unwrap();
     let row = plan

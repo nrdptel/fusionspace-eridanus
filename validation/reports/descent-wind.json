@@ -5997,6 +5997,25 @@
       "outside_era5": 0,
       "bands": [],
       "samples": []
+    },
+    {
+      "id": "valkyrie",
+      "title": "Valkyrie, 2025 (not flown by HPR Sim)",
+      "status": {
+        "NotRun": "its log holds a height only, no position"
+      },
+      "receiver": "",
+      "day": "",
+      "fixes": 0,
+      "repeats": 0,
+      "longest_gap_s": 0.0,
+      "read": 0,
+      "heights_m": null,
+      "descent_m_s": null,
+      "mean_lag_correction_m_s": null,
+      "outside_era5": 0,
+      "bands": [],
+      "samples": []
     }
   ],
   "bands": [

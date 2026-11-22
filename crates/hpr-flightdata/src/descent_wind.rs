@@ -569,8 +569,9 @@ mod tests {
     }
 
     /// A swing on the shock cord: the rocket's ground velocity is the wind's plus a sinusoid of
-    /// 0.95 m/s amplitude (`θ√(gL)` at 10° on 3 m) and a 2 to 5 s period, fixes once a second.
-    /// The window cuts it to under 0.15 m/s RMS (0.10 at most on these cases), at 5 and at 25
+    /// 0.95 m/s amplitude (`θ√(gL)` at 10° on 3 m) and a 2 to 5 s period, fixes once a second
+    /// (so a 2 s swing shows only in the positions, its velocity zero at every fix). The window
+    /// cuts it to under 0.15 m/s RMS (0.10 at most on these cases), at 5 and at 25
     /// m/s, where the lag term multiplies the swing's acceleration by up to 2.5 s.
     #[test]
     fn the_window_cuts_a_swing_on_the_shock_cord() {
