@@ -70,7 +70,8 @@ reason. The [accuracy page][collection] compares 60 of the
 
 - 83 flights in the manifest, 49 rockets; 16 rockets have two or more flights, 50 flights in all;
 - 72 flights not marked excluded, in which 15 rockets have two or more flights, 45 flights in all:
-  30 later flights, each with an earlier flight of its rocket to fit;
+  30 later flights, 25 of them with an earlier flight that has no early deployment noted, which
+  can be a source flight;
 - on those 45 flights, 12 of the 15 rockets flew more than one motor, by the catalog's motor field;
 - of the 72, those with no early deployment noted: 11 rockets with two or more flights, 31 flights,
   20 later flights.
