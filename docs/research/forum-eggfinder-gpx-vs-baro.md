@@ -137,7 +137,7 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
 
 ## 7. What HPR Sim reads today
 
-`hpr analyze <file>` on a build of 2026-10-23; the readers' code checked on main at `0ece4ab8`. None refused.
+`hpr analyze <file>`, 2026-10-23 (main `0ece4ab8`); none refused. Since ADR-366 the `.pf2`'s opening reads 90.00 s.
 
 | File (SHA-256 prefix) | Outcome |
 |---|---|

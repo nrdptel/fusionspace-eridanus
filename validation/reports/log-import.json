@@ -4116,14 +4116,14 @@
             }
           },
           "drogue_descent": {
-            "given": 19,
+            "given": 22,
             "withheld": {
               "disturbed_top": 4,
               "ends_before_landing": 16,
               "no_climb": 1,
-              "one_canopy": 8,
+              "one_canopy": 4,
               "sampled_too_slowly": 1,
-              "short_leg": 1
+              "short_leg": 2
             }
           },
           "flight_time": {
@@ -4216,12 +4216,12 @@
             }
           },
           "drogue_descent": {
-            "given": 1,
+            "given": 2,
             "withheld": {
               "disturbed_top": 1,
               "ends_before_landing": 1,
               "needs": 1,
-              "one_canopy": 2,
+              "one_canopy": 1,
               "short_leg": 1,
               "short_pad": 7
             }
@@ -6536,11 +6536,11 @@
             }
           },
           "drogue_descent": {
-            "given": 95,
+            "given": 96,
             "withheld": {
               "disturbed_top": 15,
               "ends_before_landing": 11,
-              "one_canopy": 52,
+              "one_canopy": 51,
               "short_leg": 2
             }
           },
@@ -6948,11 +6948,11 @@
             }
           },
           "drogue_descent": {
-            "given": 33,
+            "given": 35,
             "withheld": {
               "disturbed_top": 9,
               "ends_before_landing": 4,
-              "one_canopy": 32,
+              "one_canopy": 30,
               "sampled_too_fast": 1,
               "short_leg": 1
             }
@@ -8074,13 +8074,13 @@
       },
       {
         "reason": "one_canopy",
-        "records": 181,
+        "records": 173,
         "first": "0040ac8c3e5af57b",
         "invented": null
       },
       {
         "reason": "short_leg",
-        "records": 11,
+        "records": 12,
         "first": "17f790bd96cb9241",
         "invented": null
       }
