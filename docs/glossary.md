@@ -977,7 +977,9 @@ A library of routines for computing integrals numerically, published by Piessens
 A rail button is a small flanged knob on the airframe that slides in the launch rail's slot. A
 launch lug is a short tube that slides along a launch rod. Both are guides: the parts that
 hold the rocket on its rod or rail until it leaves. The flight page says *guide* for either, and
-*button* where it follows RocketPy, which models buttons. See
+*button* where it follows RocketPy, which models buttons. The flight page calls a flight *guided*
+when [tip-off](#tip-off) is turned off and the rocket is held straight until its last guide leaves
+the rail. See
 [Rigid-body flight](physics/flight.md#tip-off).
 
 ### Rail exit and rail-exit velocity
@@ -985,7 +987,7 @@ hold the rocket on its rod or rail until it leaves. The flight page says *guide*
 Rail exit is the moment the rocket leaves the launch rail and starts to fly free; the rail-exit
 velocity is its speed then. HPR Sim holds the rocket to the rail until the aft edge of its aft-most rail
 button or launch lug passes the top of the rail. RocketPy stops guiding it at the forward button. A rocket
-with two guides leaves turning slightly, since it pivots on its last guide once the other has left
+with two or more guides at different stations leaves turning slightly, since it pivots on its last guide once the other has left
 ([tip-off](#tip-off)). With one guide, or with tip-off turned off, it leaves with no rotation.
 Against RocketPy's tip-off phase, leaving tip-off
 out moves the landing point by up to 3.765% of the apogee
@@ -1293,7 +1295,7 @@ download a motor's files itself
 
 The unwanted turn a rocket picks up as it is let go. Leaving a launch rail, it pivots about its last
 guide, the aft-most rail button or launch lug. The recovery page uses the word for a separation too. HPR Sim
-models the first by default, for a rocket with two guides, and not the second: a separated body
+models the first by default, for a rocket with two or more guides at different stations, and not the second: a separated body
 starts with no spin of its own. RocketPy's
 tip-off phase puts the cost of leaving the first out at up to 3.765% of the apogee in the
 landing point. That is one code against another, and no flight checks it

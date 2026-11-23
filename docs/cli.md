@@ -765,7 +765,10 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 **Tip-off.** A design with two or more rail guides (rail buttons or launch lugs) at different
 stations turns about its last guide once the guide ahead of it has left the rail, pushed by
 gravity and by a crosswind ([Tip-off](physics/flight.md#tip-off)). That is the default, and no
-flight has checked it: the phase is held to another code's, in still air. `--no-tip-off` flies
+flight has checked it: the phase is held to another code's, in still air. On the real flights it
+moves each apogee by under 1%. The landing point can move more. No real flight's landing point
+is compared yet, but on RocketPy's thirteen example designs, leaving the phase out moves it by up
+to 3.765% of the apogee ([what leaving it out costs](physics/flight.md#what-leaving-tip-off-out-costs)). `--no-tip-off` flies
 without it, to compare with OpenRocket or with an older result. `hpr mc` and `hpr compare` take
 the option too, and the JSON output's `launch.tip_off` says which was flown.
 

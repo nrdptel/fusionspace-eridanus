@@ -327,11 +327,14 @@ Four options make it RocketPy's flight:
 - **No tip-off.** `Flight(..., tip_off=False)` holds the rocket straight until its last rail
   button leaves the rail, then frees it with no turning rate. RocketPy 1.13.0 has no such phase:
   it frees the rocket where its forward button leaves the rail, with no pivot. By default
-  HPR Sim lets a rocket with two rail buttons, as Calisto has, turn about its last one once the
-  other has left ([Tip-off](physics/flight.md#tip-off)).
+  HPR Sim lets a rocket with two or more rail guides at different stations, such as Calisto
+  with its two buttons, turn about its last one once the one ahead of it has left
+  ([Tip-off](physics/flight.md#tip-off)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2,649 m (8,691 ft) above the pad:
+as in the section above, to 2,649 m (8,691 ft) above the pad. This short example passes only the
+table. HPR Sim's gravity, its parachutes added together and its tip-off phase stay as they are,
+so it isn't yet RocketPy's flight. The example file after it, `calisto.py`, sets all four:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])

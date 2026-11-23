@@ -70,8 +70,12 @@ European Commission nor ECMWF is responsible for any use made of it.
   with 3D flight replay.
 - Motors other than commercial solid ones: no hybrids, liquids or research motors before
   release 1.0.
-- Effects a flight leaves out: gusts, the rocket pitching as it leaves the rail, a motor's thrust
-  off its axis, and a parachute's opening shock. A turbulence model exists, but no flight uses it.
+- Effects a flight leaves out: gusts, a motor's thrust off its axis, and a parachute's opening
+  shock. A turbulence model exists, but no flight uses it.
+- Tip-off, the rocket pitching as it leaves the rail, is flown by default for a design with two or
+  more rail guides at different stations along the body. It's held to another simulator's in
+  still air, not yet in a crosswind, and no real flight checks it
+  ([tip-off](docs/physics/flight.md#tip-off)).
 - Accuracy: simulated apogees miss real flights' logged ones by more than the target (above).
   Drag past Mach 1 is lightly checked, and only small angles of attack are modeled.
   [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you're most likely to meet,
