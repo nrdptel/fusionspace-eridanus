@@ -42,7 +42,8 @@ as its motor burns.
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)),
   turbulence and thrust misalignment. Tip-off (the pivot as the rocket leaves the rail) is
-  flown by default for a design with two rail guides ([Tip-off](#tip-off)). That phase is held
+  flown by default for a design with two or more rail guides at different stations
+  ([Tip-off](#tip-off)). That phase is held
   to RocketPy's on RocketPy's normal force, and on HPR Sim's own in still air only. RocketPy's
   tip-off phase puts the pivot's size at up to 3.765% of the apogee in the landing point and
   0.414% in the apogee, one code against another with no flight to check it
@@ -354,9 +355,9 @@ $$
   - A button's axial extent is its outer diameter, and a lug's is its length.
   - The rocket leaves after traveling $L - (s_{\mathrm{aft}} - s_{\mathrm{guide}})$. RocketPy ends its rail phase when
     the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
-    rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
-  - The pivot about the last guide ("tip-off") is flown where the design has two guides
-    ([Tip-off](#tip-off)). With one guide, or with the phase turned off, the rocket leaves the
+    rocket on the rail until its last guide leaves ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
+  - The pivot about the last guide ("tip-off") is flown where the design has two or more guides
+    at different stations ([Tip-off](#tip-off)). With one guide, or with the phase turned off, the rocket leaves the
     rail with no angular velocity. On thirteen
     example designs, RocketPy's tip-off phase moves the
     landing point by up to 3.765% of the apogee and the apogee by up to 0.414%, one code
@@ -384,7 +385,7 @@ The phase is on by default. To turn it off:
   ([the Python page](../python.md#every-class-and-method)).
 
 With it off, the rocket is held straight until its last guide leaves the rail and is then freed
-with no turning rate. Neither OpenRocket nor RocketPy 1.13.0 has such a phase: RocketPy 1.13.0
+with no turning rate. This page calls that flight *guided*. Neither OpenRocket nor RocketPy 1.13.0 has such a phase: RocketPy 1.13.0
 frees the rocket where its forward button leaves the rail, with no pivot. So the comparisons
 with those two codes here fly with the phase off, and their reports say so.
 
@@ -1071,8 +1072,8 @@ record][adr-364]); the gate holds it (`--check`).
 - **What flies.** Every real flight HPR Sim compares, each as its own report flies it: the twelve
   public flights of [the real-flight report](../accuracy.md#real-flights), and the private
   collection's flights, given in aggregate only. Each flies with the phase, as by default, and
-  *guided*: held straight to its last guide and then freed, the phase turned off. A design needs two guides (rail buttons
-  or launch lugs) at different stations for the phase to move it: 10 of the 12 public flights have
+  *guided*: held straight to its last guide and then freed, the phase turned off. A design needs two or more guides (rail
+  buttons or launch lugs) at different stations for the phase to move it: 10 of the 12 public flights have
   them, and 23 of the collection's 60. Each flies again in still air: the same air with its wind
   taken out, so that what the phase moves there is gravity's turn about the last guide alone.
 - **Gravity lowers; the wind's part is open.** In still air the phase lowers 9 of the 10 public

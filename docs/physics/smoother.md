@@ -17,9 +17,11 @@ sensors, and how well its 90% intervals hold.
   in [ADR-300, the smoother and its check][adr-300].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
   truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.1% to 97.5% of
-  set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). Two
-  logger cells fall under 90%: 88.7% on set B and 80% on the tuning set, which the check's rule allows. Sets
-  A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
+  set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). A truth
+  is a synthetic flight's true height or speed. Two logger cells fall under 90%, which the check's
+  rule allows. One is 88.7% on set B. The other is 80% on the tuning set, the synthetic flights the
+  smoother's rules were set on ([the sets](synthetic-flights.md#the-sets)): 24 of 30 truths, the
+  RRC3 logger's speed at apogee. Sets A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)). Tracking from the ground can't stand in for one: a
   contest's optical track gives one height and no speed. Its apogee scatters about 2% (one
