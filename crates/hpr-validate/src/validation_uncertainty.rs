@@ -1,5 +1,6 @@
-//! A validation uncertainty for each real flight, after ASME V&V 20-2009 (M1.14b, ADR-351
-//! decision 2 and ADR-373).
+//! A validation uncertainty for each real flight, after ASME V&V 20-2009 ([M1.14b16][m1-14b16],
+//! the combination and the numerical part; [the decision that planned it][adr-351], decision 2,
+//! and [the one that splits it in three][adr-373]).
 //!
 //! V&V 20 writes a comparison error `E = S − D`, the simulation's value less the data's, as the
 //! model's own error and three others: `E = δ_model + δ_num + δ_input − δ_D`. Each of the three
@@ -18,7 +19,13 @@
 //! a band of about 95%; it is divided by `k = 2` for a standard uncertainty, the divisor NIST's
 //! summary gives for a Gaussian about the finer run (NISTIR 8298, 2020, §4, p. 17; it gives 1.1
 //! to 1.15 for a shifted one, and neither was checked against the standard). The input and data
-//! parts come in M1.14b17 and M1.14b18.
+//! parts come in [M1.14b17][m1-14b17] and [M1.14b18][m1-14b18].
+//!
+//! [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
+//! [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
+//! [m1-14b18]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b18
+//! [adr-351]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
+//! [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 
 use std::path::Path;
 

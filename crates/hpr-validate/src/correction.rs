@@ -75,7 +75,9 @@ pub struct Variant {
     /// Whether the wind is taken out: what the phase moves in still air is gravity's part alone.
     pub still_air: bool,
     /// Whether the time step is halved: the flight flown again for its numerical uncertainty
-    /// ([`Variant::settings`]; ADR-373).
+    /// ([`Variant::settings`]; [the decision that splits the validation uncertainty][adr-373]).
+    ///
+    /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
     #[serde(default)]
     pub step_halved: bool,
 }
@@ -84,7 +86,9 @@ pub struct Variant {
 /// 5(4) controls a local error estimate of order `h⁵` (Hairer, Nørsett and Wanner, *Solving
 /// Ordinary Differential Equations I*, 2nd ed., §II.4, eq. 4.12: the new step scales as
 /// `(1/err)^(1/(q+1))` with `q = 4`), so a tolerance `2⁵` times tighter asks for steps half as
-/// long (ADR-373).
+/// long ([the decision that splits the validation uncertainty][adr-373]).
+///
+/// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 pub const STEP_HALVING_TOLERANCE_DIVISOR: f64 = 32.0;
 
 impl Variant {

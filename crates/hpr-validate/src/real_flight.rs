@@ -824,7 +824,10 @@ pub struct RealFlightReport {
     pub predicted_first: Vec<ComparedPrediction>,
     /// Each flight's comparison error and the numerical part of its validation uncertainty, the
     /// flights compared first and then those predicted first
-    /// ([`crate::validation_uncertainty`]; ADR-373).
+    /// ([`crate::validation_uncertainty`]; [the decision that splits the validation
+    /// uncertainty][adr-373]).
+    ///
+    /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
     pub validation_uncertainty: Vec<crate::validation_uncertainty::UncertaintyRow>,
     /// The summary, computed from the rows.
     pub summary: Summary,
