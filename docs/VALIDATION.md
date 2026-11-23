@@ -451,12 +451,24 @@ Two builds run these checks in CI. `validate --check` runs from the everyday (de
 `reports` job. The checks that fly many flights run from `report-check`, a Cargo build setting
 with release's speed plus the assertions and overflow checks of the everyday build, in the
 `validate` job: `cargo xtask motor-catalog --check` and the censuses' slices, on the same pull
-requests. Optimizing keeps their numbers to the digits they compare. The flight censuses, `cargo xtask synthetic --check`, `cargo xtask two-logs --check`
+requests. Optimizing keeps their words; the synthetic census, whose counts it can move, is
+written in `report-check` alone (below). The flight censuses, `cargo xtask synthetic --check`, `cargo xtask two-logs --check`
 and `cargo xtask fit --check`, fly thousands of flights each, so CI runs them whole each night on
 main, not on every pull request
 ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
 the synthetic flights and two logs on all five platforms, in the `census` job, and the fit in
-parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
+parts on Linux.
+
+The synthetic census is written on macOS in `report-check` and held there byte for byte. One of
+its readings sits on the edge of an interval: set A's drogue descent rate, on 428 flights, under
+the probe that narrows each 90% interval to 0.8 of its width. macOS, both Linux runners and
+Windows on x86-64 count 313 truths inside it and 51 above; Windows on ARM, and the everyday build,
+count 312 and 52. So on the other four platforms an interval test's counts of truths below, inside
+and above may each differ by one flight, and the bands made from those counts move with them.
+Every other number is held exactly
+([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)).
+
+A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
 nightly failure opens an issue that is fixed before other work. Pull requests, on all five
 platforms, and `scripts/gate.sh` check a slice of each instead: every 21st flight of each set,
@@ -470,11 +482,12 @@ numbers can move there but what the census counts, such as the side a truth fall
 holds every flight to, such as a reading past its bound. So a pull request's pass covers one flight
 in 21; the rest, and what only a whole set shows, its ranges, coverage tests and fitted shares,
 wait for the night. `scripts/gate.sh` (the gate: the checks a change passes on the maintainer's Mac
-before it merges) runs the slices in the build that writes each report: the everyday build, the
-optimized one for the fit. The gate's default run leaves these checks out only when a change is prose they don't read,
+before it merges) runs the slices in the build that writes each report: the optimized one for
+the synthetic flights and the fit, the everyday one for two logs. The gate's default run leaves these checks out only when a change is prose they don't read,
 such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
-named. So a report in the repository has to reproduce from both builds, its slice in words. If the optimized build
-ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a
+named. So two logs' report has to reproduce from both builds, its slice in words; the synthetic
+census and the fit are written in the optimized build alone. If the optimized build ever came out
+differently for two logs, the nightly run would fail and regenerating wouldn't fix it: that would need a
 decision record, not a looser check.
 
 These checks have a time budget
@@ -521,10 +534,15 @@ side by side:
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may differ from the committed report by 5, whether of flights, posteriors or
-  failed draws, and the draws made, 500 to a posterior, by 5 posteriors' worth, 2,500. A figure, and each share
-  fitted on the calibration set, may differ by 5% of the larger of the two values or 0.002,
-  whichever allows more. The slice is held in its words, as above, not by these allowances.
+  section 7). A count of flights or posteriors may differ from the committed report by 5. The
+  draws made, 500 to a posterior, may differ by 5 posteriors' worth, 2,500. A set's failed draws
+  may differ by the failed draws of its 5 posteriors that failed most, and by never less than 5
+  draws. A draw fails where its flight can't be flown or its weight isn't finite. A posterior's
+  draws are made around its flight's fit, so one posterior can fail many draws while most fail
+  none, and another platform's slightly different fit can move which fail
+  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)). A figure, or a share
+  fitted on the calibration set, may differ by 5% of the larger value or by 0.002, whichever
+  allows more. The slice is held in its words, as above, not by these allowances.
 
 A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
 test holds that to the bit. On a Mac, three parts put back together left no number of the report

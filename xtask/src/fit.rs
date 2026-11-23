@@ -614,13 +614,41 @@ const OTHER_PLATFORM_FLIGHTS: u64 = 5;
 const OTHER_PLATFORM_SHARE: f64 = 0.05;
 const OTHER_PLATFORM_ABSOLUTE: f64 = 0.002;
 
+/// The failed draws another platform's set may stand off the committed set's: the failures of
+/// the [`OTHER_PLATFORM_FLIGHTS`] posteriors among `fits` that failed most, and never less than
+/// that many draws. A failed draw isn't an event of its own. A posterior's draws are made around
+/// its flight's least-squares fit, and a draw fails where its flight can't be flown or its weight
+/// isn't finite, so one posterior can fail many draws while most fail none. Another platform's
+/// slightly different fit moves where the draws land, and so can move which fail. The room lets five
+/// posteriors stand otherwise, as a count lets five flights (ADR-372; #1602: set B's flight 3328
+/// failed 12 draws on macOS and 31 on Linux). The posteriors are those of the platform that makes
+/// the report being checked, so a rise confined to five posteriors passes whatever its size.
+fn failed_room<'a>(fits: impl Iterator<Item = &'a FlightFit>) -> u64 {
+    let mut failed: Vec<u64> = fits
+        .filter(|f| f.fitted)
+        .filter_map(|f| f.posterior.as_ref())
+        .map(|p| p.failed as u64)
+        .collect();
+    failed.sort_unstable_by(|a, b| b.cmp(a));
+    let most: u64 = failed
+        .iter()
+        .take(usize::try_from(OTHER_PLATFORM_FLIGHTS).unwrap_or(usize::MAX))
+        .sum();
+    most.max(OTHER_PLATFORM_FLIGHTS)
+}
+
 /// What separates a report from the committed one.
 #[derive(Default)]
 struct Apart {
     differing: u64,
     most_flights: u64,
+    /// The most a set's failed draws stand off, which [`Apart::failed_rooms`] holds.
+    most_failed: u64,
     most_share: f64,
     broken: Vec<String>,
+    /// Each set's room for its failed draws, in the report's order ([`failed_room`]); a set
+    /// without one has the flights' room.
+    failed_rooms: Vec<u64>,
 }
 
 impl Apart {
@@ -650,14 +678,26 @@ impl Apart {
                 self.differing += 1;
                 if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
                     let flights = a.abs_diff(b);
-                    self.most_flights = self.most_flights.max(flights);
                     // A posterior makes 500 draws, so the draws made, 500 for each posterior,
-                    // may stand as many draws off as the posteriors may flights. A failed draw
-                    // is one draw's own event, not a flight's 500: the failed draws are held to
-                    // the flights' room, which CI's Linux runner kept within 1 on every count,
-                    // these included (the 32 parts put together on 2026-11-03).
+                    // may stand as many draws off as the posteriors may flights. A set's failed
+                    // draws may stand off by its room, the failures of the five posteriors that
+                    // failed most ([`failed_room`], ADR-372).
+                    let failed_set = at
+                        .strip_prefix("/sets/")
+                        .and_then(|rest| rest.strip_suffix("/draws/failed"))
+                        .and_then(|k| k.parse::<usize>().ok());
+                    if failed_set.is_some() {
+                        self.most_failed = self.most_failed.max(flights);
+                    } else {
+                        self.most_flights = self.most_flights.max(flights);
+                    }
                     let allowed = if at.ends_with("/draws/made") {
                         OTHER_PLATFORM_FLIGHTS * (POSTERIOR_PILOT + POSTERIOR_DRAWS) as u64
+                    } else if let Some(k) = failed_set {
+                        self.failed_rooms
+                            .get(k)
+                            .copied()
+                            .unwrap_or(OTHER_PLATFORM_FLIGHTS)
                     } else {
                         OTHER_PLATFORM_FLIGHTS
                     };
@@ -1122,8 +1162,9 @@ fn page(report: &Report) -> String {
     out
 }
 
-/// The report from the fits of its runs, in [`runs`]' order, with what doesn't come out as it must.
-fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), String> {
+/// The report from the fits of its runs, in [`runs`]' order, with what doesn't come out as it must
+/// and each set's room for its failed draws on another platform ([`failed_room`]).
+fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>, Vec<u64>), String> {
     let wrong = || {
         format!(
             "{} runs of fits, where the report reads {}",
@@ -1134,6 +1175,7 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
     let mut run = made_runs.iter();
     let mut broken = Vec::new();
     let mut sets = Vec::new();
+    let mut failed_rooms = Vec::new();
     for set in [Set::A, Set::B] {
         let (Some(made), Some(more)) = (run.next(), run.next()) else {
             return Err(wrong());
@@ -1168,12 +1210,13 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
         report.not_converged = stopped.len() as u64;
         // The flights counted and the wind's, each once.
         let mut seen = BTreeSet::new();
-        report.draws = Draws::of(
-            counted
-                .iter()
-                .chain(&tracked)
-                .filter(|f| seen.insert(f.index)),
-        );
+        let drawn: Vec<&FlightFit> = counted
+            .iter()
+            .chain(&tracked)
+            .filter(|f| seen.insert(f.index))
+            .collect();
+        report.draws = Draws::of(drawn.iter().copied());
+        failed_rooms.push(failed_room(drawn.iter().copied()));
         report.said_nothing_gnss_alone = made
             .iter()
             .filter(|f| !f.fitted && f.index < report.drawn)
@@ -1278,6 +1321,7 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
             noise,
         }),
         broken,
+        failed_rooms,
     ))
 }
 
@@ -1651,7 +1695,7 @@ fn other_platform_stops(path: &Path, made: &mut crate::slice::Slice) -> (Vec<Str
 /// `--check --other-platform`: the report `made_runs` make, held to the committed report by
 /// [`Apart`]'s rules, the shares by its rule for a figure, and the slice in its words.
 fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), String> {
-    let (report, mut broken) = report_of(made_runs)?;
+    let (report, mut broken, failed_rooms) = report_of(made_runs)?;
     broken.extend(grown_gaps(&report.sets, OTHER_PLATFORM_FLIGHTS));
     broken.extend(shares_problems(made_runs, false));
     let json_path = root.join(format!("{REPORT}.json"));
@@ -1660,13 +1704,19 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
     let committed: serde_json::Value =
         serde_json::from_str(&committed).map_err(|e| e.to_string())?;
     let made = serde_json::to_value(&report).map_err(|e| e.to_string())?;
-    let mut apart = Apart::default();
+    let mut apart = Apart {
+        failed_rooms,
+        ..Apart::default()
+    };
     apart.walk("", &committed, &made);
     println!(
-        "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%",
+        "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%; a \
+         set's failed draws by at most {}, where they may stand off by {:?} (ADR-372)",
         apart.differing,
         apart.most_flights,
-        100.0 * apart.most_share
+        100.0 * apart.most_share,
+        apart.most_failed,
+        apart.failed_rooms
     );
     broken.extend(apart.broken);
     let (mut slice, _) = slice_of(made_runs, &drawn_of(&report))?;
@@ -1913,7 +1963,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         [] | ["--check"] => {
             let check = !args.is_empty();
             let made_runs = fit_runs(&files, Part::WHOLE)?;
-            let (report, mut broken) = report_of(&made_runs)?;
+            let (report, mut broken, _) = report_of(&made_runs)?;
             broken.extend(grown_gaps(&report.sets, 0));
             broken.extend(shares_problems(&made_runs, true));
             let (slice, _) = slice_of(&made_runs, &drawn_of(&report))?;
@@ -2345,6 +2395,71 @@ mod tests {
         assert!(!failed(130).is_empty());
         assert!(!failed(118).is_empty());
         assert!(!failed(624).is_empty());
+        // A set's failed draws stand off by its own room, its five posteriors' that failed most
+        // (ADR-372): set B's 281 against Linux's 298, in a room of 68; past it, it fails.
+        let set_failed = |rooms: Vec<u64>, failed: u64| {
+            let mut apart = Apart {
+                failed_rooms: rooms,
+                ..Apart::default()
+            };
+            apart.walk(
+                "",
+                &json!({"sets": [{"draws": {"failed": 170}}, {"draws": {"failed": 281}}]}),
+                &json!({"sets": [{"draws": {"failed": 170}}, {"draws": {"failed": failed}}]}),
+            );
+            apart.broken
+        };
+        assert!(set_failed(vec![17, 68], 298).is_empty());
+        assert!(set_failed(vec![17, 68], 349).is_empty());
+        assert!(set_failed(vec![17, 68], 213).is_empty());
+        assert!(!set_failed(vec![17, 68], 350).is_empty());
+        assert!(!set_failed(vec![17, 68], 212).is_empty());
+        // Without a room for the set, the flights' five.
+        assert!(!set_failed(vec![17], 298).is_empty());
+        assert!(set_failed(vec![17], 286).is_empty());
+        // The room is the failed draws' alone: a set's other counts keep the flights' five.
+        let mut apart = Apart {
+            failed_rooms: vec![17, 68],
+            ..Apart::default()
+        };
+        apart.walk(
+            "",
+            &json!({"sets": [{"draws": {"posteriors": 2276}}, {"draws": {"posteriors": 2296}, "not_converged": 6}]}),
+            &json!({"sets": [{"draws": {"posteriors": 2276}}, {"draws": {"posteriors": 2302}, "not_converged": 12}]}),
+        );
+        assert_eq!(apart.broken.len(), 2, "{:?}", apart.broken);
+        assert_eq!((apart.most_flights, apart.most_failed), (6, 0));
+    }
+
+    /// A set's room for its failed draws is the failures of its five posteriors that failed most,
+    /// never less than five draws; a fit without a posterior, or with nothing to fit, adds nothing.
+    #[test]
+    fn the_failed_draws_room_is_five_posteriors_failures() {
+        let fit = |failed: Option<usize>, fitted: bool| FlightFit {
+            fitted,
+            posterior: failed.map(|failed| hpr_forensics::posterior::Posterior {
+                quantiles: [[0.9, 1.0, 1.1]; hpr_forensics::fit::FLOWN],
+                effective_draws: 4.0,
+                draws: 500,
+                failed,
+                enough: false,
+            }),
+            ..a_fit(0)
+        };
+        let fits = [
+            fit(Some(31), true),
+            fit(Some(16), true),
+            fit(Some(7), true),
+            fit(Some(7), true),
+            fit(Some(7), true),
+            fit(Some(6), true),
+            fit(Some(40), false),
+            fit(None, true),
+        ];
+        assert_eq!(failed_room(fits.iter()), 68);
+        assert_eq!(failed_room(fits[..1].iter()), 31);
+        assert_eq!(failed_room([fit(Some(1), true)].iter()), 5);
+        assert_eq!(failed_room(std::iter::empty()), 5);
     }
 
     /// The worked example on the fit's page is this flight's.
