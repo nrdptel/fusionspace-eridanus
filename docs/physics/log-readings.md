@@ -627,11 +627,27 @@ the other way, and the split is after the bounce.
 
 The rates aren't independent, since they are a running median of overlapping fits. So the
 likelihood is the rule's reason and gives no confidence of its own. The opening's bound, under
-*The opening's bound* below, is derived for a descent whose rates go from fast to slow once. Where they
-change more often, the tests here hold the split's opening to that same bound, and nothing
-proves it. One shape is known to break it: a drogue falling near the limit, slow for a few
-seconds and then fast just before the main opens, reads its opening seconds early
-([issue #1593, the bound where the split is earlier than the walk](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)).
+*The opening's bound* below, is derived for a descent whose rates go from fast to slow once.
+There the split is the walk's start. Where the rates change more often, the split can be earlier
+than the walk's start, and the log alone can't say which is the opening:
+
+- **A swing under the main** makes the walk's start late. The split is right
+  ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
+- **A drogue falling near the limit,** slow for a few seconds and then fast just before the main
+  opens, makes the split early. The walk is right
+  ([issue #1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). In 30 slow rates,
+  200 fast, 100 slow, 25 fast and 1,000 slow, the split is at 230 and the walk's start, the
+  opening, at 355.
+
+So where the two differ, the opening's bound adds the time between them: it holds an opening at
+the split or at the walk's start, each with the margin it would have alone
+([ADR-374][adr-374]). The reading is still the split. The drogue's leg ends at the split, so it
+leaves out the stretch between the two. Where that stretch falls slower than the rest of the
+leg, as in issue #1593's shape, the drogue's rate reads fast. Where it falls faster, it reads
+slow, the flattering side for a descent-energy figure. A test invents issue #1593's shape: a
+drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for 8 s, then 18 m/s for 3 s before the main
+opens. The opening lies within its bound, and the drogue's rate reads more than 0.5 m/s
+(1.6 ft/s) faster than the leg's own.
 
 Three tests hold the rule to the cases that showed the walk wrong
 ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)). Two invent a flight with
@@ -650,8 +666,9 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   nothing elsewhere). Its rocket swings under the main. The issue measures the drogue's
   descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
-  drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s, with a bound of 0.76 s, and
-  17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The charge fired 2.85 s before the reading: the
+  drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s and the drogue's descent
+  17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The opening's bound is 19.21 s: 0.76 s about the
+  split, and the 18.45 s to the walk's start at the swing, which the log alone can't rule out. The charge fired 2.85 s before the reading: the
   bound leaves out the time a canopy takes to come out and fill.
 
 That is one real flight with a logged charge time ([evidence row G10](../evidence.md#g10)).
@@ -735,7 +752,9 @@ opening. The bound is $\tau$, half the 1 s fit and two sample intervals. One int
 the run starts on, and one more is HPR Sim's margin. A canopy's
 [filling time](../glossary.md#inflation-and-filling-time) isn't in it: the synthetic flights open
 each canopy at once ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779), the
-opening's bound and a canopy's filling time).
+opening's bound and a canopy's filling time). Where the split is earlier than the walk's start,
+the bound adds the time between them, and its two sample intervals are the coarser of the two
+places' ([ADR-374][adr-374]).
 
 On the invented PerfectFlite flight, the main's rate near the ground is 6.0 m/s (20 ft/s), so the
 run's mark is 9.6 m/s (31.5 ft/s). That is 1.6 times the rate, more than 3 m/s (9.8 ft/s) above it. The
@@ -1803,6 +1822,7 @@ truth beside the logs, that doesn't say how each rocket came down.
 [adr-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
 [adr-283]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0283-the-rest-of-the-readings.md
 [adr-366]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0366-the-mains-opening-at-the-likeliest-split.md
+[adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [noise]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-sensor-noise.md
