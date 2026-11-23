@@ -362,7 +362,8 @@ jobs:
       # The flight censuses' slices (M0.16a1, ADR-149 amended): every 21st flight of each set of the
       # synthetic flights and of two logs, flown again, held to the census's rules for one flight and
       # to its committed slice in every word, its numbers aside: a flight's numbers can move
-      # off the Mac's everyday build, where `scripts/gate.sh` holds them byte for byte. The whole
+      # off the Mac, where `scripts/gate.sh` holds them byte for byte (the synthetic flights' in
+      # `report-check`, two logs' in the everyday build). The whole
       # censuses run each night (`census`).
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --slice --other-platform
@@ -371,8 +372,9 @@ jobs:
 
   # The flight censuses, whole, on every platform, each night (ADR-149, amended). The synthetic
   # flights' census (M7.2a, ADR-280): every flight flown again, held to the committed census byte
-  # for byte on macOS, where it is written, and elsewhere within one flight on a count and 5% or
-  # 0.002 on a figure, since a reading on an interval's edge can fall otherwise (ADR-372). The clock offset between two logs of one flight (M7.2f,
+  # for byte on macOS, where it is written, and elsewhere with an interval test's counts within
+  # one flight and the bands made from them following, since a reading on an interval's edge can
+  # fall otherwise; every other number exactly (ADR-372). The clock offset between two logs of one flight (M7.2f,
   # ADR-312): held on two-logger and staged synthetic flights, on seeds of their own, to the
   # committed report. On every pull request they made `validate` and `examples` CI's slowest jobs, 20 to 30
   # minutes on Windows (issue #1018), so a pull request flies their slices (`validate`) and leaves

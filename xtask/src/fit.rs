@@ -616,11 +616,13 @@ const OTHER_PLATFORM_ABSOLUTE: f64 = 0.002;
 
 /// The failed draws another platform's set may stand off the committed set's: the failures of
 /// the [`OTHER_PLATFORM_FLIGHTS`] posteriors among `fits` that failed most, and never less than
-/// that many draws. A failed draw isn't an event of its own: a posterior's failures fall where its
-/// chain wanders, and a poorly mixed chain moves as a whole when a math library's last digits move
-/// its start, so the room lets five posteriors stand otherwise, as a count lets five flights
-/// (ADR-372; #1602: set B's flight 3328, 3.6 to 4.7 effective draws, failed 12 draws on macOS and
-/// 31 on Linux). The posteriors are the platform's that makes the report being checked.
+/// that many draws. A failed draw isn't an event of its own. A posterior's draws are made around
+/// its flight's least-squares fit, and a draw fails where its flight can't be flown or its weight
+/// isn't finite, so one posterior can fail many draws while most fail none. Another platform's
+/// slightly different fit moves where the draws land, and so which fail. The room lets five
+/// posteriors stand otherwise, as a count lets five flights (ADR-372; #1602: set B's flight 3328
+/// failed 12 draws on macOS and 31 on Linux). The posteriors are those of the platform that makes
+/// the report being checked, so a rise confined to five posteriors passes whatever its size.
 fn failed_room<'a>(fits: impl Iterator<Item = &'a FlightFit>) -> u64 {
     let mut failed: Vec<u64> = fits
         .filter(|f| f.fitted)
@@ -640,6 +642,8 @@ fn failed_room<'a>(fits: impl Iterator<Item = &'a FlightFit>) -> u64 {
 struct Apart {
     differing: u64,
     most_flights: u64,
+    /// The most a set's failed draws stand off, which [`Apart::failed_rooms`] holds.
+    most_failed: u64,
     most_share: f64,
     broken: Vec<String>,
     /// Each set's room for its failed draws, in the report's order ([`failed_room`]); a set
@@ -674,7 +678,6 @@ impl Apart {
                 self.differing += 1;
                 if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
                     let flights = a.abs_diff(b);
-                    self.most_flights = self.most_flights.max(flights);
                     // A posterior makes 500 draws, so the draws made, 500 for each posterior,
                     // may stand as many draws off as the posteriors may flights. A set's failed
                     // draws may stand off by its room, the failures of the five posteriors that
@@ -683,6 +686,11 @@ impl Apart {
                         .strip_prefix("/sets/")
                         .and_then(|rest| rest.strip_suffix("/draws/failed"))
                         .and_then(|k| k.parse::<usize>().ok());
+                    if failed_set.is_some() {
+                        self.most_failed = self.most_failed.max(flights);
+                    } else {
+                        self.most_flights = self.most_flights.max(flights);
+                    }
                     let allowed = if at.ends_with("/draws/made") {
                         OTHER_PLATFORM_FLIGHTS * (POSTERIOR_PILOT + POSTERIOR_DRAWS) as u64
                     } else if let Some(k) = failed_set {
@@ -1702,11 +1710,12 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
     };
     apart.walk("", &committed, &made);
     println!(
-        "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%; the \
-         sets' failed draws may stand off by {:?} (ADR-372)",
+        "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%; a \
+         set's failed draws by at most {}, where they may stand off by {:?} (ADR-372)",
         apart.differing,
         apart.most_flights,
         100.0 * apart.most_share,
+        apart.most_failed,
         apart.failed_rooms
     );
     broken.extend(apart.broken);
@@ -2408,6 +2417,18 @@ mod tests {
         // Without a room for the set, the flights' five.
         assert!(!set_failed(vec![17], 298).is_empty());
         assert!(set_failed(vec![17], 286).is_empty());
+        // The room is the failed draws' alone: a set's other counts keep the flights' five.
+        let mut apart = Apart {
+            failed_rooms: vec![17, 68],
+            ..Apart::default()
+        };
+        apart.walk(
+            "",
+            &json!({"sets": [{"draws": {"posteriors": 2276}}, {"draws": {"posteriors": 2296}, "not_converged": 6}]}),
+            &json!({"sets": [{"draws": {"posteriors": 2276}}, {"draws": {"posteriors": 2302}, "not_converged": 12}]}),
+        );
+        assert_eq!(apart.broken.len(), 2, "{:?}", apart.broken);
+        assert_eq!((apart.most_flights, apart.most_failed), (6, 0));
     }
 
     /// A set's room for its failed draws is the failures of its five posteriors that failed most,

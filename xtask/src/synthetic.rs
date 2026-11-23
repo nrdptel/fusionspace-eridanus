@@ -69,32 +69,50 @@ pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
                            sections of the JSON are compared; the page always is. A set left out
                            isn't checked, so CI names each set on one line per platform.
                            A whole run writes, and a check compares, the slice too.
-                           Every form flies in the optimized `report-check` build; the dev
-                           build runs it there (ADR-372).
+                           Every form flies in the optimized `report-check` build; another
+                           build runs it there (ADR-372). --check --other-platform holds the
+                           census as a platform other than macOS, where it is written, may make
+                           it: an interval test's counts within one flight and the bands made
+                           from them following, every other number and word exactly.
   synthetic --slice        Fly only the slice, every 21st flight of each set, and hold each to
                            the committed validation/reports/synthetic-flights.slice.json and to
                            the census's per-flight rules; writes nothing.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
                            test them on sets A and B, print the section; writes nothing.";
 
-/// Whether this build is optimized. The census is flown, written and checked in one build,
+/// Whether this is the census's build. The census is flown, written and checked in one build,
 /// `report-check`'s: every crate optimized, the dev profile's debug assertions and overflow checks
-/// kept. The dev build reads a flight here and there a last digit apart, and on an interval's edge
-/// that moves a count: set A's drogue rate read 312 inside its narrowed interval in the dev build
-/// and 313 in the optimized one on every CI platform (ADR-372, #1602).
+/// kept. The dev build reads a flight here and there slightly differently, and on an interval's
+/// edge that moves a count: set A's drogue rate read 312 inside its narrowed interval in the dev
+/// build and 313 in the optimized one on macOS, both Linux runners and Windows on x86-64 (312 on
+/// Windows on ARM; ADR-372, #1602).
 fn optimized() -> bool {
-    env!("XTASK_OPT_LEVEL") != "0"
+    env!("XTASK_OPT_LEVEL") != "0" && cfg!(debug_assertions)
 }
 
-/// `cargo xtask synthetic` from the dev build: the same command run again in the `report-check`
+/// Set on the command [`in_report_check`] starts, so that a build that still isn't the census's
+/// refuses rather than starting itself again.
+const STARTED_AGAIN: &str = "XTASK_SYNTHETIC_STARTED_AGAIN";
+
+/// `cargo xtask synthetic` from another build: the same command run again in the `report-check`
 /// build ([`optimized`]), from the repository's root, with the same arguments.
 fn in_report_check(args: &[String]) -> Result<(), String> {
+    if std::env::var_os(STARTED_AGAIN).is_some() {
+        return Err(
+            "this build isn't the census's, though it was started as `report-check`: the census \
+             is flown optimized with debug assertions (ADR-372)"
+                .to_owned(),
+        );
+    }
     let root = crate::designs::root()?;
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     println!(
-        "synthetic: the census is flown in the optimized build (ADR-372): `cargo run --profile report-check -p xtask -- synthetic`"
+        "synthetic: the census is flown in the optimized build, so this runs `cargo run --profile \
+         report-check -p xtask -- synthetic {}` (ADR-372); its first run builds that profile",
+        args.join(" ")
     );
     let status = std::process::Command::new(cargo)
+        .env(STARTED_AGAIN, "1")
         .current_dir(&root)
         .args([
             "run",
@@ -666,6 +684,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 }
             }
         }
+        if !problems.is_empty() && other_platform {
+            return Err(format!(
+                "the synthetic flights don't reproduce the committed census as another platform \
+                 may (ADR-372). The census is written on macOS, so don't write it here: a count \
+                 more than one flight off, or any other number moved, is new and needs a look:\n{}",
+                problems.join("\n")
+            ));
+        }
         if !problems.is_empty() {
             return Err(format!(
                 "the synthetic flights don't reproduce the committed census; run \
@@ -675,9 +701,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
         if other_platform {
             println!(
-                "the sets {} reproduce their sections of {REPORT}.json within another platform's \
-                 room (ADR-372) and of .slice.json in its words, and .md renders from the \
-                 committed .json",
+                "the sets {} reproduce their sections of {REPORT}.json as another platform may \
+                 (ADR-372) and of .slice.json in its words, and .md renders from the committed \
+                 .json",
                 flown
                     .iter()
                     .map(|set| set.name())
@@ -703,23 +729,35 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// How far a count of the census made on another platform may stand from the committed one: one
-/// flight. The census is written on macOS in the optimized build, and held there byte for byte.
-/// Elsewhere a reading on an interval's edge can fall on its other side: set A's drogue rate, under
-/// the probe that narrows each interval to 0.8 of its width, read 313 inside on macOS, both Linux
-/// runners and Windows on x86-64, and 312 on Windows on ARM (ADR-372, #1602).
+/// How far a count of an interval's test made on another platform may stand from the committed
+/// one: one flight. The census is written on macOS in the optimized build, and held there byte for
+/// byte. Elsewhere a reading on an interval's edge can fall on its other side: set A's drogue
+/// rate, under the probe that narrows each interval to 0.8 of its width, read 313 inside on macOS,
+/// both Linux runners and Windows on x86-64, and 312 on Windows on ARM (ADR-372, #1602). Every
+/// other number of that night's census agreed on all five platforms, so every other number is
+/// held exactly, but for the bands a moved count gives ([`Held`]).
 const OTHER_PLATFORM_FLIGHTS: u64 = 1;
 
-/// The same for a figure, a share of the larger of the two, or an absolute allowance for a figure
-/// near zero, whichever allows more: the fit's rule for a figure (ADR-316 §7). The census's
-/// figures are printed to three significant figures.
-const OTHER_PLATFORM_SHARE: f64 = 0.05;
-const OTHER_PLATFORM_ABSOLUTE: f64 = 0.002;
+/// The counts of an interval's test that may move: the truths below, inside and above it. The
+/// readings given are held exactly.
+const MOVING_COUNTS: [&str; 3] = ["below", "inside", "above"];
 
-/// The census made on another platform, `made` (the report's JSON), held to the committed one
-/// within [`OTHER_PLATFORM_FLIGHTS`] and [`OTHER_PLATFORM_SHARE`]: every field, length and word as
-/// committed. The committed page must render from the committed JSON. What doesn't hold, a line
-/// each.
+/// How [`apart`] holds a number where it walks.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Held {
+    /// Exactly as committed.
+    Exact,
+    /// In an interval test's `counts`: [`MOVING_COUNTS`] within [`OTHER_PLATFORM_FLIGHTS`].
+    Counts,
+    /// A band beside counts that moved: its ends are those counts' 99.9% Clopper–Pearson band,
+    /// made by the same code from the counts this platform made, which macOS holds exactly; they
+    /// move with the counts.
+    Band,
+}
+
+/// The census made on another platform, `made` (the report's JSON), held to the committed one as
+/// [`apart`] holds it: every field, length and word as committed. The committed page must render
+/// from the committed JSON. What doesn't hold, a line each.
 fn held_off_platform(
     json_path: &Path,
     page_path: &Path,
@@ -733,12 +771,8 @@ fn held_off_platform(
         serde_json::from_str(&committed).map_err(|e| format!("{}: {e}", json_path.display()))?;
     let made: serde_json::Value = serde_json::from_str(made).map_err(|e| e.to_string())?;
     let mut broken = Vec::new();
-    let differing = apart("", &committed, &made, &mut broken);
-    println!(
-        "synthetic: {differing} numbers differ from the committed census, within one flight and \
-         {:.0}% (ADR-372)",
-        100.0 * OTHER_PLATFORM_SHARE
-    );
+    let differing = apart("", &committed, &made, Held::Exact, &mut broken);
+    println!("synthetic: {differing} numbers differ from the committed census (ADR-372)");
     match fs::read_to_string(page_path) {
         Ok(text) if text.replace("\r\n", "\n") == markdown(&report) => {}
         Ok(_) => broken.push(format!(
@@ -751,12 +785,14 @@ fn held_off_platform(
     Ok(broken)
 }
 
-/// The numbers where `made` differs from `committed`, walking both from `at`; each difference past
-/// another platform's room, and any other, goes onto `broken`.
+/// The numbers where `made` differs from `committed`, walking both from `at`, held as `held` says;
+/// each difference it doesn't allow, and any other, goes onto `broken`. An object with `counts`
+/// holds them as [`Held::Counts`], and, where they differ, its bands as [`Held::Band`].
 fn apart(
     at: &str,
     committed: &serde_json::Value,
     made: &serde_json::Value,
+    held: Held,
     broken: &mut Vec<String>,
 ) -> u64 {
     use serde_json::Value;
@@ -765,12 +801,26 @@ fn apart(
             if a.len() != b.len() {
                 broken.push(format!("{at}: its fields differ"));
             }
+            let counts_moved = matches!(
+                (a.get("counts"), b.get("counts")),
+                (Some(Value::Object(x)), Some(Value::Object(y))) if x != y
+            );
             a.iter()
-                .map(|(key, value)| match b.get(key) {
-                    Some(other) => apart(&format!("{at}/{key}"), value, other, broken),
-                    None => {
-                        broken.push(format!("{at}/{key}: not made"));
-                        0
+                .map(|(key, value)| {
+                    let inner = match (held, key.as_str()) {
+                        (Held::Exact, "counts") if value.is_object() => Held::Counts,
+                        (Held::Exact, _) if counts_moved && is_band(value) => Held::Band,
+                        (Held::Counts, _) if !MOVING_COUNTS.contains(&key.as_str()) => Held::Exact,
+                        (Held::Band, _) => Held::Band,
+                        (Held::Counts, _) => Held::Counts,
+                        _ => Held::Exact,
+                    };
+                    match b.get(key) {
+                        Some(other) => apart(&format!("{at}/{key}"), value, other, inner, broken),
+                        None => {
+                            broken.push(format!("{at}/{key}: not made"));
+                            0
+                        }
                     }
                 })
                 .sum()
@@ -782,22 +832,19 @@ fn apart(
             a.iter()
                 .zip(b)
                 .enumerate()
-                .map(|(k, (value, other))| apart(&format!("{at}/{k}"), value, other, broken))
+                .map(|(k, (value, other))| {
+                    apart(&format!("{at}/{k}"), value, other, Held::Exact, broken)
+                })
                 .sum()
         }
         (Value::Number(a), Value::Number(b)) if a != b => {
-            let within = match (a.as_i64(), b.as_i64()) {
-                (Some(a), Some(b)) => a.abs_diff(b) <= OTHER_PLATFORM_FLIGHTS,
-                _ if a.is_f64() && b.is_f64() => {
-                    let (a, b) = (
-                        a.as_f64().unwrap_or(f64::NAN),
-                        b.as_f64().unwrap_or(f64::NAN),
-                    );
-                    let apart = (a - b).abs();
-                    apart <= OTHER_PLATFORM_ABSOLUTE
-                        || apart / a.abs().max(b.abs()) <= OTHER_PLATFORM_SHARE
-                }
-                _ => false,
+            let within = match held {
+                Held::Exact => false,
+                Held::Counts => matches!(
+                    (a.as_u64(), b.as_u64()),
+                    (Some(a), Some(b)) if a.abs_diff(b) <= OTHER_PLATFORM_FLIGHTS
+                ),
+                Held::Band => a.is_f64() && b.is_f64(),
             };
             if !within {
                 broken.push(format!("{at}: {a} committed, {b} made"));
@@ -810,6 +857,16 @@ fn apart(
         }
         _ => 0,
     }
+}
+
+/// Whether `value` is a band: an object of its two ends, `low` and `high`, both figures.
+fn is_band(value: &serde_json::Value) -> bool {
+    value.as_object().is_some_and(|band| {
+        band.len() == 2
+            && ["low", "high"]
+                .iter()
+                .all(|end| band.get(*end).is_some_and(serde_json::Value::is_f64))
+    })
 }
 
 /// Whether any argument but `--slice` was given.
@@ -3469,41 +3526,72 @@ mod tests {
         }
     }
 
-    /// Another platform's census may stand a count one flight off and a figure 5% or 0.002 off,
-    /// no more, and nothing else may change (ADR-372).
+    /// Another platform's census may stand an interval test's counts one flight off, and the
+    /// bands beside them move with them; every other number, word and field as committed
+    /// (ADR-372). The case is Windows on ARM's on 2026-11-22.
     #[test]
     fn another_platforms_census_stands_one_flight_off_at_most() {
         use serde_json::json;
-        let apart = |a: serde_json::Value, b: serde_json::Value| {
+        let apart = |a: &serde_json::Value, b: &serde_json::Value| {
             let mut broken = Vec::new();
-            let differing = super::apart("", &a, &b, &mut broken);
+            let differing = super::apart("", a, b, Held::Exact, &mut broken);
             (differing, broken)
         };
-        let committed =
-            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"});
-        let (differing, broken) = apart(
-            committed.clone(),
-            json!({"inside": 312, "above": 52, "high": 0.179, "mean": -0.0009, "name": "drogue"}),
-        );
+        let probe = |below: u64, inside: u64, above: u64, low: f64, high: f64| {
+            json!({
+                "seed": 2_026_101_700_u64,
+                "probes": {"narrowed": {
+                    "counts": {"given": 428, "below": below, "inside": inside, "above": above},
+                    "below": {"low": 0.0982, "high": 0.213},
+                    "inside": {"low": low, "high": high},
+                    "above": {"low": 0.0735, "high": 0.179}
+                }},
+                "smoother": {"coverage": 0.953, "flights": 1000, "name": "drogue"}
+            })
+        };
+        let committed = probe(64, 313, 51, 0.656, 0.798);
+        // Windows on ARM: one truth inside on macOS, above there; the inside band moves with it.
+        let (differing, broken) = apart(&committed, &probe(64, 312, 52, 0.653, 0.796));
         assert_eq!(differing, 4);
         assert!(broken.is_empty(), "{broken:?}");
-        // Two flights off, a figure 6% off, a word, a field or an entry otherwise: each fails.
+        // A small cell's band moves far more than 5% with one flight; it moves with its counts.
+        assert!(
+            apart(&committed, &probe(64, 312, 52, 0.5, 0.9))
+                .1
+                .is_empty()
+        );
+        // Two flights off; a band moved while its counts didn't; the readings given moved.
         for made in [
-            json!({"inside": 311, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"}),
-            json!({"inside": 313, "above": 53, "high": 0.181, "mean": 0.001, "name": "drogue"}),
-            json!({"inside": 313, "above": 51, "high": 0.192, "mean": 0.001, "name": "drogue"}),
-            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.0035, "name": "drogue"}),
-            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001, "name": "main"}),
-            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001}),
-            json!({"inside": 313.0, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"}),
+            probe(64, 311, 53, 0.65, 0.79),
+            probe(64, 313, 51, 0.657, 0.798),
         ] {
-            assert!(
-                !apart(committed.clone(), made.clone()).1.is_empty(),
-                "{made}"
-            );
+            assert!(!apart(&committed, &made).1.is_empty(), "{made}");
         }
-        assert!(!apart(json!([1, 2]), json!([1])).1.is_empty());
-        assert!(apart(json!([1, 2]), json!([1, 2])) == (0, Vec::new()));
+        let mut given = probe(64, 312, 52, 0.653, 0.796);
+        given["probes"]["narrowed"]["counts"]["given"] = json!(429);
+        assert!(!apart(&committed, &given).1.is_empty());
+        // Every other number is held exactly: a count elsewhere, a figure, a seed; and every word
+        // and field.
+        for (pointer, value) in [
+            ("/smoother/flights", json!(999)),
+            ("/smoother/coverage", json!(0.954)),
+            ("/seed", json!(2_026_101_701_u64)),
+            ("/smoother/name", json!("main")),
+            ("/probes/narrowed/counts/inside", json!(313.0)),
+        ] {
+            let mut made = committed.clone();
+            if let Some(slot) = made.pointer_mut(pointer) {
+                *slot = value;
+            }
+            assert!(!apart(&committed, &made).1.is_empty(), "{pointer}");
+        }
+        let mut dropped = committed.clone();
+        if let Some(smoother) = dropped["smoother"].as_object_mut() {
+            smoother.remove("name");
+        }
+        assert!(!apart(&committed, &dropped).1.is_empty());
+        assert!(!apart(&json!([1, 2]), &json!([1])).1.is_empty());
+        assert_eq!(apart(&json!([1, 2]), &json!([1, 2])), (0, Vec::new()));
     }
 
     /// The platforms every per-OS job runs on (ADR-222).

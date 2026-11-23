@@ -389,11 +389,13 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
 - `cargo xtask synthetic --check`, in CI on every platform each night
   ([ADR-149's amendment, the time budget for CI](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)),
-  and by hand: the census reproduced, byte for byte on macOS, where it is written, and within one
-  flight on a count and 5% or 0.002 on a figure on the other platforms
-  ([ADR-372](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md),
-  one reading on an interval's edge). It runs in the optimized `report-check` build; from the
-  everyday build, `cargo xtask synthetic` runs itself there. CI's `census` job flies the sets in
+  and by hand: the census reproduced, byte for byte on macOS, where it is written. On the other
+  platforms an interval test's counts may each differ by one flight, and the bands made from them
+  move with them; every other number is held exactly
+  ([ADR-372](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md):
+  one reading sits on an interval's edge). It runs in `report-check`, the optimized build with the
+  everyday build's assertions ([how CI checks the reports](../VALIDATION.md#in-ci-and-regenerating-the-references));
+  run from the everyday build, `cargo xtask synthetic` starts itself again in `report-check`. CI's `census` job flies the sets in
   two steps, `--sets tuning,a` and `--sets b,calibration`. Each compares what its sets make with
   their sections of the committed report, so every flight is flown and compared on every platform.
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
@@ -401,8 +403,8 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
 - `cargo xtask synthetic --slice`, on pull requests on all five platforms and in
   `scripts/gate.sh`: every 21st flight of each set (202 of 4,200) flown again, held to the
   census's rules for one flight and to the `synthetic-flights.slice.json` the whole run writes, by
-  the byte on the Mac's everyday build that writes it and by the word elsewhere (a flight's numbers
-  can move between builds). A test changes one flight's truth, then its log, and checks that its lines change.
+  the byte on the Mac, in the optimized build that writes it, and by the word elsewhere (a flight's
+  numbers can move between platforms). A test changes one flight's truth, then its log, and checks that its lines change.
 
 ### References
 
