@@ -99,4 +99,5 @@ to move any comparison.
 
 **Consequences.** The real-flights report flies 24 more flights, about 10 s more. The
 [report's new section][report] is checked with the rest of the report. The roadmap's M1.14b7
-becomes three entries.
+becomes three entries. Its title now reads "per real flight" for "for each real flight", to fit
+the roadmap's size budget; the meaning and ADR-351's done-when are unchanged.

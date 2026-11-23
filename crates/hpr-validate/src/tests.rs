@@ -2280,6 +2280,57 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
     assert!(page.contains("Mean absolute apogee error"));
 }
 
+/// M1.14b16: the report's check refuses a validation-uncertainty row that isn't its flight's,
+/// each by its own refusal: one moved out of order, a comparison error, a first run that isn't
+/// the report's flight, a numerical part that isn't its runs', and a row missing.
+#[test]
+fn the_real_flights_validation_uncertainty_rows_hold_to_their_flights() {
+    use crate::real_flight::{REPORT_JSON, RealFlightReport};
+    let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
+    let committed: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
+    assert_eq!(committed.validation_uncertainty.len(), 12);
+    let page = committed.to_markdown();
+    committed
+        .check_consistent(&page)
+        .expect("the committed rows hold");
+    let refused = |change: &dyn Fn(&mut RealFlightReport)| {
+        let mut report = committed.clone();
+        change(&mut report);
+        report
+            .check_consistent(&page)
+            .expect_err("a changed row is refused")
+    };
+    let swapped = refused(&|r| r.validation_uncertainty.swap(0, 1));
+    assert!(swapped.contains("stands where"), "{swapped}");
+    let error = refused(&|r| r.validation_uncertainty[3].comparison_error_m += 0.1);
+    assert!(error.contains("the comparison error"), "{error}");
+    let flight = refused(&|r| {
+        r.validation_uncertainty[8].apogee_m += 1e-9;
+        let row = &mut r.validation_uncertainty[8];
+        let ratio = row
+            .refinement_ratio()
+            .expect("the committed runs are finer");
+        row.numerical_m = crate::validation_uncertainty::numerical_uncertainty_m(
+            row.apogee_m,
+            row.apogee_step_halved_m,
+            ratio,
+        )
+        .expect("the committed runs are finer");
+    });
+    assert!(flight.contains("not the report's flight"), "{flight}");
+    let part = refused(&|r| r.validation_uncertainty[10].numerical_m *= 1.5);
+    assert!(part.contains("the numerical part isn't"), "{part}");
+    let steps = refused(&|r| r.validation_uncertainty[10].steps_step_halved += 1);
+    assert!(steps.contains("the numerical part isn't"), "{steps}");
+    let missing = refused(&|r| {
+        r.validation_uncertainty.pop();
+    });
+    assert!(
+        missing.contains("rows of the validation uncertainty"),
+        "{missing}"
+    );
+}
+
 #[test]
 fn real_flights_print_each_merged_prediction_beside_its_error() {
     // M2.3d2 (ADR-328 §1b, ADR-342): the committed real-flights report holds all 12 public
