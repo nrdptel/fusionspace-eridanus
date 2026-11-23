@@ -645,7 +645,7 @@ margin it would have alone. The reading is still the split. The drogue's leg end
 leaves out the stretch between the two. Where that stretch falls slower than the rest of the
 leg, as in issue #1593's shape, the drogue's rate reads fast. Where it falls faster, it reads
 slow, the flattering side for a descent-energy figure. A test invents issue #1593's shape: a
-drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for 8 s, then 18 m/s for 3 s before the main
+drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for 8 s, then back at that rate for 3 s before the main
 opens. The opening lies within its bound, and the drogue's rate reads more than 0.5 m/s
 (1.6 ft/s) faster than the leg's own.
 
