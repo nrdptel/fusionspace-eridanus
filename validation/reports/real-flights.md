@@ -120,7 +120,7 @@ After ASME V&V 20, a standard for putting an uncertainty on a comparison of a si
 - **E**, the comparison error, is hpr's apogee less the log's.
 - E is the model's own error plus three others: from the integrator, from the inputs and from the log. Each of the three has a standard uncertainty, and while they are independent the validation uncertainty u_val is their root sum of squares.
 - **u_num**, the integrator's part, is what this section gives. Each flight is flown twice more: as the report flies it, and with the adaptive stepper's tolerances divided by 32. The stepper's step goes as its tolerance to the power 1/5, so the second run takes about twice the steps; r is the measured ratio, the second run's steps to apogee over the first's. E is the first run's, the coarser, so its index is Roache's grid convergence index for the coarser of two runs, 3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard deviations, so u_num is half of it.
-- The data part, the log's own apogee uncertainty, comes with [M1.14b17][m1-14b17], and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a band (E ± 2·u_val).
+- The data part, the log's own apogee uncertainty, is the next section's ([M1.14b17][m1-14b17]). The input part comes with [M1.14b18][m1-14b18]; until it does, no flight's E has a band (E ± 2·u_val).
 
 How far to trust it: u_num measures what a finer step changes, not the models, the inputs or the logs. The order 4 is assumed, the dense output's formal order; the flights' own order isn't measured, and a lower one would make the index larger.
 
@@ -141,10 +141,91 @@ How far to trust it: u_num measures what a finer step changes, not the models, t
 
 The largest u_num is 5.7093 mm (andromeda). Every flight's |E| is at least 2,700 times its own u_num; the fewest times is on bella-lui.
 
+## How much of each error the log could be
+
+The data part u_D is the standard uncertainty of the log's own apogee ([M1.14b17][m1-14b17], decision [ADR-375][adr-375]):
+
+- **What is uncertain.** Both apogees are barometric readings: the 1976 standard atmosphere's altitude of the pressure at the apogee, less that of the pressure on the pad. u_D is the uncertainty of the log's reading as that quantity.
+- **Its components** are the pressure sensor's published error, its noise, the step the log keeps, the gap between the altimeter's own height formula and the 1976 standard's, and what the log's filter or this report's cut does where that is measured. Each is a standard uncertainty in meters, taken as independent of the others, and u_D is their root sum of squares.
+- **The rules** are the *Guide to the expression of uncertainty in measurement*'s (JCGM 100:2008). Bounds of ±a give a/√3 (4.3.7). An effect of known sign that is not corrected, equally likely anywhere from lo to hi, keeps its mean beside its spread: √((lo² + lo·hi + hi²)/3) (4.3.7 with F.2.4.5). A value kept in steps of δ gives δ/√12 (F.2.2.1). A maker's "typical" figure has no rule in the guide; it is taken as one standard deviation, the larger of the two readings it allows.
+- **Pressure to height.** A pascal at the apogee is 1/(ρ·g₀) of height, the standard atmosphere's hydrostatic equation, with ρ its density at the site's elevation plus the log's apogee.
+
+How far to trust it: these are makers' published figures, not calibrations of the units that flew. Left out, for want of a published figure: the lag of a vented bay and its ports, a bay outside 0 to 50 °C, and how far noise lifts the highest of many samples on the two logs with a noise component. Two altimeters flown on one rocket differ by 0.37% at the median over 59 published flights, about 0.39% a unit ([the note][two-altimeters]). Where u_D is a smaller share of the apogee than that, it is too small on that evidence; the sentence under the table counts those flights. A smaller u_D makes a narrower band, so the choice doesn't flatter the comparison.
+
+| flight | altimeter | log apogee (m) | a pascal at the apogee (m) | components (m) | u_D (m) | u_D, share of the apogee | \|E\| over u_D |
+|---|---|---:|---:|---|---:|---:|---:|
+| ndrt-2020 | Featherweight Raven | 1320.4 | 0.0966 | sensor 5.58; step 0.11; formula 0.07 | 5.58 | 0.42% | 24.6 |
+| prometheus-2022 | Altus Metrum TeleMetrum (MS5607: the log steps its pressure by 1 Pa) | 3895.8 | 0.1430 | sensor 8.26; noise 1.86; step 0.04; formula 0.20 | 8.46 | 0.22% | 42.4 |
+| juno-iii | Missile Works RRC3 (MS5607) | 3151.5 | 0.1331 | sensor 7.68; noise 0.48; step 0.38; formula 1.32; cut 15.28 | 17.16 | 0.54% | 10.2 |
+| cavour | CATS Vega (MS5607), its radio telemetry | 2785.0 | 0.1114 | sensor 6.43; step 0.58; filter 0.75; formula 0.23 | 6.51 | 0.23% | 24.7 |
+| genesis | CATS Vega (MS5607), the 9-sample median of its barometric height | 2916.7 | 0.1130 | sensor 6.53; peak 2.15; formula 0.19 | 6.88 | 0.24% | 24.9 |
+| lince | CATS Vega (MS5607), the 9-sample median of its barometric height | 3587.7 | 0.1212 | sensor 7.00; peak 2.15; formula 0.23 | 7.32 | 0.20% | 19.2 |
+| macie-xl-1 | PerfectFlite StratoLoggerCF | 842.8 | none | precision 1.15; calibration 0.42; step 0.09 | 1.23 | 0.15% | 111.4 |
+| macie-xl-2 | PerfectFlite StratoLoggerCF | 977.8 | none | precision 1.28; calibration 0.49; step 0.09 | 1.38 | 0.14% | 207.3 |
+
+8 of the 12 flights have a u_D; 4 have none. The largest u_D is 17.16 m (juno-iii). On 6 of them u_D is under 0.39% of the log's apogee, the two-altimeter figure. Each of those flights' |E| is at least 10 times its own u_D; the fewest times is on juno-iii. So the log's part can't account for any of these errors either.
+
+Where each component's figure is stated:
+
+- **sensor** (`ndrt-2020`): Featherweight Altimeters, Raven4 user's manual (2020-08-15), p. 12: "less than 1 mbar (0.1% full-scale) pressure error over most conditions", with no confidence level; the log doesn't say which Raven wrote it.
+- **step** (`ndrt-2020`): the same manual, p. 12: baro resolution 0.00004 atm.
+- **formula** (`ndrt-2020`): docs/research/altimeter-height-formulas.md: Raven height columns are the standard atmosphere's altitude of their own logged pressure to 0.22 ft.
+- **sensor** (`prometheus-2022`, `juno-iii`, `cavour`, `genesis`, `lince`): TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns).
+- **noise** (`prometheus-2022`): the same sheet, p. 4: resolution RMS 0.130 mbar at an oversampling ratio of 256, the largest it lists; the altimeter's ratio isn't published.
+- **step** (`prometheus-2022`): the same sheet, p. 8: the compensated pressure is given in steps of 0.01 mbar.
+- **formula** (`prometheus-2022`, `juno-iii`): this report: the log's height column against the 1976 standard's reading of its own pressure column, the largest gap.
+- **noise** (`juno-iii`): the same sheet, p. 4: resolution RMS 0.036 mbar at an oversampling ratio of 2048, the RRC3's (Missile Works, RRC3 user manual v1.71, p. 24).
+- **step** (`juno-iii`): docs/research/altimeter-sensor-noise.md, §3: the public RRC3 log keeps its pressure in steps of 10 Pa.
+- **cut** (`juno-iii`): this report's note on the flight: the log is read to 24.60 s, where its own velocity column still reads 17.5 m/s up, so its apogee may be 10 m to 20 m low.
+- **step** (`cavour`): the telemetry sends the height in whole meters cut toward zero (docs/research/cats-vega-height.md).
+- **filter** (`cavour`): docs/research/cats-vega-filtered-column.md, "For Cavour": the telemetry is the Kalman filter's height, within about 1.3 m of the flight's own barometric apogee.
+- **formula** (`cavour`, `genesis`, `lince`): docs/research/cats-vega-height.md, "Against HPR Sim's reading": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's.
+- **peak** (`genesis`, `lince`): docs/research/cats-vega-filtered-column.md, "Noise lifts the maxima": on four Vega logs the 9-sample median's highest value sits 0.9 m to 3.2 m above a parabola through the coast, as the highest of a noisy series does.
+- **precision** (`macie-xl-1`, `macie-xl-2`): PerfectFlite, StratoLoggerCF user's manual (PDF of 2014-12-02), specifications, PDF p. 49: "Measurement precision: +/- (0.1% reading + 1 foot) typical".
+- **calibration** (`macie-xl-1`, `macie-xl-2`): the same page: "Calibration accuracy: +/- 0.05% typical".
+- **step** (`macie-xl-1`, `macie-xl-2`): the log's header gives its apogee in whole feet.
+
+No published accuracy, so no u_D, and no band when the input part comes:
+
+- `bella-lui` (the team's own avionics): no document read names the sensor that made the logged height, or how it was filtered.
+- `astra` (not named): RocketPy's notebook calls it a COTS altimeter and names no make or sensor.
+- `andromeda` (not named): RocketPy's notebook calls it a COTS altimeter and names no make or sensor.
+- `erebus-11` (not named): RocketPy's notebook calls it a COTS altimeter and names no make or sensor.
+
+### The barometer's conversion, in both readings
+
+The standard atmosphere isn't the day's air, so a barometric reading isn't the height climbed. That difference, the conversion, is not in u_D, because it is in both readings: hpr's apogee is read through the same standard atmosphere, from the pressure of the air it is flown in. The table measures it on each flight:
+
+- **In hpr's reading:** hpr's apogee as the altimeter would read it, less its height.
+- **In the log's:** the log's apogee, less the height at which the same altimeter, in the same air, would read it.
+- **E as heights:** hpr's height less the log's, E with neither side read through the barometer. The conversion grows with the height, so two apogees E apart don't carry quite the same one, and E as heights differs from E by the difference. As a share of the apogee, which is how this report scores a flight, the two are nearly the same number.
+
+| flight | conversion in hpr's reading (m) | in the log's (m) | E (m) | E, share of the log's apogee | E as heights (m) | E as heights, share of the log's height |
+|---|---:|---:|---:|---:|---:|---:|
+| bella-lui | -0.70 | -0.69 | 5.1 | +1.11% | 5.1 | +1.11% |
+| ndrt-2020 | 24.82 | 23.54 | 137.1 | +10.39% | 135.9 | +10.48% |
+| prometheus-2022 | -259.78 | -282.36 | -359.2 | -9.22% | -381.8 | -9.14% |
+| juno-iii | -254.70 | -266.21 | -174.8 | -5.55% | -186.3 | -5.45% |
+| cavour | -106.08 | -101.69 | 160.5 | +5.76% | 164.9 | +5.71% |
+| genesis | -129.27 | -136.42 | -171.5 | -5.88% | -178.7 | -5.85% |
+| lince | -165.94 | -159.54 | 140.3 | +3.91% | 146.7 | +3.92% |
+| astra | -118.24 | -127.62 | -212.4 | -6.54% | -221.7 | -6.57% |
+| andromeda | -148.55 | -142.23 | 142.0 | +4.13% | 148.4 | +4.14% |
+| erebus-11 | -96.37 | -105.51 | -242.1 | -8.07% | -251.3 | -8.09% |
+| macie-xl-1 | -0.08 | -0.11 | -136.5 | -16.20% | -136.6 | -16.20% |
+| macie-xl-2 | -0.08 | -0.15 | -285.2 | -29.16% | -285.2 | -29.17% |
+
+The conversion is as large as 282.4 m in a reading (prometheus-2022). E as heights differs from E by 22.6 m at the most (prometheus-2022), and as a share of the apogee by at most 0.10 points (juno-iii).
+
+What isn't in both readings is the air's own error. The log's altimeter read the day's real air; hpr's reads the air the flight is flown in, a reanalysis or the standard atmosphere. Where they differ, hpr's reading moves and the log's doesn't: by about 0.35% of the reading for each kelvin of the air column ([the note][height-formulas]). That is an input's uncertainty, and it comes with the input part ([M1.14b18][m1-14b18]).
+
 [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
 [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
 [m1-14b18]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b18
 [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
+[adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
+[two-altimeters]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/dual-altimeter-spread.md
+[height-formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-height-formulas.md
 
 ## Sources
 

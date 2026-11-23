@@ -1373,6 +1373,8 @@ fn pressure_reading_gap_m(
 struct Flown {
     apogee_m: f64,
     height_apogee_m: f64,
+    /// The height above the start at which the log's altimeter would read the log's apogee.
+    log_height_m: f64,
     max_mach: f64,
     trace: TraceComparison,
     total_impulse_ns: f64,
@@ -1553,6 +1555,14 @@ pub struct Varied {
     pub two_guides: bool,
     /// The integrator's accepted steps that start before hpr's apogee: the steps that place it.
     pub steps_to_apogee: u64,
+    /// The apogee as a height, m above the start: [`Varied::apogee_m`] before the altimeter
+    /// reads it.
+    pub height_apogee_m: f64,
+    /// The height above the start, m, at which the log's altimeter would read the log's own
+    /// apogee in the air the flight is flown in (`hpr_atmos::Barometer::height_m`): the log's
+    /// apogee as a height, if that air is the day's. `None` for a flight flown without its log's
+    /// apogee at hand.
+    pub log_height_m: Option<f64>,
 }
 
 /// The apogee of [`fly`]'s flight with `correction` flown, m above the start, as the log's
@@ -1770,9 +1780,17 @@ fn fly_with(
             .map(|&(t, h)| Ok((t, reading(h)?)))
             .collect::<Result<Vec<(f64, f64)>, RealFlightError>>()?;
         let trace = compare_traces(&log, &hpr, apogee.time_s).map_err(input)?;
+        // The height at which the same altimeter, in the same air, reads the log's apogee.
+        let log_height_m = match flight.log.altimeter {
+            Altimeter::Height(_) => log_apogee_m,
+            Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => {
+                barometer.height_m(log_apogee_m).map_err(atmos)? - start_m
+            }
+        };
         Ok(Flown {
             apogee_m: reading(apogee.height_above_ground_m)?,
             height_apogee_m: apogee.height_above_ground_m - start_m,
+            log_height_m,
             max_mach,
             trace,
             total_impulse_ns,
@@ -1786,6 +1804,8 @@ fn fly_with(
             apogee_m: own.apogee_m,
             two_guides: own.two_guides,
             steps_to_apogee: own.steps_to_apogee,
+            height_apogee_m: own.height_apogee_m,
+            log_height_m: Some(own.log_height_m),
         }));
     }
     let on_example_drag = fly_once(&rocket, Some(table))?;
@@ -2213,19 +2233,37 @@ impl RealFlightReport {
     }
 
     /// Whether the validation uncertainty's rows are the flights', in order, each with its own
-    /// row's comparison error, its first run the row's own flight (the same apogee), and its own
-    /// numerical part ([`UncertaintyRow::holds`]).
+    /// row's comparison error and log apogee, its first run the row's own flight (the same
+    /// apogee, and the same height for a flight compared first), its own numerical part, and
+    /// its own data part: its altimeter's terms on its log's apogee, a pascal's height at its
+    /// site, and its row's own formula gap ([`UncertaintyRow::holds`]).
     ///
     /// [`UncertaintyRow::holds`]: crate::validation_uncertainty::UncertaintyRow::holds
     fn check_validation_uncertainty(&self) -> Result<(), String> {
+        let same = crate::report::same_but_for_platform_rounding;
+        // Each flight compared first: its height, its site's elevation and its formula gap.
+        let compared_first = |row: &FlightRow| {
+            let site_m = FLIGHTS
+                .iter()
+                .find(|flight| flight.id == row.id)
+                .map(|flight| flight.site.2);
+            Some((row.hpr_height_apogee_m, site_m, row.pressure_reading_max_m))
+        };
         let errors = self
             .flights
             .iter()
-            .map(|row| (&row.id, row.hpr_apogee_m, row.log_apogee_m))
+            .map(|row| {
+                (
+                    &row.id,
+                    row.hpr_apogee_m,
+                    row.log_apogee_m,
+                    compared_first(row),
+                )
+            })
             .chain(
                 self.predicted_first
                     .iter()
-                    .map(|row| (&row.id, row.hpr_apogee_m, row.log_apogee_m)),
+                    .map(|row| (&row.id, row.hpr_apogee_m, row.log_apogee_m, None)),
             )
             .collect::<Vec<_>>();
         if errors.len() != self.validation_uncertainty.len() {
@@ -2235,7 +2273,8 @@ impl RealFlightReport {
                 self.validation_uncertainty.len()
             ));
         }
-        for ((id, hpr_m, log_m), row) in errors.into_iter().zip(&self.validation_uncertainty) {
+        for ((id, hpr_m, log_m, first), row) in errors.into_iter().zip(&self.validation_uncertainty)
+        {
             let error_m = hpr_m - log_m;
             if *id != row.id {
                 return Err(format!(
@@ -2255,10 +2294,56 @@ impl RealFlightReport {
                     row.apogee_m
                 ));
             }
-            if !row.holds() {
+            if !row.numerical_holds() {
                 return Err(format!(
                     "{id}: the numerical part isn't its two apogees', or a number isn't finite"
                 ));
+            }
+            if row.log_apogee_m != log_m {
+                return Err(format!(
+                    "{id}: the log's apogee {} isn't its row's {log_m}",
+                    row.log_apogee_m
+                ));
+            }
+            if !row.data.holds(id, row.log_apogee_m) {
+                return Err(format!(
+                    "{id}: the data part isn't its altimeter's on its log's apogee"
+                ));
+            }
+            let (height_m, site_m, gap_m) = match first {
+                Some((height_m, site_m, gap_m)) => (Some(height_m), site_m, gap_m),
+                None => (None, None, None),
+            };
+            if height_m.is_some_and(|height_m| row.height_apogee_m != height_m) {
+                return Err(format!(
+                    "{id}: the apogee as a height {} isn't its row's: not the report's flight",
+                    row.height_apogee_m
+                ));
+            }
+            // A pascal's height is the standard atmosphere's at the flight's own site.
+            let per_pascal = match (row.data.meters_per_pascal, site_m) {
+                (None, _) => Ok(()),
+                (Some(committed), Some(site_m)) => {
+                    match crate::data_uncertainty::meters_per_pascal(site_m, log_m) {
+                        Ok(computed) if same(committed, computed) => Ok(()),
+                        Ok(computed) => Err(format!(
+                            "{id}: a pascal's height {committed} isn't its site's {computed}"
+                        )),
+                        Err(error) => Err(format!("{id}: the standard atmosphere: {error}")),
+                    }
+                }
+                (Some(_), None) => Err(format!("{id}: a pressure term on a flight with no site")),
+            };
+            per_pascal?;
+            // The formula component is the row's own gap, the same bits.
+            let formula = row.data.formula_gap_m(id);
+            if formula.is_some() && formula != gap_m.map(f64::abs) {
+                return Err(format!(
+                    "{id}: the formula component {formula:?} isn't its row's gap {gap_m:?}"
+                ));
+            }
+            if !row.holds() {
+                return Err(format!("{id}: a number of its row isn't finite"));
             }
         }
         Ok(())
@@ -2533,6 +2618,25 @@ impl RealFlightReport {
                     a.id
                 ));
             }
+            // The data part's words and shape; its figures follow, to the platform's digits.
+            let shape = |row: &crate::validation_uncertainty::UncertaintyRow| {
+                (
+                    row.data.altimeter.clone(),
+                    row.data.without.clone(),
+                    row.data.data_m.is_some(),
+                    row.data
+                        .components
+                        .iter()
+                        .map(|each| (each.what.clone(), each.from.clone()))
+                        .collect::<Vec<_>>(),
+                )
+            };
+            if shape(a) != shape(b) {
+                return Err(format!(
+                    "{}: the data part's altimeter or components differ",
+                    a.id
+                ));
+            }
             // The numerical part follows from the apogees and steps: held by them, each apogee to
             // the platform's last digits, and by the committed report's own check.
             for (what, x, y) in [
@@ -2546,6 +2650,14 @@ impl RealFlightReport {
                     "apogee with the step halved",
                     a.apogee_step_halved_m,
                     b.apogee_step_halved_m,
+                ),
+                ("log's apogee", a.log_apogee_m, b.log_apogee_m),
+                ("apogee as a height", a.height_apogee_m, b.height_apogee_m),
+                ("log's apogee as a height", a.log_height_m, b.log_height_m),
+                (
+                    "data part",
+                    a.data.data_m.unwrap_or(0.0),
+                    b.data.data_m.unwrap_or(0.0),
                 ),
             ] {
                 if !same(x, y) {
@@ -2887,9 +2999,9 @@ impl RealFlightReport {
              so its index is Roache's grid convergence index for the coarser of two runs, \
              3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard \
              deviations, so u_num is half of it.\n\
-             - The data part, the log's own apogee uncertainty, comes with [M1.14b17][m1-14b17], \
-             and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a \
-             band (E ± 2·u_val).\n\n\
+             - The data part, the log's own apogee uncertainty, is the next section's \
+             ([M1.14b17][m1-14b17]). The input part comes with [M1.14b18][m1-14b18]; until it \
+             does, no flight's E has a band (E ± 2·u_val).\n\n\
              How far to trust it: u_num measures what a finer step changes, not the models, the \
              inputs or the logs. The order 4 is assumed, the dense output's formal order; the \
              flights' own order isn't measured, and a lower one would make the index larger.\n"
@@ -2915,14 +3027,288 @@ impl RealFlightReport {
             );
         }
         let _ = writeln!(out, "\n{}\n", Self::smallest_share(rows));
+        Self::data_uncertainty_section(rows, out);
         let _ = writeln!(
             out,
             "[m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16\n\
              [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17\n\
              [m1-14b18]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b18\n\
              [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
-             0373-m1-14b7-in-three-the-numerical-part-first.md"
+             0373-m1-14b7-in-three-the-numerical-part-first.md\n\
+             [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
+             0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md\n\
+             [two-altimeters]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/\
+             research/dual-altimeter-spread.md\n\
+             [height-formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/\
+             research/altimeter-height-formulas.md"
         );
+    }
+
+    /// The page's section on the data part: each log apogee's standard uncertainty and its
+    /// components, each with its source; the flights whose altimeter has no published accuracy;
+    /// and the barometer's conversion, measured in both readings.
+    fn data_uncertainty_section(
+        rows: &[crate::validation_uncertainty::UncertaintyRow],
+        out: &mut String,
+    ) {
+        let _ = writeln!(out, "## How much of each error the log could be\n");
+        let _ = writeln!(
+            out,
+            "The data part u_D is the standard uncertainty of the log's own apogee \
+             ([M1.14b17][m1-14b17], decision [ADR-375][adr-375]):\n\n\
+             - **What is uncertain.** Both apogees are barometric readings: the 1976 standard \
+             atmosphere's altitude of the pressure at the apogee, less that of the pressure on \
+             the pad. u_D is the uncertainty of the log's reading as that quantity.\n\
+             - **Its components** are the pressure sensor's published error, its noise, the step \
+             the log keeps, the gap between the altimeter's own height formula and the 1976 \
+             standard's, and what the log's filter or this report's cut does where that is \
+             measured. Each is a standard uncertainty in meters, taken as independent of the \
+             others, and u_D is their root sum of squares.\n\
+             - **The rules** are the *Guide to the expression of uncertainty in measurement*'s \
+             (JCGM 100:2008). Bounds of ±a give a/√3 (4.3.7). An effect of known sign that is not \
+             corrected, equally likely anywhere from lo to hi, keeps its mean beside its spread: \
+             √((lo² + lo·hi + hi²)/3) (4.3.7 with F.2.4.5). A value kept in steps of δ gives \
+             δ/√12 (F.2.2.1). A maker's \"typical\" figure has no rule in the guide; it is taken \
+             as one standard deviation, the larger of the two readings it allows.\n\
+             - **Pressure to height.** A pascal at the apogee is 1/(ρ·g₀) of height, the \
+             standard atmosphere's hydrostatic equation, with ρ its density at the site's \
+             elevation plus the log's apogee.\n\n\
+             How far to trust it: these are makers' published figures, not calibrations of the \
+             units that flew. Left out, for want of a published figure: the lag of a vented bay \
+             and its ports, a bay outside 0 to 50 °C, and how far noise lifts the highest of many \
+             samples on the two logs with a noise component. Two altimeters flown on one rocket \
+             differ by 0.37% at the median over 59 published flights, about 0.39% a unit \
+             ([the note][two-altimeters]). Where u_D is a smaller share of the apogee than that, \
+             it is too small on that evidence; the sentence under the table counts those \
+             flights. A smaller u_D makes a narrower band, so the choice doesn't flatter the \
+             comparison.\n"
+        );
+        let _ = writeln!(
+            out,
+            "| flight | altimeter | log apogee (m) | a pascal at the apogee (m) | components (m) \
+             | u_D (m) | u_D, share of the apogee | \\|E\\| over u_D |"
+        );
+        let _ = writeln!(out, "|---|---|---:|---:|---|---:|---:|---:|");
+        for row in rows {
+            let Some(data_m) = row.data.data_m else {
+                continue;
+            };
+            let components = row
+                .data
+                .components
+                .iter()
+                .map(|each| format!("{} {}", each.what, fmt_number(each.standard_m, 2)))
+                .collect::<Vec<_>>()
+                .join("; ");
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {} | {} | {}% | {} |",
+                row.id,
+                row.data.altimeter,
+                fmt_number(row.log_apogee_m, 1),
+                row.data
+                    .meters_per_pascal
+                    .map_or_else(|| "none".to_owned(), |per_pascal| fmt_number(per_pascal, 4)),
+                components,
+                fmt_number(data_m, 2),
+                fmt_number(100.0 * data_m / row.log_apogee_m, 2),
+                fmt_number(row.comparison_error_m.abs() / data_m, 1),
+            );
+        }
+        let _ = writeln!(out, "\n{}\n", Self::smallest_data_share(rows));
+        let _ = writeln!(out, "Where each component's figure is stated:\n");
+        // Each source once, in the order the table first uses it, with the flights it serves.
+        let mut sources: Vec<(&str, &str, Vec<&str>)> = Vec::new();
+        for row in rows {
+            for each in &row.data.components {
+                match sources
+                    .iter_mut()
+                    .find(|(what, from, _)| (*what, *from) == (&*each.what, &*each.from))
+                {
+                    Some((_, _, flights)) => flights.push(&row.id),
+                    None => sources.push((&each.what, &each.from, vec![&row.id])),
+                }
+            }
+        }
+        for (what, from, flights) in sources {
+            let flights = flights
+                .iter()
+                .map(|id| format!("`{id}`"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let _ = writeln!(out, "- **{what}** ({flights}): {from}.");
+        }
+        let _ = writeln!(
+            out,
+            "\nNo published accuracy, so no u_D, and no band when the input part comes:\n"
+        );
+        for row in rows.iter().filter(|row| row.data.data_m.is_none()) {
+            let _ = writeln!(
+                out,
+                "- `{}` ({}): {}.",
+                row.id, row.data.altimeter, row.data.without
+            );
+        }
+        let _ = writeln!(
+            out,
+            "\n### The barometer's conversion, in both readings\n\n\
+             The standard atmosphere isn't the day's air, so a barometric reading isn't the \
+             height climbed. That difference, the conversion, is not in u_D, because it is in \
+             both readings: hpr's apogee is read through the same standard atmosphere, from the \
+             pressure of the air it is flown in. The table measures it on each flight:\n\n\
+             - **In hpr's reading:** hpr's apogee as the altimeter would read it, less its \
+             height.\n\
+             - **In the log's:** the log's apogee, less the height at which the same altimeter, \
+             in the same air, would read it.\n\
+             - **E as heights:** hpr's height less the log's, E with neither side read through \
+             the barometer. The conversion grows with the height, so two apogees E apart don't \
+             carry quite the same one, and E as heights differs from E by the difference. As a \
+             share of the apogee, which is how this report scores a flight, the two are nearly \
+             the same number.\n"
+        );
+        let _ = writeln!(
+            out,
+            "| flight | conversion in hpr's reading (m) | in the log's (m) | E (m) | E, share of \
+             the log's apogee | E as heights (m) | E as heights, share of the log's height |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|");
+        for row in rows {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {}% | {} | {}% |",
+                row.id,
+                fmt_number(row.conversion_m(), 2),
+                fmt_number(row.log_conversion_m(), 2),
+                fmt_number(row.comparison_error_m, 1),
+                fmt_signed(100.0 * row.error_share(), 2),
+                fmt_number(row.height_error_m(), 1),
+                fmt_signed(100.0 * row.height_error_share(), 2),
+            );
+        }
+        let _ = writeln!(out, "\n{}\n", Self::conversion_sentence(rows));
+        let _ = writeln!(
+            out,
+            "What isn't in both readings is the air's own error. The log's altimeter read the \
+             day's real air; \
+             hpr's reads the air the flight is flown in, a reanalysis or the standard \
+             atmosphere. Where they differ, hpr's reading moves and the log's doesn't: by about \
+             0.35% of the reading for each kelvin of the air column ([the \
+             note][height-formulas]). That is an input's uncertainty, and it comes with the \
+             input part ([M1.14b18][m1-14b18]).\n"
+        );
+    }
+
+    /// The sentence under the data part's table: the largest u_D, and the fewest times a
+    /// flight's own u_D goes into its |E|, rounded down as [`Self::smallest_share`] rounds.
+    pub(crate) fn smallest_data_share(
+        rows: &[crate::validation_uncertainty::UncertaintyRow],
+    ) -> String {
+        let with_part = rows
+            .iter()
+            .filter_map(|row| row.data.data_m.map(|data_m| (row, data_m)))
+            .collect::<Vec<_>>();
+        let Some((largest, largest_m)) =
+            with_part.iter().max_by(|a, b| a.1.total_cmp(&b.1)).copied()
+        else {
+            return "No flight's altimeter has a published accuracy.".to_owned();
+        };
+        let without = rows.len() - with_part.len();
+        let counted = format!(
+            "{} of the {} flights have a u_D; {without} have none.",
+            with_part.len(),
+            rows.len()
+        );
+        let fewest = with_part
+            .iter()
+            .filter(|(row, data_m)| *data_m > 0.0 && row.comparison_error_m.is_finite())
+            .map(|(row, data_m)| (row.comparison_error_m.abs() / data_m, &row.id))
+            .min_by(|a, b| a.0.total_cmp(&b.0));
+        let largest = format!(
+            "The largest u_D is {} m ({}).",
+            fmt_number(largest_m, 2),
+            largest.id
+        );
+        let under = with_part
+            .iter()
+            .filter(|(row, data_m)| *data_m < TWO_ALTIMETERS_PER_UNIT * row.log_apogee_m.abs())
+            .count();
+        let largest = format!(
+            "{largest} On {under} of them u_D is under {}% of the log's apogee, the two-altimeter \
+             figure.",
+            fmt_number(100.0 * TWO_ALTIMETERS_PER_UNIT, 2)
+        );
+        match fewest {
+            Some((times, id)) if times >= 1.0 => format!(
+                "{counted} {largest} Each of those flights' |E| is at least {} times its own \
+                 u_D; the fewest times is on {id}. So the log's part can't account for any of \
+                 these errors either.",
+                Self::rounded_down(times)
+            ),
+            Some((_, id)) => format!("{counted} {largest} On {id}, u_D is larger than |E|."),
+            None => format!("{counted} {largest}"),
+        }
+    }
+
+    /// The sentence under the conversion's table: its largest size in a reading, and the most
+    /// it leaves in any flight's E.
+    pub(crate) fn conversion_sentence(
+        rows: &[crate::validation_uncertainty::UncertaintyRow],
+    ) -> String {
+        let size = |row: &crate::validation_uncertainty::UncertaintyRow| {
+            row.conversion_m().abs().max(row.log_conversion_m().abs())
+        };
+        let left = |row: &crate::validation_uncertainty::UncertaintyRow| {
+            (row.comparison_error_m - row.height_error_m()).abs()
+        };
+        let points = |row: &crate::validation_uncertainty::UncertaintyRow| {
+            100.0 * (row.error_share() - row.height_error_share()).abs()
+        };
+        let (Some(largest), Some(most_left), Some(most_points)) = (
+            rows.iter().max_by(|a, b| size(a).total_cmp(&size(b))),
+            rows.iter().max_by(|a, b| left(a).total_cmp(&left(b))),
+            rows.iter().max_by(|a, b| points(a).total_cmp(&points(b))),
+        ) else {
+            return "No flight has a conversion.".to_owned();
+        };
+        // "At most" rounds up, so that the bound stays true.
+        let at_most = (points(most_points) * 100.0).ceil() / 100.0;
+        format!(
+            "The conversion is as large as {} m in a reading ({}). E as heights differs from E \
+             by {} m at the most ({}), and as a share of the apogee by at most {} points ({}).",
+            fmt_number(size(largest), 1),
+            largest.id,
+            fmt_number(left(most_left), 1),
+            most_left.id,
+            fmt_number(at_most, 2),
+            most_points.id,
+        )
+    }
+
+    /// A count of times of at least 1, rounded down to two significant figures so that "at
+    /// least N times" stays true, its digits grouped in threes from four digits. Integer
+    /// arithmetic alone after the floor.
+    fn rounded_down(times: f64) -> String {
+        // `times` is at least 1 here and far under 2^64 for any apogee in meters.
+        #[expect(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "a finite ratio of at least 1, floored"
+        )]
+        let whole = times.floor() as u64;
+        let mut scale = 1;
+        while whole / scale >= 100 {
+            scale *= 10;
+        }
+        let digits = (whole / scale * scale).to_string();
+        // Grouped in threes from four digits, as the site's pages write numbers.
+        let mut grouped = String::new();
+        for (at, digit) in digits.chars().enumerate() {
+            if at > 0 && digits.len() > 3 && (digits.len() - at).is_multiple_of(3) {
+                grouped.push(',');
+            }
+            grouped.push(digit);
+        }
+        grouped
     }
 
     /// The sentence under the numerical part's table: the largest u_num, and the fewest times a
@@ -2951,26 +3337,7 @@ impl RealFlightReport {
                 largest.id
             );
         }
-        // `times` is at least 1 here and far under 2^64 for any apogee in meters.
-        #[expect(
-            clippy::cast_possible_truncation,
-            clippy::cast_sign_loss,
-            reason = "a finite ratio of at least 1, floored"
-        )]
-        let whole = times.floor() as u64;
-        let mut scale = 1;
-        while whole / scale >= 100 {
-            scale *= 10;
-        }
-        let digits = (whole / scale * scale).to_string();
-        // Grouped in threes from four digits, as the site's pages write numbers.
-        let mut grouped = String::new();
-        for (at, digit) in digits.chars().enumerate() {
-            if at > 0 && digits.len() > 3 && (digits.len() - at).is_multiple_of(3) {
-                grouped.push(',');
-            }
-            grouped.push(digit);
-        }
+        let grouped = Self::rounded_down(times);
         format!(
             "The largest u_num is {} mm ({}). Every flight's |E| is at least {grouped} times its \
              own u_num; the fewest times is on {id}.",
@@ -3104,6 +3471,12 @@ impl RealFlightReport {
         let _ = writeln!(out);
     }
 }
+
+/// What one altimeter's apogee is off by, as a share of it, if two flown on one rocket err alike
+/// and independently: 0.39%, the reading `docs/research/dual-altimeter-spread.md` (§5) takes
+/// from the 0.37% median gap of 59 published flights' pairs (a median gap is 0.954 standard
+/// deviations of one unit). The data part's makers' figures are set beside it, not replaced by it.
+pub(crate) const TWO_ALTIMETERS_PER_UNIT: f64 = 0.0039;
 
 pub(crate) fn fmt_number(value: f64, decimals: usize) -> String {
     format!("{value:.decimals$}")

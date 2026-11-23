@@ -611,7 +611,17 @@
       "apogee_step_halved_m": 464.059454370057,
       "steps": 331,
       "steps_step_halved": 635,
-      "numerical_m": 0.0018674464243514065
+      "numerical_m": 0.0018674464243514065,
+      "log_apogee_m": 458.971,
+      "height_apogee_m": 464.76055517671716,
+      "log_height_m": 459.6631720041993,
+      "data": {
+        "altimeter": "the team's own avionics",
+        "meters_per_pascal": null,
+        "components": [],
+        "data_m": null,
+        "without": "no document read names the sensor that made the logged height, or how it was filtered"
+      }
     },
     {
       "id": "ndrt-2020",
@@ -620,7 +630,33 @@
       "apogee_step_halved_m": 1457.5009436619248,
       "steps": 286,
       "steps_step_halved": 558,
-      "numerical_m": 0.0013676799756791507
+      "numerical_m": 0.0013676799756791507,
+      "log_apogee_m": 1320.3570240000001,
+      "height_apogee_m": 1432.677469281113,
+      "log_height_m": 1296.815498586383,
+      "data": {
+        "altimeter": "Featherweight Raven",
+        "meters_per_pascal": 0.09662471574372027,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 5.578630564500797,
+            "from": "Featherweight Altimeters, Raven4 user's manual (2020-08-15), p. 12: \"less than 1 mbar (0.1% full-scale) pressure error over most conditions\", with no confidence level; the log doesn't say which Raven wrote it"
+          },
+          {
+            "what": "step",
+            "standard_m": 0.11305094838960865,
+            "from": "the same manual, p. 12: baro resolution 0.00004 atm"
+          },
+          {
+            "what": "formula",
+            "standard_m": 0.067056,
+            "from": "docs/research/altimeter-height-formulas.md: Raven height columns are the standard atmosphere's altitude of their own logged pressure to 0.22 ft"
+          }
+        ],
+        "data_m": 5.580178850113164,
+        "without": ""
+      }
     },
     {
       "id": "prometheus-2022",
@@ -629,7 +665,38 @@
       "apogee_step_halved_m": 3536.6300441379008,
       "steps": 488,
       "steps_step_halved": 968,
-      "numerical_m": 0.0006482193970552127
+      "numerical_m": 0.0006482193970552127,
+      "log_apogee_m": 3895.83,
+      "height_apogee_m": 3796.407842833434,
+      "log_height_m": 4178.186164328658,
+      "data": {
+        "altimeter": "Altus Metrum TeleMetrum (MS5607: the log steps its pressure by 1 Pa)",
+        "meters_per_pascal": 0.14299693371876235,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 8.255931817581851,
+            "from": "TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns)"
+          },
+          {
+            "what": "noise",
+            "standard_m": 1.8589601383439105,
+            "from": "the same sheet, p. 4: resolution RMS 0.130 mbar at an oversampling ratio of 256, the largest it lists; the altimeter's ratio isn't published"
+          },
+          {
+            "what": "step",
+            "standard_m": 0.04127965908790926,
+            "from": "the same sheet, p. 8: the compensated pressure is given in steps of 0.01 mbar"
+          },
+          {
+            "what": "formula",
+            "standard_m": 0.19515728329315607,
+            "from": "this report: the log's height column against the 1976 standard's reading of its own pressure column, the largest gap"
+          }
+        ],
+        "data_m": 8.464982773047371,
+        "without": ""
+      }
     },
     {
       "id": "juno-iii",
@@ -638,7 +705,43 @@
       "apogee_step_halved_m": 2976.686418171833,
       "steps": 659,
       "steps_step_halved": 1172,
-      "numerical_m": 2.4883231248257982e-6
+      "numerical_m": 2.4883231248257982e-6,
+      "log_apogee_m": 3151.507,
+      "height_apogee_m": 3231.387027803913,
+      "log_height_m": 3417.720885762884,
+      "data": {
+        "altimeter": "Missile Works RRC3 (MS5607)",
+        "meters_per_pascal": 0.1330883929251519,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 7.683861948135113,
+            "from": "TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns)"
+          },
+          {
+            "what": "noise",
+            "standard_m": 0.47911821453054687,
+            "from": "the same sheet, p. 4: resolution RMS 0.036 mbar at an oversampling ratio of 2048, the RRC3's (Missile Works, RRC3 user manual v1.71, p. 24)"
+          },
+          {
+            "what": "step",
+            "standard_m": 0.3841930974067557,
+            "from": "docs/research/altimeter-sensor-noise.md, §3: the public RRC3 log keeps its pressure in steps of 10 Pa"
+          },
+          {
+            "what": "formula",
+            "standard_m": 1.3212411887507187,
+            "from": "this report: the log's height column against the 1976 standard's reading of its own pressure column, the largest gap"
+          },
+          {
+            "what": "cut",
+            "standard_m": 15.275252316519467,
+            "from": "this report's note on the flight: the log is read to 24.60 s, where its own velocity column still reads 17.5 m/s up, so its apogee may be 10 m to 20 m low"
+          }
+        ],
+        "data_m": 17.16094125185951,
+        "without": ""
+      }
     },
     {
       "id": "cavour",
@@ -647,7 +750,38 @@
       "apogee_step_halved_m": 2945.476628138709,
       "steps": 671,
       "steps_step_halved": 1322,
-      "numerical_m": 0.00007079004867755089
+      "numerical_m": 0.00007079004867755089,
+      "log_apogee_m": 2785.0,
+      "height_apogee_m": 3051.560821251373,
+      "log_height_m": 2886.690525612392,
+      "data": {
+        "altimeter": "CATS Vega (MS5607), its radio telemetry",
+        "meters_per_pascal": 0.11140185848619542,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 6.431789298522952,
+            "from": "TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns)"
+          },
+          {
+            "what": "step",
+            "standard_m": 0.5773502691896257,
+            "from": "the telemetry sends the height in whole meters cut toward zero (docs/research/cats-vega-height.md)"
+          },
+          {
+            "what": "filter",
+            "standard_m": 0.7505553499465135,
+            "from": "docs/research/cats-vega-filtered-column.md, \"For Cavour\": the telemetry is the Kalman filter's height, within about 1.3 m of the flight's own barometric apogee"
+          },
+          {
+            "what": "formula",
+            "standard_m": 0.23,
+            "from": "docs/research/cats-vega-height.md, \"Against HPR Sim's reading\": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's"
+          }
+        ],
+        "data_m": 6.505188717267243,
+        "without": ""
+      }
     },
     {
       "id": "genesis",
@@ -656,7 +790,33 @@
       "apogee_step_halved_m": 2745.1865602041225,
       "steps": 452,
       "steps_step_halved": 898,
-      "numerical_m": 0.0007035140865127305
+      "numerical_m": 0.0007035140865127305,
+      "log_apogee_m": 2916.691650390625,
+      "height_apogee_m": 2874.4559077825875,
+      "log_height_m": 3053.116469266018,
+      "data": {
+        "altimeter": "CATS Vega (MS5607), the 9-sample median of its barometric height",
+        "meters_per_pascal": 0.1130377627481651,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 6.526238275124617,
+            "from": "TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns)"
+          },
+          {
+            "what": "peak",
+            "standard_m": 2.1548395145191983,
+            "from": "docs/research/cats-vega-filtered-column.md, \"Noise lifts the maxima\": on four Vega logs the 9-sample median's highest value sits 0.9 m to 3.2 m above a parabola through the coast, as the highest of a noisy series does"
+          },
+          {
+            "what": "formula",
+            "standard_m": 0.19,
+            "from": "docs/research/cats-vega-height.md, \"Against HPR Sim's reading\": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's"
+          }
+        ],
+        "data_m": 6.875406850291469,
+        "without": ""
+      }
     },
     {
       "id": "lince",
@@ -665,7 +825,33 @@
       "apogee_step_halved_m": 3728.031361913298,
       "steps": 580,
       "steps_step_halved": 1139,
-      "numerical_m": 0.0005127253969283421
+      "numerical_m": 0.0005127253969283421,
+      "log_apogee_m": 3587.7236328125,
+      "height_apogee_m": 3893.975847173825,
+      "log_height_m": 3747.2644431697872,
+      "data": {
+        "altimeter": "CATS Vega (MS5607), the 9-sample median of its barometric height",
+        "meters_per_pascal": 0.12117417966116534,
+        "components": [
+          {
+            "what": "sensor",
+            "standard_m": 6.995994524620588,
+            "from": "TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns)"
+          },
+          {
+            "what": "peak",
+            "standard_m": 2.1548395145191983,
+            "from": "docs/research/cats-vega-filtered-column.md, \"Noise lifts the maxima\": on four Vega logs the 9-sample median's highest value sits 0.9 m to 3.2 m above a parabola through the coast, as the highest of a noisy series does"
+          },
+          {
+            "what": "formula",
+            "standard_m": 0.23,
+            "from": "docs/research/cats-vega-height.md, \"Against HPR Sim's reading\": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's"
+          }
+        ],
+        "data_m": 7.32394516103545,
+        "without": ""
+      }
     },
     {
       "id": "astra",
@@ -674,7 +860,17 @@
       "apogee_step_halved_m": 3037.092661683503,
       "steps": 550,
       "steps_step_halved": 1087,
-      "numerical_m": 0.0012669978808307319
+      "numerical_m": 0.0012669978808307319,
+      "log_apogee_m": 3249.46,
+      "height_apogee_m": 3155.3345824138596,
+      "log_height_m": 3377.080305876709,
+      "data": {
+        "altimeter": "not named",
+        "meters_per_pascal": null,
+        "components": [],
+        "data_m": null,
+        "without": "RocketPy's notebook calls it a COTS altimeter and names no make or sensor"
+      }
     },
     {
       "id": "andromeda",
@@ -683,7 +879,17 @@
       "apogee_step_halved_m": 3580.5905877055734,
       "steps": 2792,
       "steps_step_halved": 3505,
-      "numerical_m": 0.00570925374937873
+      "numerical_m": 0.00570925374937873,
+      "log_apogee_m": 3438.549384,
+      "height_apogee_m": 3729.147845613415,
+      "log_height_m": 3580.7746068260285,
+      "data": {
+        "altimeter": "not named",
+        "meters_per_pascal": null,
+        "components": [],
+        "data_m": null,
+        "without": "RocketPy's notebook calls it a COTS altimeter and names no make or sensor"
+      }
     },
     {
       "id": "erebus-11",
@@ -692,7 +898,17 @@
       "apogee_step_halved_m": 2759.619911104665,
       "steps": 651,
       "steps_step_halved": 1224,
-      "numerical_m": 0.002412317952585845
+      "numerical_m": 0.002412317952585845,
+      "log_apogee_m": 3001.75136,
+      "height_apogee_m": 2855.9887164882025,
+      "log_height_m": 3107.2614979002115,
+      "data": {
+        "altimeter": "not named",
+        "meters_per_pascal": null,
+        "components": [],
+        "data_m": null,
+        "without": "RocketPy's notebook calls it a COTS altimeter and names no make or sensor"
+      }
     },
     {
       "id": "macie-xl-1",
@@ -701,7 +917,33 @@
       "apogee_step_halved_m": 706.2450560378408,
       "steps": 350,
       "steps_step_halved": 687,
-      "numerical_m": 0.0004720287269003519
+      "numerical_m": 0.0004720287269003519,
+      "log_apogee_m": 842.772,
+      "height_apogee_m": 706.3233819694076,
+      "log_height_m": 842.8839227043771,
+      "data": {
+        "altimeter": "PerfectFlite StratoLoggerCF",
+        "meters_per_pascal": null,
+        "components": [
+          {
+            "what": "precision",
+            "standard_m": 1.147572,
+            "from": "PerfectFlite, StratoLoggerCF user's manual (PDF of 2014-12-02), specifications, PDF p. 49: \"Measurement precision: +/- (0.1% reading + 1 foot) typical\""
+          },
+          {
+            "what": "calibration",
+            "standard_m": 0.42138600000000004,
+            "from": "the same page: \"Calibration accuracy: +/- 0.05% typical\""
+          },
+          {
+            "what": "step",
+            "standard_m": 0.08798818102449897,
+            "from": "the log's header gives its apogee in whole feet"
+          }
+        ],
+        "data_m": 1.2256547540722877,
+        "without": ""
+      }
     },
     {
       "id": "macie-xl-2",
@@ -710,7 +952,33 @@
       "apogee_step_halved_m": 692.6382735240305,
       "steps": 348,
       "steps_step_halved": 676,
-      "numerical_m": 0.0005992858920431443
+      "numerical_m": 0.0005992858920431443,
+      "log_apogee_m": 977.7984,
+      "height_apogee_m": 692.7135232559336,
+      "log_height_m": 977.9490295638288,
+      "data": {
+        "altimeter": "PerfectFlite StratoLoggerCF",
+        "meters_per_pascal": null,
+        "components": [
+          {
+            "what": "precision",
+            "standard_m": 1.2825984000000001,
+            "from": "PerfectFlite, StratoLoggerCF user's manual (PDF of 2014-12-02), specifications, PDF p. 49: \"Measurement precision: +/- (0.1% reading + 1 foot) typical\""
+          },
+          {
+            "what": "calibration",
+            "standard_m": 0.48889920000000003,
+            "from": "the same page: \"Calibration accuracy: +/- 0.05% typical\""
+          },
+          {
+            "what": "step",
+            "standard_m": 0.08798818102449897,
+            "from": "the log's header gives its apogee in whole feet"
+          }
+        ],
+        "data_m": 1.375435568626608,
+        "without": ""
+      }
     }
   ],
   "summary": {

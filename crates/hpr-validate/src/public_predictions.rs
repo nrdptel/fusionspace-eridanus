@@ -787,6 +787,9 @@ pub struct PredictionsReport {
 /// What one flight of a rocket gave.
 struct Flown {
     apogee_m: f64,
+    /// The height above the start at which the altimeter would read
+    /// [`Launch::probe_reading_m`], when one was asked.
+    probe_height_m: Option<f64>,
     height_apogee_m: f64,
     time_to_apogee_s: f64,
     max_mach: f64,
@@ -945,7 +948,7 @@ pub fn predict(
     flight: &PredictedFlight,
     weather: &WeatherConversion,
 ) -> Result<PredictionRow, RealFlightError> {
-    predict_with(root, flight, weather, None).map(|(row, _)| row)
+    predict_with(root, flight, weather, None, None).map(|(row, _)| row)
 }
 
 /// A predicted flight's row, and whether its design has two or more guides at different
@@ -955,7 +958,8 @@ fn predict_with(
     flight: &PredictedFlight,
     weather: &WeatherConversion,
     variant: Option<Variant>,
-) -> Result<(PredictionRow, (bool, u64)), RealFlightError> {
+    probe_reading_m: Option<f64>,
+) -> Result<(PredictionRow, Counted), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1042,6 +1046,7 @@ fn predict_with(
         rail,
         altimeter: flight.reference.altimeter,
         variant,
+        probe_reading_m,
     };
     let fly_once = |rocket: &Rocket| flown_to_apogee(rocket, &launch);
     let counted = fly_once(&rocket)?;
@@ -1105,7 +1110,24 @@ fn predict_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, (counted.two_guides, counted.steps_to_apogee)))
+    Ok((
+        row,
+        Counted {
+            two_guides: counted.two_guides,
+            steps_to_apogee: counted.steps_to_apogee,
+            probe_height_m: counted.probe_height_m,
+        },
+    ))
+}
+
+/// What a varied flight keeps beside its row: whether its design has two or more guides at
+/// different stations, the integrator's accepted steps that start before its apogee, and the
+/// height above the start at which its altimeter would read [`Launch::probe_reading_m`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Counted {
+    two_guides: bool,
+    steps_to_apogee: u64,
+    probe_height_m: Option<f64>,
 }
 
 /// What flying a rocket to its apogee needs beside the rocket.
@@ -1128,6 +1150,10 @@ struct Launch<'a> {
     altimeter: Altimeter,
     /// A variant flown on the flight, or none: the flight as predicted.
     variant: Option<Variant>,
+    /// A reading, m above the pad, whose height the flight's altimeter is asked for, or none.
+    /// It is never a part of the flight: the validation uncertainty asks it of a flight already
+    /// predicted and compared, with the log's apogee.
+    probe_reading_m: Option<f64>,
 }
 
 /// Flies `rocket` to its apogee and reads it as the log's altimeter would.
@@ -1210,17 +1236,29 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         .ok_or_else(|| input("the flight has no steps".to_owned()))?;
     // What the log's altimeter would read at the apogee, above its start.
     let atmos = |error: hpr_atmos::AtmosError| input(format!("{}: {error}", launch.air_name));
-    let apogee_m = match launch.altimeter {
-        Altimeter::Height(_) => apogee.height_above_ground_m - start_m,
+    let (apogee_m, probe_height_m) = match launch.altimeter {
+        Altimeter::Height(_) => (
+            apogee.height_above_ground_m - start_m,
+            launch.probe_reading_m,
+        ),
         Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => {
-            Barometer::on_pad(launch.air, launch.elevation_m, start_m)
-                .map_err(atmos)?
-                .reading_m(apogee.height_above_ground_m)
-                .map_err(atmos)?
+            let barometer =
+                Barometer::on_pad(launch.air, launch.elevation_m, start_m).map_err(atmos)?;
+            let probe_height_m = match launch.probe_reading_m {
+                Some(reading_m) => Some(barometer.height_m(reading_m).map_err(atmos)? - start_m),
+                None => None,
+            };
+            (
+                barometer
+                    .reading_m(apogee.height_above_ground_m)
+                    .map_err(atmos)?,
+                probe_height_m,
+            )
         }
     };
     Ok(Flown {
         apogee_m,
+        probe_height_m,
         height_apogee_m: apogee.height_above_ground_m - start_m,
         time_to_apogee_s: apogee.time_s,
         max_mach,
@@ -1427,7 +1465,7 @@ pub fn predict_design_file(
     root: &Path,
     flight: &DesignFileFlight,
 ) -> Result<DesignFilePredictionRow, RealFlightError> {
-    predict_design_file_with(root, flight, None).map(|(row, _)| row)
+    predict_design_file_with(root, flight, None, None).map(|(row, _)| row)
 }
 
 /// A design-file flight's row, and whether its design has two or more guides at different
@@ -1436,7 +1474,8 @@ fn predict_design_file_with(
     root: &Path,
     flight: &DesignFileFlight,
     variant: Option<Variant>,
-) -> Result<(DesignFilePredictionRow, (bool, u64)), RealFlightError> {
+    probe_reading_m: Option<f64>,
+) -> Result<(DesignFilePredictionRow, Counted), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1536,6 +1575,7 @@ fn predict_design_file_with(
             rail,
             altimeter: flight.reference.altimeter,
             variant,
+            probe_reading_m,
         },
     )?;
 
@@ -1589,7 +1629,14 @@ fn predict_design_file_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, (flown.two_guides, flown.steps_to_apogee)))
+    Ok((
+        row,
+        Counted {
+            two_guides: flown.two_guides,
+            steps_to_apogee: flown.steps_to_apogee,
+            probe_height_m: flown.probe_height_m,
+        },
+    ))
 }
 
 /// Predicts every flight in [`NEW_FLIGHTS`], then every one in [`DESIGN_FILE_FLIGHTS`].
@@ -1634,23 +1681,59 @@ pub type VariedApogee = (String, Result<Varied, RealFlightError>);
 ///
 /// As [`corrected_apogees`].
 pub fn varied_apogees(root: &Path, variant: Variant) -> Result<Vec<VariedApogee>, RealFlightError> {
+    varied_apogees_at(root, variant, &[])
+}
+
+/// [`varied_apogees`], each flight's altimeter also asked the height at which it would read the
+/// reading `readings_m` gives for its id, m above the pad ([`Varied::log_height_m`]): the log's
+/// apogee, for a flight already predicted and compared. A flight with no reading is asked none.
+///
+/// # Errors
+///
+/// As [`varied_apogees`].
+pub fn varied_apogees_at(
+    root: &Path,
+    variant: Variant,
+    readings_m: &[(String, f64)],
+) -> Result<Vec<VariedApogee>, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
     let variant = Some(variant);
-    let varied = |apogee_m: f64, (two_guides, steps_to_apogee): (bool, u64)| Varied {
+    let probe = |id: &str| {
+        readings_m
+            .iter()
+            .find(|(each, _)| each == id)
+            .map(|&(_, reading_m)| reading_m)
+    };
+    let varied = |apogee_m: f64, height_apogee_m: f64, counted: Counted| Varied {
         apogee_m,
-        two_guides,
-        steps_to_apogee,
+        two_guides: counted.two_guides,
+        steps_to_apogee: counted.steps_to_apogee,
+        height_apogee_m,
+        log_height_m: counted.probe_height_m,
     };
     Ok(NEW_FLIGHTS
         .iter()
         .map(|flight| {
-            let apogee = predict_with(root, flight, &weather_conversion, variant)
-                .map(|(row, two)| varied(row.predicted_apogee_m, two));
+            let apogee = predict_with(root, flight, &weather_conversion, variant, probe(flight.id))
+                .map(|(row, counted)| {
+                    varied(
+                        row.predicted_apogee_m,
+                        row.predicted_height_apogee_m,
+                        counted,
+                    )
+                });
             (flight.id.to_owned(), apogee)
         })
         .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| {
-            let apogee = predict_design_file_with(root, flight, variant)
-                .map(|(row, two)| varied(row.predicted_apogee_m, two));
+            let apogee = predict_design_file_with(root, flight, variant, probe(flight.id)).map(
+                |(row, counted)| {
+                    varied(
+                        row.predicted_apogee_m,
+                        row.predicted_height_apogee_m,
+                        counted,
+                    )
+                },
+            );
             (flight.id.to_owned(), apogee)
         }))
         .collect())
@@ -1682,11 +1765,13 @@ fn run_with(root: &Path, variant: Option<Variant>) -> Result<PredictionsReport, 
     let weather_conversion = checked_conversion(root)?;
     let flights = NEW_FLIGHTS
         .iter()
-        .map(|flight| predict_with(root, flight, &weather_conversion, variant).map(|(row, _)| row))
+        .map(|flight| {
+            predict_with(root, flight, &weather_conversion, variant, None).map(|(row, _)| row)
+        })
         .collect::<Result<Vec<_>, _>>()?;
     let design_file_flights = DESIGN_FILE_FLIGHTS
         .iter()
-        .map(|flight| predict_design_file_with(root, flight, variant).map(|(row, _)| row))
+        .map(|flight| predict_design_file_with(root, flight, variant, None).map(|(row, _)| row))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(PredictionsReport {
         generator: "cargo xtask public-predictions".to_owned(),
