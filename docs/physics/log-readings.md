@@ -635,13 +635,13 @@ than the walk's start, and the log alone can't say which is the opening:
   ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
 - **A drogue falling near the limit,** slow for a few seconds and then fast just before the main
   opens, makes the split early. The walk is right
-  ([issue #1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). In 30 slow rates,
-  200 fast, 100 slow, 25 fast and 1,000 slow, the split is at 230 and the walk's start, the
-  opening, at 355.
+  ([issue #1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). Take 30 slow rates,
+  200 fast, 100 slow, 25 fast and 1,000 slow. The split is at 230; the walk's start, at 355, is
+  the opening.
 
-So where the two differ, the opening's bound adds the time between them: it holds an opening at
-the split or at the walk's start, each with the margin it would have alone
-([ADR-374][adr-374]). The reading is still the split. The drogue's leg ends at the split, so it
+So where the two differ, the opening's bound adds the time between them
+([ADR-374][adr-374]). It holds an opening at the split or at the walk's start, each with the
+margin it would have alone. The reading is still the split. The drogue's leg ends at the split, so it
 leaves out the stretch between the two. Where that stretch falls slower than the rest of the
 leg, as in issue #1593's shape, the drogue's rate reads fast. Where it falls faster, it reads
 slow, the flattering side for a descent-energy figure. A test invents issue #1593's shape: a
@@ -668,7 +668,7 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s and the drogue's descent
   17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The opening's bound is 19.21 s: 0.76 s about the
-  split, and the 18.45 s to the walk's start at the swing, which the log alone can't rule out. The charge fired 2.85 s before the reading: the
+  split, and 18.45 s more to the walk's start at the swing. The log alone can't rule that out. The charge fired 2.85 s before the reading: the
   bound leaves out the time a canopy takes to come out and fill.
 
 That is one real flight with a logged charge time ([evidence row G10](../evidence.md#g10)).
@@ -753,8 +753,8 @@ the run starts on, and one more is HPR Sim's margin. A canopy's
 [filling time](../glossary.md#inflation-and-filling-time) isn't in it: the synthetic flights open
 each canopy at once ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779), the
 opening's bound and a canopy's filling time). Where the split is earlier than the walk's start,
-the bound adds the time between them, and its two sample intervals are the coarser of the two
-places' ([ADR-374][adr-374]).
+the bound adds the time between them ([ADR-374][adr-374]). Its two sample intervals are then
+the coarser of the two places'.
 
 On the invented PerfectFlite flight, the main's rate near the ground is 6.0 m/s (20 ft/s), so the
 run's mark is 9.6 m/s (31.5 ft/s). That is 1.6 times the rate, more than 3 m/s (9.8 ft/s) above it. The
