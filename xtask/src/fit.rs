@@ -619,7 +619,7 @@ const OTHER_PLATFORM_ABSOLUTE: f64 = 0.002;
 /// that many draws. A failed draw isn't an event of its own. A posterior's draws are made around
 /// its flight's least-squares fit, and a draw fails where its flight can't be flown or its weight
 /// isn't finite, so one posterior can fail many draws while most fail none. Another platform's
-/// slightly different fit moves where the draws land, and so which fail. The room lets five
+/// slightly different fit moves where the draws land, and so can move which fail. The room lets five
 /// posteriors stand otherwise, as a count lets five flights (ADR-372; #1602: set B's flight 3328
 /// failed 12 draws on macOS and 31 on Linux). The posteriors are those of the platform that makes
 /// the report being checked, so a rise confined to five posteriors passes whatever its size.

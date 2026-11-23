@@ -1,7 +1,7 @@
 # ADR-372: The census in one build, and a set's failed draws by its five worst posteriors (2026-11-22)
 
 - **Status:** accepted; fixes [#1602](https://github.com/nrdptel/fusionspace-eridanus/issues/1602), the nightly run's two failed checks. Amends how the synthetic census is written ([ADR-280][adr-280]) and how the fit's failed draws are held on another platform ([ADR-316][adr-316] §7)
-- **Summary:** One of set A's readings sits on an interval's edge: the dev build and Windows on ARM count it on one side, the optimized build on four other platforms on the other. The synthetic census is now flown, written and checked in the optimized `report-check` build: byte for byte on macOS, where it is written, and elsewhere with an interval test's counts within one flight and the bands beside them following. On a platform other than the one that wrote the fit's report, a set's failed posterior draws may now differ by the failures of its five posteriors that failed most, not by 5 draws: one posterior can fail many of its draws while most fail none.
+- **Summary:** One of set A's readings sits on an interval's edge: the dev build and Windows on ARM count it on one side, the optimized build on four other platforms on the other. The synthetic census is now flown, written and checked in the optimized `report-check` build: byte for byte on macOS, where it is written, and elsewhere with an interval test's counts within one flight and each moved count's band following. On a platform other than the one that wrote the fit's report, a set's failed posterior draws may now differ by the failures of its five posteriors that failed most, not by 5 draws: one posterior can fail many of its draws while most fail none.
 
 [adr-149]: 0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
@@ -44,7 +44,8 @@ draw is one draw's own event, not a flight's 500". Flight 3328 shows that this d
 across platforms. A posterior's draws are made around its flight's least-squares fit
 ([ADR-317](0317-m7-3c-in-two-the-sampler-then-the-test.md)), and a draw fails where its flight
 can't be flown or its weight isn't finite, so one posterior can fail many draws while most fail
-none. Another platform's slightly different fit moves where the draws land, and so which fail:
+none. Another platform's slightly different fit moves where the draws land, and so can move which
+fail:
 flight 3328's residual is 14.00 m RMS on macOS and 13.95 m on Linux. On the Linux parts, one
 posterior of set B failed 31 draws and another 16; most failed none.
 
@@ -66,9 +67,9 @@ posterior of set B failed 31 draws and another 16; most failed none.
    --other-platform`:
    - an interval test's counts of truths below, inside and above it may each differ by one
      flight;
-   - where they differ, the bands beside them move with them: each is those counts' 99.9%
-     Clopper–Pearson band, made from them by the same code that macOS holds exactly, and one
-     flight in a small cell moves its band far more than any fixed share would allow;
+   - where one differs, the band named for it moves with it: the band is that count's 99.9%
+     Clopper–Pearson band, made from it by the same code that macOS holds exactly, and one flight
+     in a small cell moves its band by a quarter of its upper end;
    - every other number, word, field and length is held exactly, as all five platforms agreed
      on every other number they checked that night.
 
@@ -98,11 +99,13 @@ posterior of set B failed 31 draws and another 16; most failed none.
   bound), so no margin is known to be enough. And counting it inside flatters an interval.
 - *Hold the census's figures within 5% or 0.002, as the fit's.* The bands of a small cell move
   far more with one flight (0 of 820 truths against 1 moves a band's upper end by 24%), and the
-  other figures matched exactly, so a share would let a real drift through for nothing.
+  night's other figures matched exactly (sets tuning and A on all five platforms; sets B and
+  calibration ran on Windows on ARM alone, which matched too), so a share would let a real drift
+  through for nothing.
 - *A larger fixed room for failed draws.* Any fixed number would be a guess. The room above
   comes from the data the check is reading.
 - *Leave out the failed draws of posteriors with too few effective draws.* On the Linux parts
-  they hold 198 of the 318 failed draws in set B's fits, so the count would drop most of B's
+  they hold 191 of the 298 failed draws in set B's fits, so the count would drop most of B's
   failures.
 
 **What this does not decide.**

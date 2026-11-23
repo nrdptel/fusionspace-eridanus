@@ -733,9 +733,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// one: one flight. The census is written on macOS in the optimized build, and held there byte for
 /// byte. Elsewhere a reading on an interval's edge can fall on its other side: set A's drogue
 /// rate, under the probe that narrows each interval to 0.8 of its width, read 313 inside on macOS,
-/// both Linux runners and Windows on x86-64, and 312 on Windows on ARM (ADR-372, #1602). Every
-/// other number of that night's census agreed on all five platforms, so every other number is
-/// held exactly, but for the bands a moved count gives ([`Held`]).
+/// both Linux runners and Windows on x86-64, and 312 on Windows on ARM (ADR-372, #1602). That night
+/// every other number of sets tuning and A agreed on all five platforms, and Windows on ARM, the
+/// one platform whose job reached sets B and calibration, agreed on theirs, so every other number
+/// is held exactly, but for the band a moved count gives ([`Held`]).
 const OTHER_PLATFORM_FLIGHTS: u64 = 1;
 
 /// The counts of an interval's test that may move: the truths below, inside and above it. The
@@ -749,9 +750,9 @@ enum Held {
     Exact,
     /// In an interval test's `counts`: [`MOVING_COUNTS`] within [`OTHER_PLATFORM_FLIGHTS`].
     Counts,
-    /// A band beside counts that moved: its ends are those counts' 99.9% Clopper–Pearson band,
-    /// made by the same code from the counts this platform made, which macOS holds exactly; they
-    /// move with the counts.
+    /// The band of a count that moved, beside it under the count's own name: its ends are that
+    /// count's 99.9% Clopper–Pearson band, made by the same code from the count this platform
+    /// made, which macOS holds exactly; they move with the count.
     Band,
 }
 
@@ -787,7 +788,7 @@ fn held_off_platform(
 
 /// The numbers where `made` differs from `committed`, walking both from `at`, held as `held` says;
 /// each difference it doesn't allow, and any other, goes onto `broken`. An object with `counts`
-/// holds them as [`Held::Counts`], and, where they differ, its bands as [`Held::Band`].
+/// holds them as [`Held::Counts`], and the band named for a count that differs as [`Held::Band`].
 fn apart(
     at: &str,
     committed: &serde_json::Value,
@@ -801,15 +802,19 @@ fn apart(
             if a.len() != b.len() {
                 broken.push(format!("{at}: its fields differ"));
             }
-            let counts_moved = matches!(
-                (a.get("counts"), b.get("counts")),
-                (Some(Value::Object(x)), Some(Value::Object(y))) if x != y
-            );
+            // The counts whose own band may move with them.
+            let moved = |key: &str| {
+                MOVING_COUNTS.contains(&key)
+                    && matches!(
+                        (a.get("counts"), b.get("counts")),
+                        (Some(Value::Object(x)), Some(Value::Object(y))) if x.get(key) != y.get(key)
+                    )
+            };
             a.iter()
                 .map(|(key, value)| {
                     let inner = match (held, key.as_str()) {
                         (Held::Exact, "counts") if value.is_object() => Held::Counts,
-                        (Held::Exact, _) if counts_moved && is_band(value) => Held::Band,
+                        (Held::Exact, _) if moved(key) && is_band(value) => Held::Band,
                         (Held::Counts, _) if !MOVING_COUNTS.contains(&key.as_str()) => Held::Exact,
                         (Held::Band, _) => Held::Band,
                         (Held::Counts, _) => Held::Counts,
@@ -3526,8 +3531,8 @@ mod tests {
         }
     }
 
-    /// Another platform's census may stand an interval test's counts one flight off, and the
-    /// bands beside them move with them; every other number, word and field as committed
+    /// Another platform's census may stand an interval test's counts one flight off, and a moved
+    /// count's band moves with it; every other number, word and field as committed
     /// (ADR-372). The case is Windows on ARM's on 2026-11-22.
     #[test]
     fn another_platforms_census_stands_one_flight_off_at_most() {
@@ -3567,6 +3572,10 @@ mod tests {
         ] {
             assert!(!apart(&committed, &made).1.is_empty(), "{made}");
         }
+        // A band whose own count held, beside one that moved: held exactly.
+        let mut below = probe(64, 312, 52, 0.653, 0.796);
+        below["probes"]["narrowed"]["below"]["high"] = json!(0.214);
+        assert!(!apart(&committed, &below).1.is_empty());
         let mut given = probe(64, 312, 52, 0.653, 0.796);
         given["probes"]["narrowed"]["counts"]["given"] = json!(429);
         assert!(!apart(&committed, &given).1.is_empty());

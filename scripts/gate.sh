@@ -74,7 +74,8 @@
 # them, held line for line to the committed `.slice.json`, and those of sets A and B to the
 # report's rules for one fit; the whole report and its shares only `fit --check` holds exactly),
 # in the optimized build that writes the fit's report, as CI does in every word on every pull
-# request. The dev profile writes the other reports, so this checks that what's committed is what
+# request. The synthetic census's slice runs in the optimized build too, where that census is written
+# (ADR-372); the dev profile writes the other reports. So this checks that what's committed is what
 # each writes, byte for byte.
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,

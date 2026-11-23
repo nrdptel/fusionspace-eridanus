@@ -539,7 +539,7 @@ side by side:
   may differ by the failed draws of its 5 posteriors that failed most, and by never less than 5
   draws. A draw fails where its flight can't be flown or its weight isn't finite. A posterior's
   draws are made around its flight's fit, so one posterior can fail many draws while most fail
-  none, and another platform's slightly different fit moves which fail
+  none, and another platform's slightly different fit can move which fail
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)). A figure, or a share
   fitted on the calibration set, may differ by 5% of the larger value or by 0.002, whichever
   allows more. The slice is held in its words, as above, not by these allowances.
