@@ -3,8 +3,8 @@
 //! fly the census in the second (ADR-372).
 
 #![expect(
-    clippy::print_stdout,
-    reason = "a build script speaks to cargo on standard output"
+    clippy::disallowed_methods,
+    reason = "a build script reads what cargo hands it in its environment"
 )]
 
 fn main() {

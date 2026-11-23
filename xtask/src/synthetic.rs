@@ -491,9 +491,6 @@ struct Clipped {
 
 /// Runs the command.
 pub fn run(args: &[String]) -> Result<(), String> {
-    if !optimized() {
-        return in_report_check(args);
-    }
     let mut check = false;
     let mut only_intervals = false;
     let mut probe: Option<(Set, u64, Options)> = None;
@@ -501,6 +498,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut sets: Option<Vec<Set>> = None;
     let mut only_slice = false;
     let mut other_platform = false;
+    let args_list = args;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -553,6 +551,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
              --intervals, --smoother or --count"
                 .into(),
         );
+    }
+    // The arguments are read before anything is flown, here or in the optimized build.
+    if !optimized() {
+        return in_report_check(args_list);
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
