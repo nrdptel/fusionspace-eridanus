@@ -2902,7 +2902,7 @@ impl RealFlightReport {
                 // Grouped in threes from four digits, as the site's pages write numbers.
                 let mut grouped = String::new();
                 for (at, digit) in digits.chars().enumerate() {
-                    if at > 0 && digits.len() > 3 && (digits.len() - at) % 3 == 0 {
+                    if at > 0 && digits.len() > 3 && (digits.len() - at).is_multiple_of(3) {
                         grouped.push(',');
                     }
                     grouped.push(digit);
