@@ -28,6 +28,9 @@ Repeats are rows dropped as a repeat of the fix before; read fixes are those rea
 | Halcyon, EuRoC 2023 (the team's own motor, not flown by HPR Sim) (`halcyon`) | compared | 2012 | 44 | 6.5 | 1951 | 623 to 3336 | 3.9 to 5.4 | 0.38 | -1.46 | 5.07 |
 | Hedy, EuRoC 2025 (the team's own motor, not flown by HPR Sim) (`hedy`) | not compared: its ERA5 file is netCDF-4, which HPR Sim reads only through a converted copy checked against the source, as EuRoC 2022's is; no such copy is made for this file yet | 154 | 234 | 68.0 | 94 | 126 to 3310 | 20.8 to 26.4 | 0.56 |  |  |
 | Valkyrie, 2025 (not flown by HPR Sim) (`valkyrie`) | not run: its log holds a height only, no position |  |  |  |  |  |  |  |  |  |
+| Hyperion-II, 21 August 2025 (not flown by HPR Sim) (`hyperion-ii`) | not run: no fix falls steadily inside the settings: the median descent rate the fitted windows give is 85 m/s, past the 35 m/s the method is held to | 79 | 3339 | 1.0 | 0 |  |  |  |  |  |
+| Itzamna, UTRGV, March 2026 (not flown by HPR Sim) (`itzamna`) | not compared: no ERA5 file of its day and site is committed | 380 | 27 | 3.0 | 96 | 24 to 2731 | 6.7 to 31.3 | 1.92 |  |  |
+| Testbed 2, RIT Launch Initiative, 16 May 2026 (not flown by HPR Sim) (`rit-testbed-2`) | not compared: no ERA5 file of its day and site is committed | 220 | 29 | 2.0 | 33 | 33 to 1032 | 7.9 to 27.6 | 2.32 |  |  |
 
 The receivers read:
 
@@ -39,6 +42,9 @@ The receivers read:
 - `camoes`: the CATS flight computer's GNSS log (`gnss_flight.csv`): latitude and longitude; height from its barometric filter (`flight_data.csv`). Its site and hour: camoes_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1.
 - `halcyon`: the CATS flight computer's GNSS log (`gnss_halcyon.csv`): latitude and longitude; height from its barometric filter (`altimeter_halcyon.csv`). Its site and hour: halcyon_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1.
 - `hedy`: the CATS flight computer's GNSS log (`gnssInfo.csv`): latitude and longitude; height from its barometric filter (`filteredDataInfo.csv`). Its site and hour: hedy_flight_sim.ipynb's environment: 16:00 UTC, and the site's elevation as the notebook prints it.
+- `hyperion-ii`: the TeleMega's GPS (Altus Metrum), 1 fix a second. Its site and hour: the TeleMega's first GPS fix: 18:11:46 UTC, on the pad.
+- `itzamna`: the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log's summary: launched 13:47:36 UTC, the pad at 1,362 ft.
+- `rit-testbed-2`: the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log's summary: launched 18:10:57 UTC, the pad at 893 ft.
 
 ## Reconstructed less ERA5, by height band
 

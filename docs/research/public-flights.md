@@ -80,9 +80,9 @@ raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** fr
 | UND SL 2024 full scale | 2 × `.pf2` | 4,377 / 4,391 ft | L1420R | ≈0.50 |
 | UND SL 2024 payload demonstration (**Inference**) | 2 × `.pf2` | 3,892 / 3,898 ft \* | L1420R | ≈0.42 |
 | UND SL 2024 launch week | StratoLogger CSV | 4,035 ft (spike left out) | L1420R | ≈0.48 |
-| Hyperion-II, 2025-08-21 | Blue Raven + TeleMega CSV, GPS in the descent ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)) | 2,852 / 2,854 m | Cesaroni M2505 | ≈0.80 |
+| Hyperion-II, 2025-08-21 | Blue Raven + TeleMega CSV, GPS in the descent (`hyperion-ii` in the [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)) | 2,852 / 2,854 m | Cesaroni M2505 | ≈0.80 |
 | numericalrocketry model rocket | Altus-style CSV | 115.67 m | Estes C11-5 | ≈0.12 |
-| UTRGV Lonestar launch, 2026-03-29 | Blue Raven CSV + Featherweight GPS CSV, GPS in the descent ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)) | 9,543 ft | AeroTech M2500T | ≈1.0 |
+| UTRGV Lonestar launch, 2026-03-29 | Blue Raven CSV + Featherweight GPS CSV, GPS in the descent (`itzamna` in the [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)) | 9,543 ft | AeroTech M2500T | ≈1.0 |
 
 Sources, all MIT by GitHub's license API (the private catalog's "none stated" for UND is wrong):
 [UND-ARC/RocketModels-2023](https://github.com/UND-ARC/RocketModels-2023),
