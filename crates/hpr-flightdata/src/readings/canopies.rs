@@ -1050,6 +1050,18 @@ mod tests {
         assert_eq!(walk_start(&rates(&[(slow, 3), (fast, 1), (slow, 4)])), 4);
     }
 
+    /// The split is never later than the walk's start, which `read` asserts: on every sequence of
+    /// up to 12 rates.
+    #[test]
+    fn the_split_is_never_after_the_walks_start() {
+        for n in 0..=12_usize {
+            for bits in 0..(1_u32 << n) {
+                let slow: Vec<bool> = (0..n).map(|k| bits >> k & 1 == 1).collect();
+                assert!(likeliest_split(&slow) <= walk_start(&slow), "{slow:?}");
+            }
+        }
+    }
+
     /// #1593's shape in a flight: the drogue at 18 m/s, then 8 s at 6 m/s, under the main's mark,
     /// then 3 s at 18 m/s again before the main opens at 750 m. The split falls at the slow
     /// stretch's start, about 11 s early, and the walk at the opening: the opening lies within

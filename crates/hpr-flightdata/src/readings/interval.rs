@@ -3,9 +3,11 @@
 //! A reading's bound is the most its error can be, held on the tuning set; a 90% interval is
 //! narrower, and says how far off the reading usually is. Each comes from the reading's own
 //! bound: the interval runs from the reading less [`Shares::high`] of its bound to the reading
-//! less [`Shares::low`] of it. The two shares are the 5% and 95% points of the reading's error
-//! as a share of its bound, `(reading − truth)/bound`, measured on the synthetic flights' own
-//! calibration set (2,000 flights on a seed of their own, each flight's own logger's log) and
+//! less [`Shares::low`] of it. The main's opening, where the split is earlier than the walk's
+//! start, takes it about each of the two places, with the bound about one place (ADR-374). The
+//! two shares are the 5% and 95% points of the reading's error as a share of its bound,
+//! `(reading − truth)/bound`, measured on the synthetic flights' own calibration set (2,000
+//! flights on a seed of their own, each flight's own logger's log) and
 //! written here to three significant figures. The point from each end is the `⌊0.05 (n + 1)⌋`-th
 //! of the `n` sorted shares, the split-conformal rank (V. Vovk, A. Gammerman and G. Shafer,
 //! *Algorithmic Learning in a Random World*, Springer, 2005, ch. 2; J. Lei et al.,
@@ -169,7 +171,9 @@ pub const DROGUE_RATE_SHARES: Shares = Shares {
     high: 0.615,
 };
 
-/// The main's opening's shares of its bound (`Opening::bound_s`), fitted on the calibration set.
+/// The main's opening's shares of its bound about one place, fitted on the calibration set. That
+/// is `Opening::bound_s` where the split and the walk's start agree; where they differ, the
+/// interval is taken about each (ADR-374).
 pub const MAIN_OPENING_SHARES: Shares = Shares {
     low: 0.141,
     high: 0.561,

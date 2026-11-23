@@ -1,7 +1,7 @@
 # ADR-374: The main's opening bound holds both the split and the walk (2026-11-23)
 
 - **Status:** accepted; changes the opening's bound and 90% interval of [ADR-366][adr-366] where the split is earlier than the walk's start; changes no reading, mark, window or rate
-- **Summary:** Where the descent's rate passes the main's mark more than once, the likeliest split ([ADR-366][adr-366]) can be earlier than Debrief's walk back from landing, and the log alone can't say which is the opening: a swing under the main makes the walk late, a drogue slow for a while near the mark makes the split early ([#1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). The reading stays the split; its bound now adds the time between the two, so it holds an opening at either, and its 90% interval runs from the split's to the walk's start's. On the swinging flight of [#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903) the bound goes from 0.76 s to 19.21 s. In the synthetic census the main opening's mean bound goes from 2.03 to 2.05 s.
+- **Summary:** Where the descent's rate passes the main's mark more than once, the likeliest split ([ADR-366][adr-366]) can be earlier than Debrief's walk back from landing, and the log alone can't say which is the opening ([#1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). The reading stays the split; its bound adds the time between the two, and its 90% interval runs from the lower end of the interval about the split to the upper end of the interval about the walk's start. On the swinging flight of [#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903) the bound goes from 0.76 s to 19.21 s. In the synthetic census the main opening's mean bound goes from 2.03 to 2.05 s.
 
 [adr-366]: 0366-the-mains-opening-at-the-likeliest-split.md
 [adr-283]: 0283-the-rest-of-the-readings.md
@@ -40,7 +40,9 @@ The reading had both places at hand and printed a bound proven only where they a
    and put the interval wholly before the reading. Taken on the widened bound they would move it
    further before the split, away from the walk's start. So it is the shares' interval about the
    split, with the bound about one place, from its lower end, to the same interval about the
-   walk's start, to its upper end. On #903's flight it runs from 89.58 s to 108.34 s.
+   walk's start, to its upper end. On #903's flight it runs from 89.58 s to 108.34 s. Where the
+   split is right, the interval reaches on to the walk's start, as the bound does: it gives up
+   width for holding either place.
 3. **The reading** stays the split, as [ADR-366][adr-366] sets it, and so do the opening's
    height and each leg's rate.
 4. **The legs' rates.** The legs meet at the split, so the stretch between the two belongs to the
