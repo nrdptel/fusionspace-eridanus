@@ -504,6 +504,8 @@ was 14.74 m/s (33.0 mph).
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
 reads every public flight HPR Sim flies or predicts, and RocketPy's other example logs: the seven
 the real-flights report flies, the five predicted first, and Camões, Halcyon, Hedy and Valkyrie.
+Two public team logs that record GPS through the descent, Hyperion-II's and UTRGV's, are not read
+yet ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)).
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
@@ -547,8 +549,8 @@ can't show the lag model's error or a motion both shared, which cancel in the di
 - Hock, T. F., and Franklin, J. L. (1999). The NCAR GPS dropwindsonde. *Bulletin of the American
   Meteorological Society* 80, pp. 407–420
   ([DOI](https://doi.org/10.1175/1520-0477%281999%29080%3C0407%3ATNGD%3E2.0.CO%3B2)).
-- Kepert, J. D. (2008). Dropsonde turbulence. AMS 28th Conference on Hurricanes and Tropical
-  Meteorology, eq. 4.
+- Kepert, J. D. (2008). Interpreting dropsonde measurements of turbulence in the tropical cyclone
+  boundary layer. AMS 28th Conference on Hurricanes and Tropical Meteorology, paper P1D.7, eq. 4.
 - Taszarek, M., and others (2021). Comparison of convective parameters derived from ERA5 and
   MERRA-2 with rawinsonde data over Europe and North America. *Journal of Climate* 34,
   pp. 3211–3237, doi:10.1175/JCLI-D-20-0484.1.

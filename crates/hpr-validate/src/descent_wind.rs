@@ -2,12 +2,13 @@
 //! ([M1.14b6, wind from the GPS descent][m1-14b6]), written by `cargo xtask descent-wind` to
 //! `validation/reports/descent-wind.json` and `.md`.
 //!
-//! - **The flights** ([`required_ids`] and the report's table) are every public flight the
-//!   project has a log of: the seven the real-flights report flies, the five public flights
-//!   predicted before their logs were compared, and four more public example logs in RocketPy's
-//!   checkout whose rockets HPR Sim doesn't fly (Camões, Halcyon, Hedy, Valkyrie). The wind needs
-//!   no motor, so each with a position is read. Each is listed: read, with its receiver, or not,
-//!   with the reason.
+//! - **The flights** ([`required_ids`] and the report's table) are every public flight HPR Sim
+//!   flies or predicts, and RocketPy's other example logs: the seven the real-flights report
+//!   flies, the five public flights predicted before their logs were compared, and four more
+//!   public example logs in RocketPy's checkout whose rockets HPR Sim doesn't fly (Camões,
+//!   Halcyon, Hedy, Valkyrie). The wind needs no motor, so each with a position is read. Each is
+//!   listed: read, with its receiver, or not, with the reason. Two public team logs with a GPS
+//!   descent, Hyperion-II's and UTRGV's, are not read yet (issue #1605).
 //! - **The reconstruction** is [`hpr_flightdata::descent_wind`] at its default settings.
 //! - **ERA5** is read at the launch site and hour as HPR Sim reads a sounding
 //!   ([`real_flight::launch_day`]): for a flight the real-flights report flies, its file and
