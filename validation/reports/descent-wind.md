@@ -65,6 +65,7 @@ Each receiver's track is reconstructed alone. The difference of their winds is a
 - **ERA5's hour and place.** ERA5 is read at the launch site and hour; the descent is minutes later and away from the site.
 - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every direction; a tumbling airframe or a streamer has no measured response.
 - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 repository, so the logs of its flight computers give statistics here, not rows.
+- **Two public team logs.** Hyperion-II's and UTRGV's, in the project's public-flights note, hold GPS fixes in the descent and are not read yet (issue #1605), so the report is short of every public flight with a GPS track of the descent.
 
 ## Sources
 

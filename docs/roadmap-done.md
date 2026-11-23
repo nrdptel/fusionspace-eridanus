@@ -1467,6 +1467,7 @@ One line per milestone or increment, in the order it was archived within its pha
       - [x] **M1.14b15 Tip-off by default.** *Done when:* ADR-363 decision 1's for M1.14b15.
     - [x] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
       decision 2's for M1.14b6.
+      Gap (ADR-371): Hyperion-II's and UTRGV's GPS descents are not read yet (#1605).
   - [x] **M1.14i Drag below Mach 0.8,** next, ahead of M1.14b's open increments (ADR-359 gives
     each *done when*). Met when its three increments are.
     - [x] **M1.14i1 The drag part of the gap to OpenRocket, by Mach band.** *Done when:* ADR-359

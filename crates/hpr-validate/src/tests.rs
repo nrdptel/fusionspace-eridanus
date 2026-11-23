@@ -4890,7 +4890,7 @@ fn the_descent_wind_report_holds_together() {
     report
         .check_page(&std::fs::read_to_string(root().join(REPORT_MD)).unwrap())
         .unwrap();
-    // Every public flight is listed, the real-flights report's and the predictions' first.
+    // Every flight of the table is listed, the real-flights report's and the predictions' first.
     let ids: Vec<&str> = report.flights.iter().map(|f| f.id.as_str()).collect();
     let required = crate::descent_wind::required_ids();
     assert_eq!(ids.get(..required.len()), Some(required.as_slice()));
