@@ -652,7 +652,7 @@ descent-energy figure. The main's rate errs the other way round: fast where the 
 faster than the main, slow where it falls slower. Neither rate's bound holds this.
 
 A test invents issue #1593's shape: a drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for
-8 s, then back to 18 m/s for 3 s before the main opens. The opening lies within its bound, and
+8 s, then back to 18 m/s (59 ft/s) for 3 s before the main opens. The opening lies within its bound, and
 the interval's upper end within 1 s of it. The drogue's rate reads more than 0.5 m/s (1.6 ft/s)
 faster than the true rate over the leg from apogee to the opening. That is one invented shape
 and the real flight below.
