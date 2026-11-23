@@ -1138,6 +1138,15 @@ committed one. `cargo xtask real-flights --check` flies all 12, reads the five l
 fails when the committed report doesn't reproduce. The list of merged apogees is in the code, so a change to it shows in the code's
 history.
 
+**How much of each miss the integrator could be.** Each of the 12 flights is flown twice more:
+as the report flies it, and with the stepper's tolerances divided by 32, which takes about twice
+the steps. Roache's grid convergence index on the two apogees gives the integrator's part of a
+[validation uncertainty after ASME V&V 20](decisions-and-roadmap.md#m1-14b16). The largest is
+1.1528 mm, and every flight's miss is at least 38000 times its own
+([the report's section][real-uncertainty]). So no miss here comes from the integrator. The parts
+from the inputs and from the logs come with [M1.14b17](decisions-and-roadmap.md#m1-14b17) and
+[M1.14b18](decisions-and-roadmap.md#m1-14b18); until then no miss has a band.
+
 ### Real flights of the private collection
 
 These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c1)
@@ -1982,6 +1991,7 @@ rest.
 [plan]: VALIDATION.md#principles
 [census]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
+[real-uncertainty]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-integrator-could-be
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json

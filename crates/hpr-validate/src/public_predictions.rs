@@ -796,6 +796,8 @@ struct Flown {
     motor_mass_kg: f64,
     /// Whether the design has two or more guides at different stations.
     two_guides: bool,
+    /// The integrator's accepted steps over the whole flight.
+    accepted_steps: u64,
 }
 
 /// Reads [`CONVERSION_RECORD`].
@@ -953,7 +955,7 @@ fn predict_with(
     flight: &PredictedFlight,
     weather: &WeatherConversion,
     variant: Option<Variant>,
-) -> Result<(PredictionRow, bool), RealFlightError> {
+) -> Result<(PredictionRow, (bool, u64)), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1103,7 +1105,7 @@ fn predict_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, counted.two_guides))
+    Ok((row, (counted.two_guides, counted.accepted_steps)))
 }
 
 /// What flying a rocket to its apogee needs beside the rocket.
@@ -1141,6 +1143,10 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
     let settings = FlightSettings {
         max_time_s: MAX_TIME_S,
         ..FlightSettings::default()
+    };
+    let settings = match launch.variant {
+        Some(variant) => variant.settings(settings),
+        None => settings,
     };
     let corrected = match launch.variant {
         Some(variant) => variant
@@ -1221,6 +1227,7 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         liftoff_mass_kg,
         motor_mass_kg,
         two_guides,
+        accepted_steps: result.stats.accepted_steps,
     })
 }
 
@@ -1428,7 +1435,7 @@ fn predict_design_file_with(
     root: &Path,
     flight: &DesignFileFlight,
     variant: Option<Variant>,
-) -> Result<(DesignFilePredictionRow, bool), RealFlightError> {
+) -> Result<(DesignFilePredictionRow, (bool, u64)), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1581,7 +1588,7 @@ fn predict_design_file_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, flown.two_guides))
+    Ok((row, (flown.two_guides, flown.accepted_steps)))
 }
 
 /// Predicts every flight in [`NEW_FLIGHTS`], then every one in [`DESIGN_FILE_FLIGHTS`].
@@ -1628,9 +1635,10 @@ pub type VariedApogee = (String, Result<Varied, RealFlightError>);
 pub fn varied_apogees(root: &Path, variant: Variant) -> Result<Vec<VariedApogee>, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
     let variant = Some(variant);
-    let varied = |apogee_m: f64, two_guides: bool| Varied {
+    let varied = |apogee_m: f64, (two_guides, accepted_steps): (bool, u64)| Varied {
         apogee_m,
         two_guides,
+        accepted_steps,
     };
     Ok(NEW_FLIGHTS
         .iter()

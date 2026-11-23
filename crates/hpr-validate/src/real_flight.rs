@@ -822,6 +822,10 @@ pub struct RealFlightReport {
     /// Each flight whose prediction was merged before its log was compared
     /// ([`crate::predicted_first`]).
     pub predicted_first: Vec<ComparedPrediction>,
+    /// Each flight's comparison error and the numerical part of its validation uncertainty, the
+    /// flights compared first and then those predicted first
+    /// ([`crate::validation_uncertainty`]; ADR-373).
+    pub validation_uncertainty: Vec<crate::validation_uncertainty::UncertaintyRow>,
     /// The summary, computed from the rows.
     pub summary: Summary,
 }
@@ -1354,6 +1358,8 @@ struct Flown {
     total_impulse_ns: f64,
     /// Whether the design has two or more guides at different stations.
     two_guides: bool,
+    /// The integrator's accepted steps over the whole flight.
+    accepted_steps: u64,
 }
 
 /// The design's rocket on the thrust `curve` read from `thrust_path`.
@@ -1525,6 +1531,8 @@ pub struct Varied {
     /// (`hpr_sim::Guides::next_guide_station_m`): a design with fewer flies the tip-off phase as
     /// it flies without it.
     pub two_guides: bool,
+    /// The integrator's accepted steps over the whole flight, ascent and descent.
+    pub accepted_steps: u64,
 }
 
 /// The apogee of [`fly`]'s flight with `correction` flown, m above the start, as the log's
@@ -1680,6 +1688,10 @@ fn fly_with(
             Some(variant) => variant.environment(environment.clone()),
             None => environment.clone(),
         };
+        let settings = match variant {
+            Some(variant) => variant.settings(settings),
+            None => settings,
+        };
         let simulation =
             Simulation::new(rocket, "example", flown_in, rail, settings).map_err(sim)?;
         let simulation = match variant {
@@ -1744,6 +1756,7 @@ fn fly_with(
             trace,
             total_impulse_ns,
             two_guides,
+            accepted_steps: result.stats.accepted_steps,
         })
     };
     let own = fly_once(&rocket, None)?;
@@ -1751,6 +1764,7 @@ fn fly_with(
         return Ok(Flew::Varied(Varied {
             apogee_m: own.apogee_m,
             two_guides: own.two_guides,
+            accepted_steps: own.accepted_steps,
         }));
     }
     let on_example_drag = fly_once(&rocket, Some(table))?;
@@ -2060,12 +2074,15 @@ pub fn run(root: &Path) -> Result<RealFlightReport, RealFlightError> {
         })?;
     let predicted_first = crate::predicted_first::compare(root, &predictions, &committed)?;
     let summary = summarize(&flights, &predicted_first);
+    let validation_uncertainty =
+        crate::validation_uncertainty::rows(root, &flights, &predicted_first)?;
     Ok(RealFlightReport {
         generated_by: "cargo xtask real-flights".to_owned(),
         align_height_m: ALIGN_HEIGHT_M,
         grid_s: GRID_S,
         flights,
         predicted_first,
+        validation_uncertainty,
         summary,
     })
 }
@@ -2167,8 +2184,61 @@ impl RealFlightReport {
                 ));
             }
         }
+        self.check_validation_uncertainty()?;
         if markdown != self.to_markdown() {
             return Err(format!("{REPORT_MD} is not {REPORT_JSON}'s rendering"));
+        }
+        Ok(())
+    }
+
+    /// Whether the validation uncertainty's rows are the flights', in order, each with its own
+    /// row's comparison error, its first run the row's own flight (the same apogee), and its own
+    /// numerical part ([`UncertaintyRow::holds`]).
+    ///
+    /// [`UncertaintyRow::holds`]: crate::validation_uncertainty::UncertaintyRow::holds
+    fn check_validation_uncertainty(&self) -> Result<(), String> {
+        let errors = self
+            .flights
+            .iter()
+            .map(|row| (&row.id, row.hpr_apogee_m, row.log_apogee_m))
+            .chain(
+                self.predicted_first
+                    .iter()
+                    .map(|row| (&row.id, row.hpr_apogee_m, row.log_apogee_m)),
+            )
+            .collect::<Vec<_>>();
+        if errors.len() != self.validation_uncertainty.len() {
+            return Err(format!(
+                "{} flights, {} rows of the validation uncertainty",
+                errors.len(),
+                self.validation_uncertainty.len()
+            ));
+        }
+        for ((id, hpr_m, log_m), row) in errors.into_iter().zip(&self.validation_uncertainty) {
+            let error_m = hpr_m - log_m;
+            if *id != row.id {
+                return Err(format!(
+                    "the validation uncertainty's row {} stands where {id} does",
+                    row.id
+                ));
+            }
+            if row.comparison_error_m != error_m {
+                return Err(format!(
+                    "{id}: the comparison error {} isn't its row's {error_m}",
+                    row.comparison_error_m
+                ));
+            }
+            if row.apogee_m != hpr_m {
+                return Err(format!(
+                    "{id}: the first run's apogee {} isn't the row's {hpr_m}: not the report's flight",
+                    row.apogee_m
+                ));
+            }
+            if !row.holds() {
+                return Err(format!(
+                    "{id}: the numerical part isn't its two apogees', or a number isn't finite"
+                ));
+            }
         }
         Ok(())
     }
@@ -2417,6 +2487,44 @@ impl RealFlightReport {
                     "stored simulation's apogee",
                     shown_apogee(&shown_a, 1),
                     shown_apogee(&shown_b, 1),
+                ),
+            ] {
+                if !same(x, y) {
+                    return Err(format!("{}: the {what} is {x} committed, {y} flown", a.id));
+                }
+            }
+        }
+        if self.validation_uncertainty.len() != other.validation_uncertainty.len() {
+            return Err(format!(
+                "{} rows of the validation uncertainty committed, {} flown",
+                self.validation_uncertainty.len(),
+                other.validation_uncertainty.len()
+            ));
+        }
+        for (a, b) in self
+            .validation_uncertainty
+            .iter()
+            .zip(&other.validation_uncertainty)
+        {
+            if (&a.id, a.steps, a.steps_step_halved) != (&b.id, b.steps, b.steps_step_halved) {
+                return Err(format!(
+                    "{}: the validation uncertainty's row or its steps differ",
+                    a.id
+                ));
+            }
+            // The numerical part follows from the apogees and steps: held by them, each apogee to
+            // the platform's last digits, and by the committed report's own check.
+            for (what, x, y) in [
+                (
+                    "comparison error",
+                    a.comparison_error_m,
+                    b.comparison_error_m,
+                ),
+                ("apogee", a.apogee_m, b.apogee_m),
+                (
+                    "apogee with the step halved",
+                    a.apogee_step_halved_m,
+                    b.apogee_step_halved_m,
                 ),
             ] {
                 if !same(x, y) {
@@ -2727,11 +2835,90 @@ impl RealFlightReport {
                 }
             );
         }
+        self.validation_uncertainty_section(&mut out);
         let _ = write!(
             out,
             "\n## Sources\n\n{ERA5_CREDIT} {EUROC_2022_CONVERTED}\n"
         );
         out
+    }
+
+    /// The page's section on the flights predicted first: each merged prediction beside its
+    /// log's apogee and its error, the numbers shown beside them and never counted, and each
+    /// flight's log, rule and tags.
+    /// The page's section on the numerical part of each flight's validation uncertainty: its
+    /// comparison error, its two runs and their numerical part, and the largest numerical part
+    /// against the smallest error.
+    fn validation_uncertainty_section(&self, out: &mut String) {
+        let rows = &self.validation_uncertainty;
+        let _ = writeln!(out, "\n## How much of each error the integrator could be\n");
+        let _ = writeln!(
+            out,
+            "After ASME V&V 20 ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]): a flight's \
+             comparison error E, hpr's apogee less the log's, is the model's own error plus \
+             three others, from the integrator, from the inputs and from the log. Each has a \
+             standard uncertainty, and while the three are independent the validation \
+             uncertainty is their root sum of squares. This section gives the integrator's part, \
+             u_num. Each flight is flown twice more: as the report flies it, and with the \
+             adaptive stepper's tolerances divided by 32, which takes about twice the steps. \
+             From the two apogees, Roache's grid convergence index for two runs is \
+             3·|difference|/(r⁴ − 1), where r is the second run's steps over the first's. \
+             It is a band of about 95%, so u_num is half of it. The input and data parts come \
+             with M1.14b17 and M1.14b18; until they do, no flight's E has a band.\n"
+        );
+        let _ = writeln!(
+            out,
+            "| flight | E (m) | apogee (m) | its steps | apogee, step halved (m) | its steps | r | u_num (mm) |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|");
+        for row in rows {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {} | {} | {} | {} |",
+                row.id,
+                fmt_number(row.comparison_error_m, 1),
+                fmt_number(row.apogee_m, 6),
+                row.steps,
+                fmt_number(row.apogee_step_halved_m, 6),
+                row.steps_step_halved,
+                row.refinement_ratio()
+                    .map_or_else(|| "none".to_owned(), |r| fmt_number(r, 2)),
+                fmt_number(row.numerical_m * 1e3, 4),
+            );
+        }
+        let largest = rows
+            .iter()
+            .max_by(|a, b| a.numerical_m.total_cmp(&b.numerical_m));
+        // The fewest times its own u_num goes into a flight's |E|, rounded down to two
+        // significant figures so that "at most one part in N" stays true.
+        let fewest = rows
+            .iter()
+            .map(|row| (row.comparison_error_m.abs() / row.numerical_m, &row.id))
+            .min_by(|a, b| a.0.total_cmp(&b.0));
+        if let (Some(largest), Some((times, id))) = (largest, fewest) {
+            let part = if times.is_finite() {
+                let scale = 10_f64.powf(times.log10().floor() - 1.0).max(1.0);
+                format!(
+                    "one part in {}",
+                    fmt_number((times / scale).floor() * scale, 0)
+                )
+            } else {
+                "nothing".to_owned()
+            };
+            let _ = writeln!(
+                out,
+                "\nThe largest u_num is {} mm ({}). On every flight it is at most {part} of its \
+                 own |E| (the most, {id}).\n",
+                fmt_number(largest.numerical_m * 1e3, 4),
+                largest.id,
+            );
+        }
+        let _ = writeln!(
+            out,
+            "[m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16\n\
+             [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
+             0373-m1-14b7-in-three-the-numerical-part-first.md"
+        );
     }
 
     /// The page's section on the flights predicted first: each merged prediction beside its

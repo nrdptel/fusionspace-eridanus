@@ -113,6 +113,30 @@ The flights compared first; a predicted flight's inputs are in [the predictions]
 - **Genesis, EuRoC 2023 (L995)** (`rocketpy-genesis`): weather at 2023-10-12T13:00Z; inputs from RocketPy 1.13.0's genesis_flight_sim.ipynb:124-131 (site, date), :326-327 (rail), :391-406 (log); altimeter: a filtered estimate (`filtered_altitude_AGL`), probably the CATS Vega's barometer and accelerometer Kalman filter: barometric assumed; total impulse flown 3618.0 N s. Outside the target (drag): consistent with hpr's drag. On the example's own curves the apogee is within the target; the design's fin edges and finish are placeholders, since the example records none.
 - **Lince, EuRoC 2023 (M1101)** (`rocketpy-lince`): weather at 2023-10-12T10:00Z; inputs from RocketPy 1.13.0's lince_flight_sim.ipynb:123-129 (site, date), :432-437 (rail), :609-619 (log); altimeter: a filtered estimate (`filtered_altitude_AGL`, as Genesis's) from a computer the example doesn't name: barometric assumed; total impulse flown 5199.6 N s. Note: the log is read to 26.80 s: past it, as the recovery fires, the filtered height swings by hundreds of meters, up to 3668.5 m; its highest reading before is the 3587 m the team reports as its apogee.
 
+## How much of each error the integrator could be
+
+After ASME V&V 20 ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]): a flight's comparison error E, hpr's apogee less the log's, is the model's own error plus three others, from the integrator, from the inputs and from the log. Each has a standard uncertainty, and while the three are independent the validation uncertainty is their root sum of squares. This section gives the integrator's part, u_num. Each flight is flown twice more: as the report flies it, and with the adaptive stepper's tolerances divided by 32, which takes about twice the steps. From the two apogees, Roache's grid convergence index for two runs is 3·|difference|/(r⁴ − 1), where r is the second run's steps over the first's. It is a band of about 95%, so u_num is half of it. The input and data parts come with M1.14b17 and M1.14b18; until they do, no flight's E has a band.
+
+| flight | E (m) | apogee (m) | its steps | apogee, step halved (m) | its steps | r | u_num (mm) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| bella-lui | 5.1 | 464.060607 | 646 | 464.059454 | 1254 | 1.94 | 0.1310 |
+| ndrt-2020 | 137.1 | 1457.501793 | 569 | 1457.500944 | 1110 | 1.95 | 0.0944 |
+| prometheus-2022 | -359.2 | 3536.629640 | 951 | 3536.630044 | 1887 | 1.98 | 0.0418 |
+| juno-iii | -174.8 | 2976.686420 | 998 | 2976.686418 | 1848 | 1.85 | 0.0002 |
+| cavour | 160.5 | 2945.476584 | 1300 | 2945.476628 | 2559 | 1.97 | 0.0047 |
+| genesis | -171.5 | 2745.186999 | 878 | 2745.186560 | 1752 | 2.00 | 0.0443 |
+| lince | 140.3 | 3728.031681 | 1067 | 3728.031362 | 2104 | 1.97 | 0.0339 |
+| astra | -212.4 | 3037.091872 | 1166 | 3037.092662 | 2328 | 2.00 | 0.0795 |
+| andromeda | 142.0 | 3580.592861 | 3554 | 3580.590588 | 5013 | 1.41 | 1.1528 |
+| erebus-11 | -242.1 | 2759.618432 | 1246 | 2759.619911 | 2414 | 1.94 | 0.1696 |
+| macie-xl-1 | -136.5 | 706.244763 | 742 | 706.245056 | 1473 | 1.99 | 0.0303 |
+| macie-xl-2 | -285.2 | 692.637902 | 734 | 692.638274 | 1447 | 1.97 | 0.0395 |
+
+The largest u_num is 1.1528 mm (andromeda). On every flight it is at most one part in 38000 of its own |E| (the most, bella-lui).
+
+[m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
+[adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
+
 ## Sources
 
 The ERA5 weather here is read from the files RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on pressure levels from 1940 to present*, Copernicus Climate Change Service (C3S) Climate Data Store (CDS), <https://doi.org/10.24381/cds.bd0915c6>, licensed CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). EuRoC 2022's file is read as its classic-format (netCDF-3) conversion, which holds the geopotential, temperature and wind of RocketPy's file bit for bit (`validation/oracles/netcdf/euroc_2022.py`).

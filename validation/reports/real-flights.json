@@ -603,6 +603,116 @@
       }
     }
   ],
+  "validation_uncertainty": [
+    {
+      "id": "bella-lui",
+      "comparison_error_m": 5.0896074219696175,
+      "apogee_m": 464.0606074219696,
+      "apogee_step_halved_m": 464.059454370057,
+      "steps": 646,
+      "steps_step_halved": 1254,
+      "numerical_m": 0.00013103780224344713
+    },
+    {
+      "id": "ndrt-2020",
+      "comparison_error_m": 137.14476852396024,
+      "apogee_m": 1457.5017925239604,
+      "apogee_step_halved_m": 1457.5009436619248,
+      "steps": 569,
+      "steps_step_halved": 1110,
+      "numerical_m": 0.000094440587343906
+    },
+    {
+      "id": "prometheus-2022",
+      "comparison_error_m": -359.20036009522846,
+      "apogee_m": 3536.6296399047715,
+      "apogee_step_halved_m": 3536.6300441379008,
+      "steps": 951,
+      "steps_step_halved": 1887,
+      "numerical_m": 0.00004181373787679806
+    },
+    {
+      "id": "juno-iii",
+      "comparison_error_m": -174.82058033510884,
+      "apogee_m": 2976.686419664891,
+      "apogee_step_halved_m": 2976.686418171833,
+      "steps": 998,
+      "steps_step_halved": 1848,
+      "numerical_m": 2.0820381737166586e-7
+    },
+    {
+      "id": "cavour",
+      "comparison_error_m": 160.4765840775126,
+      "apogee_m": 2945.4765840775126,
+      "apogee_step_halved_m": 2945.476628138709,
+      "steps": 1300,
+      "steps_step_halved": 2559,
+      "numerical_m": 4.715994637618137e-6
+    },
+    {
+      "id": "genesis",
+      "comparison_error_m": -171.50465128150836,
+      "apogee_m": 2745.1869991091166,
+      "apogee_step_halved_m": 2745.1865602041225,
+      "steps": 878,
+      "steps_step_halved": 1752,
+      "numerical_m": 0.00004431977634214429
+    },
+    {
+      "id": "lince",
+      "comparison_error_m": 140.30804793452126,
+      "apogee_m": 3728.0316807470213,
+      "apogee_step_halved_m": 3728.031361913298,
+      "steps": 1067,
+      "steps_step_halved": 2104,
+      "numerical_m": 0.00003387265343717399
+    },
+    {
+      "id": "astra",
+      "comparison_error_m": -212.3681276190573,
+      "apogee_m": 3037.0918723809427,
+      "apogee_step_halved_m": 3037.092661683503,
+      "steps": 1166,
+      "steps_step_halved": 2328,
+      "numerical_m": 0.00007951065676494878
+    },
+    {
+      "id": "andromeda",
+      "comparison_error_m": 142.04347738472552,
+      "apogee_m": 3580.5928613847254,
+      "apogee_step_halved_m": 3580.5905877055734,
+      "steps": 3554,
+      "steps_step_halved": 5013,
+      "numerical_m": 0.0011528202838346328
+    },
+    {
+      "id": "erebus-11",
+      "comparison_error_m": -242.13292841826024,
+      "apogee_m": 2759.61843158174,
+      "apogee_step_halved_m": 2759.619911104665,
+      "steps": 1246,
+      "steps_step_halved": 2414,
+      "numerical_m": 0.0001695547714610857
+    },
+    {
+      "id": "macie-xl-1",
+      "comparison_error_m": -136.5272374486343,
+      "apogee_m": 706.2447625513657,
+      "apogee_step_halved_m": 706.2450560378408,
+      "steps": 742,
+      "steps_step_halved": 1473,
+      "numerical_m": 0.000030296201510851465
+    },
+    {
+      "id": "macie-xl-2",
+      "comparison_error_m": -285.16049794084597,
+      "apogee_m": 692.637902059154,
+      "apogee_step_halved_m": 692.6382735240305,
+      "steps": 734,
+      "steps_step_halved": 1447,
+      "numerical_m": 0.000039506536390332356
+    }
+  ],
   "summary": {
     "flights": 12,
     "mean_absolute_apogee_error_percent": 8.826030030656481,
