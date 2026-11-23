@@ -1129,7 +1129,6 @@ pub fn compare_traces(
     })
 }
 
-/// Keeps hpr's height above its start on a fixed grid of the dense output.
 /// The start of every accepted step of a flight, s: what [`steps_before`] counts.
 #[derive(Debug, Default)]
 pub(crate) struct StepStarts(Vec<f64>);
@@ -1147,6 +1146,7 @@ pub(crate) fn steps_before(starts: &StepStarts, time_s: f64) -> u64 {
     starts.0.iter().filter(|&&start| start < time_s).count() as u64
 }
 
+/// Keeps hpr's height above its start on a fixed grid of the dense output.
 pub(crate) struct Heights {
     /// The next grid point's index: its time is `GRID_S` times it.
     pub(crate) next: u32,
@@ -2865,8 +2865,8 @@ impl RealFlightReport {
     }
 
     /// The page's section on the numerical part of each flight's validation uncertainty: its
-    /// comparison error, its two runs and their numerical part, and the largest numerical part
-    /// against the smallest error.
+    /// comparison error, its two runs and their numerical part, and the sentence that gives the
+    /// largest numerical part and the fewest times a flight's own goes into its error.
     fn validation_uncertainty_section(&self, out: &mut String) {
         let rows = &self.validation_uncertainty;
         let _ = writeln!(out, "\n## How much of each error the integrator could be\n");
@@ -2891,7 +2891,8 @@ impl RealFlightReport {
              and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a \
              band (E ± 2·u_val).\n\n\
              How far to trust it: u_num measures what a finer step changes, not the models, the \
-             inputs or the logs. The order 4 is a lower bound, which makes the index larger.\n"
+             inputs or the logs. The order 4 is assumed, the dense output's formal order; the \
+             flights' own order isn't measured, and a lower one would make the index larger.\n"
         );
         let _ = writeln!(
             out,
@@ -2926,7 +2927,7 @@ impl RealFlightReport {
 
     /// The sentence under the numerical part's table: the largest u_num, and the fewest times a
     /// flight's own u_num goes into its |E|, rounded down to two significant figures so that "at
-    /// most one part in N" stays true. Integer arithmetic alone after one division, so every
+    /// least N times" stays true. Integer arithmetic alone after one division, so every
     /// platform writes the same words.
     pub(crate) fn smallest_share(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
         let Some(largest) = rows
@@ -2937,7 +2938,7 @@ impl RealFlightReport {
         };
         let fewest = rows
             .iter()
-            .filter(|row| row.numerical_m > 0.0)
+            .filter(|row| row.numerical_m > 0.0 && row.comparison_error_m.is_finite())
             .map(|row| (row.comparison_error_m.abs() / row.numerical_m, &row.id))
             .min_by(|a, b| a.0.total_cmp(&b.0));
         let Some((times, id)) = fewest else {

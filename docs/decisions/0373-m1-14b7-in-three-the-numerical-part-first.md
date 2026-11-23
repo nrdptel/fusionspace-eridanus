@@ -41,9 +41,9 @@ The standard is paywalled. Its method was read from open texts, mainly Eça, Dow
    - **The index is the coarser run's.** `E` takes the report's own flight, the coarser run.
      Richardson's estimate puts the finer run's error at `|ε|/(r⁴ − 1)` (the [note][note]), so the
      coarser run's is `|ε|·r⁴/(r⁴ − 1)`. Roache's factor 3 for two runs makes the index
-     `3·|ε|·r⁴/(r⁴ − 1)`. Order 4 is the dense output's formal order, a lower bound: on a model
-     problem the project measured 4.8 to 5 (`docs/physics/integration.md`), and a smaller order
-     gives the larger index. The index is a band of about 95%, divided by 2 for a standard
+     `3·|ε|·r⁴/(r⁴ − 1)`. Order 4 is assumed, the dense output's formal order: on a model problem
+     the project measured 4.8 to 5 (`docs/physics/integration.md`). The flights' own order isn't
+     measured, and a lower one would give a larger index. The index is a band of about 95%, divided by 2 for a standard
      uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, p. 17). `r⁴` is
      two products, so every platform computes the same figure.
    - **The report:** a section of the real-flights report gives, for each of the 12 public
@@ -70,8 +70,8 @@ The three done-whens below hold ADR-351's whole between them, each clause in one
 - *Assume `r = 2`.* An adaptive stepper's steps only roughly follow its tolerance. On the 12
   flights the measured ratio runs from 1.26 to 1.99, and a ratio under 2 makes the index larger.
 - *The finer run's index, `3·|ε|/(r⁴ − 1)`.* It bounds the finer run's error, but `E` is the
-  coarser run's. Taken for the coarser run it would be about 15 times too small, the flattering
-  side.
+  coarser run's. Taken for the coarser run it would be `r⁴` times too small: 2.5 to 16 times
+  on these flights, the flattering side.
 
 **What was measured.** On the 12 public flights the second run took 1.78 to 1.99 times the
 steps to apogee on 11, and 1.26 times on one (Andromeda). `u_num` runs from 0.0025 mm (Juno III)
@@ -85,8 +85,9 @@ the logs.
   without a measured order; three runs would measure one. With differences this far under the
   errors, a third run can't change a conclusion.
 - Why Andromeda's steps grow less. Its climb takes 2,792 steps, where the others take 286 to
-  671, so something other than the tolerance sets many of them; this wasn't looked into. Its `r`
-  of 1.26 gives the largest index of the 12.
+  671, so something other than the tolerance sets many of them; this wasn't looked into. Its
+  difference between the runs is the largest of the 12, and its `r` of 1.26 makes its index
+  larger still.
 - The divisor: 1.1 to 1.15 instead of 2 makes `u_num` up to 1.82 times larger. Neither was
   checked against the standard.
 

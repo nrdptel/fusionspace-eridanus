@@ -86,8 +86,8 @@ pub struct Variant {
 /// 5(4) controls a local error estimate of order `h⁵` (Hairer, Nørsett and Wanner, *Solving
 /// Ordinary Differential Equations I*, 2nd ed., §II.4; `docs/physics/integration.md`), so its
 /// step goes as the tolerance to the power 1/5, and a tolerance `2⁵` times tighter asks for steps
-/// about half as long. The ratio is measured, not assumed: on the report's flights it is 1.85 to
-/// 2.00 ([the decision that splits the validation uncertainty][adr-373]).
+/// about half as long. The ratio is measured, not assumed: on the report's flights it is 1.78 to
+/// 1.99, and 1.26 on one ([the decision that splits the validation uncertainty][adr-373]).
 ///
 /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 pub const STEP_HALVING_TOLERANCE_DIVISOR: f64 = 32.0;

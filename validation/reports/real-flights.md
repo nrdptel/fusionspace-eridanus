@@ -122,7 +122,7 @@ After ASME V&V 20, a standard for putting an uncertainty on a comparison of a si
 - **u_num**, the integrator's part, is what this section gives. Each flight is flown twice more: as the report flies it, and with the adaptive stepper's tolerances divided by 32. The stepper's step goes as its tolerance to the power 1/5, so the second run takes about twice the steps; r is the measured ratio, the second run's steps to apogee over the first's. E is the first run's, the coarser, so its index is Roache's grid convergence index for the coarser of two runs, 3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard deviations, so u_num is half of it.
 - The data part, the log's own apogee uncertainty, comes with [M1.14b17][m1-14b17], and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a band (E ± 2·u_val).
 
-How far to trust it: u_num measures what a finer step changes, not the models, the inputs or the logs. The order 4 is a lower bound, which makes the index larger.
+How far to trust it: u_num measures what a finer step changes, not the models, the inputs or the logs. The order 4 is assumed, the dense output's formal order; the flights' own order isn't measured, and a lower one would make the index larger.
 
 | flight | E (m) | apogee (m) | steps (report's run) | apogee, tolerances ÷ 32 (m) | steps (finer run) | r | u_num (mm) |
 |---|---:|---:|---:|---:|---:|---:|---:|

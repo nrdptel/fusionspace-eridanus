@@ -16,10 +16,10 @@
 //! `E` is the first, coarser run, the report's own flight, so the index is the coarse run's:
 //! Richardson's estimate puts the finer run's error at `|ε|/(r^p − 1)` (the note's sources S4
 //! p. 3 and S6 p. 7), and so the coarser run's at `|ε|·r^p/(r^p − 1)`, which the safety factor
-//! `F_s = 3` for two runs scales to `GCI = 3·|ε|·r^p/(r^p − 1)`. The order is `p = 4`, the
-//! dense output's formal order, a lower bound on how the apogee converges (measured 4.8 to 5 for
-//! Dormand–Prince's dense output and 3.96 to 4.00 for RK4's on a model problem,
-//! `docs/physics/integration.md`), and a smaller `p` gives the larger index. The refinement ratio
+//! `F_s = 3` for two runs scales to `GCI = 3·|ε|·r^p/(r^p − 1)`. The order is `p = 4`, assumed:
+//! the formal order of Dormand–Prince's dense output, which places the apogee (measured 4.8 to 5
+//! on a model problem, `docs/physics/integration.md`). The flights' own order isn't measured,
+//! and a lower one would make the index larger. The refinement ratio
 //! `r` is measured, as the second run's accepted steps to apogee over the first's, not assumed
 //! to be 2. The index is a band of about 95%; it is divided by `k = 2` for a standard
 //! uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, 2020, §4, p. 17; it
@@ -43,11 +43,12 @@ use crate::real_flight::{FLIGHTS, FlightRow, RealFlightError, Varied, fly_varied
 /// Roache's safety factor for a grid convergence index from two runs.
 pub const SAFETY_FACTOR_TWO_RUNS: f64 = 3.0;
 
-/// The order taken for the apogee's convergence: 4, the formal order of the dense output that
-/// places it, for Dormand–Prince 5(4) and RK4 alike. A lower bound: on a model problem the
-/// project measured Dormand–Prince's dense output at 4.8 to 5 and RK4's at 3.96 to 4.00
-/// (`docs/physics/integration.md`). A smaller order gives the larger index. `r^p` is
-/// [`fourth_power`], products alone, so that every platform rounds it the same.
+/// The order taken for the apogee's convergence: 4, assumed, the formal order of
+/// Dormand–Prince 5(4)'s dense output, which places it (measured 4.8 to 5 on a model problem,
+/// `docs/physics/integration.md`). The flights' own order isn't measured, and a lower one would
+/// make the index larger. RK4's event state is third order there, so a flight on RK4 would need
+/// 3; the report flies Dormand–Prince. `r^p` is [`fourth_power`], products alone, so that every
+/// platform rounds it the same.
 pub const APOGEE_ORDER: u32 = 4;
 
 /// The coverage factor between a standard uncertainty and a band of about 95%: `k = 2`, the

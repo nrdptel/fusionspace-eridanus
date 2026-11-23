@@ -123,8 +123,8 @@ F_s = 1.25 over three or more runs,  3.0 for two runs            (S7; S6 p. 7)
 
 HPR Sim's fixed-step RK4 is fourth order. Its Dormand-Prince stepping is fifth order, and its dense output,
 which places apogee, is fourth order ([Time integration](../physics/integration.md)). So `|ε|` used as `u_num`
-overstates the GCI 5 to 10 times. Divided by 1.15 to 2 for a standard uncertainty, the gap is 5.75 to 21 times.
-The direction is safe for the run's error but flattering for the count. The size matters only when `u_num` is
+overstates the finer run's GCI 5 to 10 times; divided by 1.15 to 2, 5.75 to 21 times. For the coarser run, the
+bare difference is the smaller, the flattering side. The size matters only when `u_num` is
 not small beside the other two parts.
 
 **Inference.** The adaptive Dormand-Prince stepper has no fixed `h` to halve. A tighter tolerance is not a
