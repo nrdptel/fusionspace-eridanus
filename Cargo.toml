@@ -185,16 +185,18 @@ opt-level = 3
 
 # The synthetic flights' loggers (`cargo xtask synthetic`) write each tuning flight 43 times over,
 # sample by sample, to hold the flight-log readings to their bounds: at 37 writes, 23 CPU-seconds
-# for 20 flights unoptimized, 15.5 at opt-level 3. The committed report reproduces byte for byte
-# either way (M7.2b).
+# for 20 flights unoptimized, 15.5 at opt-level 3. The census itself is flown in `report-check`
+# below, since the dev build counts one reading on an interval's edge otherwise (ADR-372).
 [profile.dev.package.fusionspace-hpr-forensics]
 opt-level = 3
 
 # CI's heavy report checks (`synthetic --check`, `motor-catalog --check`): every crate optimized, and
 # the debug assertions and overflow checks the dev profile runs them with still on, so a flight that
 # trips one still counts as not flown and fails the check. Reports are written, and `validate
-# --check` runs, on the dev profile: its numbers move at other opt-levels (above). These two print
-# only what the platforms share, and both profiles must reproduce the committed files.
+# --check` runs, on the dev profile: its numbers move at other opt-levels (above). The motor
+# catalog prints only what the platforms share, and both profiles must reproduce it. The synthetic
+# census is flown, written and checked here alone (`cargo xtask synthetic` from the dev build runs
+# itself again here; ADR-372), byte for byte on macOS and within one flight elsewhere.
 [profile.report-check]
 inherits = "release"
 debug-assertions = true

@@ -370,8 +370,9 @@ jobs:
         run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --slice --other-platform
 
   # The flight censuses, whole, on every platform, each night (ADR-149, amended). The synthetic
-  # flights' census (M7.2a, ADR-280): every flight flown again, held to the committed census to the
-  # three figures the platforms share. The clock offset between two logs of one flight (M7.2f,
+  # flights' census (M7.2a, ADR-280): every flight flown again, held to the committed census byte
+  # for byte on macOS, where it is written, and elsewhere within one flight on a count and 5% or
+  # 0.002 on a figure, since a reading on an interval's edge can fall otherwise (ADR-372). The clock offset between two logs of one flight (M7.2f,
   # ADR-312): held on two-logger and staged synthetic flights, on seeds of their own, to the
   # committed report. On every pull request they made `validate` and `examples` CI's slowest jobs, 20 to 30
   # minutes on Windows (issue #1018), so a pull request flies their slices (`validate`) and leaves
@@ -396,8 +397,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets tuning,a
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets b,calibration
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check ${{ matrix.os != 'macos-latest' && '--other-platform' || '' }} --sets tuning,a
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check ${{ matrix.os != 'macos-latest' && '--other-platform' || '' }} --sets b,calibration
       - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check
 
   # The fit's slice (M0.16a2, ADR-149 amended): every 21st fit of each run of the fit's intervals,

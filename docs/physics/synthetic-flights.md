@@ -389,7 +389,11 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
 - `cargo xtask synthetic --check`, in CI on every platform each night
   ([ADR-149's amendment, the time budget for CI](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)),
-  and by hand: the census reproduced. CI's `census` job flies the sets in
+  and by hand: the census reproduced, byte for byte on macOS, where it is written, and within one
+  flight on a count and 5% or 0.002 on a figure on the other platforms
+  ([ADR-372](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md),
+  one reading on an interval's edge). It runs in the optimized `report-check` build; from the
+  everyday build, `cargo xtask synthetic` runs itself there. CI's `census` job flies the sets in
   two steps, `--sets tuning,a` and `--sets b,calibration`. Each compares what its sets make with
   their sections of the committed report, so every flight is flown and compared on every platform.
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five

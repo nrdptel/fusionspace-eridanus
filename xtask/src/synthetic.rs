@@ -69,11 +69,53 @@ pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
                            sections of the JSON are compared; the page always is. A set left out
                            isn't checked, so CI names each set on one line per platform.
                            A whole run writes, and a check compares, the slice too.
+                           Every form flies in the optimized `report-check` build; the dev
+                           build runs it there (ADR-372).
   synthetic --slice        Fly only the slice, every 21st flight of each set, and hold each to
                            the committed validation/reports/synthetic-flights.slice.json and to
                            the census's per-flight rules; writes nothing.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
                            test them on sets A and B, print the section; writes nothing.";
+
+/// Whether this build is optimized. The census is flown, written and checked in one build,
+/// `report-check`'s: every crate optimized, the dev profile's debug assertions and overflow checks
+/// kept. The dev build reads a flight here and there a last digit apart, and on an interval's edge
+/// that moves a count: set A's drogue rate read 312 inside its narrowed interval in the dev build
+/// and 313 in the optimized one on every CI platform (ADR-372, #1602).
+fn optimized() -> bool {
+    env!("XTASK_OPT_LEVEL") != "0"
+}
+
+/// `cargo xtask synthetic` from the dev build: the same command run again in the `report-check`
+/// build ([`optimized`]), from the repository's root, with the same arguments.
+fn in_report_check(args: &[String]) -> Result<(), String> {
+    let root = crate::designs::root()?;
+    let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
+    println!(
+        "synthetic: the census is flown in the optimized build (ADR-372): `cargo run --profile report-check -p xtask -- synthetic`"
+    );
+    let status = std::process::Command::new(cargo)
+        .current_dir(&root)
+        .args([
+            "run",
+            "--locked",
+            "--quiet",
+            "--package",
+            "xtask",
+            "--profile",
+            "report-check",
+            "--",
+            "synthetic",
+        ])
+        .args(args)
+        .status()
+        .map_err(|e| format!("cargo run --profile report-check -p xtask -- synthetic: {e}"))?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("the census in the report-check build: {status}"))
+    }
+}
 
 /// The report's path under the repository, without its extension.
 const REPORT: &str = "validation/reports/synthetic-flights";
@@ -449,6 +491,9 @@ struct Clipped {
 
 /// Runs the command.
 pub fn run(args: &[String]) -> Result<(), String> {
+    if !optimized() {
+        return in_report_check(args);
+    }
     let mut check = false;
     let mut only_intervals = false;
     let mut probe: Option<(Set, u64, Options)> = None;
@@ -499,8 +544,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if only_slice && args_given(check, only_intervals, &probe, &sets, launch_started) {
         return Err("--slice takes no argument but --other-platform".into());
     }
-    if other_platform && !only_slice {
-        return Err("--other-platform goes with --slice".into());
+    if other_platform && !only_slice && !check {
+        return Err("--other-platform goes with --slice or --check".into());
     }
     if sets.is_some() && (!check || only_intervals || probe.is_some()) {
         return Err(
@@ -608,11 +653,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
             &slice,
             crate::slice::Held::Words,
         ));
-        for (path, made) in [(&json_path, &json), (&page_path, &page)] {
-            match fs::read_to_string(path) {
-                Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
-                Ok(committed) => problems.push(difference(path, &committed, made)),
-                Err(error) => problems.push(format!("{}: {error}", path.display())),
+        if other_platform {
+            problems.extend(held_off_platform(&json_path, &page_path, &json)?);
+        } else {
+            for (path, made) in [(&json_path, &json), (&page_path, &page)] {
+                match fs::read_to_string(path) {
+                    Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
+                    Ok(committed) => problems.push(difference(path, &committed, made)),
+                    Err(error) => problems.push(format!("{}: {error}", path.display())),
+                }
             }
         }
         if !problems.is_empty() {
@@ -622,7 +671,18 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 problems.join("\n")
             ));
         }
-        if partial {
+        if other_platform {
+            println!(
+                "the sets {} reproduce their sections of {REPORT}.json within another platform's \
+                 room (ADR-372) and of .slice.json in its words, and .md renders from the \
+                 committed .json",
+                flown
+                    .iter()
+                    .map(|set| set.name())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        } else if partial {
             let names: Vec<&str> = flown.iter().map(|set| set.name()).collect();
             println!(
                 "the sets {} reproduce their sections of {REPORT}.json and .slice.json, and .md \
@@ -639,6 +699,115 @@ pub fn run(args: &[String]) -> Result<(), String> {
     write(&slice_path(&root), &crate::slice::json(&slice)?)?;
     println!("wrote {REPORT}.json, .md and .slice.json");
     Ok(())
+}
+
+/// How far a count of the census made on another platform may stand from the committed one: one
+/// flight. The census is written on macOS in the optimized build, and held there byte for byte.
+/// Elsewhere a reading on an interval's edge can fall on its other side: set A's drogue rate, under
+/// the probe that narrows each interval to 0.8 of its width, read 313 inside on macOS, both Linux
+/// runners and Windows on x86-64, and 312 on Windows on ARM (ADR-372, #1602).
+const OTHER_PLATFORM_FLIGHTS: u64 = 1;
+
+/// The same for a figure, a share of the larger of the two, or an absolute allowance for a figure
+/// near zero, whichever allows more: the fit's rule for a figure (ADR-316 §7). The census's
+/// figures are printed to three significant figures.
+const OTHER_PLATFORM_SHARE: f64 = 0.05;
+const OTHER_PLATFORM_ABSOLUTE: f64 = 0.002;
+
+/// The census made on another platform, `made` (the report's JSON), held to the committed one
+/// within [`OTHER_PLATFORM_FLIGHTS`] and [`OTHER_PLATFORM_SHARE`]: every field, length and word as
+/// committed. The committed page must render from the committed JSON. What doesn't hold, a line
+/// each.
+fn held_off_platform(
+    json_path: &Path,
+    page_path: &Path,
+    made: &str,
+) -> Result<Vec<String>, String> {
+    let committed =
+        fs::read_to_string(json_path).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    let report: Report =
+        serde_json::from_str(&committed).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    let committed: serde_json::Value =
+        serde_json::from_str(&committed).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    let made: serde_json::Value = serde_json::from_str(made).map_err(|e| e.to_string())?;
+    let mut broken = Vec::new();
+    let differing = apart("", &committed, &made, &mut broken);
+    println!(
+        "synthetic: {differing} numbers differ from the committed census, within one flight and \
+         {:.0}% (ADR-372)",
+        100.0 * OTHER_PLATFORM_SHARE
+    );
+    match fs::read_to_string(page_path) {
+        Ok(text) if text.replace("\r\n", "\n") == markdown(&report) => {}
+        Ok(_) => broken.push(format!(
+            "{} isn't what {} renders",
+            page_path.display(),
+            json_path.display()
+        )),
+        Err(e) => broken.push(format!("{}: {e}", page_path.display())),
+    }
+    Ok(broken)
+}
+
+/// The numbers where `made` differs from `committed`, walking both from `at`; each difference past
+/// another platform's room, and any other, goes onto `broken`.
+fn apart(
+    at: &str,
+    committed: &serde_json::Value,
+    made: &serde_json::Value,
+    broken: &mut Vec<String>,
+) -> u64 {
+    use serde_json::Value;
+    match (committed, made) {
+        (Value::Object(a), Value::Object(b)) => {
+            if a.len() != b.len() {
+                broken.push(format!("{at}: its fields differ"));
+            }
+            a.iter()
+                .map(|(key, value)| match b.get(key) {
+                    Some(other) => apart(&format!("{at}/{key}"), value, other, broken),
+                    None => {
+                        broken.push(format!("{at}/{key}: not made"));
+                        0
+                    }
+                })
+                .sum()
+        }
+        (Value::Array(a), Value::Array(b)) => {
+            if a.len() != b.len() {
+                broken.push(format!("{at}: its length differs"));
+            }
+            a.iter()
+                .zip(b)
+                .enumerate()
+                .map(|(k, (value, other))| apart(&format!("{at}/{k}"), value, other, broken))
+                .sum()
+        }
+        (Value::Number(a), Value::Number(b)) if a != b => {
+            let within = match (a.as_i64(), b.as_i64()) {
+                (Some(a), Some(b)) => a.abs_diff(b) <= OTHER_PLATFORM_FLIGHTS,
+                _ if a.is_f64() && b.is_f64() => {
+                    let (a, b) = (
+                        a.as_f64().unwrap_or(f64::NAN),
+                        b.as_f64().unwrap_or(f64::NAN),
+                    );
+                    let apart = (a - b).abs();
+                    apart <= OTHER_PLATFORM_ABSOLUTE
+                        || apart / a.abs().max(b.abs()) <= OTHER_PLATFORM_SHARE
+                }
+                _ => false,
+            };
+            if !within {
+                broken.push(format!("{at}: {a} committed, {b} made"));
+            }
+            1
+        }
+        _ if committed != made => {
+            broken.push(format!("{at}: not as committed"));
+            0
+        }
+        _ => 0,
+    }
 }
 
 /// Whether any argument but `--slice` was given.
@@ -3298,13 +3467,51 @@ mod tests {
         }
     }
 
+    /// Another platform's census may stand a count one flight off and a figure 5% or 0.002 off,
+    /// no more, and nothing else may change (ADR-372).
+    #[test]
+    fn another_platforms_census_stands_one_flight_off_at_most() {
+        use serde_json::json;
+        let apart = |a: serde_json::Value, b: serde_json::Value| {
+            let mut broken = Vec::new();
+            let differing = super::apart("", &a, &b, &mut broken);
+            (differing, broken)
+        };
+        let committed =
+            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"});
+        let (differing, broken) = apart(
+            committed.clone(),
+            json!({"inside": 312, "above": 52, "high": 0.179, "mean": -0.0009, "name": "drogue"}),
+        );
+        assert_eq!(differing, 4);
+        assert!(broken.is_empty(), "{broken:?}");
+        // Two flights off, a figure 6% off, a word, a field or an entry otherwise: each fails.
+        for made in [
+            json!({"inside": 311, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"}),
+            json!({"inside": 313, "above": 53, "high": 0.181, "mean": 0.001, "name": "drogue"}),
+            json!({"inside": 313, "above": 51, "high": 0.192, "mean": 0.001, "name": "drogue"}),
+            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.0035, "name": "drogue"}),
+            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001, "name": "main"}),
+            json!({"inside": 313, "above": 51, "high": 0.181, "mean": 0.001}),
+            json!({"inside": 313.0, "above": 51, "high": 0.181, "mean": 0.001, "name": "drogue"}),
+        ] {
+            assert!(
+                !apart(committed.clone(), made.clone()).1.is_empty(),
+                "{made}"
+            );
+        }
+        assert!(!apart(json!([1, 2]), json!([1])).1.is_empty());
+        assert!(apart(json!([1, 2]), json!([1, 2])) == (0, Vec::new()));
+    }
+
     /// The platforms every per-OS job runs on (ADR-222).
     const PLATFORMS: &str =
         "[ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]";
 
     /// The one form a CI step that checks the synthetic flights may take, before its list of sets:
-    /// the optimized build, and nothing after the list that could swallow a failure.
-    const STEP: &str = "- run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets ";
+    /// the optimized build, byte for byte on macOS, where the census is written, and within another
+    /// platform's room elsewhere (ADR-372), and nothing after the list that could swallow a failure.
+    const STEP: &str = "- run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check ${{ matrix.os != 'macos-latest' && '--other-platform' || '' }} --sets ";
 
     /// The one condition a job that checks the synthetic flights may run on: the nightly run's, and
     /// a run started by hand with `full` (ADR-149, amended 2026-11-03).
@@ -3664,7 +3871,8 @@ mod tests {
             ci.contains("needs: [fmt, clippy, test, examples, types, python, validate, reports,")
         );
         // Each way of leaving a set out, or running it somewhere it isn't always run.
-        let half = "synthetic --check --sets b,calibration";
+        let held = "${{ matrix.os != 'macos-latest' && '--other-platform' || '' }}";
+        let half = &format!("synthetic --check {held} --sets b,calibration");
         let has = |probe: &str, text: &str, what: &str| {
             let problems = ci_problems(text);
             assert!(
@@ -3674,22 +3882,42 @@ mod tests {
         };
         has(
             "dropped",
-            &ci.replace(half, "synthetic --check --sets b"),
+            &ci.replace(half, &format!("synthetic --check {held} --sets b")),
             "calibration is on 0",
         );
         has(
             "twice",
-            &ci.replace(half, "synthetic --check --sets b,calibration,a"),
+            &ci.replace(
+                half,
+                &format!("synthetic --check {held} --sets b,calibration,a"),
+            ),
             "a is on 2",
         );
         has(
             "unknown",
-            &ci.replace(half, "synthetic --check --sets b,calibration,c"),
+            &ci.replace(
+                half,
+                &format!("synthetic --check {held} --sets b,calibration,c"),
+            ),
             "unknown set `c`",
         );
         has(
             "whole",
             &ci.replace(half, "synthetic --check"),
+            "isn't exactly",
+        );
+        // Held within the room on macOS too, where the census is written, or exactly nowhere.
+        has(
+            "the room on every platform",
+            &ci.replace(
+                &format!("--check {held} --sets b"),
+                "--check --other-platform --sets b",
+            ),
+            "isn't exactly",
+        );
+        has(
+            "exact on every platform",
+            &ci.replace(&format!("--check {held} --sets b"), "--check --sets b"),
             "isn't exactly",
         );
         has(
