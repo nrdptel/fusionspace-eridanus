@@ -80,9 +80,9 @@ raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** fr
 | UND SL 2024 full scale | 2 × `.pf2` | 4,377 / 4,391 ft | L1420R | ≈0.50 |
 | UND SL 2024 payload demonstration (**Inference**) | 2 × `.pf2` | 3,892 / 3,898 ft \* | L1420R | ≈0.42 |
 | UND SL 2024 launch week | StratoLogger CSV | 4,035 ft (spike left out) | L1420R | ≈0.48 |
-| Hyperion-II, 2025-08-21 | Blue Raven + TeleMega CSV | 2,852 / 2,854 m | Cesaroni M2505 | ≈0.80 |
+| Hyperion-II, 2025-08-21 | Blue Raven + TeleMega CSV, GPS in the descent ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)) | 2,852 / 2,854 m | Cesaroni M2505 | ≈0.80 |
 | numericalrocketry model rocket | Altus-style CSV | 115.67 m | Estes C11-5 | ≈0.12 |
-| UTRGV Lonestar launch, 2026-03-29 | Blue Raven CSV, GPS | 9,543 ft | AeroTech M2500T | ≈1.0 |
+| UTRGV Lonestar launch, 2026-03-29 | Blue Raven CSV + Featherweight GPS CSV, GPS in the descent ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)) | 9,543 ft | AeroTech M2500T | ≈1.0 |
 
 Sources, all MIT by GitHub's license API (the private catalog's "none stated" for UND is wrong):
 [UND-ARC/RocketModels-2023](https://github.com/UND-ARC/RocketModels-2023),
@@ -95,9 +95,6 @@ Caveats, each unbounded until the team's own flight report is read:
 - **Which design and mass flew.** UND keeps several `.ork` versions a year. The 2023-03-05 flight's 7,185 ft is 24%
   above its flight-day file run in OpenRocket 24.12, 5,791 ft (team export 5,788 ft; its stored run, saved by OpenRocket
   15.03, 5,751 ft). A file reworked four days later stores 6,386 ft ([und-flight-configs](und-flight-configs.md)).
-- **GPS in the descent.** Hyperion-II's TeleMega CSV and UTRGV's Featherweight GPS file (beside its Blue Raven log)
-  hold GPS fixes after apogee; the descent-wind report doesn't read them yet
-  ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)).
 - **Hyperion-II's air brakes** may have opened. That can only lower apogee: it measured 2,854 m
   (backup) against its design file's stored 3,003 m (−5%).
 - **numericalrocketry's** simulator was written from OpenRocket's source, so only its data files
