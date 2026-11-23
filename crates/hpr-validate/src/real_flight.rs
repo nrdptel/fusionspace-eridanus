@@ -2898,10 +2898,16 @@ impl RealFlightReport {
         if let (Some(largest), Some((times, id))) = (largest, fewest) {
             let part = if times.is_finite() {
                 let scale = 10_f64.powf(times.log10().floor() - 1.0).max(1.0);
-                format!(
-                    "one part in {}",
-                    fmt_number((times / scale).floor() * scale, 0)
-                )
+                let digits = fmt_number((times / scale).floor() * scale, 0);
+                // Grouped in threes from four digits, as the site's pages write numbers.
+                let mut grouped = String::new();
+                for (at, digit) in digits.chars().enumerate() {
+                    if at > 0 && digits.len() > 3 && (digits.len() - at) % 3 == 0 {
+                        grouped.push(',');
+                    }
+                    grouped.push(digit);
+                }
+                format!("one part in {grouped}")
             } else {
                 "nothing".to_owned()
             };

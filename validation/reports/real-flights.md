@@ -132,7 +132,7 @@ After ASME V&V 20 ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]): a flight'
 | macie-xl-1 | -136.5 | 706.244763 | 742 | 706.245056 | 1473 | 1.99 | 0.0303 |
 | macie-xl-2 | -285.2 | 692.637902 | 734 | 692.638274 | 1447 | 1.97 | 0.0395 |
 
-The largest u_num is 1.1528 mm (andromeda). On every flight it is at most one part in 38000 of its own |E| (the most, bella-lui).
+The largest u_num is 1.1528 mm (andromeda). On every flight it is at most one part in 38,000 of its own |E| (the most, bella-lui).
 
 [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
 [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md

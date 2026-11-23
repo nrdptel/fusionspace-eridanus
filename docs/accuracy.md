@@ -1142,7 +1142,7 @@ history.
 as the report flies it, and with the stepper's tolerances divided by 32, which takes about twice
 the steps. Roache's grid convergence index on the two apogees gives the integrator's part of a
 [validation uncertainty after ASME V&V 20](decisions-and-roadmap.md#m1-14b16). The largest is
-1.1528 mm, and every flight's miss is at least 38000 times its own
+1.1528 mm (0.045 in), and every flight's miss is at least 38,000 times its own
 ([the report's section][real-uncertainty]). So no miss here comes from the integrator. The parts
 from the inputs and from the logs come with [M1.14b17](decisions-and-roadmap.md#m1-14b17) and
 [M1.14b18](decisions-and-roadmap.md#m1-14b18); until then no miss has a band.
