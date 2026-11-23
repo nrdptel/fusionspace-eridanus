@@ -1130,6 +1130,23 @@ pub fn compare_traces(
 }
 
 /// Keeps hpr's height above its start on a fixed grid of the dense output.
+/// The start of every accepted step of a flight, s: what [`steps_before`] counts.
+#[derive(Debug, Default)]
+pub(crate) struct StepStarts(Vec<f64>);
+
+impl Observer for StepStarts {
+    fn step(&mut self, step: &dyn FlightStep) -> Result<(), SimError> {
+        self.0.push(step.start_s());
+        Ok(())
+    }
+}
+
+/// The accepted steps that start before `time_s`: a flight's steps to its apogee, where those
+/// after it can't move the apogee.
+pub(crate) fn steps_before(starts: &StepStarts, time_s: f64) -> u64 {
+    starts.0.iter().filter(|&&start| start < time_s).count() as u64
+}
+
 pub(crate) struct Heights {
     /// The next grid point's index: its time is `GRID_S` times it.
     pub(crate) next: u32,
@@ -1361,8 +1378,8 @@ struct Flown {
     total_impulse_ns: f64,
     /// Whether the design has two or more guides at different stations.
     two_guides: bool,
-    /// The integrator's accepted steps over the whole flight.
-    accepted_steps: u64,
+    /// The integrator's accepted steps that start before hpr's apogee.
+    steps_to_apogee: u64,
 }
 
 /// The design's rocket on the thrust `curve` read from `thrust_path`.
@@ -1534,8 +1551,8 @@ pub struct Varied {
     /// (`hpr_sim::Guides::next_guide_station_m`): a design with fewer flies the tip-off phase as
     /// it flies without it.
     pub two_guides: bool,
-    /// The integrator's accepted steps over the whole flight, ascent and descent.
-    pub accepted_steps: u64,
+    /// The integrator's accepted steps that start before hpr's apogee: the steps that place it.
+    pub steps_to_apogee: u64,
 }
 
 /// The apogee of [`fly`]'s flight with `correction` flown, m above the start, as the log's
@@ -1717,8 +1734,9 @@ fn fly_with(
             rows: Vec::new(),
         };
         let mut metrics = FlightMetrics::new();
+        let mut starts = StepStarts::default();
         let result = simulation
-            .run(&mut (&mut heights, &mut metrics))
+            .run(&mut (&mut heights, (&mut metrics, &mut starts)))
             .map_err(sim)?;
         let max_mach = metrics
             .summary(&result, &environment)
@@ -1759,7 +1777,7 @@ fn fly_with(
             trace,
             total_impulse_ns,
             two_guides,
-            accepted_steps: result.stats.accepted_steps,
+            steps_to_apogee: steps_before(&starts, apogee.time_s),
         })
     };
     let own = fly_once(&rocket, None)?;
@@ -1767,7 +1785,7 @@ fn fly_with(
         return Ok(Flew::Varied(Varied {
             apogee_m: own.apogee_m,
             two_guides: own.two_guides,
-            accepted_steps: own.accepted_steps,
+            steps_to_apogee: own.steps_to_apogee,
         }));
     }
     let on_example_drag = fly_once(&rocket, Some(table))?;
@@ -2846,9 +2864,6 @@ impl RealFlightReport {
         out
     }
 
-    /// The page's section on the flights predicted first: each merged prediction beside its
-    /// log's apogee and its error, the numbers shown beside them and never counted, and each
-    /// flight's log, rule and tags.
     /// The page's section on the numerical part of each flight's validation uncertainty: its
     /// comparison error, its two runs and their numerical part, and the largest numerical part
     /// against the smallest error.
@@ -2857,21 +2872,30 @@ impl RealFlightReport {
         let _ = writeln!(out, "\n## How much of each error the integrator could be\n");
         let _ = writeln!(
             out,
-            "After ASME V&V 20 ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]): a flight's \
-             comparison error E, hpr's apogee less the log's, is the model's own error plus \
-             three others, from the integrator, from the inputs and from the log. Each has a \
-             standard uncertainty, and while the three are independent the validation \
-             uncertainty is their root sum of squares. This section gives the integrator's part, \
-             u_num. Each flight is flown twice more: as the report flies it, and with the \
-             adaptive stepper's tolerances divided by 32, which takes about twice the steps. \
-             From the two apogees, Roache's grid convergence index for two runs is \
-             3·|difference|/(r⁴ − 1), where r is the second run's steps over the first's. \
-             It is a band of about 95%, so u_num is half of it. The input and data parts come \
-             with M1.14b17 and M1.14b18; until they do, no flight's E has a band.\n"
+            "After ASME V&V 20, a standard for putting an uncertainty on a comparison of a \
+             simulation with a measurement ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]):\n\n\
+             - **E**, the comparison error, is hpr's apogee less the log's.\n\
+             - E is the model's own error plus three others: from the integrator, from the \
+             inputs and from the log. Each of the three has a standard uncertainty, and while \
+             they are independent the validation uncertainty u_val is their root sum of \
+             squares.\n\
+             - **u_num**, the integrator's part, is what this section gives. Each flight is \
+             flown twice more: as the report flies it, and with the adaptive stepper's \
+             tolerances divided by 32. The stepper's step goes as its tolerance to the power \
+             1/5, so the second run takes about twice the steps; r is the measured ratio, the \
+             second run's steps to apogee over the first's. E is the first run's, the coarser, \
+             so its index is Roache's grid convergence index for the coarser of two runs, \
+             3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard \
+             deviations, so u_num is half of it.\n\
+             - The data part, the log's own apogee uncertainty, comes with [M1.14b17][m1-14b17], \
+             and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a \
+             band (E ± 2·u_val).\n\n\
+             How far to trust it: u_num measures what a finer step changes, not the models, the \
+             inputs or the logs. The order 4 is a lower bound, which makes the index larger.\n"
         );
         let _ = writeln!(
             out,
-            "| flight | E (m) | apogee (m) | its steps | apogee, step halved (m) | its steps | r | u_num (mm) |"
+            "| flight | E (m) | apogee (m) | steps (report's run) | apogee, tolerances ÷ 32 (m) | steps (finer run) | r | u_num (mm) |"
         );
         let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|");
         for row in rows {
@@ -2889,45 +2913,69 @@ impl RealFlightReport {
                 fmt_number(row.numerical_m * 1e3, 4),
             );
         }
-        let largest = rows
-            .iter()
-            .max_by(|a, b| a.numerical_m.total_cmp(&b.numerical_m));
-        // The fewest times its own u_num goes into a flight's |E|, rounded down to two
-        // significant figures so that "at most one part in N" stays true.
-        let fewest = rows
-            .iter()
-            .map(|row| (row.comparison_error_m.abs() / row.numerical_m, &row.id))
-            .min_by(|a, b| a.0.total_cmp(&b.0));
-        if let (Some(largest), Some((times, id))) = (largest, fewest) {
-            let part = if times.is_finite() {
-                let scale = 10_f64.powf(times.log10().floor() - 1.0).max(1.0);
-                let digits = fmt_number((times / scale).floor() * scale, 0);
-                // Grouped in threes from four digits, as the site's pages write numbers.
-                let mut grouped = String::new();
-                for (at, digit) in digits.chars().enumerate() {
-                    if at > 0 && digits.len() > 3 && (digits.len() - at).is_multiple_of(3) {
-                        grouped.push(',');
-                    }
-                    grouped.push(digit);
-                }
-                format!("one part in {grouped}")
-            } else {
-                "nothing".to_owned()
-            };
-            let _ = writeln!(
-                out,
-                "\nThe largest u_num is {} mm ({}). On every flight it is at most {part} of its \
-                 own |E| (the most, {id}).\n",
-                fmt_number(largest.numerical_m * 1e3, 4),
-                largest.id,
-            );
-        }
+        let _ = writeln!(out, "\n{}\n", Self::smallest_share(rows));
         let _ = writeln!(
             out,
             "[m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16\n\
+             [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17\n\
+             [m1-14b18]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b18\n\
              [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
              0373-m1-14b7-in-three-the-numerical-part-first.md"
         );
+    }
+
+    /// The sentence under the numerical part's table: the largest u_num, and the fewest times a
+    /// flight's own u_num goes into its |E|, rounded down to two significant figures so that "at
+    /// most one part in N" stays true. Integer arithmetic alone after one division, so every
+    /// platform writes the same words.
+    pub(crate) fn smallest_share(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
+        let Some(largest) = rows
+            .iter()
+            .max_by(|a, b| a.numerical_m.total_cmp(&b.numerical_m))
+        else {
+            return "No flight has a numerical part.".to_owned();
+        };
+        let fewest = rows
+            .iter()
+            .filter(|row| row.numerical_m > 0.0)
+            .map(|row| (row.comparison_error_m.abs() / row.numerical_m, &row.id))
+            .min_by(|a, b| a.0.total_cmp(&b.0));
+        let Some((times, id)) = fewest else {
+            return "Every flight's u_num is zero: its two runs gave the same apogee.".to_owned();
+        };
+        if times < 1.0 {
+            return format!(
+                "The largest u_num is {} mm ({}). On {id}, u_num is larger than |E|.",
+                fmt_number(largest.numerical_m * 1e3, 4),
+                largest.id
+            );
+        }
+        // `times` is at least 1 here and far under 2^64 for any apogee in meters.
+        #[expect(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "a finite ratio of at least 1, floored"
+        )]
+        let whole = times.floor() as u64;
+        let mut scale = 1;
+        while whole / scale >= 100 {
+            scale *= 10;
+        }
+        let digits = (whole / scale * scale).to_string();
+        // Grouped in threes from four digits, as the site's pages write numbers.
+        let mut grouped = String::new();
+        for (at, digit) in digits.chars().enumerate() {
+            if at > 0 && digits.len() > 3 && (digits.len() - at).is_multiple_of(3) {
+                grouped.push(',');
+            }
+            grouped.push(digit);
+        }
+        format!(
+            "The largest u_num is {} mm ({}). Every flight's |E| is at least {grouped} times its \
+             own u_num; the fewest times is on {id}.",
+            fmt_number(largest.numerical_m * 1e3, 4),
+            largest.id
+        )
     }
 
     /// The page's section on the flights predicted first: each merged prediction beside its

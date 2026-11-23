@@ -115,26 +115,35 @@ The flights compared first; a predicted flight's inputs are in [the predictions]
 
 ## How much of each error the integrator could be
 
-After ASME V&V 20 ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]): a flight's comparison error E, hpr's apogee less the log's, is the model's own error plus three others, from the integrator, from the inputs and from the log. Each has a standard uncertainty, and while the three are independent the validation uncertainty is their root sum of squares. This section gives the integrator's part, u_num. Each flight is flown twice more: as the report flies it, and with the adaptive stepper's tolerances divided by 32, which takes about twice the steps. From the two apogees, Roache's grid convergence index for two runs is 3·|difference|/(r⁴ − 1), where r is the second run's steps over the first's. It is a band of about 95%, so u_num is half of it. The input and data parts come with M1.14b17 and M1.14b18; until they do, no flight's E has a band.
+After ASME V&V 20, a standard for putting an uncertainty on a comparison of a simulation with a measurement ([M1.14b16][m1-14b16], decision [ADR-373][adr-373]):
 
-| flight | E (m) | apogee (m) | its steps | apogee, step halved (m) | its steps | r | u_num (mm) |
+- **E**, the comparison error, is hpr's apogee less the log's.
+- E is the model's own error plus three others: from the integrator, from the inputs and from the log. Each of the three has a standard uncertainty, and while they are independent the validation uncertainty u_val is their root sum of squares.
+- **u_num**, the integrator's part, is what this section gives. Each flight is flown twice more: as the report flies it, and with the adaptive stepper's tolerances divided by 32. The stepper's step goes as its tolerance to the power 1/5, so the second run takes about twice the steps; r is the measured ratio, the second run's steps to apogee over the first's. E is the first run's, the coarser, so its index is Roache's grid convergence index for the coarser of two runs, 3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard deviations, so u_num is half of it.
+- The data part, the log's own apogee uncertainty, comes with [M1.14b17][m1-14b17], and the input part with [M1.14b18][m1-14b18]. Until both do, no flight's E has a band (E ± 2·u_val).
+
+How far to trust it: u_num measures what a finer step changes, not the models, the inputs or the logs. The order 4 is a lower bound, which makes the index larger.
+
+| flight | E (m) | apogee (m) | steps (report's run) | apogee, tolerances ÷ 32 (m) | steps (finer run) | r | u_num (mm) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| bella-lui | 5.1 | 464.060607 | 646 | 464.059454 | 1254 | 1.94 | 0.1310 |
-| ndrt-2020 | 137.1 | 1457.501793 | 569 | 1457.500944 | 1110 | 1.95 | 0.0944 |
-| prometheus-2022 | -359.2 | 3536.629640 | 951 | 3536.630044 | 1887 | 1.98 | 0.0418 |
-| juno-iii | -174.8 | 2976.686420 | 998 | 2976.686418 | 1848 | 1.85 | 0.0002 |
-| cavour | 160.5 | 2945.476584 | 1300 | 2945.476628 | 2559 | 1.97 | 0.0047 |
-| genesis | -171.5 | 2745.186999 | 878 | 2745.186560 | 1752 | 2.00 | 0.0443 |
-| lince | 140.3 | 3728.031681 | 1067 | 3728.031362 | 2104 | 1.97 | 0.0339 |
-| astra | -212.4 | 3037.091872 | 1166 | 3037.092662 | 2328 | 2.00 | 0.0795 |
-| andromeda | 142.0 | 3580.592861 | 3554 | 3580.590588 | 5013 | 1.41 | 1.1528 |
-| erebus-11 | -242.1 | 2759.618432 | 1246 | 2759.619911 | 2414 | 1.94 | 0.1696 |
-| macie-xl-1 | -136.5 | 706.244763 | 742 | 706.245056 | 1473 | 1.99 | 0.0303 |
-| macie-xl-2 | -285.2 | 692.637902 | 734 | 692.638274 | 1447 | 1.97 | 0.0395 |
+| bella-lui | 5.1 | 464.060607 | 331 | 464.059454 | 635 | 1.92 | 1.8674 |
+| ndrt-2020 | 137.1 | 1457.501793 | 286 | 1457.500944 | 558 | 1.95 | 1.3677 |
+| prometheus-2022 | -359.2 | 3536.629640 | 488 | 3536.630044 | 968 | 1.98 | 0.6482 |
+| juno-iii | -174.8 | 2976.686420 | 659 | 2976.686418 | 1172 | 1.78 | 0.0025 |
+| cavour | 160.5 | 2945.476584 | 671 | 2945.476628 | 1322 | 1.97 | 0.0708 |
+| genesis | -171.5 | 2745.186999 | 452 | 2745.186560 | 898 | 1.99 | 0.7035 |
+| lince | 140.3 | 3728.031681 | 580 | 3728.031362 | 1139 | 1.96 | 0.5127 |
+| astra | -212.4 | 3037.091872 | 550 | 3037.092662 | 1087 | 1.98 | 1.2670 |
+| andromeda | 142.0 | 3580.592861 | 2792 | 3580.590588 | 3505 | 1.26 | 5.7093 |
+| erebus-11 | -242.1 | 2759.618432 | 651 | 2759.619911 | 1224 | 1.88 | 2.4123 |
+| macie-xl-1 | -136.5 | 706.244763 | 350 | 706.245056 | 687 | 1.96 | 0.4720 |
+| macie-xl-2 | -285.2 | 692.637902 | 348 | 692.638274 | 676 | 1.94 | 0.5993 |
 
-The largest u_num is 1.1528 mm (andromeda). On every flight it is at most one part in 38,000 of its own |E| (the most, bella-lui).
+The largest u_num is 5.7093 mm (andromeda). Every flight's |E| is at least 2,700 times its own u_num; the fewest times is on bella-lui.
 
 [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
+[m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
+[m1-14b18]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b18
 [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 
 ## Sources

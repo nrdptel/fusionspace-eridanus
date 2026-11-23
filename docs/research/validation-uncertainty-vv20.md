@@ -13,12 +13,12 @@ both err on the flattering side:
 
 - **A bare halving difference is not V&V 20's `u_num`.** The standard works through Roache's grid
   convergence index (GCI). On two runs, the GCI scales the difference by `3/(2^p − 1)` [S7; S4 pp. 3, 5]. For
-  HPR Sim's fourth- and fifth-order integrators, the bare difference is 5 to 10 times that GCI.
+  HPR Sim's fourth- and fifth-order integrators, the bare difference is 5 to 10 times that GCI, the finer run's.
 - **A count of flights with `|E| ≤ 2 u_val` is not V&V 20's outcome.** The paper says that meeting this
   inequality is not the goal, since larger uncertainties can always meet it [S1 p. 5, p. 11].
 
 How sure: the definitions and the reading of the interval come from [S1] and [S3] and agree. The conversion of
-a GCI to a standard uncertainty is known only through the summaries [S5, S6]; no open text gave its number.
+a GCI to a standard uncertainty is known only through the summaries [S5, S6]: 2, or 1.1 to 1.15 [S5 p. 17].
 
 ## What was read
 
@@ -66,7 +66,7 @@ treats dependent errors in detail, and the plain sum is its simplest case [S1 p.
 - **Which way it errs.** In the case the workshop names, the effects nearly cancel in `E`, yet eq. 10 counts
   them twice [S3 p. 4]. The paper calls the plain sum the more conservative choice there [S1 p. 7].
 - **How much, in their example.** In the standard's fin-tube example, the full and plain-sum values differ by
-  0.05% of `D`. The input terms that touch only the simulation dominate there [S1 p. 7, note 4].
+  0.05% of `D`. The input terms that touch only the simulation dominate there [S1 p. 7].
 - **The input part is never dropped.** An uncertain input held fixed moves its error into `δ_model`; one
   propagated moves it into `δ_input` [S1 p. 4]. With every input fixed, `u_input` = 0: the "strong model".
 
@@ -74,7 +74,7 @@ treats dependent errors in detail, and the plain sum is its simplest case [S1 p.
 through an atmosphere model. That matches the standard's Case 4, whose data-reduction equation is itself a
 model [S2 p. iii]. The site's pressure and temperature then enter both `S` and `D`, so eq. 10 does not hold as
 it stands. If an error moves `S` and `D` the same way, eq. 10 overstates `u_val`; if opposite ways, it
-understates it. The size is unbounded until both are computed from one draw.
+understates it. Its size isn't known until both are computed from one draw.
 
 ## The input part, `u_input`
 
@@ -159,8 +159,8 @@ goal of the exercise [S1 p. 5]. NIST's summary carries the same two-case reading
   outside it and how many of them have `E` > 0. A count inside the band alone rewards a large `u_val`.
   Expected effect: the report says how many flights show a model error of known sign, which V&V 20 is for.
 - **Take `u_num` as a GCI.** Use `F_s · |ε|/(2^p − 1)` with `p` = 4 and `F_s` = 3 on two runs, or the observed
-  `p` and `F_s` = 1.25 on three. Then divide by a stated `k` (2, and say so). Expected effect: `u_num` falls
-  5.75 to 21 times from the bare difference.
+  `p` and `F_s` = 1.25 on three, for the finer run; for the coarser, multiply by `2^p`. Then divide by a stated
+  `k` (2, and say so). With `p` = 4, the coarser run's `u_num` is 1.6 times the bare difference.
 - **Pin a hand-worked case.** The worked example above (`u_val` = 22.4 m) and its GCI version are cheap tests.
   The paper's fin-tube numbers are a second: `u_D` = 2.17 W, `u_num` = 0.07 W and `u_input` = 6.37 W give
   `2 u_val` = 13.5 W, 18.0% of `q_D` = 74.9 W [S1 p. 7, Tables 1 and 2].

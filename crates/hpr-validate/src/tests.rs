@@ -2280,6 +2280,40 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
     assert!(page.contains("Mean absolute apogee error"));
 }
 
+/// M1.14b16: the sentence under the numerical part's table rounds "at least N times" down, groups
+/// its digits, and says so plainly where a u_num is zero or larger than its |E|.
+#[test]
+fn the_numerical_parts_sentence_rounds_down_and_names_the_edges() {
+    use crate::real_flight::RealFlightReport;
+    use crate::validation_uncertainty::UncertaintyRow;
+    let row = |id: &str, error_m: f64, numerical_m: f64| UncertaintyRow {
+        id: id.to_owned(),
+        comparison_error_m: error_m,
+        apogee_m: 1000.0,
+        apogee_step_halved_m: 1000.0,
+        steps: 500,
+        steps_step_halved: 1000,
+        numerical_m,
+    };
+    let say = |rows: &[UncertaintyRow]| RealFlightReport::smallest_share(rows);
+    // 38,840 times rounds down to 38,000; the larger ratio elsewhere doesn't count.
+    let text = say(&[row("a", 5.088, 0.000_131), row("b", -100.0, 0.000_1)]);
+    assert!(text.contains("at least 38,000 times"), "{text}");
+    assert!(text.contains("fewest times is on a"), "{text}");
+    assert!(text.contains("largest u_num is 0.1310 mm (a)"), "{text}");
+    // 999 stays 990 (two figures, rounded down); 1,000 is grouped.
+    assert!(say(&[row("a", 999.0, 1.0)]).contains("at least 990 times"));
+    assert!(say(&[row("a", 1000.0, 1.0)]).contains("at least 1,000 times"));
+    assert!(say(&[row("a", 1.5, 1.0)]).contains("at least 1 times"));
+    // A u_num larger than its |E| is said, never "one part in 0".
+    let over = say(&[row("a", 0.5, 1.0), row("b", 10.0, 1.0)]);
+    assert!(over.contains("On a, u_num is larger than |E|"), "{over}");
+    // A zero u_num has no ratio; all zero, and none at all, are said.
+    assert!(say(&[row("a", 0.0, 0.0), row("b", 20.0, 1.0)]).contains("at least 20 times"));
+    assert!(say(&[row("a", 3.0, 0.0)]).contains("Every flight's u_num is zero"));
+    assert!(say(&[]).contains("No flight has a numerical part"));
+}
+
 /// M1.14b16: the report's check refuses a validation-uncertainty row that isn't its flight's,
 /// each by its own refusal: one moved out of order, a comparison error, a first run that isn't
 /// the report's flight, a numerical part that isn't its runs', and a row missing.

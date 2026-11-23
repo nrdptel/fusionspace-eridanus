@@ -1138,14 +1138,17 @@ committed one. `cargo xtask real-flights --check` flies all 12, reads the five l
 fails when the committed report doesn't reproduce. The list of merged apogees is in the code, so a change to it shows in the code's
 history.
 
-**How much of each miss the integrator could be.** Each of the 12 flights is flown twice more:
-as the report flies it, and with the stepper's tolerances divided by 32, which takes about twice
-the steps. Roache's grid convergence index on the two apogees gives the integrator's part of a
-[validation uncertainty after ASME V&V 20](decisions-and-roadmap.md#m1-14b16). The largest is
-1.1528 mm (0.045 in), and every flight's miss is at least 38,000 times its own
-([the report's section][real-uncertainty]). So no miss here comes from the integrator. The parts
-from the inputs and from the logs come with [M1.14b17](decisions-and-roadmap.md#m1-14b17) and
-[M1.14b18](decisions-and-roadmap.md#m1-14b18); until then no miss has a band.
+**How much of each miss the integrator could be.** Part of any miss could come from the
+numerical integration itself. To bound it, each of the 12 public flights above is flown twice
+more: as the report flies it, and with the integrator's error tolerances divided by 32, which
+takes 1.26 to 1.99 times the steps. ASME V&V 20, a standard for putting an uncertainty on a
+comparison of a simulation with a measurement, turns the two apogees into the integrator's part
+of a validation uncertainty, u_num ([M1.14b16](decisions-and-roadmap.md#m1-14b16)). The largest
+u_num is 5.7093 mm (0.22 in), and every flight's miss is at least 2,700 times its own
+([the report's section][real-uncertainty]). So a finer step can't account for any of these
+misses. This doesn't test the models, the inputs or the logs. The log's own apogee uncertainty
+comes with [M1.14b17](decisions-and-roadmap.md#m1-14b17), and the inputs' part with
+[M1.14b18](decisions-and-roadmap.md#m1-14b18); until both do, no miss has a band.
 
 ### Real flights of the private collection
 

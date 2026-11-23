@@ -6,20 +6,25 @@
 //! model's own error and three others: `E = δ_model + δ_num + δ_input − δ_D`. Each of the three
 //! others has a standard uncertainty, and while they are independent the validation uncertainty
 //! is their root sum of squares, `u_val = √(u_num² + u_input² + u_D²)`; the model's error then
-//! lies in `E ± k·u_val`, `k = 2` for about 95% when the errors are near Gaussian. Read in
-//! Eça, Dowding and Roache, "On the interpretation and scope of the V&V 20 standard", ASME V&V
-//! Symposium 2020, SAND2020-3788C (OSTI 1774746), pp. 3 to 5, eq. 10; the standard's own text
-//! is paywalled and was not read (`docs/research/validation-uncertainty-vv20.md`).
+//! lies in `E ± k·u_val`, with `k` typically 2 to 3. Read in Eça, Dowding and Roache, "On the
+//! interpretation and scope of the V&V 20 standard", ASME V&V Symposium 2020, SAND2020-3788C
+//! (OSTI 1774746), p. 4, eq. 10; the standard's own text is paywalled and was not read
+//! (`docs/research/validation-uncertainty-vv20.md`).
 //!
 //! The numerical part follows Roache's grid convergence index on two runs, the second with the
-//! adaptive stepper's tolerances divided by 32 so that its steps are about half as long:
-//! `GCI = F_s·|ε|/(r^p − 1)` with the safety factor `F_s = 3` that two runs take, the order
-//! `p = 4` of the stepper's dense output, which places the apogee, and the refinement ratio `r`
-//! measured as the second run's accepted steps over the first's, not assumed to be 2. The GCI is
-//! a band of about 95%; it is divided by `k = 2` for a standard uncertainty, the divisor NIST's
-//! summary gives for a Gaussian about the finer run (NISTIR 8298, 2020, §4, p. 17; it gives 1.1
-//! to 1.15 for a shifted one, and neither was checked against the standard). The input and data
-//! parts come in [M1.14b17][m1-14b17] and [M1.14b18][m1-14b18].
+//! adaptive stepper's tolerances divided by 32 so that its steps are about half as long. `S` in
+//! `E` is the first, coarser run, the report's own flight, so the index is the coarse run's:
+//! Richardson's estimate puts the finer run's error at `|ε|/(r^p − 1)` (the note's sources S4
+//! p. 3 and S6 p. 7), and so the coarser run's at `|ε|·r^p/(r^p − 1)`, which the safety factor
+//! `F_s = 3` for two runs scales to `GCI = 3·|ε|·r^p/(r^p − 1)`. The order is `p = 4`, the
+//! dense output's formal order, a lower bound on how the apogee converges (measured 4.8 to 5 for
+//! Dormand–Prince's dense output and 3.96 to 4.00 for RK4's on a model problem,
+//! `docs/physics/integration.md`), and a smaller `p` gives the larger index. The refinement ratio
+//! `r` is measured, as the second run's accepted steps to apogee over the first's, not assumed
+//! to be 2. The index is a band of about 95%; it is divided by `k = 2` for a standard
+//! uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, 2020, §4, p. 17; it
+//! gives 1.1 to 1.15 for a shifted one, and neither was checked against the standard). The data
+//! and input parts come in [M1.14b17][m1-14b17] and [M1.14b18][m1-14b18].
 //!
 //! [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
 //! [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
@@ -38,31 +43,45 @@ use crate::real_flight::{FLIGHTS, FlightRow, RealFlightError, Varied, fly_varied
 /// Roache's safety factor for a grid convergence index from two runs.
 pub const SAFETY_FACTOR_TWO_RUNS: f64 = 3.0;
 
-/// The order the apogee converges at: Dormand–Prince 5(4)'s dense output, which places events
-/// to fourth order (Hairer, Nørsett and Wanner, *Solving Ordinary Differential Equations I*,
-/// 2nd ed., §II.6). The lower of the stepper's two orders, so the larger index.
-pub const APOGEE_ORDER: f64 = 4.0;
+/// The order taken for the apogee's convergence: 4, the formal order of the dense output that
+/// places it, for Dormand–Prince 5(4) and RK4 alike. A lower bound: on a model problem the
+/// project measured Dormand–Prince's dense output at 4.8 to 5 and RK4's at 3.96 to 4.00
+/// (`docs/physics/integration.md`). A smaller order gives the larger index. `r^p` is
+/// [`fourth_power`], products alone, so that every platform rounds it the same.
+pub const APOGEE_ORDER: u32 = 4;
 
-/// The coverage factor between a standard uncertainty and a band of about 95%: V&V 20's
-/// worked example draws `E ± 2·u_val` (Eça, Dowding and Roache 2020, p. 4).
+/// The coverage factor between a standard uncertainty and a band of about 95%: `k = 2`, the
+/// divisor NIST's summary gives for a Gaussian (NISTIR 8298, p. 17). V&V 20 takes `k` typically
+/// 2 to 3 (Eça, Dowding and Roache 2020, p. 4), and the paper's own reading draws `E ± 2·u_val`
+/// (p. 7).
 pub const COVERAGE_K: f64 = 2.0;
 
-/// The numerical part `u_num`, m: the standard uncertainty of an apogee flown at `coarse_m` and
-/// again on steps `refinement_ratio` times shorter at `fine_m`, as Roache's two-run grid
-/// convergence index over [`COVERAGE_K`]: `3·|fine − coarse|/(r⁴ − 1)/2`. `None` unless the ratio
-/// is a finite number above 1: the second run must be the finer.
+/// `x⁴` as `(x·x)·(x·x)`: two products, which IEEE 754 rounds the same on every platform, where a
+/// library's `powf` may not.
+#[must_use]
+pub fn fourth_power(x: f64) -> f64 {
+    let square = x * x;
+    square * square
+}
+
+/// The numerical part `u_num`, m, of the coarser run: the standard uncertainty of an apogee
+/// flown at `coarse_m`, from the same flight flown again on steps `refinement_ratio` times
+/// shorter at `fine_m`, as Roache's two-run grid convergence index for the coarser run over
+/// [`COVERAGE_K`]: `3·|fine − coarse|·r⁴/(r⁴ − 1)/2`. `None` unless the ratio is a finite number
+/// above 1: the second run must be the finer.
 #[must_use]
 pub fn numerical_uncertainty_m(coarse_m: f64, fine_m: f64, refinement_ratio: f64) -> Option<f64> {
     if !(refinement_ratio.is_finite() && refinement_ratio > 1.0) {
         return None;
     }
-    let index = SAFETY_FACTOR_TWO_RUNS * (fine_m - coarse_m).abs()
-        / (refinement_ratio.powf(APOGEE_ORDER) - 1.0);
+    let r_p = fourth_power(refinement_ratio);
+    let index = SAFETY_FACTOR_TWO_RUNS * (fine_m - coarse_m).abs() * r_p / (r_p - 1.0);
     Some(index / COVERAGE_K)
 }
 
-/// The refinement ratio of two runs of one flight: the finer run's accepted steps over the
-/// coarser's, their mean steps' ratio. `None` without steps in the coarser run.
+/// The refinement ratio of two runs of one flight: the finer run's accepted steps to apogee over
+/// the coarser's, the ratio of their mean steps over the climb. `None` without steps in the
+/// coarser run.
 #[must_use]
 pub fn refinement_ratio(coarse_steps: u64, fine_steps: u64) -> Option<f64> {
     // Step counts are far under 2^53 (a flight's step limit is in the millions), so each is an
@@ -93,7 +112,7 @@ pub struct UncertaintyRow {
     pub apogee_m: f64,
     /// The same flight with the time step halved, m ([`Variant::STEP_HALVED`]).
     pub apogee_step_halved_m: f64,
-    /// The integrator's accepted steps over the whole flight as the report flies it.
+    /// The integrator's accepted steps that start before the apogee, as the report flies it.
     pub steps: u64,
     /// The same with the time step halved.
     pub steps_step_halved: u64,
@@ -145,13 +164,13 @@ pub fn rows(
         what: "a row with no flight to fly again".to_owned(),
     };
     let row = |id: &str, error_m: f64, coarse: Varied, fine: Varied| {
-        let numerical_m = refinement_ratio(coarse.accepted_steps, fine.accepted_steps)
+        let numerical_m = refinement_ratio(coarse.steps_to_apogee, fine.steps_to_apogee)
             .and_then(|ratio| numerical_uncertainty_m(coarse.apogee_m, fine.apogee_m, ratio))
             .ok_or_else(|| RealFlightError::Input {
                 flight: id.to_owned(),
                 what: format!(
                     "the run with the step halved took {} steps, the report's {}: not finer",
-                    fine.accepted_steps, coarse.accepted_steps
+                    fine.steps_to_apogee, coarse.steps_to_apogee
                 ),
             })?;
         Ok(UncertaintyRow {
@@ -159,8 +178,8 @@ pub fn rows(
             comparison_error_m: error_m,
             apogee_m: coarse.apogee_m,
             apogee_step_halved_m: fine.apogee_m,
-            steps: coarse.accepted_steps,
-            steps_step_halved: fine.accepted_steps,
+            steps: coarse.steps_to_apogee,
+            steps_step_halved: fine.steps_to_apogee,
             numerical_m,
         })
     };
@@ -207,9 +226,10 @@ mod tests {
 
     /// The worked case, by hand. Validation: `u_num` = 1 m, `u_input` = 20 m, `u_D` = 10 m give
     /// `u_val` = √(1 + 400 + 100) = √501 = 22.3830 m. Numerical: an apogee of 1000.0 m flown
-    /// again at 1000.3 m on 1000 steps for the first run's 500 (r = 2) differs by 0.3 m; the index
-    /// is 3 × 0.3 / (16 − 1) = 0.06 m, and over k = 2 the standard uncertainty is 0.03 m. On
-    /// 1414 steps for 1000 (r ≈ √2, r⁴ ≈ 4) the index is 3 × 0.3 / 3 ≈ 0.3 m, five times as much.
+    /// again at 1000.3 m on 1000 steps for the first run's 500 (r = 2) differs by 0.3 m; the
+    /// coarser run's index is 3 × 0.3 × 16 / (16 − 1) = 0.96 m, and over k = 2 the standard
+    /// uncertainty is 0.48 m. On 1414 steps for 1000 (r ≈ √2, r⁴ ≈ 4) the index is
+    /// 3 × 0.3 × 4 / 3 ≈ 1.2 m, and the standard uncertainty about 0.6 m.
     #[test]
     fn the_combination_on_a_case_worked_by_hand() {
         let u_val = validation_uncertainty_m(1.0, 20.0, 10.0);
@@ -218,10 +238,13 @@ mod tests {
         let halved = refinement_ratio(500, 1000).expect("500 steps is some");
         assert_eq!(halved, 2.0);
         let u_num = numerical_uncertainty_m(1000.0, 1000.3, halved).expect("r = 2 is finer");
-        assert!((u_num - 0.03).abs() < 1e-12, "{u_num}");
+        assert!((u_num - 0.48).abs() < 1e-12, "{u_num}");
         let root_two = refinement_ratio(1000, 1414).expect("1000 steps is some");
         let wide = numerical_uncertainty_m(1000.0, 1000.3, root_two).expect("r > 1 is finer");
-        assert!((wide - 0.15).abs() < 2e-4, "{wide}");
+        assert!((wide - 0.6).abs() < 1e-3, "{wide}");
+        // The fourth power is products alone, exact for a power of two.
+        assert_eq!(fourth_power(2.0), 16.0);
+        assert_eq!(fourth_power(1.5), 5.0625);
         // Which apogee is the coarse one doesn't matter; no difference, no part.
         assert_eq!(Some(u_num), numerical_uncertainty_m(1000.3, 1000.0, 2.0));
         assert_eq!(numerical_uncertainty_m(512.0, 512.0, 2.0), Some(0.0));
@@ -246,9 +269,9 @@ mod tests {
             apogee_step_halved_m: 1000.3,
             steps: 500,
             steps_step_halved: 1000,
-            numerical_m: 0.03,
+            numerical_m: 0.48,
         };
-        assert!(!row.holds(), "0.03 isn't the float the formula gives");
+        assert!(!row.holds(), "0.48 isn't the float the formula gives");
         row.numerical_m = own;
         assert!(row.holds());
         row.numerical_m *= 2.0;

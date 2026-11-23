@@ -32,13 +32,20 @@ The standard is paywalled. Its method was read from open texts, mainly Eça, Dow
    - **The combination:** `u_val = √(u_num² + u_input² + u_D²)`, each part a standard uncertainty,
      for independent errors (Eça, Dowding and Roache 2020, SAND2020-3788C, p. 4, eq. 10).
    - **The numerical part:** each flight is flown twice more, as the report flies it and with the
-     Dormand–Prince stepper's relative and absolute tolerances divided by 32. Its step follows the
-     tolerance to the power 1/5 (Hairer, Nørsett and Wanner, vol. I, §II.4), so the steps are
-     about half as long. The refinement ratio `r` is measured, as the second run's accepted steps
-     over the first's, not assumed. Roache's two-run index is `3·|difference|/(r⁴ − 1)`. Order 4
-     is the dense output's, which places the apogee; it is the lower of the stepper's two orders,
-     so it gives the larger index. The index is a band of about 95%, divided by 2 for a standard
-     uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, p. 17).
+     Dormand–Prince stepper's relative and absolute tolerances divided by 32. An adaptive
+     stepper's step can't be halved directly. Its step follows the tolerance to the power 1/5
+     (Hairer, Nørsett and Wanner, vol. I, §II.4), so these steps are about half as long, and ADR-351's
+     "halving the time step" is read that way. The refinement ratio `r` is measured, not assumed:
+     the second run's accepted steps over the first's, counting the steps that start before the
+     apogee, since later ones can't move it.
+   - **The index is the coarser run's.** `E` takes the report's own flight, the coarser run.
+     Richardson's estimate puts the finer run's error at `|ε|/(r⁴ − 1)` (the [note][note]), so the
+     coarser run's is `|ε|·r⁴/(r⁴ − 1)`. Roache's factor 3 for two runs makes the index
+     `3·|ε|·r⁴/(r⁴ − 1)`. Order 4 is the dense output's formal order, a lower bound: on a model
+     problem the project measured 4.8 to 5 (`docs/physics/integration.md`), and a smaller order
+     gives the larger index. The index is a band of about 95%, divided by 2 for a standard
+     uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, p. 17). `r⁴` is
+     two products, so every platform computes the same figure.
    - **The report:** a section of the real-flights report gives, for each of the 12 public
      flights, the comparison error `E = S − D`, both runs' apogees and steps, `r` and `u_num`.
      A check holds each row: the first run is the report's own flight (the same apogee to the
@@ -61,23 +68,27 @@ The three done-whens below hold ADR-351's whole between them, each clause in one
 - *Take the bare difference of the two runs as `u_num`.* It isn't V&V 20's: the standard goes
   through Roache's index (the [note][note], "In short").
 - *Assume `r = 2`.* An adaptive stepper's steps only roughly follow its tolerance. On the 12
-  flights the measured ratio runs from 1.41 to 2.00, and a ratio under 2 makes the index larger.
+  flights the measured ratio runs from 1.26 to 1.99, and a ratio under 2 makes the index larger.
+- *The finer run's index, `3·|ε|/(r⁴ − 1)`.* It bounds the finer run's error, but `E` is the
+  coarser run's. Taken for the coarser run it would be about 15 times too small, the flattering
+  side.
 
-**What was measured.** On the 12 public flights the second run took 1.85 to 2.00 times the
-accepted steps on 11, and 1.41 times on one (Andromeda). `u_num` runs from 0.0002 mm to 1.15 mm.
-Every flight's `|E|` is at least 38,000 times its `u_num`. The integrator's part is far too small
-to move any comparison.
+**What was measured.** On the 12 public flights the second run took 1.78 to 1.99 times the
+steps to apogee on 11, and 1.26 times on one (Andromeda). `u_num` runs from 0.0025 mm (Juno III)
+to 5.7093 mm (Andromeda). Every flight's `|E|` is at least 2,700 times its own `u_num`. A finer
+step can't account for any of these errors; this says nothing yet of the models, the inputs or
+the logs.
 
 **What this does not decide.**
 
 - Whether two runs are in the asymptotic range. The safety factor 3 is Roache's for two runs
   without a measured order; three runs would measure one. With differences this far under the
   errors, a third run can't change a conclusion.
-- Why Andromeda's step count grows less. The ratio counts the whole flight, descent included.
-  Where the ascent's steps grow more than the whole flight's, `r` understates its refinement and
-  `u_num` comes out large; at 1.2 mm it can't move a count.
-- The divisor: 1.1 to 1.15 instead of 2 makes `u_num` up to 1.8 times larger. Neither was checked
-  against the standard.
+- Why Andromeda's steps grow less. Its climb takes 2,792 steps, where the others take 286 to
+  671, so something other than the tolerance sets many of them; this wasn't looked into. Its `r`
+  of 1.26 gives the largest index of the 12.
+- The divisor: 1.1 to 1.15 instead of 2 makes `u_num` up to 1.82 times larger. Neither was
+  checked against the standard.
 
 **Done when.**
 
@@ -97,7 +108,7 @@ to move any comparison.
   flights whose error lies within twice it; the accuracy page explains the three parts, what an
   error outside the band means, and that meeting the band is not the aim.
 
-**Consequences.** The real-flights report flies 24 more flights, about 10 s more. The
+**Consequences.** The real-flights report flies 24 more flights. The
 [report's new section][report] is checked with the rest of the report. The roadmap's M1.14b7
 becomes three entries. Its title now reads "per real flight" for "for each real flight", to fit
 the roadmap's size budget; the meaning and ADR-351's done-when are unchanged.

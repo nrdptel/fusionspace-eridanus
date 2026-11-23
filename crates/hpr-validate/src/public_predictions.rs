@@ -56,9 +56,9 @@ use serde_json::Value;
 use crate::correction::{Correction, Variant};
 use crate::real_flight::Varied;
 use crate::real_flight::{
-    Altimeter, Barometer, FileRead, Heights, MASS_FIXTURE, ROCKETPY, RealFlightError,
+    Altimeter, Barometer, FileRead, Heights, MASS_FIXTURE, ROCKETPY, RealFlightError, StepStarts,
     example_thrust_of, fixture_case_of, fmt_number, launch_day_at, parse_thrust, rail_from,
-    read_bytes, rocket_with_curve, sha256_hex,
+    read_bytes, rocket_with_curve, sha256_hex, steps_before,
 };
 
 /// The predictions, as data.
@@ -796,8 +796,8 @@ struct Flown {
     motor_mass_kg: f64,
     /// Whether the design has two or more guides at different stations.
     two_guides: bool,
-    /// The integrator's accepted steps over the whole flight.
-    accepted_steps: u64,
+    /// The integrator's accepted steps that start before hpr's apogee.
+    steps_to_apogee: u64,
 }
 
 /// Reads [`CONVERSION_RECORD`].
@@ -1105,7 +1105,7 @@ fn predict_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, (counted.two_guides, counted.accepted_steps)))
+    Ok((row, (counted.two_guides, counted.steps_to_apogee)))
 }
 
 /// What flying a rocket to its apogee needs beside the rocket.
@@ -1189,8 +1189,9 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         rows: Vec::new(),
     };
     let mut metrics = FlightMetrics::new();
+    let mut starts = StepStarts::default();
     let result = simulation
-        .run(&mut (&mut heights, &mut metrics))
+        .run(&mut (&mut heights, (&mut metrics, &mut starts)))
         .map_err(sim)?;
     let max_mach = metrics
         .summary(&result, launch.environment)
@@ -1227,7 +1228,7 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         liftoff_mass_kg,
         motor_mass_kg,
         two_guides,
-        accepted_steps: result.stats.accepted_steps,
+        steps_to_apogee: steps_before(&starts, apogee.time_s),
     })
 }
 
@@ -1588,7 +1589,7 @@ fn predict_design_file_with(
         inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
         note: flight.note.to_owned(),
     };
-    Ok((row, (flown.two_guides, flown.accepted_steps)))
+    Ok((row, (flown.two_guides, flown.steps_to_apogee)))
 }
 
 /// Predicts every flight in [`NEW_FLIGHTS`], then every one in [`DESIGN_FILE_FLIGHTS`].
@@ -1635,10 +1636,10 @@ pub type VariedApogee = (String, Result<Varied, RealFlightError>);
 pub fn varied_apogees(root: &Path, variant: Variant) -> Result<Vec<VariedApogee>, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
     let variant = Some(variant);
-    let varied = |apogee_m: f64, (two_guides, accepted_steps): (bool, u64)| Varied {
+    let varied = |apogee_m: f64, (two_guides, steps_to_apogee): (bool, u64)| Varied {
         apogee_m,
         two_guides,
-        accepted_steps,
+        steps_to_apogee,
     };
     Ok(NEW_FLIGHTS
         .iter()

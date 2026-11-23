@@ -84,9 +84,10 @@ pub struct Variant {
 
 /// What the adaptive stepper's tolerances are divided by to halve its step: `2⁵`. Dormand–Prince
 /// 5(4) controls a local error estimate of order `h⁵` (Hairer, Nørsett and Wanner, *Solving
-/// Ordinary Differential Equations I*, 2nd ed., §II.4, eq. 4.12: the new step scales as
-/// `(1/err)^(1/(q+1))` with `q = 4`), so a tolerance `2⁵` times tighter asks for steps half as
-/// long ([the decision that splits the validation uncertainty][adr-373]).
+/// Ordinary Differential Equations I*, 2nd ed., §II.4; `docs/physics/integration.md`), so its
+/// step goes as the tolerance to the power 1/5, and a tolerance `2⁵` times tighter asks for steps
+/// about half as long. The ratio is measured, not assumed: on the report's flights it is 1.85 to
+/// 2.00 ([the decision that splits the validation uncertainty][adr-373]).
 ///
 /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 pub const STEP_HALVING_TOLERANCE_DIVISOR: f64 = 32.0;
@@ -173,6 +174,8 @@ impl Variant {
             Method::Rk4 { step_s } => Method::Rk4 {
                 step_s: step_s / 2.0,
             },
+            // A method added later is flown as it is: its second run is then no finer, and the
+            // numerical part refuses it ("not finer") rather than report a part of zero.
             other => other,
         };
         FlightSettings { method, ..settings }
