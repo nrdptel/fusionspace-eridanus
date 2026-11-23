@@ -401,6 +401,7 @@ until someone rewrites it in plainer words.
 | [ADR-370: The 2026-11-22 review: the next flight predicted from the last one's log][adr-370] | A flyer who has logged one flight of a rocket predicts the next from it. HPR Sim can fit its drag to the first flight's log; whether that fit makes the next flight's apogee, on another motor and another day, any better is unmeasured. Fifteen rockets in the private collection have two or more logged flights that count. This record fixes the rule now, before any of those flights is fitted; the milestone checks the method on synthetic pairs, fits each earlier flight, merges every prediction, and then scores HPR Sim's carried fit against the uncorrected prediction and against corrections by hand, on new rows `accuracy.second-flight` and `bias.second-flight`. |  |
 | [ADR-371: M1.14b6, wind from the GPS descent: the method's settings and what is compared][adr-371] | The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on sixteen public flights, every one HPR Sim flies or predicts and RocketPy's other example logs: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers. |  |
 | [ADR-372: The census in one build, and a set's failed draws by its five worst posteriors][adr-372] | One of set A's readings sits on an interval's edge: the dev build and Windows on ARM count it on one side, the optimized build on four other platforms on the other. The synthetic census is now flown, written and checked in the optimized `report-check` build: byte for byte on macOS, where it is written, and elsewhere with an interval test's counts within one flight and each moved count's band following. On a platform other than the one that wrote the fit's report, a set's failed posterior draws may now differ by the failures of its five posteriors that failed most, not by 5 draws: one posterior can fail many of its draws while most fail none. |  |
+| [ADR-373: M1.14b7 in three, the numerical part first][adr-373] | A validation uncertainty for each real flight, after ASME V&V 20, is three increments. [M1.14b16](#m1-14b16) writes the combination (the root sum of squares of three parts, from a source that was read), pins it on a case worked by hand, and gives each public flight's comparison error beside its numerical part, from the flight flown again with the stepper's tolerances divided by 32. [M1.14b17](#m1-14b17) adds the data part, the log's own apogee uncertainty. [M1.14b18](#m1-14b18) adds the input part, the band, the count within it and the accuracy page. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -671,7 +672,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b4"></a>[M1.14b4][done-1] | NASA's check cases 3 and 6 to 10 | done |
 | <a id="m1-14b5"></a>[M1.14b5][done-1] | Tip-off, measured with RocketPy's | done |
 | <a id="m1-14b6"></a>[M1.14b6][done-1] | Wind from the GPS descent, against the reanalysis | done |
-| <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty for each real flight | not yet done |
+| <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty per real flight | not yet done |
 | <a id="m1-14b8"></a>[M1.14b8][phase-1] | MAPLEAF as a second open oracle | not yet done |
 | <a id="m1-14b9"></a>[M1.14b9][phase-1] | The tip-off pivot, held to RocketPy's | not yet done |
 | <a id="m1-14b10"></a>[M1.14b10][done-1] | Tip-off in every flight that has two guides | done |
@@ -680,6 +681,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b13"></a>[M1.14b13][done-1] | The tip-off reference at RocketPy's rewritten phase | done |
 | <a id="m1-14b14"></a>[M1.14b14][done-1] | What tip-off moves on the real flights | done |
 | <a id="m1-14b15"></a>[M1.14b15][done-1] | Tip-off by default | done |
+| <a id="m1-14b16"></a>[M1.14b16][done-1] | Combination, numerical part | done |
+| <a id="m1-14b17"></a>[M1.14b17][phase-1] | The data part | not yet done |
+| <a id="m1-14b18"></a>[M1.14b18][phase-1] | Input part, band | not yet done |
 | <a id="m1-14c"></a>[M1.14c][phase-1] | The normal force and drag near Mach 1, from 0.8 to 1.2, with the row at Mach 1.08 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14d"></a>[M1.14d][phase-1] | Faster than sound, Mach 1.2 to 2.5. First the four shapes that fall back to slender-body theory and so read more stable than they are: a step in a body's radius ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)), a flare behind a boattail too long for its wake ([issue #120](https://github.com/nrdptel/fusionspace-eridanus/issues/120)), a pointed tip steeper than 30° ([issue #121](https://github.com/nrdptel/fusionspace-eridanus/issues/121)) and a vertical tip steeper than its cap. Then drag, where HPR Sim reads 5.1% to 14.9% below RASAero II on RocketPy's Calisto rocket, and the body-alone misses [M1.8e](#m1-8e) left from Mach 1.5 to 2.3; and the rows from Mach 1.29 to 2.38 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14e"></a>[M1.14e][phase-1] | Large angles of attack: what the legal 20 mph wind costs, and a high-angle model if it costs more than 1%; how long the first moments off the rail stay steep, which tests the 1 s the high-angle flag allows; and the issues about high angles | not yet done |
@@ -1488,6 +1492,7 @@ is the milestone that added or will add that test.
 [adr-370]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md
 [adr-371]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0371-m1-14b6-wind-from-the-gps-descent-the-methods-settings-and-what-is-compared.md
 [adr-372]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md
+[adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

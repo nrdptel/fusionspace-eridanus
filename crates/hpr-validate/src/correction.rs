@@ -14,7 +14,7 @@ use hpr_analysis::AnalysisError;
 use hpr_analysis::montecarlo::dispersed_motor;
 use hpr_atmos::ConstantWind;
 use hpr_design::Rocket;
-use hpr_sim::{Environment, SimError, Simulation};
+use hpr_sim::{Environment, FlightSettings, Method, SimError, Simulation};
 use serde::{Deserialize, Serialize};
 
 /// The two scales of a correction.
@@ -74,7 +74,23 @@ pub struct Variant {
     pub tip_off: bool,
     /// Whether the wind is taken out: what the phase moves in still air is gravity's part alone.
     pub still_air: bool,
+    /// Whether the time step is halved: the flight flown again for its numerical uncertainty
+    /// ([`Variant::settings`]; [the decision that splits the validation uncertainty][adr-373]).
+    ///
+    /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
+    #[serde(default)]
+    pub step_halved: bool,
 }
+
+/// What the adaptive stepper's tolerances are divided by to halve its step: `2⁵`. Dormand–Prince
+/// 5(4) controls a local error estimate of order `h⁵` (Hairer, Nørsett and Wanner, *Solving
+/// Ordinary Differential Equations I*, 2nd ed., §II.4; `docs/physics/integration.md`), so its
+/// step goes as the tolerance to the power 1/5, and a tolerance `2⁵` times tighter asks for steps
+/// about half as long. The ratio is measured, not assumed: on the report's flights it is 1.78 to
+/// 1.99, and 1.26 on one ([the decision that splits the validation uncertainty][adr-373]).
+///
+/// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
+pub const STEP_HALVING_TOLERANCE_DIVISOR: f64 = 32.0;
 
 impl Variant {
     /// The report's flight held straight to its last guide: no correction, the tip-off phase off.
@@ -82,6 +98,7 @@ impl Variant {
         correction: None,
         tip_off: false,
         still_air: false,
+        step_halved: false,
     };
 
     /// The report's own flight: the tip-off phase, HPR Sim's default, and no correction.
@@ -89,6 +106,13 @@ impl Variant {
         correction: None,
         tip_off: true,
         still_air: false,
+        step_halved: false,
+    };
+
+    /// [`Variant::TIP_OFF`], the report's own flight, with the time step halved.
+    pub const STEP_HALVED: Self = Self {
+        step_halved: true,
+        ..Self::TIP_OFF
     };
 
     /// [`Variant::GUIDED`] in still air.
@@ -130,6 +154,31 @@ impl Variant {
     /// As [`Correction::rocket`].
     pub fn rocket(&self, rocket: &Rocket) -> Result<Option<Rocket>, AnalysisError> {
         self.correction.map(|c| c.rocket(rocket)).transpose()
+    }
+
+    /// `settings` with the time step halved if the variant asks: the adaptive stepper's two
+    /// tolerances divided by [`STEP_HALVING_TOLERANCE_DIVISOR`], a fixed step halved. Every other
+    /// setting as given.
+    #[must_use]
+    pub fn settings(&self, settings: FlightSettings) -> FlightSettings {
+        if !self.step_halved {
+            return settings;
+        }
+        let method = match settings.method {
+            Method::DormandPrince54(adaptive) => {
+                let mut adaptive = adaptive;
+                adaptive.relative_tolerance /= STEP_HALVING_TOLERANCE_DIVISOR;
+                adaptive.absolute_tolerance /= STEP_HALVING_TOLERANCE_DIVISOR;
+                Method::DormandPrince54(adaptive)
+            }
+            Method::Rk4 { step_s } => Method::Rk4 {
+                step_s: step_s / 2.0,
+            },
+            // A method added later is flown as it is: its second run is then no finer, and the
+            // numerical part refuses it ("not finer") rather than report a part of zero.
+            other => other,
+        };
+        FlightSettings { method, ..settings }
     }
 
     /// `simulation` with the correction's drag scale, if any, and the tip-off phase if asked.
