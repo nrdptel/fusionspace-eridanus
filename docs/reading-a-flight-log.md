@@ -65,7 +65,7 @@ computer's, are [listed as needing samples](format/flight-logs.md#formats-that-n
 > **How far to trust it.** Readings of the altimeter's own log, measured, not simulated. Each
 > states a bound on its error, held on HPR Sim's synthetic flights. They're 171 simulated flights,
 > 71 with an accelerometer too, each logged at every rate from 500 to half a sample a second. On
-> them, every reading stayed within its bound, and the largest error took 0.833 of it.
+> them, every reading stayed within its bound, and the largest error took 0.737 of it.
 >
 > The bounds were tuned on those same flights, and no real log has a truth beside it to test
 > them. They hold on [six simulated logger profiles](physics/synthetic-flights.md#the-loggers) and

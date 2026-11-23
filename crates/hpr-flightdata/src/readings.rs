@@ -839,14 +839,21 @@ pub struct Descent {
 /// The main's opening, found back from landing.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Opening {
-    /// The first sample of the run back from landing whose rate of descent stays near the main's,
-    /// s on the track's clock.
+    /// Where the main's descent starts, s on the track's clock: the likeliest single change in how
+    /// often the descent's rate is near the main's ([ADR-366]).
+    ///
+    /// [ADR-366]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0366-the-mains-opening-at-the-likeliest-split.md
     pub time_s: f64,
     /// The bound on its error, s: the time the main takes to slow the drogue's descent to the
     /// run's mark, worked out from the rate the main settles to; half the rate's fit; and two
-    /// intervals.
+    /// intervals. Where the walk back from landing starts the main later, the time between the
+    /// two is added, so the bound holds an opening at either ([ADR-374]).
+    ///
+    /// [ADR-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
     pub bound_s: f64,
-    /// Its 90% interval, s on the track's clock ([`interval::MAIN_OPENING_SHARES`]).
+    /// Its 90% interval, s on the track's clock ([`interval::MAIN_OPENING_SHARES`]): where the
+    /// walk starts later, from the interval about this reading's lower end to the interval about
+    /// the walk's start's upper end.
     pub interval_s: Option<Interval>,
     /// The filtered track's height then, m above the pad.
     pub height_m: f64,
