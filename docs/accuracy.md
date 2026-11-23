@@ -1141,9 +1141,12 @@ history.
 **How much of each miss the integrator could be.** Part of any miss could come from the
 numerical integration itself. To bound it, each of the 12 public flights above is flown twice
 more: as the report flies it, and with the integrator's error tolerances divided by 32, which
-takes 1.26 to 1.99 times the steps. ASME V&V 20, a standard for putting an uncertainty on a
-comparison of a simulation with a measurement, turns the two apogees into the integrator's part
-of a validation uncertainty, u_num ([M1.14b16](decisions-and-roadmap.md#m1-14b16)). The largest
+takes 1.26 to 1.99 times the steps. ASME V&V 20 is a standard for putting an uncertainty on a
+comparison of a simulation with a measurement, and its solution verification is built on
+Roache's grid convergence index. That index, here on two runs, turns the two apogees into the
+integrator's part of a validation uncertainty, u_num ([M1.14b16](decisions-and-roadmap.md#m1-14b16)).
+[The decision behind it][adr-373] gives its assumptions; the standard itself wasn't read, only
+open texts on it. The largest
 u_num is 5.7093 mm (0.22 in), and every flight's miss is at least 2,700 times its own
 ([the report's section][real-uncertainty]). So a finer step can't account for any of these
 misses. This doesn't test the models, the inputs or the logs. The log's own apogee uncertainty
@@ -1995,6 +1998,7 @@ rest.
 [census]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [real-uncertainty]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-integrator-could-be
+[adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json
