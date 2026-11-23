@@ -268,12 +268,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       M1.14b11 and M1.14b12 are). *Done when:* ADR-357 decision 4's for M1.14b9.
       - [ ] **M1.14b12 The crosswind tip-off on HPR Sim's own normal force** (after M1.14e,
         #1538). *Done when:* ADR-358 decision 1's for M1.14b12.
-    - [ ] **M1.14b7 A validation uncertainty for each real flight** (ADR-373: in three; met when
-      M1.14b16 to M1.14b18 are). *Done when:* ADR-351 decision 2's for M1.14b7.
-      - [ ] **M1.14b16 The combination and the numerical part.** *Done when:* ADR-373's for
-        M1.14b16.
-      - [ ] **M1.14b17 The data part.** *Done when:* ADR-373's for M1.14b17.
-      - [ ] **M1.14b18 The input part and the band.** *Done when:* ADR-373's for M1.14b18.
+    - [ ] **M1.14b7 A validation uncertainty per real flight** (met when its three are).
+      *Done when:* ADR-351 decision 2's for M1.14b7.
+      - [ ] **M1.14b16 Combination, numerical part.** *Done when:* ADR-373's.
+      - [ ] **M1.14b17 The data part.** *Done when:* ADR-373's.
+      - [ ] **M1.14b18 Input part, band.** *Done when:* ADR-373's.
     - [ ] **M1.14b8 MAPLEAF as a second open oracle.** *Done when:* ADR-351 decision 2's for
       M1.14b8.
   - [ ] **M1.14c Transonic, Mach 0.8–1.2.** *Done when:* the stop rule ends it, gaps re-measured,

@@ -672,7 +672,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b4"></a>[M1.14b4][done-1] | NASA's check cases 3 and 6 to 10 | done |
 | <a id="m1-14b5"></a>[M1.14b5][done-1] | Tip-off, measured with RocketPy's | done |
 | <a id="m1-14b6"></a>[M1.14b6][done-1] | Wind from the GPS descent, against the reanalysis | done |
-| <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty for each real flight | not yet done |
+| <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty per real flight | not yet done |
 | <a id="m1-14b8"></a>[M1.14b8][phase-1] | MAPLEAF as a second open oracle | not yet done |
 | <a id="m1-14b9"></a>[M1.14b9][phase-1] | The tip-off pivot, held to RocketPy's | not yet done |
 | <a id="m1-14b10"></a>[M1.14b10][done-1] | Tip-off in every flight that has two guides | done |
@@ -681,9 +681,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b13"></a>[M1.14b13][done-1] | The tip-off reference at RocketPy's rewritten phase | done |
 | <a id="m1-14b14"></a>[M1.14b14][done-1] | What tip-off moves on the real flights | done |
 | <a id="m1-14b15"></a>[M1.14b15][done-1] | Tip-off by default | done |
-| <a id="m1-14b16"></a>[M1.14b16][phase-1] | The combination and the numerical part | not yet done |
+| <a id="m1-14b16"></a>[M1.14b16][phase-1] | Combination, numerical part | not yet done |
 | <a id="m1-14b17"></a>[M1.14b17][phase-1] | The data part | not yet done |
-| <a id="m1-14b18"></a>[M1.14b18][phase-1] | The input part and the band | not yet done |
+| <a id="m1-14b18"></a>[M1.14b18][phase-1] | Input part, band | not yet done |
 | <a id="m1-14c"></a>[M1.14c][phase-1] | The normal force and drag near Mach 1, from 0.8 to 1.2, with the row at Mach 1.08 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14d"></a>[M1.14d][phase-1] | Faster than sound, Mach 1.2 to 2.5. First the four shapes that fall back to slender-body theory and so read more stable than they are: a step in a body's radius ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)), a flare behind a boattail too long for its wake ([issue #120](https://github.com/nrdptel/fusionspace-eridanus/issues/120)), a pointed tip steeper than 30° ([issue #121](https://github.com/nrdptel/fusionspace-eridanus/issues/121)) and a vertical tip steeper than its cap. Then drag, where HPR Sim reads 5.1% to 14.9% below RASAero II on RocketPy's Calisto rocket, and the body-alone misses [M1.8e](#m1-8e) left from Mach 1.5 to 2.3; and the rows from Mach 1.29 to 2.38 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14e"></a>[M1.14e][phase-1] | Large angles of attack: what the legal 20 mph wind costs, and a high-angle model if it costs more than 1%; how long the first moments off the rail stay steep, which tests the 1 s the high-angle flag allows; and the issues about high angles | not yet done |
