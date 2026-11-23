@@ -33,7 +33,7 @@ withholds one instead of guessing.
   every reading given stayed within its bound. The set is 171 flights logged by a barometer. Each
   was logged again at 36 rates and steps and cut 6 ways. The 71 of them with an accelerometer
   were read again with it at 500, 100 and 20 samples a second. Thirty-eight were read with it set to ±8 g. The largest
-  share of its bound any error took was 0.833, on a main opening, and 0.737 on a top acceleration
+  share of its bound any error took was 0.737, on a top acceleration, and 0.717 on an apogee height
   ([Checked against](#checked-against)). The bounds were tuned on those same flights, so this
   shows they are wide enough there, not on flights held apart. On an invented PerfectFlite log,
   every reading lands within its bound. Each but burnout's floor also lands within the tighter
@@ -1446,7 +1446,7 @@ and its JSON:
 | top acceleration | 0.737 | its accelerometer at 20 samples a second | −13.7 m/s² within 18.6 m/s² |
 | burnout | 0.544 | 20 samples a second, pressure in 100 Pa steps, a floor from the top speed | 0.718 s within 1.32 s |
 | drogue rate | 0.701 | 5 samples a second, heights with no step | −0.943 m/s (−3.09 ft/s) within 1.35 m/s (4.43 ft/s) |
-| main opening | 0.833 | 5 samples a second, pressure in 10 Pa steps | 1.02 s within 1.22 s |
+| main opening | 0.639 | 100 samples a second, pressure in 1 Pa steps | 0.539 s within 0.843 s |
 | main rate | 0.697 | 500 samples a second, pressure in 1 Pa steps | −1.17 m/s (−3.84 ft/s) within 1.67 m/s (5.48 ft/s) |
 
 The report also gives each reading's errors over every tuning flight and every log together. It
