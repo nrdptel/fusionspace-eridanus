@@ -522,7 +522,7 @@ A log not published, or not found, is not here.
 - **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
   Hedy, whose ERA5 file HPR Sim can't read without a checked conversion. Testbed 2, whose ERA5
   file is not fetched yet; its date, 16 May 2026, is its GPS log's alone, as its Blue Raven's
-  clock was not set.
+  summary gives 7 April 2026, the day its firmware was built.
 - **Not run:** Cavour fell at 75 m/s (246 ft/s), Astra at 98 m/s (321 ft/s) and Hyperion-II at
   85 m/s (279 ft/s), faster than any canopy the method is held to: Hyperion-II's drogue never
   slowed it. Eight more logged no position.

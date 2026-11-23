@@ -44,7 +44,7 @@ The receivers read:
 - `hedy`: the CATS flight computer's GNSS log (`gnssInfo.csv`): latitude and longitude; height from its barometric filter (`filteredDataInfo.csv`). Its site and hour: hedy_flight_sim.ipynb's environment: 16:00 UTC, and the site's elevation as the notebook prints it.
 - `hyperion-ii`: the TeleMega's GPS (Altus Metrum), 1 fix a second. Its site and hour: the TeleMega's first GPS fix: 18:11:46 UTC, on the pad.
 - `itzamna`: the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, 08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's own flight computer (FLGT0023) on the pad (the ERA5 record, `descent-wind-era5.json`).
-- `rit-testbed-2`: the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue Raven's clock was not set.
+- `rit-testbed-2`: the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue Raven's summary dates the launch 7 April 2026, the day its firmware was built.
 
 ## Reconstructed less ERA5, by height band
 

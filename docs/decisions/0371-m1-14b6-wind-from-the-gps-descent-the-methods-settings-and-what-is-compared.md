@@ -1,7 +1,7 @@
 # ADR-371: M1.14b6, wind from the GPS descent: the method's settings and what is compared (2026-11-22)
 
 - **Status:** accepted; carries out [ADR-351][adr-351] decision 2's line for M1.14b6
-- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on sixteen public flights, every one HPR Sim flies or predicts and RocketPy's other example logs: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers.
+- **Summary:** The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on sixteen public flights, every one HPR Sim flies or predicts and RocketPy's other example logs: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Amended 2026-11-23 (#1605): three public team logs are read too, 19 flights in all; with Itzamna, five are compared, 3.49 m/s RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers.
 
 [adr-351]: 0351-m1-14b-in-eight-the-basic-finners-normal-force-first.md
 [note]: ../research/wind-from-descent.md

@@ -584,7 +584,8 @@ pub(crate) const PUBLIC: [Public; 19] = [
             weather: None,
             source: "the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is \
                      apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue \
-                     Raven's clock was not set",
+                     Raven's summary dates the launch 7 April 2026, the day its firmware was \
+                     built",
         },
         source: Source::Gps {
             track: &TESTBED_2_GPS,
