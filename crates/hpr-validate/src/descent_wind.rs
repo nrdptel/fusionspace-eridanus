@@ -7,8 +7,9 @@
 //!   flies, the five public flights predicted before their logs were compared, and four more
 //!   public example logs in RocketPy's checkout whose rockets HPR Sim doesn't fly (Camões,
 //!   Halcyon, Hedy, Valkyrie). The wind needs no motor, so each with a position is read. Each is
-//!   listed: read, with its receiver, or not, with the reason. Two public team logs with a GPS
-//!   descent, Hyperion-II's and UTRGV's, are not read yet (issue #1605).
+//!   listed: read, with its receiver, or not, with the reason.
+//! - **Not read yet:** two public team logs in the [public-flights note][note] with GPS fixes in
+//!   the descent, Hyperion-II's and UTRGV's ([issue #1605][i1605]); the report says so.
 //! - **The reconstruction** is [`hpr_flightdata::descent_wind`] at its default settings.
 //! - **ERA5** is read at the launch site and hour as HPR Sim reads a sounding
 //!   ([`real_flight::launch_day`]): for a flight the real-flights report flies, its file and
@@ -32,6 +33,8 @@
 //! committed report (`hpr_validate::tests`).
 //!
 //! [m1-14b6]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6
+//! [note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md
+//! [i1605]: https://github.com/nrdptel/fusionspace-eridanus/issues/1605
 
 use std::fmt::Write as _;
 use std::path::Path;
@@ -252,8 +255,8 @@ const MACIE_XL: &str = "its logs hold heights, speeds and accelerations, no posi
 const PREDICTED_NOT_COMPARED: &str = "the public predictions' weather, EuRoC 2022's converted \
                                       ERA5 file, is not read here";
 
-/// Every public flight, in the report's order: the real-flights report's, the predictions', then
-/// the example logs HPR Sim doesn't fly.
+/// The report's flights, in its order: the real-flights report's, the predictions', then the
+/// example logs HPR Sim doesn't fly.
 pub(crate) const PUBLIC: [Public; 16] = [
     Public {
         id: "bella-lui",
@@ -617,7 +620,8 @@ pub struct Receivers {
 pub struct DescentWindReport {
     /// The reconstruction's settings.
     pub settings: Settings,
-    /// Every public flight.
+    /// The report's flights: every one HPR Sim flies or predicts, then RocketPy's other example
+    /// logs.
     pub flights: Vec<FlightEntry>,
     /// The comparison by band, over the compared flights.
     pub bands: Vec<Band>,
@@ -1176,7 +1180,7 @@ pub fn required_ids() -> Vec<&'static str> {
         .collect()
 }
 
-/// Reads every public flight and builds the report.
+/// Reads the report's flights and builds the report.
 ///
 /// # Errors
 ///
@@ -1454,7 +1458,11 @@ impl DescentWindReport {
              direction; a tumbling airframe or a streamer has no measured response.\n\
              - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three \
              of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 \
-             repository, so the logs of its flight computers give statistics here, not rows."
+             repository, so the logs of its flight computers give statistics here, not rows.\n\
+             - **Two public team logs.** Hyperion-II's and UTRGV's, in the project's \
+             public-flights note, hold GPS fixes in the descent and are not read yet (issue \
+             #1605), so the report is short of every public flight with a GPS track of the \
+             descent."
         );
         let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
         md

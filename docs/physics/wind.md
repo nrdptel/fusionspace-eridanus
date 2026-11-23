@@ -504,8 +504,10 @@ was 14.74 m/s (33.0 mph).
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
 reads every public flight HPR Sim flies or predicts, and RocketPy's other example logs: the seven
 the real-flights report flies, the five predicted first, and Camões, Halcyon, Hedy and Valkyrie.
-Two public team logs that record GPS through the descent, Hyperion-II's and UTRGV's, are not read
-yet ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)).
+Two public team logs in the [public-flights note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md) hold GPS fixes in the descent,
+Hyperion-II's (a TeleMega) and UTRGV's (a Featherweight GPS). They are not read yet, so the report
+is short of every public flight with a GPS track of the descent (tracked in
+[#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)).
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
