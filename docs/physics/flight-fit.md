@@ -16,15 +16,15 @@ impulse, wind and mass, and where the fit fails its tests.
   3 of the Bayesian option's 10. Both are tested only on
   [synthetic flights](synthetic-flights.md), and only as a whole. By least squares, each
   parameter's interval is tested on two sets of test flights
-  ([the sets](synthetic-flights.md#the-sets)). On set B the drag scale's fails on its lower tail:
-  80 of 1,000 truths lie below it, where at most 74 pass. There the fitted drag reads high, so a
+  ([the sets](synthetic-flights.md#the-sets)). A truth is the value a test flight was flown with.
+  On set B the drag scale's interval misses on the low side: 80 of 1,000 truths lie below it,
+  where the test passes at 74 or fewer. There the fitted drag reads high, so a
   flight predicted with it would come out low. It's a recorded gap
   ([ADR-368, the gap recorded and not fitted away][adr-368];
   [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)). Every other interval
   passes on both sets. Set A flies the
-  simulator's own model; set B flies a deliberately different one. A truth is the value a test
-  flight was flown with. On set B it's the fit to the same flight with no noise, for all but the
-  mass. The wind passes only on logs with a track, the log's latitude and longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
+  simulator's own model; set B flies a deliberately different one. On set B a truth is the fit to
+  the same flight with no noise, for all but the mass. The wind passes only on logs with a track, the log's latitude and longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
   from a third. An interval holds 90% over a set, not on each design or flight
   ([How well it holds](#how-well-it-holds)). No real flight has checked its intervals
   ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
@@ -332,7 +332,8 @@ with 868 to 930. On the wind's 1,497, a tail passes with 49 to 104, and the insi
   its 1,000 flights. Height-alone logs are the only ones where
   the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated range,
   but it isn't measured yet, and set B's impulse leans the other way. Set A's drag is
-  [M7.3c6][m7-3c6]; set B's impulse and the rest, set B's drag among them, are [M7.3c7][m7-3c7].
+  open work for [M7.3c6, the drag on logs of height alone][m7-3c6]. Set B's impulse and the
+  rest, set B's drag among them, are open work for [M7.3c7, every count passing][m7-3c7].
 - **Set A's impulse passes near its edge.** 70 of its truths fall below, 4 short of 74, the most
   that pass. That's the same side as set B's: it too reads high, which flatters the motor.
 - **Set B's drag fails, and its widened probe passes.** 79 of its truths fall below, where 74 is
@@ -357,7 +358,8 @@ the fewest was 1 and the median 139. That's about a quarter on set A and nearly 
 loss on logs with a track: before the track was read anew, 319 and 392 fell short. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 170 of 1,138,000 on set A,
 and 281 of 1,148,000 on set B. Every
-flight counted with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
+flight counted with something to fit has a posterior. Making the counts pass is
+[M7.3c4, the Bayesian intervals passing][m7-3c4].
 
 ### The sampler's tests
 

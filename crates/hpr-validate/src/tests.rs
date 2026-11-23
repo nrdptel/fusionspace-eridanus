@@ -4701,6 +4701,9 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // `real-flights.json` already holds, flown again with and without the phase, and the
         // private collection's aggregate. Apogees and errors only: no Mach number in it.
         "tip-off-flights.json",
+        // The wind from the public flights' GPS descents beside ERA5's (M1.14b6): winds,
+        // heights and descent rates under a canopy only: no Mach number in it.
+        "descent-wind.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
@@ -4870,4 +4873,79 @@ fn the_real_flights_page_credits_the_era5_weather() {
             "the notices' entry lacks {words}"
         );
     }
+}
+
+/// The committed descent-wind report (M1.14b6): its bands are its flights' sums', its page is its
+/// data's, it lists every flight of the report's table in order (the public flights HPR Sim flies
+/// or predicts first), it credits ERA5, and the validation plan's row calls the reconstruction a
+/// method, not yet a comparison, exactly while fewer than three flights are compared.
+#[test]
+fn the_descent_wind_report_holds_together() {
+    use crate::descent_wind::{
+        DescentWindReport, FLIGHTS_FOR_A_COMPARISON, REPORT_JSON, REPORT_MD, Status,
+    };
+    let report: DescentWindReport =
+        serde_json::from_str(&std::fs::read_to_string(root().join(REPORT_JSON)).unwrap()).unwrap();
+    report.check_bands().unwrap();
+    report
+        .check_page(&std::fs::read_to_string(root().join(REPORT_MD)).unwrap())
+        .unwrap();
+    // Every public flight is listed, the real-flights report's and the predictions' first.
+    let ids: Vec<&str> = report.flights.iter().map(|f| f.id.as_str()).collect();
+    let required = crate::descent_wind::required_ids();
+    assert_eq!(ids.get(..required.len()), Some(required.as_slice()));
+    assert_eq!(ids, crate::descent_wind::table_ids());
+    for flight in &report.flights {
+        match &flight.status {
+            Status::NotRun(why) | Status::NotCompared(why) => {
+                assert!(!why.is_empty(), "{}", flight.id);
+                assert!(flight.bands.is_empty(), "{}", flight.id);
+            }
+            Status::Compared => {
+                // Each read fix is compared, or counted outside ERA5's levels.
+                let counted: usize = flight.bands.iter().map(|band| band.count).sum();
+                assert_eq!(counted + flight.outside_era5, flight.read, "{}", flight.id);
+                assert!(counted > 0, "{}", flight.id);
+            }
+        }
+        if matches!(flight.status, Status::NotRun(_)) {
+            assert_eq!(flight.read, 0, "{}", flight.id);
+        }
+        // Fixes, where committed, are every read fix.
+        if !flight.samples.is_empty() {
+            assert_eq!(flight.samples.len(), flight.read, "{}", flight.id);
+            let compared = flight
+                .samples
+                .iter()
+                .filter(|s| s.era5_m_s.is_some())
+                .count();
+            let expected = if flight.status == Status::Compared {
+                flight.read - flight.outside_era5
+            } else {
+                0
+            };
+            assert_eq!(compared, expected, "{}", flight.id);
+        }
+    }
+    // The page credits Copernicus for the ERA5 it is computed in.
+    let page = std::fs::read_to_string(root().join(REPORT_MD)).unwrap();
+    assert!(
+        page.contains(&format!(
+            "## Sources\n\n{}",
+            crate::real_flight::ERA5_CREDIT
+        )),
+        "{REPORT_MD} must carry the ERA5 credit under its sources"
+    );
+    let plan = std::fs::read_to_string(root().join("docs/VALIDATION.md")).unwrap();
+    let row = plan
+        .lines()
+        .find(|line| line.starts_with("| Wind reconstructed from the GPS descent |"))
+        .expect("the validation plan's row for the wind from the GPS descent");
+    assert_eq!(
+        row.contains("a method, not yet a comparison"),
+        report.compared() < FLIGHTS_FOR_A_COMPARISON,
+        "{} flights compared: the row must call the reconstruction a method, not yet a \
+         comparison, exactly while fewer than {FLIGHTS_FOR_A_COMPARISON} are",
+        report.compared()
+    );
 }

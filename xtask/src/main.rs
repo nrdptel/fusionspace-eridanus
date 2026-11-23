@@ -40,6 +40,7 @@ mod collection_errors;
 #[cfg(test)]
 mod conformance;
 mod damaged;
+mod descent_wind;
 mod design_checks;
 mod designs;
 #[cfg(test)]
@@ -154,6 +155,7 @@ Commands:
 {TWO_LOGS}
 {GHOST}
 {REAL_FLIGHTS}
+{DESCENT_WIND}
 {PUBLIC_PREDICTIONS}
 {RECORDS}
 {ROADMAP_CURRENT}
@@ -199,6 +201,7 @@ fn usage() -> String {
         .replace("{TWO_LOGS}", two_logs::USAGE)
         .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
+        .replace("{DESCENT_WIND}", descent_wind::USAGE)
         .replace("{PUBLIC_PREDICTIONS}", public_predictions::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
@@ -241,6 +244,7 @@ fn main() -> ExitCode {
         Some("ork-export-flights") => ork_export_flights::run(&args.collect::<Vec<_>>()),
         Some("fixture-flights") => fixture_flights::run(&args.collect::<Vec<_>>()),
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
+        Some("descent-wind") => descent_wind::run(&args.collect::<Vec<_>>()),
         Some("public-predictions") => public_predictions::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
         Some("fit") => fit::run(&args.collect::<Vec<_>>()),

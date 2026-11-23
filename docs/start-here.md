@@ -117,8 +117,11 @@ balloon, or NOAA's GFS and RAP forecasts. The detail is in [Atmosphere](physics/
 Wind profiles can be constant, layered, power-law or logarithmic.
 [Turbulence](glossary.md#turbulence-dryden), random gusts, comes from a random-number generator
 started from a [seed](glossary.md#seed), a number you choose. The same seed gives exactly the same
-gusts every time on the same platform (operating system and processor). The detail is in
-[Wind](physics/wind.md) and [Turbulence](physics/turbulence.md).
+gusts every time on the same platform (operating system and processor). The library also reads
+the wind back from a log's GPS track of the descent under a parachute. Over four public flights
+its speed differed from ERA5's by 3.50 m/s (7.8 mph) RMS, a figure that includes the canopy's own
+glide as well as ERA5's miss ([Wind from a GPS-tracked descent](physics/wind.md#wind-from-a-gps-tracked-descent)). The detail
+is in [Wind](physics/wind.md) and [Turbulence](physics/turbulence.md).
 
 ### Motors
 
@@ -399,11 +402,14 @@ motors have burnt out.
 These are left out of a flight, or approximated:
 
 - [tip-off](glossary.md#tip-off), the rocket pitching as it leaves the rail, is approximated. A
-  design with two rail guides flies [a tip-off phase](physics/flight.md#tip-off) by default.
-  The phase is held to RocketPy's in still air, and not yet in a crosswind on HPR Sim's own
-  normal force; no flight checks it. On the real flights it moves each apogee by under 1%. It
-  moves each set's mean error by a tenth of a point or less
-  ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)). `--no-tip-off` on
+  design with two or more rail guides at different stations flies
+  [a tip-off phase](physics/flight.md#tip-off) by default. The phase is held to RocketPy's in
+  still air, and not yet in a crosswind on HPR Sim's own normal force; no flight checks it. On
+  the real flights it moves each apogee by under 1%. It moves each set's mean error by a tenth of
+  a point or less ([what it moves](physics/flight.md#the-tip-off-phase-on-the-real-flights)). The
+  landing point can move more. No real flight's landing point is compared yet, but on RocketPy's
+  thirteen example designs, leaving the phase out moves it by up to 3.765% of the apogee
+  ([what leaving it out costs](physics/flight.md#what-leaving-tip-off-out-costs)). `--no-tip-off` on
   the command line and `tip_off=False` in Python fly without it;
 - thrust misalignment, a motor pushing slightly off the rocket's axis;
 - turbulence: the model exists, but a flight doesn't use it. No milestone plans these last two

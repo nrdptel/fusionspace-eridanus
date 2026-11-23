@@ -48,7 +48,8 @@ The numbers match the drawing.
    the rail, mostly the thrust, beats the weight's pull down it and the rail's friction. That
    instant is [liftoff](glossary.md#liftoff).
 2. **On the rail.** The rocket slides along the rail without turning: one degree of freedom.
-   A rocket with two rail guides then turns on its last one until that leaves too
+   A rocket with two or more rail guides at different stations then turns on its last one until
+   that leaves too
    ([tip-off](physics/flight.md#tip-off)), unless the flight turns that off.
    [Rail exit](glossary.md#rail-exit-and-rail-exit-velocity) comes when the rocket's last rail
    guide leaves the top of the rail. That guide is a rail button or a launch lug (a short tube on
@@ -188,8 +189,8 @@ Each model page lists what its model leaves out. These gaps matter most for a wh
   that slides along the airframe in flight, or leaves it. The exact answers are hand calculations
   and conservation laws, not another simulator or a real flight
   ([Moving mass](physics/moving-mass.md), [Released mass](physics/released-mass.md)).
-- [Tip-off](glossary.md#tip-off) is flown by default for a rocket with two rail guides, and
-  held to another code only. [The phase](physics/flight.md#tip-off) agrees with RocketPy's in
+- [Tip-off](glossary.md#tip-off) is flown by default for a rocket with two or more rail guides
+  at different stations, and held to another code only. [The phase](physics/flight.md#tip-off) agrees with RocketPy's in
   still air, and is not yet held to it in a crosswind on HPR Sim's own normal force. No flight
   checks it ([what leaving it out costs](physics/flight.md#what-leaving-tip-off-out-costs)).
 - Thrust misalignment (a motor pushing slightly off the rocket's axis) and turbulence, which no

@@ -399,6 +399,7 @@ until someone rewrites it in plainer words.
 | [ADR-368: The fit's drag interval fails set B's test on the default flight: recorded, not fitted away][adr-368] | With the tip-off phase the default ([ADR-367][adr-367]), the least-squares fit's 90% interval on the drag scale leaves 80 of set B's 1,000 truths below it, where a tail passes with 29 to 74. It read 71 before. The interval is not widened to pass: its shares come from the calibration set alone. The cell is recorded as failing on its lower tail, the report and the fit's page say so, the check stops if it passes or fails anywhere else, and [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix. |  |
 | [ADR-369: The fit's slice on another platform: one fit may stop otherwise][adr-369] | One fit of the slice, a flight of set B, ends at its step limit on macOS and Windows and converges on both of CI's Linux runners. Every other word of its lines agrees. The slice's check on another platform now lets one fit in a comparison stop otherwise than where the slice was written, names it, and fails on a second. The build that writes the slice still holds it byte for byte. [#1597](https://github.com/nrdptel/fusionspace-eridanus/issues/1597) holds the question of the fit itself. |  |
 | [ADR-370: The 2026-11-22 review: the next flight predicted from the last one's log][adr-370] | A flyer who has logged one flight of a rocket predicts the next from it. HPR Sim can fit its drag to the first flight's log; whether that fit makes the next flight's apogee, on another motor and another day, any better is unmeasured. Fifteen rockets in the private collection have two or more logged flights that count. This record fixes the rule now, before any of those flights is fitted; the milestone checks the method on synthetic pairs, fits each earlier flight, merges every prediction, and then scores HPR Sim's carried fit against the uncorrected prediction and against corrections by hand, on new rows `accuracy.second-flight` and `bias.second-flight`. |  |
+| [ADR-371: M1.14b6, wind from the GPS descent: the method's settings and what is compared][adr-371] | The wind is read from a GPS-tracked descent as the ground velocity plus `w/g` times its rate of change, from a quadratic fitted over 10 s around each fix, and only where the body falls steadily at 2 to 35 m/s (7 to 115 ft/s). It is run on sixteen public flights, every one HPR Sim flies or predicts and RocketPy's other example logs: four are compared with ERA5, two are reconstructed without a readable ERA5 file of their day, two fell too fast for a canopy and eight logged no position. The compared speed is 3.50 m/s (7.8 mph) from ERA5's RMS. Prometheus's two receivers agree to 0.51 m/s (1.1 mph) RMS, a floor on the noise between receivers. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -668,7 +669,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b3"></a>[M1.14b3][done-1] | NASA's check cases 1 and 2 | done |
 | <a id="m1-14b4"></a>[M1.14b4][done-1] | NASA's check cases 3 and 6 to 10 | done |
 | <a id="m1-14b5"></a>[M1.14b5][done-1] | Tip-off, measured with RocketPy's | done |
-| <a id="m1-14b6"></a>[M1.14b6][phase-1] | Wind from the GPS descent, against the reanalysis | not yet done |
+| <a id="m1-14b6"></a>[M1.14b6][done-1] | Wind from the GPS descent, against the reanalysis | done |
 | <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty for each real flight | not yet done |
 | <a id="m1-14b8"></a>[M1.14b8][phase-1] | MAPLEAF as a second open oracle | not yet done |
 | <a id="m1-14b9"></a>[M1.14b9][phase-1] | The tip-off pivot, held to RocketPy's | not yet done |
@@ -1484,6 +1485,7 @@ is the milestone that added or will add that test.
 [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
 [adr-369]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0369-the-fits-slice-on-another-platform-one-fit-may-stop-otherwise.md
 [adr-370]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md
+[adr-371]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0371-m1-14b6-wind-from-the-gps-descent-the-methods-settings-and-what-is-compared.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

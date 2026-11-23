@@ -1219,8 +1219,8 @@ Each error is the simulated apogee less the logged one, over the logged one, in 
 positive error is a prediction above the log. The mean absolute error averages the errors without
 their signs.
 
-The first row is HPR Sim as it flies by default: a design with two rail guides at different
-stations leaves the rail by [the tip-off phase](physics/flight.md#tip-off). OpenRocket has no
+The first row is HPR Sim as it flies by default: a design with two or more rail guides at
+different stations leaves the rail by [the tip-off phase](physics/flight.md#tip-off). OpenRocket has no
 such phase. So each row that compares
 with OpenRocket flies HPR Sim held straight on the rail, the phase off: the second row, the last two, and
 every split of the gap below.
