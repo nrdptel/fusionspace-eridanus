@@ -16,12 +16,15 @@ GPS track of the descent and set beside ERA5 by height band. The [research note]
 method and its bounds but no settings: how the velocity and its rate are taken from fixes, which
 fixes are a steady fall, and what a log's repeated fixes mean.
 
-The public flights with a log are the seven the real-flights report flies, the five predicted
+The sixteen flights are the seven the real-flights report flies, the five predicted
 before their logs were compared (three EuRoC 2022 flights and two Macie XL flights), and four
 more example logs in RocketPy's checkout whose rockets HPR Sim doesn't fly: Camões and Halcyon
 (EuRoC 2023), Hedy (EuRoC 2025) and Valkyrie (2025). The notebooks give Camões's, Halcyon's and
 Hedy's site, hour and ERA5 file; Valkyrie's reads a live forecast, and its log holds no position.
-Eight of the sixteen logs hold a position.
+Eight of the sixteen logs hold a position. Two public team logs in the public-flights note also
+hold GPS fixes in the descent, Hyperion-II's TeleMega and UTRGV's Featherweight GPS; they are not
+read yet ([#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)), a gap against
+[ADR-351][adr-351]'s line, which asks for every public flight with a GPS track of the descent.
 
 **Decision.**
 
@@ -71,7 +74,8 @@ Eight of the sixteen logs hold a position.
    Copernicus credit.
 9. **Held.** `cargo xtask descent-wind --check` reproduces the report in the gate's `refs` step.
    In CI, a test recomputes its bands from the committed sums and its page from its data, checks
-   it lists every public flight in order and credits ERA5, and checks that the validation plan's
+   it lists every flight of its table in order, the public flights HPR Sim flies or predicts
+   first, and credits ERA5, and checks that the validation plan's
    row calls the reconstruction a method exactly while fewer than three flights are compared.
 
 **Results** ([the report][report]). Juno III (102 fixes under its drogue), Genesis (56 under its

@@ -1468,6 +1468,7 @@ One line per milestone or increment, in the order it was archived within its pha
       - [x] **M1.14b15 Tip-off by default.** *Done when:* ADR-363 decision 1's for M1.14b15.
     - [x] **M1.14b6 Wind from the GPS descent, against the reanalysis.** *Done when:* ADR-351
       decision 2's for M1.14b6.
+      Gap (ADR-371): Hyperion-II's and UTRGV's GPS descents are not read yet (#1605).
     - **M1.14b7** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M1.14b16 Combination, numerical part.** *Done when:* ADR-373's.
   - [x] **M1.14i Drag below Mach 0.8,** next, ahead of M1.14b's open increments (ADR-359 gives
