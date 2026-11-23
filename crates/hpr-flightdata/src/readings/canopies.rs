@@ -1019,7 +1019,13 @@ mod tests {
     #[test]
     fn a_split_before_the_walks_start_is_the_slow_stretchs_start() {
         let (fast, slow) = (false, true);
-        let made = rates(&[(slow, 30), (fast, 200), (slow, 100), (fast, 25), (slow, 1000)]);
+        let made = rates(&[
+            (slow, 30),
+            (fast, 200),
+            (slow, 100),
+            (fast, 25),
+            (slow, 1000),
+        ]);
         assert_eq!(walk_start(&made), 355);
         assert_eq!(likeliest_split(&made), 230);
     }
