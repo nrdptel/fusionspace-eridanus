@@ -643,9 +643,9 @@ So where the two differ, the opening's bound adds the time between them
 ([ADR-374][adr-374]). It holds an opening at the split or at the walk's start, each with the
 margin it would have alone. The 90% interval runs from the lower end of the interval about the
 split to the upper end of the interval about the walk's start, each with the bound about that one
-place. On the swinging flight below it runs from 89.58 s to 108.34 s, around a reading of 90.00 s.
-A wide bound is a finding: the log can't place the opening closer, so take the opening, and the
-rates split there, as uncertain by that much. The reading, and the opening's height, are still
+place. On the swinging flight below it runs from 0.42 s before the reading of 90.00 s to 18.34 s
+after it. A wide bound is a finding: the log can't place the opening, or where the two legs meet,
+any closer. The reading, and the opening's height, are still
 the split's.
 
 The two legs meet at the split, so the stretch between the two belongs to the main's leg. Where
@@ -942,8 +942,9 @@ wholly before the reading. The flight time runs from that late liftoff to a land
 it reads short, and its interval lies wholly after the reading. The apogee time's errors reach
 further early than late, so its interval reaches further after the reading than before it. The
 main's opening is read after the canopy has slowed the descent, so it is read late, and its interval
-lies wholly before the reading. Where the walk back from landing starts later than the split, it
-runs on to the walk's start instead ([The canopies](#the-canopies)). `cargo
+lies wholly before the reading. Where the walk back from landing starts later than the split, the
+interval still starts before the reading but runs on to just before the walk's start
+([The canopies](#the-canopies)). `cargo
 xtask synthetic` fits the points again and fails unless they equal the library's.
 
 **A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound

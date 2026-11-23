@@ -41,8 +41,8 @@ The reading had both places at hand and printed a bound proven only where they a
    further before the split, away from the walk's start. So it is the shares' interval about the
    split, with the bound about one place, from its lower end, to the same interval about the
    walk's start, to its upper end. On #903's flight it runs from 89.58 s to 108.34 s. Where the
-   split is right, the interval reaches on to the walk's start, as the bound does: it gives up
-   width for holding either place.
+   split is right, the interval reaches on to just before the walk's start, as the bound reaches
+   it: it gives up width for holding either place.
 3. **The reading** stays the split, as [ADR-366][adr-366] sets it, and so do the opening's
    height and each leg's rate.
 4. **The legs' rates.** The legs meet at the split, so the stretch between the two belongs to the
