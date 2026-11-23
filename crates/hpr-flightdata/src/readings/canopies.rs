@@ -40,12 +40,17 @@
 //! density to the −½ and the troposphere's density scale height `H` is no less than
 //! [`DENSITY_SCALE_HEIGHT_M`]. So the run starts no later than `τ`, half a window and a sample
 //! after the opening; the bound adds a second interval as margin. A canopy's filling time isn't
-//! in it: the synthetic flights open each canopy at once. Nor is a swing: the split is never
-//! later than Debrief's walk, whose start has every rate after it slow, so the later side of the
-//! bound holds as it did, and where the rates go from fast to slow once the two are the same
-//! sample. Where they change more often the bound is not proven, only held to the tests'
-//! flights and to one real flight, whose rocket swings under its main
-//! ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
+//! in it: the synthetic flights open each canopy at once. Where the rates go from fast to slow
+//! once, the split is the walk's start and that is the bound. Where they change more often, the
+//! split can be earlier than the walk's start, and either can be the opening: a swing under the
+//! main makes the walk's start late
+//! ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)), and a drogue slow for a
+//! while near the mark makes the split early
+//! ([#1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). The bound then adds the
+//! time between them, so it holds an opening at either, with the coarser of the two places'
+//! sample intervals as its margin ([ADR-374][adr-374]). The drogue's leg ends at the split, so
+//! it leaves out the stretch between them: where that stretch falls slower than the leg, as in
+//! #1593's shape, the drogue's rate reads fast, and where it falls faster, slow.
 //!
 //! **Each leg's rate** is the filtered height it loses over the time it takes: the drogue's from
 //! apogee to the main's opening, the main's from there to landing, or from apogee when the descent
@@ -55,8 +60,9 @@
 //!
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 //! [adr-366]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0366-the-mains-opening-at-the-likeliest-split.md
+//! [adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 
-use super::interval::{self, Shares};
+use super::interval::{self, Interval, Shares};
 use super::{
     Apex, BAROMETER_GAIN, DENSITY_SCALE_HEIGHT_M, DESCENT_FIT_STEPS, DESCENT_GUARD_S,
     DESCENT_TAIL_S, DESCENT_WINDOW_MAX_S, DESCENT_WINDOW_S, DRIFT_M_PER_S, DROGUE_RATIO, Descent,
@@ -123,6 +129,13 @@ fn likeliest_split(slow: &[bool]) -> usize {
         }
     }
     best
+}
+
+/// Where Debrief's walk back from landing starts the main's descent among a descent's rates,
+/// `slow`: the first of the slow rates after the last fast one, or `slow.len()` where the last
+/// rate is fast. Every rate from it on is slow, so [`likeliest_split`] is never later.
+fn walk_start(slow: &[bool]) -> usize {
+    slow.len() - slow.iter().rev().take_while(|slow| **slow).count()
 }
 
 /// A count as an integer wide enough for the product of two.
@@ -289,6 +302,11 @@ pub(super) fn read(
     let last = tail.last().copied().unwrap_or(landing - 1);
     let slow: Vec<bool> = (first..=last).map(steady).collect();
     let start = first + likeliest_split(&slow);
+    // Debrief's walk starts the main no sooner than the split. Where it starts it later, either
+    // may be the opening (#1593): a swing under the main makes the walk's start late, a drogue
+    // slow for a while near the main's mark makes the split early.
+    let walked = (first + walk_start(&slow)).min(landing);
+    let walked_s = time[walked];
     let before = |from: f64, to: f64| {
         let mut rates: Vec<f64> = (apex.index + 1..start)
             .filter(|&k| time[k] >= from && time[k] <= to)
@@ -339,11 +357,30 @@ pub(super) fn read(
     } else {
         opened_s - apex.time_s
     };
-    let bound_s = slowing_s + 0.5 * window_s + 2.0 * local_interval(time, start);
+    // The bound about one place: the slowing time is the split's, the higher and so the longer
+    // (or the time since apogee, which holds the walk's start too); the sampling margin is the
+    // coarser of the two places'. Where the walk starts later, the time between them is added, so
+    // the bound holds an opening at either. The walk is never earlier than the split, as
+    // `likeliest_split` proves; the floor at zero keeps a later rule from shrinking the bound.
+    debug_assert!(walked >= start, "the walk starts before the split");
+    let sampling_s = local_interval(time, start).max(local_interval(time, walked));
+    let about_one_s = slowing_s + 0.5 * window_s + 2.0 * sampling_s;
+    let between_s = (walked_s - opened_s).max(0.0);
+    // The 90% interval's shares were fitted on the bound about one place, which puts it wholly
+    // before that place's reading. So it is taken about the split and about the walk's start,
+    // and runs from the first's lower end to the second's upper end.
+    let shares = interval::MAIN_OPENING_SHARES;
+    let interval_s = shares
+        .interval(opened_s, about_one_s)
+        .zip(shares.interval(walked_s, about_one_s))
+        .map(|(at_split, at_walk)| Interval {
+            low: at_split.low,
+            high: at_walk.high,
+        });
     let opening = Opening {
         time_s: opened_s,
-        bound_s,
-        interval_s: interval::MAIN_OPENING_SHARES.interval(opened_s, bound_s),
+        bound_s: about_one_s + between_s,
+        interval_s,
         height_m: height,
     };
     (
@@ -989,6 +1026,111 @@ mod tests {
         }
         assert_eq!(logs, 732);
         assert!(missed.is_empty(), "missed (rate, seed, reason): {missed:?}");
+    }
+
+    /// #1593's sequence: slow at apogee, the drogue, a slow stretch near the main's mark, a short
+    /// fast one, then the main. The walk back from landing starts the main at 355, where it
+    /// opened; the likeliest split is 230, before the slow stretch, 125 rates early.
+    #[test]
+    fn a_split_before_the_walks_start_is_the_slow_stretchs_start() {
+        let (fast, slow) = (false, true);
+        let made = rates(&[
+            (slow, 30),
+            (fast, 200),
+            (slow, 100),
+            (fast, 25),
+            (slow, 1000),
+        ]);
+        assert_eq!(walk_start(&made), 355);
+        assert_eq!(likeliest_split(&made), 230);
+        // The walk's start at the edges: none, all slow, the last rate fast, one fast moment.
+        assert_eq!(walk_start(&[]), 0);
+        assert_eq!(walk_start(&rates(&[(slow, 5)])), 0);
+        assert_eq!(walk_start(&rates(&[(slow, 5), (fast, 1)])), 6);
+        assert_eq!(walk_start(&rates(&[(slow, 3), (fast, 1), (slow, 4)])), 4);
+    }
+
+    /// The split is never later than the walk's start, which `read` asserts: on every sequence of
+    /// up to 12 rates.
+    #[test]
+    fn the_split_is_never_after_the_walks_start() {
+        for n in 0..=12_usize {
+            for bits in 0..(1_u32 << n) {
+                let slow: Vec<bool> = (0..n).map(|k| bits >> k & 1 == 1).collect();
+                assert!(likeliest_split(&slow) <= walk_start(&slow), "{slow:?}");
+            }
+        }
+    }
+
+    /// #1593's shape in a flight: the drogue at 18 m/s, then 8 s at 6 m/s, under the main's mark,
+    /// then 3 s at 18 m/s again before the main opens at 750 m. The split falls at the slow
+    /// stretch's start, about 11 s early, and the walk at the opening: the opening lies within
+    /// its bound, which holds both, and the drogue's rate reads fast.
+    #[test]
+    fn a_slow_stretch_in_the_drogues_leg_keeps_the_opening_in_its_bound() {
+        let top = 10.0 * G * 25.0;
+        // The drogue's leg: 18 m/s to 1,000 m above the main, 8 s at 6 m/s, then 18 m/s again.
+        let slow_from = 26.0 + (top - 750.0 - 102.0) / 18.0;
+        let slow_to = slow_from + 8.0;
+        let opened = slow_to + 3.0;
+        let flight = move |t: f64| -> f64 {
+            let h = if t <= 1.0 {
+                0.0
+            } else if t < 6.0 {
+                2.0 * G * (t - 1.0).powi(2)
+            } else if t < 26.0 {
+                let c = t - 6.0;
+                50.0 * G + 20.0 * G * c - 0.5 * G * c * c
+            } else if t < slow_from {
+                top - 18.0 * (t - 26.0)
+            } else if t < slow_to {
+                750.0 + 102.0 - 6.0 * (t - slow_from)
+            } else if t < opened {
+                750.0 + 54.0 - 18.0 * (t - slow_to)
+            } else {
+                750.0 - 5.0 * (t - opened)
+            };
+            h.max(0.0)
+        };
+        let end_s = opened + 750.0 / 5.0 + 20.0;
+        for (dt, step_m) in [(0.05, 0.0), (0.05, 0.3048), (0.2, 0.0)] {
+            let readings = read_all(&long_log(dt, step_m, end_s, flight));
+            let main = readings.main_descent.value().unwrap();
+            let opening = main.opening.as_ref().unwrap();
+            assert!(
+                (opening.time_s - opened).abs() <= opening.bound_s,
+                "{dt} s, {step_m} m: {opening:?} against {opened}"
+            );
+            // The split reads the slow stretch's start, and the bound reaches the opening by no
+            // more than a bound about one place, 2 s here, past it.
+            assert!(
+                (opening.time_s - slow_from).abs() < 1.0,
+                "{dt} s, {step_m} m: {opening:?}"
+            );
+            assert!(
+                opening.time_s + opening.bound_s < opened + 2.0,
+                "{dt} s, {step_m} m: {opening:?} against {opened}"
+            );
+            // The 90% interval runs from before the split to the walk's start, the opening.
+            let interval = opening.interval_s.unwrap();
+            assert!(
+                interval.low < opening.time_s,
+                "{dt} s, {step_m} m: {opening:?}"
+            );
+            assert!(
+                (interval.high - opened).abs() < 1.0,
+                "{dt} s, {step_m} m: {opening:?} against {opened}"
+            );
+            // The drogue's leg ends at the split, before the slow stretch, so its rate leaves
+            // that stretch out and reads faster than the leg's own, apogee to the opening: the
+            // side a descent's energy errs high on, not the flattering one.
+            let drogue = readings.drogue_descent.value().unwrap();
+            let leg_m_s = (top - 750.0) / (opened - 26.0);
+            assert!(
+                drogue.rate_m_s > leg_m_s + 0.5,
+                "{dt} s, {step_m} m: {drogue:?} against {leg_m_s}"
+            );
+        }
     }
 
     /// #903's shape: under the open main the rocket holds its height for 2.25 s and then falls

@@ -145,7 +145,7 @@ Each tuning flight logged by its own logger, then again at every rate and step o
 | 5 Hz, altitude in 0.3048 m steps | 0 | 0 | 87, 0.697 | 87, 0.565 | 170, 0.692 |
 | 5 Hz, altitude in 10 m steps | 0 | 0 | 87, 0.621 | 87, 0.556 | 171, 0.647 |
 | 5 Hz, pressure alone in 1 Pa steps | 0 | 0 | 87, 0.699 | 87, 0.565 | 170, 0.693 |
-| 5 Hz, pressure alone in 10 Pa steps | 0 | 0 | 87, 0.694 | 87, 0.833 | 171, 0.691 |
+| 5 Hz, pressure alone in 10 Pa steps | 0 | 0 | 87, 0.694 | 87, 0.528 | 171, 0.691 |
 | 5 Hz, pressure alone in 100 Pa steps | 0 | 0 | 87, 0.621 | 87, 0.562 | 171, 0.637 |
 | 1 Hz, altitude, no step | 0 | 0 | 0 | 0 | 0 |
 | 1 Hz, altitude in 0.3048 m steps | 0 | 0 | 0 | 0 | 0 |
@@ -628,7 +628,7 @@ Each reading's errors, the reading less the truth, over every tuning flight and 
 | burnout | 296 | -0.0103 s | -0.0943 s | 0.0476 s | 0.551 s |
 | burnout, a floor | 1236 | -0.24 s | -1.33 s | 0.718 s | 1.3 s |
 | drogue rate | 2848 | 0.04 m/s | -1.6 m/s | 1.36 m/s | 1.79 m/s |
-| main opening | 2843 | 0.73 s | -0.00484 s | 5.3 s | 2.03 s |
+| main opening | 2843 | 0.73 s | -0.00484 s | 5.3 s | 2.05 s |
 | main rate | 5425 | 0.04 m/s | -5.77 m/s | 5.06 m/s | 1.71 m/s |
 
 No tuning flight's true top acceleration reaches the range its own part clips at: the nearest, flight 57's on its imu-500hz logger, comes to 0.492 of it. With its accelerometer set to ±8 g, 28 of the 38 flights logged so have a true top that reaches that range, and 10 don't. Tops read as floors: 32; clipped at the part's range, 28; held flat at the top, 4; where the accelerometer holds the thrust only in part, with no start or no end to it, 0.
