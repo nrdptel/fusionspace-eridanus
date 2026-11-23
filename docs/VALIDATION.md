@@ -457,8 +457,8 @@ main, not on every pull request
 ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
 the synthetic flights and two logs on all five platforms, in the `census` job, and the fit in
 parts on Linux. The synthetic census is written on macOS in `report-check` and held there byte for
-byte. On the other four platforms a count may differ by one flight and a figure by 5% or 0.002:
-one reading sits on an interval's edge, and Windows on ARM counts it on the other side
+byte. On the other four platforms a count may differ by one flight, and a figure by 5% or 0.002.
+One reading sits on an interval's edge, and Windows on ARM counts it on the other side
 ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)). A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
 nightly failure opens an issue that is fixed before other work. Pull requests, on all five
@@ -524,13 +524,13 @@ side by side:
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may differ from the committed report by 5, whether of flights or posteriors,
-  and the draws made, 500 to a posterior, by 5 posteriors' worth, 2,500. A set's failed draws may
-  differ by the failed draws of its 5 posteriors that failed most, never less than 5: failures
+  section 7). A count of flights or posteriors may differ from the committed report by 5. The
+  draws made, 500 to a posterior, may differ by 5 posteriors' worth, 2,500. A set's failed draws
+  may differ by the failed draws of its 5 posteriors that failed most, never less than 5. Failures
   cluster in a poorly mixed chain, which moves as a whole on another math library
-  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)). A figure, and each share
-  fitted on the calibration set, may differ by 5% of the larger of the two values or 0.002,
-  whichever allows more. The slice is held in its words, as above, not by these allowances.
+  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0372-the-census-in-one-build-and-a-sets-failed-draws-by-its-five-posteriors.md)). A figure, or a share
+  fitted on the calibration set, may differ by 5% of the larger value or by 0.002, whichever
+  allows more. The slice is held in its words, as above, not by these allowances.
 
 A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
 test holds that to the bit. On a Mac, three parts put back together left no number of the report
