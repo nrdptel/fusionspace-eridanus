@@ -4,7 +4,8 @@
 //! narrower, and says how far off the reading usually is. Each comes from the reading's own
 //! bound: the interval runs from the reading less [`Shares::high`] of its bound to the reading
 //! less [`Shares::low`] of it. The main's opening, where the split is earlier than the walk's
-//! start, takes it about each of the two places, with the bound about one place (ADR-374). The
+//! start, takes it about each of the two places, with the bound about one place
+//! ([ADR-374][adr-374], the opening's bound over both places). The
 //! two shares are the 5% and 95% points of the reading's error as a share of its bound,
 //! `(reading − truth)/bound`, measured on the synthetic flights' own calibration set (2,000
 //! flights on a seed of their own, each flight's own logger's log) and
@@ -47,6 +48,7 @@
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
+//! [adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 
 use serde::{Deserialize, Serialize};
 
@@ -173,7 +175,9 @@ pub const DROGUE_RATE_SHARES: Shares = Shares {
 
 /// The main's opening's shares of its bound about one place, fitted on the calibration set. That
 /// is `Opening::bound_s` where the split and the walk's start agree; where they differ, the
-/// interval is taken about each (ADR-374).
+/// interval is taken about each ([ADR-374][adr-374], the opening's bound over both places).
+///
+/// [adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 pub const MAIN_OPENING_SHARES: Shares = Shares {
     low: 0.141,
     high: 0.561,
