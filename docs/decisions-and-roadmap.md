@@ -681,7 +681,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b13"></a>[M1.14b13][done-1] | The tip-off reference at RocketPy's rewritten phase | done |
 | <a id="m1-14b14"></a>[M1.14b14][done-1] | What tip-off moves on the real flights | done |
 | <a id="m1-14b15"></a>[M1.14b15][done-1] | Tip-off by default | done |
-| <a id="m1-14b16"></a>[M1.14b16][phase-1] | Combination, numerical part | not yet done |
+| <a id="m1-14b16"></a>[M1.14b16][done-1] | Combination, numerical part | done |
 | <a id="m1-14b17"></a>[M1.14b17][phase-1] | The data part | not yet done |
 | <a id="m1-14b18"></a>[M1.14b18][phase-1] | Input part, band | not yet done |
 | <a id="m1-14c"></a>[M1.14c][phase-1] | The normal force and drag near Mach 1, from 0.8 to 1.2, with the row at Mach 1.08 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
