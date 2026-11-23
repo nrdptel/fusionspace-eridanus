@@ -270,7 +270,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
         #1538). *Done when:* ADR-358 decision 1's for M1.14b12.
     - [ ] **M1.14b7 A validation uncertainty per real flight** (met when its three are).
       *Done when:* ADR-351 decision 2's for M1.14b7.
-      - [ ] **M1.14b17 The data part.** *Done when:* ADR-373's.
       - [ ] **M1.14b18 Input part, band.** *Done when:* ADR-373's.
     - [ ] **M1.14b8 MAPLEAF as a second open oracle.** *Done when:* ADR-351 decision 2's for
       M1.14b8.

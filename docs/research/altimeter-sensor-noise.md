@@ -43,7 +43,7 @@ datasheets, 24 public logs and a paper. **Inference** marks this note's arithmet
   and ADXL78 (70 g) axial parts; EasyMini and TeleMini carry none [AM] p. 84. Above 30 km the baro is dropped (p. 72).
 - **Not identified (Inference).** Featherweight's ±32 g IMU and "400G" part fit the LSM6DSO32 and H3LIS331DL by
   range; the AltimeterOne's "19-bit, <0.25 m RMS" fits the BMP180's top mode [S7] pp. 9, 12. MARSA names none [MA].
-- **Steps and accuracy.** PerfectFlite 1 ft, ±(0.1% + 1 ft) [PF1] p. 49; Raven 4.05 Pa, under 1 mbar [F2] p. 12;
+- **Steps and accuracy.** PerfectFlite 1 ft, ±(0.1% of reading + 1 ft), typical [PF1] p. 49; Raven 4.05 Pa, under 1 mbar [F2] p. 12;
   Blue Raven 2.03 Pa stored [F3] p. 23, 10.1 Pa in its CSV; MS5607 compensated output 1 Pa [S1] p. 8.
 
 ## 2. Pressure sensors: what the datasheets state
