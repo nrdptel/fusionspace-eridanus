@@ -62,7 +62,7 @@
 //! [adr-366]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0366-the-mains-opening-at-the-likeliest-split.md
 //! [adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 
-use super::interval::{self, Shares};
+use super::interval::{self, Interval, Shares};
 use super::{
     Apex, BAROMETER_GAIN, DENSITY_SCALE_HEIGHT_M, DESCENT_FIT_STEPS, DESCENT_GUARD_S,
     DESCENT_TAIL_S, DESCENT_WINDOW_MAX_S, DESCENT_WINDOW_S, DRIFT_M_PER_S, DROGUE_RATIO, Descent,
@@ -357,15 +357,30 @@ pub(super) fn read(
     } else {
         opened_s - apex.time_s
     };
-    // The bound holds an opening at the split; where the walk starts later, the time between them
-    // is added, so it holds an opening at the walk's start as well. The slowing time is the
-    // split's, the higher and so the longer; the sampling margin the coarser of the two places'.
+    // The bound about one place: the slowing time is the split's, the higher and so the longer
+    // (or the time since apogee, which holds the walk's start too); the sampling margin is the
+    // coarser of the two places'. Where the walk starts later, the time between them is added, so
+    // the bound holds an opening at either. The walk is never earlier than the split, as
+    // `likeliest_split` proves; the floor at zero keeps a later rule from shrinking the bound.
+    debug_assert!(walked >= start, "the walk starts before the split");
     let sampling_s = local_interval(time, start).max(local_interval(time, walked));
-    let bound_s = slowing_s + 0.5 * window_s + 2.0 * sampling_s + (walked_s - opened_s);
+    let about_one_s = slowing_s + 0.5 * window_s + 2.0 * sampling_s;
+    let between_s = (walked_s - opened_s).max(0.0);
+    // The 90% interval's shares were fitted on the bound about one place, which puts it wholly
+    // before that place's reading. So it is taken about the split and about the walk's start,
+    // and runs from the first's lower end to the second's upper end.
+    let shares = interval::MAIN_OPENING_SHARES;
+    let interval_s = shares
+        .interval(opened_s, about_one_s)
+        .zip(shares.interval(walked_s, about_one_s))
+        .map(|(at_split, at_walk)| Interval {
+            low: at_split.low,
+            high: at_walk.high,
+        });
     let opening = Opening {
         time_s: opened_s,
-        bound_s,
-        interval_s: interval::MAIN_OPENING_SHARES.interval(opened_s, bound_s),
+        bound_s: about_one_s + between_s,
+        interval_s,
         height_m: height,
     };
     (
@@ -1028,6 +1043,11 @@ mod tests {
         ]);
         assert_eq!(walk_start(&made), 355);
         assert_eq!(likeliest_split(&made), 230);
+        // The walk's start at the edges: none, all slow, the last rate fast, one fast moment.
+        assert_eq!(walk_start(&[]), 0);
+        assert_eq!(walk_start(&rates(&[(slow, 5)])), 0);
+        assert_eq!(walk_start(&rates(&[(slow, 5), (fast, 1)])), 6);
+        assert_eq!(walk_start(&rates(&[(slow, 3), (fast, 1), (slow, 4)])), 4);
     }
 
     /// #1593's shape in a flight: the drogue at 18 m/s, then 8 s at 6 m/s, under the main's mark,
@@ -1067,6 +1087,26 @@ mod tests {
             let opening = main.opening.as_ref().unwrap();
             assert!(
                 (opening.time_s - opened).abs() <= opening.bound_s,
+                "{dt} s, {step_m} m: {opening:?} against {opened}"
+            );
+            // The split reads the slow stretch's start, and the bound reaches the opening by no
+            // more than a bound about one place, 2 s here, past it.
+            assert!(
+                (opening.time_s - slow_from).abs() < 1.0,
+                "{dt} s, {step_m} m: {opening:?}"
+            );
+            assert!(
+                opening.time_s + opening.bound_s < opened + 2.0,
+                "{dt} s, {step_m} m: {opening:?} against {opened}"
+            );
+            // The 90% interval runs from before the split to the walk's start, the opening.
+            let interval = opening.interval_s.unwrap();
+            assert!(
+                interval.low < opening.time_s,
+                "{dt} s, {step_m} m: {opening:?}"
+            );
+            assert!(
+                (interval.high - opened).abs() < 1.0,
                 "{dt} s, {step_m} m: {opening:?} against {opened}"
             );
             // The drogue's leg ends at the split, before the slow stretch, so its rate leaves

@@ -634,20 +634,28 @@ than the walk's start, and the log alone can't say which is the opening:
 - **A swing under the main** makes the walk's start late. The split is right
   ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
 - **A drogue falling near the limit,** slow for a few seconds and then fast just before the main
-  opens, makes the split early. The walk is right
+  opens, makes the split early. If that is what happened, the walk is right
   ([issue #1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). Take 30 slow rates,
-  200 fast, 100 slow, 25 fast and 1,000 slow. The split is at 230; the walk's start, at 355, is
-  the opening.
+  200 fast, 100 slow, 25 fast and 1,000 slow, the main opening at the 355th. The split is at 230:
+  125 rates early, 6.25 s at 20 rates a second.
 
 So where the two differ, the opening's bound adds the time between them
 ([ADR-374][adr-374]). It holds an opening at the split or at the walk's start, each with the
-margin it would have alone. The reading is still the split. The drogue's leg ends at the split, so it
-leaves out the stretch between the two. Where that stretch falls slower than the rest of the
-leg, as in issue #1593's shape, the drogue's rate reads fast. Where it falls faster, it reads
-slow, the flattering side for a descent-energy figure. A test invents issue #1593's shape: a
-drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for 8 s, then back at that rate for 3 s before the main
-opens. The opening lies within its bound, and the drogue's rate reads more than 0.5 m/s
-(1.6 ft/s) faster than the leg's own.
+margin it would have alone. The 90% interval runs from the split's lower end to the walk's
+upper end, each taken as if that place were the reading. A wide bound is a finding: the log
+can't place the opening closer. The reading, and the opening's height, are still the split's.
+
+The two legs meet at the split, so the stretch between the two belongs to the main's leg. Where
+that stretch falls slower than the rest of the drogue's leg, as in issue #1593's shape, the
+drogue's rate reads fast. Where it falls faster, it reads slow, the flattering side for a
+descent-energy figure. The main's rate errs the other way round: fast where the stretch falls
+faster than the main, slow where it falls slower. Neither rate's bound holds this.
+
+A test invents issue #1593's shape: a drogue at 18 m/s (59 ft/s) slowed to 6 m/s (20 ft/s) for
+8 s, then back to 18 m/s for 3 s before the main opens. The opening lies within its bound, and
+the interval's upper end within 1 s of it. The drogue's rate reads more than 0.5 m/s (1.6 ft/s)
+faster than the true rate over the leg from apogee to the opening. That is one invented shape
+and the real flight below.
 
 Three tests hold the rule to the cases that showed the walk wrong
 ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)). Two invent a flight with
@@ -667,7 +675,7 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s and the drogue's descent
-  17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The opening's bound is 19.21 s: 0.76 s about the
+  17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The opening's bound is 19.21 s: 0.76 s around the
   split, and 18.45 s more to the walk's start at the swing. The log alone can't rule that out. The charge fired 2.85 s before the reading: the
   bound leaves out the time a canopy takes to come out and fill.
 
@@ -819,7 +827,8 @@ is the day's air.
   loses. The noise at either end, the drift over the leg and a step at either end. For a leg from
   apogee, add the median's peak bound. All of it is over the leg's time.
 - **The main's opening.** The time the main takes to slow the fall to the run's mark, half the
-  1 s fit and two intervals ([The canopies](#the-canopies)).
+  1 s fit and two intervals. Where the walk back from landing starts later than the split, add the
+  time between them ([The canopies](#the-canopies)).
 
 | term | size | source |
 |---|---|---|
@@ -1468,14 +1477,15 @@ error's third figure, the digits every platform shares:
 | burnout, from the accelerometer | 296 | −0.0103 s | −0.0943 s | 0.0476 s | 0.551 s |
 | burnout, a floor | 1,236 | −0.24 s | −1.33 s | 0.718 s | 1.3 s |
 | drogue rate | 2,848 | 0.04 m/s (0.13 ft/s) | −1.6 m/s (−5.25 ft/s) | 1.36 m/s (4.46 ft/s) | 1.79 m/s (5.87 ft/s) |
-| main opening | 2,843 | 0.73 s | −0.00484 s | 5.3 s | 2.03 s |
+| main opening | 2,843 | 0.73 s | −0.00484 s | 5.3 s | 2.05 s |
 | main rate | 5,425 | 0.04 m/s (0.13 ft/s) | −5.77 m/s (−18.9 ft/s) | 5.06 m/s (16.6 ft/s) | 1.71 m/s (5.61 ft/s) |
 
 Burnout from the accelerometer lands within 0.0943 s of the truth, to three figures, against a mean
 bound of 0.551 s. Without it, the top speed's time comes 0.24 s before burnout on average, as a
 speed's peak should. It ranges from 1.33 s before it to 0.718 s after, within its bound. The floor, that time
 less its bound, about 1.3 s on average, lies earlier still. The main's opening is read late on
-average, by 0.73 s. Its bound holds the time a canopy takes to slow the fall and half the fit.
+average, by 0.73 s. Its bound holds the time a canopy takes to slow the fall and half the fit,
+and where the split and the walk differ, the time between them.
 
 No tuning flight's true top acceleration reaches the range its own part clips at: the nearest comes
 to 0.492 of it, the report says. So the 500 Hz IMU profile's 38 flights are logged once more with

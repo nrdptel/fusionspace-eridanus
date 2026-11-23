@@ -229,6 +229,13 @@ fn a_swinging_flights_opening_and_drogue_read_where_the_log_puts_them() {
     // (#1593): the 0.76 s it held of the split, and the 18.45 s between the two.
     assert_eq!(format!("{:.2}", opening.bound_s), "19.21");
     assert!(opening.time_s + opening.bound_s >= 108.45, "{opening:?}");
+    // Its 90% interval runs from before the split to before the walk's start, as each place's
+    // own interval does.
+    let interval = opening.interval_s.unwrap();
+    assert_eq!(
+        format!("{:.2} {:.2}", interval.low, interval.high),
+        "89.58 108.34"
+    );
     assert_eq!(format!("{:.1}", drogue.rate_m_s), "17.3");
     // Its bound, as `hpr analyze` prints it rounded up: within 1.4 m/s.
     assert!(
