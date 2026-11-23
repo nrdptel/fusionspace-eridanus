@@ -504,23 +504,28 @@ was 14.74 m/s (33.0 mph).
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
 reads every public flight HPR Sim flies or predicts, and RocketPy's other example logs: the seven
 the real-flights report flies, the five predicted first, and Camões, Halcyon, Hedy and Valkyrie.
-It also reads the three public team logs with GPS fixes in the descent that a search of public
-repositories found ([public-flights note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md)):
-Hyperion-II's (a TeleMega), Itzamna's (UTRGV's, a Featherweight GPS) and RIT's Testbed 2 (a
-Featherweight GPS). A log not published, or not found, is not here.
+It also reads, or tries, the three public team logs with GPS fixes in the descent that a search
+of public repositories found: Hyperion-II's (a TeleMega) and Itzamna's (UTRGV's, a Featherweight
+GPS) in the [public-flights note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md),
+and RIT's Testbed 2 (a Featherweight GPS) in the
+[smoother-truth note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/smoother-truth-flights.md).
+A log not published, or not found, is not here.
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
   new fix. Camões, under its drogue from 2,677 m (8,783 ft) down. Halcyon, under its main from
   3,336 m (10,945 ft) down, at 1,951 fixes. Itzamna, under its drogue and main from 2,731 m
-  (8,960 ft) down to 24 m (79 ft). Its GPS log dates the launch 30 March. The Blue Raven's summary
-  gives the 29th, and so does ERA5: its pressure at the pad's height is 20 Pa from the team's own
-  log on the 29th and 406 Pa from it on the 30th (the report's note on the flight).
+  (8,960 ft) down to 24 m (79 ft). Its GPS log dates the launch 30 March, but its Blue Raven
+  altimeter's summary gives 29 March. ERA5's pressure at the pad's height agrees with the 29th:
+  it is 20 Pa from the 97,119 Pa the team's flight computer logged on the pad, against 406.5 Pa on
+  the 30th. The comparison uses the 29th (the report's note on the flight).
 - **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
   Hedy, whose ERA5 file HPR Sim can't read without a checked conversion. Testbed 2, whose ERA5
-  file is not committed yet.
+  file is not fetched yet; its date, 16 May 2026, is its GPS log's alone, as its Blue Raven's
+  clock was not set.
 - **Not run:** Cavour fell at 75 m/s (246 ft/s), Astra at 98 m/s (321 ft/s) and Hyperion-II at
-  85 m/s (279 ft/s), faster than any canopy the method is held to. Eight more logged no position.
+  85 m/s (279 ft/s), faster than any canopy the method is held to: Hyperion-II's drogue never
+  slowed it. Eight more logged no position.
 
 Over the five compared flights and 2,558 fixes, the reconstructed speed is 0.81 m/s (1.8 mph)
 below ERA5's on average. Root-mean-square, it is 3.49 m/s (7.8 mph) from it. Each flight alone

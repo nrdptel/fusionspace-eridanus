@@ -1,5 +1,5 @@
 {
- "script_sha256": "4ac23e36eb0cf770249041b1af306f598c0999c437b59fca249aa928aa08ee1a",
+ "script_sha256": "778c4a582730d889fd1163bedec45c03118fd3808b44a86654911960a048ba7c",
  "attribution": "Contains modified Copernicus Climate Change Service information 2026 (ERA5 hourly data on pressure levels, doi:10.24381/cds.bd0915c6, CC BY 4.0), cut from a Climate Data Store download by validation/oracles/netcdf/descent_wind_era5.py.",
  "cases": [
   {
@@ -78,12 +78,13 @@
    ],
    "pad_check": {
     "height_m": 415.1,
-    "time": "13:47:36",
+    "time": "13:47:13",
     "logged_pa": 97119.0,
     "other_day": "30",
+    "other_day_sha256": "387ca2245af628e62760b543dda8c3fc272a90197b7dd71a2a3113e0c9b5ef9f",
     "era5_pa": {
-     "2026-03-29": 97139.3,
-     "2026-03-30": 96712.8
+     "2026-03-29": 97139.1,
+     "2026-03-30": 96712.5
     }
    }
   }

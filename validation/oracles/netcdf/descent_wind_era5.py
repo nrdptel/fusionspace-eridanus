@@ -8,13 +8,15 @@ For each case it:
 
 1. takes the Climate Data Store's netCDF-4 download, requested as `REQUEST` gives (the dataset
    *ERA5 hourly data on pressure levels from 1940 to present*, the four variables HPR Sim reads,
-   the levels from 1000 to 500 hPa, the hours around the launch and an area at least a quarter of
-   a degree beyond the site on each side), from `refs/era5/descent-wind/<case>.nc`;
+   the levels from 1000 to 500 hPa, the hours around the launch and an area about a quarter of a
+   degree, ERA5's grid spacing, beyond the site on each side), from
+   `refs/era5/descent-wind/<case>.nc`;
 2. cuts the grid points around the site (the bracketing latitudes and longitudes and one more on
-   each side, every time and level) and writes them in 64-bit offset netCDF, the conversion the
+   each side where the download holds one, every time and level) and writes them in 64-bit offset netCDF, the conversion the
    format page gives (`drop_vars(["number", "expver"])`, `format="NETCDF3_64BIT"`), under
    `validation/fixtures/weather/era5/descent-wind-<case>.nc`, with the credit in its `comment`;
-3. prints a record of the request and both files' SHA-256.
+3. prints a record of the request, both files' SHA-256 and, for a case with a date check, ERA5's
+   pressure at the pad on each day with the other day's download's SHA-256.
 
 The cuts contain modified Copernicus Climate Change Service information (2026): ERA5 hourly data
 on pressure levels (Hersbach et al., 2023, doi:10.24381/cds.bd0915c6), CC BY 4.0.
@@ -57,10 +59,10 @@ CASES = [
         "request": {"year": ["2026"], "month": ["03"], "day": ["29"],
                     "time": ["13:00", "14:00"], "area": [33.75, -99.75, 33.25, -99.0]},
         # The date check: ERA5's pressure at the pad's height (the GPS log's 1,362 ft) at the
-        # launch, 13:47:36 UTC, on each day, beside the first pressure in the team's own flight
+        # launch, 13:47:13 UTC (the GPS log's launch detection), on each day, beside the first pressure in the team's own flight
         # computer's log on the pad (`FLGT0023_TRIMMED.CSV`, 97,119 Pa). The other day's download
         # is requested as the case's, with that day.
-        "pad_check": {"height_m": 415.1, "time": "13:47:36", "logged_pa": 97119.0,
+        "pad_check": {"height_m": 415.1, "time": "13:47:13", "logged_pa": 97119.0,
                       "other_day": "30"},
     },
 ]
@@ -142,6 +144,7 @@ def main():
             days = {r["day"][0]: source, check["other_day"]: other}
             check = {
                 **check,
+                "other_day_sha256": sha256(other),
                 "era5_pa": {
                     f"{r['year'][0]}-{r['month'][0]}-{day}": round(pad_pressure(
                         xarray.open_dataset(path), case["site"], check["height_m"],

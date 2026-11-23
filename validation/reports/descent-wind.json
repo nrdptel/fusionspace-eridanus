@@ -6041,7 +6041,7 @@
       "title": "Itzamna, UTRGV, March 2026 (not flown by HPR Sim)",
       "status": "Compared",
       "receiver": "the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, longitude and the receiver's altitude",
-      "day": "the GPS log's summary: launched 13:47:36 UTC, the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, 08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139 Pa on the 29th and 96,713 Pa on the 30th against the 97,119 Pa of the team's own flight computer (FLGT0023) on the pad (the ERA5 record, `descent-wind-era5.json`)",
+      "day": "the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, 08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's own flight computer (FLGT0023) on the pad (the ERA5 record, `descent-wind-era5.json`)",
       "fixes": 380,
       "repeats": 27,
       "longest_gap_s": 3.0,
@@ -8210,7 +8210,7 @@
         "NotCompared": "no ERA5 file of its day and site is committed"
       },
       "receiver": "the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude",
-      "day": "the GPS log's summary: launched 18:10:57 UTC, the pad at 893 ft",
+      "day": "the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue Raven's clock was not set",
       "fixes": 220,
       "repeats": 29,
       "longest_gap_s": 2.0,

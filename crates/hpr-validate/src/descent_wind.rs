@@ -167,9 +167,9 @@ pub(crate) enum Day {
         source: &'static str,
     },
     /// A public team log HPR Sim doesn't fly, read from the team's own pinned repository: the site
-    /// (latitude and longitude, degrees; elevation, m) and the launch hour in UTC, both from its
-    /// GPS log, and the ERA5 file of that hour committed under `validation/fixtures/weather/era5/`,
-    /// where one is.
+    /// (latitude and longitude, degrees; elevation, m) and the launch hour in UTC, from its logs
+    /// (the source line says which), and the ERA5 file of that hour committed under
+    /// `validation/fixtures/weather/era5/`, where one is.
     TeamLog {
         site: (f64, f64, f64),
         utc: (i32, u32, u32, u32),
@@ -561,10 +561,10 @@ pub(crate) const PUBLIC: [Public; 19] = [
             site: (33.498_17, -99.334_35, 415.1),
             utc: (2026, 3, 29, 14),
             weather: Some("validation/fixtures/weather/era5/descent-wind-itzamna.nc"),
-            source: "the GPS log's summary: launched 13:47:36 UTC, the pad at 1,362 ft. It \
-                     dates the launch 30 March; the Blue Raven's summary gives 29 March, \
-                     08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139 Pa \
-                     on the 29th and 96,713 Pa on the 30th against the 97,119 Pa of the team's \
+            source: "the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is \
+                     apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, \
+                     08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa \
+                     on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's \
                      own flight computer (FLGT0023) on the pad (the ERA5 record, \
                      `descent-wind-era5.json`)",
         },
@@ -582,7 +582,9 @@ pub(crate) const PUBLIC: [Public; 19] = [
             site: (42.704_39, -77.193_76, 272.2),
             utc: (2026, 5, 16, 18),
             weather: None,
-            source: "the GPS log's summary: launched 18:10:57 UTC, the pad at 893 ft",
+            source: "the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is \
+                     apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue \
+                     Raven's clock was not set",
         },
         source: Source::Gps {
             track: &TESTBED_2_GPS,
@@ -1596,11 +1598,16 @@ impl DescentWindReport {
              - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three \
              of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 \
              repository, so the logs of its flight computers give statistics here, not rows.\n\
-             - **Public logs not searched.** The team logs are those a search of public \
+             - **Logs not found.** The team logs are those a search of public \
              repositories found with GPS fixes in the descent; a log not published, or not \
              found, is not here."
         );
-        let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
+        let _ = writeln!(
+            md,
+            "\n## Sources\n\n{ERA5_CREDIT} Itzamna's is read from the cut committed at \
+             `validation/fixtures/weather/era5/descent-wind-itzamna.nc`, made from a Climate \
+             Data Store download by `validation/oracles/netcdf/descent_wind_era5.py`."
+        );
         md
     }
 

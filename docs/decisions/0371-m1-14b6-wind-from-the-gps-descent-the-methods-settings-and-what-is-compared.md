@@ -92,3 +92,7 @@ four fixes in five. Prometheus's receivers agree to 0.51 m/s RMS over 170 fixes,
 - A checked conversion of Hedy's ERA5 file, or an ERA5 file of Prometheus's day, would add a
   fifth or sixth compared flight.
 - M7.3's wind fit can take this reading of the descent as its data and ERA5 as its prior.
+- **Since (2026-11-23, [#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)):**
+  the report also reads three public team logs, 19 flights in all. Itzamna is compared, in an ERA5
+  cut committed for it; five compared flights over 2,558 fixes give 3.49 m/s RMS. The figures
+  above are this record's, of 16 flights.

@@ -218,7 +218,7 @@ adds a source.
   > OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - **ERA5 weather extracts** (Copernicus Climate Change Service, via RocketPy v1.13.0's
-  `data/weather/`): `validation/fixtures/weather/era5/*.nc` are 4 × 4-point cuts (every time and
+  `data/weather/`): `validation/fixtures/weather/era5/bella-lui.nc` and `ndrt-2020.nc` are 4 × 4-point cuts (every time and
   level) of RocketPy's Bella Lui and NDRT 2020 ERA5 files, made by
   `validation/oracles/netcdf/era5.py`, which also records RocketPy's reading of the full files
   in `validation/fixtures/weather/era5-rocketpy.json`. The dataset is Hersbach, H. et al. (2023):
