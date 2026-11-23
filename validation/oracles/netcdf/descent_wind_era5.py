@@ -45,19 +45,23 @@ ATTRIBUTION = (
 LEVELS = ["500", "550", "600", "650", "700", "750", "775", "800", "825", "850", "875", "900",
           "925", "950", "975", "1000"]
 
-# Each team log's site (from its GPS log), and the day and hours around its launch, in UTC.
+# Each team log's site (from its GPS log), and the day and hours around its launch, in UTC. Only
+# Itzamna's is cut: Hyperion-II fell too fast for the method to run, and Testbed 2's is not yet
+# fetched (the report's rows give each reason).
+# Itzamna's GPS log dates its launch 30 March, a day after its file names and its Blue Raven's
+# summary; ERA5's pressure at the pad's height settles it (the report's source line for the flight).
 CASES = [
     {
         "case": "itzamna",
         "site": (33.49817, -99.33435),
-        "request": {"year": ["2026"], "month": ["03"], "day": ["30"],
+        "request": {"year": ["2026"], "month": ["03"], "day": ["29"],
                     "time": ["13:00", "14:00"], "area": [33.75, -99.75, 33.25, -99.0]},
-    },
-    {
-        "case": "rit-testbed-2",
-        "site": (42.70439, -77.19376),
-        "request": {"year": ["2026"], "month": ["05"], "day": ["16"],
-                    "time": ["17:00", "18:00", "19:00"], "area": [43.0, -77.5, 42.25, -76.75]},
+        # The date check: ERA5's pressure at the pad's height (the GPS log's 1,362 ft) at the
+        # launch, 13:47:36 UTC, on each day, beside the first pressure in the team's own flight
+        # computer's log on the pad (`FLGT0023_TRIMMED.CSV`, 97,119 Pa). The other day's download
+        # is requested as the case's, with that day.
+        "pad_check": {"height_m": 415.1, "time": "13:47:36", "logged_pa": 97119.0,
+                      "other_day": "30"},
     },
 ]
 
@@ -91,6 +95,16 @@ def window(values, x):
     return sorted(order[low:high].tolist())
 
 
+def pad_pressure(ds, site, height_m, when):
+    """ERA5's pressure at a height above sea level, Pa, at the site and time: bilinear in
+    place, linear in time, and log-linear in pressure between the levels' geopotential heights."""
+    at = ds.interp(latitude=site[0], longitude=site[1]).interp(valid_time=np.datetime64(when))
+    z = at["z"].values / 9.80665
+    p = at["pressure_level"].values * 100.0
+    order = np.argsort(z)
+    return float(np.exp(np.interp(height_m, z[order], np.log(p[order]))))
+
+
 def main():
     fetch = "--fetch" in sys.argv[1:]
     os.makedirs(DOWNLOADS, exist_ok=True)
@@ -112,6 +126,29 @@ def main():
         out = os.path.join(OUT, f"descent-wind-{case['case']}.nc")
         ds.drop_vars(["number", "expver"], errors="ignore").to_netcdf(
             out, format="NETCDF3_64BIT")
+        check = case.get("pad_check")
+        if check:
+            other = os.path.join(DOWNLOADS, f"{case['case']}-other-day.nc")
+            if not os.path.exists(other):
+                if not fetch:
+                    raise SystemExit(f"{other} is missing: run with --fetch")
+                import cdsapi
+
+                req = request(case)
+                req["day"] = [check["other_day"]]
+                cdsapi.Client(quiet=True).retrieve(
+                    "reanalysis-era5-pressure-levels", req, other)
+            r = case["request"]
+            days = {r["day"][0]: source, check["other_day"]: other}
+            check = {
+                **check,
+                "era5_pa": {
+                    f"{r['year'][0]}-{r['month'][0]}-{day}": round(pad_pressure(
+                        xarray.open_dataset(path), case["site"], check["height_m"],
+                        f"{r['year'][0]}-{r['month'][0]}-{day}T{check['time']}"), 1)
+                    for day, path in days.items()
+                },
+            }
         records.append({
             "case": case["case"],
             "site": list(case["site"]),
@@ -122,6 +159,7 @@ def main():
             "latitudes": [float(v) for v in ds["latitude"].values],
             "longitudes": [float(v) for v in ds["longitude"].values],
             "times": [str(v) for v in ds["valid_time"].values],
+            **({"pad_check": check} if check else {}),
         })
     json.dump({"script_sha256": sha256(__file__), "attribution": ATTRIBUTION, "cases": records},
               sys.stdout, indent=1)

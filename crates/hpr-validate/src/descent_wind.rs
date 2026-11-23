@@ -559,9 +559,14 @@ pub(crate) const PUBLIC: [Public; 19] = [
         title: "Itzamna, UTRGV, March 2026 (not flown by HPR Sim)",
         day: Day::TeamLog {
             site: (33.498_17, -99.334_35, 415.1),
-            utc: (2026, 3, 30, 14),
-            weather: None,
-            source: "the GPS log's summary: launched 13:47:36 UTC, the pad at 1,362 ft",
+            utc: (2026, 3, 29, 14),
+            weather: Some("validation/fixtures/weather/era5/descent-wind-itzamna.nc"),
+            source: "the GPS log's summary: launched 13:47:36 UTC, the pad at 1,362 ft. It \
+                     dates the launch 30 March; the Blue Raven's summary gives 29 March, \
+                     08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139 Pa \
+                     on the 29th and 96,713 Pa on the 30th against the 97,119 Pa of the team's \
+                     own flight computer (FLGT0023) on the pad (the ERA5 record, \
+                     `descent-wind-era5.json`)",
         },
         source: Source::Gps {
             track: &ITZAMNA_GPS,
@@ -1043,9 +1048,11 @@ fn era5_wind(
         Day::Notebook {
             site, utc, weather, ..
         } => (site, utc, weather),
-        Day::TeamLog {
-            weather: None, ..
-        } => return Ok(Err("no ERA5 file of its day and site is committed".to_owned())),
+        Day::TeamLog { weather: None, .. } => {
+            return Ok(Err(
+                "no ERA5 file of its day and site is committed".to_owned()
+            ));
+        }
         Day::TeamLog {
             site,
             utc,

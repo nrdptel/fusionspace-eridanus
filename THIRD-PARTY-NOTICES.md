@@ -231,9 +231,10 @@ adds a source.
   that may be made of the Copernicus information or data it contains. The full files stay in
   `refs/`. The example `crates/hpr/examples/era5_weather.rs` reads the Bella Lui extract.
   `validation/fixtures/weather/era5/descent-wind-*.nc` are cuts of the same dataset downloaded
-  from the Climate Data Store for the descent-wind report's team logs (issue #1605), made by
-  `validation/oracles/netcdf/descent_wind_era5.py`, which records the request and both files'
-  SHA-256 in `validation/fixtures/weather/descent-wind-era5.json`. Each says in its `comment`
+  from the Climate Data Store for the descent-wind report's team logs (issue #1605; Itzamna's so
+  far), made by `validation/oracles/netcdf/descent_wind_era5.py`, which records the request, both
+  files' SHA-256 and ERA5's pressure at the pad on the day and the day after in
+  `validation/fixtures/weather/descent-wind-era5.json`. Each says in its `comment`
   attribute "Contains modified Copernicus Climate Change Service information 2026"; the
   downloads stay in `refs/`.
   RocketPy's EuRoC 2022 file, which three predicted flights fly in (M2.3d3, the EuRoC 2022
@@ -251,7 +252,7 @@ adds a source.
   flights compared first) and the EuRoC 2022 file (three predicted flights), the flight-residuals
   report in the full files (the same seven), and the descent-wind report
   (`validation/reports/descent-wind.md`) in the full files of Juno III, Genesis, Camões and
-  Halcyon, its compared flights.
+  Halcyon and the cut for Itzamna, its compared flights.
   Each report ends with the attribution under *Sources*: "generated using Copernicus Climate
   Change Service information 2026, and contains modified Copernicus Climate Change Service
   information 2026", the statement that neither the European Commission nor ECMWF is responsible,
@@ -608,7 +609,7 @@ same license and mode.
 | `fusionspace-debrief` | `nrdptel/fusionspace-debrief` (the project owner's own) | MIT | fetched | ported with a note; the flight-log format knowledge behind Phase 5. Its twelve public flight-log fixtures come from publicly shared flights whose upstream terms are unrecorded, so none is committed; a test reads its Pnut log where it is fetched (ADR-108) |
 | `fusionspace-design` | `nrdptel/fusionspace-design` (the project owner's own), product system Rev E | Apache-2.0 (code-like files); brand files all rights reserved | fetched | the design rules HPR Sim's CLI, docs site, plots and apps follow (ADR-164); its Apache-2.0 files (tokens, stylesheets, CLI styles) may be copied in with their SPDX lines and a row under Bundled; its brand files only as listed under Bundled |
 | `rocketry-files` | [`rlhatcher/rocketry-files`](https://github.com/rlhatcher/rocketry-files) at `2ddcaf88` (an OpenRocket design, `macie/macie-xl.ork`, and its two flights' logs) | MIT | fetched | read from the checkout under `refs/public-flights/` and not committed: `cargo xtask public-predictions` flies the design as saved and commits each flight's inputs, predicted apogee and the files' SHA-256 (M2.3d5, ADR-337). `cargo xtask ork-curves` commits the ids of the two bundled curve files its motors' digests name. The repository's other designs are not read |
-| `hyperion-ii` | [`werocketry/Hyperion-II`](https://github.com/werocketry/Hyperion-II) at `efda132f` (Hyperion-II's flight logs of 2025-08-21) | MIT | fetched | read from the checkout under `refs/public-flights/` and not committed: `cargo xtask descent-wind` reads the TeleMega's GPS fixes in the descent and commits the wind each read fix gives (issue #1605) |
+| `hyperion-ii` | [`werocketry/Hyperion-II`](https://github.com/werocketry/Hyperion-II) at `efda132f` (Hyperion-II's flight logs of 2025-08-21) | MIT | fetched | read from the checkout under `refs/public-flights/` and not committed: `cargo xtask descent-wind` reads the TeleMega's GPS fixes in the descent, which fell too fast for the method, so no wind is read or committed (issue #1605) |
 | `rl-rocketpy-notebook` | [`Lmx154/RL-RocketPy-Notebook`](https://github.com/Lmx154/RL-RocketPy-Notebook) at `80c9cd6a` (UTRGV's Itzamna flight logs, `data/Lonestar_2026_Itzamina/`) | MIT | fetched | read from the checkout under `refs/public-flights/` and not committed: `cargo xtask descent-wind` reads the Featherweight GPS tracker's fixes in the descent and commits the wind each read fix gives (issue #1605); its designs are not read |
 | `rit-flight-data` | [`RIT-Launch-Initiative/flight-data`](https://github.com/RIT-Launch-Initiative/flight-data) at `ffa9f44f` (RIT Launch Initiative's flight logs) | MIT | fetched | read from the checkout under `refs/public-flights/` and not committed: `cargo xtask descent-wind` reads Testbed 2's Featherweight GPS fixes in the descent (`2026/Testbed/Testbed2/`) and commits the wind each read fix gives (issue #1605); its other flights and designs are not read |
 | `hpr-sim-fixtures` | `nrdptel/hpr-sim-fixtures` | private; third-party designs paired with flight logs | fetched | never committed; only aggregate statistics are published, crediting the sources collectively (its `LICENSING.md`). Its flight ids carry the rocket's name, so they are not anonymised case ids. Its ERA5 files are Copernicus data under the CDS licence: anything derived from them carries the Copernicus attribution and the ERA5 citation its `LICENSING.md` gives (ADR-151). Since M2.3c4 it also holds, under `imported/`, byte-exact copies of the two older private repositories, `nrdptel/loft-fixtures` (third-party design files) and `nrdptel/debrief-fixtures` (third-party flight logs), whose terms carry over unchanged: never committed; only derived statistics and anonymised case ids are published. |

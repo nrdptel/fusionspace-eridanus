@@ -22,7 +22,7 @@ read from a forecast's table of levels.
   north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Ten real flights have been
   flown in ERA5 winds, nine of them in their own day's. Only their heights are compared, not their drift
   ([Accuracy: real flights](../accuracy.md#real-flights)). A wind read back from a GPS-tracked
-  descent is pinned on synthetic descents. It is set beside ERA5 on four public flights
+  descent is pinned on synthetic descents. It is set beside ERA5 on five public flights
   ([Wind from a GPS-tracked descent](#wind-from-a-gps-tracked-descent)).
 - **What it leaves out:** wind varying in time or across the field, vertical wind, terrain, and
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or
@@ -448,9 +448,9 @@ A *fix* is one position the receiver reported.
 
 > **How far to trust it.** The wind it reads is a measurement's reconstruction. On synthetic
 > descents built on the method's own assumptions, whose wind is known, it is within 0.3 m/s
-> (0.7 mph) RMS. On real descents nothing bounds what the canopy itself does (below). Four public
-> flights are compared with ERA5, but one of them gives four fixes in five. Read the differences
-> as four examples of a reconstructed wind beside ERA5's, not as ERA5's measured miss. For ERA5's
+> (0.7 mph) RMS. On real descents nothing bounds what the canopy itself does (below). Five public
+> flights are compared with ERA5, but one of them gives three fixes in four. Read the differences
+> as five examples of a reconstructed wind beside ERA5's, not as ERA5's measured miss. For ERA5's
 > own miss, rely on the soundings below.
 
 ### The method
@@ -504,24 +504,28 @@ was 14.74 m/s (33.0 mph).
 The [descent-wind report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/descent-wind.md)
 reads every public flight HPR Sim flies or predicts, and RocketPy's other example logs: the seven
 the real-flights report flies, the five predicted first, and Camões, Halcyon, Hedy and Valkyrie.
-Two public team logs in the [public-flights note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md) hold GPS fixes in the descent,
-Hyperion-II's (a TeleMega) and UTRGV's (a Featherweight GPS). They are not read yet, so the report
-is short of every public flight with a GPS track of the descent (tracked in
-[#1605](https://github.com/nrdptel/fusionspace-eridanus/issues/1605)).
+It also reads the three public team logs with GPS fixes in the descent that a search of public
+repositories found ([public-flights note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md)):
+Hyperion-II's (a TeleMega), Itzamna's (UTRGV's, a Featherweight GPS) and RIT's Testbed 2 (a
+Featherweight GPS). A log not published, or not found, is not here.
 
 - **Compared:** Juno III, under its drogue from 3,210 m (10,531 ft) down to 421 m (1,381 ft) above
   the pad. Genesis, under its main below 666 m (2,185 ft); its receiver once went 79 s without a
   new fix. Camões, under its drogue from 2,677 m (8,783 ft) down. Halcyon, under its main from
-  3,336 m (10,945 ft) down, at 1,951 fixes.
+  3,336 m (10,945 ft) down, at 1,951 fixes. Itzamna, under its drogue and main from 2,731 m
+  (8,960 ft) down to 24 m (79 ft). Its GPS log dates the launch 30 March. The Blue Raven's summary
+  gives the 29th, and so does ERA5: its pressure at the pad's height is 20 Pa from the team's own
+  log on the 29th and 406 Pa from it on the 30th (the report's note on the flight).
 - **Reconstructed, not compared:** Prometheus, whose ERA5 file is of the year after the flight.
-  Hedy, whose ERA5 file HPR Sim can't read without a checked conversion.
-- **Not run:** Cavour fell at 75 m/s (246 ft/s) and Astra at 98 m/s (321 ft/s), faster than any
-  canopy the method is held to. Eight more logged no position.
+  Hedy, whose ERA5 file HPR Sim can't read without a checked conversion. Testbed 2, whose ERA5
+  file is not committed yet.
+- **Not run:** Cavour fell at 75 m/s (246 ft/s), Astra at 98 m/s (321 ft/s) and Hyperion-II at
+  85 m/s (279 ft/s), faster than any canopy the method is held to. Eight more logged no position.
 
-Over the four compared flights and 2,462 fixes, the reconstructed speed is 0.87 m/s (1.9 mph)
-below ERA5's on average. Root-mean-square, it is 3.50 m/s (7.8 mph) from it. Each flight alone
-differs on average by 1.1 to 1.5 m/s (2.5 to 3.4 mph): above ERA5's on three, below it on
-Halcyon. Halcyon gives four fixes in five, so the pooled mean is mostly its own. ERA5 misses
+Over the five compared flights and 2,558 fixes, the reconstructed speed is 0.81 m/s (1.8 mph)
+below ERA5's on average. Root-mean-square, it is 3.49 m/s (7.8 mph) from it. Each flight alone
+differs on average by 0.6 to 1.5 m/s (1.4 to 3.4 mph): above ERA5's on four, below it on
+Halcyon. Halcyon gives three fixes in four, so the pooled mean is mostly its own. ERA5 misses
 soundings by 1.4 to 1.9 m/s (3.1 to 4.3 mph) RMS in speed through the lowest 3 km (1.9 mi)
 (Taszarek et al. 2021, in the research note's §5). The pooled RMS here is 1.8 to 2.5 times that.
 Nothing here tells ERA5's miss at a launch field apart from the canopy's.

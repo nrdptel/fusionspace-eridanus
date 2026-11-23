@@ -5037,7 +5037,10 @@ fn the_descent_wind_report_holds_together() {
         .lines()
         .filter(|line| line.starts_with('|') && line.contains("GPS in the descent"))
         .collect();
-    assert!(!marked.is_empty(), "the public-flights note marks no GPS descent");
+    assert!(
+        !marked.is_empty(),
+        "the public-flights note marks no GPS descent"
+    );
     for line in marked {
         assert!(
             ids.iter().any(|id| line.contains(&format!("`{id}`"))),
