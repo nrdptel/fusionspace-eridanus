@@ -1,0 +1,92 @@
+{
+ "script_sha256": "778c4a582730d889fd1163bedec45c03118fd3808b44a86654911960a048ba7c",
+ "attribution": "Contains modified Copernicus Climate Change Service information 2026 (ERA5 hourly data on pressure levels, doi:10.24381/cds.bd0915c6, CC BY 4.0), cut from a Climate Data Store download by validation/oracles/netcdf/descent_wind_era5.py.",
+ "cases": [
+  {
+   "case": "itzamna",
+   "site": [
+    33.49817,
+    -99.33435
+   ],
+   "request": {
+    "product_type": [
+     "reanalysis"
+    ],
+    "variable": [
+     "geopotential",
+     "temperature",
+     "u_component_of_wind",
+     "v_component_of_wind"
+    ],
+    "pressure_level": [
+     "500",
+     "550",
+     "600",
+     "650",
+     "700",
+     "750",
+     "775",
+     "800",
+     "825",
+     "850",
+     "875",
+     "900",
+     "925",
+     "950",
+     "975",
+     "1000"
+    ],
+    "data_format": "netcdf",
+    "download_format": "unarchived",
+    "year": [
+     "2026"
+    ],
+    "month": [
+     "03"
+    ],
+    "day": [
+     "29"
+    ],
+    "time": [
+     "13:00",
+     "14:00"
+    ],
+    "area": [
+     33.75,
+     -99.75,
+     33.25,
+     -99.0
+    ]
+   },
+   "download_sha256": "7ad2ad5b8dd56e82cf49d33c01c1800b1f416289cf95c0deca246b363299d454",
+   "cut": "validation/fixtures/weather/era5/descent-wind-itzamna.nc",
+   "cut_sha256": "96f7a8da1e798d0ce5ae84c50d1318bcb973820a059e71426bba308bfdc68727",
+   "latitudes": [
+    33.75,
+    33.5,
+    33.25
+   ],
+   "longitudes": [
+    -99.75,
+    -99.5,
+    -99.25,
+    -99.0
+   ],
+   "times": [
+    "2026-03-29T13:00:00.000000000",
+    "2026-03-29T14:00:00.000000000"
+   ],
+   "pad_check": {
+    "height_m": 415.1,
+    "time": "13:47:13",
+    "logged_pa": 97119.0,
+    "other_day": "30",
+    "other_day_sha256": "387ca2245af628e62760b543dda8c3fc272a90197b7dd71a2a3113e0c9b5ef9f",
+    "era5_pa": {
+     "2026-03-29": 97139.1,
+     "2026-03-30": 96712.5
+    }
+   }
+  }
+ ]
+}

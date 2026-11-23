@@ -4962,8 +4962,9 @@ fn the_real_flights_page_credits_the_era5_weather() {
 
 /// The committed descent-wind report (M1.14b6): its bands are its flights' sums', its page is its
 /// data's, it lists every flight of the report's table in order (the public flights HPR Sim flies
-/// or predicts first), it credits ERA5, and the validation plan's row calls the reconstruction a
-/// method, not yet a comparison, exactly while fewer than three flights are compared.
+/// or predicts first), it credits ERA5, the validation plan's row states its flight count and
+/// calls the reconstruction a method, not yet a comparison, exactly while fewer than three
+/// flights are compared, and every GPS descent the public-flights note marks is one of its rows.
 #[test]
 fn the_descent_wind_report_holds_together() {
     use crate::descent_wind::{
@@ -5026,6 +5027,27 @@ fn the_descent_wind_report_holds_together() {
         .lines()
         .find(|line| line.starts_with("| Wind reconstructed from the GPS descent |"))
         .expect("the validation plan's row for the wind from the GPS descent");
+    // The plan's row states how many flights the report lists.
+    let count = format!("Of {} public flights", report.flights.len());
+    assert!(row.contains(&count), "the plan's row must say \"{count}\"");
+    // Every public team log the public-flights note marks as holding GPS fixes in the descent
+    // names, in backticks, the report's row it is read in (issue #1605): none is left unread.
+    let note = std::fs::read_to_string(root().join("docs/research/public-flights.md")).unwrap();
+    let marked: Vec<&str> = note
+        .lines()
+        .filter(|line| line.starts_with('|') && line.contains("GPS in the descent"))
+        .collect();
+    assert!(
+        !marked.is_empty(),
+        "the public-flights note marks no GPS descent"
+    );
+    for line in marked {
+        assert!(
+            ids.iter().any(|id| line.contains(&format!("`{id}`"))),
+            "the public-flights note's row `{line}` holds GPS in the descent but names no flight \
+             of the descent-wind report"
+        );
+    }
     assert_eq!(
         row.contains("a method, not yet a comparison"),
         report.compared() < FLIGHTS_FOR_A_COMPARISON,

@@ -6016,40 +6016,2879 @@
       "outside_era5": 0,
       "bands": [],
       "samples": []
+    },
+    {
+      "id": "hyperion-ii",
+      "title": "Hyperion-II, 21 August 2025 (not flown by HPR Sim)",
+      "status": {
+        "NotRun": "no fix falls steadily inside the settings: the median descent rate the fitted windows give is 85 m/s, past the 35 m/s the method is held to"
+      },
+      "receiver": "the TeleMega's GPS (Altus Metrum), 1 fix a second",
+      "day": "the TeleMega's first GPS fix: 18:11:46 UTC, on the pad",
+      "fixes": 79,
+      "repeats": 3339,
+      "longest_gap_s": 1.0,
+      "read": 0,
+      "heights_m": null,
+      "descent_m_s": null,
+      "mean_lag_correction_m_s": null,
+      "outside_era5": 0,
+      "bands": [],
+      "samples": []
+    },
+    {
+      "id": "itzamna",
+      "title": "Itzamna, UTRGV, March 2026 (not flown by HPR Sim)",
+      "status": "Compared",
+      "receiver": "the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, longitude and the receiver's altitude",
+      "day": "the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, 08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's own flight computer (FLGT0023) on the pad (the ERA5 record, `descent-wind-era5.json`)",
+      "fixes": 380,
+      "repeats": 27,
+      "longest_gap_s": 3.0,
+      "read": 96,
+      "heights_m": [
+        23.561,
+        2731.1909
+      ],
+      "descent_m_s": [
+        6.7103,
+        31.2958
+      ],
+      "mean_lag_correction_m_s": 1.9187,
+      "outside_era5": 0,
+      "bands": [
+        {
+          "count": 30,
+          "speed": 36.7521,
+          "speed_squares": 134.8344,
+          "vector_squares": 337.2888
+        },
+        {
+          "count": 15,
+          "speed": -3.9071,
+          "speed_squares": 127.8456,
+          "vector_squares": 207.2094
+        },
+        {
+          "count": 27,
+          "speed": 36.3351,
+          "speed_squares": 375.4191,
+          "vector_squares": 513.1441
+        },
+        {
+          "count": 24,
+          "speed": -10.4013,
+          "speed_squares": 395.7745,
+          "vector_squares": 828.6671
+        },
+        {
+          "count": 0,
+          "speed": 0.0,
+          "speed_squares": 0.0,
+          "vector_squares": 0.0
+        }
+      ],
+      "samples": [
+        {
+          "time_s": 1774896469.0,
+          "height_m": 2731.1909,
+          "height_msl_m": 3146.4199,
+          "descent_m_s": 29.718,
+          "ground_m_s": [
+            9.0354,
+            -4.6058
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0391,
+            0.5531
+          ],
+          "wind_m_s": [
+            8.9169,
+            -2.9296
+          ],
+          "era5_m_s": [
+            5.485,
+            -1.2564
+          ]
+        },
+        {
+          "time_s": 1774896470.0,
+          "height_m": 2700.589,
+          "height_msl_m": 3115.818,
+          "descent_m_s": 30.0472,
+          "ground_m_s": [
+            8.9632,
+            -3.871
+          ],
+          "ground_acceleration_m_s2": [
+            0.1131,
+            0.5011
+          ],
+          "wind_m_s": [
+            9.3097,
+            -2.3357
+          ],
+          "era5_m_s": [
+            5.5531,
+            -1.0185
+          ]
+        },
+        {
+          "time_s": 1774896471.0,
+          "height_m": 2669.8956,
+          "height_msl_m": 3085.1246,
+          "descent_m_s": 30.1893,
+          "ground_m_s": [
+            9.0919,
+            -3.3133
+          ],
+          "ground_acceleration_m_s2": [
+            0.1636,
+            0.5371
+          ],
+          "wind_m_s": [
+            9.5955,
+            -1.66
+          ],
+          "era5_m_s": [
+            5.6213,
+            -0.7799
+          ]
+        },
+        {
+          "time_s": 1774896473.0,
+          "height_m": 2609.6366,
+          "height_msl_m": 3024.8657,
+          "descent_m_s": 30.3304,
+          "ground_m_s": [
+            9.4289,
+            -2.8015
+          ],
+          "ground_acceleration_m_s2": [
+            0.1377,
+            0.2507
+          ],
+          "wind_m_s": [
+            9.8547,
+            -2.0262
+          ],
+          "era5_m_s": [
+            5.7553,
+            -0.3114
+          ]
+        },
+        {
+          "time_s": 1774896474.0,
+          "height_m": 2579.431,
+          "height_msl_m": 2994.66,
+          "descent_m_s": 30.3618,
+          "ground_m_s": [
+            9.4782,
+            -2.7687
+          ],
+          "ground_acceleration_m_s2": [
+            0.0491,
+            0.0157
+          ],
+          "wind_m_s": [
+            9.6304,
+            -2.7202
+          ],
+          "era5_m_s": [
+            5.8224,
+            -0.0766
+          ]
+        },
+        {
+          "time_s": 1774896475.0,
+          "height_m": 2549.5301,
+          "height_msl_m": 2964.7591,
+          "descent_m_s": 30.2916,
+          "ground_m_s": [
+            9.5219,
+            -2.9017
+          ],
+          "ground_acceleration_m_s2": [
+            0.0284,
+            -0.2332
+          ],
+          "wind_m_s": [
+            9.6098,
+            -3.6221
+          ],
+          "era5_m_s": [
+            5.8889,
+            0.1558
+          ]
+        },
+        {
+          "time_s": 1774896476.0,
+          "height_m": 2518.5014,
+          "height_msl_m": 2933.7305,
+          "descent_m_s": 30.2047,
+          "ground_m_s": [
+            9.3593,
+            -3.0215
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0471,
+            -0.477
+          ],
+          "wind_m_s": [
+            9.2141,
+            -4.4907
+          ],
+          "era5_m_s": [
+            5.9579,
+            0.397
+          ]
+        },
+        {
+          "time_s": 1774896477.0,
+          "height_m": 2487.2594,
+          "height_msl_m": 2902.4885,
+          "descent_m_s": 30.1358,
+          "ground_m_s": [
+            9.3563,
+            -3.2429
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3239,
+            -0.7062
+          ],
+          "wind_m_s": [
+            8.361,
+            -5.4131
+          ],
+          "era5_m_s": [
+            6.0274,
+            0.6399
+          ]
+        },
+        {
+          "time_s": 1774896478.0,
+          "height_m": 2457.9682,
+          "height_msl_m": 2873.1972,
+          "descent_m_s": 29.8945,
+          "ground_m_s": [
+            8.8676,
+            -3.8348
+          ],
+          "ground_acceleration_m_s2": [
+            -0.4507,
+            -0.6183
+          ],
+          "wind_m_s": [
+            7.4937,
+            -5.7196
+          ],
+          "era5_m_s": [
+            6.0925,
+            0.8676
+          ]
+        },
+        {
+          "time_s": 1774896479.0,
+          "height_m": 2427.5186,
+          "height_msl_m": 2842.7477,
+          "descent_m_s": 29.7061,
+          "ground_m_s": [
+            8.3605,
+            -4.3191
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6675,
+            -0.4373
+          ],
+          "wind_m_s": [
+            6.3387,
+            -5.6437
+          ],
+          "era5_m_s": [
+            6.1602,
+            1.1043
+          ]
+        },
+        {
+          "time_s": 1774896480.0,
+          "height_m": 2398.3188,
+          "height_msl_m": 2813.5478,
+          "descent_m_s": 29.5523,
+          "ground_m_s": [
+            7.6167,
+            -4.7429
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8236,
+            -0.2304
+          ],
+          "wind_m_s": [
+            5.135,
+            -5.4371
+          ],
+          "era5_m_s": [
+            6.2251,
+            1.3313
+          ]
+        },
+        {
+          "time_s": 1774896481.0,
+          "height_m": 2368.9361,
+          "height_msl_m": 2784.1651,
+          "descent_m_s": 29.4257,
+          "ground_m_s": [
+            6.7884,
+            -4.9549
+          ],
+          "ground_acceleration_m_s2": [
+            -0.9233,
+            -0.0674
+          ],
+          "wind_m_s": [
+            4.0179,
+            -5.1571
+          ],
+          "era5_m_s": [
+            6.2904,
+            1.5597
+          ]
+        },
+        {
+          "time_s": 1774896482.0,
+          "height_m": 2340.6506,
+          "height_msl_m": 2755.8797,
+          "descent_m_s": 29.4343,
+          "ground_m_s": [
+            5.8163,
+            -4.8743
+          ],
+          "ground_acceleration_m_s2": [
+            -1.0382,
+            0.0775
+          ],
+          "wind_m_s": [
+            2.7,
+            -4.6418
+          ],
+          "era5_m_s": [
+            6.3533,
+            1.7796
+          ]
+        },
+        {
+          "time_s": 1774896483.0,
+          "height_m": 2311.3594,
+          "height_msl_m": 2726.5884,
+          "descent_m_s": 29.5966,
+          "ground_m_s": [
+            4.8779,
+            -4.5718
+          ],
+          "ground_acceleration_m_s2": [
+            -1.0535,
+            0.331
+          ],
+          "wind_m_s": [
+            1.6984,
+            -3.573
+          ],
+          "era5_m_s": [
+            6.4184,
+            2.0073
+          ]
+        },
+        {
+          "time_s": 1774896484.0,
+          "height_m": 2282.4034,
+          "height_msl_m": 2697.6324,
+          "descent_m_s": 29.7914,
+          "ground_m_s": [
+            3.9563,
+            -4.0877
+          ],
+          "ground_acceleration_m_s2": [
+            -0.982,
+            0.5896
+          ],
+          "wind_m_s": [
+            0.973,
+            -2.2964
+          ],
+          "era5_m_s": [
+            6.4828,
+            2.2324
+          ]
+        },
+        {
+          "time_s": 1774896485.0,
+          "height_m": 2252.4415,
+          "height_msl_m": 2667.6706,
+          "descent_m_s": 30.0547,
+          "ground_m_s": [
+            3.0348,
+            -3.3615
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8282,
+            0.8483
+          ],
+          "wind_m_s": [
+            0.4965,
+            -0.7617
+          ],
+          "era5_m_s": [
+            6.5494,
+            2.4653
+          ]
+        },
+        {
+          "time_s": 1774896486.0,
+          "height_m": 2222.3273,
+          "height_msl_m": 2637.5563,
+          "descent_m_s": 30.2955,
+          "ground_m_s": [
+            2.2907,
+            -2.6151
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7242,
+            0.988
+          ],
+          "wind_m_s": [
+            0.0535,
+            0.437
+          ],
+          "era5_m_s": [
+            6.6164,
+            2.6994
+          ]
+        },
+        {
+          "time_s": 1774896487.0,
+          "height_m": 2191.1462,
+          "height_msl_m": 2606.3753,
+          "descent_m_s": 30.5324,
+          "ground_m_s": [
+            1.6565,
+            -1.7376
+          ],
+          "ground_acceleration_m_s2": [
+            -0.5269,
+            1.0216
+          ],
+          "wind_m_s": [
+            0.016,
+            1.4431
+          ],
+          "era5_m_s": [
+            6.6857,
+            2.9418
+          ]
+        },
+        {
+          "time_s": 1774896488.0,
+          "height_m": 2159.7823,
+          "height_msl_m": 2575.0114,
+          "descent_m_s": 30.7216,
+          "ground_m_s": [
+            1.1914,
+            -0.85
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3947,
+            0.9647
+          ],
+          "wind_m_s": [
+            -0.0451,
+            2.1722
+          ],
+          "era5_m_s": [
+            6.8072,
+            3.2335
+          ]
+        },
+        {
+          "time_s": 1774896489.0,
+          "height_m": 2128.7232,
+          "height_msl_m": 2543.9522,
+          "descent_m_s": 30.8962,
+          "ground_m_s": [
+            1.0644,
+            0.0276
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0674,
+            0.869
+          ],
+          "wind_m_s": [
+            0.852,
+            2.7656
+          ],
+          "era5_m_s": [
+            6.9602,
+            3.5527
+          ]
+        },
+        {
+          "time_s": 1774896490.0,
+          "height_m": 2097.9079,
+          "height_msl_m": 2513.137,
+          "descent_m_s": 30.9946,
+          "ground_m_s": [
+            1.3093,
+            0.8246
+          ],
+          "ground_acceleration_m_s2": [
+            0.3163,
+            0.6544
+          ],
+          "wind_m_s": [
+            2.3088,
+            2.893
+          ],
+          "era5_m_s": [
+            7.112,
+            3.8694
+          ]
+        },
+        {
+          "time_s": 1774896491.0,
+          "height_m": 2067.5194,
+          "height_msl_m": 2482.7484,
+          "descent_m_s": 31.0463,
+          "ground_m_s": [
+            1.5704,
+            1.519
+          ],
+          "ground_acceleration_m_s2": [
+            0.5,
+            0.5213
+          ],
+          "wind_m_s": [
+            3.1532,
+            3.1692
+          ],
+          "era5_m_s": [
+            7.2617,
+            4.1817
+          ]
+        },
+        {
+          "time_s": 1774896492.0,
+          "height_m": 2036.7041,
+          "height_msl_m": 2451.9331,
+          "descent_m_s": 31.0914,
+          "ground_m_s": [
+            2.1166,
+            2.0143
+          ],
+          "ground_acceleration_m_s2": [
+            0.6539,
+            0.4348
+          ],
+          "wind_m_s": [
+            4.1898,
+            3.3929
+          ],
+          "era5_m_s": [
+            7.4136,
+            4.4983
+          ]
+        },
+        {
+          "time_s": 1774896493.0,
+          "height_m": 2005.2487,
+          "height_msl_m": 2420.4778,
+          "descent_m_s": 30.9616,
+          "ground_m_s": [
+            3.6159,
+            1.838
+          ],
+          "ground_acceleration_m_s2": [
+            1.2863,
+            0.0986
+          ],
+          "wind_m_s": [
+            7.6771,
+            2.1494
+          ],
+          "era5_m_s": [
+            7.5685,
+            4.8216
+          ]
+        },
+        {
+          "time_s": 1774896494.0,
+          "height_m": 1973.641,
+          "height_msl_m": 2388.87,
+          "descent_m_s": 30.8451,
+          "ground_m_s": [
+            4.6198,
+            2.0081
+          ],
+          "ground_acceleration_m_s2": [
+            1.3407,
+            0.0461
+          ],
+          "wind_m_s": [
+            8.8369,
+            2.1529
+          ],
+          "era5_m_s": [
+            7.7243,
+            5.1464
+          ]
+        },
+        {
+          "time_s": 1774896495.0,
+          "height_m": 1942.5209,
+          "height_msl_m": 2357.7499,
+          "descent_m_s": 30.7831,
+          "ground_m_s": [
+            5.9389,
+            2.0645
+          ],
+          "ground_acceleration_m_s2": [
+            1.4,
+            0.0177
+          ],
+          "wind_m_s": [
+            10.3333,
+            2.1202
+          ],
+          "era5_m_s": [
+            7.8776,
+            5.4662
+          ]
+        },
+        {
+          "time_s": 1774896498.0,
+          "height_m": 1850.6237,
+          "height_msl_m": 2265.8527,
+          "descent_m_s": 29.6158,
+          "ground_m_s": [
+            6.8439,
+            1.8701
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3449,
+            -0.1753
+          ],
+          "wind_m_s": [
+            5.8024,
+            1.3406
+          ],
+          "era5_m_s": [
+            8.3807,
+            6.1065
+          ]
+        },
+        {
+          "time_s": 1774896499.0,
+          "height_m": 1821.5762,
+          "height_msl_m": 2236.8053,
+          "descent_m_s": 29.4036,
+          "ground_m_s": [
+            6.74,
+            1.7602
+          ],
+          "ground_acceleration_m_s2": [
+            -0.4036,
+            -0.1119
+          ],
+          "wind_m_s": [
+            5.5299,
+            1.4247
+          ],
+          "era5_m_s": [
+            8.5504,
+            6.2442
+          ]
+        },
+        {
+          "time_s": 1774896503.0,
+          "height_m": 1706.4533,
+          "height_msl_m": 2121.6823,
+          "descent_m_s": 29.4094,
+          "ground_m_s": [
+            6.4285,
+            1.9992
+          ],
+          "ground_acceleration_m_s2": [
+            0.3822,
+            0.2456
+          ],
+          "wind_m_s": [
+            7.5747,
+            2.7358
+          ],
+          "era5_m_s": [
+            9.223,
+            6.7897
+          ]
+        },
+        {
+          "time_s": 1774896504.0,
+          "height_m": 1677.8935,
+          "height_msl_m": 2093.1226,
+          "descent_m_s": 29.7032,
+          "ground_m_s": [
+            6.7622,
+            2.3795
+          ],
+          "ground_acceleration_m_s2": [
+            0.5547,
+            0.5912
+          ],
+          "wind_m_s": [
+            8.4423,
+            4.1702
+          ],
+          "era5_m_s": [
+            9.3899,
+            6.925
+          ]
+        },
+        {
+          "time_s": 1774896505.0,
+          "height_m": 1648.8461,
+          "height_msl_m": 2064.0751,
+          "descent_m_s": 30.2776,
+          "ground_m_s": [
+            7.1578,
+            2.5682
+          ],
+          "ground_acceleration_m_s2": [
+            0.6578,
+            0.8719
+          ],
+          "wind_m_s": [
+            9.1886,
+            5.26
+          ],
+          "era5_m_s": [
+            9.5596,
+            7.0626
+          ]
+        },
+        {
+          "time_s": 1774896506.0,
+          "height_m": 1617.6041,
+          "height_msl_m": 2032.8331,
+          "descent_m_s": 30.3591,
+          "ground_m_s": [
+            7.7258,
+            3.2053
+          ],
+          "ground_acceleration_m_s2": [
+            0.5871,
+            0.687
+          ],
+          "wind_m_s": [
+            9.5434,
+            5.3321
+          ],
+          "era5_m_s": [
+            9.7774,
+            7.2022
+          ]
+        },
+        {
+          "time_s": 1774896507.0,
+          "height_m": 1587.4289,
+          "height_msl_m": 2002.6579,
+          "descent_m_s": 30.3555,
+          "ground_m_s": [
+            8.3625,
+            3.8381
+          ],
+          "ground_acceleration_m_s2": [
+            0.5632,
+            0.3028
+          ],
+          "wind_m_s": [
+            10.1058,
+            4.7752
+          ],
+          "era5_m_s": [
+            10.0016,
+            7.3337
+          ]
+        },
+        {
+          "time_s": 1774896508.0,
+          "height_m": 1557.467,
+          "height_msl_m": 1972.6961,
+          "descent_m_s": 30.7438,
+          "ground_m_s": [
+            9.0919,
+            4.0131
+          ],
+          "ground_acceleration_m_s2": [
+            0.691,
+            0.2045
+          ],
+          "wind_m_s": [
+            11.2583,
+            4.6543
+          ],
+          "era5_m_s": [
+            10.2242,
+            7.4643
+          ]
+        },
+        {
+          "time_s": 1774896509.0,
+          "height_m": 1526.7432,
+          "height_msl_m": 1941.9722,
+          "descent_m_s": 31.1079,
+          "ground_m_s": [
+            9.9621,
+            4.3462
+          ],
+          "ground_acceleration_m_s2": [
+            0.8709,
+            0.1864
+          ],
+          "wind_m_s": [
+            12.7247,
+            4.9376
+          ],
+          "era5_m_s": [
+            10.4525,
+            7.5982
+          ]
+        },
+        {
+          "time_s": 1774896510.0,
+          "height_m": 1495.7146,
+          "height_msl_m": 1910.9436,
+          "descent_m_s": 31.293,
+          "ground_m_s": [
+            10.9676,
+            4.8507
+          ],
+          "ground_acceleration_m_s2": [
+            0.9598,
+            0.2123
+          ],
+          "wind_m_s": [
+            14.0302,
+            5.5281
+          ],
+          "era5_m_s": [
+            10.683,
+            7.7334
+          ]
+        },
+        {
+          "time_s": 1774896511.0,
+          "height_m": 1464.4421,
+          "height_msl_m": 1879.6711,
+          "descent_m_s": 31.2958,
+          "ground_m_s": [
+            11.9646,
+            5.3451
+          ],
+          "ground_acceleration_m_s2": [
+            1.1418,
+            0.4476
+          ],
+          "wind_m_s": [
+            15.6083,
+            6.7736
+          ],
+          "era5_m_s": [
+            10.9153,
+            7.8697
+          ]
+        },
+        {
+          "time_s": 1774896512.0,
+          "height_m": 1431.5542,
+          "height_msl_m": 1846.7832,
+          "descent_m_s": 31.2129,
+          "ground_m_s": [
+            12.9025,
+            5.9706
+          ],
+          "ground_acceleration_m_s2": [
+            1.2176,
+            0.7579
+          ],
+          "wind_m_s": [
+            16.778,
+            8.3829
+          ],
+          "era5_m_s": [
+            11.1597,
+            8.013
+          ]
+        },
+        {
+          "time_s": 1774896513.0,
+          "height_m": 1398.6967,
+          "height_msl_m": 1813.9258,
+          "descent_m_s": 30.9846,
+          "ground_m_s": [
+            13.9841,
+            6.6666
+          ],
+          "ground_acceleration_m_s2": [
+            1.1656,
+            0.988
+          ],
+          "wind_m_s": [
+            17.6669,
+            9.7883
+          ],
+          "era5_m_s": [
+            11.4038,
+            8.1562
+          ]
+        },
+        {
+          "time_s": 1774896515.0,
+          "height_m": 1337.0966,
+          "height_msl_m": 1752.3257,
+          "descent_m_s": 30.3811,
+          "ground_m_s": [
+            16.1217,
+            8.442
+          ],
+          "ground_acceleration_m_s2": [
+            0.9164,
+            1.0707
+          ],
+          "wind_m_s": [
+            18.9607,
+            11.7589
+          ],
+          "era5_m_s": [
+            11.8225,
+            8.6544
+          ]
+        },
+        {
+          "time_s": 1774896516.0,
+          "height_m": 1307.8054,
+          "height_msl_m": 1723.0344,
+          "descent_m_s": 29.9289,
+          "ground_m_s": [
+            16.9497,
+            9.3598
+          ],
+          "ground_acceleration_m_s2": [
+            0.665,
+            0.856
+          ],
+          "wind_m_s": [
+            18.9794,
+            11.9721
+          ],
+          "era5_m_s": [
+            12.0139,
+            8.9367
+          ]
+        },
+        {
+          "time_s": 1774896517.0,
+          "height_m": 1278.9713,
+          "height_msl_m": 1694.2003,
+          "descent_m_s": 29.357,
+          "ground_m_s": [
+            17.3552,
+            10.0657
+          ],
+          "ground_acceleration_m_s2": [
+            0.3574,
+            0.5352
+          ],
+          "wind_m_s": [
+            18.4251,
+            11.668
+          ],
+          "era5_m_s": [
+            12.2023,
+            9.2145
+          ]
+        },
+        {
+          "time_s": 1774896518.0,
+          "height_m": 1250.6554,
+          "height_msl_m": 1665.8844,
+          "descent_m_s": 28.8477,
+          "ground_m_s": [
+            17.5664,
+            10.5497
+          ],
+          "ground_acceleration_m_s2": [
+            0.1516,
+            0.2714
+          ],
+          "wind_m_s": [
+            18.0122,
+            11.3481
+          ],
+          "era5_m_s": [
+            12.3874,
+            9.4874
+          ]
+        },
+        {
+          "time_s": 1774896519.0,
+          "height_m": 1220.785,
+          "height_msl_m": 1636.014,
+          "descent_m_s": 28.493,
+          "ground_m_s": [
+            17.5578,
+            10.7513
+          ],
+          "ground_acceleration_m_s2": [
+            -0.1063,
+            0.0904
+          ],
+          "wind_m_s": [
+            17.249,
+            11.0138
+          ],
+          "era5_m_s": [
+            12.5825,
+            9.7752
+          ]
+        },
+        {
+          "time_s": 1774896520.0,
+          "height_m": 1190.4878,
+          "height_msl_m": 1605.7169,
+          "descent_m_s": 28.2899,
+          "ground_m_s": [
+            17.3802,
+            10.852
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3598,
+            -0.0131
+          ],
+          "wind_m_s": [
+            16.3422,
+            10.8141
+          ],
+          "era5_m_s": [
+            12.7805,
+            10.0672
+          ]
+        },
+        {
+          "time_s": 1774896521.0,
+          "height_m": 1163.6959,
+          "height_msl_m": 1578.925,
+          "descent_m_s": 28.1156,
+          "ground_m_s": [
+            17.042,
+            10.8316
+          ],
+          "ground_acceleration_m_s2": [
+            -0.5245,
+            -0.0856
+          ],
+          "wind_m_s": [
+            15.5383,
+            10.5863
+          ],
+          "era5_m_s": [
+            12.9556,
+            10.3253
+          ]
+        },
+        {
+          "time_s": 1774896522.0,
+          "height_m": 1137.4526,
+          "height_msl_m": 1552.6817,
+          "descent_m_s": 27.9283,
+          "ground_m_s": [
+            16.5687,
+            10.7911
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6978,
+            -0.0908
+          ],
+          "wind_m_s": [
+            14.5813,
+            10.5325
+          ],
+          "era5_m_s": [
+            13.1271,
+            10.5782
+          ]
+        },
+        {
+          "time_s": 1774896523.0,
+          "height_m": 1110.1426,
+          "height_msl_m": 1525.3716,
+          "descent_m_s": 27.7005,
+          "ground_m_s": [
+            15.9432,
+            10.8816
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6762,
+            -0.0054
+          ],
+          "wind_m_s": [
+            14.0332,
+            10.8662
+          ],
+          "era5_m_s": [
+            13.2116,
+            10.933
+          ]
+        },
+        {
+          "time_s": 1774896524.0,
+          "height_m": 1081.8876,
+          "height_msl_m": 1497.1166,
+          "descent_m_s": 27.509,
+          "ground_m_s": [
+            15.2078,
+            10.9721
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6524,
+            0.1368
+          ],
+          "wind_m_s": [
+            13.3777,
+            11.3559
+          ],
+          "era5_m_s": [
+            13.2471,
+            11.3505
+          ]
+        },
+        {
+          "time_s": 1774896525.0,
+          "height_m": 1053.4498,
+          "height_msl_m": 1468.6788,
+          "descent_m_s": 27.5309,
+          "ground_m_s": [
+            14.3964,
+            11.1029
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7088,
+            0.2739
+          ],
+          "wind_m_s": [
+            12.4064,
+            11.8718
+          ],
+          "era5_m_s": [
+            13.2828,
+            11.7708
+          ]
+        },
+        {
+          "time_s": 1774896526.0,
+          "height_m": 1025.8044,
+          "height_msl_m": 1441.0334,
+          "descent_m_s": 27.7504,
+          "ground_m_s": [
+            13.644,
+            11.3246
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7977,
+            0.3204
+          ],
+          "wind_m_s": [
+            11.3867,
+            12.2313
+          ],
+          "era5_m_s": [
+            13.3175,
+            12.1794
+          ]
+        },
+        {
+          "time_s": 1774896527.0,
+          "height_m": 998.982,
+          "height_msl_m": 1414.211,
+          "descent_m_s": 27.9887,
+          "ground_m_s": [
+            12.8916,
+            11.5261
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8908,
+            0.2583
+          ],
+          "wind_m_s": [
+            10.349,
+            12.2634
+          ],
+          "era5_m_s": [
+            13.3512,
+            12.5758
+          ]
+        },
+        {
+          "time_s": 1774896528.0,
+          "height_m": 972.7082,
+          "height_msl_m": 1387.9373,
+          "descent_m_s": 28.1558,
+          "ground_m_s": [
+            12.0209,
+            11.6973
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8713,
+            0.204
+          ],
+          "wind_m_s": [
+            9.5192,
+            12.2831
+          ],
+          "era5_m_s": [
+            13.3842,
+            12.9641
+          ]
+        },
+        {
+          "time_s": 1774896529.0,
+          "height_m": 944.6362,
+          "height_msl_m": 1359.8652,
+          "descent_m_s": 28.2425,
+          "ground_m_s": [
+            11.2432,
+            11.929
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8626,
+            0.1497
+          ],
+          "wind_m_s": [
+            8.7589,
+            12.3602
+          ],
+          "era5_m_s": [
+            13.4195,
+            13.379
+          ]
+        },
+        {
+          "time_s": 1774896530.0,
+          "height_m": 914.5829,
+          "height_msl_m": 1329.8119,
+          "descent_m_s": 28.2369,
+          "ground_m_s": [
+            10.5332,
+            12.2413
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7326,
+            0.2144
+          ],
+          "wind_m_s": [
+            8.4238,
+            12.8586
+          ],
+          "era5_m_s": [
+            13.4573,
+            13.8232
+          ]
+        },
+        {
+          "time_s": 1774896531.0,
+          "height_m": 885.3526,
+          "height_msl_m": 1300.5816,
+          "descent_m_s": 28.1178,
+          "ground_m_s": [
+            9.9415,
+            12.5941
+          ],
+          "ground_acceleration_m_s2": [
+            -0.5288,
+            0.2635
+          ],
+          "wind_m_s": [
+            8.4253,
+            13.3496
+          ],
+          "era5_m_s": [
+            13.494,
+            14.2552
+          ]
+        },
+        {
+          "time_s": 1774896532.0,
+          "height_m": 856.0613,
+          "height_msl_m": 1271.2903,
+          "descent_m_s": 27.8848,
+          "ground_m_s": [
+            9.5611,
+            12.9972
+          ],
+          "ground_acceleration_m_s2": [
+            -0.2926,
+            0.429
+          ],
+          "wind_m_s": [
+            8.7292,
+            14.2171
+          ],
+          "era5_m_s": [
+            13.1882,
+            14.451
+          ]
+        },
+        {
+          "time_s": 1774896535.0,
+          "height_m": 774.1006,
+          "height_msl_m": 1189.3296,
+          "descent_m_s": 26.5847,
+          "ground_m_s": [
+            9.1975,
+            14.4185
+          ],
+          "ground_acceleration_m_s2": [
+            0.0736,
+            0.623
+          ],
+          "wind_m_s": [
+            9.397,
+            16.1074
+          ],
+          "era5_m_s": [
+            12.2174,
+            14.9194
+          ]
+        },
+        {
+          "time_s": 1774896536.0,
+          "height_m": 749.1679,
+          "height_msl_m": 1164.397,
+          "descent_m_s": 26.2898,
+          "ground_m_s": [
+            9.2988,
+            14.963
+          ],
+          "ground_acceleration_m_s2": [
+            0.1775,
+            0.5403
+          ],
+          "wind_m_s": [
+            9.7747,
+            16.4115
+          ],
+          "era5_m_s": [
+            11.922,
+            15.0619
+          ]
+        },
+        {
+          "time_s": 1774896537.0,
+          "height_m": 723.9914,
+          "height_msl_m": 1139.2205,
+          "descent_m_s": 26.1624,
+          "ground_m_s": [
+            9.5183,
+            15.4772
+          ],
+          "ground_acceleration_m_s2": [
+            0.2425,
+            0.393
+          ],
+          "wind_m_s": [
+            10.1651,
+            16.5257
+          ],
+          "era5_m_s": [
+            11.6238,
+            15.2057
+          ]
+        },
+        {
+          "time_s": 1774896538.0,
+          "height_m": 698.5406,
+          "height_msl_m": 1113.7697,
+          "descent_m_s": 26.1431,
+          "ground_m_s": [
+            9.7618,
+            15.8974
+          ],
+          "ground_acceleration_m_s2": [
+            0.2392,
+            0.3025
+          ],
+          "wind_m_s": [
+            10.3993,
+            16.7038
+          ],
+          "era5_m_s": [
+            11.3224,
+            15.3512
+          ]
+        },
+        {
+          "time_s": 1774896539.0,
+          "height_m": 672.3583,
+          "height_msl_m": 1087.5874,
+          "descent_m_s": 26.4205,
+          "ground_m_s": [
+            10.2946,
+            16.1893
+          ],
+          "ground_acceleration_m_s2": [
+            0.4317,
+            0.2416
+          ],
+          "wind_m_s": [
+            11.4576,
+            16.8403
+          ],
+          "era5_m_s": [
+            11.0123,
+            15.5008
+          ]
+        },
+        {
+          "time_s": 1774896540.0,
+          "height_m": 646.2674,
+          "height_msl_m": 1061.4965,
+          "descent_m_s": 26.796,
+          "ground_m_s": [
+            10.7049,
+            16.4285
+          ],
+          "ground_acceleration_m_s2": [
+            0.5106,
+            0.2506
+          ],
+          "wind_m_s": [
+            12.1,
+            17.1134
+          ],
+          "era5_m_s": [
+            10.7032,
+            15.6499
+          ]
+        },
+        {
+          "time_s": 1774896541.0,
+          "height_m": 618.6221,
+          "height_msl_m": 1033.8511,
+          "descent_m_s": 27.132,
+          "ground_m_s": [
+            11.2434,
+            16.7789
+          ],
+          "ground_acceleration_m_s2": [
+            0.6107,
+            0.2864
+          ],
+          "wind_m_s": [
+            12.9329,
+            17.5713
+          ],
+          "era5_m_s": [
+            10.3189,
+            15.4161
+          ]
+        },
+        {
+          "time_s": 1774896542.0,
+          "height_m": 590.8243,
+          "height_msl_m": 1006.0534,
+          "descent_m_s": 27.395,
+          "ground_m_s": [
+            11.669,
+            16.9551
+          ],
+          "ground_acceleration_m_s2": [
+            0.5802,
+            0.2788
+          ],
+          "wind_m_s": [
+            13.2897,
+            17.734
+          ],
+          "era5_m_s": [
+            9.9288,
+            15.1558
+          ]
+        },
+        {
+          "time_s": 1774896544.0,
+          "height_m": 535.1069,
+          "height_msl_m": 950.3359,
+          "descent_m_s": 27.7081,
+          "ground_m_s": [
+            12.5114,
+            17.4033
+          ],
+          "ground_acceleration_m_s2": [
+            0.342,
+            0.1727
+          ],
+          "wind_m_s": [
+            13.4777,
+            17.8914
+          ],
+          "era5_m_s": [
+            9.147,
+            14.634
+          ]
+        },
+        {
+          "time_s": 1774896546.0,
+          "height_m": 478.475,
+          "height_msl_m": 893.7041,
+          "descent_m_s": 27.349,
+          "ground_m_s": [
+            11.9824,
+            17.1902
+          ],
+          "ground_acceleration_m_s2": [
+            -0.428,
+            -0.1555
+          ],
+          "wind_m_s": [
+            10.7887,
+            16.7566
+          ],
+          "era5_m_s": [
+            8.3523,
+            14.1037
+          ]
+        },
+        {
+          "time_s": 1774896547.0,
+          "height_m": 451.6222,
+          "height_msl_m": 866.8512,
+          "descent_m_s": 27.13,
+          "ground_m_s": [
+            11.515,
+            17.1629
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6652,
+            -0.1701
+          ],
+          "wind_m_s": [
+            9.6749,
+            16.6924
+          ],
+          "era5_m_s": [
+            7.9755,
+            13.8523
+          ]
+        },
+        {
+          "time_s": 1774896548.0,
+          "height_m": 424.8302,
+          "height_msl_m": 840.0593,
+          "descent_m_s": 26.8436,
+          "ground_m_s": [
+            10.9527,
+            17.0534
+          ],
+          "ground_acceleration_m_s2": [
+            -0.9192,
+            -0.2189
+          ],
+          "wind_m_s": [
+            8.4367,
+            16.454
+          ],
+          "era5_m_s": [
+            7.5996,
+            13.6014
+          ]
+        },
+        {
+          "time_s": 1774896550.0,
+          "height_m": 375.1783,
+          "height_msl_m": 790.4074,
+          "descent_m_s": 26.3101,
+          "ground_m_s": [
+            9.0612,
+            16.4227
+          ],
+          "ground_acceleration_m_s2": [
+            -1.0669,
+            -0.2944
+          ],
+          "wind_m_s": [
+            6.1988,
+            15.6328
+          ],
+          "era5_m_s": [
+            6.7831,
+            12.8265
+          ]
+        },
+        {
+          "time_s": 1774896560.0,
+          "height_m": 201.5338,
+          "height_msl_m": 616.7628,
+          "descent_m_s": 6.9068,
+          "ground_m_s": [
+            7.902,
+            13.4752
+          ],
+          "ground_acceleration_m_s2": [
+            0.1302,
+            -0.7085
+          ],
+          "wind_m_s": [
+            7.9938,
+            12.9762
+          ],
+          "era5_m_s": [
+            3.8103,
+            9.8124
+          ]
+        },
+        {
+          "time_s": 1774896561.0,
+          "height_m": 195.8645,
+          "height_msl_m": 611.0935,
+          "descent_m_s": 6.7103,
+          "ground_m_s": [
+            7.4713,
+            12.9204
+          ],
+          "ground_acceleration_m_s2": [
+            -0.5653,
+            -0.9077
+          ],
+          "wind_m_s": [
+            7.0845,
+            12.2993
+          ],
+          "era5_m_s": [
+            3.7132,
+            9.714
+          ]
+        },
+        {
+          "time_s": 1774896562.0,
+          "height_m": 189.4942,
+          "height_msl_m": 604.7232,
+          "descent_m_s": 6.8375,
+          "ground_m_s": [
+            6.5335,
+            12.426
+          ],
+          "ground_acceleration_m_s2": [
+            -1.2564,
+            -0.9415
+          ],
+          "wind_m_s": [
+            5.6576,
+            11.7696
+          ],
+          "era5_m_s": [
+            3.6042,
+            9.6034
+          ]
+        },
+        {
+          "time_s": 1774896563.0,
+          "height_m": 182.7886,
+          "height_msl_m": 598.0176,
+          "descent_m_s": 6.884,
+          "ground_m_s": [
+            5.2494,
+            11.9517
+          ],
+          "ground_acceleration_m_s2": [
+            -1.7244,
+            -0.7787
+          ],
+          "wind_m_s": [
+            4.0389,
+            11.4051
+          ],
+          "era5_m_s": [
+            3.5314,
+            9.461
+          ]
+        },
+        {
+          "time_s": 1774896564.0,
+          "height_m": 176.2963,
+          "height_msl_m": 591.5254,
+          "descent_m_s": 6.94,
+          "ground_m_s": [
+            3.7455,
+            11.4471
+          ],
+          "ground_acceleration_m_s2": [
+            -1.9541,
+            -0.3651
+          ],
+          "wind_m_s": [
+            2.3626,
+            11.1887
+          ],
+          "era5_m_s": [
+            3.4629,
+            9.3218
+          ]
+        },
+        {
+          "time_s": 1774896565.0,
+          "height_m": 168.2496,
+          "height_msl_m": 583.4786,
+          "descent_m_s": 7.0351,
+          "ground_m_s": [
+            2.343,
+            11.1946
+          ],
+          "ground_acceleration_m_s2": [
+            -1.8719,
+            0.1908
+          ],
+          "wind_m_s": [
+            1.0001,
+            11.3315
+          ],
+          "era5_m_s": [
+            3.3779,
+            9.1494
+          ]
+        },
+        {
+          "time_s": 1774896566.0,
+          "height_m": 160.1419,
+          "height_msl_m": 575.371,
+          "descent_m_s": 7.1343,
+          "ground_m_s": [
+            1.1938,
+            11.3254
+          ],
+          "ground_acceleration_m_s2": [
+            -1.3087,
+            0.6228
+          ],
+          "wind_m_s": [
+            0.2417,
+            11.7784
+          ],
+          "era5_m_s": [
+            3.2924,
+            8.9756
+          ]
+        },
+        {
+          "time_s": 1774896567.0,
+          "height_m": 152.9486,
+          "height_msl_m": 568.1777,
+          "descent_m_s": 7.1481,
+          "ground_m_s": [
+            0.5093,
+            11.7084
+          ],
+          "ground_acceleration_m_s2": [
+            -0.362,
+            0.7161
+          ],
+          "wind_m_s": [
+            0.2455,
+            12.2303
+          ],
+          "era5_m_s": [
+            3.2165,
+            8.8215
+          ]
+        },
+        {
+          "time_s": 1774896568.0,
+          "height_m": 146.4869,
+          "height_msl_m": 561.7159,
+          "descent_m_s": 7.0969,
+          "ground_m_s": [
+            0.3656,
+            11.9503
+          ],
+          "ground_acceleration_m_s2": [
+            0.5805,
+            0.3388
+          ],
+          "wind_m_s": [
+            0.7857,
+            12.1955
+          ],
+          "era5_m_s": [
+            3.1483,
+            8.683
+          ]
+        },
+        {
+          "time_s": 1774896569.0,
+          "height_m": 139.7203,
+          "height_msl_m": 554.9494,
+          "descent_m_s": 7.0362,
+          "ground_m_s": [
+            0.6445,
+            11.7789
+          ],
+          "ground_acceleration_m_s2": [
+            1.0119,
+            -0.3669
+          ],
+          "wind_m_s": [
+            1.3705,
+            11.5157
+          ],
+          "era5_m_s": [
+            3.0769,
+            8.538
+          ]
+        },
+        {
+          "time_s": 1774896570.0,
+          "height_m": 132.649,
+          "height_msl_m": 547.878,
+          "descent_m_s": 6.9486,
+          "ground_m_s": [
+            1.0165,
+            11.1236
+          ],
+          "ground_acceleration_m_s2": [
+            0.843,
+            -0.9642
+          ],
+          "wind_m_s": [
+            1.6138,
+            10.4403
+          ],
+          "era5_m_s": [
+            3.0022,
+            8.3864
+          ]
+        },
+        {
+          "time_s": 1774896571.0,
+          "height_m": 125.2118,
+          "height_msl_m": 540.4409,
+          "descent_m_s": 6.9156,
+          "ground_m_s": [
+            1.1772,
+            10.2765
+          ],
+          "ground_acceleration_m_s2": [
+            0.2776,
+            -1.2281
+          ],
+          "wind_m_s": [
+            1.373,
+            9.4105
+          ],
+          "era5_m_s": [
+            2.9238,
+            8.2271
+          ]
+        },
+        {
+          "time_s": 1774896572.0,
+          "height_m": 118.6282,
+          "height_msl_m": 533.8572,
+          "descent_m_s": 6.9494,
+          "ground_m_s": [
+            1.0676,
+            9.5303
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3875,
+            -1.1869
+          ],
+          "wind_m_s": [
+            0.793,
+            8.6892
+          ],
+          "era5_m_s": [
+            2.8543,
+            8.086
+          ]
+        },
+        {
+          "time_s": 1774896573.0,
+          "height_m": 112.2578,
+          "height_msl_m": 527.4869,
+          "descent_m_s": 6.9996,
+          "ground_m_s": [
+            0.696,
+            8.8545
+          ],
+          "ground_acceleration_m_s2": [
+            -0.9291,
+            -0.9363
+          ],
+          "wind_m_s": [
+            0.0328,
+            8.1863
+          ],
+          "era5_m_s": [
+            2.7871,
+            7.9495
+          ]
+        },
+        {
+          "time_s": 1774896574.0,
+          "height_m": 105.0646,
+          "height_msl_m": 520.2936,
+          "descent_m_s": 7.019,
+          "ground_m_s": [
+            0.1554,
+            8.33
+          ],
+          "ground_acceleration_m_s2": [
+            -1.2369,
+            -0.4813
+          ],
+          "wind_m_s": [
+            -0.7299,
+            7.9855
+          ],
+          "era5_m_s": [
+            2.7112,
+            7.7953
+          ]
+        },
+        {
+          "time_s": 1774896575.0,
+          "height_m": 97.9018,
+          "height_msl_m": 513.1308,
+          "descent_m_s": 7.0301,
+          "ground_m_s": [
+            -0.6049,
+            8.0273
+          ],
+          "ground_acceleration_m_s2": [
+            -1.1677,
+            0.1341
+          ],
+          "wind_m_s": [
+            -1.442,
+            8.1234
+          ],
+          "era5_m_s": [
+            2.6356,
+            7.6418
+          ]
+        },
+        {
+          "time_s": 1774896576.0,
+          "height_m": 90.678,
+          "height_msl_m": 505.907,
+          "descent_m_s": 7.07,
+          "ground_m_s": [
+            -1.2724,
+            7.9766
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6458,
+            0.5816
+          ],
+          "wind_m_s": [
+            -1.7379,
+            8.3959
+          ],
+          "era5_m_s": [
+            2.5593,
+            7.487
+          ]
+        },
+        {
+          "time_s": 1774896577.0,
+          "height_m": 83.4238,
+          "height_msl_m": 498.6528,
+          "descent_m_s": 7.1689,
+          "ground_m_s": [
+            -1.5766,
+            8.1278
+          ],
+          "ground_acceleration_m_s2": [
+            0.1255,
+            0.6412
+          ],
+          "wind_m_s": [
+            -1.4849,
+            8.5966
+          ],
+          "era5_m_s": [
+            2.4828,
+            7.3315
+          ]
+        },
+        {
+          "time_s": 1774896578.0,
+          "height_m": 76.3524,
+          "height_msl_m": 491.5814,
+          "descent_m_s": 7.288,
+          "ground_m_s": [
+            -1.4077,
+            8.2287
+          ],
+          "ground_acceleration_m_s2": [
+            0.7582,
+            0.1708
+          ],
+          "wind_m_s": [
+            -0.8443,
+            8.3557
+          ],
+          "era5_m_s": [
+            2.4082,
+            7.18
+          ]
+        },
+        {
+          "time_s": 1774896579.0,
+          "height_m": 69.4639,
+          "height_msl_m": 484.693,
+          "descent_m_s": 7.3662,
+          "ground_m_s": [
+            -0.9092,
+            8.0675
+          ],
+          "ground_acceleration_m_s2": [
+            0.9598,
+            -0.491
+          ],
+          "wind_m_s": [
+            -0.1883,
+            7.6987
+          ],
+          "era5_m_s": [
+            2.3355,
+            7.0324
+          ]
+        },
+        {
+          "time_s": 1774896580.0,
+          "height_m": 62.3621,
+          "height_msl_m": 477.5911,
+          "descent_m_s": 7.441,
+          "ground_m_s": [
+            -0.3261,
+            7.5029
+          ],
+          "ground_acceleration_m_s2": [
+            0.7975,
+            -1.0185
+          ],
+          "wind_m_s": [
+            0.2789,
+            6.7301
+          ],
+          "era5_m_s": [
+            2.2605,
+            6.8802
+          ]
+        },
+        {
+          "time_s": 1774896581.0,
+          "height_m": 54.7421,
+          "height_msl_m": 469.9711,
+          "descent_m_s": 7.5189,
+          "ground_m_s": [
+            0.0289,
+            6.7064
+          ],
+          "ground_acceleration_m_s2": [
+            0.3512,
+            -1.197
+          ],
+          "wind_m_s": [
+            0.2982,
+            5.7886
+          ],
+          "era5_m_s": [
+            2.1801,
+            6.7169
+          ]
+        },
+        {
+          "time_s": 1774896582.0,
+          "height_m": 46.7868,
+          "height_msl_m": 462.0158,
+          "descent_m_s": 7.6017,
+          "ground_m_s": [
+            0.0629,
+            5.9098
+          ],
+          "ground_acceleration_m_s2": [
+            -0.1514,
+            -1.0705
+          ],
+          "wind_m_s": [
+            -0.0545,
+            5.08
+          ],
+          "era5_m_s": [
+            2.0962,
+            6.5464
+          ]
+        },
+        {
+          "time_s": 1774896583.0,
+          "height_m": 38.5572,
+          "height_msl_m": 453.7862,
+          "descent_m_s": 7.6674,
+          "ground_m_s": [
+            -0.2243,
+            5.4055
+          ],
+          "ground_acceleration_m_s2": [
+            -0.6324,
+            -0.6621
+          ],
+          "wind_m_s": [
+            -0.7187,
+            4.8879
+          ],
+          "era5_m_s": [
+            2.0093,
+            6.37
+          ]
+        },
+        {
+          "time_s": 1774896584.0,
+          "height_m": 31.0896,
+          "height_msl_m": 446.3186,
+          "descent_m_s": 7.6499,
+          "ground_m_s": [
+            -0.6466,
+            5.1432
+          ],
+          "ground_acceleration_m_s2": [
+            -0.8882,
+            -0.0571
+          ],
+          "wind_m_s": [
+            -1.3395,
+            5.0986
+          ],
+          "era5_m_s": [
+            1.9305,
+            6.21
+          ]
+        },
+        {
+          "time_s": 1774896585.0,
+          "height_m": 23.561,
+          "height_msl_m": 438.7901,
+          "descent_m_s": 7.3956,
+          "ground_m_s": [
+            -0.9929,
+            4.9817
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7734,
+            0.3979
+          ],
+          "wind_m_s": [
+            -1.5761,
+            5.2818
+          ],
+          "era5_m_s": [
+            1.8511,
+            6.0487
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rit-testbed-2",
+      "title": "Testbed 2, RIT Launch Initiative, 16 May 2026 (not flown by HPR Sim)",
+      "status": {
+        "NotCompared": "no ERA5 file of its day and site is committed"
+      },
+      "receiver": "the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude",
+      "day": "the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue Raven's summary dates the launch 7 April 2026, the day its firmware was built",
+      "fixes": 220,
+      "repeats": 29,
+      "longest_gap_s": 2.0,
+      "read": 33,
+      "heights_m": [
+        32.6746,
+        1032.1747
+      ],
+      "descent_m_s": [
+        7.9451,
+        27.5612
+      ],
+      "mean_lag_correction_m_s": 2.3163,
+      "outside_era5": 0,
+      "bands": [],
+      "samples": [
+        {
+          "time_s": 1778969464.0,
+          "height_m": 1032.1747,
+          "height_msl_m": 1304.4526,
+          "descent_m_s": 27.5612,
+          "ground_m_s": [
+            3.9195,
+            -5.3213
+          ],
+          "ground_acceleration_m_s2": [
+            0.7221,
+            4.2253
+          ],
+          "wind_m_s": [
+            5.9489,
+            6.5538
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969467.0,
+          "height_m": 949.9702,
+          "height_msl_m": 1222.248,
+          "descent_m_s": 26.5827,
+          "ground_m_s": [
+            4.269,
+            2.3254
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0554,
+            1.642
+          ],
+          "wind_m_s": [
+            4.1188,
+            6.7762
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969468.0,
+          "height_m": 923.9707,
+          "height_msl_m": 1196.2486,
+          "descent_m_s": 26.3796,
+          "ground_m_s": [
+            4.2392,
+            3.8304
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0211,
+            1.3597
+          ],
+          "wind_m_s": [
+            4.1826,
+            7.4878
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969469.0,
+          "height_m": 898.6723,
+          "height_msl_m": 1170.9502,
+          "descent_m_s": 26.235,
+          "ground_m_s": [
+            4.4999,
+            5.0626
+          ],
+          "ground_acceleration_m_s2": [
+            0.1069,
+            1.1525
+          ],
+          "wind_m_s": [
+            4.786,
+            8.1457
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969470.0,
+          "height_m": 874.776,
+          "height_msl_m": 1147.0538,
+          "descent_m_s": 26.2458,
+          "ground_m_s": [
+            4.85,
+            6.1635
+          ],
+          "ground_acceleration_m_s2": [
+            0.3075,
+            0.9686
+          ],
+          "wind_m_s": [
+            5.673,
+            8.7558
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969471.0,
+          "height_m": 848.929,
+          "height_msl_m": 1121.2068,
+          "descent_m_s": 26.3799,
+          "ground_m_s": [
+            5.215,
+            7.1332
+          ],
+          "ground_acceleration_m_s2": [
+            0.4393,
+            0.7718
+          ],
+          "wind_m_s": [
+            6.3967,
+            9.2092
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969472.0,
+          "height_m": 821.0398,
+          "height_msl_m": 1093.3176,
+          "descent_m_s": 26.4245,
+          "ground_m_s": [
+            5.5353,
+            7.921
+          ],
+          "ground_acceleration_m_s2": [
+            0.4718,
+            0.694
+          ],
+          "wind_m_s": [
+            6.8065,
+            9.7911
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969473.0,
+          "height_m": 793.2115,
+          "height_msl_m": 1065.4894,
+          "descent_m_s": 26.3333,
+          "ground_m_s": [
+            5.7513,
+            8.4966
+          ],
+          "ground_acceleration_m_s2": [
+            0.4813,
+            0.5775
+          ],
+          "wind_m_s": [
+            7.0438,
+            10.0473
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969474.0,
+          "height_m": 765.9624,
+          "height_msl_m": 1038.2402,
+          "descent_m_s": 26.146,
+          "ground_m_s": [
+            6.012,
+            9.0723
+          ],
+          "ground_acceleration_m_s2": [
+            0.4068,
+            0.5282
+          ],
+          "wind_m_s": [
+            7.0967,
+            10.4806
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969477.0,
+          "height_m": 688.2994,
+          "height_msl_m": 960.5772,
+          "descent_m_s": 25.4447,
+          "ground_m_s": [
+            5.386,
+            10.3951
+          ],
+          "ground_acceleration_m_s2": [
+            -0.9265,
+            0.3392
+          ],
+          "wind_m_s": [
+            2.9821,
+            11.2752
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969478.0,
+          "height_m": 665.287,
+          "height_msl_m": 937.5648,
+          "descent_m_s": 25.394,
+          "ground_m_s": [
+            4.3952,
+            10.5264
+          ],
+          "ground_acceleration_m_s2": [
+            -1.2188,
+            0.1035
+          ],
+          "wind_m_s": [
+            1.2392,
+            10.7944
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969479.0,
+          "height_m": 641.665,
+          "height_msl_m": 913.9428,
+          "descent_m_s": 25.4126,
+          "ground_m_s": [
+            3.3224,
+            10.4354
+          ],
+          "ground_acceleration_m_s2": [
+            -1.2111,
+            -0.1425
+          ],
+          "wind_m_s": [
+            0.1839,
+            10.0661
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969480.0,
+          "height_m": 616.3666,
+          "height_msl_m": 888.6444,
+          "descent_m_s": 25.4594,
+          "ground_m_s": [
+            2.3911,
+            10.1323
+          ],
+          "ground_acceleration_m_s2": [
+            -1.0716,
+            -0.3911
+          ],
+          "wind_m_s": [
+            -0.391,
+            9.1169
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969481.0,
+          "height_m": 590.1233,
+          "height_msl_m": 862.4011,
+          "descent_m_s": 25.6013,
+          "ground_m_s": [
+            1.7802,
+            9.7989
+          ],
+          "ground_acceleration_m_s2": [
+            -0.7278,
+            -0.5284
+          ],
+          "wind_m_s": [
+            -0.1198,
+            8.4195
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969482.0,
+          "height_m": 561.7769,
+          "height_msl_m": 834.0547,
+          "descent_m_s": 25.8348,
+          "ground_m_s": [
+            1.512,
+            9.3948
+          ],
+          "ground_acceleration_m_s2": [
+            -0.1968,
+            -0.5802
+          ],
+          "wind_m_s": [
+            0.9936,
+            7.8664
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969483.0,
+          "height_m": 534.8935,
+          "height_msl_m": 807.1714,
+          "descent_m_s": 26.0283,
+          "ground_m_s": [
+            1.5492,
+            9.0009
+          ],
+          "ground_acceleration_m_s2": [
+            0.3935,
+            -0.5828
+          ],
+          "wind_m_s": [
+            2.5935,
+            7.4541
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969484.0,
+          "height_m": 509.5342,
+          "height_msl_m": 781.812,
+          "descent_m_s": 26.0809,
+          "ground_m_s": [
+            1.7801,
+            8.5766
+          ],
+          "ground_acceleration_m_s2": [
+            0.8003,
+            -0.3756
+          ],
+          "wind_m_s": [
+            3.9086,
+            7.5777
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969485.0,
+          "height_m": 484.8758,
+          "height_msl_m": 757.1537,
+          "descent_m_s": 25.9401,
+          "ground_m_s": [
+            2.2345,
+            8.2533
+          ],
+          "ground_acceleration_m_s2": [
+            0.8404,
+            -0.1839
+          ],
+          "wind_m_s": [
+            4.4576,
+            7.7668
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969486.0,
+          "height_m": 459.3031,
+          "height_msl_m": 731.581,
+          "descent_m_s": 25.6697,
+          "ground_m_s": [
+            2.7262,
+            8.0614
+          ],
+          "ground_acceleration_m_s2": [
+            0.638,
+            0.0362
+          ],
+          "wind_m_s": [
+            4.3961,
+            8.1561
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969487.0,
+          "height_m": 432.5722,
+          "height_msl_m": 704.85,
+          "descent_m_s": 25.3297,
+          "ground_m_s": [
+            3.2402,
+            7.9805
+          ],
+          "ground_acceleration_m_s2": [
+            0.3304,
+            0.0673
+          ],
+          "wind_m_s": [
+            4.0936,
+            8.1542
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969488.0,
+          "height_m": 406.7251,
+          "height_msl_m": 679.003,
+          "descent_m_s": 25.0338,
+          "ground_m_s": [
+            3.5009,
+            7.8895
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0229,
+            -0.0648
+          ],
+          "wind_m_s": [
+            3.4423,
+            7.724
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969489.0,
+          "height_m": 381.1219,
+          "height_msl_m": 653.3998,
+          "descent_m_s": 24.8373,
+          "ground_m_s": [
+            3.5157,
+            7.7581
+          ],
+          "ground_acceleration_m_s2": [
+            -0.256,
+            -0.1917
+          ],
+          "wind_m_s": [
+            2.8674,
+            7.2726
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969490.0,
+          "height_m": 356.8903,
+          "height_msl_m": 629.1682,
+          "descent_m_s": 24.6979,
+          "ground_m_s": [
+            3.3444,
+            7.546
+          ],
+          "ground_acceleration_m_s2": [
+            -0.4107,
+            -0.3341
+          ],
+          "wind_m_s": [
+            2.31,
+            6.7044
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969491.0,
+          "height_m": 333.1464,
+          "height_msl_m": 605.4242,
+          "descent_m_s": 24.5151,
+          "ground_m_s": [
+            3.0538,
+            7.0106
+          ],
+          "ground_acceleration_m_s2": [
+            -0.3324,
+            -0.5439
+          ],
+          "wind_m_s": [
+            2.2229,
+            5.651
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969492.0,
+          "height_m": 309.5244,
+          "height_msl_m": 581.8022,
+          "descent_m_s": 24.4247,
+          "ground_m_s": [
+            2.8005,
+            6.2733
+          ],
+          "ground_acceleration_m_s2": [
+            -0.1528,
+            -0.8417
+          ],
+          "wind_m_s": [
+            2.4199,
+            4.1769
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969493.0,
+          "height_m": 286.451,
+          "height_msl_m": 558.7289,
+          "descent_m_s": 24.5489,
+          "ground_m_s": [
+            2.8675,
+            5.4047
+          ],
+          "ground_acceleration_m_s2": [
+            0.1509,
+            -1.0385
+          ],
+          "wind_m_s": [
+            3.2452,
+            2.8051
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969494.0,
+          "height_m": 261.4574,
+          "height_msl_m": 533.7353,
+          "descent_m_s": 24.7866,
+          "ground_m_s": [
+            3.2772,
+            4.5664
+          ],
+          "ground_acceleration_m_s2": [
+            0.4469,
+            -1.0048
+          ],
+          "wind_m_s": [
+            4.4068,
+            2.0267
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969495.0,
+          "height_m": 235.9457,
+          "height_msl_m": 508.2235,
+          "descent_m_s": 24.921,
+          "ground_m_s": [
+            3.6869,
+            3.7584
+          ],
+          "ground_acceleration_m_s2": [
+            0.5711,
+            -0.9116
+          ],
+          "wind_m_s": [
+            5.1382,
+            1.4419
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969496.0,
+          "height_m": 211.775,
+          "height_msl_m": 484.0529,
+          "descent_m_s": 24.466,
+          "ground_m_s": [
+            4.0072,
+            2.9908
+          ],
+          "ground_acceleration_m_s2": [
+            0.5463,
+            -0.7251
+          ],
+          "wind_m_s": [
+            5.37,
+            1.1817
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969505.0,
+          "height_m": 58.0949,
+          "height_msl_m": 330.3727,
+          "descent_m_s": 9.1669,
+          "ground_m_s": [
+            1.4095,
+            2.5295
+          ],
+          "ground_acceleration_m_s2": [
+            -0.329,
+            -0.1263
+          ],
+          "wind_m_s": [
+            1.102,
+            2.4115
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969506.0,
+          "height_m": 50.292,
+          "height_msl_m": 322.5698,
+          "descent_m_s": 8.89,
+          "ground_m_s": [
+            1.2644,
+            2.4039
+          ],
+          "ground_acceleration_m_s2": [
+            -0.1735,
+            -0.092
+          ],
+          "wind_m_s": [
+            1.1071,
+            2.3205
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969507.0,
+          "height_m": 41.4528,
+          "height_msl_m": 313.7306,
+          "descent_m_s": 8.4923,
+          "ground_m_s": [
+            1.108,
+            2.1139
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0934,
+            0.042
+          ],
+          "wind_m_s": [
+            1.0271,
+            2.1503
+          ],
+          "era5_m_s": null
+        },
+        {
+          "time_s": 1778969508.0,
+          "height_m": 32.6746,
+          "height_msl_m": 304.9524,
+          "descent_m_s": 7.9451,
+          "ground_m_s": [
+            0.9784,
+            2.076
+          ],
+          "ground_acceleration_m_s2": [
+            -0.0155,
+            -0.1517
+          ],
+          "wind_m_s": [
+            0.9658,
+            1.9531
+          ],
+          "era5_m_s": null
+        }
+      ]
     }
   ],
   "bands": [
     {
       "label": "below 500",
-      "flights": 3,
-      "samples": 115,
-      "mean_speed_difference_m_s": 0.9972,
-      "rms_speed_difference_m_s": 2.3494,
-      "rms_vector_difference_m_s": 2.7536
+      "flights": 4,
+      "samples": 145,
+      "mean_speed_difference_m_s": 1.0443,
+      "rms_speed_difference_m_s": 2.3038,
+      "rms_vector_difference_m_s": 2.8879
     },
     {
       "label": "500 to 1,000",
-      "flights": 4,
-      "samples": 351,
-      "mean_speed_difference_m_s": -1.1197,
-      "rms_speed_difference_m_s": 3.398,
-      "rms_vector_difference_m_s": 4.9211
+      "flights": 5,
+      "samples": 366,
+      "mean_speed_difference_m_s": -1.0845,
+      "rms_speed_difference_m_s": 3.3798,
+      "rms_vector_difference_m_s": 4.8776
     },
     {
       "label": "1,000 to 2,000",
-      "flights": 3,
-      "samples": 963,
-      "mean_speed_difference_m_s": -1.1344,
-      "rms_speed_difference_m_s": 3.3821,
-      "rms_vector_difference_m_s": 4.5505
+      "flights": 4,
+      "samples": 990,
+      "mean_speed_difference_m_s": -1.0668,
+      "rms_speed_difference_m_s": 3.392,
+      "rms_vector_difference_m_s": 4.5454
     },
     {
       "label": "2,000 to 3,000",
-      "flights": 3,
-      "samples": 829,
-      "mean_speed_difference_m_s": -1.1034,
-      "rms_speed_difference_m_s": 4.0268,
-      "rms_vector_difference_m_s": 5.462
+      "flights": 4,
+      "samples": 853,
+      "mean_speed_difference_m_s": -1.0846,
+      "rms_speed_difference_m_s": 4.0278,
+      "rms_vector_difference_m_s": 5.4741
     },
     {
       "label": "3,000 and up",
@@ -6062,11 +8901,11 @@
   ],
   "all": {
     "label": "all",
-    "flights": 4,
-    "samples": 2462,
-    "mean_speed_difference_m_s": -0.8699,
-    "rms_speed_difference_m_s": 3.503,
-    "rms_vector_difference_m_s": 4.8773
+    "flights": 5,
+    "samples": 2558,
+    "mean_speed_difference_m_s": -0.8143,
+    "rms_speed_difference_m_s": 3.4949,
+    "rms_vector_difference_m_s": 4.8614
   },
   "receivers": [
     {

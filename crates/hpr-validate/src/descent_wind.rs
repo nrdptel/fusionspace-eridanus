@@ -3,21 +3,24 @@
 //! `validation/reports/descent-wind.json` and `.md`.
 //!
 //! - **The flights** ([`required_ids`] and the report's table) are every public flight HPR Sim
-//!   flies or predicts, and RocketPy's other example logs: the seven the real-flights report
-//!   flies, the five public flights predicted before their logs were compared, and four more
-//!   public example logs in RocketPy's checkout whose rockets HPR Sim doesn't fly (Camões,
-//!   Halcyon, Hedy, Valkyrie). The wind needs no motor, so each with a position is read. Each is
-//!   listed: read, with its receiver, or not, with the reason.
-//! - **Not read yet:** two public team logs in the [public-flights note][note] with GPS fixes in
-//!   the descent, Hyperion-II's and UTRGV's ([issue #1605][i1605]); the report says so.
+//!   flies or predicts, RocketPy's other example logs, and the public team logs with GPS fixes in
+//!   the descent: the seven the real-flights report flies, the five public flights predicted
+//!   before their logs were compared, four more public example logs in RocketPy's checkout whose
+//!   rockets HPR Sim doesn't fly (Camões, Halcyon, Hedy, Valkyrie), and three team logs read from
+//!   their own pinned MIT repositories ([issue #1605][i1605]): Hyperion-II's, from the
+//!   [public-flights note][note], UTRGV's Itzamna and RIT's Testbed 2. The wind needs no motor,
+//!   so each with a position is read. Each is listed: read, with its receiver, or not, with the
+//!   reason.
 //! - **The reconstruction** is [`hpr_flightdata::descent_wind`] at its default settings.
 //! - **ERA5** is read at the launch site and hour as HPR Sim reads a sounding
 //!   ([`real_flight::launch_day`]): for a flight the real-flights report flies, its file and
-//!   hour; for the other example logs, the file and hour their notebooks give. It is
+//!   hour; for the other example logs, the file and hour their notebooks give; for a team log, a
+//!   cut of ERA5 at its site and hour committed under `validation/fixtures/weather/era5/`
+//!   (`validation/oracles/netcdf/descent_wind_era5.py`). It is
 //!   interpolated by components to each fix's height above sea level, as read from the log. A
 //!   flight with no ERA5 file of its day is reconstructed and not compared.
 //! - **What is committed.** Each compared flight's sums by height band, from which CI recomputes
-//!   the pooled bands. Each fix's wind is committed only for logs read whole from RocketPy's MIT
+//!   the pooled bands. Each fix's wind is committed only for logs read whole from an MIT
 //!   repository: the EuRoC logs of CATS's flight computers give statistics only, since CATS
 //!   publishes EuRoC logs under GPL-3.0 and three of RocketPy's copies are files of
 //!   RocketPy-Team's GPL-3.0 fork of its 2023 repository (`THIRD-PARTY-NOTICES.md`,
@@ -27,10 +30,10 @@
 //!   between two receivers, not the method's error, since a lag model's error or a motion both
 //!   receivers share cancels in their difference.
 //!
-//! The logs and ERA5 files are read from the pinned RocketPy checkout under the gitignored
-//! `refs/`, so the report is regenerated and checked where that checkout is (the gate's `refs`
-//! step). CI, without it, recomputes the bands from the committed sums and the page from the
-//! committed report (`hpr_validate::tests`).
+//! The logs are read from the pinned checkouts under the gitignored `refs/` (RocketPy's, and the
+//! team repositories' under `refs/public-flights/`), so the report is regenerated and checked
+//! where those checkouts are (the gate's `refs` step). CI, without them, recomputes the bands
+//! from the committed sums and the page from the committed report (`hpr_validate::tests`).
 //!
 //! [m1-14b6]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b6
 //! [note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-flights.md
@@ -115,7 +118,10 @@ pub(crate) enum NewFix {
 pub(crate) struct Track {
     /// The receiver, in words.
     receiver: &'static str,
-    /// The CSV file, under `refs/rocketpy/data/rockets/`.
+    /// The directory the files are in, from the repository's root: a pinned checkout under the
+    /// gitignored `refs/`.
+    dir: &'static str,
+    /// The CSV file, under `dir`.
     file: &'static str,
     /// The column of time, s (zero-based).
     time_column: usize,
@@ -160,6 +166,16 @@ pub(crate) enum Day {
         weather: &'static str,
         source: &'static str,
     },
+    /// A public team log HPR Sim doesn't fly, read from the team's own pinned repository: the site
+    /// (latitude and longitude, degrees; elevation, m) and the launch hour in UTC, from its logs
+    /// (the source line says which), and the ERA5 file of that hour committed under
+    /// `validation/fixtures/weather/era5/`, where one is.
+    TeamLog {
+        site: (f64, f64, f64),
+        utc: (i32, u32, u32, u32),
+        weather: Option<&'static str>,
+        source: &'static str,
+    },
 }
 
 /// One public flight.
@@ -174,8 +190,34 @@ pub(crate) struct Public {
     not_compared: Option<&'static str>,
 }
 
+/// RocketPy's example logs, in its pinned checkout ([`ROCKETPY`]).
+const ROCKETPY_ROCKETS: &str = "refs/rocketpy/data/rockets";
+
+/// The pinned checkouts of the public team repositories (`validation/refs.lock.toml`).
+const HYPERION_II: &str = "refs/public-flights/hyperion-ii/flight-data";
+const ITZAMNA: &str = "refs/public-flights/rl-rocketpy-notebook/data/Lonestar_2026_Itzamina";
+const TESTBED_2: &str = "refs/public-flights/rit-flight-data/2026/Testbed/Testbed2/flight";
+
+/// A Featherweight GPS tracker's CSV: its `UNIXTIME` clock, latitude and longitude, and the
+/// receiver's altitude in feet above sea level.
+const fn featherweight(receiver: &'static str, dir: &'static str, file: &'static str) -> Track {
+    Track {
+        receiver,
+        dir,
+        file,
+        time_column: 1,
+        position_columns: [3, 4],
+        height: Height::Gnss {
+            column: 2,
+            meters_per_unit: 0.3048,
+        },
+        new_fix: NewFix::PositionChanges,
+    }
+}
+
 const TELEMETRUM: Track = Track {
     receiver: "the TeleMetrum's GPS (Altus Metrum), 1 fix a second",
+    dir: ROCKETPY_ROCKETS,
     file: "prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
     time_column: 4,
     position_columns: [19, 20],
@@ -191,6 +233,7 @@ const TELEMETRUM: Track = Track {
 
 const TELEMEGA: Track = Track {
     receiver: "the TeleMega's GPS (Altus Metrum), 1 fix a second",
+    dir: ROCKETPY_ROCKETS,
     file: "prometheus/2022-06-24-serial-6583-flight-0003-TeleMega.csv",
     time_column: 4,
     position_columns: [34, 35],
@@ -209,6 +252,7 @@ const TELEMEGA: Track = Track {
 const fn cats(receiver: &'static str, gnss: &'static str, heights: &'static str) -> Track {
     Track {
         receiver,
+        dir: ROCKETPY_ROCKETS,
         file: gnss,
         time_column: 0,
         position_columns: [1, 2],
@@ -249,6 +293,27 @@ const HEDY: Track = cats(
     "hedy/cats_tust/filteredDataInfo.csv",
 );
 
+const HYPERION_II_TELEMEGA: Track = Track {
+    receiver: "the TeleMega's GPS (Altus Metrum), 1 fix a second",
+    dir: HYPERION_II,
+    file: "2025-08-21_redundant_telemega.csv",
+    ..TELEMEGA
+};
+
+const ITZAMNA_GPS: Track = featherweight(
+    "the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, \
+     longitude and the receiver's altitude",
+    ITZAMNA,
+    "UTRGV GPS _03-29-2026_08_47_14.csv",
+);
+
+const TESTBED_2_GPS: Track = featherweight(
+    "the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the \
+     receiver's altitude",
+    TESTBED_2,
+    "featherweight/data.csv",
+);
+
 const MACIE_XL: &str = "its logs hold heights, speeds and accelerations, no position; the \
                         positions in the OpenRocket file beside them are a simulation's";
 
@@ -256,8 +321,8 @@ const PREDICTED_NOT_COMPARED: &str = "the public predictions' weather, EuRoC 202
                                       ERA5 file, is not read here";
 
 /// The report's flights, in its order: the real-flights report's, the predictions', then the
-/// example logs HPR Sim doesn't fly.
-pub(crate) const PUBLIC: [Public; 16] = [
+/// example logs HPR Sim doesn't fly, then the public team logs read from their own repositories.
+pub(crate) const PUBLIC: [Public; 19] = [
     Public {
         id: "bella-lui",
         title: "",
@@ -297,6 +362,7 @@ pub(crate) const PUBLIC: [Public; 16] = [
                 receiver: "the COTS GNSS log (`cots_GNSS.csv`), 1 fix a second in the descent; \
                            the team's own telemetry, which the README calls possibly noisy, is \
                            not read",
+                dir: ROCKETPY_ROCKETS,
                 file: "juno3/cots_GNSS.csv",
                 time_column: 0,
                 position_columns: [4, 5],
@@ -320,6 +386,7 @@ pub(crate) const PUBLIC: [Public; 16] = [
                 receiver: "the CATS Vega's radio telemetry: latitude and longitude sent to four \
                            decimals (about 11 m north and 9 m east), height from its barometric \
                            filter",
+                dir: ROCKETPY_ROCKETS,
                 file: "polito/altimeter_cavour.csv",
                 time_column: 0,
                 position_columns: [3, 4],
@@ -364,6 +431,7 @@ pub(crate) const PUBLIC: [Public; 16] = [
                 receiver: "the flight log (`flight_data.csv`): latitude and longitude to four \
                            decimals about once a second; height from its `alt` column, read as \
                            barometric above the pad",
+                dir: ROCKETPY_ROCKETS,
                 file: "astra/flight_data.csv",
                 time_column: 0,
                 position_columns: [2, 3],
@@ -468,6 +536,62 @@ pub(crate) const PUBLIC: [Public; 16] = [
         title: "Valkyrie, 2025 (not flown by HPR Sim)",
         day: Day::LogOnly,
         source: Source::None("its log holds a height only, no position"),
+        not_compared: None,
+    },
+    Public {
+        id: "hyperion-ii",
+        title: "Hyperion-II, 21 August 2025 (not flown by HPR Sim)",
+        day: Day::TeamLog {
+            site: (47.986_866_8, -81.848_480_8, 368.0),
+            utc: (2025, 8, 21, 18),
+            weather: None,
+            source: "the TeleMega's first GPS fix: 18:11:46 UTC, on the pad",
+        },
+        source: Source::Gps {
+            track: &HYPERION_II_TELEMEGA,
+            second: None,
+            publish_fixes: true,
+        },
+        not_compared: None,
+    },
+    Public {
+        id: "itzamna",
+        title: "Itzamna, UTRGV, March 2026 (not flown by HPR Sim)",
+        day: Day::TeamLog {
+            site: (33.498_17, -99.334_35, 415.1),
+            utc: (2026, 3, 29, 14),
+            weather: Some("validation/fixtures/weather/era5/descent-wind-itzamna.nc"),
+            source: "the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is \
+                     apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, \
+                     08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa \
+                     on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's \
+                     own flight computer (FLGT0023) on the pad (the ERA5 record, \
+                     `descent-wind-era5.json`)",
+        },
+        source: Source::Gps {
+            track: &ITZAMNA_GPS,
+            second: None,
+            publish_fixes: true,
+        },
+        not_compared: None,
+    },
+    Public {
+        id: "rit-testbed-2",
+        title: "Testbed 2, RIT Launch Initiative, 16 May 2026 (not flown by HPR Sim)",
+        day: Day::TeamLog {
+            site: (42.704_39, -77.193_76, 272.2),
+            utc: (2026, 5, 16, 18),
+            weather: None,
+            source: "the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is \
+                     apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue \
+                     Raven's summary dates the launch 7 April 2026, the day its firmware was \
+                     built",
+        },
+        source: Source::Gps {
+            track: &TESTBED_2_GPS,
+            second: None,
+            publish_fixes: true,
+        },
         not_compared: None,
     },
 ];
@@ -690,7 +814,7 @@ struct Fix {
 
 /// A track's fixes, in time order, each new, and the rows dropped as repeats.
 fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<(Vec<Fix>, usize), String> {
-    let path = format!("{ROCKETPY}/data/rockets/{}", track.file);
+    let path = format!("{}/{}", track.dir, track.file);
     let bytes = read_bytes(root, &path, "a GPS track").map_err(|e| e.to_string())?;
     let text = String::from_utf8_lossy(&bytes);
     let barometric = match track.height {
@@ -699,7 +823,7 @@ fn fixes(root: &Path, track: &Track, elevation_m: f64) -> Result<(Vec<Fix>, usiz
             time_column,
             height_column,
         } => {
-            let path = format!("{ROCKETPY}/data/rockets/{file}");
+            let path = format!("{}/{file}", track.dir);
             let bytes =
                 read_bytes(root, &path, "a barometric height").map_err(|e| e.to_string())?;
             Some(series(
@@ -927,9 +1051,23 @@ fn era5_wind(
         Day::Notebook {
             site, utc, weather, ..
         } => (site, utc, weather),
+        Day::TeamLog { weather: None, .. } => {
+            return Ok(Err(
+                "no ERA5 file of its day and site is committed".to_owned()
+            ));
+        }
+        Day::TeamLog {
+            site,
+            utc,
+            weather: Some(weather),
+            ..
+        } => (site, utc, weather),
         Day::LogOnly => return Ok(Err("its log holds no position".to_owned())),
     };
-    let weather_path = format!("{ROCKETPY}/data/weather/{weather}");
+    let weather_path = match public.day {
+        Day::TeamLog { .. } => weather.to_owned(),
+        _ => format!("{ROCKETPY}/data/weather/{weather}"),
+    };
     let bytes = read_bytes(root, &weather_path, "an ERA5 file").map_err(|e| e.to_string())?;
     let (_, sounding) = real_flight::launch_day_at(public.id, site, utc, &weather_path, &bytes)
         .map_err(|e| e.to_string())?;
@@ -959,7 +1097,9 @@ fn title_and_elevation(public: &Public) -> Result<(String, f64), String> {
                 .map(|f| (f.title.to_owned(), 0.0))
                 .ok_or_else(|| format!("`{}` is not among the public predictions", public.id))
         }
-        Day::Notebook { site, .. } => Ok((public.title.to_owned(), site.2)),
+        Day::Notebook { site, .. } | Day::TeamLog { site, .. } => {
+            Ok((public.title.to_owned(), site.2))
+        }
         // A log with no position is never read, so its site's elevation is never used.
         Day::LogOnly => Ok((public.title.to_owned(), 0.0)),
     }
@@ -974,7 +1114,7 @@ fn entry(root: &Path, public: &Public) -> Result<FlightEntry, String> {
         status: Status::Compared,
         receiver: String::new(),
         day: match public.day {
-            Day::Notebook { source, .. } => source.to_owned(),
+            Day::Notebook { source, .. } | Day::TeamLog { source, .. } => source.to_owned(),
             _ => String::new(),
         },
         fixes: 0,
@@ -1459,12 +1599,16 @@ impl DescentWindReport {
              - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three \
              of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 \
              repository, so the logs of its flight computers give statistics here, not rows.\n\
-             - **Two public team logs.** Hyperion-II's and UTRGV's, in the project's \
-             public-flights note, hold GPS fixes in the descent and are not read yet (issue \
-             #1605), so the report is short of every public flight with a GPS track of the \
-             descent."
+             - **Logs not found.** The team logs are those a search of public \
+             repositories found with GPS fixes in the descent; a log not published, or not \
+             found, is not here."
         );
-        let _ = writeln!(md, "\n## Sources\n\n{ERA5_CREDIT}");
+        let _ = writeln!(
+            md,
+            "\n## Sources\n\n{ERA5_CREDIT} Itzamna's is read from the cut committed at \
+             `validation/fixtures/weather/era5/descent-wind-itzamna.nc`, made from a Climate \
+             Data Store download by `validation/oracles/netcdf/descent_wind_era5.py`."
+        );
         md
     }
 

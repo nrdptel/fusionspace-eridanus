@@ -2,7 +2,7 @@
 
 Written by `cargo xtask descent-wind` (M1.14b6); don't edit it by hand. The wind is reconstructed from each public flight's GPS track of its descent as the ground velocity plus `w/g` times its rate of change, `w` the descent rate (Hock and Franklin 1999; [the method](../../docs/physics/wind.md#wind-from-a-gps-tracked-descent)). It is set beside ERA5's wind at each fix's height above sea level, read at the launch site and hour. A fix is one position the receiver reported.
 
-**4 public flights compared.** The differences below hold ERA5's miss at the field and whatever the canopy did, which nothing here tells apart.
+**5 public flights compared.** The differences below hold ERA5's miss at the field and whatever the canopy did, which nothing here tells apart.
 
 **Settings.** A quadratic in time fitted over 10 s around each fix, at least 5 fixes reaching a quarter of the window on each side. A fix is read where the body falls at 2 to 35 m/s with a vertical acceleration of at most 0.5 m/s². `g` = 9.80665 m/s².
 
@@ -28,6 +28,9 @@ Repeats are rows dropped as a repeat of the fix before; read fixes are those rea
 | Halcyon, EuRoC 2023 (the team's own motor, not flown by HPR Sim) (`halcyon`) | compared | 2012 | 44 | 6.5 | 1951 | 623 to 3336 | 3.9 to 5.4 | 0.38 | -1.46 | 5.07 |
 | Hedy, EuRoC 2025 (the team's own motor, not flown by HPR Sim) (`hedy`) | not compared: its ERA5 file is netCDF-4, which HPR Sim reads only through a converted copy checked against the source, as EuRoC 2022's is; no such copy is made for this file yet | 154 | 234 | 68.0 | 94 | 126 to 3310 | 20.8 to 26.4 | 0.56 |  |  |
 | Valkyrie, 2025 (not flown by HPR Sim) (`valkyrie`) | not run: its log holds a height only, no position |  |  |  |  |  |  |  |  |  |
+| Hyperion-II, 21 August 2025 (not flown by HPR Sim) (`hyperion-ii`) | not run: no fix falls steadily inside the settings: the median descent rate the fitted windows give is 85 m/s, past the 35 m/s the method is held to | 79 | 3339 | 1.0 | 0 |  |  |  |  |  |
+| Itzamna, UTRGV, March 2026 (not flown by HPR Sim) (`itzamna`) | compared | 380 | 27 | 3.0 | 96 | 24 to 2731 | 6.7 to 31.3 | 1.92 | +0.61 | 4.43 |
+| Testbed 2, RIT Launch Initiative, 16 May 2026 (not flown by HPR Sim) (`rit-testbed-2`) | not compared: no ERA5 file of its day and site is committed | 220 | 29 | 2.0 | 33 | 33 to 1032 | 7.9 to 27.6 | 2.32 |  |  |
 
 The receivers read:
 
@@ -39,6 +42,9 @@ The receivers read:
 - `camoes`: the CATS flight computer's GNSS log (`gnss_flight.csv`): latitude and longitude; height from its barometric filter (`flight_data.csv`). Its site and hour: camoes_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1.
 - `halcyon`: the CATS flight computer's GNSS log (`gnss_halcyon.csv`): latitude and longitude; height from its barometric filter (`altimeter_halcyon.csv`). Its site and hour: halcyon_flight_sim.ipynb's environment: 14:00 Portugal time, UTC+1.
 - `hedy`: the CATS flight computer's GNSS log (`gnssInfo.csv`): latitude and longitude; height from its barometric filter (`filteredDataInfo.csv`). Its site and hour: hedy_flight_sim.ipynb's environment: 16:00 UTC, and the site's elevation as the notebook prints it.
+- `hyperion-ii`: the TeleMega's GPS (Altus Metrum), 1 fix a second. Its site and hour: the TeleMega's first GPS fix: 18:11:46 UTC, on the pad.
+- `itzamna`: the Featherweight GPS tracker's log (`UTRGV GPS _03-29-2026_08_47_14.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log: launch detected at 13:47:13.6 UTC (its summary's 13:47:36 is apogee), the pad at 1,362 ft. It dates the launch 30 March; the Blue Raven's summary gives 29 March, 08:47:13 local, and so does ERA5's pressure at the pad's height, 97,139.1 Pa on the 29th and 96,712.5 Pa on the 30th against the 97,119 Pa of the team's own flight computer (FLGT0023) on the pad (the ERA5 record, `descent-wind-era5.json`).
+- `rit-testbed-2`: the Featherweight GPS tracker's log (`featherweight/data.csv`): latitude, longitude and the receiver's altitude. Its site and hour: the GPS log: launch detected at 18:10:42.2 UTC (its summary's 18:10:57 is apogee), the pad at 893 ft. The date is the GPS log's alone: the Blue Raven's summary dates the launch 7 April 2026, the day its firmware was built.
 
 ## Reconstructed less ERA5, by height band
 
@@ -46,12 +52,12 @@ Over the compared flights. A difference in speed is the reconstructed wind's spe
 
 | Band (m above the pad) | Flights | Fixes | Mean speed difference (m/s) | RMS speed difference (m/s) | RMS vector difference (m/s) |
 |---|---|---|---|---|---|
-| below 500 | 3 | 115 | +1.00 | 2.35 | 2.75 |
-| 500 to 1,000 | 4 | 351 | -1.12 | 3.40 | 4.92 |
-| 1,000 to 2,000 | 3 | 963 | -1.13 | 3.38 | 4.55 |
-| 2,000 to 3,000 | 3 | 829 | -1.10 | 4.03 | 5.46 |
+| below 500 | 4 | 145 | +1.04 | 2.30 | 2.89 |
+| 500 to 1,000 | 5 | 366 | -1.08 | 3.38 | 4.88 |
+| 1,000 to 2,000 | 4 | 990 | -1.07 | 3.39 | 4.55 |
+| 2,000 to 3,000 | 4 | 853 | -1.08 | 4.03 | 5.47 |
 | 3,000 and up | 2 | 204 | +0.70 | 2.29 | 4.71 |
-| all | 4 | 2462 | -0.87 | 3.50 | 4.88 |
+| all | 5 | 2558 | -0.81 | 3.49 | 4.86 |
 
 ## Two receivers on one rocket
 
@@ -65,8 +71,8 @@ Each receiver's track is reconstructed alone. The difference of their winds is a
 - **ERA5's hour and place.** ERA5 is read at the launch site and hour; the descent is minutes later and away from the site.
 - **Drogues and tumbling bodies.** The lag `w/g` assumes the same drag in every direction; a tumbling airframe or a streamer has no measured response.
 - **Each fix of the EuRoC logs.** CATS publishes EuRoC logs under GPL-3.0, and three of RocketPy's copies are files of RocketPy-Team's GPL-3.0 fork of its 2023 repository, so the logs of its flight computers give statistics here, not rows.
-- **Two public team logs.** Hyperion-II's and UTRGV's, in the project's public-flights note, hold GPS fixes in the descent and are not read yet (issue #1605), so the report is short of every public flight with a GPS track of the descent.
+- **Logs not found.** The team logs are those a search of public repositories found with GPS fixes in the descent; a log not published, or not found, is not here.
 
 ## Sources
 
-The ERA5 weather here is read from the files RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on pressure levels from 1940 to present*, Copernicus Climate Change Service (C3S) Climate Data Store (CDS), <https://doi.org/10.24381/cds.bd0915c6>, licensed CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>).
+The ERA5 weather here is read from the files RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on pressure levels from 1940 to present*, Copernicus Climate Change Service (C3S) Climate Data Store (CDS), <https://doi.org/10.24381/cds.bd0915c6>, licensed CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). Itzamna's is read from the cut committed at `validation/fixtures/weather/era5/descent-wind-itzamna.nc`, made from a Climate Data Store download by `validation/oracles/netcdf/descent_wind_era5.py`.

@@ -86,6 +86,44 @@ dest = "refs/public-flights/rocketry-files"
 license = "MIT"
 mode = "fetched"
 
+# Public, MIT: Hyperion-II's 2025-08-21 flight logs, a Blue Raven's and a TeleMega's
+# (werocketry). `cargo xtask descent-wind` reads the TeleMega's GPS fixes in the descent
+# (issue #1605); no file of it is committed, and no wind: it fell too fast for the method.
+[[git]]
+name = "hyperion-ii"
+url = "https://github.com/werocketry/Hyperion-II.git"
+commit = "efda132ff4ed1d342cc7736ff7fb1fbaf0c9798b"
+dest = "refs/public-flights/hyperion-ii"
+shallow = true
+license = "MIT"
+mode = "fetched"
+
+# Public, MIT: UTRGV's Lonestar launch of 2026-03-29, a Blue Raven log and a Featherweight GPS
+# log (Lmx154). `cargo xtask descent-wind` reads the GPS fixes in the descent (issue #1605); no
+# file of it is committed, only the wind each fix gives. Its two designs
+# are outside the default corpus of `cargo xtask ork`.
+[[git]]
+name = "rl-rocketpy-notebook"
+url = "https://github.com/Lmx154/RL-RocketPy-Notebook.git"
+commit = "80c9cd6a9cd338ec12d13171cb564b2764493bed"
+dest = "refs/public-flights/rl-rocketpy-notebook"
+shallow = true
+license = "MIT"
+mode = "fetched"
+
+# Public, MIT: RIT Launch Initiative's flight logs. `cargo xtask descent-wind` reads Testbed 2's
+# Featherweight GPS fixes in the descent, 2026-05-16 (issue #1605); no file of it is committed,
+# only the wind each fix gives. Its designs are outside the default corpus
+# of `cargo xtask ork`.
+[[git]]
+name = "rit-flight-data"
+url = "https://github.com/RIT-Launch-Initiative/flight-data.git"
+commit = "ffa9f44fe03ab0938ae882648164b15e0872adcb"
+dest = "refs/public-flights/rit-flight-data"
+shallow = true
+license = "MIT"
+mode = "fetched"
+
 # Private: designs paired with the logs of the same flight, with each day's weather (ADR-151). Its
 # files carry no licence to redistribute, so only aggregate statistics are published. Skipped with
 # a note where GitHub access is missing (CI). On Neer's Mac `refs/hpr-sim-fixtures` is a symlink to
