@@ -661,7 +661,7 @@ pub struct Flown {
     pub gravity_at_ignition_m_s2: f64,
     /// The air's density there, kg/m³.
     pub air_density_at_ignition_kg_m3: f64,
-    /// The Mach number just after burnout ([`AFTER_BURNOUT_S`] after, for HPR Sim; MAPLEAF's
+    /// The Mach number just after burnout (1 ms after, for HPR Sim; MAPLEAF's
     /// first evaluation after).
     pub after_burnout_mach: f64,
     /// The aerodynamic force along the axis there, as a coefficient on HPR Sim's reference area:

@@ -5566,6 +5566,9 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "synthetic-flights.slice.json",
         "two-logs.slice.json",
         "fit-intervals.slice.json",
+        // MAPLEAF's whole flights of three public designs (M1.14b8): an independent code's own
+        // top Mach number a flight, read below with RocketPy's and OpenRocket's.
+        "mapleaf-flights.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")
@@ -5609,6 +5612,23 @@ fn the_validated_range_is_the_fastest_public_reference() {
         fastest.len() > before,
         "latest.json compares no top Mach number"
     );
+    // MAPLEAF's flights, with its own drag and with the shared table: each is a whole flight
+    // by an independent code, compared and not gated. Its matched-gravity flights are a
+    // measurement on a changed MAPLEAF and carry no Mach number.
+    let mapleaf = read("mapleaf-flights.json");
+    assert_eq!(
+        mach_keys(&mapleaf),
+        ["after_burnout_mach", "max_mach"],
+        "mapleaf-flights.json"
+    );
+    let before = fastest.len();
+    for row in mapleaf["rows"].as_array().unwrap() {
+        for drag in ["own_drag", "same_drag"] {
+            let mach = row[drag]["mapleaf"]["max_mach"].as_f64().unwrap();
+            fastest.push((mach, format!("MAPLEAF, {} ({drag})", row["name"])));
+        }
+    }
+    assert_eq!(fastest.len(), before + 6, "mapleaf-flights.json");
     assert_eq!(mach_keys(&read("real-flights.json")), ["hpr_max_mach"]);
     assert_eq!(
         mach_keys(&read("public-predictions.json")),
