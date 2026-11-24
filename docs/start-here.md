@@ -66,10 +66,11 @@ and how likely each goal is:
   ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
   them is drag that reads high above Mach 0.8, so the apogee there reads low.
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
-  file. Then it compares a log with its simulation, which works today, and fits the rocket's
-  drag from it, which is still to come.
+  file. Then it compares a log with its simulation, which works today. Drawing the two together,
+  and fitting the rocket's drag from the log on the command line and in Python, are still to come.
+  The fit already works in the Rust library.
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
-  flight's likely faults ranked from its log.
+  flight's likely faults ranked from its log. It adds a second, Bayesian interval on the fitted drag.
 - 0.4, the competition kit: rules presets for Student Launch, IREC and others, and an optimizer.
   It adds the numbers a submission asks for, ejection-charge sizing, and RASAero and RocketPy
   files.
