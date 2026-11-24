@@ -48,9 +48,10 @@ pass, and any changes that pass turns up. No release waits on outside users. Fro
 an emulated flyers' pass instead: three written personas from public sources, each played by a
 reviewer who didn't build the release, try its tasks from its files and guide alone. Two or three
 defects planted in a copy measure how much they catch, and a pass that catches none doesn't count.
-Release 0.5 has a larger study, with at least twelve. No pass has run yet. Emulated flyers are
-more patient than people and agree with each other more, so a pass shows whether a careful
-newcomer can finish the tasks, not whether flyers want the tool ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
+Release 0.5 has a larger study: at least twelve emulated flyers and eight to ten planted
+defects. No pass has run yet. Emulated flyers are assumed to be more patient than people and to
+agree with each other more, so a pass shows whether a careful newcomer can finish the tasks, not
+whether flyers want the tool ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
 
 ## How feasible each goal is
 

@@ -1,7 +1,7 @@
 # ADR-377: No release waits on users, and release 0.2 comes next (2026-11-24)
 
 - **Status:** accepted; lifts [ADR-322][adr-322] §4's holds on release 0.2, the post-flight comparison and the two reader-facing checks; replaces release 0.5's test by five flyers outside the project ([ADR-209][adr-209] §10, [ADR-282][adr-282] §6) with an emulated study; adds an emulated flyers' pass to [ADR-162][adr-162] §2's release checklist from 0.2 on; moves [M7.3][m7-3]'s Bayesian option from release 0.2 to 0.3 (amending [ADR-163][adr-163] §2); adds [M7.3f][m7-3f], the fit on the command line and in Python, and M7.3g, the least-squares intervals passing again ([#1108][i1108]); and reorders the [queue][queue], moving [M2.8][m2-8] ahead of release 0.2 and putting M0.9g before M0.13 where [ADR-296][adr-296] §2 had it after; and raises the roadmap's budget from 53,500 to 55,500 bytes.
-- **Summary:** Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison (M1.14b8): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the wording check (M0.9g). The Bayesian interval moves to 0.3 unchanged.
+- **Summary:** Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison (M1.14b8): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the figures' digits and wording check (M0.9g). The Bayesian interval moves to 0.3 unchanged.
 
 [queue]: ../ROADMAP.md#queue
 [m0-9]: ../decisions-and-roadmap.md#m0-9
@@ -88,8 +88,8 @@ Release 0.2 stood like this on 2026-11-24:
    outside users or their feedback, on the maintainer's own use, or on anyone designing, building,
    flying or ground-testing a rocket. Real flights come from published records and the
    collection, and a person's trial comes from emulated flyers (§2). What stays the maintainer's
-   doesn't change: publishing and tags ([ADR-162][adr-162] §2), and the sites, money and accounts
-   ([ADR-282][adr-282] §5). His feedback is asked for when it would help, and nothing waits
+   doesn't change: publishing and tags ([ADR-162][adr-162] §2), and turning off his sites, money and
+   accounts ([ADR-282][adr-282] §5). His feedback is asked for when it would help, and nothing waits
    on it. The hardware lines after 1.0 are outside this rule; the planning review after 1.0 takes
    them up.
 
@@ -127,8 +127,8 @@ Release 0.2 stood like this on 2026-11-24:
    meets every problem independently, with that one chance. Random sets of five out of 60 real users
    found anywhere from 55% to 99% ([Faulkner, 2003][faulkner]). Counting the problems no session had
    met yet, and letting the chance differ by problem, raised one study's sessions needed for 80%
-   from 11 to 56 ([Schmettow, 2012][schmettow]). Emulated flyers are further from independent than
-   people are, so a count of them proves less; the planted defects' catch is what measures the
+   from 11 to 56 ([Schmettow, 2012][schmettow]). This record assumes emulated flyers are further
+   from independent than people are, so a count of them proves less; the planted defects' catch is what measures the
    method. A handful of planted defects bounds the catch rate only loosely, so the passes are
    pooled.
 
@@ -178,7 +178,7 @@ Release 0.2 stood like this on 2026-11-24:
      release 0.2, and it goes right after M10.2.
 
 8. **The roadmap's budget rises from 53,500 to 55,500 bytes.** M7.3f, M7.3g, the queue's new lines
-   and the release clauses, their counts written out, take the roadmap to 54,867 bytes. The cap
+   and the release clauses, their counts written out, take the roadmap to 54,885 bytes. The cap
    rises by 2,000 bytes, as [ADR-321][adr-321]'s rose by 1,000, rather than cut other entries'
    text to make room.
 

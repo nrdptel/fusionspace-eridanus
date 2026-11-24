@@ -512,8 +512,8 @@ log corpus came from Debrief.
     least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*, the
     check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
     narrowed, widened and shifted probes still fail; an ADR amends ADR-368; the pages that state the
-    caveat follow the regenerated report. Shares split by the fit's residual (#1108) pass in each
-    class too.
+    caveat follow the regenerated report. If the shares are split by the fit's residual (#1108), each
+    class passes too.
 - [ ] **M7.4 Fault diagnosis.**
   - A hypothesis library with simulate-able fault models: motor under/over-performance, CATO or
     early burnout, high drag or damage, weathercocking, marginal stability/coning,
@@ -642,7 +642,7 @@ waits on outside users: each from 0.2 on has an emulated flyers' pass instead, t
 three personas and two or three planted defects, void if it catches none (ADR-377 §3).
 
 - [ ] **M10.2 Release 0.2: the flight analyzer.** *Done when:* the checklist holds after M7.1,
-  M7.2, M7.3a, M7.3b, M7.3d, M7.3e, M7.3f, M7.3g and M2.8 (M7.3c is 0.3's, ADR-377); each
+  M7.2, M7.3a, M7.3b, M7.3d, M7.3e, M7.3f, M7.3g, M2.8 and M0.9g (M7.3c is 0.3's, ADR-377); each
   archive's smoke test reads a log with no design file; and a fit or residual of a flight that
   meets a condition on ADR-163 §4's list carries its warning.
 - [ ] **M10.3 Release 0.3: accuracy and diagnosis.** *Done when:* the checklist holds after M2.3c2,
