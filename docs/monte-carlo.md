@@ -363,11 +363,11 @@ numbers. Two are the run's own:
 With no failures those two are equal. But a run is a sample, and the share of all such flights
 could be higher or lower than the sample's. So the other two bound it, each at 95% confidence:
 
-- `low_bound`, the one-sided Clopper–Pearson lower bound on the flights that reached it, a failed
+- `low_bound`, the one-sided Clopper-Pearson lower bound on the flights that reached it, a failed
   flight counted as not reaching it;
 - `high_bound`, the upper bound, a failed flight counted as reaching it.
 
-In the example 131 of 200 flights reached 1,100 m (65.5%), and the share of all such flights is
+In the example 131 of 200 flights reached 1,100 m (3,609 ft): 65.5%, and the share of all such flights is
 at least 59.5% and at most 71.1%. A count of zero isn't "never": none of 100 still allows up to
 3.0% (1 − 0.05^(1/100) = 2.95%, the rule of three's 3/100 in exact form). That is how `hpr mc`
 gives each envelope flag. A flag raised on 1 of 100 flights, with 3 more failed, is at most 8.9%:

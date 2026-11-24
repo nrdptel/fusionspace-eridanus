@@ -9032,7 +9032,7 @@ fn mc_bounds_its_flags_and_shares() {
     for flag in unraised {
         assert_eq!(flag["flights"].as_u64(), Some(0), "{flag}");
         let up_to = flag["up_to"].as_f64().unwrap();
-        assert!((up_to - 0.527_129_195_498_412_09).abs() < 1e-12, "{flag}");
+        assert!((up_to - 0.527_129_195_498_412_1).abs() < 1e-12, "{flag}");
     }
     assert_eq!(document["apogee_m"]["upper_95_95"], Value::Null);
     let shown = streams(&[&args[..], &["--color", "never"]].concat());
@@ -9072,7 +9072,7 @@ fn mc_bounds_its_flags_and_shares() {
     let unraised = document["unraised_flags"].as_array().unwrap();
     assert_eq!(unraised.len(), 6, "{unraised:?}");
     let up_to = unraised[0]["up_to"].as_f64().unwrap();
-    assert!((up_to - 0.061_619_200_396_040_708).abs() < 1e-12, "{up_to}");
+    assert!((up_to - 0.061_619_200_396_040_71).abs() < 1e-12, "{up_to}");
     assert_eq!(unraised[0]["failed"].as_u64(), Some(2));
     assert_eq!(document["apogee_m"]["upper_95_95"], "unbounded");
     let ellipse = &document["landing"]["ellipses"][1];

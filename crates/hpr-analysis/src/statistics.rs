@@ -160,7 +160,7 @@ pub enum CountedQuantile {
 /// no value as failing it, `high` as passing. Those two are the sample's own shares; the true
 /// share, of all the runs the same scatter could give, is bounded by `low_bound` and
 /// `high_bound`, one-sided Clopper–Pearson bounds at [`SHARE_CONFIDENCE`] with each run that gave
-/// no value on the unfavourable side of each.
+/// no value on the unfavorable side of each.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Share {
     /// The runs with a value that passed, over every run tried.
@@ -220,9 +220,8 @@ fn binomial_at_least(x: u64, n: u64, p: f64) -> f64 {
     let upper = x as f64 > n as f64 * p;
     let (mut ln_choose, mut sum) = (0.0_f64, 0.0_f64);
     for k in 0..=n {
-        if upper && k >= x {
-            sum += term(k, ln_choose);
-        } else if !upper && k < x {
+        // The upper tail sums from x on; the lower one up to x, and stops there.
+        if upper == (k >= x) {
             sum += term(k, ln_choose);
         } else if !upper {
             break;
@@ -546,8 +545,12 @@ mod tests {
     /// sums in 40-digit arithmetic, mpmath, bisected): none of 100 is at most
     /// 1 − 0.05^(1/100) = 2.9513%; one of 100 at most 4.6560% and at least 0.05128%; four at most
     /// 8.9196%; 65 between 56.392% and 72.925%. A run with no value moves each bound to its
-    /// unfavourable side: one passed and three missing is at most the four's 8.9196%.
+    /// unfavorable side: one passed and three missing is at most the four's 8.9196%.
     #[test]
+    #[expect(
+        clippy::excessive_precision,
+        reason = "17 digits of each 40-digit reference, which round to the nearest f64"
+    )]
     fn a_shares_bounds_at_a_hundred_runs_by_hand() {
         let share = |passed, missing| Share::of(passed, missing, 100).expect("a share");
         let close = |got: f64, exact: f64| (got - exact).abs() < 1e-12;
@@ -620,7 +623,7 @@ mod tests {
             binomial_at_least(31, 100, 0.3),
         );
         assert!(below > at && at > above, "{below} {at} {above}");
-        assert!((at - 0.537_660_263_984_637_64).abs() < 1e-12, "{at}");
+        assert!((at - 0.537_660_263_984_637_6).abs() < 1e-12, "{at}");
     }
 
     #[test]
