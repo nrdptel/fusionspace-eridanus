@@ -306,7 +306,7 @@ fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
         );
     }
     out.heading(&format!(
-        "{:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>17}",
+        "{:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>18}",
         "landing ellipse", "semi-major", "semi-minor", "heading", "flights inside"
     ))?;
     for ellipse in &landing.ellipses {
@@ -321,7 +321,7 @@ fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
         );
         writeln!(
             out,
-            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{inside:>17}",
+            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{inside:>18}",
             meters(ellipse.semi_major_m),
             meters(ellipse.semi_minor_m),
             bearing(ellipse.major_heading_deg, 0),

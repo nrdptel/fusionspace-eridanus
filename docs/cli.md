@@ -1129,10 +1129,10 @@ landing distance (ft)         941      929      147      685      925     1163
 above): apogee 885.0 m (2904 ft); landing distance 383.7 m (1259 ft)
 
 200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                          52.8 m (173 ft)       32.8 m (107 ft)   089° T  48.5% (≥ 42.4%)
-95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T  93.5% (≥ 89.8%)
-95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T  93.5% (≥ 89.8%)
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                          52.8 m (173 ft)       32.8 m (107 ft)   089° T   48.5% (≥ 42.4%)
+95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T   93.5% (≥ 89.8%)
+95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T   93.5% (≥ 89.8%)
 (≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a failed
 flight counted outside
 
@@ -1236,10 +1236,10 @@ above): apogee unbounded, too many flights failed; landing distance unbounded, t
 failed
 
 98 of 100 flights landed, centered 23.2 m (76 ft) east and 0.0 m (0 ft) south of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                          54.2 m (178 ft)          0.0 m (0 ft)   090° T  97.0% (≥ 92.4%)
-95%                         112.8 m (370 ft)          0.0 m (0 ft)   090° T  97.0% (≥ 92.4%)
-95%, the next flight        115.7 m (380 ft)          0.0 m (0 ft)   090° T  97.0% (≥ 92.4%)
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                          54.2 m (178 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
+95%                         112.8 m (370 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
+95%, the next flight        115.7 m (380 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
 (≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a failed
 flight counted outside
 

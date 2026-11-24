@@ -166,8 +166,8 @@ fn mc_gives_feet_beside_meters() {
             "opening airspeed (ft/s)        23       23        0       23       23       23",
             "20 of 20 flights landed, centered 0.7 m (2 ft) west and 1325.1 m (4347 ft) south of \
              the pad",
-            "landing ellipse                   semi-major            semi-minor  heading   flights inside",
-            "50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T           100.0%",
+            "landing ellipse                   semi-major            semi-minor  heading    flights inside",
+            "50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T  100.0% (≥ 86.0%)",
         ],
     );
     // Scattered: each foot cell is its meter cell's, in feet, to the meter cell's rounding.
@@ -260,10 +260,10 @@ fn mc_landing_meters_carry_a_tenth() {
         &[
             "30 of 30 flights landed, centered 0.7 m (2 ft) west and 1355.7 m (4448 ft) south of \
              the pad",
-            "landing ellipse                   semi-major            semi-minor  heading   flights inside",
-            "50%                        510.4 m (1674 ft)          0.1 m (0 ft)   180° T            63.3%",
-            "95%                       1061.0 m (3481 ft)          0.2 m (1 ft)   180° T            90.0%",
-            "95%, the next flight      1159.1 m (3803 ft)          0.2 m (1 ft)   180° T            93.3%",
+            "landing ellipse                   semi-major            semi-minor  heading    flights inside",
+            "50%                        510.4 m (1674 ft)          0.1 m (0 ft)   180° T   63.3% (≥ 46.6%)",
+            "95%                       1061.0 m (3481 ft)          0.2 m (1 ft)   180° T   90.0% (≥ 76.1%)",
+            "95%, the next flight      1159.1 m (3803 ft)          0.2 m (1 ft)   180° T   93.3% (≥ 80.4%)",
         ],
     );
 }

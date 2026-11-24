@@ -132,6 +132,10 @@ pub struct Summary {
     /// The 95th percentile with every run that gave no value placed above the largest value;
     /// `None` when every run gave a value.
     pub p95_counting_missing: Option<CountedQuantile>,
+    /// Wilks's one-sided 95/95 upper tolerance bound ([`Distribution::upper_95_95`]): the figure
+    /// to plan an upper limit with, where `p95` is the sample's own percentile. `None` with
+    /// fewer than 59 runs tried.
+    pub upper_95_95: Option<CountedQuantile>,
 }
 
 /// Which end of the values [`Distribution::quantile_counting_missing`] places the runs that gave
@@ -533,6 +537,7 @@ impl Distribution {
             max: self.max(),
             p05_counting_missing: counting_missing(0.05, MissingEnd::Below),
             p95_counting_missing: counting_missing(0.95, MissingEnd::Above),
+            upper_95_95: self.upper_95_95(),
         }
     }
 }

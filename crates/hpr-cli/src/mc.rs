@@ -437,7 +437,7 @@ fn spread(distribution: &Distribution) -> McSpread {
         max: summary.max,
         p05_counting_missing: summary.p05_counting_missing.map(bound),
         p95_counting_missing: summary.p95_counting_missing.map(bound),
-        upper_95_95: distribution.upper_95_95().map(bound),
+        upper_95_95: summary.upper_95_95.map(bound),
     }
 }
 

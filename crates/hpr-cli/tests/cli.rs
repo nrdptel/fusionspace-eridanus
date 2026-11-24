@@ -6998,9 +6998,14 @@ fn same_runs(csv: &Path, run: &hpr::hpr_analysis::montecarlo::Run, document: &Va
             "{key}"
         );
     }
+    let share = landing.share_inside(&ellipse).unwrap();
     assert_eq!(
         printed["inside"].as_f64().unwrap().to_bits(),
-        landing.share_inside(&ellipse).unwrap().low.to_bits()
+        share.low.to_bits()
+    );
+    assert_eq!(
+        printed["inside_at_least"].as_f64().unwrap().to_bits(),
+        share.low_bound.to_bits()
     );
 }
 

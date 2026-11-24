@@ -140,10 +140,10 @@ opening airspeed (ft/s)        17       15        8        3       15       29
 above): apogee 1155.2 m (3790 ft); landing distance 0.9 m (3 ft)
 
 200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T  74.5% (≥ 68.9%)
-95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T  98.0% (≥ 95.4%)
-95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T  98.5% (≥ 96.1%)
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T   74.5% (≥ 68.9%)
+95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.0% (≥ 95.4%)
+95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.5% (≥ 96.1%)
 (≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a failed
 flight counted outside
 
