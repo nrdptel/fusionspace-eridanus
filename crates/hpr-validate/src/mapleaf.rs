@@ -51,8 +51,7 @@ pub const FLIGHTS_JSON: &str = "validation/fixtures/flight/mapleaf-flights.json"
 pub const REPORT_JSON: &str = "validation/reports/mapleaf-flights.json";
 /// The report's page, from the repository root.
 pub const REPORT_MD: &str = "validation/reports/mapleaf-flights.md";
-/// The MAPLEAF commit the oracle environment installs (`validation/oracles/mapleaf/uv.lock`,
-/// `validation/refs.lock.toml`).
+/// The MAPLEAF commit the oracle environment installs (`validation/oracles/mapleaf/uv.lock`).
 pub const MAPLEAF_COMMIT: &str = "af970d3e8200832f5e70d537b15ad38dd74fa551";
 /// The public designs flown, by the name after `rocketpy-` in `validation/designs/`.
 ///
@@ -125,8 +124,9 @@ pub struct InputCase {
     pub burnout: MassPoint,
     /// A drag both codes can fly, for the flights that share it.
     pub drag: SharedDrag,
-    /// HPR Sim's gravity at the pad, m/s²: what MAPLEAF's is matched to in the one flight that
-    /// measures what the two gravity models' difference moves.
+    /// HPR Sim's gravity at the pad, m/s², at the height the center of mass stands at on it
+    /// (the tail on the ground): what MAPLEAF's is matched to in the flights that measure what
+    /// the two gravity models' difference moves.
     pub gravity_at_pad_m_s2: f64,
     /// The rail.
     pub rail: InputRail,
@@ -235,6 +235,9 @@ pub struct InputMotor {
     pub designation: String,
     /// The thrust curve's total impulse, N s.
     pub total_impulse_ns: f64,
+    /// The nozzle exit, m aft of the nose tip: with the propellant's center, the lever of the
+    /// internal-momentum terms HPR Sim's equations of motion carry (`docs/physics/flight.md`).
+    pub nozzle_station_m: f64,
     /// What each number of a row is, in order ([`MOTOR_COLUMNS`]).
     pub columns: Vec<String>,
     /// The burn, from ignition to the curve's end: one row per time, its numbers in
@@ -602,12 +605,21 @@ fn input_case(root: &Path, name: &str, rails: &Value) -> Result<InputCase, Valid
         longitude_deg: number("environment", "longitude_deg")?,
         elevation_m: number("environment", "elevation_m")?,
     };
+    let ignition = mass_point(
+        name,
+        "the rocket at ignition",
+        &assembly.mass_properties(0.0),
+    )?;
     let simulation = simulation(&rocket, name, &site, &rail)?;
     let drag = shared_drag(&simulation, name, &site, layout.reference_diameter_m)?;
     let gravity_at_pad_m_s2 = simulation
         .environment()
         .earth
-        .gravity_enu_mps2(DVec3::ZERO)
+        .gravity_enu_mps2(DVec3::new(
+            0.0,
+            0.0,
+            layout.length_m - ignition.cg_station_m,
+        ))
         .map_err(|error| refuse(format!("{name}: {error}")))?
         .length();
 
@@ -624,17 +636,14 @@ fn input_case(root: &Path, name: &str, rails: &Value) -> Result<InputCase, Valid
         motor: InputMotor {
             designation: placed.mounted.designation.clone(),
             total_impulse_ns: motor.curve().total_impulse_ns(),
+            nozzle_station_m,
             columns: MOTOR_COLUMNS
                 .iter()
                 .map(|&column| column.to_owned())
                 .collect(),
             rows: rows.iter().map(MotorRow::values).collect(),
         },
-        ignition: mass_point(
-            name,
-            "the rocket at ignition",
-            &assembly.mass_properties(0.0),
-        )?,
+        ignition,
         burnout: mass_point(
             name,
             "the rocket at burnout",
@@ -736,7 +745,9 @@ impl Compared {
 }
 
 /// MAPLEAF's same-drag flight flown again with its gravity constant scaled so that its gravity
-/// at the pad is HPR Sim's: what the two gravity models' difference moves, measured.
+/// at the pad is HPR Sim's: what the two gravity models' difference moves, measured. The second
+/// such flight ([`FlightRow::momentum_matched`]) also adds HPR Sim's internal-momentum force to
+/// MAPLEAF's thrust.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GravityMatched {
     /// The factor on MAPLEAF's gravity constant.
@@ -747,6 +758,10 @@ pub struct GravityMatched {
     pub mapleaf_apogee_rise_m: f64,
     /// MAPLEAF's rail-exit speed, m/s.
     pub mapleaf_rail_exit_speed_m_s: f64,
+    /// MAPLEAF's apogee rise at its coarser time step, m.
+    pub mapleaf_coarser_apogee_rise_m: f64,
+    /// MAPLEAF's rail-exit speed at its coarser time step, m/s.
+    pub mapleaf_coarser_rail_exit_speed_m_s: f64,
     /// HPR Sim's same-drag apogee rise less this one, m.
     pub apogee_difference_m: f64,
     /// That as a percentage of this one.
@@ -763,8 +778,11 @@ impl GravityMatched {
         hpr: &Flown,
         mapleaf_gravity_scale: f64,
         mapleaf_gravity_at_ignition_m_s2: f64,
-        mapleaf_apogee_rise_m: f64,
-        mapleaf_rail_exit_speed_m_s: f64,
+        [mapleaf_apogee_rise_m, mapleaf_rail_exit_speed_m_s]: [f64; 2],
+        [
+            mapleaf_coarser_apogee_rise_m,
+            mapleaf_coarser_rail_exit_speed_m_s,
+        ]: [f64; 2],
     ) -> Self {
         let apogee_difference_m = hpr.apogee_rise_m - mapleaf_apogee_rise_m;
         let rail_exit_difference_m_s = hpr.rail_exit_speed_m_s - mapleaf_rail_exit_speed_m_s;
@@ -773,6 +791,8 @@ impl GravityMatched {
             mapleaf_gravity_at_ignition_m_s2,
             mapleaf_apogee_rise_m,
             mapleaf_rail_exit_speed_m_s,
+            mapleaf_coarser_apogee_rise_m,
+            mapleaf_coarser_rail_exit_speed_m_s,
             apogee_difference_m,
             apogee_difference_percent: percent(apogee_difference_m, mapleaf_apogee_rise_m),
             rail_exit_difference_m_s,
@@ -806,6 +826,12 @@ pub struct FlightRow {
     pub same_drag: Compared,
     /// The same-drag flight again with MAPLEAF's gravity matched to HPR Sim's at the pad.
     pub gravity_matched: GravityMatched,
+    /// That flight again with HPR Sim's internal-momentum force added to MAPLEAF's thrust:
+    /// `(n − c) m̈`, the three terms HPR Sim's translational equation carries beside the thrust
+    /// (`docs/physics/flight.md`), summed for a propellant center `c` fixed in the airframe.
+    pub momentum_matched: GravityMatched,
+    /// That force's lever, m: the nozzle exit's distance behind the propellant's center.
+    pub internal_momentum_lever_m: f64,
     /// How far MAPLEAF's airframe had traveled when its own rail let go, m: its rail measures
     /// the center of mass's travel.
     pub mapleaf_release_body_travel_m: f64,
@@ -1325,14 +1351,26 @@ fn compare_all(
         }
         let own_drag = compare(root, case, found, "own_drag", false)?;
         let same_drag = compare(root, case, found, "same_drag", true)?;
-        let matched = |key: &str| number(found, &["gravity_matched", key]);
-        let gravity_matched = GravityMatched::of(
-            &same_drag.hpr,
-            matched("gravity_scale")?,
-            matched("gravity_at_ignition_m_s2")?,
-            matched("apogee_rise_m")?,
-            matched("rail_exit_speed_m_s")?,
-        );
+        let matched = |flight: &str| -> Result<GravityMatched, ValidateError> {
+            let value = |key: &str| number(found, &[flight, key]);
+            let coarser = |key: &str| number(found, &[flight, "coarser_step", key]);
+            Ok(GravityMatched::of(
+                &same_drag.hpr,
+                value("gravity_scale")?,
+                value("gravity_at_ignition_m_s2")?,
+                [value("apogee_rise_m")?, value("rail_exit_speed_m_s")?],
+                [coarser("apogee_rise_m")?, coarser("rail_exit_speed_m_s")?],
+            ))
+        };
+        let gravity_matched = matched("gravity_matched")?;
+        let momentum_matched = matched("momentum_matched")?;
+        // The propellant's center is the rows' fifth number ([`MOTOR_COLUMNS`]).
+        let internal_momentum_lever_m = case
+            .motor
+            .rows
+            .first()
+            .map(|row| case.motor.nozzle_station_m - row[4])
+            .ok_or_else(|| refuse(format!("{}: a motor with no rows", case.name)))?;
         rows.push(FlightRow {
             name: case.name.clone(),
             design: case.design.clone(),
@@ -1343,6 +1381,8 @@ fn compare_all(
             own_drag,
             same_drag,
             gravity_matched,
+            momentum_matched,
+            internal_momentum_lever_m,
             mapleaf_release_body_travel_m: number(
                 found,
                 &["own_drag", "flown", "own_release", "body_travel_m"],
@@ -1423,12 +1463,39 @@ fn each(rows: &[FlightRow], value: impl Fn(&FlightRow) -> String) -> String {
         .join(", ")
 }
 
-/// The largest size of `value` over both kinds of flight of every design.
-fn largest(rows: &[FlightRow], value: impl Fn(&Compared) -> f64) -> f64 {
-    rows.iter()
-        .flat_map(|row| [&row.own_drag, &row.same_drag])
-        .map(|compared| value(compared).abs())
+/// `value` in scientific notation with one decimal, its size rounded up so that a bound written
+/// with it holds: 4.44e-16 is `4.5e-16`.
+fn outward_e(value: f64) -> String {
+    if !(value.is_finite() && value != 0.0) {
+        return format!("{value}");
+    }
+    let mut exponent = value.abs().log10().floor();
+    let mut mantissa = outward(value.abs() / 10f64.powf(exponent), 1);
+    if mantissa >= 10.0 {
+        mantissa /= 10.0;
+        exponent += 1.0;
+    }
+    format!(
+        "{}{mantissa:.1}e{exponent:.0}",
+        if value < 0.0 { "-" } else { "" }
+    )
+}
+
+/// The largest size of `value` over the flights given.
+fn largest<'a, T: 'a>(flights: impl Iterator<Item = &'a T>, value: impl Fn(&T) -> f64) -> f64 {
+    flights
+        .map(|flight| value(flight).abs())
         .fold(0.0, f64::max)
+}
+
+/// How far a matched flight's apogee moves between MAPLEAF's two time steps, m.
+fn matched_apogee_step_m(matched: &GravityMatched) -> f64 {
+    matched.mapleaf_coarser_apogee_rise_m - matched.mapleaf_apogee_rise_m
+}
+
+/// How far a matched flight's rail-exit speed moves between MAPLEAF's two time steps, m/s.
+fn matched_rail_exit_step_m_s(matched: &GravityMatched) -> f64 {
+    matched.mapleaf_coarser_rail_exit_speed_m_s - matched.mapleaf_rail_exit_speed_m_s
 }
 
 /// The drag of the parts only HPR Sim has, as a share of its axial coefficient, %.
@@ -1560,14 +1627,13 @@ fn not_shared(
             "the 1976 standard atmosphere, worked out at each height".to_owned(),
             "its table of the U.S. Standard Atmosphere".to_owned(),
             format!(
-                "Air density at ignition, HPR Sim's less MAPLEAF's: {}.",
-                each(rows, |row| format!(
-                    "{:+.3}%",
-                    percent(
-                        row.own_drag.hpr.air_density_at_ignition_kg_m3
-                            - row.own_drag.mapleaf.air_density_at_ignition_kg_m3,
-                        row.own_drag.mapleaf.air_density_at_ignition_kg_m3
-                    )
+                "The center of mass starts at the same height in both. The air density at \
+                 ignition then differs by at most {} of itself.",
+                outward_e(largest(
+                    rows.iter().flat_map(|row| [&row.own_drag, &row.same_drag]),
+                    |compared| compared.hpr.air_density_at_ignition_kg_m3
+                        / compared.mapleaf.air_density_at_ignition_kg_m3
+                        - 1.0
                 ))
             ),
         ),
@@ -1613,11 +1679,45 @@ fn not_shared(
             ),
         ),
         entry(
+            "Internal-momentum terms beside the thrust",
+            every,
+            "−m r″ − 2ṁ r′ + m̈ (n − r) beside the thrust, as RocketPy has them: m is the \
+             rocket's mass, r its center of mass and n the nozzle exit. With the propellant's \
+             center c fixed in the airframe, as on these motors, they sum to m̈ (n − c)"
+                .to_owned(),
+            "none: its motor's force is the thrust curve alone".to_owned(),
+            format!(
+                "Added to MAPLEAF's thrust in its gravity-matched flight, that force moves \
+                 MAPLEAF's apogee by {} and its rail-exit speed by {}. Between MAPLEAF's two \
+                 time steps that flight's apogee moves by up to {:.3} m \
+                 ([the table](#with-the-internal-momentum-force-added)).",
+                each(rows, |row| format!(
+                    "{:+.3} m",
+                    row.momentum_matched.mapleaf_apogee_rise_m
+                        - row.gravity_matched.mapleaf_apogee_rise_m
+                )),
+                each(rows, |row| format!(
+                    "{:+.5} m/s",
+                    row.momentum_matched.mapleaf_rail_exit_speed_m_s
+                        - row.gravity_matched.mapleaf_rail_exit_speed_m_s
+                )),
+                outward(
+                    largest(
+                        rows.iter().map(|row| &row.momentum_matched),
+                        matched_apogee_step_m
+                    ),
+                    3
+                ),
+            ),
+        ),
+        entry(
             "Jet damping",
             every,
             "the exhaust's damping of pitch and yaw".to_owned(),
             "only as a `FractionalJetDamping` part, which these flights do not add".to_owned(),
-            "Not measured apart.".to_owned(),
+            "It acts on a rocket that turns, and these flights go straight up in calm air. \
+             Not measured apart."
+                .to_owned(),
         ),
         entry(
             "Where the propellant's center of mass is",
@@ -1627,10 +1727,8 @@ fn not_shared(
              gives"
                 .to_owned(),
             format!(
-                "HPR Sim's center leaves that line by at most {:.1e} m on these motors.",
-                rows.iter()
-                    .map(|row| row.propellant_center_line_departure_m.abs())
-                    .fold(0.0, f64::max)
+                "HPR Sim's center leaves that line by at most {} m on these motors.",
+                outward_e(largest(rows.iter(), |row| row.propellant_center_line_departure_m))
             ),
         ),
         entry(
@@ -1642,8 +1740,8 @@ fn not_shared(
                  {ROWS_PER_INTERVAL} to each interval of the thrust curve"
             ),
             "MAPLEAF's logged mass, center of mass and inertia at ignition and at burnout are \
-             the inputs' to one part in a million, checked on every run. Between the rows, \
-             not measured."
+             the inputs' to one part in a million, checked on every flight in the tables. \
+             Between the rows, not measured."
                 .to_owned(),
         ),
         entry(
@@ -1653,22 +1751,38 @@ fn not_shared(
                 .to_owned(),
             format!("classical fourth-order Runge–Kutta at a fixed {finest_ms:.0} ms"),
             format!(
-                "At {coarsest_ms:.0} ms MAPLEAF's apogee moves by at most {:.3} m and its \
-                 rail-exit speed by at most {:.4} m/s.",
+                "At {coarsest_ms:.0} ms MAPLEAF's apogee moves by at most {:.3} m with its own \
+                 drag and {:.3} m with the same drag, and its rail-exit speed by at most {:.4} \
+                 m/s in either. The matched flights' steps are with their tables.",
                 outward(
-                    largest(rows, |compared| compared.mapleaf_coarser_apogee_rise_m
+                    largest(rows.iter().map(|row| &row.own_drag), |compared| compared
+                        .mapleaf_coarser_apogee_rise_m
                         - compared.mapleaf.apogee_rise_m),
                     3
                 ),
                 outward(
-                    largest(rows, |compared| compared
-                        .mapleaf_coarser_rail_exit_speed_m_s
-                        - compared.mapleaf.rail_exit_speed_m_s),
+                    largest(rows.iter().map(|row| &row.same_drag), |compared| compared
+                        .mapleaf_coarser_apogee_rise_m
+                        - compared.mapleaf.apogee_rise_m),
+                    3
+                ),
+                outward(
+                    largest(
+                        rows.iter().flat_map(|row| [&row.own_drag, &row.same_drag]),
+                        |compared| compared.mapleaf_coarser_rail_exit_speed_m_s
+                            - compared.mapleaf.rail_exit_speed_m_s
+                    ),
                     4
                 ),
             ),
         ),
     ]
+}
+
+/// The feet of a bound in meters that was rounded outward to three places, rounded outward
+/// again: the pair then converts, and both still bound the value.
+fn bound_feet(m: f64) -> f64 {
+    outward(outward(m, 3) / 0.3048, 3)
 }
 
 /// A length in meters with its feet.
@@ -1725,7 +1839,8 @@ impl MapleafReport {
              MAPLEAF is handed what HPR Sim flies: the outside shape and its surface roughness, \
              the mass, center of mass and inertia without propellant, the motor's thrust, \
              propellant flow, propellant center and propellant inertia through the burn, the \
-             guided travel on the rail, and the site. Parts MAPLEAF has no counterpart for are \
+             guided travel on the rail, the site, and the height the center of mass stands at \
+             on the pad. Parts MAPLEAF has no counterpart for are \
              not handed over, and their mass stays in the total: {not_passed}.\n\
              - **Same drag:** both codes fly one table of drag coefficient against Mach number, \
              motor on or off ({}). What is left between them is everything but the drag.\n\
@@ -1843,7 +1958,7 @@ impl MapleafReport {
         let _ = writeln!(
             page,
             "### With MAPLEAF's gravity matched\n\n\
-             The two codes' gravity differs at the pad by up to {:.2}% \
+             The two codes' gravity differs at the pad by up to {:.3}% \
              ([the list below](#what-the-two-could-not-share)). To measure what that moves, \
              MAPLEAF flew each same-drag flight once more with its gravity constant scaled so \
              that its gravity at the pad is HPR Sim's. That is a measurement, not MAPLEAF as it \
@@ -1857,14 +1972,14 @@ impl MapleafReport {
                     .map(|row| (row.gravity_matched.mapleaf_gravity_scale - 1.0).abs())
                     .fold(0.0, f64::max)
                     * 100.0,
-                2
+                3
             )
         );
         for row in &self.rows {
             let matched = &row.gravity_matched;
             let _ = writeln!(
                 page,
-                "| `{}` | {:.6} | {:.2} m | {:.2} m | {:+.3} m ({:+.4}%) | {:.4} m/s | {:.4} m/s \
+                "| `{}` | {:.6} | {:.2} m | {:.2} m | {:+.4} m ({:+.5}%) | {:.4} m/s | {:.4} m/s \
                  | {:+.5} m/s ({:+.4}%) |",
                 row.name,
                 matched.mapleaf_gravity_scale,
@@ -1879,30 +1994,100 @@ impl MapleafReport {
             );
         }
         let most = |value: fn(&GravityMatched) -> f64| {
-            self.rows
-                .iter()
-                .map(|row| value(&row.gravity_matched).abs())
-                .fold(0.0, f64::max)
+            largest(self.rows.iter().map(|row| &row.gravity_matched), value)
         };
         let apogee_m = most(|matched| matched.apogee_difference_m);
         let rail_exit_m_s = most(|matched| matched.rail_exit_difference_m_s);
-        let step_m = largest(&self.rows, |compared| {
-            compared.mapleaf_coarser_apogee_rise_m - compared.mapleaf.apogee_rise_m
-        });
+        let step_m = most(matched_apogee_step_m);
+        let step_m_s = most(matched_rail_exit_step_m_s);
         let _ = writeln!(
             page,
             "\nWith the drag and the gravity both shared, the two codes' apogees are within \
-             {:.3} m ({:.2} ft, {:.4}%) of each other and their rail-exit speeds within {:.5} \
-             m/s ({:.4} ft/s, {:.4}%). MAPLEAF's own apogee moves by up to {:.3} m ({:.2} ft) \
-             between its two time steps.\n",
+             {:.3} m ({:.3} ft, {:.4}%) of each other and their rail-exit speeds within {:.5} \
+             m/s ({:.4} ft/s, {:.4}%). Between its two time steps MAPLEAF's apogee in these \
+             flights moves by up to {:.3} m ({:.3} ft) and its rail-exit speed by up to {:.5} \
+             m/s ({:.4} ft/s), so a difference smaller than that is not resolved here.\n",
             outward(apogee_m, 3),
-            outward(apogee_m / 0.3048, 2),
+            bound_feet(apogee_m),
             outward(most(|matched| matched.apogee_difference_percent), 4),
             outward(rail_exit_m_s, 5),
             outward(rail_exit_m_s / 0.3048, 4),
             outward(most(|matched| matched.rail_exit_difference_percent), 4),
             outward(step_m, 3),
-            outward(step_m / 0.3048, 2),
+            bound_feet(step_m),
+            outward(step_m_s, 5),
+            outward(step_m_s / 0.3048, 4),
+        );
+        self.momentum_matched_table(page);
+    }
+
+    /// The matched flights again with HPR Sim's internal-momentum force on MAPLEAF's thrust.
+    fn momentum_matched_table(&self, page: &mut String) {
+        let _ = writeln!(
+            page,
+            "### With the internal-momentum force added\n\n\
+             HPR Sim's equations of motion carry three internal-momentum terms beside the \
+             thrust, as RocketPy's do, and MAPLEAF's carry none \
+             ([the list below](#what-the-two-could-not-share)). With the propellant's center \
+             fixed in the airframe, as on these motors, the terms sum to one force along the \
+             axis: the rate of change of the propellant flow times the lever, the nozzle \
+             exit's distance behind the propellant's center. In a second measurement MAPLEAF \
+             flew each gravity-matched flight again with that force added to its thrust. \
+             *Moved by* is this flight less the gravity-matched one; *difference* is HPR \
+             Sim's same-drag flight less this one; *step* is this flight at MAPLEAF's coarser \
+             time step less at its finer.\n\n\
+             | design | lever | apogee, MAPLEAF | moved by | difference | step | rail exit, \
+             MAPLEAF | moved by | difference | step |\n\
+             |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+        );
+        for row in &self.rows {
+            let (matched, before) = (&row.momentum_matched, &row.gravity_matched);
+            let _ = writeln!(
+                page,
+                "| `{}` | {:.3} m | {:.2} m | {:+.3} m | {:+.3} m ({:+.4}%) | {:+.3} m | {:.4} \
+                 m/s | {:+.5} m/s | {:+.5} m/s ({:+.4}%) | {:+.5} m/s |",
+                row.name,
+                row.internal_momentum_lever_m,
+                matched.mapleaf_apogee_rise_m,
+                matched.mapleaf_apogee_rise_m - before.mapleaf_apogee_rise_m,
+                matched.apogee_difference_m,
+                matched.apogee_difference_percent,
+                matched_apogee_step_m(matched),
+                matched.mapleaf_rail_exit_speed_m_s,
+                matched.mapleaf_rail_exit_speed_m_s - before.mapleaf_rail_exit_speed_m_s,
+                matched.rail_exit_difference_m_s,
+                matched.rail_exit_difference_percent,
+                matched_rail_exit_step_m_s(matched),
+            );
+        }
+        let most = |value: fn(&GravityMatched) -> f64| {
+            largest(self.rows.iter().map(|row| &row.momentum_matched), value)
+        };
+        let step_m = most(matched_apogee_step_m);
+        let step_m_s = most(matched_rail_exit_step_m_s);
+        let moved = |value: fn(&GravityMatched) -> f64| {
+            largest(self.rows.iter(), |row| {
+                value(&row.momentum_matched) - value(&row.gravity_matched)
+            })
+        };
+        let moved_m = moved(|matched| matched.mapleaf_apogee_rise_m);
+        let moved_m_s = moved(|matched| matched.mapleaf_rail_exit_speed_m_s);
+        let _ = writeln!(
+            page,
+            "\nThe added force moves MAPLEAF's apogee by up to {:.3} m ({:.3} ft) and its \
+             rail-exit speed by up to {:.5} m/s ({:.4} ft/s). It changes at once where the \
+             thrust curve bends, and between MAPLEAF's two time steps these flights move by \
+             up to {:.3} m ({:.3} ft) of apogee and {:.5} m/s ({:.4} ft/s) of rail-exit speed. \
+             A change the force makes that is no larger than that is not resolved here: this \
+             table sizes what the terms move, and does not settle it.\n",
+            outward(moved_m, 3),
+            bound_feet(moved_m),
+            outward(moved_m_s, 5),
+            outward(moved_m_s / 0.3048, 4),
+            outward(step_m, 3),
+            bound_feet(step_m),
+            outward(step_m_s, 5),
+            outward(step_m_s / 0.3048, 4),
         );
     }
 
@@ -2059,28 +2244,55 @@ impl MapleafReport {
                 }
             }
         }
+        // The two start at the same height, so in the same air: a start height left unshared
+        // shows as a density difference of a part in ten thousand.
         for row in &self.rows {
-            let matched = &row.gravity_matched;
-            let again = GravityMatched::of(
-                &row.same_drag.hpr,
-                matched.mapleaf_gravity_scale,
-                matched.mapleaf_gravity_at_ignition_m_s2,
-                matched.mapleaf_apogee_rise_m,
-                matched.mapleaf_rail_exit_speed_m_s,
-            );
-            if *matched != again {
-                return Err(format!(
-                    "{}, gravity matched: its differences are not its two flights'",
-                    row.name
-                ));
+            for (kind, compared) in [("own drag", &row.own_drag), ("same drag", &row.same_drag)] {
+                let (hpr, mapleaf) = (
+                    compared.hpr.air_density_at_ignition_kg_m3,
+                    compared.mapleaf.air_density_at_ignition_kg_m3,
+                );
+                if !within(mapleaf, hpr, 1e-6 * hpr) {
+                    return Err(format!(
+                        "{}, {kind}: the air density at ignition is {hpr} in HPR Sim and \
+                         {mapleaf} in MAPLEAF: the two do not start at the same height",
+                        row.name
+                    ));
+                }
             }
-            // The matched flight is matched: MAPLEAF's gravity at ignition is HPR Sim's.
-            let hpr = row.same_drag.hpr.gravity_at_ignition_m_s2;
-            if !within(matched.mapleaf_gravity_at_ignition_m_s2, hpr, 1e-5 * hpr) {
-                return Err(format!(
-                    "{}, gravity matched: MAPLEAF's gravity at ignition is {}, HPR Sim's {hpr}",
-                    row.name, matched.mapleaf_gravity_at_ignition_m_s2
-                ));
+        }
+        for row in &self.rows {
+            for (kind, matched) in [
+                ("gravity matched", &row.gravity_matched),
+                ("internal momentum added", &row.momentum_matched),
+            ] {
+                let again = GravityMatched::of(
+                    &row.same_drag.hpr,
+                    matched.mapleaf_gravity_scale,
+                    matched.mapleaf_gravity_at_ignition_m_s2,
+                    [
+                        matched.mapleaf_apogee_rise_m,
+                        matched.mapleaf_rail_exit_speed_m_s,
+                    ],
+                    [
+                        matched.mapleaf_coarser_apogee_rise_m,
+                        matched.mapleaf_coarser_rail_exit_speed_m_s,
+                    ],
+                );
+                if *matched != again {
+                    return Err(format!(
+                        "{}, {kind}: its differences are not its two flights'",
+                        row.name
+                    ));
+                }
+                // A matched flight is matched: MAPLEAF's gravity at ignition is HPR Sim's.
+                let hpr = row.same_drag.hpr.gravity_at_ignition_m_s2;
+                if !within(matched.mapleaf_gravity_at_ignition_m_s2, hpr, 1e-7 * hpr) {
+                    return Err(format!(
+                        "{}, {kind}: MAPLEAF's gravity at ignition is {}, HPR Sim's {hpr}",
+                        row.name, matched.mapleaf_gravity_at_ignition_m_s2
+                    ));
+                }
             }
         }
         if self.not_shared
@@ -2122,11 +2334,12 @@ impl MapleafReport {
                     compared.rail_exit_difference_percent = 0.0;
                     compared.axial_coefficient_difference_percent = 0.0;
                 }
-                let matched = &mut row.gravity_matched;
-                matched.apogee_difference_m = 0.0;
-                matched.apogee_difference_percent = 0.0;
-                matched.rail_exit_difference_m_s = 0.0;
-                matched.rail_exit_difference_percent = 0.0;
+                for matched in [&mut row.gravity_matched, &mut row.momentum_matched] {
+                    matched.apogee_difference_m = 0.0;
+                    matched.apogee_difference_percent = 0.0;
+                    matched.rail_exit_difference_m_s = 0.0;
+                    matched.rail_exit_difference_percent = 0.0;
+                }
             }
             serde_json::to_value(&report).map_err(|error| error.to_string())
         };
@@ -2249,6 +2462,26 @@ mod tests {
         edited.rows[0].gravity_matched.apogee_difference_m += 0.01;
         let said = edited.check_consistent(&page).unwrap_err();
         assert!(said.contains("gravity matched: its differences"), "{said}");
+
+        // MAPLEAF's center of mass started on the ground: a meter lower, in denser air.
+        let mut edited = report.clone();
+        edited.rows[1]
+            .same_drag
+            .mapleaf
+            .air_density_at_ignition_kg_m3 *= 1.0001;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("the two do not start at the same height"),
+            "{said}"
+        );
+
+        let mut edited = report.clone();
+        edited.rows[2].momentum_matched.rail_exit_difference_m_s += 1e-4;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("internal momentum added: its differences"),
+            "{said}"
+        );
 
         // A "matched" flight that kept MAPLEAF's own gravity is not one.
         let mut edited = report.clone();
@@ -2417,5 +2650,13 @@ mod tests {
         assert_eq!(outward(0.059, 3), 0.059);
         assert_eq!(outward(-0.0581, 3), -0.059);
         assert_eq!(outward(0.0, 3), 0.0);
+        // A bound's feet come from its rounded meters, so 0.0186 m is 0.019 m (0.063 ft).
+        assert_eq!(bound_feet(0.0186), 0.063);
+        // Scientific notation rounds its one decimal up too, and carries into the exponent.
+        assert_eq!(outward_e(4.44e-16), "4.5e-16");
+        assert_eq!(outward_e(4.4e-16), "4.4e-16");
+        assert_eq!(outward_e(9.96e-9), "1.0e-8");
+        assert_eq!(outward_e(-2.561e-9), "-2.6e-9");
+        assert_eq!(outward_e(0.0), "0");
     }
 }

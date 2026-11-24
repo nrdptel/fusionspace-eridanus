@@ -9,8 +9,8 @@ writes what MAPLEAF flew and found to `validation/fixtures/flight/mapleaf-flight
 
 It passes MAPLEAF only what the inputs file gives: the outside shape, the mass without propellant
 as one point mass with its inertia, the motor's thrust, propellant flow and propellant inertia at
-each time, the guided travel and the rail's direction, and the site's elevation. Everything else
-is MAPLEAF's own: its aerodynamics, its atmosphere table, its gravity and its integrator. After
+each time, the guided travel and the rail's direction, the site's elevation and the height the
+center of mass stands at on the pad. Everything else is MAPLEAF's own: its aerodynamics, its atmosphere table, its gravity and its integrator. After
 each run it reads MAPLEAF's own log back and refuses a case whose mass, center of mass or inertia
 at ignition or burnout is not the inputs'.
 
@@ -18,6 +18,11 @@ Each case flies twice. With its own drag, MAPLEAF works its aerodynamics out fro
 shape. With the same drag, the shape is left out and one `TabulatedAeroForce` carries the inputs'
 table of drag coefficient against Mach number, which HPR Sim flies too: what is left between the
 two codes is then everything but the drag.
+
+Two more same-drag flights are measurements, not MAPLEAF as it ships. One scales MAPLEAF's gravity
+constant so that its gravity at the pad is HPR Sim's. The other does that and also adds to
+MAPLEAF's thrust the internal-momentum force HPR Sim's equations of motion carry and MAPLEAF's do
+not.
 
 Build the MAPLEAF environment from this folder's lock file, then run the script with its Python:
 
@@ -132,6 +137,11 @@ def definition(case, time_step_s, motor_path, inclination_deg=None, drag_path=No
     that table of drag coefficient against Mach number instead, on the inputs' reference area.
     """
     rail = case["rail"]
+    # MAPLEAF's rail holds the rocket's center of mass at the rail's foot until thrust lifts it
+    # (ENV/launchRail.py, applyLaunchTowerMotionConstraint), and the foot is the Rocket's
+    # `position`. HPR Sim stands the rocket's tail on the ground, so its center of mass starts
+    # this far above it: the same height here, or the two would fly through different air.
+    center_height_m = case["length_m"] - case["ignition"]["cg_station_m"]
     inclination = math.radians(rail["inclination_deg"] if inclination_deg is None else inclination_deg)
     heading = math.radians(rail["heading_deg"])
     # East, north, up: the heading is clockwise from north.
@@ -236,7 +246,7 @@ Environment{{
 }}
 Rocket{{
     name {case['name']}
-    position {vector(0, 0, 0)}
+    position {vector(0, 0, center_height_m)}
     velocity (0 0 0)
     angularVelocity (0 0 0)
     initialDirection {vector(*direction)}
@@ -465,28 +475,74 @@ def fly(case, time_step_s, folder, same_drag=False):
     }
 
 
-def gravity_matched(case, own_gravity_m_s2, folder):
+def internal_momentum_force_n(case, time_s):
+    """The force HPR Sim's equations of motion add to the thrust, N along the axis toward the nose.
+
+    HPR Sim's translational equation carries `−m r″ − 2ṁ r′ + m̈ (n − r)` beside the thrust
+    (docs/physics/flight.md), with `m` the rocket's mass, `r` its center of mass and `n` the
+    nozzle exit. With the propellant's center fixed in the airframe at `c`, `(m r)″ = m̈ c`, so
+    the three terms sum to `m̈ (n − c)`: the rate of change of the propellant flow times the
+    distance from the propellant's center back to the nozzle, forward while the flow rises.
+    The flow is a straight line between the inputs' rows, so its rate is each interval's slope.
+    """
+    rows = motor_rows(case)
+    centers = {row["propellant_cg_station_m"] for row in rows}
+    if len(centers) != 1:
+        raise SystemExit(f"{case['name']}: the propellant's center moves in the airframe; this force assumes it fixed")
+    times = [row["time_s"] for row in rows]
+    if not times[0] < time_s < times[-1]:
+        return 0.0
+    index = bisect.bisect_right(times, time_s)
+    before, after = rows[index - 1], rows[index]
+    flow_rate = (after["mass_flow_kg_s"] - before["mass_flow_kg_s"]) / (after["time_s"] - before["time_s"])
+    return (case["motor"]["nozzle_station_m"] - centers.pop()) * flow_rate
+
+
+def matched(case, own_gravity_m_s2, folder, internal_momentum=False):
     """The same-drag flight again with MAPLEAF's gravity at the pad made HPR Sim's.
 
     A measurement, not MAPLEAF as it ships: its flat Earth's gravity is `GM / (z + 6371 km)²`
     (ENV/EarthModelling.py), the same at every latitude, where HPR Sim's is WGS 84 normal gravity
     at the site. Scaling `GM` by the ratio of the two at the pad leaves everything else as it
     was, so what this flight moves is what the gravity models' difference moves.
+
+    `internal_momentum` also adds `internal_momentum_force_n` to the thrust of MAPLEAF's motor,
+    whose own force is the thrust curve alone (Rocket/Propulsion.py, TabulatedMotor): what that
+    flight moves from the first is what HPR Sim's internal-momentum terms move.
     """
     from MAPLEAF.ENV import FlatEarth
+    from MAPLEAF.Motion import ForceMomentSystem, Vector
+    from MAPLEAF.Rocket.Propulsion import TabulatedMotor
 
     scale = case["gravity_at_pad_m_s2"] / own_gravity_m_s2
-    shipped = FlatEarth.GM
-    FlatEarth.GM = shipped * scale
+    shipped_gravity, shipped_thrust = FlatEarth.GM, TabulatedMotor.getAppliedForce
+
+    def thrust(self, state, time, environment, CG):
+        shipped = shipped_thrust(self, state, time, environment, CG)
+        extra = internal_momentum_force_n(case, time - self.ignitionTime)
+        return ForceMomentSystem(shipped.force + Vector(0, 0, extra), shipped.location, shipped.moment)
+
+    FlatEarth.GM = shipped_gravity * scale
+    if internal_momentum:
+        TabulatedMotor.getAppliedForce = thrust
     try:
-        flown = fly(case, TIME_STEPS_S[-1], folder, same_drag=True)
+        runs = []
+        for time_step_s in TIME_STEPS_S:
+            with tempfile.TemporaryDirectory(dir=folder) as run:
+                runs.append(fly(case, time_step_s, run, same_drag=True))
+            check_mass(case, runs[-1])
     finally:
-        FlatEarth.GM = shipped
+        FlatEarth.GM, TabulatedMotor.getAppliedForce = shipped_gravity, shipped_thrust
+    coarse, fine = runs
     return {
         "gravity_scale": scale,
-        "gravity_at_ignition_m_s2": flown["gravity_at_ignition_m_s2"],
-        "apogee_rise_m": flown["apogee_rise_m"],
-        "rail_exit_speed_m_s": flown["rail_exit_speed_m_s"],
+        "gravity_at_ignition_m_s2": fine["gravity_at_ignition_m_s2"],
+        "apogee_rise_m": fine["apogee_rise_m"],
+        "rail_exit_speed_m_s": fine["rail_exit_speed_m_s"],
+        "coarser_step": {
+            "apogee_rise_m": coarse["apogee_rise_m"],
+            "rail_exit_speed_m_s": coarse["rail_exit_speed_m_s"],
+        },
     }
 
 
@@ -543,14 +599,15 @@ def main():
                 f"({coarse['apogee_rise_m'] - fine['apogee_rise_m']:+.3f} m at the coarser step), rail exit "
                 f"{fine['rail_exit_speed_m_s']:.3f} m/s ({coarse['rail_exit_speed_m_s'] - fine['rail_exit_speed_m_s']:+.4f})"
             )
-        with tempfile.TemporaryDirectory() as folder:
-            flights["gravity_matched"] = matched = gravity_matched(
-                case, flights["same_drag"]["flown"]["gravity_at_ignition_m_s2"], folder
+        own_gravity_m_s2 = flights["same_drag"]["flown"]["gravity_at_ignition_m_s2"]
+        for key, internal_momentum in (("gravity_matched", False), ("momentum_matched", True)):
+            with tempfile.TemporaryDirectory() as folder:
+                flights[key] = flown = matched(case, own_gravity_m_s2, folder, internal_momentum)
+            print(
+                f"{case['name']}, {key.replace('_', ' ')}, gravity scaled by {flown['gravity_scale']:.6f}: apogee "
+                f"{flown['apogee_rise_m']:.3f} m ({flown['coarser_step']['apogee_rise_m'] - flown['apogee_rise_m']:+.3f} m "
+                f"at the coarser step), rail exit {flown['rail_exit_speed_m_s']:.4f} m/s"
             )
-        print(
-            f"{case['name']}, same drag, gravity scaled by {matched['gravity_scale']:.6f}: apogee "
-            f"{matched['apogee_rise_m']:.2f} m, rail exit {matched['rail_exit_speed_m_s']:.3f} m/s"
-        )
         cases.append(
             {
                 "name": case["name"],
@@ -575,8 +632,13 @@ def main():
         f"angle of attack {leaning['angle_of_attack_deg']:.2f} deg"
     )
 
+    # The commit the installed MAPLEAF was built from, as the installer recorded it.
+    installed = json.loads(importlib.metadata.distribution("MAPLEAF").read_text("direct_url.json"))
+    commit = installed["vcs_info"]["commit_id"]
+    if commit != inputs["mapleaf_commit"]:
+        raise SystemExit(f"the installed MAPLEAF is commit {commit}, not the inputs' {inputs['mapleaf_commit']}")
     document = {
-        "oracle": f"MAPLEAF {importlib.metadata.version('MAPLEAF')} at commit {inputs['mapleaf_commit']}",
+        "oracle": f"MAPLEAF {importlib.metadata.version('MAPLEAF')} at commit {commit}",
         "generator": GENERATOR,
         "command": COMMAND,
         "model": (
@@ -589,8 +651,10 @@ def main():
             "every structural mass is zero but one point mass that carries the inputs' mass, "
             "center and inertia without propellant; the motor file is written from the inputs' "
             "rows; calm air; the rail stands straight up; no recovery, the run ends at apogee; "
+            "the center of mass starts as far above the ground as HPR Sim's; "
             "in the same-drag flights the outside shape is left out and one TabulatedAeroForce "
-            "carries the inputs' drag table"
+            "carries the inputs' drag table; the two matched flights scale MAPLEAF's gravity "
+            "constant, and the second adds HPR Sim's internal-momentum force to the thrust"
         ),
         "inputs": {"file": INPUTS, "sha256": hashlib.sha256(inputs_bytes).hexdigest()},
         "python": {
@@ -603,7 +667,7 @@ def main():
         "leaning_rail": leaning,
         "cases": cases,
     }
-    text = json.dumps(document, indent=2) + "\n"
+    text = json.dumps(document, indent=2, allow_nan=False) + "\n"
     out = pathlib.Path(args.out)
     if args.check:
         if out.read_text() != text:

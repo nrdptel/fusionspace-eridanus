@@ -773,7 +773,7 @@ wrote.
 | package | license | mode | notes |
 |---|---|---|---|
 | [`MAPLEAF`](https://github.com/henrystoldt/MAPLEAF) 0.8.16 at `af970d3` | MIT | run, source read | a third whole-flight simulator: it flies three public designs from HPR Sim's inputs, and `cargo xtask mapleaf-flights` reports the differences in apogee and rail-exit speed. Its source was read to write its input files and to learn what its log's columns mean; none of it is ported |
-| `numpy` 1.22.1, `scipy` 1.7.3, `pandas` 1.3.5, `matplotlib` 3.5.1, `Cython` 0.29.26 and the rest of the 23 packages `uv.lock` pins | as each package states | run-only | what MAPLEAF builds with and imports |
+| `numpy` 1.22.1, `scipy` 1.7.3, `pandas` 1.3.5, `matplotlib` 3.5.1, `Cython` 0.29.26 and the rest of the 21 packages `uv.lock` pins by hash | as each package states | run-only | what MAPLEAF builds with and imports |
 
 ## Research caches (`refs/research/`, outside the lock file)
 

@@ -3,9 +3,9 @@
   "oracle": "MAPLEAF 0.8.16 at commit af970d3e8200832f5e70d537b15ad38dd74fa551",
   "oracle_command": "refs/venv-mapleaf/bin/python -I validation/oracles/mapleaf/flights.py",
   "inputs": "validation/fixtures/flight/mapleaf-inputs.json",
-  "inputs_sha256": "edff83ee026b60393de1831d374340d406afcfbe8aeb07024255d941a5eea388",
+  "inputs_sha256": "8578109cc75f89543719614c6955d5a2d620fc3178f5055a2235b20758e5b7c4",
   "flights": "validation/fixtures/flight/mapleaf-flights.json",
-  "flights_sha256": "c42b4b84dd3c82be1e007f22cb5c802608bb040407643f9d01f0e745d49f3b87",
+  "flights_sha256": "be287e31976ad4d4e7751c29bddef6a10ecab3c11e92082f9dd6513f37e6beb2",
   "mapleaf_time_steps_s": [
     0.002,
     0.001
@@ -79,35 +79,35 @@
           ]
         },
         "mapleaf": {
-          "apogee_rise_m": 780.1524501922975,
-          "rail_exit_speed_m_s": 22.504142613060562,
-          "max_mach": 0.33438200387418426,
-          "gravity_at_ignition_m_s2": 9.818192935928515,
-          "air_density_at_ignition_kg_m3": 1.1483533803157067,
-          "after_burnout_mach": 0.3307169883730884,
-          "after_burnout_axial_coefficient": 0.5635547924823324,
+          "apogee_rise_m": 780.1598521277363,
+          "rail_exit_speed_m_s": 22.504144202359146,
+          "max_mach": 0.3343861881944155,
+          "gravity_at_ignition_m_s2": 9.818190051587914,
+          "air_density_at_ignition_kg_m3": 1.14824864713593,
+          "after_burnout_mach": 0.33072123306771195,
+          "after_burnout_axial_coefficient": 0.5635590284033383,
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.03516662776231611
+              "axial_coefficient": 0.035167094148975446
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.393758681701387
+              "axial_coefficient": 0.3937619531662925
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.13462948301862937
+              "axial_coefficient": 0.13462998108807023
             }
           ]
         },
-        "mapleaf_coarser_apogee_rise_m": 780.1852871987419,
-        "mapleaf_coarser_rail_exit_speed_m_s": 22.50407983287601,
-        "apogee_difference_m": -1.7412190387639157,
-        "apogee_difference_percent": -0.22318958792409455,
-        "rail_exit_difference_m_s": 0.006381822154210681,
-        "rail_exit_difference_percent": 0.02835843277364813,
-        "axial_coefficient_difference_percent": -0.8634293185347439
+        "mapleaf_coarser_apogee_rise_m": 780.1926900766271,
+        "mapleaf_coarser_rail_exit_speed_m_s": 22.504081423431483,
+        "apogee_difference_m": -1.7486209742027086,
+        "apogee_difference_percent": -0.22413624200651705,
+        "rail_exit_difference_m_s": 0.006380232855626389,
+        "rail_exit_difference_percent": 0.028351368522414367,
+        "axial_coefficient_difference_percent": -0.8641744661786153
       },
       "same_drag": {
         "hpr": {
@@ -121,34 +121,49 @@
           "after_burnout_parts": []
         },
         "mapleaf": {
-          "apogee_rise_m": 773.6482196148131,
-          "rail_exit_speed_m_s": 22.502275698823965,
-          "max_mach": 0.33254945123451984,
-          "gravity_at_ignition_m_s2": 9.818192935928515,
-          "air_density_at_ignition_kg_m3": 1.1483533803157067,
-          "after_burnout_mach": 0.32849261310420236,
-          "after_burnout_axial_coefficient": 0.5578736338013496,
+          "apogee_rise_m": 773.6568333729995,
+          "rail_exit_speed_m_s": 22.502277604183877,
+          "max_mach": 0.3325538180774095,
+          "gravity_at_ignition_m_s2": 9.818190051587914,
+          "air_density_at_ignition_kg_m3": 1.14824864713593,
+          "after_burnout_mach": 0.3284971050159427,
+          "after_burnout_axial_coefficient": 0.5578734586445276,
           "after_burnout_parts": []
         },
-        "mapleaf_coarser_apogee_rise_m": 773.6778845191964,
-        "mapleaf_coarser_rail_exit_speed_m_s": 22.50221228360648,
-        "apogee_difference_m": 2.70678681106358,
-        "apogee_difference_percent": 0.3498730744072862,
-        "rail_exit_difference_m_s": 0.007552211053639013,
-        "rail_exit_difference_percent": 0.033561987928330796,
-        "axial_coefficient_difference_percent": -0.001618730964251337
+        "mapleaf_coarser_apogee_rise_m": 773.6864995944791,
+        "mapleaf_coarser_rail_exit_speed_m_s": 22.50221419032081,
+        "apogee_difference_m": 2.698173052877223,
+        "apogee_difference_percent": 0.34875579669007667,
+        "rail_exit_difference_m_s": 0.0075503056937265,
+        "rail_exit_difference_percent": 0.0335535176773513,
+        "axial_coefficient_difference_percent": -0.0015873342408719287
       },
       "gravity_matched": {
-        "mapleaf_gravity_scale": 0.9967606886921923,
-        "mapleaf_gravity_at_ignition_m_s2": 9.786388752528923,
-        "mapleaf_apogee_rise_m": 776.3466587621149,
-        "mapleaf_rail_exit_speed_m_s": 22.510218709629726,
-        "apogee_difference_m": 0.008347663761810509,
-        "apogee_difference_percent": 0.0010752495251439432,
-        "rail_exit_difference_m_s": -0.000390799752121751,
-        "rail_exit_difference_percent": -0.00173609931188527
+        "mapleaf_gravity_scale": 0.9967606873298386,
+        "mapleaf_gravity_at_ignition_m_s2": 9.786385864155752,
+        "mapleaf_apogee_rise_m": 776.3553335154029,
+        "mapleaf_rail_exit_speed_m_s": 22.510220616534177,
+        "mapleaf_coarser_apogee_rise_m": 776.3846971331777,
+        "mapleaf_coarser_rail_exit_speed_m_s": 22.510167303109952,
+        "apogee_difference_m": -0.0003270895261948681,
+        "apogee_difference_percent": -0.00004213141999215474,
+        "rail_exit_difference_m_s": -0.0003927066565729831,
+        "rail_exit_difference_percent": -0.00174457044763272
       },
-      "mapleaf_release_body_travel_m": 5.596140127864239,
+      "momentum_matched": {
+        "mapleaf_gravity_scale": 0.9967606873298386,
+        "mapleaf_gravity_at_ignition_m_s2": 9.786385864155752,
+        "mapleaf_apogee_rise_m": 776.3409121156681,
+        "mapleaf_rail_exit_speed_m_s": 22.509830794952187,
+        "mapleaf_coarser_apogee_rise_m": 776.3391742725125,
+        "mapleaf_coarser_rail_exit_speed_m_s": 22.50983235552138,
+        "apogee_difference_m": 0.014094310208633942,
+        "apogee_difference_percent": 0.0018154795127599834,
+        "rail_exit_difference_m_s": -2.885074582792413e-6,
+        "rail_exit_difference_percent": -0.000012816953663816029
+      },
+      "internal_momentum_lever_m": 0.41999999999999993,
+      "mapleaf_release_body_travel_m": 5.596140128595937,
       "propellant_center_line_departure_m": 0.0,
       "not_passed": [
         "motor-mount (inner tube)",
@@ -195,39 +210,39 @@
           ]
         },
         "mapleaf": {
-          "apogee_rise_m": 550.2869067555952,
-          "rail_exit_speed_m_s": 18.65051586135686,
-          "max_mach": 0.2919756536847215,
-          "gravity_at_ignition_m_s2": 9.818997342503932,
-          "air_density_at_ignition_kg_m3": 1.1778480497127575,
-          "after_burnout_mach": 0.2881931170919188,
-          "after_burnout_axial_coefficient": 0.46049512840810086,
+          "apogee_rise_m": 550.2938071711441,
+          "rail_exit_speed_m_s": 18.650517283162763,
+          "max_mach": 0.2919798145153544,
+          "gravity_at_ignition_m_s2": 9.81899395385239,
+          "air_density_at_ignition_kg_m3": 1.1777225998355345,
+          "after_burnout_mach": 0.2881973469285802,
+          "after_burnout_axial_coefficient": 0.46049543388854763,
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.02200934316101642
+              "axial_coefficient": 0.022009404712212167
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.1925261738443686
+              "axial_coefficient": 0.19252611695100919
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.11644990109319123
+              "axial_coefficient": 0.11645016062265483
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.12950971030952468
+              "axial_coefficient": 0.1295097516026714
             }
           ]
         },
-        "mapleaf_coarser_apogee_rise_m": 550.3042342070338,
-        "mapleaf_coarser_rail_exit_speed_m_s": 18.650749878306694,
-        "apogee_difference_m": 5.503341661898389,
-        "apogee_difference_percent": 1.0000858814441405,
-        "rail_exit_difference_m_s": 0.0024012307160177215,
-        "rail_exit_difference_percent": 0.012874875600588497,
-        "axial_coefficient_difference_percent": -10.952387495364887
+        "mapleaf_coarser_apogee_rise_m": 550.3110633628722,
+        "mapleaf_coarser_rail_exit_speed_m_s": 18.65075129915031,
+        "apogee_difference_m": 5.496441246349491,
+        "apogee_difference_percent": 0.9988193897010494,
+        "rail_exit_difference_m_s": 0.0023998089101127107,
+        "rail_exit_difference_percent": 0.012867251206373779,
+        "axial_coefficient_difference_percent": -10.952446567187211
       },
       "same_drag": {
         "hpr": {
@@ -241,34 +256,49 @@
           "after_burnout_parts": []
         },
         "mapleaf": {
-          "apogee_rise_m": 553.379553069247,
-          "rail_exit_speed_m_s": 18.649934579958067,
-          "max_mach": 0.29139849650285243,
-          "gravity_at_ignition_m_s2": 9.818997342503932,
-          "air_density_at_ignition_kg_m3": 1.1778480497127575,
-          "after_burnout_mach": 0.28747608299414934,
-          "after_burnout_axial_coefficient": 0.410035866080224,
+          "apogee_rise_m": 553.3862668107391,
+          "rail_exit_speed_m_s": 18.64993620126196,
+          "max_mach": 0.2914027163641034,
+          "gravity_at_ignition_m_s2": 9.81899395385239,
+          "air_density_at_ignition_kg_m3": 1.1777225998355345,
+          "after_burnout_mach": 0.2874803845908841,
+          "after_burnout_axial_coefficient": 0.4100361769314522,
           "after_burnout_parts": []
         },
-        "mapleaf_coarser_apogee_rise_m": 553.3963000712955,
-        "mapleaf_coarser_rail_exit_speed_m_s": 18.65016871679769,
-        "apogee_difference_m": 0.7187940932362835,
-        "apogee_difference_percent": 0.12989169716329171,
-        "rail_exit_difference_m_s": 0.002287047998034808,
-        "rail_exit_difference_percent": 0.012263034962559908,
-        "axial_coefficient_difference_percent": 0.0005482797534733382
+        "mapleaf_coarser_apogee_rise_m": 553.4030141197799,
+        "mapleaf_coarser_rail_exit_speed_m_s": 18.650170337079732,
+        "apogee_difference_m": 0.7120803517441345,
+        "apogee_difference_percent": 0.1286769105868812,
+        "rail_exit_difference_m_s": 0.0022854266941436663,
+        "rail_exit_difference_percent": 0.01225434054830183,
+        "axial_coefficient_difference_percent": 0.0004724686543495854
       },
       "gravity_matched": {
-        "mapleaf_gravity_scale": 0.998772438632683,
-        "mapleaf_gravity_at_ignition_m_s2": 9.806943920700487,
-        "mapleaf_apogee_rise_m": 554.0919047342375,
-        "mapleaf_rail_exit_speed_m_s": 18.652234786571775,
-        "apogee_difference_m": 0.0064424282458048765,
-        "apogee_difference_percent": 0.0011627003012965689,
-        "rail_exit_difference_m_s": -0.000013158615672637097,
-        "rail_exit_difference_percent": -0.00007054712651435379
+        "mapleaf_gravity_scale": 0.9987724379145312,
+        "mapleaf_gravity_at_ignition_m_s2": 9.806940529157194,
+        "mapleaf_apogee_rise_m": 554.0986362709114,
+        "mapleaf_rail_exit_speed_m_s": 18.65223640857372,
+        "mapleaf_coarser_apogee_rise_m": 554.1155117897978,
+        "mapleaf_coarser_rail_exit_speed_m_s": 18.65246812908947,
+        "apogee_difference_m": -0.00028910842809182213,
+        "apogee_difference_percent": -0.00005217634716402198,
+        "rail_exit_difference_m_s": -0.000014780617618725955,
+        "rail_exit_difference_percent": -0.00007924313897250343
       },
-      "mapleaf_release_body_travel_m": 3.563497613140936,
+      "momentum_matched": {
+        "mapleaf_gravity_scale": 0.9987724379145312,
+        "mapleaf_gravity_at_ignition_m_s2": 9.806940529157194,
+        "mapleaf_apogee_rise_m": 554.0918322355011,
+        "mapleaf_rail_exit_speed_m_s": 18.65220044133117,
+        "mapleaf_coarser_apogee_rise_m": 554.102871478071,
+        "mapleaf_coarser_rail_exit_speed_m_s": 18.652368548642976,
+        "apogee_difference_m": 0.006514926982163161,
+        "apogee_difference_percent": 0.0011757846990594466,
+        "rail_exit_difference_m_s": 0.000021186624930891185,
+        "rail_exit_difference_percent": 0.00011358780427827708
+      },
+      "internal_momentum_lever_m": 0.2999999999999998,
+      "mapleaf_release_body_travel_m": 3.5634976134592766,
       "propellant_center_line_departure_m": 0.0,
       "not_passed": [
         "motor-mount (inner tube)",
@@ -319,43 +349,43 @@
           ]
         },
         "mapleaf": {
-          "apogee_rise_m": 1307.4552603383938,
-          "rail_exit_speed_m_s": 19.32845944769265,
-          "max_mach": 0.5525054835692818,
-          "gravity_at_ignition_m_s2": 9.81961689541052,
-          "air_density_at_ignition_kg_m3": 1.2009562783382488,
-          "after_burnout_mach": 0.5501524726627165,
-          "after_burnout_axial_coefficient": 0.452230449395221,
+          "apogee_rise_m": 1307.5280573339105,
+          "rail_exit_speed_m_s": 19.32846073558295,
+          "max_mach": 0.5525195663646826,
+          "gravity_at_ignition_m_s2": 9.819611444717003,
+          "air_density_at_ignition_kg_m3": 1.2007514801485109,
+          "after_burnout_mach": 0.5501668127743413,
+          "after_burnout_axial_coefficient": 0.4522327087266959,
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.03308830914993981
+              "axial_coefficient": 0.03308839737620576
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.047134939371830796
+              "axial_coefficient": 0.04713484676081065
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.02414552614623028
+              "axial_coefficient": 0.024145653293413255
             },
             {
               "id": "body-tube-2",
-              "axial_coefficient": 0.25735553581755366
+              "axial_coefficient": 0.2573573944805757
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.09050613890966644
+              "axial_coefficient": 0.09050641681569051
             }
           ]
         },
-        "mapleaf_coarser_apogee_rise_m": 1307.3965145297636,
-        "mapleaf_coarser_rail_exit_speed_m_s": 19.328662736963988,
-        "apogee_difference_m": 99.77972747024751,
-        "apogee_difference_percent": 7.63159784484118,
-        "rail_exit_difference_m_s": 0.0014968630762624002,
-        "rail_exit_difference_percent": 0.007744347552960768,
-        "axial_coefficient_difference_percent": -25.248415642229983
+        "mapleaf_coarser_apogee_rise_m": 1307.4692875224182,
+        "mapleaf_coarser_rail_exit_speed_m_s": 19.32866402161223,
+        "apogee_difference_m": 99.70693047473083,
+        "apogee_difference_percent": 7.625605425097821,
+        "rail_exit_difference_m_s": 0.001495575185963105,
+        "rail_exit_difference_percent": 0.0077376838560652104,
+        "axial_coefficient_difference_percent": -25.24878909732087
       },
       "same_drag": {
         "hpr": {
@@ -369,34 +399,49 @@
           "after_burnout_parts": []
         },
         "mapleaf": {
-          "apogee_rise_m": 1401.9498591001131,
-          "rail_exit_speed_m_s": 19.328310420998946,
-          "max_mach": 0.5503477705843939,
-          "gravity_at_ignition_m_s2": 9.81961689541052,
-          "air_density_at_ignition_kg_m3": 1.2009562783382488,
-          "after_burnout_mach": 0.5477180152841925,
-          "after_burnout_axial_coefficient": 0.3379550088072455,
+          "apogee_rise_m": 1402.0206033841507,
+          "rail_exit_speed_m_s": 19.32831186692414,
+          "max_mach": 0.5503620998754983,
+          "gravity_at_ignition_m_s2": 9.819611444717003,
+          "air_density_at_ignition_kg_m3": 1.2007514801485109,
+          "after_burnout_mach": 0.5477326385923075,
+          "after_burnout_axial_coefficient": 0.3379566167998396,
           "after_burnout_parts": []
         },
-        "mapleaf_coarser_apogee_rise_m": 1401.9217652787738,
-        "mapleaf_coarser_rail_exit_speed_m_s": 19.328513682775114,
-        "apogee_difference_m": 1.8957488790545085,
-        "apogee_difference_percent": 0.13522230247744782,
-        "rail_exit_difference_m_s": 0.0014376228822037262,
-        "rail_exit_difference_percent": 0.007437912838164287,
-        "axial_coefficient_difference_percent": 0.000180661348600586
+        "mapleaf_coarser_apogee_rise_m": 1401.9925077963003,
+        "mapleaf_coarser_rail_exit_speed_m_s": 19.328515125305216,
+        "apogee_difference_m": 1.8250045950169351,
+        "apogee_difference_percent": 0.13016959883555204,
+        "rail_exit_difference_m_s": 0.0014361769570108152,
+        "rail_exit_difference_percent": 0.007430431415319278,
+        "axial_coefficient_difference_percent": -0.00029513803487650887
       },
       "gravity_matched": {
-        "mapleaf_gravity_scale": 0.998272184178542,
-        "mapleaf_gravity_at_ignition_m_s2": 9.802650405977973,
-        "mapleaf_apogee_rise_m": 1403.793281950352,
-        "mapleaf_rail_exit_speed_m_s": 19.329924275334996,
-        "apogee_difference_m": 0.052326028815741665,
-        "apogee_difference_percent": 0.0037274739442436145,
-        "rail_exit_difference_m_s": -0.000176231453846043,
-        "rail_exit_difference_percent": -0.0009117027637346439
+        "mapleaf_gravity_scale": 0.9982721826706275,
+        "mapleaf_gravity_at_ignition_m_s2": 9.802644949895116,
+        "mapleaf_apogee_rise_m": 1403.8641971213335,
+        "mapleaf_rail_exit_speed_m_s": 19.329925721915995,
+        "mapleaf_coarser_apogee_rise_m": 1403.8362523985002,
+        "mapleaf_coarser_rail_exit_speed_m_s": 19.330121005222942,
+        "apogee_difference_m": -0.01858914216586527,
+        "apogee_difference_percent": -0.0013241410532431038,
+        "rail_exit_difference_m_s": -0.0001776780348450302,
+        "rail_exit_difference_percent": -0.0009191863300518603
       },
-      "mapleaf_release_body_travel_m": 1.951431895008262,
+      "momentum_matched": {
+        "mapleaf_gravity_scale": 0.9982721826706275,
+        "mapleaf_gravity_at_ignition_m_s2": 9.802644949895116,
+        "mapleaf_apogee_rise_m": 1403.7605557590455,
+        "mapleaf_rail_exit_speed_m_s": 19.33095558736133,
+        "mapleaf_coarser_apogee_rise_m": 1403.8249224812384,
+        "mapleaf_coarser_rail_exit_speed_m_s": 19.329873329499364,
+        "apogee_difference_m": 0.08505222012217928,
+        "apogee_difference_percent": 0.006058883744328433,
+        "rail_exit_difference_m_s": -0.0012075434801808171,
+        "rail_exit_difference_percent": -0.006246682812567811
+      },
+      "internal_momentum_lever_m": 0.3500000000000001,
+      "mapleaf_release_body_travel_m": 1.9514318958213572,
       "propellant_center_line_departure_m": 4.440892098500626e-16,
       "not_passed": [
         "motor-mount (inner tube)",
@@ -431,7 +476,7 @@
       "flights": "every flight",
       "hpr": "WGS 84 normal gravity at the site's latitude and the rocket's height, the centrifugal term in it",
       "mapleaf": "its `Flat` Earth model, the default: GM/(R + z)² with R = 6371 km, the same at every latitude. Its round and WGS 84 Earth models, which turn with the Earth and fly in an inertial frame, were not flown",
-      "measured": "At ignition, HPR Sim's against MAPLEAF's: 9.7864 against 9.8182 m/s² (-0.32%) (`valetudo`), 9.8069 against 9.8190 m/s² (-0.12%) (`bella-lui`), 9.8026 against 9.8196 m/s² (-0.17%) (`ndrt-2020-nose-to-tail`). With MAPLEAF's gravity matched to HPR Sim's at the pad, the same-drag apogee differences go from +0.35% (`valetudo`), +0.13% (`bella-lui`), +0.14% (`ndrt-2020-nose-to-tail`) to +0.0011% (`valetudo`), +0.0012% (`bella-lui`), +0.0037% (`ndrt-2020-nose-to-tail`) ([the table](#with-mapleafs-gravity-matched))."
+      "measured": "At ignition, HPR Sim's against MAPLEAF's: 9.7864 against 9.8182 m/s² (-0.32%) (`valetudo`), 9.8069 against 9.8190 m/s² (-0.12%) (`bella-lui`), 9.8026 against 9.8196 m/s² (-0.17%) (`ndrt-2020-nose-to-tail`). With MAPLEAF's gravity matched to HPR Sim's at the pad, the same-drag apogee differences go from +0.35% (`valetudo`), +0.13% (`bella-lui`), +0.13% (`ndrt-2020-nose-to-tail`) to -0.0000% (`valetudo`), -0.0001% (`bella-lui`), -0.0013% (`ndrt-2020-nose-to-tail`) ([the table](#with-mapleafs-gravity-matched))."
     },
     {
       "input": "The Earth's turning",
@@ -445,7 +490,7 @@
       "flights": "every flight",
       "hpr": "the 1976 standard atmosphere, worked out at each height",
       "mapleaf": "its table of the U.S. Standard Atmosphere",
-      "measured": "Air density at ignition, HPR Sim's less MAPLEAF's: -0.009% (`valetudo`), -0.011% (`bella-lui`), -0.017% (`ndrt-2020-nose-to-tail`)."
+      "measured": "The center of mass starts at the same height in both. The air density at ignition then differs by at most 2.6e-9 of itself."
     },
     {
       "input": "The rail's lean",
@@ -462,32 +507,39 @@
       "measured": "MAPLEAF frees the rocket with its airframe short of the guided length by 15.5 mm (`valetudo`), 6.6 mm (`bella-lui`), 16.2 mm (`ndrt-2020-nose-to-tail`). Both rail-exit speeds here are read where the airframe has traveled all of it."
     },
     {
+      "input": "Internal-momentum terms beside the thrust",
+      "flights": "every flight",
+      "hpr": "−m r″ − 2ṁ r′ + m̈ (n − r) beside the thrust, as RocketPy has them: m is the rocket's mass, r its center of mass and n the nozzle exit. With the propellant's center c fixed in the airframe, as on these motors, they sum to m̈ (n − c)",
+      "mapleaf": "none: its motor's force is the thrust curve alone",
+      "measured": "Added to MAPLEAF's thrust in its gravity-matched flight, that force moves MAPLEAF's apogee by -0.014 m (`valetudo`), -0.007 m (`bella-lui`), -0.104 m (`ndrt-2020-nose-to-tail`) and its rail-exit speed by -0.00039 m/s (`valetudo`), -0.00004 m/s (`bella-lui`), +0.00103 m/s (`ndrt-2020-nose-to-tail`). Between MAPLEAF's two time steps that flight's apogee moves by up to 0.065 m ([the table](#with-the-internal-momentum-force-added))."
+    },
+    {
       "input": "Jet damping",
       "flights": "every flight",
       "hpr": "the exhaust's damping of pitch and yaw",
       "mapleaf": "only as a `FractionalJetDamping` part, which these flights do not add",
-      "measured": "Not measured apart."
+      "measured": "It acts on a rocket that turns, and these flights go straight up in calm air. Not measured apart."
     },
     {
       "input": "Where the propellant's center of mass is",
       "flights": "every flight",
       "hpr": "where its motor model puts it at each moment",
       "mapleaf": "on a straight line in the burnt fraction, between the two centers its motor file gives",
-      "measured": "HPR Sim's center leaves that line by at most 4.4e-16 m on these motors."
+      "measured": "HPR Sim's center leaves that line by at most 4.5e-16 m on these motors."
     },
     {
       "input": "Mass and inertia between the motor file's rows",
       "flights": "every flight",
       "hpr": "its motor model at every moment",
       "mapleaf": "straight lines between the rows HPR Sim's model was sampled into, 10 to each interval of the thrust curve",
-      "measured": "MAPLEAF's logged mass, center of mass and inertia at ignition and at burnout are the inputs' to one part in a million, checked on every run. Between the rows, not measured."
+      "measured": "MAPLEAF's logged mass, center of mass and inertia at ignition and at burnout are the inputs' to one part in a million, checked on every flight in the tables. Between the rows, not measured."
     },
     {
       "input": "Integration",
       "flights": "every flight",
       "hpr": "Dormand–Prince 5(4) with an adaptive step, relative and absolute tolerance 1e-8",
       "mapleaf": "classical fourth-order Runge–Kutta at a fixed 1 ms",
-      "measured": "At 2 ms MAPLEAF's apogee moves by at most 0.059 m and its rail-exit speed by at most 0.0003 m/s."
+      "measured": "At 2 ms MAPLEAF's apogee moves by at most 0.059 m with its own drag and 0.030 m with the same drag, and its rail-exit speed by at most 0.0003 m/s in either. The matched flights' steps are with their tables."
     }
   ]
 }

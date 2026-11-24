@@ -56,6 +56,7 @@
       "motor": {
         "designation": "K400C",
         "total_impulse_ns": 1307.2574510000006,
+        "nozzle_station_m": 2.158,
         "columns": [
           "time_s",
           "thrust_n",
@@ -2269,7 +2270,7 @@
           0.8035181858591791
         ]
       },
-      "gravity_at_pad_m_s2": 9.786388752528923,
+      "gravity_at_pad_m_s2": 9.786385864155752,
       "rail": {
         "rail_length_m": 5.7,
         "guided_travel_m": 5.61165,
@@ -2347,6 +2348,7 @@
       "motor": {
         "designation": "2245K1075-P",
         "total_impulse_ns": 2255.140217,
+        "nozzle_station_m": 2.6776,
         "columns": [
           "time_s",
           "thrust_n",
@@ -6000,7 +6002,7 @@
           0.8815505194003422
         ]
       },
-      "gravity_at_pad_m_s2": 9.806943920700485,
+      "gravity_at_pad_m_s2": 9.806940529157194,
       "rail": {
         "rail_length_m": 4.2,
         "guided_travel_m": 3.5700499999999997,
@@ -6088,6 +6090,7 @@
       "motor": {
         "designation": "L2500ST",
         "total_impulse_ns": 4671.947937000001,
+        "nozzle_station_m": 3.391,
         "columns": [
           "time_s",
           "thrust_n",
@@ -8661,7 +8664,7 @@
           0.6761209839484397
         ]
       },
-      "gravity_at_pad_m_s2": 9.802650405977975,
+      "gravity_at_pad_m_s2": 9.802644949895116,
       "rail": {
         "rail_length_m": 3.353,
         "guided_travel_m": 1.9676500000000003,
