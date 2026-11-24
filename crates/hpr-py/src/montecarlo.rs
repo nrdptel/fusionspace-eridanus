@@ -2,7 +2,7 @@
 //! at random about the nominal flight's. The run's table reads as NumPy arrays.
 
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo as Runner, Outcome, Run};
-use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution};
+use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution, Share};
 use hpr::hpr_analysis::table::{RunTable, Values};
 use hpr::hpr_sim::FlightSummary;
 use numpy::{PyArray1, PyArrayMethods};
@@ -84,6 +84,9 @@ struct Failure {
     reason: String,
     /// How many flights failed so.
     count: usize,
+    /// The most of all the flights the same scatter could give that may fail so, at 95%
+    /// confidence: the one-sided Clopper–Pearson upper bound on `count` of the flights tried.
+    up_to: f64,
     /// The first one's index: its row in the table.
     first_index: u64,
 }
@@ -228,6 +231,8 @@ impl MonteCarlo {
     ///
     /// - `at`: `"inputs"`, making the flight's inputs from its draw, or `"flight"`, flying them.
     /// - `reason` and `count`.
+    /// - `up_to`, the most of all the flights the same scatter could give that may fail so, at
+    ///   95% confidence (the one-sided Clopper–Pearson upper bound on `count` of the flights).
     /// - `first_index`, the first such flight's row in the table.
     #[getter]
     fn failures<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -317,6 +322,8 @@ impl MonteCarlo {
     /// landing distance's: a dictionary of `attempted` (the flights tried), `count` (those with
     /// a value), `mean`, `standard_deviation` (`n - 1`), `min`, `p05`, `p50`, `p95` and `max`,
     /// over the flights with a value; each `None` when too few flights have one.
+    /// `missing_up_to` is the most of all the flights the same scatter could give that may have no
+    /// value, at 95% confidence (the one-sided Clopper–Pearson upper bound).
     ///
     /// A failed flight, or one without the figure, is left out of those but not forgotten.
     /// `p05_counting_missing` and `p95_counting_missing` are the 5th and 95th percentiles of
@@ -353,6 +360,7 @@ impl MonteCarlo {
         let dict = PyDict::new(py);
         dict.set_item("attempted", summary.attempted)?;
         dict.set_item("count", summary.count)?;
+        dict.set_item("missing_up_to", summary.missing_up_to)?;
         dict.set_item("mean", summary.mean)?;
         dict.set_item("standard_deviation", summary.standard_deviation)?;
         dict.set_item("min", summary.min)?;
@@ -402,6 +410,12 @@ impl MonteCarlo {
     }
 }
 
+/// The one-sided 95% Clopper–Pearson upper bound on `count` of `tried` flights, as `hpr mc` gives
+/// it: 1, the bound that claims nothing, when no flight was tried.
+fn upper_bound(count: usize, tried: usize) -> f64 {
+    Share::of(count, 0, tried).map_or(1.0, |share| share.high_bound)
+}
+
 /// `run`'s failed flights, grouped by where they failed and why, in the order each first failed.
 fn failures(run: &Run) -> Vec<Failure> {
     let mut failures: Vec<Failure> = Vec::new();
@@ -418,9 +432,14 @@ fn failures(run: &Run) -> Vec<Failure> {
                 at: *at,
                 reason: reason.clone(),
                 count: 1,
+                up_to: 1.0,
                 first_index: sample.index,
             }),
         }
+    }
+    let tried = run.samples.len();
+    for failure in &mut failures {
+        failure.up_to = upper_bound(failure.count, tried);
     }
     failures
 }

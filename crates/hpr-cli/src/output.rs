@@ -709,7 +709,7 @@ pub struct McFailed {
 }
 
 /// A reason flights of a run failed.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct McFailure {
     /// Where: making the flight's inputs from its draw, or flying them.
     pub at: McFailedAt,
@@ -717,6 +717,9 @@ pub struct McFailure {
     pub reason: String,
     /// How many flights failed so.
     pub count: usize,
+    /// The most of all the flights the same scatter could give that may fail so, at 95%
+    /// confidence: the one-sided Clopper–Pearson upper bound on `count` of the flights tried.
+    pub up_to: f64,
     /// The first such flight's index, from 0: its row in the `--export` file.
     pub first_index: u64,
 }
@@ -759,6 +762,10 @@ pub struct McSpread {
     pub attempted: usize,
     /// The flights with a value.
     pub count: usize,
+    /// The most of all the flights the same scatter could give that may have no value, at 95%
+    /// confidence: the one-sided Clopper–Pearson upper bound on `attempted − count` of
+    /// `attempted`; 1 with none tried.
+    pub missing_up_to: f64,
     /// The mean.
     pub mean: Option<f64>,
     /// The sample standard deviation (`n − 1`), `null` with fewer than two values.
@@ -784,8 +791,8 @@ pub struct McSpread {
     /// the flights the same scatter could give lie at or below it
     /// (`hpr_analysis::statistics::Distribution::upper_95_95`). The second largest of 100
     /// flights, each flight with no value placed above the largest; `null` with fewer than 59
-    /// flights tried. The 95% column is a sample percentile, which lies below the true one about
-    /// half the time.
+    /// flights tried. The 95% column is a sample percentile, which lies below the true one more
+    /// often than not.
     pub upper_95_95: Option<McCountedQuantile>,
 }
 
@@ -807,6 +814,10 @@ pub enum McCountedQuantile {
 pub struct McLanding {
     /// The flights that landed.
     pub count: usize,
+    /// The most of all the flights the same scatter could give that may not land, a failed
+    /// flight among them, at 95% confidence: the one-sided Clopper–Pearson upper bound on the
+    /// flights tried less `count`.
+    pub not_landed_up_to: f64,
     /// The landings' mean, m east of the pad; `null` with none.
     pub center_east_m: Option<f64>,
     /// The landings' mean, m north of the pad; `null` with none.
@@ -837,8 +848,9 @@ pub struct McEllipse {
     /// The share of the flights tried that landed inside it, a failed flight counted outside.
     pub inside: f64,
     /// The share of all the flights the same scatter could give that land inside it is at least
-    /// this, with 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight
-    /// counted outside.
+    /// this, with about 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight
+    /// counted outside. The bound is exact for an ellipse fixed before the run; this one is fitted
+    /// to the same landings it counts, so its confidence is a little under 95%.
     pub inside_at_least: f64,
 }
 
@@ -994,6 +1006,29 @@ impl FlagKind {
         Self::OutsideCoreBand,
         Self::BeyondEnvelope,
     ];
+}
+
+#[cfg(test)]
+mod flag_kind_tests {
+    use super::FlagKind;
+
+    #[test]
+    fn every_flag_is_in_all() {
+        // `hpr mc` counts flags against `ALL`, so one missing from it would drop out of both
+        // `flags` and `unraised_flags`. The match has no wildcard: a new flag fails to compile
+        // here until it is given a place, and the place must be its place in `ALL`.
+        for (at, flag) in FlagKind::ALL.iter().enumerate() {
+            let place = match flag {
+                FlagKind::UnstableUnderPower => 0,
+                FlagKind::UnstableWithoutMargin => 1,
+                FlagKind::BeyondValidatedRange => 2,
+                FlagKind::HighAngleOfAttack => 3,
+                FlagKind::OutsideCoreBand => 4,
+                FlagKind::BeyondEnvelope => 5,
+            };
+            assert_eq!(place, at, "{flag:?}");
+        }
+    }
 }
 
 /// The design flown.

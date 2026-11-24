@@ -194,6 +194,10 @@ pub struct Summary {
     pub attempted: usize,
     /// The runs that gave a value.
     pub count: usize,
+    /// The most of all the runs the same scatter could give that may give no value, at
+    /// [`SHARE_CONFIDENCE`]: the one-sided Clopper–Pearson upper bound on the runs without one
+    /// ([`Share::high_bound`]); 1, the bound that claims nothing, with no runs tried.
+    pub missing_up_to: f64,
     /// The mean, `None` with no values.
     pub mean: Option<f64>,
     /// The sample standard deviation (`n − 1`), `None` with fewer than two values.
@@ -247,7 +251,8 @@ pub enum CountedQuantile {
 /// no value as failing it, `high` as passing. Those two are the sample's own shares; the true
 /// share, of all the runs the same scatter could give, is bounded by `low_bound` and
 /// `high_bound`, one-sided Clopper–Pearson bounds at [`SHARE_CONFIDENCE`] with each run that gave
-/// no value on the unfavorable side of each.
+/// no value on the unfavorable side of each. Each is one-sided: together they make a two-sided
+/// interval at `2c − 1`, 90%.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Share {
     /// The runs with a value that passed, over every run tried.
@@ -259,7 +264,7 @@ pub struct Share {
     pub low_bound: f64,
     /// The true share is at most this, at [`SHARE_CONFIDENCE`]: the one-sided Clopper–Pearson
     /// upper bound on the runs that passed, a run with no value counted as passing. With none
-    /// passed and none missing it is `1 − (1 − c)^(1/n)`: 2.95% at 100 runs.
+    /// passed and none missing it is `1 − (1 − c)^(1/n)`: 0.029513049… at 100 runs.
     pub high_bound: f64,
 }
 
@@ -271,7 +276,11 @@ impl Share {
     /// its bounds. `None` with no runs, or with more passed and missing than runs.
     #[must_use]
     pub fn of(passed: usize, missing: usize, attempted: usize) -> Option<Self> {
-        if attempted == 0 || passed + missing > attempted {
+        if attempted == 0
+            || passed
+                .checked_add(missing)
+                .is_none_or(|counted| counted > attempted)
+        {
             return None;
         }
         // Cast: counts far below 2⁵³.
@@ -611,6 +620,8 @@ impl Distribution {
         Summary {
             attempted: self.attempted,
             count: self.count(),
+            missing_up_to: Share::of(self.missing(), 0, self.attempted)
+                .map_or(1.0, |share| share.high_bound),
             mean: self.mean(),
             standard_deviation: self.standard_deviation(),
             min: self.min(),
@@ -634,6 +645,15 @@ mod tests {
     /// 1 − 0.05^(1/100) = 2.9513%; one of 100 at most 4.6560% and at least 0.05128%; four at most
     /// 8.9196%; 65 between 56.392% and 72.925%. A run with no value moves each bound to its
     /// unfavorable side: one passed and three missing is at most the four's 8.9196%.
+    #[test]
+    fn a_share_refuses_counts_past_its_runs_without_overflowing() {
+        // More passed and missing than runs is refused, even where the sum overflows a usize.
+        assert_eq!(Share::of(usize::MAX, 1, 5), None);
+        assert_eq!(Share::of(4, 2, 5), None);
+        assert_eq!(Share::of(0, 0, 0), None);
+        assert!(Share::of(3, 2, 5).is_some());
+    }
+
     #[test]
     #[expect(
         clippy::excessive_precision,

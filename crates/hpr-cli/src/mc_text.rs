@@ -81,7 +81,8 @@ pub(crate) fn print(
         diagnostics.line(
             Level::Warning,
             &format!(
-                "{flights}: {}",
+                "{flights}, up to {} of flights at 95%: {}",
+                percent_up(failure.up_to),
                 crate::printable(&crate::sim::rounded(&failure.reason))
             ),
         )?;
@@ -237,7 +238,14 @@ fn counting_missing(run: &McRun, figures: &[Figure<'_>], out: &mut dyn Write) ->
     }
     let counts: Vec<String> = figures
         .iter()
-        .map(|figure| format!("{} with {}", figure.spread.count, figure.has))
+        .map(|figure| {
+            format!(
+                "{} with {} (the rest up to {} of flights at 95%)",
+                figure.spread.count,
+                figure.has,
+                percent_up(figure.spread.missing_up_to)
+            )
+        })
         .collect();
     let said = format!(
         "the columns count only the flights with a value, of {}: {}; with each of the others \
@@ -299,6 +307,13 @@ fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
         meters(east),
         meters(north),
     )?;
+    writeln!(
+        out,
+        "{} didn't land, up to {} of flights at 95%",
+        run.runs
+            .saturating_sub(u64::try_from(landing.count).unwrap_or(run.runs)),
+        percent_up(landing.not_landed_up_to)
+    )?;
     if landing.ellipses.is_empty() {
         return writeln!(
             out,
@@ -328,8 +343,8 @@ fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
         )?;
     }
     for line in crate::trust::wrap(
-        "(≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a \
-         failed flight counted outside",
+        "(≥ …) is a lower bound on the share of all the flights this scatter could give, at about \
+         95% as the ellipses are fitted to these same flights, a failed flight counted outside",
         96,
     ) {
         writeln!(out, "{line}")?;

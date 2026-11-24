@@ -412,15 +412,20 @@ fn failed(run: &Run) -> McFailed {
                 at,
                 reason: reason.clone(),
                 count: 1,
+                up_to: 1.0,
                 first_index: sample.index,
             }),
         }
+    }
+    let tried = run.samples.len();
+    for failure in &mut reasons {
+        failure.up_to = up_to(failure.count, tried);
     }
     let count = run.failed().count();
     McFailed {
         count,
         // A run tries at least one flight, so the share exists; 1.0 is the bound that claims nothing.
-        up_to: Share::of(count, 0, run.samples.len()).map_or(1.0, |share| share.high_bound),
+        up_to: up_to(count, tried),
         reasons,
     }
 }
@@ -431,6 +436,7 @@ fn spread(distribution: &Distribution) -> McSpread {
     McSpread {
         attempted: summary.attempted,
         count: summary.count,
+        missing_up_to: summary.missing_up_to,
         mean: summary.mean,
         standard_deviation: summary.standard_deviation,
         min: summary.min,
@@ -442,6 +448,12 @@ fn spread(distribution: &Distribution) -> McSpread {
         p95_counting_missing: summary.p95_counting_missing.map(bound),
         upper_95_95: summary.upper_95_95.map(bound),
     }
+}
+
+/// The one-sided 95% Clopper–Pearson upper bound on `count` of `tried` flights: the most of all
+/// such flights the count allows. 1, the bound that claims nothing, when no flight was tried.
+fn up_to(count: usize, tried: usize) -> f64 {
+    Share::of(count, 0, tried).map_or(1.0, |share| share.high_bound)
 }
 
 /// A percentile counting the flights with no value, in the output's terms.
@@ -468,6 +480,7 @@ fn landing(run: &Run) -> Result<McLanding, hpr::hpr_analysis::AnalysisError> {
     }
     Ok(McLanding {
         count: scatter.count(),
+        not_landed_up_to: up_to(run.samples.len() - scatter.count(), run.samples.len()),
         center_east_m: center.map(|c| c[0]),
         center_north_m: center.map(|c| c[1]),
         ellipses,
@@ -476,6 +489,7 @@ fn landing(run: &Run) -> Result<McLanding, hpr::hpr_analysis::AnalysisError> {
 
 /// An ellipse as the output states it.
 fn ellipse_out(kind: EllipseKind, ellipse: &Ellipse, scatter: &Scatter) -> McEllipse {
+    let share = scatter.share_inside(ellipse);
     McEllipse {
         kind,
         level: ellipse.level,
@@ -484,10 +498,8 @@ fn ellipse_out(kind: EllipseKind, ellipse: &Ellipse, scatter: &Scatter) -> McEll
         semi_major_m: ellipse.semi_major_m,
         semi_minor_m: ellipse.semi_minor_m,
         major_heading_deg: ellipse.major_heading_rad.to_degrees(),
-        inside: scatter.share_inside(ellipse).map_or(0.0, |share| share.low),
-        inside_at_least: scatter
-            .share_inside(ellipse)
-            .map_or(0.0, |share| share.low_bound),
+        inside: share.map_or(0.0, |share| share.low),
+        inside_at_least: share.map_or(0.0, |share| share.low_bound),
     }
 }
 

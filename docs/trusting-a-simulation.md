@@ -140,12 +140,13 @@ opening airspeed (ft/s)        17       15        8        3       15       29
 above): apogee 1155.2 m (3790 ft); landing distance 0.9 m (3 ft)
 
 200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad
+0 didn't land, up to 1.5% of flights at 95%
 landing ellipse                   semi-major            semi-minor  heading    flights inside
 50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T   74.5% (≥ 68.9%)
 95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.0% (≥ 95.4%)
 95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.5% (≥ 96.1%)
-(≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a failed
-flight counted outside
+(≥ …) is a lower bound on the share of all the flights this scatter could give, at about 95% as
+the ellipses are fitted to these same flights, a failed flight counted outside
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
@@ -178,6 +179,9 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 Read it in three parts. The table's `5%` and `95%` columns are
 [percentiles](glossary.md#percentile): most runs fell between them, a few on either side. The
+`95/95` line under it is the one to plan a ceiling with, and the first line's "0 failed, up to
+1.5%" says that no failure in 200 flights still allows failures in up to 1.5% of such flights
+([Monte Carlo dispersion](monte-carlo.md#failed-flights-are-counted)). The
 warnings name the known model gaps that bear on this flight, each with the side it pushes the
 numbers to. Here the drag may read high. If it does, the apogee reads low, the side that flatters
 a ceiling.

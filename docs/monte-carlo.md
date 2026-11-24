@@ -122,14 +122,19 @@ How to read it:
   twenty higher than the 95% value. So nine flights in ten reached between about 1,040 m (3,412 ft)
   and 1,200 m (3,937 ft).
 - **95/95 upper bounds** are what to plan a waiver's ceiling or a field's edge with, not the 95%
-  column. The 95% column is this sample's own percentile: from another seed it moves. At 200
-  flights it sits below the true 95th percentile of all such flights about half the time, and at
-  100 flights more often than not (62%). The 95/95 bound sits
+  column. The 95% column is this sample's own percentile: from another seed it moves. It sits
+  below the true 95th percentile of all such flights more often than not, at 100 flights and at
+  200 alike. The 95/95 bound sits
   above that true percentile with 95% confidence (Wilks's tolerance bound, below). Here it is
   1,207 m (3,960 ft) for the apogee against the column's 1,199 m (3,934 ft), and 1,072 m
-  (3,517 ft) for the landing distance against 997 m (3,271 ft).
-- **At least**, beside each ellipse, is the share of all such flights it holds, at 95%
-  confidence: the 200 flights' own share, 94.5% for the 95% ellipse, could be luck.
+  (3,517 ft) for the landing distance against 997 m (3,271 ft). It covers only the scatter the
+  run was given, not the model's own error: [Accuracy](accuracy.md) gives that,
+  and a waiver needs room for both. The landing distance's bound says how far from the pad; the
+  next-flight ellipse below says whether the landings fit the field's shape.
+- **At least**, beside each ellipse, is a lower bound on the share of all such flights it holds,
+  at about 95% confidence: the 200 flights' own share, 94.5% for the 95% ellipse, could be luck.
+  The bound would be exact for an ellipse drawn before the run; these are fitted to the same
+  landings they count, so the confidence is a little under 95%.
 
 **The mean isn't the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
 With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4\,\mathrm{m}$ (its
@@ -259,7 +264,8 @@ landings, even the 50% ellipse holds all three. If the share is far from the lev
 hundreds of flights, the landings aren't normal. An uncertain wind heading in a strong wind spreads
 them along an arc, and an ellipse is then the wrong shape. Look at the points ([`Scatter::points`]).
 
-A failed flight has no landing. It counts as outside for the lower bound and inside for the upper
+A failed flight has no landing. It counts as outside for the share's `low` and `low_bound`, and
+inside for its `high` and `high_bound`
 ([Failed flights are counted](#failed-flights-are-counted)).
 
 > **How far to trust it.** The ellipse math is tested against normal spreads whose answers are
@@ -363,14 +369,15 @@ numbers. Two are the run's own:
 With no failures those two are equal. But a run is a sample, and the share of all such flights
 could be higher or lower than the sample's. So the other two bound it, each at 95% confidence:
 
-- `low_bound`, the one-sided Clopper-Pearson lower bound on the flights that reached it, a failed
+- `low_bound`, the one-sided Clopper-Pearson lower bound (C. J. Clopper and E. S. Pearson,
+  *Biometrika* 26(4), 404–413, 1934) on the flights that reached it, a failed
   flight counted as not reaching it;
 - `high_bound`, the upper bound, a failed flight counted as reaching it.
 
 In the example 131 of 200 flights reached 1,100 m (3,609 ft): 65.5%, and the share of all such flights is
 at least 59.5% and at most 71.1%. A count of zero isn't "never": none of 100 still allows up to
 3.0% (1 − 0.05^(1/100) = 2.95%, the rule of three's 3/100 in exact form). That is how `hpr mc`
-gives each envelope flag. A flag raised on 1 of 100 flights, with 3 more failed, is at most 8.9%:
+gives each envelope flag. A flag raised on 1 of 100 flights, with 3 more failed, is at most 9.0%:
 each failed flight is counted as one that may have raised it. A flag no flight raised is listed
 with its bound too.
 

@@ -675,7 +675,7 @@
           "format": "double"
         },
         "inside_at_least": {
-          "description": "The share of all the flights the same scatter could give that land inside it is at least\nthis, with 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight\ncounted outside.",
+          "description": "The share of all the flights the same scatter could give that land inside it is at least\nthis, with about 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight\ncounted outside. The bound is exact for an ellipse fixed before the run; this one is fitted\nto the same landings it counts, so its confidence is a little under 95%.",
           "type": "number",
           "format": "double"
         },
@@ -783,12 +783,18 @@
         "reason": {
           "description": "The error.",
           "type": "string"
+        },
+        "up_to": {
+          "description": "The most of all the flights the same scatter could give that may fail so, at 95%\nconfidence: the one-sided Clopper–Pearson upper bound on `count` of the flights tried.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "at",
         "reason",
         "count",
+        "up_to",
         "first_index"
       ]
     },
@@ -857,10 +863,16 @@
           "items": {
             "$ref": "#/$defs/McEllipse"
           }
+        },
+        "not_landed_up_to": {
+          "description": "The most of all the flights the same scatter could give that may not land, a failed\nflight among them, at 95% confidence: the one-sided Clopper–Pearson upper bound on the\nflights tried less `count`.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "count",
+        "not_landed_up_to",
         "ellipses"
       ]
     },
@@ -958,6 +970,11 @@
           ],
           "format": "double"
         },
+        "missing_up_to": {
+          "description": "The most of all the flights the same scatter could give that may have no value, at 95%\nconfidence: the one-sided Clopper–Pearson upper bound on `attempted − count` of\n`attempted`; 1 with none tried.",
+          "type": "number",
+          "format": "double"
+        },
         "p05": {
           "description": "The 5th percentile.",
           "type": [
@@ -1026,7 +1043,8 @@
       },
       "required": [
         "attempted",
-        "count"
+        "count",
+        "missing_up_to"
       ]
     },
     "Peak": {
