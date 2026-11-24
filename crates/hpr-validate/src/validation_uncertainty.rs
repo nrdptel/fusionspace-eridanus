@@ -23,8 +23,16 @@
 //! `r` is measured, as the second run's accepted steps to apogee over the first's, not assumed
 //! to be 2. The index is a band of about 95%; it is divided by `k = 2` for a standard
 //! uncertainty, the divisor NIST's summary gives for a Gaussian (NISTIR 8298, 2020, §4, p. 17; it
-//! gives 1.1 to 1.15 for a shifted one, and neither was checked against the standard). The data
-//! and input parts come in [M1.14b17][m1-14b17] and [M1.14b18][m1-14b18].
+//! gives 1.1 to 1.15 for a shifted one, and neither was checked against the standard).
+//!
+//! The data part is the log's own ([M1.14b17][m1-14b17], [`crate::data_uncertainty`]): each
+//! row carries its log apogee's standard uncertainty where its altimeter, or the pressure
+//! sensor its maker names, has a published accuracy, and the correction the log's apogee takes
+//! for what is known to make it read low or high ([`UncertaintyRow::corrected_error_m`]). Both
+//! apogees are barometric readings, so the standard atmosphere's distance from
+//! the day's air is in both and not in the data part; each row measures that conversion on
+//! both sides ([`UncertaintyRow::conversion_m`], [`UncertaintyRow::log_conversion_m`]). The
+//! input part comes in [M1.14b18][m1-14b18].
 //!
 //! [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
 //! [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
@@ -37,6 +45,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::correction::Variant;
+use crate::data_uncertainty::{DataPart, Measured, Term, data_part, instrument};
 use crate::predicted_first::ComparedPrediction;
 use crate::real_flight::{FLIGHTS, FlightRow, RealFlightError, Varied, fly_varied};
 
@@ -101,7 +110,7 @@ pub fn validation_uncertainty_m(numerical_m: f64, input_m: f64, data_m: f64) -> 
     (numerical_m * numerical_m + input_m * input_m + data_m * data_m).sqrt()
 }
 
-/// One public real flight's comparison error and the numerical part of its validation
+/// One public real flight's comparison error and the numerical and data parts of its validation
 /// uncertainty.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UncertaintyRow {
@@ -120,6 +129,17 @@ pub struct UncertaintyRow {
     /// The numerical part `u_num`, m ([`numerical_uncertainty_m`] on the
     /// [`refinement_ratio`] of the two runs' steps).
     pub numerical_m: f64,
+    /// The log's apogee `D`, m, as its row gives it.
+    pub log_apogee_m: f64,
+    /// HPR Sim's apogee as a height, m above the start: [`UncertaintyRow::apogee_m`] before the
+    /// altimeter reads it.
+    pub height_apogee_m: f64,
+    /// The height above the start, m, at which the same altimeter, in the air the flight is
+    /// flown in, reads the log's apogee: the log's apogee as a height, if that air is the day's.
+    pub log_height_m: f64,
+    /// The data part: the log apogee's correction, its standard uncertainty `u_D` and their
+    /// components, or why its altimeter has none ([`crate::data_uncertainty`]).
+    pub data: DataPart,
 }
 
 impl UncertaintyRow {
@@ -129,8 +149,68 @@ impl UncertaintyRow {
         refinement_ratio(self.steps, self.steps_step_halved)
     }
 
-    /// Whether the row holds together: its numerical part is its two runs', and everything is
-    /// a finite number.
+    /// The barometer's conversion in HPR Sim's apogee, m: the reading less the height. It is
+    /// how far the standard atmosphere's altitude of the day's pressure stands from the height
+    /// climbed, at HPR Sim's apogee.
+    #[must_use]
+    pub fn conversion_m(&self) -> f64 {
+        self.apogee_m - self.height_apogee_m
+    }
+
+    /// The same conversion in the log's apogee, m, in the air the flight is flown in: the log's
+    /// reading less the height at which that reading is made ([`UncertaintyRow::log_height_m`]).
+    #[must_use]
+    pub fn log_conversion_m(&self) -> f64 {
+        self.log_apogee_m - self.log_height_m
+    }
+
+    /// The comparison error as heights, m: HPR Sim's apogee less the log's, neither read through
+    /// the barometer. It differs from [`UncertaintyRow::comparison_error_m`] by the part of the
+    /// conversion that the two readings don't share.
+    #[must_use]
+    pub fn height_error_m(&self) -> f64 {
+        self.height_apogee_m - self.log_height_m
+    }
+
+    /// The comparison error as a share of the log's apogee, both as readings: how the report
+    /// scores a flight.
+    #[must_use]
+    pub fn error_share(&self) -> f64 {
+        self.comparison_error_m / self.log_apogee_m
+    }
+
+    /// [`UncertaintyRow::height_error_m`] as a share of the log's apogee as a height.
+    #[must_use]
+    pub fn height_error_share(&self) -> f64 {
+        self.height_error_m() / self.log_height_m
+    }
+
+    /// The comparison error against the log's apogee corrected, m: HPR Sim's apogee less the
+    /// log's with its data part's correction added
+    /// ([`DataPart::correction_m`](crate::data_uncertainty::DataPart::correction_m)), so
+    /// [`UncertaintyRow::comparison_error_m`] less the correction. `None` for a flight with no
+    /// data part. The report's own error stays on the log as logged; a band is drawn about this
+    /// one.
+    #[must_use]
+    pub fn corrected_error_m(&self) -> Option<f64> {
+        self.data
+            .correction_m
+            .map(|correction_m| self.comparison_error_m - correction_m)
+    }
+
+    /// Whether the numerical part is its two runs' ([`numerical_uncertainty_m`] on their
+    /// [`refinement_ratio`]).
+    #[must_use]
+    pub fn numerical_holds(&self) -> bool {
+        self.refinement_ratio().and_then(|ratio| {
+            numerical_uncertainty_m(self.apogee_m, self.apogee_step_halved_m, ratio)
+        }) == Some(self.numerical_m)
+    }
+
+    /// Whether the row holds together: its numerical part is its two runs', its data part is its
+    /// altimeter's on its log's apogee, from the part's own conversions and formula gap
+    /// ([`DataPart::holds`]; the report's check holds those to the flight's site and row), and
+    /// everything is a finite number.
     #[must_use]
     pub fn holds(&self) -> bool {
         [
@@ -138,12 +218,14 @@ impl UncertaintyRow {
             self.apogee_m,
             self.apogee_step_halved_m,
             self.numerical_m,
+            self.log_apogee_m,
+            self.height_apogee_m,
+            self.log_height_m,
         ]
         .iter()
         .all(|x| x.is_finite())
-            && self.refinement_ratio().and_then(|ratio| {
-                numerical_uncertainty_m(self.apogee_m, self.apogee_step_halved_m, ratio)
-            }) == Some(self.numerical_m)
+            && self.numerical_holds()
+            && self.data.holds(&self.id, self.log_apogee_m)
     }
 }
 
@@ -164,7 +246,39 @@ pub fn rows(
         flight: id.to_owned(),
         what: "a row with no flight to fly again".to_owned(),
     };
-    let row = |id: &str, error_m: f64, coarse: Varied, fine: Varied| {
+    let input = |id: &str, what: String| RealFlightError::Input {
+        flight: id.to_owned(),
+        what,
+    };
+    // The data part: the flight's altimeter on its log's apogee. A pressure term is turned into
+    // a height at the site's elevation plus that apogee; only flights with a site carry one.
+    let data =
+        |id: &str, log_apogee_m: f64, site_elevation_m: Option<f64>, formula_gap_m: Option<f64>| {
+            let instrument = instrument(id)
+                .ok_or_else(|| input(id, "a flight with no altimeter in the table".to_owned()))?;
+            let measured = match site_elevation_m {
+                Some(elevation_m) if instrument.terms.iter().any(Term::is_pressure) => {
+                    Measured::at(elevation_m, log_apogee_m, formula_gap_m)
+                        .map_err(|error| input(id, format!("the standard atmosphere: {error}")))?
+                }
+                _ => Measured {
+                    formula_gap_m,
+                    ..Measured::default()
+                },
+            };
+            data_part(instrument, log_apogee_m, &measured).map_err(|what| input(id, what))
+        };
+    let row = |id: &str,
+               (error_m, log_apogee_m): (f64, f64),
+               coarse: Varied,
+               fine: Varied,
+               data: DataPart| {
+        let log_height_m = coarse.log_height_m.ok_or_else(|| {
+            input(
+                id,
+                "the flight was flown without its log's apogee asked of its altimeter".to_owned(),
+            )
+        })?;
         let numerical_m = refinement_ratio(coarse.steps_to_apogee, fine.steps_to_apogee)
             .and_then(|ratio| numerical_uncertainty_m(coarse.apogee_m, fine.apogee_m, ratio))
             .ok_or_else(|| RealFlightError::Input {
@@ -182,6 +296,10 @@ pub fn rows(
             steps: coarse.steps_to_apogee,
             steps_step_halved: fine.steps_to_apogee,
             numerical_m,
+            log_apogee_m,
+            height_apogee_m: coarse.height_apogee_m,
+            log_height_m,
+            data,
         })
     };
     let mut out = Vec::with_capacity(flights.len() + predicted.len());
@@ -192,14 +310,29 @@ pub fn rows(
             .ok_or_else(|| missing(&compared.id))?;
         let coarse = fly_varied(root, flight, Variant::TIP_OFF)?;
         let fine = fly_varied(root, flight, Variant::STEP_HALVED)?;
+        let part = data(
+            &compared.id,
+            compared.log_apogee_m,
+            Some(flight.site.2),
+            compared.pressure_reading_apogee_m,
+        )?;
         out.push(row(
             &compared.id,
-            compared.hpr_apogee_m - compared.log_apogee_m,
+            (
+                compared.hpr_apogee_m - compared.log_apogee_m,
+                compared.log_apogee_m,
+            ),
             coarse,
             fine,
+            part,
         )?);
     }
-    let mut coarse = crate::public_predictions::varied_apogees(root, Variant::TIP_OFF)?;
+    let readings = predicted
+        .iter()
+        .map(|compared| (compared.id.clone(), compared.log_apogee_m))
+        .collect::<Vec<_>>();
+    let mut coarse =
+        crate::public_predictions::varied_apogees_at(root, Variant::TIP_OFF, &readings)?;
     let mut fine = crate::public_predictions::varied_apogees(root, Variant::STEP_HALVED)?;
     let take = |list: &mut Vec<crate::public_predictions::VariedApogee>, id: &str| {
         let at = list
@@ -211,11 +344,16 @@ pub fn rows(
     for compared in predicted {
         let coarse_run = take(&mut coarse, &compared.id)?;
         let fine_run = take(&mut fine, &compared.id)?;
+        let part = data(&compared.id, compared.log_apogee_m, None, None)?;
         out.push(row(
             &compared.id,
-            compared.hpr_apogee_m - compared.log_apogee_m,
+            (
+                compared.hpr_apogee_m - compared.log_apogee_m,
+                compared.log_apogee_m,
+            ),
             coarse_run,
             fine_run,
+            part,
         )?);
     }
     Ok(out)
@@ -264,13 +402,22 @@ mod tests {
     fn a_row_holds_with_its_own_numerical_part() {
         let own = numerical_uncertainty_m(1000.0, 1000.3, 2.0).expect("r = 2 is finer");
         let mut row = UncertaintyRow {
-            id: "a".to_owned(),
+            id: "astra".to_owned(),
             comparison_error_m: -12.0,
             apogee_m: 1000.0,
             apogee_step_halved_m: 1000.3,
             steps: 500,
             steps_step_halved: 1000,
             numerical_m: 0.48,
+            log_apogee_m: 1012.0,
+            height_apogee_m: 1030.0,
+            log_height_m: 1042.5,
+            data: data_part(
+                instrument("astra").expect("the flight is in the table"),
+                1012.0,
+                &Measured::default(),
+            )
+            .expect("no term to compute"),
         };
         assert!(!row.holds(), "0.48 isn't the float the formula gives");
         row.numerical_m = own;
@@ -284,6 +431,19 @@ mod tests {
         assert!(!row.holds(), "a second run no finer holds no part");
         row.steps_step_halved = 1000;
         row.comparison_error_m = f64::NAN;
+        assert!(!row.holds());
+        row.comparison_error_m = -12.0;
+        assert!(row.holds());
+        // The conversions: 1000 − 1030 in HPR Sim's reading, 1012 − 1042.5 in the log's, and
+        // the error as heights, 1030 − 1042.5.
+        assert_eq!(row.conversion_m(), -30.0);
+        assert_eq!(row.log_conversion_m(), -30.5);
+        assert_eq!(row.height_error_m(), -12.5);
+        // A data part that isn't the flight's altimeter's doesn't hold.
+        row.id = "macie-xl-1".to_owned();
+        assert!(!row.holds(), "a PerfectFlite has a part; this row has none");
+        row.id = "astra".to_owned();
+        row.log_height_m = f64::INFINITY;
         assert!(!row.holds());
     }
 }

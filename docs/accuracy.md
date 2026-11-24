@@ -1149,9 +1149,48 @@ integrator's part of a validation uncertainty, u_num ([M1.14b16](decisions-and-r
 open texts on it. The largest
 u_num is 5.7093 mm (0.22 in), and every flight's miss is at least 2,700 times its own
 ([the report's section][real-uncertainty]). So a finer step can't account for any of these
-misses. This doesn't test the models, the inputs or the logs. The log's own apogee uncertainty
-comes with [M1.14b17](decisions-and-roadmap.md#m1-14b17), and the inputs' part with
-[M1.14b18](decisions-and-roadmap.md#m1-14b18); until both do, no miss has a band.
+misses. This doesn't test the models, the inputs or the logs.
+
+**How much of each miss the log could be.** Part of a miss could also be the log's own error.
+For 8 of the 12 flights a published accuracy exists. The altimeter's own manual gives one for
+3. For the other 5 it is the datasheet of the pressure sensor the maker names. The report
+combines it with
+the sensor's noise, the log's resolution (the smallest step it records) and its filter, where
+those are known. The result is the log's part of the validation uncertainty, u_D: one
+[standard deviation](glossary.md#standard-deviation) of the logged apogee
+([M1.14b17](decisions-and-roadmap.md#m1-14b17)). [The decision behind it][adr-375] gives each
+rule and its source. The largest u_D is 10.09 m (33.1 ft), on Prometheus
+([the report's section][real-data-part]).
+
+Where something is known to make a log read low or high, the report corrects the log's apogee
+for it instead of adding it to u_D. The largest correction is on Juno III, +16.32 m (53.5 ft).
+The report reads that log only to 24.60 s, while the rocket is still climbing. Measured against
+its corrected log, each of the 8 misses is at least 17 times its own u_D
+([the same section][real-data-part]). So the log's part can't account for these misses either.
+The misses above stay on the logs as logged; whether they should take the corrections is
+[an open question](https://github.com/nrdptel/fusionspace-eridanus/issues/1615). The other 4
+flights have no published accuracy. One log is the team's own avionics, and RocketPy's notebooks
+call the other three only "COTS altimeter". The report lists them by name and gives them no u_D.
+
+These are published figures for a kind of altimeter or sensor, not calibrations of the units
+that flew. Pairs of altimeters flown on one rocket suggest about 0.39% of the apogee for one
+whole unit
+([the note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/dual-altimeter-spread.md)).
+On 7 of the 8, u_D is under that ([the section][real-data-part]), so on that evidence it is
+more likely too small than too large. Too small a u_D makes a later band narrower, which a miss
+fits inside less easily.
+
+One thing is left out of u_D on purpose. A
+[barometric altimeter](glossary.md#barometric-altimeter) reports the
+[standard atmosphere](glossary.md#standard-atmosphere)'s altitude of the pressure around it. On
+a warm day that is less than the height climbed: by as much as 282.4 m (926 ft) on these
+flights. HPR Sim's apogee is read the same way, so that difference is in both numbers. The
+report's table also turns both apogees into heights climbed. A miss then changes by at most
+22.6 m (74 ft), and by at most 0.10 percentage points of the apogee
+([the report's table][real-conversion]). That change is the miss itself counted in the day's
+air, not an error of the log. What this doesn't cover is an error in the air the flight is
+simulated in. That is an input's uncertainty, and it comes with the inputs' part
+([M1.14b18](decisions-and-roadmap.md#m1-14b18)); until it does, no miss has a band.
 
 ### Real flights of the private collection
 
@@ -1999,6 +2038,9 @@ rest.
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [real-uncertainty]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-integrator-could-be
 [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
+[real-data-part]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-log-could-be
+[real-conversion]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#the-barometers-conversion-in-both-readings
+[adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json
