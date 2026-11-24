@@ -1225,10 +1225,12 @@ u_input is by far the largest of the three parts. It runs from 23.8 m (78 ft) on
 140.0 m (459 ft) on Prometheus ([the report's section][real-input-part]). On 10 of the 12
 flights the largest share of it is the motor's total impulse. These are figures for a kind of
 input, not measurements of the rockets that flew. No team here published a measured uncertainty
-for its own rocket's mass or motor. The impulse's figure matters most, and it is a floor. A
-flown motor is taken to stand as far from its file's curve as two certification tests of one
-motor stand apart. That is between 2.5% and 3.56%, depending on how much of the tests' scatter
-is the test stand's, which isn't known.
+for its own rocket's mass or motor. The impulse's figure is a floor. A motor's file is one
+certification test, and two tests of one motor differ by a standard deviation of 3.56%. If all
+of that scatter is the test stand's, a flown motor stands 2.5% from its file, the figure used. If all of it is from
+motor to motor, it stands 3.56% off where each test fired one motor. Where each test's figure
+is the mean of three motors, it stands 5.03% off. Neither the split nor the number fired is
+known ([the same section][real-input-part]).
 
 <a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
 and u_input (the inputs). They combine into the validation uncertainty, u_val: the square root
@@ -1241,8 +1243,8 @@ Sim reads high on 2 of the 5 (NDRT 2020 and Cavour). It reads low on 3 (Promethe
 the second Macie XL flight). The 4 flights with no u_D get no band.
 
 That count moves with the inputs' figures, both ways ([the same section][real-band]). With the
-impulse at 3.56%, the other end of its range, 6 of the 8 would be within. Only Prometheus and
-the second Macie XL flight are outside at both ends. The other way, a rocket as built is
+impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
+the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket as built is
 usually heavier than its design file, by a median 7.4%. With that taken out of the two Macie XL
 flights, the first would be outside too, and 2 of the 8 would be within.
 

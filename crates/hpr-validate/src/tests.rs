@@ -2593,11 +2593,25 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
         RealFlightReport::validation_at_impulse_m(&none, 0.031),
         None
     );
-    // At 3.56%, the other end of the impulse's range, the impulse's part is 25.632 m, the
-    // seven sum to √(25.632² + 24²) = 35.114 m and u_val is √(35.114² + 40²) = 53.226 m: a
-    // band of 106.45 m, which takes in the 100.001 m and the 101 m and not the 400 m.
+    // At 3.56%, the top of the impulse's range for one motor a test, the impulse's part is
+    // 25.632 m, the seven sum to √(25.632² + 24²) = 35.114 m and u_val is
+    // √(35.114² + 40²) = 53.226 m: a band of 106.45 m, which takes in the 100.001 m and the
+    // 101 m and not the 110 m or the 400 m.
     let at_end = RealFlightReport::validation_at_impulse_m(&over, 0.0356).expect("a u_val");
     assert!((at_end - 53.226).abs() < 1e-3, "{at_end}");
+    // At 5.03%, the top for a mean of three motors a test, the impulse's part is 36.216 m, the
+    // seven sum to √(36.216² + 24²) = 43.447 m and u_val is √(43.447² + 40²) = 59.056 m: a band
+    // of 118.11 m, which takes in the 110 m too and not the 400 m.
+    let at_three = RealFlightReport::validation_at_impulse_m(&over, 0.0503).expect("a u_val");
+    let by_hand = (36.216_f64 * 36.216 + 24.0 * 24.0 + 40.0 * 40.0).sqrt();
+    assert!(
+        (at_three - by_hand).abs() < 1e-9,
+        "{at_three} for {by_hand}"
+    );
+    assert!((at_three - 59.056).abs() < 1e-3, "{at_three}");
+    // Outside at 2.5% and at 3.56%, within at 5.03% alone.
+    let wide = row("wide", 110.0, Some((40.0, 0.0)), 30.0);
+    assert_eq!(wide.within, Some(false));
 
     // A flight on a design file's mass, with the growth as built taken out. Its mass's flight
     // one standard uncertainty (10.75%) heavier is 40 m lower, so 7.4% more mass is
@@ -2615,34 +2629,38 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
     assert_eq!(RealFlightReport::error_as_built_m(&teams), None);
     assert_eq!(RealFlightReport::error_as_built_m(&edge), None);
 
-    let rows = [edge.clone(), over, low, far, none];
+    let rows = [edge.clone(), over, low, wide, far, none];
     assert_eq!(
         RealFlightReport::band_sentence(&rows),
-        "Of the 4 flights with a band, the corrected |E| is within 2·u_val on 1 (edge) and \
-         outside it on 3: hpr high on 2 (over, far), hpr low on 1 (low). No u_D and so no band \
-         on 1 of the 5 flights. The count moves with the inputs' figures. With the impulse's \
-         standard uncertainty at 3.56%, the other end of its range, the seven parts put 3 of \
-         the 4 within (edge, over, low), and 1 outside at both ends (far)."
+        "Of the 5 flights with a band, the corrected |E| is within 2·u_val on 1 (edge) and \
+         outside it on 4: hpr high on 3 (over, wide, far), hpr low on 1 (low). No u_D and so \
+         no band on 1 of the 6 flights. The count moves with the inputs' figures. With the \
+         impulse's standard uncertainty at 3.56%, the top of its range if each certification \
+         test fired one motor, the seven parts put 3 of the 5 within (edge, over, low). At \
+         5.03%, the top if each test's figure is the mean of three motors, they put 4 of the 5 \
+         within (edge, over, low, wide). Outside at all three figures: 1 (far)."
     );
     assert_eq!(
         RealFlightReport::band_sentence(&[edge, design]),
         "Of the 2 flights with a band, the corrected |E| is within 2·u_val on 2 (edge, \
          macie-xl-1) and outside it on 0: hpr high on 0, hpr low on 0. No u_D and so no band \
          on 0 of the 2 flights. The count moves with the inputs' figures. With the impulse's \
-         standard uncertainty at 3.56%, the other end of its range, the seven parts put 2 of \
-         the 2 within (edge, macie-xl-1), and 0 outside at both ends. The other way: with a \
+         standard uncertainty at 3.56%, the top of its range if each certification test fired \
+         one motor, the seven parts put 2 of the 2 within (edge, macie-xl-1). At 5.03%, the \
+         top if each test's figure is the mean of three motors, they put 2 of the 2 within \
+         (edge, macie-xl-1). Outside at all three figures: 0. The other way: with a \
          rocket's median growth as built, 7.4% of the mass without motors, taken out of each \
          flight on a design file's mass, by the mass's flight alone, the errors would be \
          -107.5 m (macie-xl-1), and 1 of the 2 would lie within (edge)."
     );
     assert_eq!(
-        RealFlightReport::band_sentence(&rows[4..]),
+        RealFlightReport::band_sentence(&rows[5..]),
         "No flight has a band: none of the 1 has a u_D."
     );
 }
 
 /// M1.14b18: a source's path under `docs/` becomes a link to the file, where it starts the text
-/// or follows a space or a bracket; a URL's own `docs/`, a word that ends in it and a path that
+/// or follows a space or an opening bracket; a URL's own `docs/`, a word that ends in it and a path that
 /// isn't a Markdown file are left as they are, and a sentence's period stays outside the link.
 #[test]
 fn a_sources_path_becomes_a_link() {

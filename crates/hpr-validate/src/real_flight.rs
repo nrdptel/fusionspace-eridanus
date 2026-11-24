@@ -3402,8 +3402,10 @@ impl RealFlightReport {
              u_input makes a wider band, which an error fits inside more easily.\n\n\
              - **Smaller readings taken.** The teams' masses are taken as weighed; a mass that \
              is a design figure would spread like the design file's row, about twenty times \
-             wider. The impulse takes the floor of its range, 2.5% to 3.56%: the floor holds \
-             only if all of the scatter between two tests of a motor is the test stand's. Its \
+             wider. The impulse takes the floor of its range: 2.5% is the figure only if all \
+             of the scatter between two tests of a motor is the test stand's. The range runs \
+             to 3.56% if each test fired one motor, and to 5.03% if each figure is the mean of \
+             three. Its \
              factor carries the propellant's mass with the thrust; more thrust from the same \
              propellant would move the apogee more. ERA5's wind takes the daytime figure; this \
              project's own comparison of ERA5 with flights' GPS descents stands further apart \
@@ -3429,8 +3431,9 @@ impl RealFlightReport {
              recorded impulse, as the sections above say. A rocket as built is heavier than \
              its design file, by a median 7.4% of the dry mass ([the note][as-built]), so a \
              flight on a design file's mass is flown light and reads high from that cause. \
-             The spread such a mass takes here is about that median, not about the file's \
-             value. The band's section says which call rests on it.\n"
+             The 10.75% such a mass takes here was measured about that median, and the draws \
+             are centered on the file's value: the median is left in E. The band's section \
+             says which call rests on it.\n"
         );
         let _ = writeln!(
             out,
@@ -3767,8 +3770,8 @@ impl RealFlightReport {
 
     /// The sentences under the band's table: how many flights with a band lie within it and
     /// which, how many lie outside with hpr high and with hpr low, how many have no band, and
-    /// what the count would be with the impulse's standard uncertainty at the other end of its
-    /// range ([`Self::validation_at_impulse_m`]), which flights lie outside at both ends, and
+    /// what the count would be with the impulse's standard uncertainty at each top of its range
+    /// ([`Self::validation_at_impulse_m`]), which flights lie outside at all three figures, and
     /// what it would be with a rocket's growth as built taken out of the flights on a design
     /// file's mass ([`Self::error_as_built_m`]).
     pub(crate) fn band_sentence(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
@@ -3808,17 +3811,26 @@ impl RealFlightReport {
                 format!(" ({})", ids.join(", "))
             }
         };
-        let at_other = banded
+        let three = crate::input_uncertainty::IMPULSE_MEAN_OF_THREE_END;
+        let within_at = |impulse_sigma: f64| {
+            banded
+                .iter()
+                .filter(|(row, corrected_m, _)| {
+                    Self::validation_at_impulse_m(row, impulse_sigma)
+                        .is_some_and(|validation_m| corrected_m.abs() <= k * validation_m)
+                })
+                .map(|(row, ..)| row.id.as_str())
+                .collect::<Vec<_>>()
+        };
+        let at_other = within_at(other);
+        let at_three = within_at(three);
+        let outside_all = banded
             .iter()
-            .filter(|(row, corrected_m, _)| {
-                Self::validation_at_impulse_m(row, other)
-                    .is_some_and(|validation_m| corrected_m.abs() <= k * validation_m)
+            .filter(|(row, _, within)| {
+                !within
+                    && !at_other.contains(&row.id.as_str())
+                    && !at_three.contains(&row.id.as_str())
             })
-            .map(|(row, ..)| row.id.as_str())
-            .collect::<Vec<_>>();
-        let outside_both = banded
-            .iter()
-            .filter(|(row, _, within)| !within && !at_other.contains(&row.id.as_str()))
             .map(|(row, ..)| row.id.as_str())
             .collect::<Vec<_>>();
         // The flights on a design file's mass, with the median growth of a rocket as built
@@ -3860,8 +3872,10 @@ impl RealFlightReport {
              {inside_ids} and outside it on {}: hpr high on {high}{high_ids}, hpr low on {low}\
              {low_ids}. No u_D and so no band on {without} of the {} flights. The count moves \
              with the inputs' figures. With the impulse's standard uncertainty at {}%, the \
-             other end of its range, the seven parts put {} of the {} within{}, and {} outside \
-             at both ends{}.{as_built}",
+             top of its range if each certification test fired one motor, the seven parts put \
+             {} of the {} within{}. At {}%, the top if each test's figure is the mean of three \
+             motors, they put {} of the {} within{}. Outside at all three figures: {}{}.\
+             {as_built}",
             banded.len(),
             high + low,
             rows.len(),
@@ -3869,8 +3883,12 @@ impl RealFlightReport {
             at_other.len(),
             banded.len(),
             listed(&at_other),
-            outside_both.len(),
-            listed(&outside_both),
+            fmt_number(100.0 * three, 2),
+            at_three.len(),
+            banded.len(),
+            listed(&at_three),
+            outside_all.len(),
+            listed(&outside_all),
         )
     }
 

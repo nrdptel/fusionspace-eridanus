@@ -109,6 +109,12 @@ const MASS_DESIGN_FILE: Stated = Stated {
 /// flown motor differs from its file by `2σ_motor² + σ_stand²`: one measuring error fewer. So
 /// the flown motor stands from 3.56/√2 = 2.5% off its file, if all of the scatter is the
 /// stand's, to 3.56%, if all of it is from motor to motor. The split isn't known.
+///
+/// That top assumes each test fired one motor, and the tests' records don't print how many they
+/// fired. Where a test's figure is the mean of `n` motors, two tests differ by
+/// `2σ_motor²/n + 2σ_stand²` and a flown motor from its file by `σ_motor²(1 + 1/n) + σ_stand²`:
+/// the floor is the same 2.5%, and the top is 3.56·√((n + 1)/2), which is 5.03% at three
+/// ([`IMPULSE_MEAN_OF_THREE_END`]).
 const IMPULSE_COMMERCIAL: Stated = Stated {
     sigma: 0.025,
     basis: "a commercial motor on its maker's or certifier's curve",
@@ -117,20 +123,30 @@ const IMPULSE_COMMERCIAL: Stated = Stated {
            points between their two tests (4.41 with a renamed 22nd motor). A flown motor \
            against its file's curve is such a difference less one test's measuring error: from \
            3.56/√2 = 2.5%, if all of the scatter is the measuring, to 3.56%, if all of it is \
-           from motor to motor. The floor is taken. The note calls the pairs no clean \
-           comparison of lots: some of the motors changed between their tests",
+           from motor to motor and each test fired one motor. The tests' records don't print \
+           how many they fired: where each figure is the mean of three, the least Tripoli \
+           Motor Testing's rules ask of such a retest today (§1), the top is 3.56·√2 = 5.03%. \
+           The floor, the same for any number fired, is taken. The note calls the pairs no \
+           clean comparison of lots: some of the motors changed between their tests",
 };
 
-/// The other end of [`Drawn::Impulse`]'s range for a commercial motor: the pairs' own standard
-/// deviation, a flown motor against its file if all of the scatter is from motor to motor. The
-/// report says what the band's count would be there.
+/// The top of [`Drawn::Impulse`]'s range for a commercial motor if each certification test fired
+/// one motor: the pairs' own standard deviation, a flown motor against its file if all of the
+/// scatter is from motor to motor. The report says what the band's count would be there.
 pub const IMPULSE_OTHER_END: f64 = 0.0356;
+
+/// The top of [`Drawn::Impulse`]'s range if each certification test's figure is the mean of
+/// three motors, the least Tripoli Motor Testing's rules ask today of a retest in the pairs'
+/// classes (`docs/research/hpr-lot-impulse.md`, §1): [`IMPULSE_OTHER_END`]·√((3 + 1)/2), by the
+/// variances of a mean of `n` motors. The report says what the band's count would be there.
+pub const IMPULSE_MEAN_OF_THREE_END: f64 = 0.0503;
 
 /// The median growth of a rocket as built over its design file's mass, as a fraction of the
 /// mass without motors (`docs/research/as-built-mass-growth.md`: 24 rockets; the note trusts
 /// the median little as a figure for all rockets, since one team supplies many of them). The
-/// spread a design file's mass takes is about this median, not about the file's value, and the
-/// report doesn't take the median out: it says what the band's count would be if it did.
+/// 10.75% a design file's mass takes was measured about this median, and the draws are centered
+/// on the file's value: the median is left in the error, and the report says what the band's
+/// count would be with it taken out.
 pub const AS_BUILT_GROWTH: f64 = 0.074;
 
 /// A curve that isn't a certifier's, on the commercial motors' figure.
@@ -1222,6 +1238,11 @@ mod tests {
         assert!((MASS_DESIGN_FILE.sigma - (0.131 + 0.014) / 1.349).abs() < 5e-5);
         assert!((IMPULSE_COMMERCIAL.sigma - IMPULSE_OTHER_END / SQRT_2).abs() < 2e-4);
         assert_eq!(IMPULSE_OTHER_END, 0.0356);
+        // A mean of three motors a test: 3.56·√((3 + 1)/2) = 5.0346, written 5.03%.
+        assert!(
+            (IMPULSE_MEAN_OF_THREE_END - IMPULSE_OTHER_END * (4.0_f64 / 2.0).sqrt()).abs() < 5e-5
+        );
+        assert_eq!(IMPULSE_MEAN_OF_THREE_END, 0.0503);
         assert_eq!(IMPULSE_BORROWED.sigma, IMPULSE_COMMERCIAL.sigma);
         // The two design-file flights are the ones the growth as built bears on.
         assert_eq!(
