@@ -1157,8 +1157,8 @@ misses. This doesn't test the models, the inputs or the logs.
 
 **How much of each miss the log could be.** Part of a miss could also be the log's own error.
 For 8 of the 12 flights a published accuracy exists. The altimeter's own manual gives one for
-3. For the other 5 it is the datasheet of the pressure sensor the maker names, or, for
-Prometheus's TeleMetrum, whose manual lists two, the one its log's 1 Pa steps point to. The report
+3. For the other 5 it is the datasheet of the pressure sensor the maker names. Prometheus's
+TeleMetrum has two in its manual: its log's 1 Pa steps point to one of them. The report
 combines it with
 the sensor's noise, the log's resolution (the smallest step it records) and its filter, where
 those are known. The result is the log's part of the validation uncertainty, u_D: one
@@ -1170,8 +1170,8 @@ rule and its source. The largest u_D is 10.09 m (33.1 ft), on Prometheus
 Where something is known to make a log read low or high, the report corrects the log's apogee
 for it instead of adding it to u_D. A correction is what is added to the log's apogee. The
 largest is on Juno III, +16.32 m (53.5 ft). The report reads that log only to 24.60 s, while the
-rocket is still climbing. Measured against its corrected log, Juno III's miss is −191.1 m
-(−627 ft), where on the log as logged it is −174.8 m (−573 ft). Measured that way, each of the 8 misses is at least 17 times its own u_D
+rocket is still climbing. Juno III's miss is −174.8 m (−573 ft) on the log as logged. Against
+its corrected log it is −191.1 m (−627 ft). Measured that way, each of the 8 misses is at least 17 times its own u_D
 ([the same section][real-data-part]). So the log's part can't account for these misses either.
 The misses above stay on the logs as logged ([the decision][adr-376]). A correction is worked
 out for only 8 of the 12 logs, so correcting those rows would put two kinds of figure in one
@@ -1193,7 +1193,7 @@ One thing is left out of u_D on purpose. A
 a warm day that is less than the height climbed: by as much as 282.4 m (926 ft) on these
 flights. HPR Sim's apogee is read the same way, so that difference is in both numbers. The
 report's table also turns both apogees into heights climbed. A miss then changes by at most
-22.6 m (75 ft), and by at most 0.10 percentage points of the apogee
+22.6 m (74.1 ft), and by at most 0.10 percentage points of the apogee
 ([the report's table][real-conversion]). That change is the miss itself counted in the day's
 air, not an error of the log. What this doesn't cover is an error in the air the flight is
 simulated in. That is an input's uncertainty: the air's temperature is one of the five inputs
@@ -1215,8 +1215,9 @@ with its source ([the report's section][real-input-part]):
 - **the air's temperature:** 0.9 K, for ERA5's air at the flight's hour
   ([the same section][real-input-part]).
 
-Three flights whose wind and air aren't their own day's (Prometheus and the two Macie XL flights)
-take wider figures: 4.47 m/s (14.7 ft/s) on each axis of the wind and 8.66 K for the air. The report then
+Three flights fly wind and air that aren't their own day's: Prometheus and the two Macie XL
+flights. They take wider figures, 4.47 m/s (14.7 ft/s) on each axis of the wind and 8.66 K for
+the air. The report then
 flies each of the 12 flights 200 times more with all five drawn at once. That is a
 [Monte Carlo](glossary.md#monte-carlo) run on a Latin hypercube. Each input's distribution is
 cut into 100 equally likely shares. Every share is flown once in each of two sets
@@ -1236,13 +1237,13 @@ Testing tested a second time, the two tests differ by a standard deviation of 3.
 those motors changed between their tests. The pairs are all one maker's; the other makers'
 motors borrow the figure. If all of that scatter is the test stand's, a flown motor stands 2.5%
 from its file, the figure used. If all of it is from motor to motor, it stands 3.56% off where
-each test fired one motor. In that same case it stands 5.03% off where each test's figure is the
-mean of three motors, with the same measuring error in both tests. That 5.03% is the top only on
-that premise: more motors a test would put it higher still, and unequal counts or two stands that
-measure differently move it either way. Neither the split nor the number fired is known. And 2.5% is a floor for the random
-part only. An error in a stand's calibration that both tests of a pair share cancels in their
-difference, so the pairs can't show it, but it would still stand between a flown motor and its
-file. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
+each test fired one motor. It stands 5.03% off where each test's figure is the mean of three
+motors. That top assumes three motors in both tests and the same measuring error in both. More
+motors a test would put it higher still. Unequal counts, or two stands that measure differently,
+move it either way. Neither the split nor the number fired is known. And 2.5% is a floor for the
+random part only. Say both tests of a pair share an error in a stand's calibration. It cancels in
+their difference, so the pairs can't show it. But it would still stand between a flown motor and
+its file. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
 stated origin. They borrow the 2.5% ([the same section][real-input-part]).
 
 <a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
@@ -1259,7 +1260,7 @@ That count moves with the inputs' figures, both ways ([the same section][real-ba
 impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
 the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket
 as built is usually heavier than its design file, by a median 7.4%. The note behind that median
-has low confidence in it as a figure for rockets in general, since one team supplies many of its
+has low confidence in it as a figure for rockets in general. One team supplies many of its
 rockets. With that growth taken out of the two Macie XL flights, the first would be outside too on the figures
 used, and 2 of the 8 would be within.
 
