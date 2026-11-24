@@ -68,9 +68,11 @@ and how likely each goal is:
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
   file. Then it compares a log with its simulation, which works today. Drawing the two together,
   and fitting the rocket's drag from the log on the command line and in Python, are still to come.
-  The fit already works in the Rust library.
+  A fit exists in the Rust library, but its drag interval fails one synthetic test
+  ([how well it holds](physics/flight-fit.md#how-well-it-holds)).
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
-  flight's likely faults ranked from its log. It adds a second, Bayesian interval on the fitted drag.
+  flight's likely faults ranked from its log. It adds a second,
+  [Bayesian interval](physics/flight-fit.md#the-bayesian-option) on the fitted drag.
 - 0.4, the competition kit: rules presets for Student Launch, IREC and others, and an optimizer.
   It adds the numbers a submission asks for, ejection-charge sizing, and RASAero and RocketPy
   files.
@@ -596,9 +598,10 @@ These are left out of a flight, or approximated:
   and [club layouts](decisions-and-roadmap.md#m7-1c3) followed. Every sample log in a layout HPR
   Sim knows is read. The formats with no sample, such as CATS's, are
   [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-  ([the register's row on these formats](evidence.md#g9)). `hpr compare` sets a log against a simulation of it,
-  and fitting drag and impulse to the log is planned
-  ([a flight against its simulation](decisions-and-roadmap.md#m7-3)).
+  ([the register's row on these formats](evidence.md#g9)). `hpr compare` sets a log against a simulation of it.
+  A fit of the drag, impulse, wind and mass to a log exists in the Rust library. It reaches the
+  command line and Python in release 0.2
+  ([the fit on the command line](decisions-and-roadmap.md#m7-3f)).
 
 <a id="how-far-to-trust-it"></a>
 

@@ -8,8 +8,9 @@ after its full-scale flight. Reading a log with no simulation is [Reading a flig
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
-> tell them apart. It says neither is right. The simulated numbers state no error here. The fit that would explain a residual works in the Rust library,
-> but [it isn't on the command line yet](decisions-and-roadmap.md#m7-3f). The method is tested on flights with a known answer. It has
+> tell them apart. It says neither is right. The simulated numbers state no error here. A fit that would explain a residual is in the Rust library,
+> [not yet on the command line](decisions-and-roadmap.md#m7-3f). Its drag interval fails one synthetic test
+> ([the fit's page](physics/flight-fit.md#how-well-it-holds)). The method is tested on flights with a known answer. It has
 > been run on 7 of the 12 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)).
 > Those show what it gives, not that it is right about them.
 

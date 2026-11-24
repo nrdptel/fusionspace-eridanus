@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 54,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 55,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -28,62 +28,63 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 1. M1.14b8 MAPLEAF as a second open oracle
 2. M7.3e The post-flight comparison
 3. M7.3f The fit on the command line and in Python
-4. M2.8 Honest uncertainty
-5. M0.9g The figures' digits and the command line's words
-6. M10.2 Release 0.2: the flight analyzer
-7. M0.13 Awareness and care on the sites
-8. M1.14 Accuracy inside the envelope
-9. M2.3c2 Logged traces
-10. M2.12 Descent rates against the logs
-11. M2.13 Landing points against the tracked landings
-12. M2.14 Speed off the rail against the accelerometer logs
-13. M2.15 Drag in the coast against the logs
-14. M2.16 The next flight from the last one's log
-15. M2.3d4 A stage's override that adds to its parts
-16. M2.3c9 Every flight OpenRocket flies
-17. M7.3 A flight against its simulation
-18. M2.3c3 OpenRocket's newest release
-19. M2.6 An open benchmark
-20. M7.4 Fault diagnosis
-21. M10.3 Release 0.3: accuracy and diagnosis
-22. M2.11 Fin flutter held to measurement
-23. M2.3c7 Faster than sound: published flights
-24. M6.3 Challenge specs and presets
-25. M6.4 Airbrakes
-26. M6.2e Robust mode
-27. M6.6 Submission packs
-28. M6.7 Ejection charges
-29. M3.5 RASAero `.CDX1` import/export
-30. M3.6 RocketPy interop
-31. M2.9 The other tools' cells
-32. M6.8 Field kit: checklists, the settings check and the ground-test log
-33. M0.7b Rocketry explained: recovery, wind and motors
-34. M10.4 Release 0.4: the competition kit
-35. M4.4 C ABI and WASM
-36. M9.0 UI architecture ADR plus a spike
-37. M9.2 3D flight replay with a ghost
-38. M10.5 Release 0.5: the app preview
-39. M0.7c Rocketry explained: live figures
-40. M5.6a A catalog of hpr's own: format, search and a parts list
-41. M8.2 Edit model for UIs
-42. M9.1 Desktop app shell
-43. M5.6b Parachutes and recovery hardware
-44. M8.1 Design assistant
-45. M5.6c Motor hardware and rail buttons
-46. M5.6d More makers and electronics
-47. M3.4 RockSim `.rkt` import/export
-48. M9.3 Web PWA
-49. M10.6 Release 1.0: the app
-50. M0.7d Rocketry explained: the rest of the hobby
-51. M11.1 A motor of your own
-52. M11.2 Experimental solids
-53. M12.1 Parachute gores
-54. M12.2 Opening loads
-55. M9.4 Mobile
-56. M9.6 The four web tools, rebuilt
-57. M6.5 Roll control: tail-fin tabs and canards
-58. M13.3 Flight computer logic
-59. M13.1 Ground station
+4. M7.3g The least-squares intervals pass again
+5. M2.8 Honest uncertainty
+6. M0.9g The figures' digits and the command line's words
+7. M10.2 Release 0.2: the flight analyzer
+8. M0.13 Awareness and care on the sites
+9. M1.14 Accuracy inside the envelope
+10. M2.3c2 Logged traces
+11. M2.12 Descent rates against the logs
+12. M2.13 Landing points against the tracked landings
+13. M2.14 Speed off the rail against the accelerometer logs
+14. M2.15 Drag in the coast against the logs
+15. M2.16 The next flight from the last one's log
+16. M2.3d4 A stage's override that adds to its parts
+17. M2.3c9 Every flight OpenRocket flies
+18. M7.3 A flight against its simulation
+19. M2.3c3 OpenRocket's newest release
+20. M2.6 An open benchmark
+21. M7.4 Fault diagnosis
+22. M10.3 Release 0.3: accuracy and diagnosis
+23. M2.11 Fin flutter held to measurement
+24. M2.3c7 Faster than sound: published flights
+25. M6.3 Challenge specs and presets
+26. M6.4 Airbrakes
+27. M6.2e Robust mode
+28. M6.6 Submission packs
+29. M6.7 Ejection charges
+30. M3.5 RASAero `.CDX1` import/export
+31. M3.6 RocketPy interop
+32. M2.9 The other tools' cells
+33. M6.8 Field kit: checklists, the settings check and the ground-test log
+34. M0.7b Rocketry explained: recovery, wind and motors
+35. M10.4 Release 0.4: the competition kit
+36. M4.4 C ABI and WASM
+37. M9.0 UI architecture ADR plus a spike
+38. M9.2 3D flight replay with a ghost
+39. M10.5 Release 0.5: the app preview
+40. M0.7c Rocketry explained: live figures
+41. M5.6a A catalog of hpr's own: format, search and a parts list
+42. M8.2 Edit model for UIs
+43. M9.1 Desktop app shell
+44. M5.6b Parachutes and recovery hardware
+45. M8.1 Design assistant
+46. M5.6c Motor hardware and rail buttons
+47. M5.6d More makers and electronics
+48. M3.4 RockSim `.rkt` import/export
+49. M9.3 Web PWA
+50. M10.6 Release 1.0: the app
+51. M0.7d Rocketry explained: the rest of the hobby
+52. M11.1 A motor of your own
+53. M11.2 Experimental solids
+54. M12.1 Parachute gores
+55. M12.2 Opening loads
+56. M9.4 Mobile
+57. M9.6 The four web tools, rebuilt
+58. M6.5 Roll control: tail-fin tabs and canards
+59. M13.3 Flight computer logic
+60. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -473,7 +474,7 @@ log corpus came from Debrief.
   (`accuracy.from-boost`);
   one `hpr` command draws predicted and logged altitude and velocity, liftoff to landing, under
   launch-day conditions. A reading keeps the provenance M7.2 gave it wherever it meets a simulated
-  number. Split a to f (ADR-314, ADR-377).
+  number. Split a to g (ADR-314, ADR-377).
   - [ ] **M7.3c The Bayesian option** (ADR-317: in two, below; met when they are). *Done when:* the same
     parameters, by a Bayesian fit with uncertainty, pass the same test, truths drawn from the stated ranges and
     not its prior.
@@ -505,7 +506,14 @@ log corpus came from Debrief.
     Python package fit a design to its log and print each fitted parameter with its least-squares
     90% interval and each reading's provenance; a fit of a flight that meets a condition on
     ADR-163 §4's list carries that issue's warning, and an interval that fails ADR-257 §1's test
-    carries ADR-368's caveat; a test runs both on a public flight.
+    carries ADR-368's caveat; a test runs both on a public flight, and one pins each warning and the
+    caveat.
+  - [ ] **M7.3g The least-squares intervals pass again** (#1108, ADR-377). *Done when:* every
+    least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*, the
+    check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
+    narrowed, widened and shifted probes still fail; an ADR amends ADR-368; the pages that state the
+    caveat follow the regenerated report. Shares split by the fit's residual (#1108) pass in each
+    class too.
 - [ ] **M7.4 Fault diagnosis.**
   - A hypothesis library with simulate-able fault models: motor under/over-performance, CATO or
     early burnout, high drag or damage, weathercocking, marginal stability/coning,
@@ -630,13 +638,13 @@ M0.8a's form and passed by a cold read (ADR-196, ADR-282): 0.2 the analyzer's; 0
 simulator's and the analyzer's; 0.4 the competition and field kits'; 0.5 and 1.0 the app's. Each
 guide has a *Compared with* section: named tools, measured comparisons from a report, the gaps,
 and at least one capability none of them has, checked against its docs with the date (ADR-209). No release
-waits on outside users: each from 0.2 on has an emulated flyers' pass instead (ADR-377).
+waits on outside users: each from 0.2 on has an emulated flyers' pass instead, three flyers with
+three personas and two or three planted defects, void if it catches none (ADR-377 §3).
 
 - [ ] **M10.2 Release 0.2: the flight analyzer.** *Done when:* the checklist holds after M7.1,
-  M7.2, M7.3a, M7.3b, M7.3d, M7.3e, M7.3f and M2.8 (M7.3c is 0.3's, ADR-377); the least-squares fit's
-  90% intervals pass ADR-257 §1's test (#1108); each archive's smoke test reads a log with no
-  design file; and a fit or residual of a flight that meets a condition on ADR-163 §4's list
-  carries its warning.
+  M7.2, M7.3a, M7.3b, M7.3d, M7.3e, M7.3f, M7.3g and M2.8 (M7.3c is 0.3's, ADR-377); each
+  archive's smoke test reads a log with no design file; and a fit or residual of a flight that
+  meets a condition on ADR-163 §4's list carries its warning.
 - [ ] **M10.3 Release 0.3: accuracy and diagnosis.** *Done when:* the checklist holds after M2.3c2,
   M7.3, M7.4, M7.5; with M2.7, M2.8 and M2.6 met; M1.14b to M1.14g and M1.14i each met or ended by ADR-143's stop
   rule with its gaps in an ADR; and on the held-out flights all fly, HPR Sim's mean absolute error
@@ -648,9 +656,11 @@ waits on outside users: each from 0.2 on has an emulated flyers' pass instead (A
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0
   and M9.2; the app opens a design or a log, flies, plots and replays it in 3D with the ghost, on
-  the desktop and the web; its acceptance pass and recording are in its PR (ADR-282); and twelve
-  emulated flyers have done its tasks, with defects planted, their results in a report as ADR-377
-  §4 sets out.
+  the desktop and the web; its acceptance pass and recording are in its PR (ADR-282); and at least
+  twelve emulated flyers (six personas, each played by two reviewers, going on while either of the
+  last two meets a new problem) have done its tasks with eight to ten defects planted; a report
+  gives each task's successes, the median and range of its times, the problems by how many met
+  them, and the defects caught with a 95% Clopper–Pearson interval (ADR-377 §4).
 - [ ] **M10.6 Release 1.0: the app.** *Done when:* the checklist holds after M10.5, M5.6a, M8.2,
   M9.1, M5.6b, M8.1, M5.6c, M5.6d, M3.4 and M9.3, and its acceptance pass and recording are in its
   PR (ADR-282).

@@ -1,7 +1,7 @@
 # ADR-377: No release waits on users, and release 0.2 comes next (2026-11-24)
 
-- **Status:** accepted; lifts [ADR-322][adr-322] §4's holds on release 0.2, the post-flight comparison and the two reader-facing checks; replaces release 0.5's test by five flyers outside the project ([ADR-209][adr-209] §10, [ADR-282][adr-282] §6) with an emulated study; adds an emulated flyers' pass to [ADR-162][adr-162] §2's release checklist from 0.2 on; moves [M7.3][m7-3]'s Bayesian option from release 0.2 to 0.3 (amending [ADR-163][adr-163] §2); adds [M7.3f][m7-3f], the fit on the command line and in Python; and reorders the [queue][queue], moving [M2.8][m2-8] ahead of release 0.2 and putting M0.9g before M0.13 where [ADR-296][adr-296] §2 had it after; and raises the roadmap's budget from 53,500 to 54,500 bytes.
-- **Summary:** Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2 comes next after M1.14b8: the post-flight comparison, the fit on the command line and in Python, its intervals passing again, a spread on each flight's apogee, the figures' and words' check, then the release. The Bayesian option moves to 0.3, its *done when* whole.
+- **Status:** accepted; lifts [ADR-322][adr-322] §4's holds on release 0.2, the post-flight comparison and the two reader-facing checks; replaces release 0.5's test by five flyers outside the project ([ADR-209][adr-209] §10, [ADR-282][adr-282] §6) with an emulated study; adds an emulated flyers' pass to [ADR-162][adr-162] §2's release checklist from 0.2 on; moves [M7.3][m7-3]'s Bayesian option from release 0.2 to 0.3 (amending [ADR-163][adr-163] §2); adds [M7.3f][m7-3f], the fit on the command line and in Python, and M7.3g, the least-squares intervals passing again ([#1108][i1108]); and reorders the [queue][queue], moving [M2.8][m2-8] ahead of release 0.2 and putting M0.9g before M0.13 where [ADR-296][adr-296] §2 had it after; and raises the roadmap's budget from 53,500 to 55,500 bytes.
+- **Summary:** Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison (M1.14b8): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the wording check (M0.9g). The Bayesian interval moves to 0.3 unchanged.
 
 [queue]: ../ROADMAP.md#queue
 [m0-9]: ../decisions-and-roadmap.md#m0-9
@@ -15,6 +15,7 @@
 [m10-5]: ../decisions-and-roadmap.md#m10-5
 [adr-162]: 0162-the-suite-and-its-releases.md
 [adr-163]: 0163-the-second-pass-products-and-priorities.md
+[adr-196]: 0196-the-2026-10-07-product-guides.md
 [adr-164]: 0164-the-fusionspace-product-system.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -63,13 +64,14 @@ Release 0.2 stood like this on 2026-11-24:
 - The least-squares fit's 90% interval on set B's drag scale has failed its test since the
   tip-off phase became the default: 80 of 1,000 truths fall below it, where a tail passes with 29
   to 74 ([ADR-368][adr-368], [#1108][i1108]).
-- The Bayesian option's intervals pass 7 of their 10 counts ([the report][fit-report]). It was
+- Of the Bayesian option's ten intervals (five parameters on two sets), 7 pass their test
+  ([the report][fit-report]). It was
   split three times in four days, the last by [ADR-321][adr-321], and has been held since
   2026-11-05.
 - No command draws a log beside its simulation: `hpr compare` prints residuals, and the
   post-flight comparison (M7.3e) isn't built.
 - The fit has no command and no Python function. It lives in the Rust library alone, so a user of
-  the command line or Python can't fit drag, which [ADR-163][adr-163] §2 lists as part of the
+  the command line or Python can't fit drag, which [ADR-163][adr-163] §1 lists as part of the
   analyzer.
 - Of the release checklist: there is no analyzer guide, and no survey of the tools it competes
   with ([ADR-209][adr-209] §11); no smoke test reads a log; `hpr compare` doesn't carry the
@@ -86,8 +88,8 @@ Release 0.2 stood like this on 2026-11-24:
    outside users or their feedback, on the maintainer's own use, or on anyone designing, building,
    flying or ground-testing a rocket. Real flights come from published records and the
    collection, and a person's trial comes from emulated flyers (§2). What stays the maintainer's
-   doesn't change: publishing and tags ([ADR-162][adr-162] §2), and money, accounts and legal
-   calls ([ADR-282][adr-282] §5). His feedback is asked for when it would help, and nothing waits
+   doesn't change: publishing and tags ([ADR-162][adr-162] §2), and the sites, money and accounts
+   ([ADR-282][adr-282] §5). His feedback is asked for when it would help, and nothing waits
    on it. The hardware lines after 1.0 are outside this rule; the planning review after 1.0 takes
    them up.
 
@@ -112,21 +114,23 @@ Release 0.2 stood like this on 2026-11-24:
    gains it: three flyers with three personas, and two or three planted defects. A pass that
    catches none of them is void and runs again.
 
-4. **Release 0.5's study is emulated.** In place of "at least five flyers outside the project",
-   twelve emulated flyers do its tasks: six personas, each played by two different reviewers, the
-   tasks in a shuffled order. The study goes on past twelve while either of the last two flyers
-   meets a problem no earlier one did. Eight to ten defects are planted, across the kinds in §2.
-   The report gives, for each task, the successes out of the flyers, the median and range of the
-   times, and the problems by how many flyers met them. It gives the planted defects caught with
-   a 95% Clopper–Pearson interval, pooled by kind with the earlier releases' passes.
+4. **Release 0.5's study is emulated.** In place of "at least five flyers outside the project", at
+   least twelve emulated flyers do its tasks: six personas, each played by two different reviewers,
+   the tasks in a shuffled order. The study goes on past twelve while either of the last two flyers
+   meets a problem no earlier one did. Eight to ten defects are planted, across the kinds in §2. The
+   report gives, for each task, the successes out of the flyers, the median and range of the times,
+   and the problems by how many flyers met them. It gives the planted defects caught with a 95%
+   Clopper–Pearson interval, pooled by kind with the earlier releases' passes.
 
-   Twelve, not five, because five testers find about 85% of a product's problems only when each
-   meets each problem independently, with one chance of about 31% ([Nielsen, 2000][n5]). Random
-   sets of five out of 60 real users found anywhere from 55% to 99% ([Faulkner, 2003][faulkner]).
-   Letting the chance differ by problem raised one study's sessions needed for 80% from 11 to 56
-   ([Schmettow, 2012][schmettow]). Emulated flyers are further from independent than people are,
-   so a count of them proves less; the planted defects' catch is what measures the method. A
-   handful of planted defects bounds the catch rate only loosely, so the passes are pooled.
+   Twelve, not five. Nielsen's curve gives five testers about 85% of a product's problems when each
+   meets a problem with a chance of about 31% ([Nielsen, 2000][n5]); the curve assumes every tester
+   meets every problem independently, with that one chance. Random sets of five out of 60 real users
+   found anywhere from 55% to 99% ([Faulkner, 2003][faulkner]). Counting the problems no session had
+   met yet, and letting the chance differ by problem, raised one study's sessions needed for 80%
+   from 11 to 56 ([Schmettow, 2012][schmettow]). Emulated flyers are further from independent than
+   people are, so a count of them proves less; the planted defects' catch is what measures the
+   method. A handful of planted defects bounds the catch rate only loosely, so the passes are
+   pooled.
 
 5. **What an emulated pass claims, and the gap it leaves.** It claims that a careful newcomer could
    finish the tasks with the files and the guide, at the catch rate its planted defects measured.
@@ -140,10 +144,10 @@ Release 0.2 stood like this on 2026-11-24:
 
 6. **Release 0.2's contents.** Release 0.2 is the flight analyzer: logs read with no design file
    (M7.1, M7.2), residuals (M7.3a), the least-squares fit (M7.3b) with its 90% intervals passing
-   [ADR-257][adr-257] §1's test again ([#1108][i1108]), the prediction from the boost (M7.3d), the
-   post-flight comparison (M7.3e), and the fit on the command line and in Python (M7.3f, new). The
-   Bayesian option (M7.3c) moves to 0.3 with its *done when* whole, and 0.2 prints no Bayesian
-   interval.
+   [ADR-257][adr-257] §1's test again (M7.3g, new, for [#1108][i1108]), the prediction from the
+   boost (M7.3d), the post-flight comparison (M7.3e), the fit on the command line and in Python
+   (M7.3f, new), and a spread beside each flight's apogee (M2.8). The Bayesian option (M7.3c) moves
+   to 0.3 with its *done when* whole, and 0.2 prints no Bayesian interval.
    - The Bayesian option is a second kind of interval from the same fit. The analyzer's tasks
      (read a log, compare it with its simulation, fit the drag with an interval) work with the
      least-squares one. A release shouldn't wait on a second method its first tasks don't need.
@@ -153,13 +157,17 @@ Release 0.2 stood like this on 2026-11-24:
      `hpr` and the Python package fit a design to its log, and print each fitted parameter with
      its least-squares 90% interval and each reading's provenance. A fit of a flight that meets a
      condition on ADR-163 §4's list carries that issue's warning. An interval that fails ADR-257
-     §1's test carries [ADR-368][adr-368]'s caveat. A test runs both on a public flight.
+     §1's test carries [ADR-368][adr-368]'s caveat. A test runs both on a public flight, and one
+     pins each warning and the caveat.
+   - #1108 gets its own increment, M7.3g, as the issue's sizing on 2026-11-24 asked: a fit-interval
+     increment, not an issue fix. Its *done when* is the outcome 0.2 needs: every least-squares row
+     on sets A and B of the report reads *passes*, enforced by `cargo xtask fit`. If the shares are
+     split by the fit's residual, as #1108 proposes, each class passes too.
 
-7. **The queue.** M1.14b8, the next increment, finishes first. Then come M7.3e, M7.3f, M2.8,
-   M0.9g, [M10.2][m10-2] and M0.13, and then [M1.14][m1-14] resumes. Everything after keeps its
+7. **The queue.** M1.14b8, the next increment, finishes first. Then come M7.3e, M7.3f, M7.3g,
+   M2.8, M0.9g, [M10.2][m10-2] and M0.13, and then [M1.14][m1-14] resumes. Everything after keeps its
    order; M7.3, which now holds only its Bayesian option, keeps its place before release 0.3's
-   other prerequisites. [#1108][i1108] is the first issue for the issue cycles, and M10.2's *done when*
-   names it, so it can't be passed over.
+   other prerequisites. M10.2's *done when* names M7.3g, so [#1108][i1108] can't be passed over.
    - M2.8 moves up from after M2.3c9, since release 0.2 can't pass the FusionSpace test
      without #401. Release 0.3 needs M2.8 anyway, so this changes when it comes, not what it is.
    - M0.9g goes before the release because it closes the writing rules' item (#966, #973), and
@@ -169,27 +177,31 @@ Release 0.2 stood like this on 2026-11-24:
    - M0.13 was held only because no one reads the sites yet. [ADR-275][adr-275] queued it after
      release 0.2, and it goes right after M10.2.
 
-8. **The roadmap's budget rises from 53,500 to 54,500 bytes.** M7.3f, the queue's new lines and
-   the release clauses take the roadmap to 53,982 bytes. The cap rises by 1,000 bytes, as
-   [ADR-321][adr-321]'s did, rather than cut other entries' text to make room.
+8. **The roadmap's budget rises from 53,500 to 55,500 bytes.** M7.3f, M7.3g, the queue's new lines
+   and the release clauses, their counts written out, take the roadmap to 54,867 bytes. The cap
+   rises by 2,000 bytes, as [ADR-321][adr-321]'s rose by 1,000, rather than cut other entries'
+   text to make room.
 
-**What doesn't change.** No *done when* is loosened. M7.3's stays whole, and 0.3 now asks for all
-of it; M7.3c's increments keep their text. M10.5's other clauses stay, and its study changes kind
-with its loss written down (§5). The release checklist only grows. Open `P-critical` issues still
-come first. The order [ADR-322][adr-322] set for the accuracy work stands, since it rests on
-accuracy, not on readers. The dated reviews that cite the lack of users when queueing accuracy
-work keep their words.
+**What is loosened, and what isn't.** Two *done when*s are loosened, each by this record: M10.2 no
+longer needs the Bayesian option (§6), and M10.5's study by people becomes an emulated one (§4), its
+loss written down (§5). No other *done when* is loosened. M7.3's stays whole, and 0.3 now asks for
+all of it; M7.3c's increments keep their text; M10.5's other clauses stay. The release checklist
+only grows. Open `P-critical` issues still come first. The order [ADR-322][adr-322] set among the
+accuracy items stands, since it rests on accuracy, not on readers; they now wait behind release
+0.2's path. The dated reviews that cite the lack of users when queueing accuracy work keep their
+words.
 
 **Consequences.**
 
-- Release 0.2's path is M1.14b8, then M7.3e, M7.3f, M2.8, #1108 and M0.9g. Then comes M10.2's
-  own work: the analyzer's survey and its guide with a *Compared with* section, a smoke test that
+- Release 0.2's path is M1.14b8, then M7.3e, M7.3f, M7.3g, M2.8 and M0.9g. Then comes M10.2's
+  own work: the analyzer's survey, and its guide with a *Compared with* section and its cold
+  read ([ADR-196][adr-196], [ADR-282][adr-282]), a smoke test that
   reads a log, warnings on fits and residuals, the README's top (#1444), the flattering-side
   issues listed, the changelog and the install pages, the version number, the emulated flyers'
   pass, and the dispatch's smoke tests. Then the maintainer publishes it.
 - The accuracy work (M1.14) waits for that path, then resumes.
 - Release 0.3 now also needs M7.3c.
-- If #1108's fix can't pass its test, its record says so with the measurement, and release 0.2
+- If M7.3g's fix can't pass its test, its record says so with the measurement, and release 0.2
   waits on that decision, not on users.
 - Each release costs one emulated pass more. The method's catch rate builds up across releases,
   pooled by kind.
