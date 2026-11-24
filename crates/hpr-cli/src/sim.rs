@@ -28,9 +28,9 @@ use crate::motors::MotorFile;
 use crate::output::{
     Apogee, BodyPeak, DesignConfiguration, DesignFormat, DeviceEvent, EventKind, Export,
     ExportFormat, ExportMeta, FileFormat, FlagKind, InputWarning, IssueKind, Landing, Launch,
-    Margin, Peak, PlotData, SimDelayBand, SimDesign, SimDevice, SimEvent, SimFlag, SimFlight,
-    SimHeld, SimIssue, SimMotor, SimMotorSource, Stability, Summary, Termination, ThrustCurveMotor,
-    WarningKind,
+    Margin, Peak, PlotData, SimAirframeDrag, SimDelayBand, SimDesign, SimDevice, SimEvent, SimFlag,
+    SimFlight, SimHeld, SimIssue, SimMotor, SimMotorSource, Stability, Summary, Termination,
+    ThrustCurveMotor, WarningKind,
 };
 use crate::{Failure, Out};
 
@@ -190,6 +190,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     .map_err(|error| flight_refused(&error, &args.flight))?;
     let motors = setup.motors()?;
     let held = held(&builder, &motors);
+    let airframe_drag = airframe_drag(&builder, &flight);
     drop(builder);
     let Setup {
         mut read,
@@ -376,6 +377,8 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         flags: flags(flight.summary()),
         issues: issues(&flight),
         held,
+        // A descent with nothing open soon after apogee is no prediction, with or without it.
+        airframe_drag: airframe_drag.filter(|_| braked),
     };
     to.emit(&document, |out, diagnostics| {
         crate::sim_text::print(&document, out, diagnostics)
@@ -822,6 +825,68 @@ pub(crate) fn input(error: hpr::Error) -> Failure {
 /// `docs/monte-carlo.md`.
 pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
     (0.2 * delay_s).clamp(1.5, 3.0)
+}
+
+/// The steady-descent ratio ([`hpr_sim::descent_time_ratio`]) from which `hpr sim` says what the
+/// airframe's own drag could do to the landing: a stretch of the descent that would take a tenth
+/// longer with the airframe hanging level, which is an open drag area below 5.7 times the
+/// airframe's side area (`1.2 / (1.1² − 1)`).
+///
+/// Where to draw the line is a judgment. Issue #1252 proposed an open drag area below 2 times the
+/// side area; flown, a drogue at 2.5 times still moved the landing by a quarter
+/// (`docs/physics/recovery.md`), so the line is drawn wider.
+pub const AIRFRAME_DRAG_FROM_RATIO: f64 = 1.1;
+
+/// What the airframe's own drag could do to `flight`'s landing ([`SimAirframeDrag`]), `builder`
+/// being the builder that flew it: the flight again with a device of the airframe's drag area,
+/// hanging level, beside its devices from the first opening on
+/// ([`hpr_sim::Device::airframe_beside`]).
+///
+/// The airframe is the vehicle that came down: the stack, or after a powered separation the
+/// sustainer. `None` where the flight didn't land whole under a device, where no stretch of its
+/// descent reaches [`AIRFRAME_DRAG_FROM_RATIO`], or where the models can't be built again.
+fn airframe_drag(builder: &FlightBuilder<'_>, flight: &Flight) -> Option<SimAirframeDrag> {
+    let simulation = builder.simulation().ok()?;
+    let stretches = hpr_sim::descent_stretches(simulation.recovery(), flight.result());
+    let first = stretches.first()?.opened;
+    // The stretch with the least open is the one the airframe's drag bears on most.
+    let least = stretches
+        .iter()
+        .min_by(|a, b| a.drag_area_m2.total_cmp(&b.drag_area_m2))?;
+    let side_area_m2 = {
+        let vehicles = simulation.flown_vehicles(flight.result()).ok()?;
+        let aero = &vehicles.last()?.aero;
+        // The length over the fineness is the largest body diameter.
+        aero.length_m() * aero.length_m() / aero.fineness()
+    };
+    let drag_area_m2 = hpr_sim::LEVEL_AIRFRAME_DRAG_COEFFICIENT * side_area_m2;
+    let descent_time_ratio = hpr_sim::descent_time_ratio(least.drag_area_m2, drag_area_m2);
+    // A ratio that isn't a number says nothing.
+    if descent_time_ratio.is_nan() || descent_time_ratio < AIRFRAME_DRAG_FROM_RATIO {
+        return None;
+    }
+    let mut devices = simulation.recovery().to_vec();
+    let under = devices.get(least.opened)?.name.clone();
+    let airframe = devices.get(first)?.airframe_beside(drag_area_m2);
+    devices.push(airframe);
+    // A flight that fails with the airframe's drag added still has its ratio to give.
+    let landing = simulation
+        .with_recovery(devices)
+        .ok()
+        .and_then(|simulation| {
+            let mut flown = metrics::FlightMetrics::new();
+            let result = simulation.run(&mut flown).ok()?;
+            let summary = flown.summary(&result, simulation.environment()).ok()?;
+            summary.landing.as_ref().map(landing)
+        });
+    Some(SimAirframeDrag {
+        side_area_m2,
+        drag_area_m2,
+        under,
+        open_drag_area_m2: least.drag_area_m2,
+        descent_time_ratio,
+        landing,
+    })
 }
 
 /// The flight with every recovery charge held, which the `delay` line reads (Loft lesson L94,

@@ -4,6 +4,17 @@
   "description": "`hpr sim`: what was flown, from where, and how the flight went.",
   "type": "object",
   "properties": {
+    "airframe_drag": {
+      "description": "What the airframe's own drag, which the descent leaves out, could do to the landing: given\nwhere a stretch of the descent has little enough drag area open for it to matter\n([`AIRFRAME_DRAG_FROM_RATIO`](crate::sim::AIRFRAME_DRAG_FROM_RATIO)), and the descent was\nbraked soon after apogee. `None` otherwise.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimAirframeDrag"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "design": {
       "description": "The design and the configuration flown.",
       "$ref": "#/$defs/SimDesign"
@@ -960,6 +971,54 @@
             "fetched_at_unix_s"
           ]
         }
+      ]
+    },
+    "SimAirframeDrag": {
+      "description": "The airframe's own drag under the recovery devices, which the descent leaves out, so the fall\nreads fast and the landing's drift short: how much it could be, and the same flight's landing\nwith it added. Knacke's steady descent adds the load's drag to the canopy's (*Parachute\nRecovery Systems Design Manual*, NWC TP 6575, 1991, §4.5.1).",
+      "type": "object",
+      "properties": {
+        "descent_time_ratio": {
+          "description": "How many times as long that stretch's steady descent takes with the airframe's drag area\nadded: `√(1 + drag_area_m2 / open_drag_area_m2)`.",
+          "type": "number",
+          "format": "double"
+        },
+        "drag_area_m2": {
+          "description": "The drag area taken for the airframe hanging level under a canopy, m²: 1.2 times its side\narea, a long cylinder's drag across the air below its critical Reynolds number (Jorgensen,\nNASA TR R-474, 1977, p. 15). It is a high end for the body, not a bound: an airframe that\ntrails nose down adds a small part of it, and fins across the air add more.",
+          "type": "number",
+          "format": "double"
+        },
+        "landing": {
+          "description": "Where the same flight lands with the airframe's drag area added from its first opening\non. `None` if that flight didn't reach the ground.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Landing"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "open_drag_area_m2": {
+          "description": "The drag area open in that stretch, m²: its open devices' areas added.",
+          "type": "number",
+          "format": "double"
+        },
+        "side_area_m2": {
+          "description": "The airframe's side area, m²: its length times its largest body diameter, fins left out.",
+          "type": "number",
+          "format": "double"
+        },
+        "under": {
+          "description": "The device whose opening began the stretch of the descent with the least drag area open,\nby name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "side_area_m2",
+        "drag_area_m2",
+        "under",
+        "open_drag_area_m2",
+        "descent_time_ratio"
       ]
     },
     "SimDelayBand": {

@@ -17,8 +17,8 @@ use std::io::{self, Write};
 
 use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
-    Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
-    SimEvent, SimFlight, SimIssue, SimMotor, SimMotorSource, Termination,
+    Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimAirframeDrag,
+    SimDesign, SimDevice, SimEvent, SimFlight, SimIssue, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
 use crate::units::{
@@ -700,6 +700,34 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
     Ok(())
 }
 
+/// Where the recovery page sets out what the descent leaves out.
+const DESCENT_GUIDE: &str = "https://hpr.fusionspace.co/physics/recovery.html#the-descent";
+
+/// The note under the landing line where the airframe's own drag, which the descent leaves out,
+/// could matter: which way the landing errs, how much drag the airframe could add under which
+/// device, and where the same flight lands with it added.
+fn airframe_drag(airframe: &SimAirframeDrag) -> String {
+    let landing = airframe.landing.as_ref().map_or_else(
+        || "that flight didn't reach the ground".to_owned(),
+        |landing| {
+            format!(
+                "the rocket lands {} from the pad at {:.2} s",
+                meters(landing.distance_m),
+                landing.time_s
+            )
+        },
+    );
+    format!(
+        "(the fall reads fast and the wind's drift short: the descent leaves out the airframe's \
+         own drag. Hanging level under `{}` it could add {:.3} m² to the {:.3} m² open, and a steady fall would take \
+         {:.2} times as long. Flown with that drag added, {landing}. {DESCENT_GUIDE})",
+        airframe.under,
+        airframe.drag_area_m2,
+        airframe.open_drag_area_m2,
+        airframe.descent_time_ratio,
+    )
+}
+
 /// The figures after the events: top speed and Mach number, the landing, how the flight ended
 /// and the files written.
 fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
@@ -744,6 +772,11 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
                 }
             ),
         )?;
+        if let Some(airframe) = flight.airframe_drag.as_ref().filter(|_| braked) {
+            for line in crate::trust::wrap(&airframe_drag(airframe), NOTE) {
+                writeln!(out, "{line}")?;
+            }
+        }
     }
     for landing in &summary.body_landings {
         let part = landing

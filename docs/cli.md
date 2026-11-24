@@ -508,8 +508,9 @@ The rocket then flies with none, and a note says why.
 
 This flies the repository's dual-deploy test rocket, a drogue at apogee and a main at 150 m
 (492 ft). It flies the catalog's H54 in place of its own motor. The H54 is a 29 mm (1.14 in)
-motor in a 52.4 mm (2.06 in) bore, so a note says it flies with no adapter. The `descent` line
-gives the speed under the drogue as the main opens, then at landing:
+motor in a 52.4 mm (2.06 in) bore, so a note says it flies with no adapter. The `vertical
+descent` line gives the speed under the drogue as the main opens, then at landing. The note under
+the landing line is about the airframe's own drag ([below](#the-airframes-own-drag)):
 
 <!-- cli: example `hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54` -->
 
@@ -552,6 +553,10 @@ airspeed through the air)
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
+(the fall reads fast and the wind's drift short: the descent leaves out the airframe's own drag.
+Hanging level under `Drogue parachute` it could add 0.108 m² to the 0.133 m² open, and a steady fall
+would take 1.35 times as long. Flown with that drag added, the rocket lands 0.3 m (1 ft) from the
+pad at 59.47 s. https://hpr.fusionspace.co/physics/recovery.html#the-descent)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
 fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
@@ -564,6 +569,26 @@ More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
+
+<a id="the-airframes-own-drag"></a>**The note under the landing line says which way the landing
+errs.** The descent leaves out the airframe's own drag, so the fall reads fast and the wind's
+drift short. That is the side that flatters a field's size.
+
+- `hpr sim` finds the stretch of the descent with the least drag area open. In the example that
+  is the one under the drogue.
+- It takes the airframe hanging level there: a drag area of 1.2 times its length times its largest
+  diameter. That is a high end for the body, not a bound. A rocket that trails nose down adds
+  much less, and fins across the air add more.
+- If a steady fall would then take at least 1.1 times as long, it flies the flight again with
+  that drag added from the first opening on. The note gives where that flight lands.
+
+Read the two landings as a range for this one model, and plan a field with room past the
+farther one. The example flies in calm air, so both landings are beside the pad and only the
+time moves. In the JSON the note is `airframe_drag`: `side_area_m2`, `drag_area_m2`, `under`,
+`open_drag_area_m2`, `descent_time_ratio` and `landing`. It is `null` when no stretch reaches
+1.1, and when the landing is not a prediction.
+[The recovery page](physics/recovery.md#airframe-drag) has the model, its sources and a table of
+sizes.
 
 **With no device open soon after apogee, the landing is not a prediction.** The rocket then falls
 from apogee on its airframe alone, as the example's does. The simulator's aerodynamics hold only at
