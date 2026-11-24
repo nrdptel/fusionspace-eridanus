@@ -422,6 +422,8 @@ Each group is one dictionary, of:
 
 - `at`: `"inputs"`, making the flight's inputs from its draw, or `"flight"`, flying them.
 - `reason` and `count`.
+- `up_to`, the most of all the flights the same scatter could give that may fail so, at
+  95% confidence (the one-sided Clopper–Pearson upper bound on `count` of the flights).
 - `first_index`, the first such flight's row in the table.
 
 ### `MonteCarlo.flown`
@@ -451,6 +453,8 @@ How a number column spreads over the run, as `hpr mc --json` gives the apogee's 
 landing distance's: a dictionary of `attempted` (the flights tried), `count` (those with
 a value), `mean`, `standard_deviation` (`n - 1`), `min`, `p05`, `p50`, `p95` and `max`,
 over the flights with a value; each `None` when too few flights have one.
+`missing_up_to` is the most of all the flights the same scatter could give that may have no
+value, at 95% confidence (the one-sided Clopper–Pearson upper bound).
 
 A failed flight, or one without the figure, is left out of those but not forgotten.
 `p05_counting_missing` and `p95_counting_missing` are the 5th and 95th percentiles of
@@ -458,6 +462,12 @@ every flight tried, each flight with no value placed past that end: the worst ca
 missing flights allow. They are `-inf` and `inf` when too many have no value for the rest
 to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
 missing flights instead, so it reads each tail short if they would have fallen beyond it.
+
+`upper_95_95` is Wilks's one-sided 95/95 upper tolerance bound: at 95% confidence, at least
+95% of the flights this scatter could give lie at or below it. It is one of the run's largest
+values, the largest at 59 to 92 flights and the second largest at 93 to 123. A flight with
+no value counts as above it, so it is `inf` when too many have none, and `None` under 59
+flights, the fewest that give the bound.
 
 ### `MonteCarlo.to_csv`
 

@@ -96,14 +96,16 @@ Not yet validated: see the Accuracy page before trusting these numbers.
 apogee (m)              1113.3   1119.8     47.4   1040.5   1121.3   1198.8
 landing distance (m)     662.4    660.3    208.9    329.3    670.5    996.5
 landing east (m)         662.4    626.1    209.6    274.9    635.5    957.7
+95/95 upper bounds: apogee 1207 m, landing distance 1072 m
 
 Landing ellipses, centered 626 m east and 23 m south of the pad:
-                       semi-major  semi-minor  heading  landings inside
-50%                         253 m       239 m     131°            48.0%
-95%                         525 m       497 m     131°            94.5%
-95%, the next flight        532 m       503 m     131°            95.5%
+                       semi-major  semi-minor  heading  landings inside  at least
+50%                         253 m       239 m     131°            48.0%     41.9%
+95%                         525 m       497 m     131°            94.5%     91.0%
+95%, the next flight        532 m       503 m     131°            95.5%     92.2%
 
 Reached 1,100 m: 65.5% of the flights
+  of all such flights, at least 59.5% and at most 71.1%, each at 95%
 Apogee with 5% less drag: +29 m; with 5% more: -27 m
 ```
 
@@ -119,6 +121,21 @@ How to read it:
   [percentiles](glossary.md#percentile): one flight in twenty went lower than the 5% value, one in
   twenty higher than the 95% value. So nine flights in ten reached between about 1,040 m (3,412 ft)
   and 1,200 m (3,937 ft).
+- **95/95 upper bounds** are what to plan a waiver's ceiling or a field's edge with, not the 95%
+  column. The 95% column is this sample's own percentile: from another seed it moves. It sits
+  below the true 95th percentile of all such flights more often than not, at 100 flights and at
+  200 alike. The 95/95 bound sits
+  above that true percentile with 95% confidence (Wilks's tolerance bound, below). Here it is
+  1,207 m (3,960 ft) for the apogee against the column's 1,199 m (3,934 ft), and 1,072 m
+  (3,517 ft) for the landing distance against 997 m (3,271 ft). It covers only the scatter the
+  run was given, not the model's own error. [Accuracy](accuracy.md) gives the apogee's, against
+  logged flights; the landing distance's hasn't been compared with real flights yet. A waiver
+  needs room for that error too. The landing distance's bound says how far from the pad; the
+  next-flight ellipse below says whether the landings fit the field's shape.
+- **At least**, beside each ellipse, is a lower bound on the share of all such flights it holds,
+  at about 95% confidence: the 200 flights' own share, 94.5% for the 95% ellipse, could be luck.
+  The bound would be exact for an ellipse drawn before the run; these are fitted to the same
+  landings they count, so the confidence is a little under 95%.
 
 **The mean isn't the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
 With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4\,\mathrm{m}$ (its
@@ -248,7 +265,8 @@ landings, even the 50% ellipse holds all three. If the share is far from the lev
 hundreds of flights, the landings aren't normal. An uncertain wind heading in a strong wind spreads
 them along an arc, and an ellipse is then the wrong shape. Look at the points ([`Scatter::points`]).
 
-A failed flight has no landing. It counts as outside for the lower bound and inside for the upper
+A failed flight has no landing. It counts as outside for the share's `low` and `low_bound`, and
+inside for its `high` and `high_bound`
 ([Failed flights are counted](#failed-flights-are-counted)).
 
 > **How far to trust it.** The ellipse math is tested against normal spreads whose answers are
@@ -343,13 +361,36 @@ Python's `MonteCarlo.spread` gives the same numbers. From Rust,
 `quantile_counting_missing(0.95, MissingEnd::Above)` gives the 95th percentile's worst case, and
 `MissingEnd::Below` the 5th's; too many failures give [`CountedQuantile::Unbounded`].
 
-A share such as "reached 1,100 m (3,609 ft)" is given as two bounds, `share_at_least(1100.0)`:
+A share such as "reached 1,100 m (3,609 ft)" comes from `share_at_least(1100.0)` as four
+numbers. Two are the run's own:
 
 - `low` counts a failed flight as not reaching it;
 - `high` counts it as reaching it.
 
-With no failures the two are equal. With some, the truth lies between them, and a wide gap says the
-run can't answer the question.
+With no failures those two are equal. But a run is a sample, and the share of all such flights
+could be higher or lower than the sample's. So the other two bound it, each at 95% confidence:
+
+- `low_bound`, the one-sided Clopper-Pearson lower bound (C. J. Clopper and E. S. Pearson,
+  *Biometrika* 26(4), 404–413, 1934) on the flights that reached it, a failed
+  flight counted as not reaching it;
+- `high_bound`, the upper bound, a failed flight counted as reaching it.
+
+In the example 131 of 200 flights reached 1,100 m (3,609 ft): 65.5%, and the share of all such flights is
+at least 59.5% and at most 71.1%. A count of zero isn't "never": none of 100 still allows up to
+3.0% (1 − 0.05^(1/100) = 2.95%, the rule of three's 3/100 in exact form). That is how `hpr mc`
+gives each envelope flag. A flag raised on 1 of 100 flights, with 3 more failed, is at most 9.0%:
+each failed flight is counted as one that may have raised it. A flag no flight raised is listed
+with its bound too.
+
+**The 95/95 bound** (`upper_95_95()`) is Wilks's one-sided tolerance bound. It is the m-th
+largest of the n flights, with m the largest order for which at least m of n flights lie above
+the true 95th percentile with 95% confidence: the chance that a binomial count of n at 5% is at
+least m is 0.95 or more. At 100 flights m is 2, the second largest; at 200 it is 5; at 59 it is
+1, the largest; and below 59 flights there is none (S. S. Wilks, *Annals of Mathematical
+Statistics* 12(1), 91–96, 1941). A failed flight is counted above every value, the worst case for
+an upper bound, so with m or more failures it is unbounded. For a normal spread at 100 flights,
+the second largest sits about 2.15 standard deviations above the mean on average, against 1.645
+for the true 95th percentile.
 
 ### The same seed, the same run
 

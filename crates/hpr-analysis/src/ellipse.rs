@@ -633,8 +633,8 @@ impl Scatter {
     }
 
     /// Bounds on the share of the samples tried that landed inside or on `ellipse` ([`Share`]):
-    /// a sample with no point counts as outside for `low`, inside for `high`. `None` with no
-    /// samples tried.
+    /// a sample with no point counts as outside for `low` and `low_bound`, inside for `high` and
+    /// `high_bound`. `None` with no samples tried.
     pub fn share_inside(&self, ellipse: &Ellipse) -> Option<Share> {
         if self.attempted == 0 {
             return None;
@@ -644,12 +644,7 @@ impl Scatter {
             .iter()
             .filter(|p| ellipse.contains(p[0], p[1]))
             .count();
-        // Cast: counts far below 2⁵³.
-        let attempted = self.attempted as f64;
-        Some(Share {
-            low: inside as f64 / attempted,
-            high: (inside + self.missing()) as f64 / attempted,
-        })
+        Share::of(inside, self.missing(), self.attempted)
     }
 }
 

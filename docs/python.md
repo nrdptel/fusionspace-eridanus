@@ -573,6 +573,12 @@ each failed flight placed past that end, the worst case they allow
 every flight has a value, and `-inf` (the 5%) or `inf` (the 95%) when too many failed for the
 run to bound it. So check for `None` before formatting one.
 
+`upper_95_95` is the [95/95 bound](monte-carlo.md#failed-flights-are-counted): with 95%
+confidence, at least 95% of the flights the same scatter could give lie at or below it. It is
+`None` under 59 flights and `inf` when too many failed for the run to give it. `missing_up_to`
+is the most of all such flights that may have no value, at 95% confidence, and each of
+`run.failures` has `up_to`, the same bound on the flights that failed for its reason.
+
 `run.nominal` is the flight with nothing scattered, as `Flight.summary` gives it, and
 `run.dispersion` the standard deviations given, by name.
 

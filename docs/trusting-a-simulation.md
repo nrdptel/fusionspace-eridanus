@@ -126,7 +126,7 @@ Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 
-200 simulated flights, seed 2026: 0 failed
+200 simulated flights, seed 2026: 0 failed, up to 1.5% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)             1065.1   1072.4     41.5   1006.2   1072.8   1137.3
 apogee (ft AGL)              3494     3519      136     3301     3520     3731
@@ -136,17 +136,26 @@ opening shock (m/s²)         11.6     15.2      8.7      9.8      9.8     34.7
 opening shock (g)             1.2      1.5      0.9      1.0      1.0      3.5
 opening airspeed (m/s)        5.1      4.7      2.4      0.8      4.6      8.8
 opening airspeed (ft/s)        17       15        8        3       15       29
+95/95 upper bounds (at least 95% of flights below, at 95% confidence; a failed flight counted
+above): apogee 1155.2 m (3790 ft); landing distance 0.9 m (3 ft)
 
 200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T            74.5%
-95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.0%
-95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.5%
+0 didn't land, up to 1.5% of flights at 95%
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T   74.5% (≥ 68.9%)
+95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.0% (≥ 95.4%)
+95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T   98.5% (≥ 96.1%)
+(≥ …) is a lower bound on the share of all the flights this scatter could give, at about 95% as
+the ellipses are fitted to these same flights, a failed flight counted outside
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
+no flight raised these flags; each could still be up to 1.5% of flights at 95%: a static margin
+below zero under power; a pitching moment that turns it away under power, with no margin; faster
+than any public flight HPR Sim has been checked against; above 15° angle of attack after the
+rail; past Mach 2.5, the core band's top; past Mach 3.5, the envelope's top
 warning: drag, the nominal flight: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
 warning: drag, the nominal flight: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
@@ -170,6 +179,9 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 Read it in three parts. The table's `5%` and `95%` columns are
 [percentiles](glossary.md#percentile): most runs fell between them, a few on either side. The
+`95/95` line under it is the one to plan a ceiling with. The first line's bound on the failed
+flights says how many of all such flights could fail, even where none of these did
+([the command line](cli.md#scattering-a-flight)). The
 warnings name the known model gaps that bear on this flight, each with the side it pushes the
 numbers to. Here the drag may read high. If it does, the apogee reads low, the side that flatters
 a ceiling.

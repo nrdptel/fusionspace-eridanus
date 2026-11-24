@@ -194,6 +194,10 @@ pub struct Summary {
     pub attempted: usize,
     /// The runs that gave a value.
     pub count: usize,
+    /// The most of all the runs the same scatter could give that may give no value, at
+    /// [`SHARE_CONFIDENCE`]: the one-sided Clopper–Pearson upper bound on the runs without one
+    /// ([`Share::high_bound`]); 1, the bound that claims nothing, with no runs tried.
+    pub missing_up_to: f64,
     /// The mean, `None` with no values.
     pub mean: Option<f64>,
     /// The sample standard deviation (`n − 1`), `None` with fewer than two values.
@@ -215,6 +219,10 @@ pub struct Summary {
     /// The 95th percentile with every run that gave no value placed above the largest value;
     /// `None` when every run gave a value.
     pub p95_counting_missing: Option<CountedQuantile>,
+    /// Wilks's one-sided 95/95 upper tolerance bound ([`Distribution::upper_95_95`]): the figure
+    /// to plan an upper limit with, where `p95` is the sample's own percentile. `None` with
+    /// fewer than 59 runs tried.
+    pub upper_95_95: Option<CountedQuantile>,
 }
 
 /// Which end of the values [`Distribution::quantile_counting_missing`] places the runs that gave
@@ -240,13 +248,130 @@ pub enum CountedQuantile {
 }
 
 /// Bounds on the share of all the runs tried whose value passed a test: `low` counts a run with
-/// no value as failing it, `high` as passing.
+/// no value as failing it, `high` as passing. Those two are the sample's own shares; the true
+/// share, of all the runs the same scatter could give, is bounded by `low_bound` and
+/// `high_bound`, one-sided Clopper–Pearson bounds at [`SHARE_CONFIDENCE`] with each run that gave
+/// no value on the unfavorable side of each. Each is one-sided: together they make a two-sided
+/// interval at `2c − 1`, 90%.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Share {
     /// The runs with a value that passed, over every run tried.
     pub low: f64,
     /// The same, with every run that gave no value counted as passing.
     pub high: f64,
+    /// The true share is at least this, at [`SHARE_CONFIDENCE`]: the one-sided Clopper–Pearson
+    /// lower bound on the runs that passed, a run with no value counted as failing.
+    pub low_bound: f64,
+    /// The true share is at most this, at [`SHARE_CONFIDENCE`]: the one-sided Clopper–Pearson
+    /// upper bound on the runs that passed, a run with no value counted as passing. With none
+    /// passed and none missing it is `1 − (1 − c)^(1/n)`: 0.029513049… at 100 runs.
+    pub high_bound: f64,
+}
+
+/// The confidence of each one-sided bound a [`Share`] and [`Distribution::upper_95_95`] give.
+pub const SHARE_CONFIDENCE: f64 = 0.95;
+
+impl Share {
+    /// The share of `attempted` runs of which `passed` passed and `missing` gave no value, with
+    /// its bounds. `None` with no runs, or with more passed and missing than runs.
+    #[must_use]
+    pub fn of(passed: usize, missing: usize, attempted: usize) -> Option<Self> {
+        if attempted == 0
+            || passed
+                .checked_add(missing)
+                .is_none_or(|counted| counted > attempted)
+        {
+            return None;
+        }
+        // Cast: counts far below 2⁵³.
+        let (passed_f, attempted_f) = (passed as f64, attempted as f64);
+        let (x, gone, n) = (passed as u64, missing as u64, attempted as u64);
+        // A one-sided bound at c is one edge of the two-sided interval at 2c − 1.
+        let two_sided = 2.0 * SHARE_CONFIDENCE - 1.0;
+        Some(Self {
+            low: passed_f / attempted_f,
+            high: (passed + missing) as f64 / attempted_f,
+            low_bound: clopper_pearson_lower(x, n, two_sided),
+            high_bound: clopper_pearson_upper(x + gone, n, two_sided),
+        })
+    }
+}
+
+/// `P(X ≥ x)` for `X ~ Binomial(n, p)`, summing the binomial terms of whichever tail is the
+/// smaller, each from `ln C(n, k)` by the recurrence `ln C(n, k + 1) = ln C(n, k) + ln(n − k) −
+/// ln(k + 1)`: `n` steps at most.
+fn binomial_at_least(x: u64, n: u64, p: f64) -> f64 {
+    if x == 0 {
+        return 1.0;
+    }
+    if x > n || p <= 0.0 {
+        return 0.0;
+    }
+    if p >= 1.0 {
+        return 1.0;
+    }
+    let (lp, lq) = (p.ln(), (-p).ln_1p());
+    // Cast: counts far below 2⁵³.
+    let term = |k: u64, ln_choose: f64| (ln_choose + k as f64 * lp + (n - k) as f64 * lq).exp();
+    let upper = x as f64 > n as f64 * p;
+    let (mut ln_choose, mut sum) = (0.0_f64, 0.0_f64);
+    for k in 0..=n {
+        // The upper tail sums from x on; the lower one up to x, and stops there.
+        if upper == (k >= x) {
+            sum += term(k, ln_choose);
+        } else if !upper {
+            break;
+        }
+        if k < n {
+            ln_choose += ((n - k) as f64).ln() - ((k + 1) as f64).ln();
+        }
+    }
+    if upper {
+        sum.min(1.0)
+    } else {
+        (1.0 - sum).max(0.0)
+    }
+}
+
+/// The lower edge of the two-sided Clopper–Pearson interval on a binomial share, at `confidence`:
+/// the `p` at which `P(X ≥ x) = (1 − confidence)/2`, by bisection to neighboring numbers; 0 when
+/// `x` is 0 (C. J. Clopper and E. S. Pearson, "The use of confidence or fiducial limits
+/// illustrated in the case of the binomial", *Biometrika* 26(4), 404–413, 1934). NaN when `x`
+/// exceeds `n` or `confidence` isn't strictly between 0 and 1. One edge alone is a one-sided
+/// bound at `(1 + confidence)/2`.
+#[must_use]
+pub fn clopper_pearson_lower(x: u64, n: u64, confidence: f64) -> f64 {
+    if x > n || !(confidence > 0.0 && confidence < 1.0) {
+        return f64::NAN;
+    }
+    if x == 0 {
+        return 0.0;
+    }
+    let target = 0.5 * (1.0 - confidence);
+    // Cast: counts far below 2⁵³. P(X ≥ x) rises with p, and at p = x/n it is near 1/2.
+    let (mut lo, mut hi) = (0.0_f64, x as f64 / n as f64);
+    loop {
+        let middle = 0.5 * (lo + hi);
+        if middle <= lo || middle >= hi {
+            return hi;
+        }
+        if binomial_at_least(x, n, middle) < target {
+            lo = middle;
+        } else {
+            hi = middle;
+        }
+    }
+}
+
+/// The upper edge of the two-sided Clopper–Pearson interval on a binomial share at `confidence`,
+/// `1 −` the lower edge of the share of the other outcome; 1 when `x` is `n`. NaN where
+/// [`clopper_pearson_lower`] is.
+#[must_use]
+pub fn clopper_pearson_upper(x: u64, n: u64, confidence: f64) -> f64 {
+    if x > n {
+        return f64::NAN;
+    }
+    1.0 - clopper_pearson_lower(n - x, n, confidence)
 }
 
 impl Distribution {
@@ -437,12 +562,48 @@ impl Distribution {
             return Ok(None);
         }
         let passed = self.sorted.len() - self.sorted.partition_point(|&x| x < threshold);
-        // Cast: counts far below 2⁵³.
-        let attempted = self.attempted as f64;
-        Ok(Some(Share {
-            low: passed as f64 / attempted,
-            high: (passed + self.missing()) as f64 / attempted,
-        }))
+        Ok(Share::of(passed, self.missing(), self.attempted))
+    }
+
+    /// Wilks's one-sided 95/95 upper tolerance bound: a value that, with 95% confidence
+    /// ([`SHARE_CONFIDENCE`]), at least 95% of all the runs the same scatter could give lie at or
+    /// below. It is the `m`-th largest of the runs tried, with `m` the largest order for which
+    /// `P(Binomial(n, 0.05) ≥ m) ≥ 0.95`: the `m`-th largest lies at or above the true 95th
+    /// percentile exactly when at least `m` of the `n` runs do (S. S. Wilks, "Determination of
+    /// sample sizes for setting tolerance limits", *Annals of Mathematical Statistics* 12(1),
+    /// 91–96, 1941). At 100 runs `m` is 2, the second largest; it takes 59 runs for the largest
+    /// to be one, and with fewer there is none (`None`). A run with no value is placed above the
+    /// largest, the worst case for an upper bound, so with `m` or more of them the bound is
+    /// [`CountedQuantile::Unbounded`].
+    #[must_use]
+    pub fn upper_95_95(&self) -> Option<CountedQuantile> {
+        let n = self.attempted as u64;
+        let holds = |m: u64| binomial_at_least(m, n, 1.0 - SHARE_CONFIDENCE) >= SHARE_CONFIDENCE;
+        if n == 0 || !holds(1) {
+            return None;
+        }
+        // P(Binomial(n, 0.05) ≥ m) falls as m rises: the largest m that holds, by bisection
+        // between one that holds and one that doesn't (none does past n).
+        let (mut good, mut bad) = (1_u64, n + 1);
+        while bad - good > 1 {
+            let middle = good + (bad - good) / 2;
+            if holds(middle) {
+                good = middle;
+            } else {
+                bad = middle;
+            }
+        }
+        let order = good;
+        // Cast: an order of at most `attempted`.
+        let order = order as usize;
+        let missing = self.missing();
+        if order <= missing {
+            return Some(CountedQuantile::Unbounded);
+        }
+        // The (order − missing)-th largest value: the runs with none sit above it.
+        self.sorted
+            .get(self.sorted.len() - (order - missing))
+            .map(|&value| CountedQuantile::Value(value))
     }
 
     /// The usual numbers, for a report: [`Summary`].
@@ -459,6 +620,8 @@ impl Distribution {
         Summary {
             attempted: self.attempted,
             count: self.count(),
+            missing_up_to: Share::of(self.missing(), 0, self.attempted)
+                .map_or(1.0, |share| share.high_bound),
             mean: self.mean(),
             standard_deviation: self.standard_deviation(),
             min: self.min(),
@@ -468,6 +631,7 @@ impl Distribution {
             max: self.max(),
             p05_counting_missing: counting_missing(0.05, MissingEnd::Below),
             p95_counting_missing: counting_missing(0.95, MissingEnd::Above),
+            upper_95_95: self.upper_95_95(),
         }
     }
 }
@@ -475,6 +639,100 @@ impl Distribution {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// More passed and missing than runs is refused, even where their sum overflows a `usize`.
+    #[test]
+    fn a_share_refuses_counts_past_its_runs_without_overflowing() {
+        assert_eq!(Share::of(usize::MAX, 1, 5), None);
+        assert_eq!(Share::of(4, 2, 5), None);
+        assert_eq!(Share::of(0, 0, 0), None);
+        assert!(Share::of(3, 2, 5).is_some());
+    }
+
+    /// The one-sided 95% Clopper–Pearson bounds at 100 runs against exact values (the binomial
+    /// sums in 40-digit arithmetic, mpmath, bisected): none of 100 is at most
+    /// 1 − 0.05^(1/100) = 2.9513%; one of 100 at most 4.6560% and at least 0.05128%; four at most
+    /// 8.9196%; 65 between 56.392% and 72.925%. A run with no value moves each bound to its
+    /// unfavorable side: one passed and three missing is at most the four's 8.9196%.
+    #[test]
+    #[expect(
+        clippy::excessive_precision,
+        reason = "17 digits of each 40-digit reference, which round to the nearest f64"
+    )]
+    fn a_shares_bounds_at_a_hundred_runs_by_hand() {
+        let share = |passed, missing| Share::of(passed, missing, 100).expect("a share");
+        let close = |got: f64, exact: f64| (got - exact).abs() < 1e-12;
+        let none = share(0, 0);
+        assert_eq!((none.low, none.high, none.low_bound), (0.0, 0.0, 0.0));
+        assert!(
+            close(none.high_bound, 0.029_513_049_607_039_935),
+            "{none:?}"
+        );
+        let one = share(1, 0);
+        assert!(close(one.high_bound, 0.046_559_811_453_538_946), "{one:?}");
+        assert!(close(one.low_bound, 0.000_512_801_416_262_292_1), "{one:?}");
+        assert!(close(share(4, 0).high_bound, 0.089_196_250_158_879_886));
+        let sixty_five = share(65, 0);
+        assert!(close(sixty_five.low_bound, 0.563_916_359_180_062_84));
+        assert!(close(sixty_five.high_bound, 0.729_245_538_188_444_45));
+        let failed = share(1, 3);
+        assert_eq!((failed.low, failed.high), (0.01, 0.04));
+        assert_eq!(failed.low_bound, one.low_bound);
+        assert_eq!(failed.high_bound, share(4, 0).high_bound);
+        // All passed: at least 97.05%, the mirror of none.
+        let all = share(100, 0);
+        assert_eq!(all.high_bound, 1.0);
+        assert!(
+            close(all.low_bound, 1.0 - 0.029_513_049_607_039_935),
+            "{all:?}"
+        );
+        assert_eq!(Share::of(1, 0, 0), None);
+        assert_eq!(Share::of(60, 41, 100), None);
+    }
+
+    /// Wilks's order at 58, 59, 100 and 1,000 runs (none, the largest, the second, the 39th
+    /// largest; mpmath's exact binomial sums), and the bound on a sample: the second largest of
+    /// 100, moved down past each run with no value, unbounded with two of them.
+    #[test]
+    fn the_95_95_bound_takes_wilkss_order() {
+        let ranks = |n: usize, missing: usize| {
+            let values = (1..=n - missing).map(|i| i as f64).collect::<Vec<_>>();
+            Distribution::new(values, n)
+                .expect("a sample")
+                .upper_95_95()
+        };
+        assert_eq!(ranks(58, 0), None);
+        assert_eq!(ranks(59, 0), Some(CountedQuantile::Value(59.0)));
+        assert_eq!(ranks(100, 0), Some(CountedQuantile::Value(99.0)));
+        assert_eq!(ranks(1000, 0), Some(CountedQuantile::Value(962.0)));
+        // One run with no value sits above the rest: the second largest of all is the largest
+        // of the 99 values.
+        assert_eq!(ranks(100, 1), Some(CountedQuantile::Value(99.0)));
+        assert_eq!(ranks(100, 2), Some(CountedQuantile::Unbounded));
+        assert_eq!(ranks(59, 1), Some(CountedQuantile::Unbounded));
+        // The 95th percentile it stands beside is below it.
+        let sample = Distribution::new((1..=100).map(f64::from).collect(), 100).expect("a sample");
+        let p95 = sample.quantile(0.95).expect("in range").expect("values");
+        assert!(p95 < 99.0, "{p95}");
+    }
+
+    /// The binomial tail by hand: `P(X ≥ 1)` of 100 at 0.05 is `1 − 0.95¹⁰⁰`, and both of its
+    /// sums agree where they meet.
+    #[test]
+    fn the_binomial_tail_by_hand() {
+        let at_least_one = binomial_at_least(1, 100, 0.05);
+        assert!((at_least_one - (1.0 - 0.95_f64.powi(100))).abs() < 1e-14);
+        assert_eq!(binomial_at_least(0, 100, 0.3), 1.0);
+        assert_eq!(binomial_at_least(101, 100, 0.3), 0.0);
+        // At the mean the sum switches tails; one either side still adds up.
+        let (below, at, above) = (
+            binomial_at_least(29, 100, 0.3),
+            binomial_at_least(30, 100, 0.3),
+            binomial_at_least(31, 100, 0.3),
+        );
+        assert!(below > at && at > above, "{below} {at} {above}");
+        assert!((at - 0.537_660_263_984_637_6).abs() < 1e-12, "{at}");
+    }
 
     #[test]
     fn equal_values_give_their_value_and_no_spread() {

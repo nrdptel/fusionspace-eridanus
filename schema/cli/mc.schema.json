@@ -133,6 +133,13 @@
       "description": "The trust note the text form ends with: what the figures are, what HPR Sim's apogee\nwas checked against, with the committed report's numbers, and what to rely on instead\n(decision record ADR-211).",
       "type": "string"
     },
+    "unraised_flags": {
+      "description": "The flags no flight that flew raised, each with its upper bound: a run of 100 that\nraises none still allows up to 2.95%, and a failed flight may have raised any of them.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/McFlag"
+      }
+    },
     "warnings": {
       "description": "Problems with the inputs that the flights went ahead despite.",
       "type": "array",
@@ -160,6 +167,7 @@
     "deployment_airspeed_m_s",
     "landing",
     "flags",
+    "unraised_flags",
     "issues",
     "notes",
     "warnings"
@@ -666,6 +674,11 @@
           "type": "number",
           "format": "double"
         },
+        "inside_at_least": {
+          "description": "The share of all the flights the same scatter could give that land inside it is at least\nthis, with about 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight\ncounted outside. The bound is exact for an ellipse fixed before the run; this one is fitted\nto the same landings it counts, so its confidence is a little under 95%.",
+          "type": "number",
+          "format": "double"
+        },
         "kind": {
           "description": "Which kind it is.",
           "$ref": "#/$defs/EllipseKind"
@@ -699,7 +712,8 @@
         "semi_major_m",
         "semi_minor_m",
         "major_heading_deg",
-        "inside"
+        "inside",
+        "inside_at_least"
       ]
     },
     "McFailed": {
@@ -718,10 +732,16 @@
           "items": {
             "$ref": "#/$defs/McFailure"
           }
+        },
+        "up_to": {
+          "description": "The most of all the flights the same scatter could give that may fail, at 95% confidence:\nthe one-sided Clopper–Pearson upper bound on `count` of the flights tried\n(`hpr_analysis::statistics::Share`). With none failed of 100, 2.95%: none failing in a\nrun doesn't make a failure impossible.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "count",
+        "up_to",
         "reasons"
       ]
     },
@@ -763,33 +783,52 @@
         "reason": {
           "description": "The error.",
           "type": "string"
+        },
+        "up_to": {
+          "description": "The most of all the flights the same scatter could give that may fail so, at 95%\nconfidence: the one-sided Clopper–Pearson upper bound on `count` of the flights tried.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "at",
         "reason",
         "count",
+        "up_to",
         "first_index"
       ]
     },
     "McFlag": {
-      "description": "An envelope flag the flights of a run raise.",
+      "description": "An envelope flag and the flights of a run that raise it.",
       "type": "object",
       "properties": {
+        "failed": {
+          "description": "How many flights failed: each may have raised it before it failed, so the run supports\nanything from `flights` to `flights + failed`.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
         "flag": {
           "description": "Which flag.",
           "$ref": "#/$defs/FlagKind"
         },
         "flights": {
-          "description": "How many flights raise it.",
+          "description": "How many flights that flew to the ground raise it.",
           "type": "integer",
           "format": "uint",
           "minimum": 0
+        },
+        "up_to": {
+          "description": "The share of all the flights the same scatter could give that raise it is at most this,\nwith 95% confidence: the one-sided Clopper–Pearson upper bound on `flights + failed` of\nthe flights tried. With none of 100 it is 2.95%, not zero.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "flag",
-        "flights"
+        "flights",
+        "failed",
+        "up_to"
       ]
     },
     "McLanding": {
@@ -824,10 +863,16 @@
           "items": {
             "$ref": "#/$defs/McEllipse"
           }
+        },
+        "not_landed_up_to": {
+          "description": "The most of all the flights the same scatter could give that may not land, a failed\nflight among them, at 95% confidence: the one-sided Clopper–Pearson upper bound on the\nflights tried less `count`.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "count",
+        "not_landed_up_to",
         "ellipses"
       ]
     },
@@ -925,6 +970,11 @@
           ],
           "format": "double"
         },
+        "missing_up_to": {
+          "description": "The most of all the flights the same scatter could give that may have no value, at 95%\nconfidence: the one-sided Clopper–Pearson upper bound on `attempted − count` of\n`attempted`; 1 with none tried.",
+          "type": "number",
+          "format": "double"
+        },
         "p05": {
           "description": "The 5th percentile.",
           "type": [
@@ -978,11 +1028,23 @@
             "null"
           ],
           "format": "double"
+        },
+        "upper_95_95": {
+          "description": "Wilks's one-sided 95/95 upper tolerance bound: with 95% confidence, at least 95% of all\nthe flights the same scatter could give lie at or below it\n(`hpr_analysis::statistics::Distribution::upper_95_95`). The second largest of 100\nflights, each flight with no value placed above the largest; `null` with fewer than 59\nflights tried. The 95% column is a sample percentile, which lies below the true one more\noften than not.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/McCountedQuantile"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
         "attempted",
-        "count"
+        "count",
+        "missing_up_to"
       ]
     },
     "Peak": {

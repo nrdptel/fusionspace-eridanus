@@ -6998,9 +6998,14 @@ fn same_runs(csv: &Path, run: &hpr::hpr_analysis::montecarlo::Run, document: &Va
             "{key}"
         );
     }
+    let share = landing.share_inside(&ellipse).unwrap();
     assert_eq!(
         printed["inside"].as_f64().unwrap().to_bits(),
-        landing.share_inside(&ellipse).unwrap().low.to_bits()
+        share.low.to_bits()
+    );
+    assert_eq!(
+        printed["inside_at_least"].as_f64().unwrap().to_bits(),
+        share.low_bound.to_bits()
     );
 }
 
@@ -8999,5 +9004,178 @@ fn the_delay_band_gives_no_speed_the_held_flight_doesnt_predict() {
             number(&drogue["opened_s"])
         )),
         "{printed}"
+    );
+}
+
+#[test]
+fn mc_bounds_its_flags_and_shares() {
+    // Issue 1260: the synthetic two-stage rocket passes the validated range on every flight. Four
+    // of four raise it, so its share is at most 100% at 95%; the five flags none raised are
+    // each at most 1 − 0.05^(1/4) = 52.71% (the one-sided Clopper–Pearson bound on none of
+    // four), not zero, and a run this short has no 95/95 bound: it takes 59 flights.
+    let path = repo_file("validation/designs/synthetic-two-stage-75mm-54mm.json");
+    let args = [
+        "mc",
+        path.as_str(),
+        "--offline",
+        "--runs",
+        "4",
+        "--seed",
+        "1",
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    let flags = document["flags"].as_array().unwrap();
+    assert_eq!(flags.len(), 1, "{flags:?}");
+    assert_eq!(flags[0]["flag"], "beyond_validated_range");
+    assert_eq!(
+        (flags[0]["flights"].as_u64(), flags[0]["failed"].as_u64()),
+        (Some(4), Some(0))
+    );
+    assert_eq!(flags[0]["up_to"].as_f64(), Some(1.0));
+    let unraised = document["unraised_flags"].as_array().unwrap();
+    assert_eq!(unraised.len(), 5, "{unraised:?}");
+    for flag in unraised {
+        assert_eq!(flag["flights"].as_u64(), Some(0), "{flag}");
+        let up_to = flag["up_to"].as_f64().unwrap();
+        assert!((up_to - 0.527_129_195_498_412_1).abs() < 1e-12, "{flag}");
+    }
+    assert_eq!(document["apogee_m"]["upper_95_95"], Value::Null);
+    // No failure in four flights still allows failures in up to 52.71% of them.
+    let failures_up_to = document["failed"]["up_to"].as_f64().unwrap();
+    assert!(
+        (failures_up_to - 0.527_129_195_498_412_1).abs() < 1e-12,
+        "{failures_up_to}"
+    );
+    let shown = streams(&[&args[..], &["--color", "never"]].concat());
+    assert!(
+        shown
+            .out
+            .contains("4 simulated flights, seed 1: 0 failed, up to 52.8% of flights at 95%\n"),
+        "{}",
+        shown.out
+    );
+    assert!(
+        shown
+            .err
+            .contains("in 4 of 4 flights; up to 100.0% at 95%\n"),
+        "{}",
+        shown.err
+    );
+    let out = shown.out.replace('\n', " ");
+    assert!(
+        out.contains(
+            "no flight raised these flags; each could still be up to 52.8% of flights at 95%:"
+        ),
+        "{out}"
+    );
+    assert!(out.contains("apogee none, it takes 59 flights"), "{out}");
+
+    // Two of 100 flights fail on a mass scattered below zero. Every flag's bound counts them as
+    // raising it: none raised and two failed is at most 6.1619%, the bound on two of 100. The
+    // 95/95 bound is the second largest of the 100, so with two flights above every value it is
+    // unbounded.
+    let pods = repo_file("validation/fixtures/ork/pod-flights/pods-none.ork");
+    let args = [
+        "mc",
+        pods.as_str(),
+        "--motor",
+        "H54",
+        "--runs",
+        "100",
+        "--mass-sd",
+        "0.45",
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    assert_eq!(document["failed"]["count"].as_u64(), Some(2));
+    let failures_up_to = document["failed"]["up_to"].as_f64().unwrap();
+    assert!(
+        (failures_up_to - 0.061_619_200_396_040_71).abs() < 1e-12,
+        "{failures_up_to}"
+    );
+    let unraised = document["unraised_flags"].as_array().unwrap();
+    assert_eq!(unraised.len(), 6, "{unraised:?}");
+    let up_to = unraised[0]["up_to"].as_f64().unwrap();
+    assert!((up_to - 0.061_619_200_396_040_71).abs() < 1e-12, "{up_to}");
+    assert_eq!(unraised[0]["failed"].as_u64(), Some(2));
+    assert_eq!(document["apogee_m"]["upper_95_95"], "unbounded");
+    let ellipse = &document["landing"]["ellipses"][1];
+    let (inside, at_least) = (
+        ellipse["inside"].as_f64().unwrap(),
+        ellipse["inside_at_least"].as_f64().unwrap(),
+    );
+    assert!(at_least < inside, "{ellipse}");
+    // Each count carries its bound: the two flights without a value or a landing are bounded as
+    // 2 of 100 (6.1619%), and each failure's reason as 1 of 100 (4.6560%), each the one-sided
+    // Clopper–Pearson upper bound.
+    for spread in ["apogee_m", "landing_distance_m"] {
+        let missing = document[spread]["missing_up_to"].as_f64().unwrap();
+        assert!(
+            (missing - 0.061_619_200_396_040_71).abs() < 1e-12,
+            "{missing}"
+        );
+    }
+    let not_landed = document["landing"]["not_landed_up_to"].as_f64().unwrap();
+    assert!(
+        (not_landed - 0.061_619_200_396_040_71).abs() < 1e-12,
+        "{not_landed}"
+    );
+    for reason in document["failed"]["reasons"].as_array().unwrap() {
+        let up_to = reason["up_to"].as_f64().unwrap();
+        assert!((up_to - 0.046_559_811_453_538_95).abs() < 1e-12, "{reason}");
+    }
+    let shown = streams(&[&args[..], &["--color", "never"]].concat());
+    assert!(
+        shown
+            .err
+            .contains("warning: flight 9 failed, up to 4.7% of flights at 95%: "),
+        "{}",
+        shown.err
+    );
+    let out = shown.out.replace('\n', " ");
+    for said in [
+        "each could still be up to 6.2% of flights at 95%, counting the 2 that failed",
+        "apogee unbounded, too many flights failed;",
+        "98 with an apogee (the rest up to 6.2% of flights at 95%)",
+        "2 didn't land, up to 6.2% of flights at 95%",
+    ] {
+        assert!(out.contains(said), "{said}: {out}");
+    }
+
+    // A raised flag counts the failed flights as ones that may have raised it: 15 of 20 raise
+    // it and 4 fail, so its bound is the one on 19 of 20, 0.95^(1/20) = 99.744% (on 15 alone it
+    // would be 89.6%).
+    let design = repo_file("validation/designs/synthetic-two-stage-75mm-54mm.json");
+    let args = [
+        "mc",
+        design.as_str(),
+        "--offline",
+        "--runs",
+        "20",
+        "--seed",
+        "1",
+        "--mass-sd",
+        "1.0",
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    let flag = document["flags"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|flag| flag["flag"] == "beyond_validated_range")
+        .unwrap();
+    assert_eq!(
+        (flag["flights"].as_u64(), flag["failed"].as_u64()),
+        (Some(15), Some(4)),
+        "{flag}"
+    );
+    let up_to = flag["up_to"].as_f64().unwrap();
+    assert!((up_to - 0.95_f64.powf(1.0 / 20.0)).abs() < 1e-12, "{up_to}");
+    let shown = streams(&[&args[..], &["--color", "never"]].concat());
+    assert!(
+        shown.err.contains(
+            "in 15 of 20 flights, or 19 counting the 4 that failed; up to 99.8% at 95%\n"
+        ),
+        "{}",
+        shown.err
     );
 }

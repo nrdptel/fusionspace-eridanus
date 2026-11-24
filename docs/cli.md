@@ -1119,23 +1119,32 @@ $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 20
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
-200 simulated flights, seed 2026: 0 failed
+200 simulated flights, seed 2026: 0 failed, up to 1.5% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)              813.9    819.4     34.4    765.0    818.8    870.8
 apogee (ft AGL)              2670     2688      113     2510     2686     2857
 landing distance (m)        286.9    283.2     44.8    208.8    281.8    354.5
 landing distance (ft)         941      929      147      685      925     1163
+95/95 upper bounds (at least 95% of flights below, at 95% confidence; a failed flight counted
+above): apogee 885.0 m (2904 ft); landing distance 383.7 m (1259 ft)
 
 200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                          52.8 m (173 ft)       32.8 m (107 ft)   089° T            48.5%
-95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T            93.5%
-95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T            93.5%
+0 didn't land, up to 1.5% of flights at 95%
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                          52.8 m (173 ft)       32.8 m (107 ft)   089° T   48.5% (≥ 42.4%)
+95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T   93.5% (≥ 89.8%)
+95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T   93.5% (≥ 89.8%)
+(≥ …) is a lower bound on the share of all the flights this scatter could give, at about 95% as
+the ellipses are fitted to these same flights, a failed flight counted outside
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of rail above its aft end, 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
+no flight raised these flags; each could still be up to 1.5% of flights at 95%: a static margin
+below zero under power; a pitching moment that turns it away under power, with no margin; faster
+than any public flight HPR Sim has been checked against; above 15° angle of attack after the
+rail; past Mach 2.5, the core band's top; past Mach 3.5, the envelope's top
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
@@ -1158,6 +1167,16 @@ Then come the run's mean, [standard deviation](glossary.md#standard-deviation), 
 median and 95th percentile. Each length is in meters, then in feet on the row under it. The
 landing's center and the ellipses' axes give feet in parentheses. A failed flight counts as tried
 with no value.
+
+The 95% column is the run's own percentile, and it moves from seed to seed. For a waiver's ceiling
+or a field's edge, use the line under the table: the apogee's and the landing distance's 95/95
+upper bounds. With 95% confidence, at least 95% of all the flights this scatter could give lie
+below each (Wilks's tolerance bound: the second largest of 100 flights, the fifth of 200). It
+takes 59 flights to give one, and a failed flight counts above every value, so enough failures
+leave it unbounded ([how it is chosen](monte-carlo.md#failed-flights-are-counted)). In the JSON
+it is each spread's `upper_95_95`. It covers only the scatter given here, not the model's own
+error. The note at the end gives the apogee's, against logged flights; the landing distance's
+hasn't been compared with real flights yet. Leave room for both.
 
 When a flight opened a recovery device, two more figures follow, each when any flight has a
 value for it. The opening shock is each flight's largest drag over the mass of the part hanging
@@ -1203,31 +1222,43 @@ $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 10
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
-100 simulated flights, seed 0: 2 failed
+100 simulated flights, seed 0: 2 failed, up to 6.2% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)              846.1    822.8     34.4    769.9    834.6    851.1
 apogee (ft AGL)              2776     2700      113     2526     2738     2792
 landing distance (m)         17.4     23.2     46.1     13.3     16.5     33.3
 landing distance (ft)          57       76      151       43       54      109
-the columns count only the flights with a value, of 100: 98 with an apogee, 98 with a landing;
-with each of the others placed past that end, the 5% and 95% are at worst
+the columns count only the flights with a value, of 100: 98 with an apogee (the rest up to 6.2%
+of flights at 95%), 98 with a landing (the rest up to 6.2% of flights at 95%); with each of the
+others placed past that end, the 5% and 95% are at worst
 apogee (m AGL)                                         734.1             851.4
 apogee (ft AGL)                                         2408              2793
 landing distance (m)                                    12.4              36.7
 landing distance (ft)                                     41               120
+95/95 upper bounds (at least 95% of flights below, at 95% confidence; a failed flight counted
+above): apogee unbounded, too many flights failed; landing distance unbounded, too many flights
+failed
 
 98 of 100 flights landed, centered 23.2 m (76 ft) east and 0.0 m (0 ft) south of the pad
-landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                          54.2 m (178 ft)          0.0 m (0 ft)   090° T            97.0%
-95%                         112.8 m (370 ft)          0.0 m (0 ft)   090° T            97.0%
-95%, the next flight        115.7 m (380 ft)          0.0 m (0 ft)   090° T            97.0%
+2 didn't land, up to 6.2% of flights at 95%
+landing ellipse                   semi-major            semi-minor  heading    flights inside
+50%                          54.2 m (178 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
+95%                         112.8 m (370 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
+95%, the next flight        115.7 m (380 ft)          0.0 m (0 ft)   090° T   97.0% (≥ 92.4%)
+(≥ …) is a lower bound on the share of all the flights this scatter could give, at about 95% as
+the ellipses are fitted to these same flights, a failed flight counted outside
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
 scattered, one standard deviation each: --mass-sd 0.45
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
-warning: flight 9 failed: 00000000-0000-4000-8000-000000000099: mass override (kg) is outside its domain: -0.03909
-warning: flight 31 failed: 00000000-0000-4000-8000-000000000099: mass override (kg) is outside its domain: -0.1449
+warning: flight 9 failed, up to 4.7% of flights at 95%: 00000000-0000-4000-8000-000000000099: mass override (kg) is outside its domain: -0.03909
+warning: flight 31 failed, up to 4.7% of flights at 95%: 00000000-0000-4000-8000-000000000099: mass override (kg) is outside its domain: -0.1449
+no flight raised these flags; each could still be up to 6.2% of flights at 95%, counting the 2
+that failed: a static margin below zero under power; a pitching moment that turns it away under
+power, with no margin; faster than any public flight HPR Sim has been checked against; above 15°
+angle of attack after the rail; past Mach 2.5, the core band's top; past Mach 3.5, the
+envelope's top
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
@@ -1245,7 +1276,11 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-Two of the 100 flights failed. Counting them moves the apogee's 5% from 769.9 m (2,526 ft) down
+Two of the 100 flights failed. The run's first line bounds that count too: two failures in 100
+flights allow up to 6.2% of all such flights to fail, at 95% confidence, and none in 100 still
+allows up to 3.0% (`failed.up_to` in the JSON). Each other count carries its bound the same way:
+each reason's `warning:` line (`up_to` on each of `failed.reasons`), the flights with no value
+(`missing_up_to` on each spread) and those that didn't land (`landing.not_landed_up_to`). Counting the two moves the apogee's 5% from 769.9 m (2,526 ft) down
 to 734.1 m (2,408 ft), and its 95% from 851.1 m (2,792 ft) up to 851.4 m (2,793 ft). Plan with the
 rows that count them.
 
@@ -1261,7 +1296,16 @@ shows the arithmetic.
 50% and 95% ellipses hold that share of a normal scatter with the run's mean and spread. The last
 allows for the run's spread being only an estimate, so the next flight lands inside it 95% of the
 time. `flights inside` counts the run's own landings inside each, a failed flight counted
-outside. This rocket has no parachute, so its landings aren't a prediction, and the note says so.
+outside. The figure after `≥` is a lower bound on the share of all such flights each holds, at
+about 95% confidence (`inside_at_least` in the JSON). It would be exact for an ellipse drawn before
+the run; these are fitted to the same landings, so the confidence is a little under 95%.
+
+An [envelope flag](VALIDATION.md#operating-envelope) the flights raise is a `warning:` line with
+how many raised it, and how many more could have, counting each failed flight as one that may
+have raised it before it failed. It ends with the share of all such flights that could raise it,
+at 95% confidence: one of 100 is up to 4.7%. The flags no flight raised follow the ellipses on one
+line with their own bound, since none of 100 still allows up to 3.0%. In the JSON these are
+`flags` and `unraised_flags`, each with its `flights`, `failed` and `up_to`. This rocket has no parachute, so its landings aren't a prediction, and the note says so.
 
 An ellipse's `heading` is the direction of its long axis, in degrees clockwise from true north.
 It's written as a map's bearing is: three digits and a `T` for true, such as `089° T`. True north
