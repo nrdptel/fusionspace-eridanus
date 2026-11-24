@@ -406,6 +406,7 @@ until someone rewrites it in plainer words.
 | [ADR-375: M1.14b17, the log's part of a real flight's validation uncertainty][adr-375] | Each public real flight's log apogee gets a standard uncertainty u_D from a published accuracy, its altimeter's or its pressure sensor's: 8 of the 12 flights, from 1.23 m (4.0 ft) to 10.09 m (33.1 ft). What is known to make a log read low or high is corrected, not added to u_D: Juno III's log by +16.32 m (53.5 ft). Each error against its corrected log is at least 17 times its u_D. Four flights have none and are listed by name. Both apogees are barometric readings, so the standard atmosphere's distance from the day's air is in both and stays out of u_D: counted as heights, an error changes by at most 0.10 points of its apogee. |  |
 | [ADR-376: M1.14b18, the inputs' part and the band][adr-376] | Each public flight gets an input part u_input: the standard deviation of its apogee over 200 flights with five inputs drawn at once (mass, total impulse, wind, rail angle, air temperature), each on a cited uncertainty. u_input runs from 23.8 m (78 ft) to 140.0 m (459 ft), the largest part on every flight. Each of the 8 flights with a u_D gets a validation uncertainty and a band of twice it about its error against the corrected log: 3 lie within, 5 outside. The count moves with the inputs: 6 or 7 within at two higher impulse figures, 2 with a rocket's growth as built taken out. The headline errors stay on the logs as logged. |
 | [ADR-377: No release waits on users, and release 0.2 comes next][adr-377] | Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison ([M1.14b8](#m1-14b8)): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the figures' digits and wording check ([M0.9g](#m0-9g)). The Bayesian interval moves to 0.3 unchanged. |  |
+| [ADR-378: MAPLEAF as a second open oracle, flown on three public designs][adr-378] | MAPLEAF 0.8.16 (MIT) at commit `af970d3` runs as an outside program in a pinned Python 3.10 environment and flies three public designs from inputs HPR Sim writes. With one drag table in both codes, the apogees differ by +0.13% to +0.35% and the rail-exit speeds by +0.007% to +0.034%. With MAPLEAF's gravity also matched to HPR Sim's at the pad, the apogees are within 0.053 m (0.18 ft). With each code's own aerodynamics the apogees differ by −0.22%, +1.00% and +7.63%. Nothing is gated. MAPLEAF does not fly a leaning rail as given, so every flight leaves a vertical one. | [The validation plan's reference list](VALIDATION.md) |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -677,7 +678,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b5"></a>[M1.14b5][done-1] | Tip-off, measured with RocketPy's | done |
 | <a id="m1-14b6"></a>[M1.14b6][done-1] | Wind from the GPS descent, against the reanalysis | done |
 | <a id="m1-14b7"></a>[M1.14b7][done-1] | A validation uncertainty per real flight | done |
-| <a id="m1-14b8"></a>[M1.14b8][phase-1] | MAPLEAF as a second open oracle | not yet done |
+| <a id="m1-14b8"></a>[M1.14b8][done-1] | MAPLEAF as a second open oracle | done |
 | <a id="m1-14b9"></a>[M1.14b9][phase-1] | The tip-off pivot, held to RocketPy's | not yet done |
 | <a id="m1-14b10"></a>[M1.14b10][done-1] | Tip-off in every flight that has two guides | done |
 | <a id="m1-14b11"></a>[M1.14b11][done-1] | The tip-off phase, held to RocketPy's on RocketPy's normal force | done |
@@ -1503,6 +1504,7 @@ is the milestone that added or will add that test.
 [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
 [adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0376-m1-14b18-the-inputs-part-and-the-band.md
 [adr-377]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md
+[adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

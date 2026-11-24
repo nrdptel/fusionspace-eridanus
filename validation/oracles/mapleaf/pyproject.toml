@@ -1,0 +1,14 @@
+[project]
+name = "hpr-sim-mapleaf-oracle"
+version = "0.0.0"
+description = "MAPLEAF, run as an external oracle for hpr-sim validation (not a package)."
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "MAPLEAF @ git+https://github.com/henrystoldt/MAPLEAF@af970d3e8200832f5e70d537b15ad38dd74fa551",
+]
+
+[tool.uv]
+package = false
+required-version = ">=0.12"
+exclude-newer = "2022-01-15T00:00:00Z"
+override-dependencies = ["matplotlib>=3.5"]

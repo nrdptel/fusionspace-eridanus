@@ -763,6 +763,18 @@ cell positions and the version it reads each file as, never a value of the priva
 |---|---|---|---|
 | `xlrd` 2.0.2 | BSD-3-Clause | run-only | a second reader of `.xls` worksheets: every cell of the sample AltiMAX export is read by it and compared with `hpr_flightdata::xls`'s text; the script raises its bound on a sheet's rows before BIFF8, 16,384, to 65,536 for the run |
 
+## MAPLEAF's environment (`validation/oracles/mapleaf/uv.lock`)
+
+`validation/oracles/mapleaf/flights.py` runs in an environment of its own, `refs/venv-mapleaf`,
+installed with `uv sync --locked` from that folder's lock file (M1.14b8, ADR-378). Nothing in it is
+committed or bundled; the committed flights hold only what MAPLEAF computed from inputs HPR Sim
+wrote.
+
+| package | license | mode | notes |
+|---|---|---|---|
+| [`MAPLEAF`](https://github.com/henrystoldt/MAPLEAF) 0.8.16 at `af970d3` | MIT | run, source read | a third whole-flight simulator: it flies three public designs from HPR Sim's inputs, and `cargo xtask mapleaf-flights` reports the differences in apogee and rail-exit speed. Its source was read to write its input files and to learn what its log's columns mean; none of it is ported |
+| `numpy` 1.22.1, `scipy` 1.7.3, `pandas` 1.3.5, `matplotlib` 3.5.1, `Cython` 0.29.26 and the rest of the 23 packages `uv.lock` pins | as each package states | run-only | what MAPLEAF builds with and imports |
+
 ## Research caches (`refs/research/`, outside the lock file)
 
 | source | license | mode | notes |

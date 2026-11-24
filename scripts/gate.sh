@@ -54,6 +54,8 @@
 # whole flights' correction to RocketPy's equations tells a source carrying it from one that
 # doesn't, stops on one carrying part of it, and flies the release with all three edits), and
 # `tip_off.py --stays-on-rail` (#1585: the tip-off oracle fails a flight that never leaves the rail).
+# `mapleaf/flights.py --check` (M1.14b8, ADR-378: MAPLEAF, in its own environment `refs/venv-mapleaf`,
+# flies the three public designs again and its committed flights reproduce).
 # The checks run side by side, each a lane of `scripts/lanes.sh` (#700). Each reads its own files,
 # and the three that write anything write what no other lane touches: `ghost --check` its
 # target/ghost-files/, `ork-cli --check` its target/ork-cli/, and `evidence --samples` the tests it
@@ -182,6 +184,8 @@ touches_physics() {
   # What `descent-wind --check` reads the public GPS tracks and ERA5 files with (M1.14b6): its
   # tables, and the real-flights and predictions tables it takes the flights' sites and hours from.
   grep -qE "^crates/hpr-validate/src/(descent_wind|real_flight|public_predictions).rs$" <<<"$changed" && return 0
+  # What MAPLEAF's flights are flown from and with (M1.14b8, ADR-378): CI has no MAPLEAF to fly.
+  grep -qE "^(validation/oracles/mapleaf/|validation/fixtures/flight/mapleaf-|crates/hpr-validate/src/mapleaf\.rs$)" <<<"$changed" && return 0
   grep -qE "^validation/reports/(descent-wind\.(md|json)|tip-off-flights\.(md|json)|fixture-flights\.(md|json)|collection-boost\.(md|json)|predictions\.sha256|m2\.7a-flights\.sha256|held-out(-fits)?\.sha256)$" <<<"$changed" && return 0
   return 1
 }
@@ -394,7 +398,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK descent-wind --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount' 'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check' 'refs/venv/bin/python -I validation/oracles/rocketpy/tip_off.py --stays-on-rail'" ;;
+    refs) echo "cargo build --locked --quiet --package xtask && scripts/lanes.sh '$XTASK ork-flights --check' '$XTASK roll-drev --check' '$XTASK check-cases --check' '$XTASK tip-off --check' '$XTASK ork-flights --library --check' '$XTASK real-flights --check' '$XTASK public-predictions --check' '$XTASK tip-off-flights --check' '$XTASK descent-wind --check' '$XTASK ghost --check' '$XTASK ork-cli --check' '$XTASK fixture-flights --check' '$XTASK ork-export-flights --check' '$XTASK logs --check' '$XTASK evidence --samples' 'node validation/oracles/thrustcurve/analyze_stats.js --recount' 'refs/venv/bin/python -I validation/oracles/rocketpy/corrections.py --check' 'refs/venv/bin/python -I validation/oracles/rocketpy/tip_off.py --stays-on-rail' 'refs/venv-mapleaf/bin/python -I validation/oracles/mapleaf/flights.py --check'" ;;
     *) return 1 ;;
   esac
 }
