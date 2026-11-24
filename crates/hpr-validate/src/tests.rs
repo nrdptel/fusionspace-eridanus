@@ -2703,12 +2703,11 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
     let mut section = String::new();
     RealFlightReport::input_uncertainty_section(&[design, short], &mut section);
     let cells = |id: &str| {
-        let line = section
+        section
             .lines()
             .find(|line| line.starts_with(&format!("| {id} | ")) && line.matches('|').count() > 8)
             .unwrap_or_else(|| panic!("no row for {id} in {section}"))
-            .to_owned();
-        line
+            .to_owned()
     };
     assert_eq!(cells("macie-xl-1").matches('|').count(), 10);
     let short_line = cells("short");
