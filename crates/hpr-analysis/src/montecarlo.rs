@@ -506,6 +506,87 @@ struct StageMass {
     inertia_kg_m2: DMat3,
 }
 
+/// Each stage's nominal mass without motors, as `rocket`'s layout places it.
+fn stage_masses(rocket: &Rocket) -> Result<Vec<StageMass>, AnalysisError> {
+    Ok(rocket
+        .layout()?
+        .stages
+        .iter()
+        .map(|stage| StageMass {
+            mass_kg: stage.mass.mass_kg,
+            // Stations run aft from the nose; body z runs forward ([`hpr_design::Overrides`]).
+            cg_aft_m: -stage.mass.cg_m.z - stage.fore_station_m,
+            inertia_kg_m2: stage.mass.inertia_kg_m2,
+        })
+        .collect())
+}
+
+/// `stage` with its mass without motors times `scale`, its inertia scaled with it, and its
+/// center of mass moved `shift_m` aft, from its `nominal` mass properties. A scale of 1 and a
+/// shift of 0 leave the stage as it is.
+fn disperse_stage(stage: &mut hpr_design::Stage, nominal: &StageMass, scale: f64, shift_m: f64) {
+    if scale != 1.0 {
+        stage.overrides.mass_kg = Some(nominal.mass_kg * scale);
+        // An inertia the design sets replaces the scaled one, so it scales too.
+        if let Some(inertia) = &mut stage.overrides.inertia {
+            for value in [
+                &mut inertia.xx_kg_m2,
+                &mut inertia.yy_kg_m2,
+                &mut inertia.zz_kg_m2,
+                &mut inertia.xy_kg_m2,
+                &mut inertia.xz_kg_m2,
+                &mut inertia.yz_kg_m2,
+            ] {
+                *value *= scale;
+            }
+        }
+    }
+    if shift_m != 0.0 {
+        stage.overrides.cg_aft_m = Some(nominal.cg_aft_m + shift_m);
+    }
+    // A stage whose overrides leave its parts in place (ADR-340) would keep its parts'
+    // inertia under a new mass and add to it with a new center. The dispersion scales the
+    // nominal inertia and keeps it about the center whatever the stage's rule, so it is
+    // stated.
+    if (scale != 1.0 || shift_m != 0.0)
+        && !stage.override_rule.is_rescaled()
+        && stage.overrides.inertia.is_none()
+    {
+        let i = nominal.inertia_kg_m2 * scale;
+        stage.overrides.inertia = Some(InertiaOverride {
+            xx_kg_m2: i.x_axis.x,
+            yy_kg_m2: i.y_axis.y,
+            zz_kg_m2: i.z_axis.z,
+            xy_kg_m2: i.x_axis.y,
+            xz_kg_m2: i.x_axis.z,
+            yz_kg_m2: i.y_axis.z,
+        });
+    }
+}
+
+/// `rocket` with every stage's mass without motors times `scale`, its inertia scaled with it:
+/// what a [`Draw`]'s `dry_mass_scale` flies ([`MonteCarlo::inputs`]), for a scale set by hand on
+/// a rocket with no run about it. A scale of 1 gives the rocket as it is.
+///
+/// # Errors
+///
+/// - [`AnalysisError::Domain`] for a scale that isn't finite and positive.
+/// - [`AnalysisError::Design`] if the design can't be laid out.
+pub fn dry_mass_scaled(rocket: &Rocket, scale: f64) -> Result<Rocket, AnalysisError> {
+    if !(scale.is_finite() && scale > 0.0) {
+        return Err(AnalysisError::Domain {
+            what: "dry-mass factor",
+            value: scale,
+        });
+    }
+    let nominal = stage_masses(rocket)?;
+    let mut rocket = rocket.clone();
+    for (stage, nominal) in rocket.stages.iter_mut().zip(&nominal) {
+        disperse_stage(stage, nominal, scale, 0.0);
+    }
+    Ok(rocket)
+}
+
 /// A rocket's nominal flight and the dispersion of its inputs, ready to fly samples.
 #[derive(Debug, Clone)]
 pub struct MonteCarlo {
@@ -536,17 +617,7 @@ impl MonteCarlo {
             .iter()
             .position(|c| c.id == nominal.configuration_id)
             .ok_or_else(|| AnalysisError::NoConfiguration(nominal.configuration_id.clone()))?;
-        let layout = nominal.rocket.layout()?;
-        let stages = layout
-            .stages
-            .iter()
-            .map(|stage| StageMass {
-                mass_kg: stage.mass.mass_kg,
-                // Stations run aft from the nose; body z runs forward ([`hpr_design::Overrides`]).
-                cg_aft_m: -stage.mass.cg_m.z - stage.fore_station_m,
-                inertia_kg_m2: stage.mass.inertia_kg_m2,
-            })
-            .collect();
+        let stages = stage_masses(&nominal.rocket)?;
         if dispersion.impulse_sd_fraction > 0.0 || dispersion.burn_time_sd_fraction > 0.0 {
             for mounted in &nominal.rocket.configurations[configuration].motors {
                 dispersed_motor(&mounted.motor, 1.0, 1.0)?;
@@ -646,43 +717,7 @@ impl MonteCarlo {
             .zip(&self.stages)
             .zip(draw.dry_mass_scale.iter().zip(&draw.cg_shift_m))
         {
-            if scale != 1.0 {
-                stage.overrides.mass_kg = Some(nominal.mass_kg * scale);
-                // An inertia the design sets replaces the scaled one, so it scales too.
-                if let Some(inertia) = &mut stage.overrides.inertia {
-                    for value in [
-                        &mut inertia.xx_kg_m2,
-                        &mut inertia.yy_kg_m2,
-                        &mut inertia.zz_kg_m2,
-                        &mut inertia.xy_kg_m2,
-                        &mut inertia.xz_kg_m2,
-                        &mut inertia.yz_kg_m2,
-                    ] {
-                        *value *= scale;
-                    }
-                }
-            }
-            if shift != 0.0 {
-                stage.overrides.cg_aft_m = Some(nominal.cg_aft_m + shift);
-            }
-            // A stage whose overrides leave its parts in place (ADR-340) would keep its parts'
-            // inertia under a new mass and add to it with a new center. The dispersion scales the
-            // nominal inertia and keeps it about the center whatever the stage's rule, so it is
-            // stated.
-            if (scale != 1.0 || shift != 0.0)
-                && !stage.override_rule.is_rescaled()
-                && stage.overrides.inertia.is_none()
-            {
-                let i = nominal.inertia_kg_m2 * scale;
-                stage.overrides.inertia = Some(InertiaOverride {
-                    xx_kg_m2: i.x_axis.x,
-                    yy_kg_m2: i.y_axis.y,
-                    zz_kg_m2: i.z_axis.z,
-                    xy_kg_m2: i.x_axis.y,
-                    xz_kg_m2: i.x_axis.z,
-                    yz_kg_m2: i.y_axis.z,
-                });
-            }
+            disperse_stage(stage, nominal, scale, shift);
         }
         let motors = &mut inputs.rocket.configurations[self.configuration].motors;
         for (mounted, ((&impulse, &burn), &delay)) in motors.iter_mut().zip(

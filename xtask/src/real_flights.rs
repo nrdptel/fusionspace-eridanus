@@ -78,6 +78,29 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 ))
         );
     }
+    for row in &report.validation_uncertainty {
+        println!(
+            "real-flights: {:<16} E corrected {:>7}  u_num {:>7.4} m  u_input {:>7.2} m (alone, \
+             in squares {:>7.2} m; mean {:>+6.2} m)  u_D {:>6}  u_val {:>7}  {}",
+            row.id,
+            row.corrected_error_m()
+                .map_or("none".to_owned(), |m| format!("{m:+.1} m")),
+            row.numerical_m,
+            row.input.input_m,
+            row.input.local_m,
+            row.input.mean_m - row.apogee_m,
+            row.data
+                .data_m
+                .map_or("none".to_owned(), |m| format!("{m:.2} m")),
+            row.validation_m
+                .map_or("none".to_owned(), |m| format!("{m:.2} m")),
+            match row.within {
+                Some(true) => "within twice it",
+                Some(false) => "outside twice it",
+                None => "no band",
+            }
+        );
+    }
     let summary = &report.summary;
     println!(
         "real-flights: {} flights, mean absolute apogee error {:.2}% (target {}%), outside it: {}",

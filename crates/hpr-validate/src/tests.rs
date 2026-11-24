@@ -2298,6 +2298,9 @@ fn the_numerical_parts_sentence_rounds_down_and_names_the_edges() {
         height_apogee_m: 1000.0,
         log_height_m: 1000.0 - error_m,
         data: no_data_part(),
+        input: crate::input_uncertainty::part_for_tests(0.0),
+        validation_m: None,
+        within: None,
     };
     let say = |rows: &[UncertaintyRow]| RealFlightReport::smallest_share(rows);
     // 38,840 times rounds down to 38,000; the larger ratio elsewhere doesn't count.
@@ -2371,6 +2374,9 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         height_apogee_m: 1040.0,
         log_height_m: 1040.0 - error_m + left_m,
         data: part(data_m, 0.0),
+        input: crate::input_uncertainty::part_for_tests(0.0),
+        validation_m: None,
+        within: None,
     };
     let corrected = |id: &str, error_m: f64, data_m: f64, correction_m: f64| UncertaintyRow {
         data: part(Some(data_m), correction_m),
@@ -2474,6 +2480,210 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         "{conversion}"
     );
     assert!(RealFlightReport::conversion_sentence(&[]).contains("No flight has a conversion"));
+}
+
+/// M1.14b18: the band is about the error against the corrected log, at twice the root sum of
+/// squares of all three parts, its edge inside. Each case is worked by hand on u_num = 0,
+/// u_input = 30 m (an impulse part of 18 m and a wind part of 24 m) and u_D = 40 m, so
+/// u_val = 50 m and the band is 100 m. A smaller band is the unflattering side: every case here
+/// would move to "within" only by a wider band or a smaller error, and each wrong reading of the
+/// rule flips a named case.
+#[test]
+fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
+    use crate::input_uncertainty::part_with_for_tests;
+    use crate::real_flight::RealFlightReport;
+    use crate::validation_uncertainty::{COVERAGE_K, UncertaintyRow};
+    let data = |data_m: f64, correction_m: f64| crate::data_uncertainty::DataPart {
+        altimeter: "an altimeter".to_owned(),
+        meters_per_pascal: None,
+        pad_meters_per_pascal: None,
+        components: vec![crate::data_uncertainty::DataComponent {
+            what: "sensor".to_owned(),
+            correction_m,
+            standard_m: data_m,
+            from: "a sheet".to_owned(),
+        }],
+        correction_m: Some(correction_m),
+        data_m: Some(data_m),
+        without: String::new(),
+    };
+    let row = |id: &str, error_m: f64, part: Option<(f64, f64)>, input_m: f64| {
+        let mut row = UncertaintyRow {
+            id: id.to_owned(),
+            comparison_error_m: error_m,
+            apogee_m: 1000.0,
+            apogee_step_halved_m: 1000.0,
+            steps: 500,
+            steps_step_halved: 1000,
+            numerical_m: 0.0,
+            log_apogee_m: 1000.0 - error_m,
+            height_apogee_m: 1000.0,
+            log_height_m: 1000.0 - error_m,
+            data: part.map_or_else(no_data_part, |(data_m, correction_m)| {
+                data(data_m, correction_m)
+            }),
+            input: part_with_for_tests([0.0, 18.0, 24.0, 0.0, 0.0, 0.0, 0.0], input_m),
+            validation_m: None,
+            within: None,
+        };
+        row.validation_m = row.validation_of_parts_m();
+        row.within = row.within_band();
+        row
+    };
+    assert_eq!(COVERAGE_K, 2.0);
+    // The parts: 30 m of inputs (to rounding) and 40 m of log give 50 m.
+    let edge = row("edge", 130.0, Some((40.0, 30.0)), 30.0);
+    assert!((edge.input.input_m - 30.0).abs() < 1e-12);
+    assert_eq!(edge.input.local_m, 30.0);
+    let validation_m = edge.validation_m.expect("a flight with a u_D has a u_val");
+    assert!((validation_m - 50.0).abs() < 1e-12, "{validation_m}");
+    // E = +130 m with a correction of +30 m: 100 m against the corrected log. Just inside the
+    // band's edge (the corrected error is taken a hair under it, clear of the rounding in the
+    // hypercubes' spreads) it is within. On the log as logged, 130 m, it would be outside; at
+    // one u_val, or without the log's 40 m (2 × 30 = 60 m), it would be outside.
+    let edge = row("edge", 130.0 - 1e-9, Some((40.0, 30.0)), 30.0);
+    let corrected_m = edge.corrected_error_m().expect("a flight with a u_D");
+    assert!(
+        (corrected_m - (100.0 - 1e-9)).abs() < 1e-12,
+        "{corrected_m}"
+    );
+    assert_eq!(edge.within, Some(true));
+    // A millimeter past the edge is outside, hpr high.
+    let over = row("over", 130.001, Some((40.0, 30.0)), 30.0);
+    assert_eq!(over.within, Some(false));
+    // E = −70 m with a correction of +31 m: −101 m corrected, outside and low, though the 70 m
+    // on the log as logged would be within.
+    let low = row("low", -70.0, Some((40.0, 31.0)), 30.0);
+    assert_eq!(low.corrected_error_m(), Some(-101.0));
+    assert_eq!(low.within, Some(false));
+    // Far outside, hpr high.
+    let far = row("far", 400.0, Some((40.0, 0.0)), 30.0);
+    assert_eq!(far.within, Some(false));
+    // No u_D: no u_val and no band, whatever the error.
+    let none = row("none", 5.0, None, 30.0);
+    assert_eq!((none.validation_m, none.within), (None, None));
+    assert_eq!(none.corrected_error_m(), None);
+    // A smaller input part never turns an outside flight inside: the same error as the edge's
+    // with 29.9 m of inputs is outside.
+    let narrower = row("narrower", 130.0 - 1e-9, Some((40.0, 30.0)), 29.9);
+    assert_eq!(narrower.within, Some(false));
+    // The exact edge, on parts with no rounding: |E corrected| = 2·u_val is within.
+    let mut exact = row("exact", 130.0, Some((40.0, 30.0)), 30.0);
+    exact.input.input_m = 30.0;
+    assert_eq!(exact.validation_of_parts_m(), Some(50.0));
+    assert_eq!(exact.within_band(), Some(true));
+    exact.comparison_error_m = 130.0 + 1e-9;
+    assert_eq!(exact.within_band(), Some(false));
+
+    // With the impulse at 3.1% in place of 2.5%, its part of 18 m is 22.32 m; with the wind's
+    // 24 m the seven parts sum to √(22.32² + 24²) = 32.775 m in place of 30, u_input scales
+    // with them, and with the log's 40 m u_val is √(32.775² + 40²) = 51.713 m: a band of
+    // 103.43 m, which takes in the 100.001 m and the 101 m and not the 400 m.
+    let at_other = RealFlightReport::validation_at_impulse_m(&over, 0.031)
+        .expect("a flight with a u_D has a u_val");
+    let by_hand = (22.32_f64 * 22.32 + 24.0 * 24.0 + 40.0 * 40.0).sqrt();
+    assert!(
+        (at_other - by_hand).abs() < 1e-9,
+        "{at_other} for {by_hand}"
+    );
+    assert!((at_other - 51.713).abs() < 1e-3, "{at_other}");
+    // At its own 2.5% the figure is the row's own u_val, and with no u_D there is none.
+    let at_own = RealFlightReport::validation_at_impulse_m(&over, 0.025).expect("a u_val");
+    assert!((at_own - over.validation_m.expect("a u_val")).abs() < 1e-12);
+    assert_eq!(
+        RealFlightReport::validation_at_impulse_m(&none, 0.031),
+        None
+    );
+
+    let rows = [edge, over, low, far, none];
+    assert_eq!(
+        RealFlightReport::band_sentence(&rows),
+        "Of the 4 flights with a band, the corrected |E| is within 2·u_val on 1 (edge) and \
+         outside it on 3: hpr high on 2 (over, far), hpr low on 1 (low). No u_D and so no band \
+         on 1 of the 5 flights. With the impulse's standard uncertainty at 3.1%, the other end \
+         of its source's range, the seven parts put 3 of the 4 within (edge, over, low)."
+    );
+    assert_eq!(
+        RealFlightReport::band_sentence(&rows[4..]),
+        "No flight has a band: none of the 1 has a u_D."
+    );
+}
+
+/// M1.14b18: the sentence under the input part's table names the largest u_input and the
+/// largest share, counts the flights whose largest part is the impulse's, rounds each "at most"
+/// up, and says how far the samples' mean lies under the report's apogee.
+#[test]
+fn the_input_parts_sentence_names_the_largest_and_rounds_up() {
+    use crate::input_uncertainty::part_with_for_tests;
+    use crate::real_flight::RealFlightReport;
+    use crate::validation_uncertainty::UncertaintyRow;
+    let row = |id: &str, apogee_m: f64, halves_m: [f64; 7], input_m: f64| UncertaintyRow {
+        id: id.to_owned(),
+        comparison_error_m: 10.0,
+        apogee_m,
+        apogee_step_halved_m: apogee_m,
+        steps: 500,
+        steps_step_halved: 1000,
+        numerical_m: 0.0,
+        log_apogee_m: apogee_m - 10.0,
+        height_apogee_m: apogee_m,
+        log_height_m: apogee_m - 10.0,
+        data: no_data_part(),
+        input: part_with_for_tests(halves_m, input_m),
+        validation_m: None,
+        within: None,
+    };
+    // The impulse's 18 m is under the wind's 24 m on the first flight and over it on the
+    // second, where the two are swapped; a negative part counts by its size.
+    let mut first = row("first", 1000.0, [0.0, 18.0, 24.0, 0.0, 0.0, 0.0, 0.0], 31.0);
+    let mut second = row(
+        "second",
+        2000.0,
+        [0.0, -24.0, 18.0, 0.0, 0.0, 0.0, 0.0],
+        40.0,
+    );
+    // The first's parts sum to 30 m against a u_input of 31 m: 1/31 = 3.226%, written 3.3%.
+    // Its hypercubes' spreads of 30 and 32.5 m stand 1/31 and 1.5/31 = 4.839% off: 4.9%.
+    first.input.input_m = 31.0;
+    first.input.hypercubes_m = vec![30.0, 32.5];
+    // The second's mean is 12.34 m under its apogee, "at most 12.4 m"; the wind's two flights
+    // alone, 2000 − 18 − 9 and 2000 + 18 − 9, bend 9 m under it.
+    second.input.input_m = 40.0;
+    second.input.hypercubes_m = vec![40.0, 40.0];
+    second.input.mean_m = 2000.0 - 12.34;
+    for each in &mut second.input.components {
+        (each.low_m, each.high_m) = (2000.0, 2000.0);
+    }
+    second.input.components[2].low_m = 2000.0 - 18.0 - 9.0;
+    second.input.components[2].high_m = 2000.0 + 18.0 - 9.0;
+    second.input.components[1].low_m = 2000.0 + 24.0;
+    second.input.components[1].high_m = 2000.0 - 24.0;
+    let sentence = RealFlightReport::input_sentence(&[first.clone(), second.clone()]);
+    assert_eq!(
+        sentence,
+        "The largest u_input is 40.0 m (second); as a share of the apogee the largest is 3.10% \
+         (first). On 1 of the 2 flights the impulse's part is the largest of the seven. The \
+         seven parts' root sum of squares stands at most 25.0% from u_input (second), and a \
+         hypercube's own spread at most 4.9% from it (first). The samples' mean lies below the \
+         report's apogee on 1 of the 2 flights, by at most 12.4 m (second). There the seven \
+         inputs' own bends, each the mean of an input's two flights alone less the report's \
+         apogee, sum to -9.0 m. The band is about E on the report's own flight, not about that \
+         mean."
+    );
+    // No mean under its apogee, and no flight at all.
+    let alone = RealFlightReport::input_sentence(&[first]);
+    assert!(
+        alone.ends_with(
+            "at most 3.3% from u_input (first), and a hypercube's own spread at most 4.9% from \
+             it (first). The samples' mean lies below the report's apogee on none of the 1 \
+             flights."
+        ),
+        "{alone}"
+    );
+    assert_eq!(
+        RealFlightReport::input_sentence(&[]),
+        "No flight has an input part."
+    );
 }
 
 /// M1.14b16: the report's check refuses a validation-uncertainty row that isn't its flight's,
@@ -2682,6 +2892,90 @@ fn the_real_flights_validation_uncertainty_rows_hold_to_their_flights() {
         missing.contains("rows of the validation uncertainty"),
         "{missing}"
     );
+    // M1.14b18: the input part is the flight's own, the validation uncertainty its three parts'
+    // and the band's call its error's, each by its own refusal. Row 4 is Cavour (a team's mass
+    // in ERA5's air), row 10 Macie XL's first flight (a design file's mass in standard air).
+    assert_eq!(committed.validation_uncertainty[4].id, "cavour");
+    let input = "the input part isn't its flight's stated inputs'";
+    let wider = refused(&|r| r.validation_uncertainty[4].input.input_m *= 1.01);
+    assert!(wider.contains(input), "{wider}");
+    let restated = refused(&|r| r.validation_uncertainty[4].input.components[1].sigma = 0.031);
+    assert!(restated.contains(input), "{restated}");
+    let moved = refused(&|r| r.validation_uncertainty[4].input.components[1].high_m += 5.0);
+    assert!(moved.contains(input), "{moved}");
+    let anothers = refused(&|r| {
+        r.validation_uncertainty[10].input = committed.validation_uncertainty[4].input.clone();
+    });
+    assert!(anothers.contains(input), "{anothers}");
+    let fewer = refused(&|r| r.validation_uncertainty[4].input.samples = 100);
+    assert!(fewer.contains(input), "{fewer}");
+    let halved = refused(&|r| {
+        let row = &mut r.validation_uncertainty[4];
+        row.validation_m = row.validation_m.map(|u| 2.0 * u);
+    });
+    assert!(halved.contains("the validation uncertainty"), "{halved}");
+    let invented = refused(&|r| r.validation_uncertainty[7].validation_m = Some(80.0));
+    assert!(
+        invented.contains("the validation uncertainty"),
+        "{invented}"
+    );
+    let flipped = refused(&|r| {
+        let row = &mut r.validation_uncertainty[4];
+        row.within = row.within.map(|within| !within);
+    });
+    assert!(flipped.contains("within the band is"), "{flipped}");
+    let called = refused(&|r| r.validation_uncertainty[7].within = Some(true));
+    assert!(called.contains("within the band is"), "{called}");
+    // Each flight's row is on the page with its call, and each stated input with its source.
+    let section = page
+        .split("## The band: each error against its validation uncertainty")
+        .nth(1)
+        .expect("the band has its section");
+    for row in &committed.validation_uncertainty {
+        let call = match row.within {
+            Some(true) => "| yes |",
+            Some(false) => "| no |",
+            None => "| no band |",
+        };
+        assert!(
+            section
+                .lines()
+                .any(|line| line.starts_with(&format!("| {} |", row.id)) && line.ends_with(call)),
+            "{}",
+            row.id
+        );
+        assert_eq!(
+            row.within.is_some(),
+            row.data.data_m.is_some(),
+            "{}",
+            row.id
+        );
+        let stated = crate::input_uncertainty::stated(&row.id).expect("a public flight");
+        for (_, _, figure) in stated.each() {
+            assert!(page.contains(figure.basis), "{}: {}", row.id, figure.basis);
+        }
+    }
+    // The counts in the band's sentence are the rows' own.
+    let count = |call: Option<bool>| {
+        committed
+            .validation_uncertainty
+            .iter()
+            .filter(|row| row.within == call)
+            .count()
+    };
+    assert!(
+        section.contains(&format!(
+            "Of the {} flights with a band, the corrected |E| is within 2·u_val on {}",
+            count(Some(true)) + count(Some(false)),
+            count(Some(true))
+        )),
+        "the band's sentence"
+    );
+    assert!(section.contains(&format!(
+        "No u_D and so no band on {} of the 12 flights.",
+        count(None)
+    )));
+    assert_eq!(count(None), 4);
 }
 
 #[test]

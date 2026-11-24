@@ -1030,7 +1030,22 @@ fn predict_with(
         &weather_bytes,
     )?;
     let (latitude_deg, longitude_deg, elevation_m) = flight.site;
+    // A flight of the input uncertainty: the air warmed and the wind moved once, for the flight
+    // and for the altimeter that reads it, and the rail turned.
+    let moved = variant.and_then(|variant| variant.inputs);
+    let (environment, air) = match moved {
+        Some(draw) => draw
+            .launch_day(environment, air, elevation_m)
+            .map_err(|error| {
+                input(format!(
+                    "{}, with its inputs moved: {error}",
+                    weather.converted
+                ))
+            })?,
+        None => (environment, air),
+    };
     let rail = rail_from(flight.rail);
+    let rail = variant.map_or(rail, |variant| variant.rail(rail));
 
     // The log: its bytes' SHA-256, and nothing else of it.
     let log_path = format!("{ROCKETPY}/data/rockets/{}", flight.reference.log);
@@ -1051,7 +1066,8 @@ fn predict_with(
     let fly_once = |rocket: &Rocket| flown_to_apogee(rocket, &launch);
     let counted = fly_once(&rocket)?;
     // The design as committed, on its own bundled catalog curve: shown, never counted.
-    let catalog_curve = match flight.catalog_curve {
+    // Not flown for a flight of the input uncertainty, which keeps only the first's apogee.
+    let catalog_curve = match flight.catalog_curve.filter(|_| moved.is_none()) {
         Some(catalog) => {
             let as_committed: Rocket = serde_json::from_value(design.clone())
                 .map_err(|error| input(format!("{design_path}: {error}")))?;
@@ -1552,12 +1568,28 @@ fn predict_design_file_with(
         .map_err(|error| sim(error.into()))?;
     let wind = ConstantWind::new(wind_speed_m_s, wind_from_rad)
         .map_err(|error| input(format!("the stored wind: {error}")))?;
-    let environment = Environment::standard(site).map_err(sim)?.with_wind(wind);
+    let environment = Environment::standard(site).map_err(sim)?;
+    // A flight of the input uncertainty: the standard air warmed with its pressure on the pad
+    // kept, for the flight and for the altimeter that reads it, and the wind moved.
+    let environment = match variant.and_then(|variant| variant.inputs) {
+        Some(draw) => {
+            let (air, wind) = draw.standard_day(elevation_m, wind).map_err(|error| {
+                input(format!("the standard air, with its inputs moved: {error}"))
+            })?;
+            Environment {
+                atmosphere: std::sync::Arc::new(air),
+                ..environment
+            }
+            .with_wind(wind)
+        }
+        None => environment.with_wind(wind),
+    };
     let rail = Rail {
         azimuth_rad: rod_direction_rad,
         elevation_rad: std::f64::consts::FRAC_PI_2 - rod_angle_rad,
         ..Rail::vertical(rod_length_m)
     };
+    let rail = variant.map_or(rail, |variant| variant.rail(rail));
 
     // The log: its bytes' SHA-256, and nothing else of it.
     let log_path = format!("{}/{}", flight.repository.dest, flight.reference.log);
@@ -1739,8 +1771,54 @@ pub fn varied_apogees_at(
         .collect())
 }
 
+/// One predicted flight, by its `id`, flown as `variant`, as [`varied_apogees`] flies each: for
+/// the many flights of one flight's input uncertainty, which need the others flown no more than
+/// once. `weather` is [`checked_conversion`]'s.
+///
+/// # Errors
+///
+/// As [`varied_apogees`]'s flights, and an id that is none of the predicted flights'.
+pub(crate) fn varied_apogee_of(
+    root: &Path,
+    id: &str,
+    weather: &WeatherConversion,
+    variant: Variant,
+) -> Result<Varied, RealFlightError> {
+    let varied = |apogee_m: f64, height_apogee_m: f64, counted: Counted| Varied {
+        apogee_m,
+        two_guides: counted.two_guides,
+        steps_to_apogee: counted.steps_to_apogee,
+        height_apogee_m,
+        log_height_m: counted.probe_height_m,
+    };
+    if let Some(flight) = NEW_FLIGHTS.iter().find(|flight| flight.id == id) {
+        return predict_with(root, flight, weather, Some(variant), None).map(|(row, counted)| {
+            varied(
+                row.predicted_apogee_m,
+                row.predicted_height_apogee_m,
+                counted,
+            )
+        });
+    }
+    if let Some(flight) = DESIGN_FILE_FLIGHTS.iter().find(|flight| flight.id == id) {
+        return predict_design_file_with(root, flight, Some(variant), None).map(
+            |(row, counted)| {
+                varied(
+                    row.predicted_apogee_m,
+                    row.predicted_height_apogee_m,
+                    counted,
+                )
+            },
+        );
+    }
+    Err(RealFlightError::Input {
+        flight: id.to_owned(),
+        what: "not a flight predicted first".to_owned(),
+    })
+}
+
 /// The committed weather conversion, once the file it was made from is the one in the checkout.
-fn checked_conversion(root: &Path) -> Result<WeatherConversion, RealFlightError> {
+pub(crate) fn checked_conversion(root: &Path) -> Result<WeatherConversion, RealFlightError> {
     let weather_conversion = conversion(root)?;
     // The file the conversion was made from is the one in the checkout.
     let source = read_bytes(

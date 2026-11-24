@@ -14,8 +14,10 @@ use hpr_analysis::AnalysisError;
 use hpr_analysis::montecarlo::dispersed_motor;
 use hpr_atmos::ConstantWind;
 use hpr_design::Rocket;
-use hpr_sim::{Environment, FlightSettings, Method, SimError, Simulation};
+use hpr_sim::{Environment, FlightSettings, Method, Rail, SimError, Simulation};
 use serde::{Deserialize, Serialize};
+
+use crate::input_uncertainty::InputDraw;
 
 /// The two scales of a correction.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -80,6 +82,12 @@ pub struct Variant {
     /// [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
     #[serde(default)]
     pub step_halved: bool,
+    /// The flight's inputs moved from the report's values, or none: one flight of its input
+    /// uncertainty ([`crate::input_uncertainty`]; [the decision on the input part][adr-376]).
+    ///
+    /// [adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0376-m1-14b18-the-inputs-part-and-the-band.md
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inputs: Option<InputDraw>,
 }
 
 /// What the adaptive stepper's tolerances are divided by to halve its step: `2⁵`. Dormand–Prince
@@ -99,6 +107,7 @@ impl Variant {
         tip_off: false,
         still_air: false,
         step_halved: false,
+        inputs: None,
     };
 
     /// The report's own flight: the tip-off phase, HPR Sim's default, and no correction.
@@ -107,6 +116,7 @@ impl Variant {
         tip_off: true,
         still_air: false,
         step_halved: false,
+        inputs: None,
     };
 
     /// [`Variant::TIP_OFF`], the report's own flight, with the time step halved.
@@ -136,6 +146,15 @@ impl Variant {
         }
     }
 
+    /// [`Variant::TIP_OFF`], the report's own flight, with its inputs moved as `draw` says.
+    #[must_use]
+    pub fn drawn(draw: InputDraw) -> Self {
+        Self {
+            inputs: Some(draw),
+            ..Self::TIP_OFF
+        }
+    }
+
     /// `environment` with its wind taken out if the variant asks for still air.
     #[must_use]
     pub fn environment(&self, environment: Environment) -> Environment {
@@ -146,14 +165,25 @@ impl Variant {
         }
     }
 
-    /// `rocket` as [`Correction::rocket`] scales it, or `None` with no correction: the rocket as
-    /// given.
+    /// `rocket` as [`Correction::rocket`] scales it and as the moved inputs' mass and impulse
+    /// change it ([`InputDraw::rocket`]), or `None` with neither: the rocket as given.
     ///
     /// # Errors
     ///
-    /// As [`Correction::rocket`].
+    /// As [`Correction::rocket`] and [`InputDraw::rocket`].
     pub fn rocket(&self, rocket: &Rocket) -> Result<Option<Rocket>, AnalysisError> {
-        self.correction.map(|c| c.rocket(rocket)).transpose()
+        let corrected = self.correction.map(|c| c.rocket(rocket)).transpose()?;
+        let drawn = match self.inputs {
+            Some(draw) => draw.rocket(corrected.as_ref().unwrap_or(rocket))?,
+            None => None,
+        };
+        Ok(drawn.or(corrected))
+    }
+
+    /// `rail` turned as the moved inputs say ([`InputDraw::rail`]), or as given with none.
+    #[must_use]
+    pub fn rail(&self, rail: Rail) -> Rail {
+        self.inputs.map_or(rail, |draw| draw.rail(rail))
     }
 
     /// `settings` with the time step halved if the variant asks: the adaptive stepper's two
