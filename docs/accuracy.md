@@ -1225,12 +1225,15 @@ u_input is by far the largest of the three parts. It runs from 23.8 m (78 ft) on
 140.0 m (459 ft) on Prometheus ([the report's section][real-input-part]). On 10 of the 12
 flights the largest share of it is the motor's total impulse. These are figures for a kind of
 input, not measurements of the rockets that flew. No team here published a measured uncertainty
-for its own rocket's mass or motor. The impulse's figure is a floor. A motor's file is one
-certification test, and two tests of one motor differ by a standard deviation of 3.56%. If all
-of that scatter is the test stand's, a flown motor stands 2.5% from its file, the figure used. If all of it is from
-motor to motor, it stands 3.56% off where each test fired one motor. Where each test's figure
-is the mean of three motors, it stands 5.03% off. Neither the split nor the number fired is
-known ([the same section][real-input-part]).
+for its own rocket's mass or motor. The impulse's figure is a floor. A commercial motor's file
+is taken to be one test of its type on a stand. For 21 AeroTech motor types that Tripoli Motor
+Testing tested a second time, the two tests differ by a standard deviation of 3.56%. Some of
+those motors changed between their tests. If all of that scatter is the test stand's, a flown
+motor stands 2.5% from its file, the figure used. If all of it is from motor to motor, it
+stands 3.56% off where each test fired one motor. In that same case it stands 5.03% off where
+each test's figure is the mean of three motors. Neither the split nor the number fired is
+known. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
+stated origin. They borrow the 2.5% ([the same section][real-input-part]).
 
 <a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
 and u_input (the inputs). They combine into the validation uncertainty, u_val: the square root
@@ -1244,9 +1247,11 @@ the second Macie XL flight). The 4 flights with no u_D get no band.
 
 That count moves with the inputs' figures, both ways ([the same section][real-band]). With the
 impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
-the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket as built is
-usually heavier than its design file, by a median 7.4%. With that taken out of the two Macie XL
-flights, the first would be outside too, and 2 of the 8 would be within.
+the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket
+as built is usually heavier than its design file, by a median 7.4%. The note behind that median
+rates it low as a figure for rockets in general, since one team supplies many of its rockets.
+With it taken out of the two Macie XL flights, the first would be outside too on the figures
+used, and 2 of the 8 would be within.
 
 How to read a band:
 

@@ -1,7 +1,7 @@
 # ADR-376: M1.14b18, the inputs' part and the band (2026-11-23)
 
 - **Status:** accepted; fixes the rules [ADR-373][adr-373] decision 3 left open for the input part; completes M1.14b7; answers [#1615](https://github.com/nrdptel/fusionspace-eridanus/issues/1615); changes no comparison error, apogee or mean of the report
-- **Summary:** Each public flight gets an input part u_input: the standard deviation of its apogee over 200 flights with five inputs drawn at once (mass, total impulse, wind, rail angle, air temperature), each on a cited uncertainty. u_input runs from 23.8 m (78 ft) to 140.0 m (459 ft), the largest part on every flight. Each of the 8 flights with a u_D gets a validation uncertainty and a band of twice it about its error against the corrected log: 3 lie within, 5 outside. The count moves with the inputs: 6 or 7 within at the tops of the impulse's range, 2 with a rocket's growth as built taken out. The headline errors stay on the logs as logged.
+- **Summary:** Each public flight gets an input part u_input: the standard deviation of its apogee over 200 flights with five inputs drawn at once (mass, total impulse, wind, rail angle, air temperature), each on a cited uncertainty. u_input runs from 23.8 m (78 ft) to 140.0 m (459 ft), the largest part on every flight. Each of the 8 flights with a u_D gets a validation uncertainty and a band of twice it about its error against the corrected log: 3 lie within, 5 outside. The count moves with the inputs: 6 or 7 within at two higher impulse figures, 2 with a rocket's growth as built taken out. The headline errors stay on the logs as logged.
 
 [adr-373]: 0373-m1-14b7-in-three-the-numerical-part-first.md
 [adr-375]: 0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
@@ -38,7 +38,7 @@ reported.
    |---|---|---|---|
    | mass, a team's stated | 0.5% | 10 | taken as weighed: the survey's own inference for a weighed mass, and one student team's figure ([the survey][sigmas], §3); hobby sources assume 0% to 3.9% about a file's value |
    | mass, a design file's | 10.75% | Macie XL's 2 | scale against file over 24 rockets: quartiles −1.4% and +13.1%, the range over 1.349 ([the note][as-built]) |
-   | impulse | 2.5% | all 12 | the floor of its range: 21 motors tested twice differ by 3.56 points between their tests ([the note][impulse], §2), and a flown motor against its file is such a difference less one test's measuring error, 2.5% to 3.56%, or to 5.03% where a test's figure is the mean of three motors (decision 3). Borrowed for the 3 curves that are a team's own or of no stated origin |
+   | impulse | 2.5% | all 12 | the floor of its range: 21 motors tested twice differ by 3.56 points between their tests ([the note][impulse], §2), and a flown motor against its file is such a difference less one test's measuring error: 2.5% to 3.56% where each test fired one motor, or to 5.03% where a test's figure is the mean of three (decision 3). Borrowed for the 3 curves that are a team's own or of no stated origin |
    | wind, ERA5's at the hour | 2.0 m/s an axis | 9 | by day, inferred from forecast models held to soundings and lidars ([the note][wind], §6) |
    | wind, not the day's | 4.47 m/s an axis | Prometheus, Macie XL's 2 | the safety code's launch limit of 20 mph as a bound on a wind from any direction: half of it on each axis |
    | rail | 1° an axis | all 12 | a tilt of 1° is assumed in five of the seven hobby sources that disperse it; none measured it ([the survey][sigmas], §5). The same 1° is taken across the heading |
@@ -57,7 +57,8 @@ reported.
    `2σ_motor²/n + 2σ_stand²` and a flown motor from its file by `σ_motor²(1 + 1/n) + σ_stand²`.
    The floor is the same 2.5%, and the top is 3.56·√((n + 1)/2): 5.03% at three, the least
    Tripoli Motor Testing's rules ask today of a retest in these classes ([the note][impulse],
-   §1). The floor is taken, and the band's count is given at both tops too (decision 9).
+   §1). More motors a test would put the top higher still. The floor is taken, and the band's
+   count is given at 3.56% and at 5.03% too (decision 9).
 4. **Each input alone, then all together.** Alone, each of the seven numbers is moved one
    standard uncertainty down and up, and half the difference of the two apogees is its part. The
    root sum of squares of the seven is the local estimate ([the note][note]: the sensitivity
@@ -82,8 +83,8 @@ reported.
    with no u_D has no u_val and no band.
 9. **The count is by sign, and it is given both ways.** The report counts the flights within,
    those outside with HPR Sim high and those outside with it low, and those with no band. Beside
-   it, it gives the count with the impulse at 3.56% and at 5.03%, the two tops of its range
-   (decision 3), and names the flights outside at all three figures. It also gives the count with a rocket's median growth as built,
+   it, it gives the count with the impulse at 3.56% and at 5.03%, the tops of its range for
+   one motor a test and for a mean of three (decision 3), and names the flights outside at all three figures. It also gives the count with a rocket's median growth as built,
    7.4% of the mass without motors, taken out of the flights on a design file's mass
    ([the note][as-built]). That median is not taken out of the error itself: the note trusts it
    little as a figure for all rockets.
@@ -106,7 +107,7 @@ reported.
   about the motor's mean. That is not the input: the file is itself one test. A review found it.
 - *The impulse at the middle of its range.* A middle needs the split between the stand and the
   motors, which no source gives. The floor is the narrower band, the unflattering side, and
-  the count at the other end is printed beside it.
+  the counts at two higher figures are printed beside it.
 - *Each team's own stated spreads.* RocketPy's Bella Lui notebook gives some: 0.010 kg on the
   mass, 3% on the impulse, 1° on the inclination. They are assumed, not measured, and only some
   flights have any. One table for a kind of input keeps the 12 comparable.
@@ -115,7 +116,8 @@ reported.
 
 **Which way the choices lean.** A larger u_input makes a wider band, which an error fits inside
 more easily. The smaller reading is taken five times. The teams' masses are taken as weighed.
-The impulse takes the floor of 2.5% to 3.56%. Its factor carries the propellant's mass with the
+The impulse takes the floor of its range, 2.5%; the range runs to 3.56% for one motor a test and
+to 5.03% for a mean of three (decision 3). Its factor carries the propellant's mass with the
 thrust, and more thrust from the same propellant would move an apogee more. ERA5's wind takes
 its daytime figure, and ERA5's air the lower end of its range. This project's own comparison of
 ERA5 with flights' GPS descents stands further apart than 2 m/s an axis, the canopy's own motion
@@ -137,9 +139,11 @@ vertical. And an error in the wind or the air is taken as the same at every heig
   5 outside: HPR Sim high on NDRT 2020 and Cavour, low on Prometheus, Genesis and Macie XL's
   second flight. The errors are 1.43 to 3.04 times their u_val.
 - With the impulse at 3.56%, by the seven parts, 6 of the 8 lie within: NDRT 2020, Cavour and
-  Genesis join. Prometheus and Macie XL's second flight are outside at both ends.
+  Genesis join. At 5.03%, 7 lie within: Prometheus joins. Macie XL's second flight is outside at
+  all three figures.
 - With the growth as built taken out, by the mass's flight alone, Macie XL's errors are −195.9 m
-  and −343.3 m. The first is then outside its band, and 2 of the 8 lie within.
+  and −343.3 m. The first is then outside its band at the figures used, and 2 of the 8 lie
+  within.
 
 **What this does not decide, and where the figures are unsure.**
 
@@ -148,7 +152,7 @@ vertical. And an error in the wind or the air is taken as the same at every heig
 - How the scatter between two tests of a motor splits between the stand and the motors, and how
   many motors each of those tests fired, which isn't printed. Four calls rest on the two: NDRT
   2020, Cavour and Genesis are outside their bands at the floor and within at 3.56%, and
-  Prometheus is within at 5.03% alone.
+  Prometheus is outside at 3.56% and within at 5.03%.
 - The impulse of a team's own motor. No spread was found for one, and the commercial figure is
   borrowed for Juno III, Andromeda and Erebus 11.
 - Whether today's curves carry the retests' drift: the second test of the 22 pairs read a median
@@ -178,8 +182,8 @@ vertical. And an error in the wind or the air is taken as the same at every heig
 - *And its validation uncertainty.* The band's table, for the 8 flights with a u_D. The other 4
   have none, by [ADR-375][adr-375]'s decision 8.
 - *The report counts the flights whose error lies within twice it.* The sentence under the
-  band's table: 3 of 8, with those outside by sign, and the count at the impulse's other end
-  and with the growth as built taken out.
+  band's table: 3 of 8, with those outside by sign, and the count at the impulse's two higher
+  figures and with the growth as built taken out.
 - *The accuracy page explains the three parts, what an error outside the band means, and that
   meeting the band is not the aim.* Its paragraphs on the integrator, the log and the inputs,
   and its list under "The band".
