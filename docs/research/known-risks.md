@@ -48,7 +48,8 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   from the pad in 23 of 26 flights, ADR-357; the opt-in phase is held to RocketPy's on RocketPy's normal force and in still air,
   its crosswind turn on hpr's own normal force is up to 4.010 deg/s from RocketPy's, ADR-358, #1538, M1.14b12; default-on is M1.14b10), turbulence or thrust misalignment; small-angle aero at every `α` (a fall with
   no recovery glides tail-first, #241; its ascent peaks unshown, #243); two apogees on a near-flat
-  rail (#242). Recovery omits canopy overshoot, opening-load factor, added mass and airframe drag;
+  rail (#242). Recovery omits canopy overshoot, opening-load factor, added mass and airframe drag (the fall reads fast, the
+  drift short: `hpr sim` notes it where little is open, #1252);
   attitude freezes at deployment, streamer pleats unmodeled (+58% on Kidwell's), tumble reads +19%.
 - Log readings (M7.2b, ADR-281): bounds held only on the six synthetic logger profiles, none with a
   charge's transient; a spike rising no faster than a coast (16.42 m in its last second at 20 Hz)

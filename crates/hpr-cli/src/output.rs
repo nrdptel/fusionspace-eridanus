@@ -561,6 +561,40 @@ pub struct SimFlight {
     /// at apogee, come from this flight (Loft lesson L94). `None` where it reaches no apogee, no
     /// motor burns out before it, or it can't be flown.
     pub held: Option<SimHeld>,
+    /// What the airframe's own drag, which the descent leaves out, could do to the landing: given
+    /// where a stretch of the descent has little enough drag area open for it to matter (a steady
+    /// descent 1.1 times as long or more), the descent was braked soon after apogee, and the
+    /// flight ended on the ground as the stack or, after a powered separation, the sustainer.
+    /// `None` otherwise.
+    pub airframe_drag: Option<SimAirframeDrag>,
+}
+
+/// The airframe's own drag under the recovery devices, which the descent leaves out, so the fall
+/// reads fast and the landing's drift short: how much it could be, and the same flight's landing
+/// with it added. Knacke's steady descent adds the load's drag to the canopy's (*Parachute
+/// Recovery Systems Design Manual*, NWC TP 6575, 1991, §4.5.1).
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct SimAirframeDrag {
+    /// The airframe's side area, m²: its length times its largest body diameter, fins and pods
+    /// left out.
+    pub side_area_m2: f64,
+    /// The drag area taken for the airframe hanging level under a canopy, m²: 1.2 times its side
+    /// area, a long cylinder's drag across the air below its critical Reynolds number (Jorgensen,
+    /// NASA TR R-474, 1977, p. 15). It is a high end for the body, not a bound: an airframe that
+    /// trails nose down adds a small part of it, and fins across the air add more.
+    pub drag_area_m2: f64,
+    /// The device whose opening began the stretch of the descent with the least drag area open,
+    /// by name.
+    pub under: String,
+    /// The drag area open in that stretch, m²: its open devices' areas added.
+    pub open_drag_area_m2: f64,
+    /// How many times as long that stretch's steady descent takes with the airframe's drag area
+    /// added: `√(1 + drag_area_m2 / open_drag_area_m2)`.
+    pub descent_time_ratio: f64,
+    /// Where the same flight lands with the airframe's drag area added from its first opening
+    /// on, or from its apogee where that opening came on the way up. `None` if that flight
+    /// failed or didn't reach the ground.
+    pub landing: Option<Landing>,
 }
 
 /// The flight with every recovery charge held: its apogee and coast, and where a delay fires.

@@ -382,7 +382,7 @@ CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose ti
 apogee                846.1 m (2776 ft) above the site at 11.21 s
 rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout, with the charges held
-descent               no recovery device opened, so the fall is not a prediction
+vertical descent      no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
@@ -427,7 +427,7 @@ What each part says:
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
 | `delay` | the coast, from burnout to apogee, in the flight flown with no charge firing, so an early charge doesn't cut it short. Then the delay the design sets, if any, and, for one motor lit at launch, how far before or after that apogee its charge fires, and how far the delay may fire short or long by NFPA 1125, with the vertical speed at either end where the simulator predicts it ([Choose the delay](pick-a-motor.md#choose-the-delay)). `--motor` sets no delay without `--delay`, so the example shows the coast alone; one with a delay follows the table |
-| `descent` | the vertical speed under each set of open parachutes or streamers, when the next one opens and at landing, without the wind's drift. It rests on the drag area the file gives each device ([the landing](#the-landing), where an example shows it). With none open, it says so and gives no speed |
+| `vertical descent` | the vertical speed under each set of open parachutes or streamers, when the next one opens and at landing, without the wind's drift. It rests on the drag area the file gives each device ([the landing](#the-landing), where an example shows it). With none open, it says so and gives no speed |
 | `motor: ...` | the motor, how many of it fly (a [cluster](glossary.md#cluster)'s tubes and a [pod](glossary.md#pod) set's pods each carry one), and the motor mount it sits in, by name |
 | `recovery: ...` | each parachute or streamer the file flies: its name, its event and delay, its drag area, and when it opened, such as ``recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s`` (`recovery` in the JSON, [below](#the-landing)); the example's file has none |
 | `launched at ...` | the site, the rail and the wind, [below](#the-launch) |
@@ -508,8 +508,9 @@ The rocket then flies with none, and a note says why.
 
 This flies the repository's dual-deploy test rocket, a drogue at apogee and a main at 150 m
 (492 ft). It flies the catalog's H54 in place of its own motor. The H54 is a 29 mm (1.14 in)
-motor in a 52.4 mm (2.06 in) bore, so a note says it flies with no adapter. The `descent` line
-gives the speed under the drogue as the main opens, then at landing:
+motor in a 52.4 mm (2.06 in) bore, so a note says it flies with no adapter. The `vertical
+descent` line gives the speed under the drogue as the main opens, then at landing. The note under
+the landing line is about the airframe's own drag ([below](#the-airframes-own-drag)):
 
 <!-- cli: example `hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54` -->
 
@@ -524,7 +525,7 @@ CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose ti
 apogee                324.0 m (1063 ft) above the site at 9.12 s
 rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout, with the charges held
-descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
+vertical descent      14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
@@ -552,6 +553,11 @@ airspeed through the air)
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
+(the descent leaves out the airframe's own drag, so the fall reads fast and a wind's drift short.
+Hanging level under `Drogue parachute` it could add 0.108 m² to the 0.133 m² open, and a steady fall
+there would take 1.35 times as long. Flown with that drag added, the rocket lands 0.3 m (1 ft) from
+the pad at 59.47 s. That is one model's high end for the body, not a bound, and no logged descent
+has checked it: https://hpr.fusionspace.co/physics/recovery.html#airframe-drag)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
 fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
@@ -564,6 +570,35 @@ More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
+
+<a id="the-airframes-own-drag"></a>**The note under the landing line says which way the fall
+and the drift err.** The descent leaves out the airframe's own drag, so the fall reads fast and a
+wind's drift short. That is the side that flatters a field's size.
+
+- `hpr sim` finds the part of the descent with the least drag area open. In the example that
+  is the fall under the drogue.
+- It takes the airframe hanging level there: a drag area of 1.2 times its length times its largest
+  diameter. That is a high end for the body, not a bound. A rocket that trails nose down adds
+  much less, and fins across the air add more.
+- If a steady fall there would then take at least 1.1 times as long, it flies the flight again
+  with that drag added. The drag is added from the first opening, or from apogee if that opening
+  came on the way up. The note gives where that flight lands.
+
+The second landing is this one model's high end for the body. No logged descent has checked it,
+and the way the rocket really hangs can put the landing elsewhere. It can be the farther of
+the two or the nearer: the example's rocket in a 6 m/s (20 ft/s) wind off a vertical rail lands
+farther out with it, and off a rail leaning 10° in calm air it lands nearer. So plan a field
+with room past both landings, and let the range safety officer decide. The example flies in
+calm air off a vertical rail, so both landings are beside the pad, and the time is what moves.
+
+No note doesn't mean the airframe's drag is in: below 1.1 a steady fall would take under a
+tenth longer. In the JSON the note is `airframe_drag`:
+`side_area_m2`, `drag_area_m2`, `under`, `open_drag_area_m2`, `descent_time_ratio` and `landing`.
+It is `null` when no part of the descent reaches 1.1, when the landing is not a prediction, and
+when the rocket comes apart with nothing left to burn. Its `landing` is `null` if the second
+flight fails or doesn't reach the ground.
+[The recovery page](physics/recovery.md#airframe-drag) has the model, its sources and a table of
+sizes.
 
 **With no device open soon after apogee, the landing is not a prediction.** The rocket then falls
 from apogee on its airframe alone, as the example's does. The simulator's aerodynamics hold only at
@@ -788,7 +823,7 @@ CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose ti
 apogee                877.4 m (2879 ft) above the site at 11.48 s
 rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout, with the charges held
-descent               no recovery device opened, so the fall is not a prediction
+vertical descent      no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from 3 m (9.8 ft) of rail above its aft end, 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
@@ -925,7 +960,7 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
 - **Altitude:** the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the
   launch site, as the events table gives it.
 - **Speed:** the center of gravity's speed over the ground, whose peak is the `top speed` line.
-  The thin line is its vertical speed, up positive. Under the parachutes, that's the `descent`
+  The thin line is its vertical speed, up positive. Under the parachutes, that's the `vertical descent`
   line's rate.
 - **Acceleration:** the size of the nose tip's acceleration, and its vertical part (the thin line,
   up positive). The nose tip is the point the simulator's equations of motion track. The `--json`

@@ -17,8 +17,8 @@ use std::io::{self, Write};
 
 use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
-    Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
-    SimEvent, SimFlight, SimIssue, SimMotor, SimMotorSource, Termination,
+    Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimAirframeDrag,
+    SimDesign, SimDevice, SimEvent, SimFlight, SimIssue, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
 use crate::units::{
@@ -413,7 +413,7 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         &flight.recovery,
         summary.apogee.as_ref().map(|apogee| apogee.time_s),
     );
-    figure(out, "descent", &descent(flight, braked))
+    figure(out, "vertical descent", &descent(flight, braked))
 }
 
 /// A station along the rocket, m aft of the nose tip to the millimeter, with inches:
@@ -700,6 +700,36 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
     Ok(())
 }
 
+/// Where the recovery page sets out what the airframe's own drag would add to a descent.
+const AIRFRAME_DRAG_GUIDE: &str = "https://hpr.fusionspace.co/physics/recovery.html#airframe-drag";
+
+/// The note under the landing line where the airframe's own drag, which the descent leaves out,
+/// could matter: which way the fall and the drift err, how much drag the airframe could add
+/// under which device, where the same flight lands with it added, and how far to trust that.
+fn airframe_drag(airframe: &SimAirframeDrag) -> String {
+    let landing = airframe.landing.as_ref().map_or_else(
+        || "that flight couldn't be flown to the ground".to_owned(),
+        |landing| {
+            format!(
+                "the rocket lands {} from the pad at {:.2} s",
+                meters(landing.distance_m),
+                landing.time_s
+            )
+        },
+    );
+    format!(
+        "(the descent leaves out the airframe's own drag, so the fall reads fast and a wind's \
+         drift short. Hanging level under `{}` it could add {:.3} m² to the {:.3} m² open, and a \
+         steady fall there would take {:.2} times as long. Flown with that drag added, \
+         {landing}. That is one model's high end for the body, not a bound, and no logged \
+         descent has checked it: {AIRFRAME_DRAG_GUIDE})",
+        airframe.under,
+        airframe.drag_area_m2,
+        airframe.open_drag_area_m2,
+        airframe.descent_time_ratio,
+    )
+}
+
 /// The figures after the events: top speed and Mach number, the landing, how the flight ended
 /// and the files written.
 fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
@@ -744,6 +774,11 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
                 }
             ),
         )?;
+        if let Some(airframe) = &flight.airframe_drag {
+            for line in crate::trust::wrap(&airframe_drag(airframe), NOTE) {
+                writeln!(out, "{line}")?;
+            }
+        }
     }
     for landing in &summary.body_landings {
         let part = landing

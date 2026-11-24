@@ -16,7 +16,7 @@
 <text x="52" y="215" xml:space="preserve" fill="#0B0F1C">    s; its charge fires 0.52 s after apogee; the delay may fire 2.0 s short or long (NFPA 1125):</text>
 <text x="52" y="231" xml:space="preserve" fill="#0B0F1C">    climbing at 14.7 m/s (48 ft/s) to 2.52 s after apogee (no speed: falling with nothing open, a</text>
 <text x="52" y="247" xml:space="preserve" fill="#0B0F1C">    fall HPR Sim doesn&apos;t predict)</text>
-<text x="52" y="263" xml:space="preserve" fill="#0B0F1C">descent               4.4 m/s (15 ft/s) at landing under `Parachute`</text>
+<text x="52" y="263" xml:space="preserve" fill="#0B0F1C">vertical descent      4.4 m/s (15 ft/s) at landing under `Parachute`</text>
 <text x="52" y="295" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
 <text x="52" y="311" xml:space="preserve" fill="#0B0F1C">recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s</text>
 <text x="52" y="327" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical</text>

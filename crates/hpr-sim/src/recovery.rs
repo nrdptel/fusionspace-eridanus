@@ -732,6 +732,26 @@ impl Device {
         self
     }
 
+    /// A stand-in for the airframe's own drag under this device, which the descent leaves out
+    /// (`docs/physics/recovery.md`): a device named `airframe` of drag area `drag_area_m2`, on
+    /// the same body, that opens when this one does (its trigger and lag), at once, and is never
+    /// released. Flown beside a flight's devices it gives the descent Knacke's steady descent
+    /// with the load's drag kept ([`descent_time_ratio`]).
+    #[must_use]
+    pub fn airframe_beside(&self, drag_area_m2: f64) -> Self {
+        Self {
+            name: "airframe".to_owned(),
+            drag: DeviceDrag::DragArea {
+                cd_s_m2: drag_area_m2,
+            },
+            trigger: self.trigger,
+            lag_s: self.lag_s,
+            inflation: Inflation::Instant,
+            released_by: None,
+            body: self.body,
+        }
+    }
+
     /// The same device, released when device `index` is fully open.
     #[must_use]
     pub fn with_release_by(mut self, index: usize) -> Self {
@@ -1501,6 +1521,168 @@ pub fn terminal_speed_m_s(
     gravity_m_s2: f64,
 ) -> f64 {
     (2.0 * mass_kg * gravity_m_s2 / (density_kg_m3 * drag_area_m2)).sqrt()
+}
+
+/// The crossflow drag coefficient of a long circular cylinder below its critical Reynolds number,
+/// on its side area (length times diameter): "C_dn = 1.2" (Jorgensen, NASA TR R-474, 1977,
+/// printed p. 15; `hpr_aero::crossflow` takes the same value for body lift).
+///
+/// It is the high end taken for an airframe's own drag when it hangs level under a canopy
+/// ([`descent_time_ratio`]), and no bound. A body of finite length sheds some of it around its
+/// ends (TR R-474's Fig. 4, printed p. 77), and past the critical Reynolds number, about 2e5 on
+/// the same page, a cylinder's crossflow drag falls well below it; fins and pods lying across
+/// the air add their own, which this leaves out (`docs/physics/recovery.md`).
+pub const LEVEL_AIRFRAME_DRAG_COEFFICIENT: f64 = 1.2;
+
+/// How many times as long a steady descent takes when the load's own drag is added to the
+/// canopy's: `√(1 + (C_D S)_load / (C_D S)_canopy)`.
+///
+/// Knacke (*Parachute Recovery Systems Design Manual*, NWC TP 6575, 1991, §4.5.1, printed
+/// p. 4-14) writes steady descent as the parachute's drag plus the load's equal to the weight,
+/// `D_p + D_L = W_T`, and then drops the load's "in most cases". Kept, the equilibrium speed
+/// ([`terminal_speed_m_s`]) is on the sum of the two drag areas, so it falls by this ratio at
+/// every height, and the time through any band of heights rises by it.
+///
+/// The descent phase leaves the airframe's drag out (`docs/physics/recovery.md`), so a stretch
+/// of its descent ([`descent_stretches`]) reads short in time by about this ratio once the fall
+/// is steady. A fall that starts from rest takes no more than the ratio: in uniform air its time
+/// through a height `H` is `(v_e/g) arccosh(e^(gH/v_e²))`, which rises by less than `v_e` falls.
+/// A stretch that starts faster than its own equilibrium speed, a drogue opened late in a fast
+/// fall or a main opened under a drogue, can take more than the ratio.
+///
+/// The landing does not move by the ratio. It is the wind's drift less how far upwind the rocket
+/// got, and more drag also cuts short the coast a rocket makes after apogee. To size the
+/// landing's move, fly the flight again with the airframe's drag beside the devices
+/// ([`airframe_stand_in`]).
+///
+/// The formula is evaluated as written, with no domain checks: a zero canopy drag area gives
+/// infinity or NaN.
+#[must_use]
+pub fn descent_time_ratio(canopy_drag_area_m2: f64, load_drag_area_m2: f64) -> f64 {
+    (1.0 + load_drag_area_m2 / canopy_drag_area_m2).sqrt()
+}
+
+/// The stand-in for the airframe's own drag to fly beside `devices`, the devices `result` flew
+/// with: a device of drag area `drag_area_m2` that opens with the device that began the
+/// descent's first stretch ([`descent_stretches`], [`Device::airframe_beside`]).
+///
+/// Where that device opened before the flight's apogee, as on an ejection charge that fires on
+/// the way up, the stand-in waits for the apogee instead. A rocket still climbing is not hanging
+/// level, and its whole side's drag from then would cut the climb short: a lower apogee and a
+/// shorter fall than the model means.
+///
+/// `None` where [`descent_stretches`] gives no stretch.
+#[must_use]
+pub fn airframe_stand_in(
+    devices: &[Device],
+    result: &crate::FlightResult,
+    drag_area_m2: f64,
+) -> Option<Device> {
+    let stretches = descent_stretches(devices, result);
+    let first = stretches.first()?;
+    let mut airframe = devices.get(first.opened)?.airframe_beside(drag_area_m2);
+    let apogee_s = result
+        .events
+        .iter()
+        .find(|event| event.kind == crate::flight::EventKind::Apogee)
+        .map(|event| event.sample.time_s);
+    if apogee_s.is_some_and(|apogee_s| first.from_s < apogee_s) {
+        airframe.trigger = Trigger::Apogee;
+        airframe.lag_s = 0.0;
+    }
+    Some(airframe)
+}
+
+/// One stretch of a flight's descent under its devices: from one device's opening to the next
+/// change in what is open, or to the landing ([`descent_stretches`]).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DescentStretch {
+    /// The device whose opening began it: its index in the flight's devices.
+    pub opened: usize,
+    /// When it began, s after launch.
+    pub from_s: f64,
+    /// When it ended, s after launch.
+    pub to_s: f64,
+    /// The drag areas of the devices open in it, summed, m²: each at its full area, as it is
+    /// once it has filled.
+    pub drag_area_m2: f64,
+}
+
+/// The stretches of `result`'s descent to the ground under `devices`, the devices it flew with,
+/// in order: one from each opening of a device of the flight itself (the stack, or after a
+/// powered separation the sustainer: [`Device::body`] 0) to the next opening or release, and the
+/// last one to the landing.
+///
+/// Empty for a flight that did not end on the ground as one vehicle
+/// ([`Termination::GroundHit`](crate::Termination::GroundHit)), and for one that opened nothing.
+/// A stretch that a release left with nothing open is left out. A stretch a release began is
+/// named by the device opened last among those still open, and two openings at one instant
+/// begin one stretch, named by the first.
+#[must_use]
+pub fn descent_stretches(devices: &[Device], result: &crate::FlightResult) -> Vec<DescentStretch> {
+    use crate::flight::EventKind;
+    if result.termination != crate::Termination::GroundHit {
+        return Vec::new();
+    }
+    // Each change in what is open, in the flight's order: the device, whether it opened (or was
+    // released), and where and when.
+    let changes = result.events.iter().filter_map(|event| match event.kind {
+        EventKind::Deployment(index) => Some((index, true, &event.sample)),
+        EventKind::Release(index) => Some((index, false, &event.sample)),
+        _ => None,
+    });
+    let mut open = vec![false; devices.len()];
+    // The open devices, in the order they opened.
+    let mut order: Vec<usize> = Vec::new();
+    let mut stretches: Vec<DescentStretch> = Vec::new();
+    // The stretch under way: the device that began it, and its start.
+    let mut current: Option<(usize, &crate::Sample)> = None;
+    let mut close =
+        |current: &mut Option<(usize, &crate::Sample)>, open: &[bool], end: &crate::Sample| {
+            if let Some((opened, start)) = current.take() {
+                let drag_area_m2: f64 = devices
+                    .iter()
+                    .zip(open)
+                    .filter(|&(_, &open)| open)
+                    .map(|(device, _)| device.drag.drag_area_m2())
+                    .sum();
+                // Two changes at one instant, a main's opening that releases the drogue, leave no
+                // stretch between them.
+                if drag_area_m2 > 0.0 && end.time_s > start.time_s {
+                    stretches.push(DescentStretch {
+                        opened,
+                        from_s: start.time_s,
+                        to_s: end.time_s,
+                        drag_area_m2,
+                    });
+                }
+            }
+        };
+    for (index, opened, sample) in changes {
+        // An index past the devices is another flight's: nothing of it can be told.
+        let Some(device) = devices.get(index) else {
+            return Vec::new();
+        };
+        if device.body != 0 {
+            continue;
+        }
+        let before = current;
+        close(&mut current, &open, sample);
+        open[index] = opened;
+        order.retain(|&other| other != index);
+        if opened {
+            order.push(index);
+        }
+        let began = match before {
+            // Two changes at one instant begin one stretch, the first opening's while it is open.
+            Some((began, start)) if start.time_s == sample.time_s && open[began] => Some(began),
+            _ if opened => Some(index),
+            _ => order.last().copied(),
+        };
+        current = began.map(|began| (began, sample));
+    }
+    close(&mut current, &open, &result.final_sample);
+    stretches
 }
 
 #[cfg(test)]
@@ -3312,6 +3494,346 @@ mod tests {
             "{report}"
         );
         assert!(worst < 0.20, "{worst} spread:\n{report}");
+    }
+
+    #[test]
+    fn the_descent_time_ratio_is_the_steady_descent_with_the_loads_drag_kept() {
+        // Knacke's steady descent, D_p + D_L = W_T: by hand, a 0.109 m² drogue (12 in at C_D 1.5)
+        // and an airframe adding 0.235 m². The speed falls from √(2·8·9.80665/(1.10·0.109)) =
+        // 36.175 m/s to √(2·8·9.80665/(1.10·0.344)) = 20.363 m/s, a ratio of √(0.344/0.109) =
+        // 1.7765.
+        let ratio = descent_time_ratio(0.109, 0.235);
+        assert!((ratio - 1.7765).abs() < 5e-5, "{ratio}");
+        let alone = terminal_speed_m_s(8.0, 0.109, 1.10, G);
+        let with_load = terminal_speed_m_s(8.0, 0.109 + 0.235, 1.10, G);
+        assert!((alone - 36.175).abs() < 5e-4, "{alone}");
+        assert!((with_load - 20.363).abs() < 5e-4, "{with_load}");
+        assert!((alone / with_load - ratio).abs() < 1e-12);
+        // No load drag leaves the descent as it is, and more of it only lengthens the descent.
+        assert_eq!(descent_time_ratio(0.5, 0.0), 1.0);
+        assert!(descent_time_ratio(0.5, 0.2) > descent_time_ratio(0.5, 0.1));
+        // A larger canopy is slowed less by the same load.
+        assert!(descent_time_ratio(1.0, 0.2) < descent_time_ratio(0.5, 0.2));
+
+        // A fall from rest through a height H in uniform air takes (v_e/g) arccosh(e^(gH/v_e²))
+        // (the closed form of a fall under quadratic drag). With the load's drag added it takes
+        // longer by less than the ratio, at every height, and by nearly all of it from high up.
+        let from_rest_s =
+            |v_e: f64, height_m: f64| v_e / G * (G * height_m / (v_e * v_e)).exp().acosh();
+        for height_m in [1.0, 10.0, 100.0, 1000.0, 3000.0] {
+            let flown = from_rest_s(with_load, height_m) / from_rest_s(alone, height_m);
+            assert!(flown > 1.0 && flown < ratio, "{height_m} m: {flown}");
+        }
+        let high = from_rest_s(with_load, 3000.0) / from_rest_s(alone, 3000.0);
+        assert!(high > 0.97 * ratio, "{high}");
+    }
+
+    /// Valetudo from the pad in a 6 m/s wind, in uniform sea-level air, under a drogue of
+    /// `drogue_m2` from apogee and a 1.5 m flat circular main from 150 m, with `airframe_m2` of
+    /// drag area beside the drogue from its opening on: the airframe's own, which the descent
+    /// leaves out. Its devices, its stretches, and its landing's time, s, and distance downwind
+    /// of the pad, m.
+    fn dual_deploy(
+        drogue_m2: f64,
+        airframe_m2: f64,
+    ) -> (Vec<Device>, Vec<DescentStretch>, (f64, f64)) {
+        let mut devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: drogue_m2 },
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "main",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                Trigger::Altitude {
+                    height_above_ground_m: 150.0,
+                },
+            ),
+        ];
+        if airframe_m2 > 0.0 {
+            devices.push(devices[0].airframe_beside(airframe_m2));
+        }
+        let sim = flight(
+            analytic_wind_environment(
+                UniformAir::sea_level(),
+                G,
+                ConstantWind::new(6.0, 0.0).unwrap(),
+            ),
+            devices.clone(),
+            3600.0,
+        );
+        let result = sim.run(&mut ()).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landed = result.final_sample.cg_enu_m;
+        // The wind is from the north, so the landing is on the line south of the pad.
+        assert!(landed.x.abs() < 1e-6 * landed.y.abs(), "{landed:?}");
+        let stretches = descent_stretches(&devices, &result);
+        (devices, stretches, (result.final_sample.time_s, -landed.y))
+    }
+
+    #[test]
+    fn the_airframes_stand_in_opens_with_its_device_and_stays() {
+        let drogue = Device::new(
+            "drogue",
+            DeviceDrag::DragArea { cd_s_m2: 0.109 },
+            Trigger::Altitude {
+                height_above_ground_m: 250.0,
+            },
+        )
+        .with_lag_s(0.75)
+        .with_inflation(Inflation::FillingTime {
+            time_s: 0.5,
+            exponent: 2.0,
+        })
+        .with_release_by(1)
+        .on_body(2);
+        let airframe = drogue.airframe_beside(0.209);
+        assert_eq!(airframe.name, "airframe");
+        assert_eq!(airframe.drag.drag_area_m2(), 0.209);
+        assert_eq!((airframe.trigger, airframe.lag_s), (drogue.trigger, 0.75));
+        assert_eq!(airframe.body, 2);
+        // The airframe doesn't fill, and nothing cuts it away.
+        assert_eq!(airframe.inflation, Inflation::Instant);
+        assert_eq!(airframe.released_by, None);
+    }
+
+    #[test]
+    fn descent_stretches_follow_the_openings_to_the_landing() {
+        let (devices, stretches, (landed_s, _)) = dual_deploy(0.109, 0.0);
+        // Two stretches: under the drogue from apogee to the main's opening, then under both to
+        // the ground, their areas added as the descent adds them.
+        let main_m2 = devices[1].drag.drag_area_m2();
+        assert_eq!(stretches.len(), 2, "{stretches:?}");
+        assert_eq!((stretches[0].opened, stretches[1].opened), (0, 1));
+        assert_eq!(stretches[0].drag_area_m2, 0.109);
+        assert_eq!(stretches[1].drag_area_m2, 0.109 + main_m2);
+        assert_eq!(stretches[0].to_s, stretches[1].from_s);
+        assert!(stretches[0].from_s < stretches[0].to_s);
+        assert_eq!(stretches[1].to_s, landed_s);
+
+        // The airframe's stand-in opens with the drogue, at one instant: still two stretches, the
+        // first begun by the device listed first, under both areas.
+        let (_, with_airframe, _) = dual_deploy(0.109, 0.05);
+        assert_eq!(with_airframe.len(), 2, "{with_airframe:?}");
+        assert_eq!(with_airframe[0].opened, 0);
+        assert!((with_airframe[0].drag_area_m2 - 0.159).abs() < 1e-12);
+        assert!((with_airframe[1].drag_area_m2 - (0.159 + main_m2)).abs() < 1e-12);
+    }
+
+    #[test]
+    fn descent_stretches_follow_a_release_and_refuse_a_flight_that_did_not_land_whole() {
+        // The main's opening releases the drogue: the second stretch is under the main alone.
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 0.109 },
+                Trigger::Apogee,
+            )
+            .with_release_by(1),
+            Device::new(
+                "main",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                Trigger::Altitude {
+                    height_above_ground_m: 150.0,
+                },
+            ),
+        ];
+        let main_m2 = devices[1].drag.drag_area_m2();
+        let sim = flight(
+            analytic_environment(UniformAir::sea_level(), G),
+            devices.clone(),
+            3600.0,
+        );
+        let mut result = sim.run(&mut ()).unwrap();
+        let stretches = descent_stretches(&devices, &result);
+        assert_eq!(stretches.len(), 2, "{stretches:?}");
+        assert_eq!(stretches[0].drag_area_m2, 0.109);
+        assert_eq!(stretches[1].drag_area_m2, main_m2);
+        assert_eq!(stretches[1].opened, 1);
+        assert_eq!(stretches[0].to_s, stretches[1].from_s);
+        assert_eq!(stretches[1].to_s, result.final_sample.time_s);
+
+        // The stand-in opens with the drogue, which opened at apogee.
+        let airframe = airframe_stand_in(&devices, &result, 0.2).unwrap();
+        assert_eq!(airframe, devices[0].airframe_beside(0.2));
+        assert!(airframe_stand_in(&devices[..0], &result, 0.2).is_none());
+
+        // Nothing opened: nothing to tell. Nor for a flight that stopped short of the ground, or
+        // one whose events name a device these don't hold.
+        assert!(descent_stretches(&devices[..0], &result).is_empty());
+        result.termination = Termination::TimeCap;
+        assert!(descent_stretches(&devices, &result).is_empty());
+        result.termination = Termination::GroundHit;
+        assert!(descent_stretches(&devices[..1], &result).is_empty());
+        assert_eq!(descent_stretches(&devices, &result).len(), 2);
+    }
+
+    #[test]
+    fn a_release_names_its_stretch_by_the_device_opened_last_that_is_still_open() {
+        // A main from 300 m that takes 5 s to fill, a drogue that opens inside that time, at
+        // 280 m, and is cut away when the main is full. The last stretch is under the main alone,
+        // and is the main's, though the drogue's opening began the stretch before it.
+        let devices = vec![
+            Device::new(
+                "main",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                Trigger::Altitude {
+                    height_above_ground_m: 300.0,
+                },
+            )
+            .with_inflation(Inflation::FillingTime {
+                time_s: 5.0,
+                exponent: 2.0,
+            }),
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 0.109 },
+                Trigger::Altitude {
+                    height_above_ground_m: 280.0,
+                },
+            )
+            .with_release_by(0),
+        ];
+        let main_m2 = devices[0].drag.drag_area_m2();
+        let sim = flight(
+            analytic_environment(UniformAir::sea_level(), G),
+            devices.clone(),
+            3600.0,
+        );
+        let result = sim.run(&mut ()).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let released = result
+            .events
+            .iter()
+            .find(|event| event.kind == EventKind::Release(1))
+            .expect("the drogue is cut away before the landing");
+        let stretches = descent_stretches(&devices, &result);
+        let began: Vec<usize> = stretches.iter().map(|stretch| stretch.opened).collect();
+        assert_eq!(began, [0, 1, 0], "{stretches:?}");
+        assert_eq!(stretches[1].drag_area_m2, main_m2 + 0.109);
+        assert_eq!(stretches[2].drag_area_m2, main_m2);
+        assert_eq!(stretches[2].from_s, released.sample.time_s);
+    }
+
+    #[test]
+    fn the_airframes_stand_in_waits_for_apogee_when_a_device_opens_on_the_way_up() {
+        // A drogue on a timer at 8 s, after Valetudo's burnout at 3.26 s and before its apogee.
+        // The airframe's side drag from 8 s would brake the climb, which a rocket flying nose
+        // first doesn't do: the stand-in opens at apogee, and the apogee stays where it was.
+        let early = |more: Option<Device>| {
+            let mut devices = vec![Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 0.109 },
+                Trigger::Time { time_s: 8.0 },
+            )];
+            devices.extend(more);
+            let sim = flight(
+                analytic_wind_environment(
+                    UniformAir::sea_level(),
+                    G,
+                    ConstantWind::new(6.0, 0.0).unwrap(),
+                ),
+                devices.clone(),
+                3600.0,
+            );
+            let result = sim.run(&mut ()).unwrap();
+            assert_eq!(result.termination, Termination::GroundHit);
+            (devices, result)
+        };
+        let time_of = |result: &FlightResult, kind: EventKind| {
+            let event = result.events.iter().find(|event| event.kind == kind);
+            event.unwrap_or_else(|| panic!("{kind:?}")).sample
+        };
+        let (devices, alone) = early(None);
+        let apogee = time_of(&alone, EventKind::Apogee);
+        assert!(time_of(&alone, EventKind::Deployment(0)).time_s < apogee.time_s);
+
+        let airframe = airframe_stand_in(&devices, &alone, 0.209).unwrap();
+        assert_eq!((airframe.trigger, airframe.lag_s), (Trigger::Apogee, 0.0));
+        assert_eq!(airframe.drag.drag_area_m2(), 0.209);
+        let (_, waited) = early(Some(airframe));
+        let waited_apogee = time_of(&waited, EventKind::Apogee);
+        assert_eq!(
+            time_of(&waited, EventKind::Deployment(1)).time_s,
+            waited_apogee.time_s
+        );
+        assert_eq!(
+            waited_apogee.height_above_ground_m,
+            apogee.height_above_ground_m
+        );
+
+        // Opened with the drogue instead, it cuts the apogee by tens of meters and ends the
+        // fall sooner, which waiting for the apogee avoids.
+        let (_, beside) = early(Some(devices[0].airframe_beside(0.209)));
+        assert!(
+            time_of(&beside, EventKind::Apogee).height_above_ground_m
+                < apogee.height_above_ground_m - 30.0
+        );
+        assert!(waited.final_sample.time_s > beside.final_sample.time_s + 2.0);
+        // With the stand-in at the apogee the fall is longer and the landing farther downwind
+        // than the drogue's alone.
+        let downwind = |result: &FlightResult| -result.final_sample.cg_enu_m.y;
+        assert!(waited.final_sample.time_s > alone.final_sample.time_s + 10.0);
+        assert!(downwind(&waited) > downwind(&alone) + 50.0);
+    }
+
+    #[test]
+    fn the_airframes_drag_under_a_drogue_lengthens_the_fall_and_moves_the_landing_downwind() {
+        // The size of what the descent leaves out, flown: Valetudo under three drogues, with the
+        // airframe's own drag beside them at half and at all of
+        // `LEVEL_AIRFRAME_DRAG_COEFFICIENT` on its length times its largest diameter.
+        // `docs/physics/recovery.md` prints this table.
+        let sim = flight(
+            analytic_environment(UniformAir::sea_level(), G),
+            vec![],
+            60.0,
+        );
+        let length_m = sim.aero().length_m();
+        let diameter_m = length_m / sim.aero().fineness();
+        let side_m2 = length_m * diameter_m;
+        let mut report =
+            format!("{length_m:.3} m long, {diameter_m:.4} m across, side area {side_m2:.4} m2\n");
+        for inches in [12.0, 18.0, 24.0] {
+            let drogue_m2 = 1.5 * PI / 4.0 * (inches * 0.0254_f64).powi(2);
+            let (_, alone, (alone_s, alone_m)) = dual_deploy(drogue_m2, 0.0);
+            let under_drogue_s = alone[0].to_s - alone[0].from_s;
+            report.push_str(&format!(
+                "{inches:.0} in ({drogue_m2:.3} m2): {under_drogue_s:.1} s under it, lands \
+                 {alone_m:.0} m at {alone_s:.1} s\n"
+            ));
+            let mut last_m = alone_m;
+            for share in [0.5, 1.0] {
+                let airframe_m2 = share * LEVEL_AIRFRAME_DRAG_COEFFICIENT * side_m2;
+                let (_, with, (with_s, with_m)) = dual_deploy(drogue_m2, airframe_m2);
+                let ratio = descent_time_ratio(drogue_m2, airframe_m2);
+                let flown = (with[0].to_s - with[0].from_s) / under_drogue_s;
+                report.push_str(&format!(
+                    "  airframe {airframe_m2:.3} m2: ratio {ratio:.2}, flown {flown:.2}; lands \
+                     {with_m:.0} m at {with_s:.1} s ({:+.0} m)\n",
+                    with_m - alone_m
+                ));
+                // Which way leaving the airframe out errs: the fall under the drogue reads
+                // short, by no more than the steady ratio (the fall from apogee starts at rest),
+                // and the landing reads near.
+                assert!(flown > 1.0 && flown <= ratio, "{report}");
+                assert!(with_m > last_m && with_s > alone_s, "{report}");
+                last_m = with_m;
+            }
+        }
+        assert_eq!(
+            report,
+            "2.158 m long, 0.0809 m across, side area 0.1746 m2\n\
+             12 in (0.109 m2): 20.2 s under it, lands 80 m at 48.9 s\n  \
+             airframe 0.105 m2: ratio 1.40, flown 1.31; lands 141 m at 56.0 s (+61 m)\n  \
+             airframe 0.209 m2: ratio 1.71, flown 1.57; lands 184 m at 61.8 s (+104 m)\n\
+             18 in (0.246 m2): 28.2 s under it, lands 155 m at 57.9 s\n  \
+             airframe 0.105 m2: ratio 1.19, flown 1.17; lands 195 m at 63.4 s (+40 m)\n  \
+             airframe 0.209 m2: ratio 1.36, flown 1.32; lands 228 m at 68.3 s (+73 m)\n\
+             24 in (0.438 m2): 36.6 s under it, lands 223 m at 67.5 s\n  \
+             airframe 0.105 m2: ratio 1.11, flown 1.11; lands 253 m at 71.9 s (+30 m)\n  \
+             airframe 0.209 m2: ratio 1.22, flown 1.20; lands 280 m at 76.0 s (+57 m)\n"
+        );
     }
 
     #[test]

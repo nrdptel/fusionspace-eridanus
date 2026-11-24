@@ -206,5 +206,6 @@ Each model page lists what its model leaves out. These gaps matter most for a wh
   opening load the simulator reports is no safe bound. By default a canopy opens at once. The
   others are the air carried along with the canopy ([added mass](glossary.md#added-mass)), the
   airframe's own drag, and the rocket swinging below the canopy ([Recovery](physics/recovery.md)).
+  Without the airframe's drag the fall reads fast and the wind's drift short.
 - There's no terrain: the ground is flat, at the pad's height.
 

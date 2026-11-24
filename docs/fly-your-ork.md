@@ -56,7 +56,7 @@ CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose ti
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 0.52 s after apogee; the delay may fire 2.0 s short or long (NFPA 1125): climbing at 14.7 m/s (48 ft/s) to 2.52 s after apogee (no speed: falling with nothing open, a fall HPR Sim doesn't predict)
-descent               4.4 m/s (15 ft/s) at landing under `Parachute`
+vertical descent      4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
@@ -117,7 +117,7 @@ with feet or feet per second in parentheses:
   with how far the delay may fire short or long, and the speed at either end where the simulator
   predicts one.
   [Pick a motor](pick-a-motor.md#choose-the-delay) says how to choose one.
-- `descent` is how fast the rocket comes down under its open parachutes, without the wind's
+- `vertical descent` is how fast the rocket comes down under its open parachutes, without the wind's
   drift.
 
 The `recovery` line names each parachute, when it opened and its drag area. The events table
@@ -155,7 +155,7 @@ CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose ti
 apogee                1174.3 m (3853 ft) above the site at 11.51 s
 rail exit speed       36.8 m/s (121 ft/s)
 delay                 apogee 10.42 s after burnout, with the charges held; the motor's set delay: 9 s; its charge fires 1.42 s before apogee; the delay may fire 1.8 s short or long (NFPA 1125): climbing at 32.4 m/s (106 ft/s) to falling at 3.4 m/s (11 ft/s)
-descent               4.9 m/s (16 ft/s) at landing under `Parachute`
+vertical descent      4.9 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
