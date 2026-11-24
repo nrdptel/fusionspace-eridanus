@@ -51,8 +51,8 @@ Two places in the plan waited on people:
   This is that record.
 
 A gate on users can't open on its own here. The project does no outreach (ADR-282 §6). Release
-0.1.0, out since 2026-10-08, had 19 downloads by 2026-11-24, and no issue or pull request has
-come from outside the project. Nothing else before 1.0 waits on a person: new flights come from
+0.1.0, out since 2026-10-08, is still the only release, and no issue or pull request has come
+from outside the project. Nothing else before 1.0 waits on a person: new flights come from
 published records and the collection. The lines that need hardware built and tested, avionics
 and motor design, come after 1.0.
 
@@ -125,8 +125,8 @@ Release 0.2 stood like this on 2026-11-24:
    sets of five out of 60 real users found anywhere from 55% to 99% ([Faulkner, 2003][faulkner]).
    Letting the chance differ by problem raised one study's sessions needed for 80% from 11 to 56
    ([Schmettow, 2012][schmettow]). Emulated flyers are further from independent than people are,
-   so a count of them proves less; the planted defects' catch is what measures the method. Eight
-   caught out of ten bounds the catch rate only to 0.44 to 0.97 (95%), so the passes are pooled.
+   so a count of them proves less; the planted defects' catch is what measures the method. A
+   handful of planted defects bounds the catch rate only loosely, so the passes are pooled.
 
 5. **What an emulated pass claims, and the gap it leaves.** It claims that a careful newcomer could
    finish the tasks with the files and the guide, at the catch rate its planted defects measured.
