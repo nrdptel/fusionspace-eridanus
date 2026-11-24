@@ -1,6 +1,6 @@
 # ADR-282: The project tests each UI milestone itself (2026-10-18)
 
-- **Status:** accepted, amended 2026-10-23 (Screens); amends [ADR-144][adr-144]'s UI rule, [ADR-162][adr-162] §2 and §4, [ADR-163][adr-163] §2, [ADR-191][adr-191]'s site rule, and [ADR-196][adr-196] §4
+- **Status:** accepted, amended 2026-10-23 (Screens); amends [ADR-144][adr-144]'s UI rule, [ADR-162][adr-162] §2 and §4, [ADR-163][adr-163] §2, [ADR-191][adr-191]'s site rule, and [ADR-196][adr-196] §4; §6's outside flyers replaced by an emulated study, by [ADR-377, no release waits on users](0377-no-release-waits-on-users-and-release-0-2-comes-next.md)
 - **Summary:** No milestone waits on the maintainer's use any more. A milestone that adds or changes something a user sees counts as done once its PR records the project's own acceptance pass: user tasks written before the work and done end to end on the built product by a reviewer that didn't build it, every screen captured at its real size and shape and checked for clipping, and a cold reader's run through the guide. The app and the field kit also post a short recording for the maintainer to look at, which informs but never blocks. Turning off his sites, publishing, tags and finding M10.5's outside flyers stay his.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md

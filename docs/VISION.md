@@ -153,6 +153,11 @@ checkable items.
 - **2026-11-03, a time budget for CI** ([ADR-149's amendment, a time budget for CI and the gate](decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)).
   Neer decided CI and the checks before a merge should keep to a time budget, not grow with each
   check. The long flight checks run whole each night, and a pull request's checks are to keep within 20 minutes.
+- **2026-11-24, no release waits on users** ([ADR-377, no release waits on users](decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
+  Neer decided that, this early, development shouldn't depend on anyone using the product. The
+  project should reach release 1.0 with nobody using it, by emulating its users. His feedback is
+  there when it's asked for, but nothing waits on anyone else, or on him designing and flying a
+  rocket. Users will come, and no release is held back until they do.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
@@ -185,7 +190,7 @@ Decisions Neer confirmed at kickoff:
 | V7 | Online weather, site/elevation, parts, and live motor stock from motor.fusionspace.co, all optional | M5.x |
 | V8 | Works fully offline on macOS, Windows and Linux | every milestone |
 | V9 | Competition challenges: constraint specs, optimizer, live stock and prices | M6.x |
-| V10 | Import flight data, compare it with the simulation, and infer what went wrong | M7.3 (release 0.2), M7.4 (0.3) |
+| V10 | Import flight data, compare it with the simulation, and infer what went wrong | M7.3 (release 0.2; its Bayesian fit 0.3), M7.4 (0.3) |
 | V21 | A universal flight log analyzer that a user can use on its own: read any logger's file and get the flight's readings, with no design file and no simulation (ADR-046) | M7.1, M7.2 (release 0.2, ADR-163) |
 | V11 | Later: a modern UI inspired by OpenRocket, RASAero and RockSim, with 3D whole-flight simulation and the sim shown as a "ghost" beside the real flight | M9.2 (release 0.5's app preview, ADR-163), M9.1 (1.0) |
 | V12 | Later: a client-side web version (installable PWA), then mobile (offline PWA and/or iOS/Android apps) | M9.x |
