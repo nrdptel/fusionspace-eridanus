@@ -1,17 +1,17 @@
 # Release estimates: how they were made
 
-**Bottom line:** on November 24, 2026, each release's estimate on
-[the plan](https://hpr.fusionspace.co/plan.html#when-each-release-may-come) was made from three
-inputs: the roadmap's queue, how many increments finished milestones took, and the pace of merges
-on `main`. At that pace alone, release 0.2 would come about December 9, 2026 and 1.0 about April
-23, 2027. Work here has run long, so each stretch of the queue is padded: its time doubled before
-0.2, tripled before 0.3 and before 0.4, and quadrupled before 0.5 and before 1.0, the stretches
-that hold the app, the newest kind of work. The factors are judgments that rise with how new the
-work is. The stretches add up, so a release that slips moves every later one with it. That puts
-0.2 by the end of December 2026, 0.3 by the end of May 2027, 0.4 by the end of August 2027, 0.5
-by the end of November 2027 and 1.0 by the end of March 2028. 1.0's padded date is March 31, the
-last day of its month, so a little more work makes it April. They are estimates, not promises: a
-release comes out only when its checklist passes.
+**Bottom line:** on November 24, 2026, each release's estimate on [the
+plan](https://hpr.fusionspace.co/plan.html#when-each-release-may-come) was made from three inputs:
+the roadmap's queue, how many increments finished milestones took, and the pace of merges on `main`.
+At that pace alone, release 0.2 would come about December 9, 2026 and 1.0 about April 23, 2027. Work
+here has run long, so each stretch of the queue is padded: its time doubled before 0.2, tripled
+before 0.3 and before 0.4, and quadrupled before 0.5 and before 1.0, the stretches that hold the
+app, the newest kind of work. The factors are judgments, largest for the app. The stretches add up,
+so a release that slips moves every later one with it. That puts 0.2 by the end of December 2026,
+0.3 by the end of May 2027, 0.4 by the end of August 2027, 0.5 by the end of November 2027 and 1.0
+by the end of March 2028. 1.0's padded date is March 31, the last day of its month, so a little more
+work makes it April. They are estimates, not promises: a release comes out only when its checklist
+passes.
 
 ## The inputs
 
@@ -46,7 +46,7 @@ finished milestones above. The middle is halfway between them.
 | 7 | M10.2 release 0.2 | 5 | 12 | 8.5 |
 | | **before 0.2** | 18 | 40 | 29 |
 | 8 | M0.13 awareness and care on the sites | 2 | 5 | 3.5 |
-| 9 | M1.14 the rest: b12, c, d, e, f, g (h, Mach 2.5 to 3.5, comes after 1.0) | 19 | 56 | 37.5 |
+| 9 | M1.14 the rest: b12, c, d, e, f, g | 19 | 56 | 37.5 |
 | 10 | M2.3c2 logged traces | 1 | 3 | 2 |
 | 11 to 15 | M2.12 to M2.16, five measurements against the logs | 10 | 25 | 17.5 |
 | 16 | M2.3d4 a stage's override that adds to its parts | 2 | 4 | 3 |
@@ -89,7 +89,11 @@ finished milestones above. The middle is halfway between them.
 | 50 | M10.6 release 1.0 | 5 | 12 | 8.5 |
 | | **from 0.5 to 1.0** | 41 | 102 | 71.5 |
 
-M1.14's rest is b12 1 to 3, c 5 to 15, d 5 to 15, e 3 to 10, f 3 to 8 and g 2 to 5.
+M1.14's rest is b12 1 to 3, c 5 to 15, d 5 to 15, e 3 to 10, f 3 to 8 and g 2 to 5. Its h, the
+Mach 2.5 to 3.5 band, isn't sized: release 0.3 doesn't need it ([M10.3](../ROADMAP.md#phase-8-releases-adr-162)),
+and [the plan](https://hpr.fusionspace.co/plan.html#what-10-includes-and-what-comes-after) puts
+that band after 1.0. The roadmap still files it under M1.14, at place 9; worked there, before 0.3,
+it would move 0.3 and every later release.
 
 ## The arithmetic
 

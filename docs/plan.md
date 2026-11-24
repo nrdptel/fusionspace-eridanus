@@ -71,8 +71,9 @@ These are [estimates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/
 when its checklist passes, and none is cut short to meet a date. Each estimate counts the
 milestones ahead of its release in [the roadmap's queue](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md#queue).
 It sizes each by the pieces finished milestones have taken and goes at the pace of the last four
-weeks. That time is then padded by judgment: doubled for 0.2, tripled for 0.3 and 0.4, and
-quadrupled for 0.5 and 1.0. Those two hold the app, the newest kind of work.
+weeks. That time is then padded by judgment, one stretch between releases at a time. The stretch
+to 0.2 is doubled, the next two tripled, and the two that hold the app, the newest kind of work,
+quadrupled.
 
 The padding is there because work has run long so far. [The log importers](decisions-and-roadmap.md#m7-1)
 were planned on October 12 as two pieces of work, each shipped on its own, and took 27 such
