@@ -86,8 +86,8 @@ pub use rail::{Guides, Rail};
 pub use recorder::{Channel, FlightStep, Observer, Recorder, Sample};
 pub use recovery::{
     BodyEvent, BodyFlight, BodySample, CanopyType, DescentStretch, Device, DeviceDrag, Inflation,
-    LEVEL_AIRFRAME_DRAG_COEFFICIENT, Separation, StreamerModel, Trigger, descent_stretches,
-    descent_time_ratio, terminal_speed_m_s,
+    LEVEL_AIRFRAME_DRAG_COEFFICIENT, Separation, StreamerModel, Trigger, airframe_stand_in,
+    descent_stretches, descent_time_ratio, terminal_speed_m_s,
 };
 pub use releases::{MassRelease, ReleasedFlight};
 pub use shifts::{MIN_SHIFT_DURATION_S, MassShift};

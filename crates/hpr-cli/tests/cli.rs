@@ -2042,9 +2042,9 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
 }
 
 /// Issue #1252: the descent leaves out the airframe's own drag, so under a small drogue the fall
-/// reads fast and the landing's drift short, the side that flatters a field's size. `hpr sim`
+/// reads fast and the wind's drift short, the side that flatters a field's size. `hpr sim`
 /// says so under the landing line, with the same flight's landing when the airframe's drag,
-/// hanging level, is flown beside the devices: farther from the pad and later.
+/// hanging level, is flown beside the devices: later, and in wind farther from the pad.
 #[test]
 fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     let dual = repo_file("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork");
@@ -2053,7 +2053,7 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     let airframe = &document["airframe_drag"];
     let number = |value: &Value| value.as_f64().unwrap_or_else(|| panic!("{document:#}"));
 
-    // The airframe's side area from the design: its length times its diameter, a 54 mm tube
+    // The airframe's side area from the design: its length times its diameter, a 56 mm tube
     // all the way down. The drag area taken is a long cylinder's 1.2 on it.
     let bytes = std::fs::read(&dual).unwrap();
     let read = hpr::hpr_io::ork::read(&bytes).unwrap().value;
@@ -2081,7 +2081,7 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     assert!(ratio >= hpr_cli::sim::AIRFRAME_DRAG_FROM_RATIO);
 
     // Its landing is the library's flight with the airframe's stand-in beside the file's
-    // devices, opening with the drogue, bit for bit.
+    // devices, opening with the drogue: the distance, the time and the northing, bit for bit.
     let motor = hpr::Motor::from_catalog("H54").unwrap();
     let environment = hpr::Environment::new(0.0, 0.0, 0.0)
         .unwrap()
@@ -2108,8 +2108,8 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     assert_eq!(number(&said["time_s"]), with_airframe.time_s);
     assert_eq!(number(&said["north_m"]), with_airframe.north_m);
 
-    // Which way the printed landing errs: it is nearer the pad and sooner than the one with the
-    // airframe's drag, downwind of the pad both times (the wind is from the north).
+    // Which way the printed landing errs in wind: it is nearer the pad and sooner than the one
+    // with the airframe's drag, downwind of the pad both times (the wind is from the north).
     let printed = &document["summary"]["landing"];
     assert!(number(&printed["north_m"]) < 0.0 && with_airframe.north_m < 0.0);
     assert!(with_airframe.distance_m > number(&printed["distance_m"]) + 10.0);
@@ -2118,11 +2118,12 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     // The text says it right under the landing line.
     let flown = streams(&args).out;
     let note = format!(
-        "(the fall reads fast and the wind's drift short: the descent leaves out the airframe's \
-         own drag. Hanging level under `Drogue parachute` it could add {drag_m2:.3} m² to the {open_m2:.3} m² open, and \
-         a steady fall would take {ratio:.2} times as long. Flown with that drag added, the \
-         rocket lands {:.1} m ({:.0} ft) from the pad at {:.2} s. \
-         https://hpr.fusionspace.co/physics/recovery.html#the-descent)",
+        "(the descent leaves out the airframe's own drag, so the fall reads fast and a wind's \
+         drift short. Hanging level under `Drogue parachute` it could add {drag_m2:.3} m² to the \
+         {open_m2:.3} m² open, and a steady fall there would take {ratio:.2} times as long. \
+         Flown with that drag added, the rocket lands {:.1} m ({:.0} ft) from the pad at {:.2} \
+         s. That is one model's high end for the body, not a bound, and no logged descent has \
+         checked it: https://hpr.fusionspace.co/physics/recovery.html#airframe-drag)",
         with_airframe.distance_m,
         with_airframe.distance_m / FOOT_M,
         with_airframe.time_s,
@@ -2140,8 +2141,21 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     assert_eq!(under.join(" "), note, "{flown}");
     assert!(under.iter().all(|line| line.chars().count() <= 100));
 
-    // No note where it would say little or nothing. The main alone from apogee has ten times
-    // the airframe's drag area open: a ratio of 1.05, below the line.
+    // In calm air off a rail leaning 10° the rocket lands downrange, and the same drag brings
+    // the landing nearer the pad while the fall still takes longer: the note is there, and
+    // neither landing bounds the other.
+    let leaning = ["sim", &dual, "--motor", "H54", "--inclination", "80"];
+    let document = json(&leaning, 0, "sim.schema.json");
+    let (printed, said) = (
+        &document["summary"]["landing"],
+        &document["airframe_drag"]["landing"],
+    );
+    assert!(number(&said["distance_m"]) < number(&printed["distance_m"]) - 5.0);
+    assert!(number(&said["time_s"]) > number(&printed["time_s"]) + 1.0);
+    assert!(streams(&leaning).out.contains("a wind's drift short"));
+
+    // No note where it would say little or nothing. The main alone from apogee has about ten
+    // times the airframe's drag area open: a ratio of 1.05, below the line.
     let xml = hpr::hpr_io::ork::container::unpack(&bytes)
         .unwrap()
         .value
@@ -2173,7 +2187,7 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     assert!(document["airframe_drag"].is_null(), "{document:#}");
     assert!(document["recovery"][0]["opened_s"].is_number());
     let flown = streams(&args).out;
-    assert!(!flown.contains("drift short"), "{flown}");
+    assert!(!flown.contains("the airframe's own drag"), "{flown}");
     assert!(!flown.contains("not a prediction"), "{flown}");
 
     // Nor where the landing is no prediction: the drogue 3 s late leaves the fall from apogee
@@ -2195,11 +2209,115 @@ fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     let document = json(&args, 0, "sim.schema.json");
     assert!(document["airframe_drag"].is_null(), "{document:#}");
     let flown = streams(&args).out;
-    assert!(!flown.contains("drift short"), "{flown}");
+    assert!(!flown.contains("the airframe's own drag"), "{flown}");
     assert!(
         flown.contains(": with no recovery device opened soon after apogee, not a prediction"),
         "{flown}"
     );
+}
+
+/// Issue #1252: where a device opens on the way up, the airframe's drag is added from the apogee,
+/// not from that opening. A rocket still climbing nose first isn't hanging level, and its side's
+/// drag from then would cut the climb short.
+#[test]
+fn sim_adds_the_airframes_drag_from_apogee_when_a_device_opens_on_the_way_up() {
+    // The demo's drogue set to open 6 s after launch: after the H54's burnout, before apogee.
+    let dual = repo_file("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork");
+    let bytes = std::fs::read(&dual).unwrap();
+    let xml = hpr::hpr_io::ork::container::unpack(&bytes)
+        .unwrap()
+        .value
+        .design;
+    let at = xml.find("<deployevent>apogee</deployevent>").unwrap();
+    let early_xml = format!(
+        "{}{}",
+        &xml[..at],
+        xml[at..]
+            .replacen(
+                "<deployevent>apogee</deployevent>",
+                "<deployevent>launch</deployevent>",
+                1
+            )
+            .replacen(
+                "<deploydelay>0.0</deploydelay>",
+                "<deploydelay>6.0</deploydelay>",
+                1
+            )
+    );
+    let folder = tempfile::tempdir().unwrap();
+    let early = folder.path().join("early-drogue.ork");
+    std::fs::write(&early, &early_xml).unwrap();
+    let early = early.to_string_lossy().into_owned();
+    let document = json(
+        &["sim", &early, "--motor", "H54", "--wind", "6"],
+        0,
+        "sim.schema.json",
+    );
+    let number = |value: &Value| value.as_f64().unwrap_or_else(|| panic!("{document:#}"));
+    let opened_s = document["recovery"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|device| device["name"] == "Drogue parachute")
+        .map(|device| number(&device["opened_s"]))
+        .unwrap();
+    let apogee_s = number(&document["summary"]["apogee"]["time_s"]);
+    assert_eq!(opened_s, 6.0);
+    assert!(opened_s < apogee_s - 1.0, "{document:#}");
+    let airframe = &document["airframe_drag"];
+    assert_eq!(airframe["under"], "Drogue parachute");
+    let drag_m2 = number(&airframe["drag_area_m2"]);
+
+    // The library's flight of the same file with the stand-in at apogee, and with it opening
+    // with the drogue: the note's landing is the first, bit for bit, and not the second.
+    let read = hpr::hpr_io::ork::read(early_xml.as_bytes()).unwrap().value;
+    let ork = hpr::hpr_io::ork::design(&read).value;
+    let configuration = ork.motors.default_configuration().unwrap();
+    let (id, mount) = (
+        configuration.id.clone(),
+        configuration.motors[0].mount.clone(),
+    );
+    let motor = hpr::Motor::from_catalog("H54").unwrap();
+    let environment = hpr::Environment::new(0.0, 0.0, 0.0)
+        .unwrap()
+        .with_constant_wind(6.0, 0.0)
+        .unwrap();
+    let flown = |from_apogee: bool| {
+        let (flight, _) = library_flight_with(
+            ork.rocket.clone(),
+            Some(&ork.recovery),
+            &id,
+            &mount,
+            Some(&motor),
+            &environment,
+            |b| b,
+            |devices| {
+                let drogue = devices
+                    .iter()
+                    .find(|device| device.name == "Drogue parachute")?;
+                let mut airframe = drogue.airframe_beside(drag_m2);
+                if from_apogee {
+                    airframe.trigger = hpr::Trigger::Apogee;
+                    airframe.lag_s = 0.0;
+                }
+                Some(airframe)
+            },
+        );
+        (flight.apogee_m().unwrap(), *flight.landing().unwrap())
+    };
+    let (from_apogee_m, from_apogee) = flown(true);
+    let (with_drogue_m, with_drogue) = flown(false);
+    let said = &airframe["landing"];
+    assert_eq!(number(&said["distance_m"]), from_apogee.distance_m);
+    assert_eq!(number(&said["time_s"]), from_apogee.time_s);
+    assert_ne!(number(&said["time_s"]), with_drogue.time_s);
+    // The stand-in at apogee leaves the printed apogee where it is; with the drogue it would
+    // cut it and end the fall sooner.
+    let apogee_m = number(&document["summary"]["apogee"]["height_above_ground_m"]);
+    assert_eq!(from_apogee_m, apogee_m);
+    assert!(with_drogue_m < apogee_m - 1.0, "{with_drogue_m} {apogee_m}");
+    assert!(from_apogee.time_s > with_drogue.time_s);
+    assert!(from_apogee.time_s > number(&document["summary"]["landing"]["time_s"]) + 1.0);
 }
 
 /// M4.5a: a `.ork`'s parachutes fly in `hpr sim` as the library maps and flies them, bit for bit:

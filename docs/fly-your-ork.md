@@ -117,7 +117,7 @@ with feet or feet per second in parentheses:
   with how far the delay may fire short or long, and the speed at either end where the simulator
   predicts one.
   [Pick a motor](pick-a-motor.md#choose-the-delay) says how to choose one.
-- `descent` is how fast the rocket comes down under its open parachutes, without the wind's
+- `vertical descent` is how fast the rocket comes down under its open parachutes, without the wind's
   drift.
 
 The `recovery` line names each parachute, when it opened and its drag area. The events table

@@ -427,7 +427,7 @@ What each part says:
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
 | `delay` | the coast, from burnout to apogee, in the flight flown with no charge firing, so an early charge doesn't cut it short. Then the delay the design sets, if any, and, for one motor lit at launch, how far before or after that apogee its charge fires, and how far the delay may fire short or long by NFPA 1125, with the vertical speed at either end where the simulator predicts it ([Choose the delay](pick-a-motor.md#choose-the-delay)). `--motor` sets no delay without `--delay`, so the example shows the coast alone; one with a delay follows the table |
-| `descent` | the vertical speed under each set of open parachutes or streamers, when the next one opens and at landing, without the wind's drift. It rests on the drag area the file gives each device ([the landing](#the-landing), where an example shows it). With none open, it says so and gives no speed |
+| `vertical descent` | the vertical speed under each set of open parachutes or streamers, when the next one opens and at landing, without the wind's drift. It rests on the drag area the file gives each device ([the landing](#the-landing), where an example shows it). With none open, it says so and gives no speed |
 | `motor: ...` | the motor, how many of it fly (a [cluster](glossary.md#cluster)'s tubes and a [pod](glossary.md#pod) set's pods each carry one), and the motor mount it sits in, by name |
 | `recovery: ...` | each parachute or streamer the file flies: its name, its event and delay, its drag area, and when it opened, such as ``recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s`` (`recovery` in the JSON, [below](#the-landing)); the example's file has none |
 | `launched at ...` | the site, the rail and the wind, [below](#the-launch) |
@@ -553,10 +553,11 @@ airspeed through the air)
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
-(the fall reads fast and the wind's drift short: the descent leaves out the airframe's own drag.
+(the descent leaves out the airframe's own drag, so the fall reads fast and a wind's drift short.
 Hanging level under `Drogue parachute` it could add 0.108 m² to the 0.133 m² open, and a steady fall
-would take 1.35 times as long. Flown with that drag added, the rocket lands 0.3 m (1 ft) from the
-pad at 59.47 s. https://hpr.fusionspace.co/physics/recovery.html#the-descent)
+there would take 1.35 times as long. Flown with that drag added, the rocket lands 0.3 m (1 ft) from
+the pad at 59.47 s. That is one model's high end for the body, not a bound, and no logged descent
+has checked it: https://hpr.fusionspace.co/physics/recovery.html#airframe-drag)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
 fliers' own designs, the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in
@@ -570,23 +571,31 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-<a id="the-airframes-own-drag"></a>**The note under the landing line says which way the landing
-errs.** The descent leaves out the airframe's own drag, so the fall reads fast and the wind's
-drift short. That is the side that flatters a field's size.
+<a id="the-airframes-own-drag"></a>**The note under the landing line says which way the fall
+and the drift err.** The descent leaves out the airframe's own drag, so the fall reads fast and a
+wind's drift short. That is the side that flatters a field's size.
 
-- `hpr sim` finds the stretch of the descent with the least drag area open. In the example that
-  is the one under the drogue.
+- `hpr sim` finds the part of the descent with the least drag area open. In the example that
+  is the fall under the drogue.
 - It takes the airframe hanging level there: a drag area of 1.2 times its length times its largest
   diameter. That is a high end for the body, not a bound. A rocket that trails nose down adds
   much less, and fins across the air add more.
-- If a steady fall would then take at least 1.1 times as long, it flies the flight again with
-  that drag added from the first opening on. The note gives where that flight lands.
+- If a steady fall there would then take at least 1.1 times as long, it flies the flight again
+  with that drag added. The drag is added from the first opening, or from apogee if that opening
+  came on the way up. The note gives where that flight lands.
 
-Read the two landings as a range for this one model, and plan a field with room past the
-farther one. The example flies in calm air, so both landings are beside the pad and only the
-time moves. In the JSON the note is `airframe_drag`: `side_area_m2`, `drag_area_m2`, `under`,
-`open_drag_area_m2`, `descent_time_ratio` and `landing`. It is `null` when no stretch reaches
-1.1, and when the landing is not a prediction.
+The second landing is this one model's high end for the body. No logged descent has checked it,
+and the way the rocket really hangs can put the landing elsewhere. In wind it is the farther of
+the two. Off a leaning rail in calm air it can be the nearer. So plan a field with room past
+both landings, and let the range safety officer decide. The example flies in calm air off a
+vertical rail, so both landings are beside the pad, and the time is what moves.
+
+No note doesn't mean the airframe's drag is in. It is left out of every descent, and below 1.1
+a steady fall would take under a tenth longer. In the JSON the note is `airframe_drag`:
+`side_area_m2`, `drag_area_m2`, `under`, `open_drag_area_m2`, `descent_time_ratio` and `landing`.
+It is `null` when no part of the descent reaches 1.1, when the landing is not a prediction, and
+when the rocket doesn't land in one piece. Its `landing` is `null` if the second flight fails or
+doesn't reach the ground.
 [The recovery page](physics/recovery.md#airframe-drag) has the model, its sources and a table of
 sizes.
 
@@ -950,7 +959,7 @@ the numbers it draws as a CSV file: `sim-plot.plot.csv` for `sim-plot.svg`
 - **Altitude:** the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the
   launch site, as the events table gives it.
 - **Speed:** the center of gravity's speed over the ground, whose peak is the `top speed` line.
-  The thin line is its vertical speed, up positive. Under the parachutes, that's the `descent`
+  The thin line is its vertical speed, up positive. Under the parachutes, that's the `vertical descent`
   line's rate.
 - **Acceleration:** the size of the nose tip's acceleration, and its vertical part (the thin line,
   up positive). The nose tip is the point the simulator's equations of motion track. The `--json`

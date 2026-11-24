@@ -829,7 +829,7 @@ pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
 
 /// The steady-descent ratio ([`hpr_sim::descent_time_ratio`]) from which `hpr sim` says what the
 /// airframe's own drag could do to the landing: a stretch of the descent that would take a tenth
-/// longer with the airframe hanging level, which is an open drag area below 5.7 times the
+/// longer with the airframe hanging level, which is an open drag area up to 5.71 times the
 /// airframe's side area (`1.2 / (1.1² − 1)`).
 ///
 /// Where to draw the line is a judgment. Issue #1252 proposed an open drag area below 2 times the
@@ -839,16 +839,25 @@ pub const AIRFRAME_DRAG_FROM_RATIO: f64 = 1.1;
 
 /// What the airframe's own drag could do to `flight`'s landing ([`SimAirframeDrag`]), `builder`
 /// being the builder that flew it: the flight again with a device of the airframe's drag area,
-/// hanging level, beside its devices from the first opening on
-/// ([`hpr_sim::Device::airframe_beside`]).
+/// hanging level, beside its devices from the first opening on, or from the apogee where that
+/// opening came on the way up ([`hpr_sim::airframe_stand_in`]).
 ///
 /// The airframe is the vehicle that came down: the stack, or after a powered separation the
-/// sustainer. `None` where the flight didn't land whole under a device, where no stretch of its
-/// descent reaches [`AIRFRAME_DRAG_FROM_RATIO`], or where the models can't be built again.
+/// sustainer. `None` where the flight didn't land whole under a device, where its first device
+/// opened later than [`BRAKED_WITHIN_S`] after its apogee (the landing is then no prediction),
+/// where no stretch of its descent reaches [`AIRFRAME_DRAG_FROM_RATIO`], or where the models
+/// can't be built again.
 fn airframe_drag(builder: &FlightBuilder<'_>, flight: &Flight) -> Option<SimAirframeDrag> {
     let simulation = builder.simulation().ok()?;
     let stretches = hpr_sim::descent_stretches(simulation.recovery(), flight.result());
-    let first = stretches.first()?.opened;
+    let first_opened_s = stretches.first()?.from_s;
+    if flight
+        .summary()
+        .apogee
+        .is_some_and(|apogee| first_opened_s > apogee.time_s + BRAKED_WITHIN_S)
+    {
+        return None;
+    }
     // The stretch with the least open is the one the airframe's drag bears on most.
     let least = stretches
         .iter()
@@ -867,8 +876,11 @@ fn airframe_drag(builder: &FlightBuilder<'_>, flight: &Flight) -> Option<SimAirf
     }
     let mut devices = simulation.recovery().to_vec();
     let under = devices.get(least.opened)?.name.clone();
-    let airframe = devices.get(first)?.airframe_beside(drag_area_m2);
-    devices.push(airframe);
+    devices.push(hpr_sim::airframe_stand_in(
+        &devices,
+        flight.result(),
+        drag_area_m2,
+    )?);
     // A flight that fails with the airframe's drag added still has its ratio to give.
     let landing = simulation
         .with_recovery(devices)

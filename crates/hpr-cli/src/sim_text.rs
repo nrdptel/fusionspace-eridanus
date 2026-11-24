@@ -700,15 +700,15 @@ fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
     Ok(())
 }
 
-/// Where the recovery page sets out what the descent leaves out.
-const DESCENT_GUIDE: &str = "https://hpr.fusionspace.co/physics/recovery.html#the-descent";
+/// Where the recovery page sets out what the airframe's own drag would add to a descent.
+const AIRFRAME_DRAG_GUIDE: &str = "https://hpr.fusionspace.co/physics/recovery.html#airframe-drag";
 
 /// The note under the landing line where the airframe's own drag, which the descent leaves out,
-/// could matter: which way the landing errs, how much drag the airframe could add under which
-/// device, and where the same flight lands with it added.
+/// could matter: which way the fall and the drift err, how much drag the airframe could add
+/// under which device, where the same flight lands with it added, and how far to trust that.
 fn airframe_drag(airframe: &SimAirframeDrag) -> String {
     let landing = airframe.landing.as_ref().map_or_else(
-        || "that flight didn't reach the ground".to_owned(),
+        || "that flight couldn't be flown to the ground".to_owned(),
         |landing| {
             format!(
                 "the rocket lands {} from the pad at {:.2} s",
@@ -718,9 +718,11 @@ fn airframe_drag(airframe: &SimAirframeDrag) -> String {
         },
     );
     format!(
-        "(the fall reads fast and the wind's drift short: the descent leaves out the airframe's \
-         own drag. Hanging level under `{}` it could add {:.3} m² to the {:.3} m² open, and a steady fall would take \
-         {:.2} times as long. Flown with that drag added, {landing}. {DESCENT_GUIDE})",
+        "(the descent leaves out the airframe's own drag, so the fall reads fast and a wind's \
+         drift short. Hanging level under `{}` it could add {:.3} m² to the {:.3} m² open, and a \
+         steady fall there would take {:.2} times as long. Flown with that drag added, \
+         {landing}. That is one model's high end for the body, not a bound, and no logged \
+         descent has checked it: {AIRFRAME_DRAG_GUIDE})",
         airframe.under,
         airframe.drag_area_m2,
         airframe.open_drag_area_m2,
@@ -772,7 +774,7 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
                 }
             ),
         )?;
-        if let Some(airframe) = flight.airframe_drag.as_ref().filter(|_| braked) {
+        if let Some(airframe) = &flight.airframe_drag {
             for line in crate::trust::wrap(&airframe_drag(airframe), NOTE) {
                 writeln!(out, "{line}")?;
             }

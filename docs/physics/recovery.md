@@ -52,14 +52,16 @@ part drifts and lands.
     rather than a heavy payload. The airframe's own drag under a canopy is left out too. The same
     holds for an ejected piece. Knacke's steady descent adds the load's drag to the canopy's
     (*Parachute Recovery Systems Design Manual*, NWC TP 6575, §4.5.1). Leaving it out makes the
-    descent under a device read fast and the drift read short, the side that flatters a field's
-    size. It matters most under a small drogue: the airframe's share of the drag there is 3% to
-    68% ([the broadside drag note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/broadside-body-drag.md),
-    §6). [The descent](#the-descent) has a table of sizes, and `hpr sim` prints the landing with
-    the airframe's drag added.
-  - Canopies open together: after the main opens, its drag area and the drogue's are added.
-    Canopies flown together lose drag to each other (Knacke, on clusters), so the descent under both
-    can only read the same as it is or slower. OpenRocket adds them the same way.
+    descent under a device read fast and the wind's drift read short, the side that flatters a
+    field's size. It matters most under a small drogue. Flown with the airframe hanging level,
+    Valetudo's landing under a 12 in drogue moves from 80 m (262 ft) to 184 m (604 ft) downwind
+    ([what the airframe's own drag would add](#airframe-drag)). `hpr sim` prints such a second
+    landing under its landing line.
+  - Canopies open together: after the main opens, its drag area and the drogue's are added, as
+    OpenRocket adds them. Any drag the two cost each other is left out. Knacke reports such a
+    loss for canopies clustered side by side, in his section on clusters. Nothing cited here gives one for a
+    drogue flying beside a main. If there is a loss, the real fall under both is faster than
+    the simulated one. The landing speed then reads low, the side that flatters it.
   - The push of a separation's charge on the two stages (an ejection's is modeled, a
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at
@@ -543,9 +545,10 @@ $$
 - The airframe's own drag is left out, as it is in RocketPy, the
   [oracle](../glossary.md#oracle) this is compared with. A rocket's attitude under a
   canopy, and so the area it presents, is not modeled. So the fall reads fast and the wind's
-  drift short, the side that flatters a field's size. For a drogue whose drag area is close to
-  the airframe's broadside area this is a real omission:
-  [what the airframe's own drag would add](#airframe-drag) sizes it. The tumble model
+  drift short, the side that flatters a field's size. It matters for any drogue whose drag area
+  is not many times the airframe's side area. In
+  [what the airframe's own drag would add](#airframe-drag), a drogue at 2.5 times that area
+  still moves the landing by a quarter. The tumble model
   ([M1.7b](../decisions-and-roadmap.md#m1-7b), streamers and tumble) is where a body's own drag
   belongs.
 - The thrust $\mathbf{T}$ is kept, along the frozen axis. So a device that opens while a motor still
@@ -568,15 +571,17 @@ $$
 v_e = \sqrt{\frac{2 m g}{\rho\, C_D S}}
 $$
 
-<a id="airframe-drag"></a>**What the airframe's own drag would add.** The descent reads fast
-without it, and the landing reads near. This is a model with a stated high end, not a
-measurement: no logged descent has been compared with it yet
-([descent rates against the logs](../decisions-and-roadmap.md#m2-12) is where that belongs).
+<a id="airframe-drag"></a>**What the airframe's own drag would add.** Without it the fall reads
+fast and the wind's drift reads short. In the example below, Valetudo's landing under a 12 in
+drogue moves from 80 m (262 ft) to 184 m (604 ft) downwind when the airframe hangs level. This is
+a model with a stated high end, not a measurement: no logged descent has been compared with it
+yet ([descent rates against the logs](../decisions-and-roadmap.md#m2-12) is where that belongs).
 
 Knacke writes steady descent as the canopy's drag plus the load's, equal to the weight (§4.5.1,
 printed page 4-14). He then drops the load's "in most cases". Kept, the equilibrium speed is on
-the sum of the two drag areas. A steady fall then takes longer by the ratio of the two speeds,
-which `recovery::descent_time_ratio` computes:
+the sum of the two drag areas. Call it $v_e'$, against $v_e$ on the canopy's alone. A steady fall
+then takes longer by the ratio of the two speeds, the steady ratio, which
+`recovery::descent_time_ratio` computes:
 
 $$
 \frac{v_e}{v_e'} = \sqrt{1 + \frac{(C_D S)_{\mathrm{airframe}}}{C_D S}}
@@ -585,21 +590,23 @@ $$
 How much drag the airframe adds depends on how it hangs, and nothing here models that.
 
 - Trailing nose down, it adds little.
-- Hanging level, the high end taken is a long cylinder's drag across the air: 1.2 on its length
-  times its diameter (Jorgensen, NASA TR R-474, 1977, printed page 15). The code names it
-  `recovery::LEVEL_AIRFRAME_DRAG_COEFFICIENT`.
-- That high end is no bound. A body of finite length sheds some of the drag around its ends. Above
-  a Reynolds number of about 3e5 a cylinder's drag across the air falls by roughly half. Fins lying
-  across the air add their own, and they are left out.
+- Hanging level, the high end taken is a long cylinder's drag across the air: 1.2 on its side
+  area, its length times its largest diameter (Jorgensen, NASA TR R-474, 1977, printed page 15).
+  The code names it `recovery::LEVEL_AIRFRAME_DRAG_COEFFICIENT`.
+- That high end is no bound. A body of finite length sheds some of the drag around its ends. Past
+  the critical [Reynolds number](../glossary.md#reynolds-number), about 2e5 on the same page, a
+  cylinder's drag across the air falls well below 1.2. Fins and pods lying across the air add
+  their own, and they are left out.
 
 **A worked example, flown.** Valetudo is 2.158 m (7.08 ft) long and 80.9 mm (3.19 in) across,
-so its side area is 0.1746 m². It flies in uniform sea-level air, in a 6 m/s (13 mph) wind, under
-a drogue from apogee and a 1.5 m (4.9 ft) main from 150 m (492 ft). Each drogue has a $C_D$ of
-1.5 on its nominal circle. Each is flown three times. The first is alone, as the descent flies
-it. The other two have the airframe's drag beside the drogue from its opening on
-(`Device::airframe_beside`): half the high end, 0.105 m², then all of it, 0.209 m².
+so its side area is 0.1746 m². It flies off a vertical 3 m (9.8 ft) rail in uniform sea-level
+air, in a 6 m/s (13 mph) wind. It comes down under a drogue from apogee and a 1.5 m (4.9 ft)
+main from 150 m (492 ft). Each drogue has a $C_D$ of 1.5 on its
+[nominal area](../glossary.md#nominal-area). Each is flown three times. The first is alone, as
+the descent flies it. The other two have the airframe's drag beside the drogue from its opening
+on (`Device::airframe_beside`): half the high end, 0.105 m², then all of it, 0.209 m².
 
-| Drogue (in) | Drag area (m²) | Under it alone (s) | Lands, alone (m) | Lands, with 0.105 m² (m) | Lands, with 0.209 m² (m) | Steady ratio, with 0.209 m² | Flown ratio, with 0.209 m² |
+| Drogue (in) | Drag area (m²) | Time under it, alone (s) | Lands downwind, alone (m) | Lands downwind, with 0.105 m² (m) | Lands downwind, with 0.209 m² (m) | Steady time ratio, with 0.209 m² | Flown time ratio, with 0.209 m² |
 |--:|--:|--:|--:|--:|--:|--:|--:|
 | 12 | 0.109 | 20.2 | 80 | 141 | 184 | 1.71 | 1.57 |
 | 18 | 0.246 | 28.2 | 155 | 195 | 228 | 1.36 | 1.32 |
@@ -608,22 +615,30 @@ it. The other two have the airframe's drag beside the drogue from its opening on
 The landings are distances downwind of the pad. The ratios are of the time under the drogue: the
 steady one from the equation, the flown one from the two flights.
 
-- **The fall takes longer, by a little less than the steady ratio.** A fall from apogee starts
-  near rest and spends its first seconds gathering speed, with either drag area.
-- **The landing moves by more than the ratio.** Valetudo reaches apogee flying into the wind. Under
-  a small drogue it coasts upwind before the wind takes it, and more drag cuts that coast short as
-  well. Under the 12 in drogue the fall takes 1.57 times as long, and the landing moves from 80 m
-  (262 ft) to 184 m (604 ft). So the size of the move comes from flying the flight again, not from
-  scaling its drift.
+- **From apogee, the fall takes longer by a little less than the steady ratio.** A fall from
+  apogee starts near rest. In uniform air a fall from rest takes less than the steady ratio
+  longer, by the closed form of a fall under drag that grows with the speed squared. A stretch
+  that starts faster than its own equilibrium speed can take more: a drogue opened late in a
+  fast fall, or a main opened under a drogue.
+- **The landing moves by more than the ratio.** A landing is the wind's drift less how far upwind
+  the rocket got, and Valetudo reaches apogee flying into the wind. Under the 12 in drogue the
+  flight with 0.209 m² lands at 61.8 s, against 48.9 s alone. The wind's 6 m/s (20 ft/s) for
+  those 12.9 s is 77 m (253 ft) of the 104 m (341 ft) move. The rest is the upwind coast after apogee, which more drag cuts
+  short. So the size of the move comes from flying the flight again, not from scaling its drift.
 - **A larger drogue is not clear of it.** The 24 in drogue's drag area is 2.5 times the airframe's
   side area, and the landing still moves by a quarter, from 223 m (732 ft) to 280 m (919 ft).
+- **The landing can move the other way.** Only the wind's drift is sure to grow. Off a leaning
+  rail in calm air a rocket lands downrange of the pad, and more drag after apogee brings that
+  landing nearer while the fall still takes longer.
 
 **What `hpr sim` prints.** It finds the stretch of the descent with the least drag area open and
-takes the steady ratio there at the high end. At 1.1 or more, which is an open drag area below 5.7
-times the airframe's side area, it flies the flight again with the airframe's drag beside the
-devices from the first opening on. A note under the landing line then gives that flight's landing
-([The landing](../cli.md#the-landing) in the command-line guide). The two landings are a range for
-this one model, not a bound. Plan a field with room past the farther one, and let the RSO decide.
+takes the steady ratio there at the high end. The line is a ratio of 1.1, which is an open drag
+area of 5.71 times the airframe's side area. At that ratio or more, it flies the flight again
+with the airframe's drag beside the devices. The drag is added from the first opening, or from
+apogee if that opening came on the way up. A note under the landing line then gives that
+flight's landing ([The landing](../cli.md#the-landing) in the command-line guide). The second
+landing is this one model's high end for the body, not a bound. Plan a field with room past
+both landings, and let the range safety officer decide.
 
 ## Parts that come apart
 
@@ -1052,6 +1067,7 @@ name the [oracle](../glossary.md#oracle):
 | The steady descent with the load's drag kept, by hand (8 kg, a 0.109 m² drogue, 0.235 m² more for the airframe, $\rho$ 1.10) | 36.175 m/s (118.68 ft/s) falls to 20.363 m/s (66.81 ft/s), a ratio of 1.7765 |
 | Valetudo under three drogues with the airframe's drag beside them ([the table above](#airframe-drag)) | every figure of the table; the flown ratio above 1 and no more than the steady one; the landing farther downwind each time |
 | A descent's stretches, with the main's opening releasing the drogue or not | each stretch's open drag area and its ends; none for a flight that didn't land whole |
+| The airframe's stand-in beside a drogue that opens on a timer, on the way up | it waits for apogee and leaves the apogee where it was; opened with the drogue it cuts the apogee by more than 30 m (98 ft) and ends the fall more than 2 s sooner |
 | The Coriolis drift of a 3 km (1.9 mi) descent, Earth rotation on | 0.3666 m (1.203 ft) east against the steady prediction $2\Omega \cos\varphi \cdot v_t^2/g \cdot T$ = 0.3685 m, 0.52% apart, and 29 µm north |
 | Knacke's filling law, $t_f = n D_0/v$ and $(t/t_f)^j$ | the recorded drag area to 1e-9 of $(C_D S)_0$ |
 | Inflation against instant opening (deployed at 60 m/s (197 ft/s) under a 1.5 m (4.9 ft) flat circular canopy) | peak load 1,615 N against 3,020 N instant (0.53 of it), between the closed-form 1,527 N without gravity and 1,670 N with it |

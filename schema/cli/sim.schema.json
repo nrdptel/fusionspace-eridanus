@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "airframe_drag": {
-      "description": "What the airframe's own drag, which the descent leaves out, could do to the landing: given\nwhere a stretch of the descent has little enough drag area open for it to matter\n([`AIRFRAME_DRAG_FROM_RATIO`](crate::sim::AIRFRAME_DRAG_FROM_RATIO)), and the descent was\nbraked soon after apogee. `None` otherwise.",
+      "description": "What the airframe's own drag, which the descent leaves out, could do to the landing: given\nwhere a stretch of the descent has little enough drag area open for it to matter (a steady\ndescent 1.1 times as long or more), the descent was braked soon after apogee, and the\nflight landed in one piece. `None` otherwise.",
       "anyOf": [
         {
           "$ref": "#/$defs/SimAirframeDrag"
@@ -988,7 +988,7 @@
           "format": "double"
         },
         "landing": {
-          "description": "Where the same flight lands with the airframe's drag area added from its first opening\non. `None` if that flight didn't reach the ground.",
+          "description": "Where the same flight lands with the airframe's drag area added from its first opening\non, or from its apogee where that opening came on the way up. `None` if that flight\nfailed or didn't reach the ground.",
           "anyOf": [
             {
               "$ref": "#/$defs/Landing"
@@ -1004,7 +1004,7 @@
           "format": "double"
         },
         "side_area_m2": {
-          "description": "The airframe's side area, m²: its length times its largest body diameter, fins left out.",
+          "description": "The airframe's side area, m²: its length times its largest body diameter, fins and pods\nleft out.",
           "type": "number",
           "format": "double"
         },
