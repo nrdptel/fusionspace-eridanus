@@ -2468,7 +2468,8 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         away.contains("The corrections move E away from zero on a."),
         "{away}"
     );
-    assert!(!away.contains(" on b") && !away.contains(" c"), "{away}");
+    assert!(!away.contains("toward"), "{away}");
+    assert!(!away.contains("on a, b") && !away.contains("on a and"), "{away}");
     assert!(
         toward.contains("On a, u_D is larger than the corrected |E|"),
         "{toward}"
