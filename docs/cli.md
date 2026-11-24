@@ -585,17 +585,18 @@ wind's drift short. That is the side that flatters a field's size.
   came on the way up. The note gives where that flight lands.
 
 The second landing is this one model's high end for the body. No logged descent has checked it,
-and the way the rocket really hangs can put the landing elsewhere. In wind it is the farther of
-the two. Off a leaning rail in calm air it can be the nearer. So plan a field with room past
-both landings, and let the range safety officer decide. The example flies in calm air off a
-vertical rail, so both landings are beside the pad, and the time is what moves.
+and the way the rocket really hangs can put the landing elsewhere. It can be the farther of
+the two or the nearer: the example's rocket in a 6 m/s (20 ft/s) wind off a vertical rail lands
+farther out with it, and off a rail leaning 10° in calm air it lands nearer. So plan a field
+with room past both landings, and let the range safety officer decide. The example flies in
+calm air off a vertical rail, so both landings are beside the pad, and the time is what moves.
 
-No note doesn't mean the airframe's drag is in. It is left out of every descent, and below 1.1
-a steady fall would take under a tenth longer. In the JSON the note is `airframe_drag`:
+No note doesn't mean the airframe's drag is in: below 1.1 a steady fall would take under a
+tenth longer. In the JSON the note is `airframe_drag`:
 `side_area_m2`, `drag_area_m2`, `under`, `open_drag_area_m2`, `descent_time_ratio` and `landing`.
 It is `null` when no part of the descent reaches 1.1, when the landing is not a prediction, and
-when the rocket doesn't land in one piece. Its `landing` is `null` if the second flight fails or
-doesn't reach the ground.
+when the rocket comes apart with nothing left to burn. Its `landing` is `null` if the second
+flight fails or doesn't reach the ground.
 [The recovery page](physics/recovery.md#airframe-drag) has the model, its sources and a table of
 sizes.
 

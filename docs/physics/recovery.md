@@ -627,13 +627,13 @@ steady one from the equation, the flown one from the two flights.
   short. So the size of the move comes from flying the flight again, not from scaling its drift.
 - **A larger drogue is not clear of it.** The 24 in drogue's drag area is 2.5 times the airframe's
   side area, and the landing still moves by a quarter, from 223 m (732 ft) to 280 m (919 ft).
-- **The landing can move the other way.** Only the wind's drift is sure to grow. Off a leaning
+- **The landing can move the other way.** Off a leaning
   rail in calm air a rocket lands downrange of the pad, and more drag after apogee brings that
   landing nearer while the fall still takes longer.
 
 **What `hpr sim` prints.** It finds the stretch of the descent with the least drag area open and
 takes the steady ratio there at the high end. The line is a ratio of 1.1, which is an open drag
-area of 5.71 times the airframe's side area. At that ratio or more, it flies the flight again
+area of about 5.7 times the airframe's side area. At that ratio or more, it flies the flight again
 with the airframe's drag beside the devices. The drag is added from the first opening, or from
 apogee if that opening came on the way up. A note under the landing line then gives that
 flight's landing ([The landing](../cli.md#the-landing) in the command-line guide). The second

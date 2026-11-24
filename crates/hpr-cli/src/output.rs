@@ -564,7 +564,8 @@ pub struct SimFlight {
     /// What the airframe's own drag, which the descent leaves out, could do to the landing: given
     /// where a stretch of the descent has little enough drag area open for it to matter (a steady
     /// descent 1.1 times as long or more), the descent was braked soon after apogee, and the
-    /// flight landed in one piece. `None` otherwise.
+    /// flight ended on the ground as the stack or, after a powered separation, the sustainer.
+    /// `None` otherwise.
     pub airframe_drag: Option<SimAirframeDrag>,
 }
 

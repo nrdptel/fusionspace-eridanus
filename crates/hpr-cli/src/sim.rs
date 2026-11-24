@@ -829,7 +829,7 @@ pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
 
 /// The steady-descent ratio ([`hpr_sim::descent_time_ratio`]) from which `hpr sim` says what the
 /// airframe's own drag could do to the landing: a stretch of the descent that would take a tenth
-/// longer with the airframe hanging level, which is an open drag area up to 5.71 times the
+/// longer with the airframe hanging level, which is an open drag area up to about 5.7 times the
 /// airframe's side area (`1.2 / (1.1² − 1)`).
 ///
 /// Where to draw the line is a judgment. Issue #1252 proposed an open drag area below 2 times the

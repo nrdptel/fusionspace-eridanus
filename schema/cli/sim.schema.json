@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "airframe_drag": {
-      "description": "What the airframe's own drag, which the descent leaves out, could do to the landing: given\nwhere a stretch of the descent has little enough drag area open for it to matter (a steady\ndescent 1.1 times as long or more), the descent was braked soon after apogee, and the\nflight landed in one piece. `None` otherwise.",
+      "description": "What the airframe's own drag, which the descent leaves out, could do to the landing: given\nwhere a stretch of the descent has little enough drag area open for it to matter (a steady\ndescent 1.1 times as long or more), the descent was braked soon after apogee, and the\nflight ended on the ground as the stack or, after a powered separation, the sustainer.\n`None` otherwise.",
       "anyOf": [
         {
           "$ref": "#/$defs/SimAirframeDrag"

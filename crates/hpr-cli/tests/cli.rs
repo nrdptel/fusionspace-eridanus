@@ -2044,7 +2044,8 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
 /// Issue #1252: the descent leaves out the airframe's own drag, so under a small drogue the fall
 /// reads fast and the wind's drift short, the side that flatters a field's size. `hpr sim`
 /// says so under the landing line, with the same flight's landing when the airframe's drag,
-/// hanging level, is flown beside the devices: later, and in wind farther from the pad.
+/// hanging level, is flown beside the devices: later, and in this test's wind off a vertical rail farther
+/// from the pad.
 #[test]
 fn sim_says_what_the_airframes_own_drag_could_do_to_the_landing() {
     let dual = repo_file("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork");
@@ -2269,7 +2270,8 @@ fn sim_adds_the_airframes_drag_from_apogee_when_a_device_opens_on_the_way_up() {
     let drag_m2 = number(&airframe["drag_area_m2"]);
 
     // The library's flight of the same file with the stand-in at apogee, and with it opening
-    // with the drogue: the note's landing is the first, bit for bit, and not the second.
+    // with the drogue: the note's landing has the first's distance and time, bit for bit, and
+    // not the second's time.
     let read = hpr::hpr_io::ork::read(early_xml.as_bytes()).unwrap().value;
     let ork = hpr::hpr_io::ork::design(&read).value;
     let configuration = ork.motors.default_configuration().unwrap();

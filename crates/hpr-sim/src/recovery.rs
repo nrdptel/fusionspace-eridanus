@@ -3771,7 +3771,8 @@ mod tests {
                 < apogee.height_above_ground_m - 30.0
         );
         assert!(waited.final_sample.time_s > beside.final_sample.time_s + 2.0);
-        // Either way the fall is longer and the landing farther downwind than the drogue's alone.
+        // With the stand-in at the apogee the fall is longer and the landing farther downwind
+        // than the drogue's alone.
         let downwind = |result: &FlightResult| -result.final_sample.cg_enu_m.y;
         assert!(waited.final_sample.time_s > alone.final_sample.time_s + 10.0);
         assert!(downwind(&waited) > downwind(&alone) + 50.0);
