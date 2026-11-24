@@ -2323,32 +2323,38 @@ fn no_data_part() -> crate::data_uncertainty::DataPart {
     crate::data_uncertainty::DataPart {
         altimeter: "not named".to_owned(),
         meters_per_pascal: None,
+        pad_meters_per_pascal: None,
         components: Vec::new(),
+        correction_m: None,
         data_m: None,
         without: "none stated".to_owned(),
     }
 }
 
-/// M1.14b17: the sentences under the data part's tables count the flights with a part, round
-/// "at least N times" down, name the flight with the fewest, and say so plainly where a u_D is
-/// larger than its |E| or no flight has one; the conversion's sentence names the largest and
-/// what it leaves in E.
+/// M1.14b17: the sentences under the data part's tables count the flights with a part, name the
+/// largest correction, round "at least N times" down on the corrected error, name the flight
+/// with the fewest, conclude only from twice u_D up, and say so plainly where a u_D is larger
+/// than its corrected |E| or no flight has one; the conversion's sentence names the largest
+/// and what it leaves in E, rounded up, and counts the flights where that exceeds u_D.
 #[test]
 fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
     use crate::data_uncertainty::{DataComponent, DataPart};
     use crate::real_flight::RealFlightReport;
     use crate::validation_uncertainty::UncertaintyRow;
-    let part = |data_m: Option<f64>| DataPart {
+    let part = |data_m: Option<f64>, correction_m: f64| DataPart {
         altimeter: "an altimeter".to_owned(),
         meters_per_pascal: None,
+        pad_meters_per_pascal: None,
         components: data_m
             .map(|standard_m| DataComponent {
                 what: "sensor".to_owned(),
+                correction_m,
                 standard_m,
                 from: "a sheet".to_owned(),
             })
             .into_iter()
             .collect(),
+        correction_m: data_m.map(|_| correction_m),
         data_m,
         without: String::new(),
     };
@@ -2364,7 +2370,11 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         log_apogee_m: 1000.0 - error_m,
         height_apogee_m: 1040.0,
         log_height_m: 1040.0 - error_m + left_m,
-        data: part(data_m),
+        data: part(data_m, 0.0),
+    };
+    let corrected = |id: &str, error_m: f64, data_m: f64, correction_m: f64| UncertaintyRow {
+        data: part(Some(data_m), correction_m),
+        ..row(id, error_m, Some(data_m), 0.0)
     };
     let say = |rows: &[UncertaintyRow]| RealFlightReport::smallest_data_share(rows);
     let text = say(&[
@@ -2393,8 +2403,41 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         row("a", 5.0, Some(6.0), 0.0),
         row("b", 50.0, Some(1.0), 0.0),
     ]);
-    assert!(over.contains("On a, u_D is larger than |E|"), "{over}");
+    assert!(
+        over.contains("On a, u_D is larger than the corrected |E|"),
+        "{over}"
+    );
     assert!(!over.contains("can't account"), "{over}");
+    // The conclusion needs every corrected |E| at twice its u_D, the band's own factor: at 1.5
+    // times the ratio is given and nothing is concluded; at 2 times it is.
+    let between = say(&[
+        row("a", 15.0, Some(10.0), 0.0),
+        row("b", 50.0, Some(1.0), 0.0),
+    ]);
+    assert!(between.contains("at least 1 times"), "{between}");
+    assert!(between.contains("fewest times is on a"), "{between}");
+    assert!(!between.contains("can't account"), "{between}");
+    assert!(say(&[row("a", 20.0, Some(10.0), 0.0)]).contains("can't account"));
+    assert!(text.contains("can't account"), "{text}");
+    assert!(text.contains("No log is corrected"), "{text}");
+    // The ratio is the corrected error's. A log 15 m low and one 2 m high: E = −174.8 m less
+    // +15 m is −189.8 m, 11.16 times a u_D of 17 m, where the uncorrected 10.28 would give 10;
+    // b's −137.1 m less −2 m is −135.1 m, 24.2 times.
+    let moved = say(&[
+        corrected("a", -174.8, 17.0, 15.0),
+        corrected("b", -137.1, 5.58, -2.0),
+    ]);
+    assert!(
+        moved.contains("largest correction is +15.00 m (a)"),
+        "{moved}"
+    );
+    assert!(moved.contains("at least 11 times"), "{moved}");
+    // A correction toward the simulation shrinks the ratio: 20 m less +15 m is 5 m, under u_D.
+    let toward = say(&[corrected("a", 20.0, 6.0, 15.0)]);
+    assert!(
+        toward.contains("On a, u_D is larger than the corrected |E|"),
+        "{toward}"
+    );
     assert!(say(&[row("a", 5.0, None, 0.0)]).contains("No flight's altimeter has a published"));
     // The conversion: −40 m in both of a's readings, and b's two differ by 6 m, 5% of its E.
     let conversion = RealFlightReport::conversion_sentence(&[
@@ -2407,8 +2450,22 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
     );
     // b: E = −120 m of a 1120 m reading; as heights −126 m of 1166 m: 6 m apart.
     assert!(
-        conversion.contains("differs from E by 6.0 m at the most (b)"),
+        conversion.contains("differs from E by at most 6.0 m (b)"),
         "{conversion}"
+    );
+    assert!(
+        conversion.contains("larger than u_D on 0 of the 0 flights with one"),
+        "{conversion}"
+    );
+    // 6.04 m rounds up to 6.1, never down to 6.0; it is over b's u_D of 5 m and not a's.
+    let rounded = RealFlightReport::conversion_sentence(&[
+        row("a", 100.0, Some(3.0), 0.0),
+        row("b", -120.0, Some(5.0), 6.04),
+    ]);
+    assert!(rounded.contains("by at most 6.1 m (b)"), "{rounded}");
+    assert!(
+        rounded.contains("larger than u_D on 1 of the 2 flights with one"),
+        "{rounded}"
     );
     // a: E = 100 m of a 900 m reading, 11.111%; as heights 100 m of 940 m, 10.638%. The 0.4728
     // points between them round up to 0.48, never down to 0.47. b's are 0.0919 points apart.
@@ -2511,28 +2568,79 @@ fn the_real_flights_validation_uncertainty_rows_hold_to_their_flights() {
         row.data = crate::data_uncertainty::data_part(
             crate::data_uncertainty::instrument("juno-iii").expect("in the table"),
             row.log_apogee_m,
-            Some(elsewhere),
-            gap,
+            &crate::data_uncertainty::Measured {
+                meters_per_pascal: Some(elsewhere),
+                pad_meters_per_pascal: row.data.pad_meters_per_pascal,
+                formula_gap_m: gap,
+            },
         )
         .expect("every input");
     });
-    assert!(site.contains("a pascal's height"), "{site}");
+    assert!(site.contains("a pascal's height at the apogee"), "{site}");
+    // The same on the pad: another site's pad, the part recomputed.
+    let pad = refused(&|r| {
+        let row = &mut r.validation_uncertainty[3];
+        let gap = row.data.formula_gap_m("juno-iii");
+        let elsewhere =
+            crate::data_uncertainty::meters_per_pascal(0.0, 0.0).expect("the troposphere");
+        row.data = crate::data_uncertainty::data_part(
+            crate::data_uncertainty::instrument("juno-iii").expect("in the table"),
+            row.log_apogee_m,
+            &crate::data_uncertainty::Measured {
+                meters_per_pascal: row.data.meters_per_pascal,
+                pad_meters_per_pascal: Some(elsewhere),
+                formula_gap_m: gap,
+            },
+        )
+        .expect("every input");
+    });
+    assert!(pad.contains("a pascal's height on the pad"), "{pad}");
     // A formula gap that isn't the row's, the part recomputed likewise.
     let gap = refused(&|r| {
         let row = &mut r.validation_uncertainty[3];
         row.data = crate::data_uncertainty::data_part(
             crate::data_uncertainty::instrument("juno-iii").expect("in the table"),
             row.log_apogee_m,
-            row.data.meters_per_pascal,
-            Some(0.5),
+            &crate::data_uncertainty::Measured {
+                meters_per_pascal: row.data.meters_per_pascal,
+                pad_meters_per_pascal: row.data.pad_meters_per_pascal,
+                formula_gap_m: Some(0.5),
+            },
         )
         .expect("every input");
     });
     assert!(gap.contains("the formula component"), "{gap}");
+    // The sign of the gap is the row's too: the same size the other way is refused.
+    let turned = refused(&|r| {
+        let row = &mut r.validation_uncertainty[3];
+        let gap = row.data.formula_gap_m("juno-iii").expect("a formula gap");
+        row.data = crate::data_uncertainty::data_part(
+            crate::data_uncertainty::instrument("juno-iii").expect("in the table"),
+            row.log_apogee_m,
+            &crate::data_uncertainty::Measured {
+                meters_per_pascal: row.data.meters_per_pascal,
+                pad_meters_per_pascal: row.data.pad_meters_per_pascal,
+                formula_gap_m: Some(0.0 - gap),
+            },
+        )
+        .expect("every input");
+    });
+    assert!(turned.contains("the formula component"), "{turned}");
+    // A correction changed alone, its sum left as it was.
+    let correction = refused(&|r| {
+        let data = &mut r.validation_uncertainty[3].data;
+        data.correction_m = data.correction_m.map(|sum| sum - 15.0);
+    });
+    assert!(
+        correction.contains("the data part isn't its altimeter's"),
+        "{correction}"
+    );
+    // A flight predicted first holds its height too (row 10 is Macie XL's first flight).
+    let predicted = refused(&|r| r.validation_uncertainty[10].height_apogee_m += 1e-9);
+    assert!(predicted.contains("the apogee as a height"), "{predicted}");
     let height = refused(&|r| r.validation_uncertainty[3].height_apogee_m += 1e-9);
     assert!(height.contains("the apogee as a height"), "{height}");
-    // The committed parts: eight flights with a u_D and four named without, each flight's
-    // conversion within a meter the same in both readings but for what its own E makes it.
+    // The committed parts: eight flights with a u_D and four named without.
     let with_part = committed
         .validation_uncertainty
         .iter()

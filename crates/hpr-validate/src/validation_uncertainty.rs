@@ -26,8 +26,10 @@
 //! gives 1.1 to 1.15 for a shifted one, and neither was checked against the standard).
 //!
 //! The data part is the log's own ([M1.14b17][m1-14b17], [`crate::data_uncertainty`]): each
-//! row carries its log apogee's standard uncertainty where its altimeter has a published
-//! accuracy. Both apogees are barometric readings, so the standard atmosphere's distance from
+//! row carries its log apogee's standard uncertainty where its altimeter, or the pressure
+//! sensor its maker names, has a published accuracy, and the correction the log's apogee takes
+//! for what is known to make it read low or high ([`UncertaintyRow::corrected_error_m`]). Both
+//! apogees are barometric readings, so the standard atmosphere's distance from
 //! the day's air is in both and not in the data part; each row measures that conversion on
 //! both sides ([`UncertaintyRow::conversion_m`], [`UncertaintyRow::log_conversion_m`]). The
 //! input part comes in [M1.14b18][m1-14b18].
@@ -43,7 +45,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::correction::Variant;
-use crate::data_uncertainty::{DataPart, data_part, instrument, meters_per_pascal};
+use crate::data_uncertainty::{DataPart, Measured, Term, data_part, instrument};
 use crate::predicted_first::ComparedPrediction;
 use crate::real_flight::{FLIGHTS, FlightRow, RealFlightError, Varied, fly_varied};
 
@@ -135,8 +137,8 @@ pub struct UncertaintyRow {
     /// The height above the start, m, at which the same altimeter, in the air the flight is
     /// flown in, reads the log's apogee: the log's apogee as a height, if that air is the day's.
     pub log_height_m: f64,
-    /// The data part: the log apogee's standard uncertainty `u_D` and its components, or why its
-    /// altimeter has none ([`crate::data_uncertainty`]).
+    /// The data part: the log apogee's correction, its standard uncertainty `u_D` and their
+    /// components, or why its altimeter has none ([`crate::data_uncertainty`]).
     pub data: DataPart,
 }
 
@@ -183,6 +185,19 @@ impl UncertaintyRow {
         self.height_error_m() / self.log_height_m
     }
 
+    /// The comparison error against the log's apogee corrected, m: HPR Sim's apogee less the
+    /// log's with its data part's correction added
+    /// ([`DataPart::correction_m`](crate::data_uncertainty::DataPart::correction_m)), so
+    /// [`UncertaintyRow::comparison_error_m`] less the correction. `None` for a flight with no
+    /// data part. The report's own error stays on the log as logged; a band is drawn about this
+    /// one.
+    #[must_use]
+    pub fn corrected_error_m(&self) -> Option<f64> {
+        self.data
+            .correction_m
+            .map(|correction_m| self.comparison_error_m - correction_m)
+    }
+
     /// Whether the numerical part is its two runs' ([`numerical_uncertainty_m`] on their
     /// [`refinement_ratio`]).
     #[must_use]
@@ -193,7 +208,9 @@ impl UncertaintyRow {
     }
 
     /// Whether the row holds together: its numerical part is its two runs', its data part is its
-    /// altimeter's on its log's apogee ([`DataPart::holds`]), and everything is a finite number.
+    /// altimeter's on its log's apogee, from the part's own conversions and formula gap
+    /// ([`DataPart::holds`]; the report's check holds those to the flight's site and row), and
+    /// everything is a finite number.
     #[must_use]
     pub fn holds(&self) -> bool {
         [
@@ -235,22 +252,22 @@ pub fn rows(
     };
     // The data part: the flight's altimeter on its log's apogee. A pressure term is turned into
     // a height at the site's elevation plus that apogee; only flights with a site carry one.
-    let data = |id: &str,
-                log_apogee_m: f64,
-                site_elevation_m: Option<f64>,
-                formula_gap_m: Option<f64>| {
-        let instrument = instrument(id)
-            .ok_or_else(|| input(id, "a flight with no altimeter in the table".to_owned()))?;
-        let per_pascal = match site_elevation_m {
-            Some(elevation_m) if instrument.terms.iter().any(|term| term.is_pressure()) => Some(
-                meters_per_pascal(elevation_m, log_apogee_m)
-                    .map_err(|error| input(id, format!("the standard atmosphere: {error}")))?,
-            ),
-            _ => None,
+    let data =
+        |id: &str, log_apogee_m: f64, site_elevation_m: Option<f64>, formula_gap_m: Option<f64>| {
+            let instrument = instrument(id)
+                .ok_or_else(|| input(id, "a flight with no altimeter in the table".to_owned()))?;
+            let measured = match site_elevation_m {
+                Some(elevation_m) if instrument.terms.iter().any(Term::is_pressure) => {
+                    Measured::at(elevation_m, log_apogee_m, formula_gap_m)
+                        .map_err(|error| input(id, format!("the standard atmosphere: {error}")))?
+                }
+                _ => Measured {
+                    formula_gap_m,
+                    ..Measured::default()
+                },
+            };
+            data_part(instrument, log_apogee_m, &measured).map_err(|what| input(id, what))
         };
-        data_part(instrument, log_apogee_m, per_pascal, formula_gap_m)
-            .map_err(|what| input(id, what))
-    };
     let row = |id: &str,
                (error_m, log_apogee_m): (f64, f64),
                coarse: Varied,
@@ -297,7 +314,7 @@ pub fn rows(
             &compared.id,
             compared.log_apogee_m,
             Some(flight.site.2),
-            compared.pressure_reading_max_m,
+            compared.pressure_reading_apogee_m,
         )?;
         out.push(row(
             &compared.id,
@@ -398,8 +415,7 @@ mod tests {
             data: data_part(
                 instrument("astra").expect("the flight is in the table"),
                 1012.0,
-                None,
-                None,
+                &Measured::default(),
             )
             .expect("no term to compute"),
         };

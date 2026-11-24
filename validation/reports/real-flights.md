@@ -143,44 +143,51 @@ The largest u_num is 5.7093 mm (andromeda). Every flight's |E| is at least 2,700
 
 ## How much of each error the log could be
 
-The data part u_D is the standard uncertainty of the log's own apogee ([M1.14b17][m1-14b17], decision [ADR-375][adr-375]):
+This section puts a correction and a standard uncertainty, the data part u_D, on each log's own apogee, so that a later band can say how much of E the log could explain ([M1.14b17][m1-14b17], decision [ADR-375][adr-375]). It uses published figures for a kind of altimeter or its pressure sensor; they are not calibrations of the units that flew.
 
-- **What is uncertain.** Both apogees are barometric readings: the 1976 standard atmosphere's altitude of the pressure at the apogee, less that of the pressure on the pad. u_D is the uncertainty of the log's reading as that quantity.
+- **What is uncertain.** The report takes both apogees as barometric readings: the 1976 standard atmosphere's altitude of the pressure at the apogee, less that of the pressure on the pad. u_D is the uncertainty of the log's reading as that quantity. The flights' table, above, says which logs name their altimeter and which are taken as barometric; Genesis's and Lince's logs are read here as a CATS Vega's, from their files ([the note][vega-height]).
 - **Its components** are the pressure sensor's published error, its noise, the step the log keeps, the gap between the altimeter's own height formula and the 1976 standard's, and what the log's filter or this report's cut does where that is measured. Each is a standard uncertainty in meters, taken as independent of the others, and u_D is their root sum of squares.
-- **The rules** are the *Guide to the expression of uncertainty in measurement*'s (JCGM 100:2008). Bounds of ±a give a/√3 (4.3.7). An effect of known sign that is not corrected, equally likely anywhere from lo to hi, keeps its mean beside its spread: √((lo² + lo·hi + hi²)/3) (4.3.7 with F.2.4.5). A value kept in steps of δ gives δ/√12 (F.2.2.1). A maker's "typical" figure has no rule in the guide; it is taken as one standard deviation, the larger of the two readings it allows.
+- **Corrections.** Where something is known to make a log read low or high, the log's apogee is corrected by that effect's mean, and only its spread stays in u_D. The table gives each correction in brackets beside its component, their sum, and E against the corrected log: E less the correction. The report's own errors, above, stay on the logs as logged.
+- **The rules** are the *Guide to the expression of uncertainty in measurement*'s (JCGM 100:2008). Bounds of ±a give a/√3 (4.3.7). A recognized effect of known sign is corrected, not left in the uncertainty (3.2.4): for a log's error equally likely anywhere from lo to hi, the correction is −(lo + hi)/2, and (hi − lo)/√12 stays (F.2.4.5, with 4.3.7). A value kept in steps of δ gives δ/√12 (F.2.2.1). A maker's "typical" figure has no rule in the guide; it is taken as one standard deviation, the larger of the two readings it allows.
 - **Pressure to height.** A pascal at the apogee is 1/(ρ·g₀) of height, the standard atmosphere's hydrostatic equation, with ρ its density at the site's elevation plus the log's apogee.
+- **The zero on the pad.** A reading is a difference of two standard altitudes, and a pascal is more height in the thinner air at the apogee than on the pad. So the sensor's error on the pad doesn't cancel: it leaves its size times the difference between a pascal's two heights ("pad offset"). "sensor" is how far the error may have changed since the zero.
 
-How far to trust it: these are makers' published figures, not calibrations of the units that flew. Left out, for want of a published figure: the lag of a vented bay and its ports, a bay outside 0 to 50 °C, and how far noise lifts the highest of many samples on the two logs with a noise component. Two altimeters flown on one rocket differ by 0.37% at the median over 59 published flights, about 0.39% a unit ([the note][two-altimeters]). Where u_D is a smaller share of the apogee than that, it is too small on that evidence; the sentence under the table counts those flights. A smaller u_D makes a narrower band, so the choice doesn't flatter the comparison.
+Left out, for want of a published figure: the lag of a vented bay and its ports, a bay outside 0 to 50 °C, the sensor's drift with age and with its supply voltage, the pad sample's own noise and step, how far noise lifts the highest of many samples on the two logs with a noise component, and whether a PerfectFlite takes its pad as sea level ([the note][height-formulas]).
 
-| flight | altimeter | log apogee (m) | a pascal at the apogee (m) | components (m) | u_D (m) | u_D, share of the apogee | \|E\| over u_D |
-|---|---|---:|---:|---|---:|---:|---:|
-| ndrt-2020 | Featherweight Raven | 1320.4 | 0.0966 | sensor 5.58; step 0.11; formula 0.07 | 5.58 | 0.42% | 24.6 |
-| prometheus-2022 | Altus Metrum TeleMetrum (MS5607: the log steps its pressure by 1 Pa) | 3895.8 | 0.1430 | sensor 8.26; noise 1.86; step 0.04; formula 0.20 | 8.46 | 0.22% | 42.4 |
-| juno-iii | Missile Works RRC3 (MS5607) | 3151.5 | 0.1331 | sensor 7.68; noise 0.48; step 0.38; formula 1.32; cut 15.28 | 17.16 | 0.54% | 10.2 |
-| cavour | CATS Vega (MS5607), its radio telemetry | 2785.0 | 0.1114 | sensor 6.43; step 0.58; filter 0.75; formula 0.23 | 6.51 | 0.23% | 24.7 |
-| genesis | CATS Vega (MS5607), the 9-sample median of its barometric height | 2916.7 | 0.1130 | sensor 6.53; peak 2.15; formula 0.19 | 6.88 | 0.24% | 24.9 |
-| lince | CATS Vega (MS5607), the 9-sample median of its barometric height | 3587.7 | 0.1212 | sensor 7.00; peak 2.15; formula 0.23 | 7.32 | 0.20% | 19.2 |
-| macie-xl-1 | PerfectFlite StratoLoggerCF | 842.8 | none | precision 1.15; calibration 0.42; step 0.09 | 1.23 | 0.15% | 111.4 |
-| macie-xl-2 | PerfectFlite StratoLoggerCF | 977.8 | none | precision 1.28; calibration 0.49; step 0.09 | 1.38 | 0.14% | 207.3 |
+Which way the choices lean: a larger u_D makes a wider band later, which an error fits inside more easily. Two choices take the larger reading: a "typical" figure as one standard deviation, and the Raven's one figure both for its error on the pad and for that error's change. Against that, two altimeters flown on one rocket differ by 0.37% at the median over 59 published flights, about 0.39% a unit ([the note][two-altimeters]). The sentence under the table counts the flights whose u_D is a smaller share of the apogee than that.
 
-8 of the 12 flights have a u_D; 4 have none. The largest u_D is 17.16 m (juno-iii). On 6 of them u_D is under 0.39% of the log's apogee, the two-altimeter figure. Each of those flights' |E| is at least 10 times its own u_D; the fewest times is on juno-iii. So the log's part can't account for any of these errors either.
+| flight | altimeter | log apogee (m) | a pascal at the apogee, on the pad (m) | components, with corrections in brackets (m) | correction (m) | u_D (m) | u_D, share of the apogee | E corrected (m) | \|E corrected\| over u_D |
+|---|---|---:|---:|---|---:|---:|---:|---:|---:|
+| ndrt-2020 | Featherweight Raven | 1320.4 | 0.0966, 0.0849 | sensor 5.58; pad offset 0.68; step 0.11; formula 0.04 | +0.00 | 5.62 | 0.43% | 137.1 | 24.4 |
+| prometheus-2022 | Altus Metrum TeleMetrum (MS5607: the log steps its pressure by 1 Pa) | 3895.8 | 0.1430, 0.0954 | sensor 8.26; pad offset 5.49; noise 1.86; step 0.04; formula 0.00 (+0.19) | +0.19 | 10.09 | 0.26% | -359.4 | 35.6 |
+| juno-iii | Missile Works RRC3 (MS5607) | 3151.5 | 0.1331, 0.0962 | sensor 7.68; pad offset 4.26; noise 0.48; step 0.38; formula 0.00 (+1.32); cut 2.89 (+15.00) | +16.32 | 9.27 | 0.29% | -191.1 | 20.6 |
+| cavour | CATS Vega (MS5607), its radio telemetry | 2785.0 | 0.1114, 0.0845 | sensor 6.43; pad offset 3.11; step 0.29 (+0.50); filter 0.75; formula 0.01 (+0.21) | +0.71 | 7.19 | 0.26% | 159.8 | 22.2 |
+| genesis | CATS Vega (MS5607), the 9-sample median of its barometric height | 2916.7 | 0.1130, 0.0845 | sensor 6.53; pad offset 3.29; peak 0.66 (-2.05); formula 0.00 (+0.19) | -1.86 | 7.34 | 0.25% | -169.6 | 23.1 |
+| lince | CATS Vega (MS5607), the 9-sample median of its barometric height | 3587.7 | 0.1212, 0.0845 | sensor 7.00; pad offset 4.23; peak 0.66 (-2.05); formula 0.00 (+0.23) | -1.82 | 8.20 | 0.23% | 142.1 | 17.3 |
+| macie-xl-1 | PerfectFlite StratoLoggerCF | 842.8 | none, none | precision 1.15; calibration 0.42; step 0.09 | +0.00 | 1.23 | 0.15% | -136.5 | 111.4 |
+| macie-xl-2 | PerfectFlite StratoLoggerCF | 977.8 | none, none | precision 1.28; calibration 0.49; step 0.09 | +0.00 | 1.38 | 0.14% | -285.2 | 207.3 |
+
+8 of the 12 flights have a u_D; 4 have none. The largest u_D is 10.09 m (prometheus-2022). The largest correction is +16.32 m (juno-iii). On 7 of them u_D is under 0.39% of the log's apogee, the two-altimeter figure. Every flight with a u_D has a corrected |E| at least 17 times its own u_D; the fewest times is on lince. So the log's part can't account for any of these errors either.
 
 Where each component's figure is stated:
 
 - **sensor** (`ndrt-2020`): Featherweight Altimeters, Raven4 user's manual (2020-08-15), p. 12: "less than 1 mbar (0.1% full-scale) pressure error over most conditions", with no confidence level; the log doesn't say which Raven wrote it.
+- **pad offset** (`ndrt-2020`): the same sentence: the manual gives one figure and no part of it that a zero removes, so it is taken for the error on the pad as for its change from the pad to the apogee.
 - **step** (`ndrt-2020`): the same manual, p. 12: baro resolution 0.00004 atm.
-- **formula** (`ndrt-2020`): docs/research/altimeter-height-formulas.md: Raven height columns are the standard atmosphere's altitude of their own logged pressure to 0.22 ft.
+- **formula** (`ndrt-2020`): docs/research/altimeter-height-formulas.md: Raven height columns are the standard atmosphere's altitude of their own logged pressure to 0.22 ft, either way.
 - **sensor** (`prometheus-2022`, `juno-iii`, `cavour`, `genesis`, `lince`): TE Connectivity, MS5607-02BA03 datasheet (06/2017), p. 4: total error band with autozero at one pressure point, 0 to 50 °C, 300 to 1100 mbar, −1.0 to +1.0 mbar (its minimum and maximum columns).
+- **pad offset** (`prometheus-2022`, `juno-iii`, `cavour`, `genesis`, `lince`): the same sheet, p. 4: total error band with no autozero, 0 to 50 °C, 300 to 1100 mbar, −2.0 to +2.0 mbar, for the sensor's error on the pad, which the zero leaves in a difference of two standard altitudes.
 - **noise** (`prometheus-2022`): the same sheet, p. 4: resolution RMS 0.130 mbar at an oversampling ratio of 256, the largest it lists; the altimeter's ratio isn't published.
 - **step** (`prometheus-2022`): the same sheet, p. 8: the compensated pressure is given in steps of 0.01 mbar.
-- **formula** (`prometheus-2022`, `juno-iii`): this report: the log's height column against the 1976 standard's reading of its own pressure column, the largest gap.
+- **formula** (`prometheus-2022`, `juno-iii`): this report: the log's height column less the 1976 standard's reading of its own pressure column, at the log's highest row.
 - **noise** (`juno-iii`): the same sheet, p. 4: resolution RMS 0.036 mbar at an oversampling ratio of 2048, the RRC3's (Missile Works, RRC3 user manual v1.71, p. 24).
 - **step** (`juno-iii`): docs/research/altimeter-sensor-noise.md, §3: the public RRC3 log keeps its pressure in steps of 10 Pa.
 - **cut** (`juno-iii`): this report's note on the flight: the log is read to 24.60 s, where its own velocity column still reads 17.5 m/s up, so its apogee may be 10 m to 20 m low.
-- **step** (`cavour`): the telemetry sends the height in whole meters cut toward zero (docs/research/cats-vega-height.md).
+- **step** (`cavour`): the telemetry sends the height in whole meters cut toward zero (docs/research/cats-vega-height.md), so it reads up to 1 m low.
 - **filter** (`cavour`): docs/research/cats-vega-filtered-column.md, "For Cavour": the telemetry is the Kalman filter's height, within about 1.3 m of the flight's own barometric apogee.
-- **formula** (`cavour`, `genesis`, `lince`): docs/research/cats-vega-height.md, "Against HPR Sim's reading": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's.
+- **formula** (`cavour`): docs/research/cats-vega-height.md, "Against HPR Sim's reading": the Vega's formula reads 0.19 m and 0.23 m low on the two logs it is measured on; Cavour's telemetry keeps no pressure to measure it on, so it is taken as anywhere between the two.
 - **peak** (`genesis`, `lince`): docs/research/cats-vega-filtered-column.md, "Noise lifts the maxima": on four Vega logs the 9-sample median's highest value sits 0.9 m to 3.2 m above a parabola through the coast, as the highest of a noisy series does.
+- **formula** (`genesis`, `lince`): docs/research/cats-vega-height.md, "Against HPR Sim's reading": near the peak the Vega's formula reads 0.19 m (Genesis) and 0.23 m (Lince) below the 1976 standard's pressure altitude less the pad's.
 - **precision** (`macie-xl-1`, `macie-xl-2`): PerfectFlite, StratoLoggerCF user's manual (PDF of 2014-12-02), specifications, PDF p. 49: "Measurement precision: +/- (0.1% reading + 1 foot) typical".
 - **calibration** (`macie-xl-1`, `macie-xl-2`): the same page: "Calibration accuracy: +/- 0.05% typical".
 - **step** (`macie-xl-1`, `macie-xl-2`): the log's header gives its apogee in whole feet.
@@ -198,7 +205,7 @@ The standard atmosphere isn't the day's air, so a barometric reading isn't the h
 
 - **In hpr's reading:** hpr's apogee as the altimeter would read it, less its height.
 - **In the log's:** the log's apogee, less the height at which the same altimeter, in the same air, would read it.
-- **E as heights:** hpr's height less the log's, E with neither side read through the barometer. The conversion grows with the height, so two apogees E apart don't carry quite the same one, and E as heights differs from E by the difference. As a share of the apogee, which is how this report scores a flight, the two are nearly the same number.
+- **E as heights:** hpr's height less the log's, E with neither side read through the barometer. The conversion grows with the height, so two apogees E apart don't carry quite the same one, and E as heights differs from E by the difference. That difference is E itself counted in the day's air instead of the standard's: a share of E, not an error of the log or of hpr, and in meters it can be larger than u_D. As a share of the apogee, which is how this report scores a flight, the two are nearly the same number.
 
 | flight | conversion in hpr's reading (m) | in the log's (m) | E (m) | E, share of the log's apogee | E as heights (m) | E as heights, share of the log's height |
 |---|---:|---:|---:|---:|---:|---:|
@@ -215,7 +222,7 @@ The standard atmosphere isn't the day's air, so a barometric reading isn't the h
 | macie-xl-1 | -0.08 | -0.11 | -136.5 | -16.20% | -136.6 | -16.20% |
 | macie-xl-2 | -0.08 | -0.15 | -285.2 | -29.16% | -285.2 | -29.17% |
 
-The conversion is as large as 282.4 m in a reading (prometheus-2022). E as heights differs from E by 22.6 m at the most (prometheus-2022), and as a share of the apogee by at most 0.10 points (juno-iii).
+The conversion is as large as 282.4 m in a reading (prometheus-2022). E as heights differs from E by at most 22.6 m (prometheus-2022), and as a share of the apogee by at most 0.10 points (juno-iii). In meters that difference is larger than u_D on 2 of the 8 flights with one.
 
 What isn't in both readings is the air's own error. The log's altimeter read the day's real air; hpr's reads the air the flight is flown in, a reanalysis or the standard atmosphere. Where they differ, hpr's reading moves and the log's doesn't: by about 0.35% of the reading for each kelvin of the air column ([the note][height-formulas]). That is an input's uncertainty, and it comes with the input part ([M1.14b18][m1-14b18]).
 
@@ -226,6 +233,7 @@ What isn't in both readings is the air's own error. The log's altimeter read the
 [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
 [two-altimeters]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/dual-altimeter-spread.md
 [height-formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-height-formulas.md
+[vega-height]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/cats-vega-height.md
 
 ## Sources
 
