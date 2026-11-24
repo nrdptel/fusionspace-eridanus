@@ -801,7 +801,7 @@ which drag is right. The [real flights](#real-flights) below start to, one rocke
 [MAPLEAF][mapleaf] is a third open-source flight simulator. It was written apart from HPR Sim and
 from RocketPy, and it has its own aerodynamics. One apogee mixes two questions: do two codes fly a
 rocket the same way, and do they give it the same drag? This comparison takes them apart. It
-covers three of the public example designs: Valetudo, Bella Lui and NDRT 2020, the ones with a
+covers three public designs: Valetudo, Bella Lui and NDRT 2020, the RocketPy examples with a
 tangent-ogive nose, the one curved nose MAPLEAF has. They are flown straight up in calm air to
 [apogee](glossary.md#apogee), all below Mach 0.56. It says nothing about wind, a leaning rail, the
 descent or supersonic flight. Neither code is the truth, and nothing here is held to a tolerance
@@ -830,12 +830,15 @@ Each figure is HPR Sim's value less MAPLEAF's, as a percentage of MAPLEAF's
   matched to HPR Sim's at the pad, MAPLEAF's apogees come within 0.019 m (0.063 ft) of HPR Sim's.
   Between its two time steps MAPLEAF's own apogee in those flights moves by up to 0.030 m
   (0.099 ft), so a difference smaller than that is not resolved ([the table][mapleaf-matched]).
-- **A term MAPLEAF leaves out.** Beside the thrust, HPR Sim's equations of motion carry
-  internal-momentum terms, as RocketPy's do ([flight mechanics](physics/flight.md)). MAPLEAF's
-  carry none. As a measurement, MAPLEAF flew again with that force added to its thrust: its
-  apogee moves by up to 0.104 m (0.342 ft), and those flights move by up to 0.065 m (0.214 ft)
-  between MAPLEAF's two time steps. So the comparison sizes these terms and doesn't settle them
-  ([the table][mapleaf-momentum]).
+- **A force MAPLEAF leaves out.** Beside the thrust, HPR Sim's equations of motion carry
+  [internal-momentum](glossary.md#internal-momentum) terms: the effect of propellant and gas
+  moving inside the burning motor. RocketPy's carry them too
+  ([flight mechanics](physics/flight.md)). MAPLEAF's motor force is the thrust curve alone. As a
+  measurement, MAPLEAF's gravity-matched flights were flown again with those terms added to its
+  thrust as one force. Its apogee then falls by up to 0.104 m (0.342 ft), and the two codes'
+  apogees end farther apart on all three designs, not nearer. Those flights also move by up to
+  0.065 m (0.214 ft) between MAPLEAF's two time steps, so the comparison sizes these terms and
+  doesn't settle them ([the table][mapleaf-momentum]).
 - **Each code's own drag.** Each works its aerodynamics out from the same outside shape. HPR
   Sim's apogee is 0.22% below MAPLEAF's for Valetudo, 1.00% above for Bella Lui and 7.63% above
   for NDRT 2020. Just after burnout, HPR Sim's drag coefficient is 0.9%, 11.0% and 25.2% below

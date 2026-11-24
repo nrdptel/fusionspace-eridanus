@@ -131,13 +131,15 @@ The designs are in the report's order: Valetudo, Bella Lui, NDRT 2020.
 - **Internal-momentum terms.** Added to MAPLEAF's thrust, the force moves MAPLEAF's apogee by
   −0.014 m, −0.007 m and −0.104 m. Between MAPLEAF's two steps the flights that carry it move
   by up to 0.065 m (0.214 ft), so the measurement sizes the terms and does not settle them
-  ([issue 1626][issue-1626]). The one sharp reading is Valetudo's rail-exit speed, where the two
-  codes differed most: the force moves MAPLEAF's by −0.00039 m/s, and the difference left is
-  under 0.00001 m/s.
+  ([issue 1626][issue-1626]). With the force added the apogee differences are +0.014 m, +0.007 m
+  and +0.085 m, larger than without it on all three designs, and NDRT 2020's rail-exit
+  difference grows from −0.00018 m/s to −0.00121 m/s. The one sharp reading is Valetudo's
+  rail-exit speed, where the two codes differed most: the force moves MAPLEAF's by −0.00039 m/s,
+  and the difference left is under 0.00001 m/s.
 - **Gravity.** Matching it takes the same-drag apogee differences from +0.13% to +0.35% down to
   at most 0.0014% in size.
 - **The air.** With the start height shared, the two codes' air density at ignition agrees to
-  2.6e-9 of itself: the two atmosphere codes give the same air there.
+  2.6e-9 of itself: the two atmosphere codes give the same density at that height.
 - **Drag.** Just after burnout HPR Sim's axial coefficient is 0.9%, 11.0% and 25.2% below
   MAPLEAF's. The report gives it by part. MAPLEAF is higher on every part the two share, and
   it was flown with its defaults, a boundary layer turbulent from the nose among them. Which
