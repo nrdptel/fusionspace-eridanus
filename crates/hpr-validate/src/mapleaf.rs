@@ -1669,12 +1669,12 @@ fn not_shared(
     ]
 }
 
-/// A length in metres with its feet.
+/// A length in meters with its feet.
 fn length(m: f64) -> String {
     format!("{m:.1} m ({:.0} ft)", m / 0.3048)
 }
 
-/// A speed in metres a second with its feet a second.
+/// A speed in meters a second with its feet a second.
 fn speed(m_s: f64) -> String {
     format!("{m_s:.3} m/s ({:.2} ft/s)", m_s / 0.3048)
 }
