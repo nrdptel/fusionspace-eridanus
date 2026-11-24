@@ -5,6 +5,9 @@ is to work out.
 
 **The plan was made on October 6, 2026, from the roadmap as it stood that day.** It goes out of
 date as work ships or the roadmap changes. It gives no dates: releases come at product boundaries.
+The release rows and the paragraph under them were brought up to date on November 24, 2026, when
+releases stopped waiting on outside users ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)). The outlooks further down
+are still October 6's.
 
 > **How far to trust it.** Each goal's outlook here is a judgment, from the work done so far. It's
 > based on the roadmap and the validation results as of October 6, 2026. For what comes next and in
@@ -33,15 +36,22 @@ and the launch calendar. So it comes in spring 2027 at the earliest.
 | release | what it adds | also waits on |
 |---|---|---|
 | 0.1 the simulator | [Monte Carlo from the command line and Python](decisions-and-roadmap.md#m4-6) ([Monte Carlo](glossary.md#monte-carlo) flies many copies of a flight with its inputs scattered); [logged apogees from real flights](decisions-and-roadmap.md#m2-3c1); [release builds and named fixes](decisions-and-roadmap.md#m10-1) | nothing: it came out on 2026-10-08 ([How a release is built](releasing.md)) |
-| 0.2 the flight analyzer | [flight-log importers](decisions-and-roadmap.md#m7-1); [readings and smoothing](decisions-and-roadmap.md#m7-2); [a flight against its simulation](decisions-and-roadmap.md#m7-3) | Neer publishing it |
-| 0.3 accuracy and diagnosis | the accuracy campaign from [Mach](glossary.md#mach-number) 0 to 2.5 ([M1.14b to M1.14g and M1.14i](decisions-and-roadmap.md#m1-14)); [logged traces](decisions-and-roadmap.md#m2-3c2); [fault diagnosis](decisions-and-roadmap.md#m7-4) | Neer publishing it |
-| 0.4 the competition kit | [optimizing a Monte Carlo result](decisions-and-roadmap.md#m6-2e); [challenge presets](decisions-and-roadmap.md#m6-3); [airbrakes](decisions-and-roadmap.md#m6-4); [submission packs](decisions-and-roadmap.md#m6-6); [ejection charges](decisions-and-roadmap.md#m6-7); [RASAero](decisions-and-roadmap.md#m3-5) and [RocketPy](decisions-and-roadmap.md#m3-6) files | Neer publishing it |
-| 0.5 the app preview | [C and WebAssembly bindings](decisions-and-roadmap.md#m4-4); [the user-interface choice](decisions-and-roadmap.md#m9-0); [3D replay of a real flight beside its simulated ghost](decisions-and-roadmap.md#m9-2) | Neer seeing it, then publishing it |
-| 1.0 the app | [the desktop editor](decisions-and-roadmap.md#m9-1); [the web app that works offline](decisions-and-roadmap.md#m9-3); [the design assistant](decisions-and-roadmap.md#m8-1); [undo and edits](decisions-and-roadmap.md#m8-2); [RockSim files](decisions-and-roadmap.md#m3-4) | Neer seeing it, then publishing it |
+| 0.2 the flight analyzer | [flight-log importers](decisions-and-roadmap.md#m7-1); [readings and smoothing](decisions-and-roadmap.md#m7-2); [a flight against its simulation](decisions-and-roadmap.md#m7-3): residuals, the log drawn beside its simulation, and drag fitted from the log on the command line and in Python, its intervals passing their test again; [a spread beside each flight's apogee](decisions-and-roadmap.md#m2-8) | its emulated flyers' pass, then Neer publishing it |
+| 0.3 accuracy and diagnosis | the accuracy campaign from [Mach](glossary.md#mach-number) 0 to 2.5 ([M1.14b to M1.14g and M1.14i](decisions-and-roadmap.md#m1-14)); [logged traces](decisions-and-roadmap.md#m2-3c2); [the fit's second, Bayesian interval](physics/flight-fit.md#the-bayesian-option); [fault diagnosis](decisions-and-roadmap.md#m7-4) | its emulated flyers' pass, then Neer publishing it |
+| 0.4 the competition kit | [optimizing a Monte Carlo result](decisions-and-roadmap.md#m6-2e); [challenge presets](decisions-and-roadmap.md#m6-3); [airbrakes](decisions-and-roadmap.md#m6-4); [submission packs](decisions-and-roadmap.md#m6-6); [ejection charges](decisions-and-roadmap.md#m6-7); [RASAero](decisions-and-roadmap.md#m3-5) and [RocketPy](decisions-and-roadmap.md#m3-6) files | its emulated flyers' pass, then Neer publishing it |
+| 0.5 the app preview | [C and WebAssembly bindings](decisions-and-roadmap.md#m4-4); [the user-interface choice](decisions-and-roadmap.md#m9-0); [3D replay of a real flight beside its simulated ghost](decisions-and-roadmap.md#m9-2) | its acceptance pass and its emulated flyers' study, then Neer publishing it |
+| 1.0 the app | [the desktop editor](decisions-and-roadmap.md#m9-1); [the web app that works offline](decisions-and-roadmap.md#m9-3); [the design assistant](decisions-and-roadmap.md#m8-1); [undo and edits](decisions-and-roadmap.md#m8-2); [RockSim files](decisions-and-roadmap.md#m3-4) | its acceptance pass and its emulated flyers' pass, then Neer publishing it |
 | after 1.0 | canards, CAD files, phone apps, accounts, the extended Mach band, motor, parachute and avionics design | see below |
 
 A release is out when Neer publishes it. For 0.5 and 1.0 it also takes the project's own acceptance
-pass, and any changes that pass turns up.
+pass, and any changes that pass turns up. No release waits on outside users. From 0.2 on, each has
+an emulated flyers' pass instead: three written personas from public sources, each played by a
+reviewer who didn't build the release, try its tasks from its files and guide alone. Two or three
+defects planted in a copy measure how much they catch, and a pass that catches none doesn't count.
+Release 0.5 has a larger study: at least twelve emulated flyers and eight to ten planted
+defects. No pass has run yet. Emulated flyers are assumed to be more patient than people and to
+agree with each other more, so a pass shows whether a careful newcomer can finish the tasks, not
+whether flyers want the tool ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
 
 ## How feasible each goal is
 
