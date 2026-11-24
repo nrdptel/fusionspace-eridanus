@@ -372,69 +372,8 @@ pub const BAND_CONFIDENCE: f64 = 0.999;
 /// The miss share each side of a 90% interval allows.
 pub const MISS_SHARE: f64 = 0.05;
 
-/// `ln k!`.
-fn ln_factorial(k: u64) -> f64 {
-    (2..=k).map(|i| (i as f64).ln()).sum()
-}
-
-/// `P(X ≥ x)` for `X ~ Binomial(n, p)`.
-fn upper_tail(x: u64, n: u64, p: f64) -> f64 {
-    if x == 0 {
-        return 1.0;
-    }
-    if p <= 0.0 {
-        return 0.0;
-    }
-    if p >= 1.0 {
-        return 1.0;
-    }
-    let ln_n = ln_factorial(n);
-    let (lp, lq) = (p.ln(), (1.0 - p).ln());
-    let mut ln_k = 0.0;
-    let mut below = 0.0;
-    for k in 0..x {
-        if k > 0 {
-            ln_k += (k as f64).ln();
-        }
-        let ln_choose = ln_n - ln_k - ln_factorial(n - k);
-        below += (ln_choose + k as f64 * lp + (n - k) as f64 * lq).exp();
-    }
-    (1.0 - below).max(0.0)
-}
-
-/// The lower edge of the two-sided Clopper–Pearson interval on a binomial share, at `confidence`:
-/// the `p` at which `P(X ≥ x) = (1 − confidence)/2`, by bisection; 0 when `x` is 0 (C. J. Clopper
-/// and E. S. Pearson, *Biometrika* 26(4), 404–413, 1934). NaN, which no cell holds on, when `x`
-/// exceeds `n` or `confidence` isn't strictly between 0 and 1.
-pub fn clopper_pearson_lower(x: u64, n: u64, confidence: f64) -> f64 {
-    if x > n || !(confidence > 0.0 && confidence < 1.0) {
-        return f64::NAN;
-    }
-    if x == 0 {
-        return 0.0;
-    }
-    let target = 0.5 * (1.0 - confidence);
-    let (mut lo, mut hi) = (0.0_f64, x as f64 / n as f64);
-    for _ in 0..200 {
-        let mid = 0.5 * (lo + hi);
-        if upper_tail(x, n, mid) < target {
-            lo = mid;
-        } else {
-            hi = mid;
-        }
-    }
-    0.5 * (lo + hi)
-}
-
-/// The upper edge of the two-sided Clopper–Pearson interval on a binomial share at `confidence`,
-/// `1 −` the lower edge of the share of the other outcome; 1 when `x` is `n`. NaN where
-/// [`clopper_pearson_lower`] is.
-pub fn clopper_pearson_upper(x: u64, n: u64, confidence: f64) -> f64 {
-    if x > n {
-        return f64::NAN;
-    }
-    1.0 - clopper_pearson_lower(n - x, n, confidence)
-}
+/// The Clopper–Pearson edges, from `hpr-analysis`, where `hpr mc`'s shares take them too.
+pub use hpr_analysis::statistics::{clopper_pearson_lower, clopper_pearson_upper};
 
 fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
     let flights = compared.len() as u64;

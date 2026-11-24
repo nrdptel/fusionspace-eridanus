@@ -16,13 +16,13 @@ use std::time::{Duration, Instant};
 
 use hpr::hpr_analysis::ellipse::{Ellipse, Scatter};
 use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo, Outcome, Run, Sample};
-use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution};
+use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution, Share};
 use hpr::hpr_analysis::table::RunTable;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::output::{
-    EllipseKind, Export, ExportFormat, McCountedQuantile, McDispersion, McEllipse, McExportMeta,
-    McFailed, McFailedAt, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
+    EllipseKind, Export, ExportFormat, FlagKind, McCountedQuantile, McDispersion, McEllipse,
+    McExportMeta, McFailed, McFailedAt, McFailure, McFlag, McLanding, McNominal, McRun, McSpread,
 };
 use crate::sim::{self, FlightArgs, Setup};
 use crate::{Failure, Out};
@@ -291,7 +291,8 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         opening_shock_m_s2: spread(&shock),
         deployment_airspeed_m_s: spread(&opening),
         landing,
-        flags: flags(&run),
+        flags: flags(&run, true),
+        unraised_flags: flags(&run, false),
         issues: sim::issues(&nominal),
         export: written,
         notes: read.notes,
@@ -436,6 +437,7 @@ fn spread(distribution: &Distribution) -> McSpread {
         max: summary.max,
         p05_counting_missing: summary.p05_counting_missing.map(bound),
         p95_counting_missing: summary.p95_counting_missing.map(bound),
+        upper_95_95: distribution.upper_95_95().map(bound),
     }
 }
 
@@ -480,21 +482,36 @@ fn ellipse_out(kind: EllipseKind, ellipse: &Ellipse, scatter: &Scatter) -> McEll
         semi_minor_m: ellipse.semi_minor_m,
         major_heading_deg: ellipse.major_heading_rad.to_degrees(),
         inside: scatter.share_inside(ellipse).map_or(0.0, |share| share.low),
+        inside_at_least: scatter
+            .share_inside(ellipse)
+            .map_or(0.0, |share| share.low_bound),
     }
 }
 
-/// Each envelope flag the flown samples raise, in the flags' order, with how many raise it.
-fn flags(run: &Run) -> Vec<McFlag> {
-    let mut flags: Vec<McFlag> = Vec::new();
+/// Each envelope flag the flown samples raise (`raised`), or each that none raises, in the flags'
+/// order, with how many raise it, the failed flights that may have, and the share's one-sided 95%
+/// upper bound with every failed flight counted as raising it (issue 1260).
+fn flags(run: &Run, raised: bool) -> Vec<McFlag> {
+    let mut counts = [0_usize; FlagKind::ALL.len()];
     for summary in run.samples.iter().filter_map(|sample| sample.summary()) {
         for flag in summary.envelope_flags() {
             let flag = sim::flag_kind(&flag);
-            match flags.iter_mut().find(|counted| counted.flag == flag) {
-                Some(counted) => counted.flights += 1,
-                None => flags.push(McFlag { flag, flights: 1 }),
+            if let Some(at) = FlagKind::ALL.iter().position(|each| *each == flag) {
+                counts[at] += 1;
             }
         }
     }
-    flags.sort_by_key(|counted| counted.flag as u8);
-    flags
+    let failed = run.failed().count();
+    let tried = run.samples.len();
+    FlagKind::ALL
+        .iter()
+        .zip(counts)
+        .filter(|(_, flights)| (*flights > 0) == raised)
+        .map(|(&flag, flights)| McFlag {
+            flag,
+            flights,
+            failed,
+            up_to: Share::of(flights, failed, tried).map_or(1.0, |share| share.high_bound),
+        })
+        .collect()
 }

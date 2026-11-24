@@ -18,7 +18,9 @@ use crate::sim_text::{
     design_lines, flag_help, flag_prefix, issue_help, issue_text, launch_lines, motor_lines,
     note_lines,
 };
-use crate::units::{FOOT_M, STANDARD_GRAVITY_M_S2, bearing, fixed, meters};
+use crate::units::{
+    FOOT_M, STANDARD_GRAVITY_M_S2, bearing, fixed, meters, meters_bound, rounded_down, rounded_up,
+};
 
 /// The width of a landing ellipse's label in its table.
 const NAME: usize = 22;
@@ -52,6 +54,7 @@ pub(crate) fn print(
         row(out, figure)?;
     }
     counting_missing(run, &figures, out)?;
+    upper_95_95(run, out)?;
     writeln!(out)?;
     landing(run, out)?;
     writeln!(out)?;
@@ -84,17 +87,26 @@ pub(crate) fn print(
         )?;
     }
     for flag in &run.flags {
+        let failed = match flag.failed {
+            0 => String::new(),
+            failed => format!(
+                ", or {} counting the {failed} that failed",
+                flag.flights + failed
+            ),
+        };
         diagnostics.line(
             Level::Warning,
             &format!(
-                "{}: {} in {} of {} flights",
+                "{}: {} in {} of {} flights{failed}; up to {} at 95%",
                 flag_prefix(flag.flag),
                 flag_words(flag.flag),
                 flag.flights,
-                run.runs
+                run.runs,
+                percent_up(flag.up_to)
             ),
         )?;
     }
+    unraised(run, out)?;
     let kinds: Vec<FlagKind> = run.flags.iter().map(|flag| flag.flag).collect();
     flag_help(&kinds, diagnostics)?;
     for issue in &run.issues {
@@ -302,16 +314,98 @@ fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
             EllipseKind::Scatter => format!("{:.0}%", 100.0 * ellipse.level),
             EllipseKind::NextFlight => format!("{:.0}%, the next flight", 100.0 * ellipse.level),
         };
+        let inside = format!(
+            "{:.1}% (≥ {})",
+            100.0 * ellipse.inside,
+            percent_down(ellipse.inside_at_least)
+        );
         writeln!(
             out,
-            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>16.1}%",
+            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{inside:>17}",
             meters(ellipse.semi_major_m),
             meters(ellipse.semi_minor_m),
             bearing(ellipse.major_heading_deg, 0),
-            100.0 * ellipse.inside
         )?;
     }
+    for line in crate::trust::wrap(
+        "(≥ …) is the share's lower bound at 95%, of all the flights this scatter could give, a \
+         failed flight counted outside",
+        96,
+    ) {
+        writeln!(out, "{line}")?;
+    }
     Ok(())
+}
+
+/// The flags no flight raised, each with its upper bound at 95%: a run that raises none still
+/// allows a few percent, and a failed flight may have raised any of them (#1260).
+fn unraised(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
+    let Some(first) = run.unraised_flags.first() else {
+        return Ok(());
+    };
+    let names: Vec<&str> = run
+        .unraised_flags
+        .iter()
+        .map(|flag| flag_words(flag.flag))
+        .collect();
+    let failed = match first.failed {
+        0 => String::new(),
+        1 => ", counting the 1 that failed".to_owned(),
+        failed => format!(", counting the {failed} that failed"),
+    };
+    let said = format!(
+        "no flight raised these flags; each could still be up to {} of flights at 95%{failed}: {}",
+        percent_up(first.up_to),
+        names.join("; ")
+    );
+    for line in crate::trust::wrap(&said, 96) {
+        writeln!(out, "{line}")?;
+    }
+    Ok(())
+}
+
+/// The apogee's and the landing distance's 95/95 upper bounds (Wilks), beside the 95% column,
+/// which is a sample percentile: the figures for a waiver's ceiling or a field's edge (#1260).
+fn upper_95_95(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
+    let bound = |spread: &McSpread| match spread.upper_95_95 {
+        Some(McCountedQuantile::Value(value)) => meters_bound(value),
+        Some(McCountedQuantile::Unbounded) => "unbounded, too many flights failed".to_owned(),
+        None => "none, it takes 59 flights".to_owned(),
+    };
+    let said = format!(
+        "95/95 upper bounds (at least 95% of flights below, at 95% confidence; a failed flight \
+         counted above): apogee {}; landing distance {}",
+        bound(&run.apogee_m),
+        bound(&run.landing_distance_m)
+    );
+    for line in crate::trust::wrap(&said, 96) {
+        writeln!(out, "{line}")?;
+    }
+    Ok(())
+}
+
+/// A share as a percentage rounded up, for an upper bound: to a tenth from 1%, and to two
+/// significant figures below it, so that a small bound isn't printed as zero.
+fn percent_up(share: f64) -> String {
+    let percent = 100.0 * share;
+    if percent <= 0.0 {
+        return "0%".to_owned();
+    }
+    let decimals = if percent >= 1.0 {
+        1
+    } else {
+        // Two significant figures: 0.0030% at 100,000 flights.
+        1 - percent.log10().floor() as i32
+    };
+    format!(
+        "{}%",
+        fixed(rounded_up(percent, decimals), decimals.max(0) as usize)
+    )
+}
+
+/// A share as a percentage rounded down to a tenth, for a lower bound.
+fn percent_down(share: f64) -> String {
+    format!("{}%", fixed(rounded_down(100.0 * share, 1), 1))
 }
 
 /// The options that scattered an input, with their values, as given.

@@ -654,6 +654,9 @@ pub struct McRun {
     pub landing: McLanding,
     /// The operating envelope's flags the flights raise, each with how many raised it.
     pub flags: Vec<McFlag>,
+    /// The flags no flight that flew raised, each with its upper bound: a run of 100 that
+    /// raises none still allows up to 2.95%, and a failed flight may have raised any of them.
+    pub unraised_flags: Vec<McFlag>,
     /// The known errors in HPR Sim's drag or stability that the nominal flight meets.
     pub issues: Vec<SimIssue>,
     /// The `--export` file of every flight's draw and outcome, if one was written.
@@ -772,6 +775,13 @@ pub struct McSpread {
     /// The 95th percentile of every flight tried, each flight with no value placed above the
     /// largest: the highest it can be. `null` when every flight tried has a value.
     pub p95_counting_missing: Option<McCountedQuantile>,
+    /// Wilks's one-sided 95/95 upper tolerance bound: with 95% confidence, at least 95% of all
+    /// the flights the same scatter could give lie at or below it
+    /// (`hpr_analysis::statistics::Distribution::upper_95_95`). The second largest of 100
+    /// flights, each flight with no value placed above the largest; `null` with fewer than 59
+    /// flights tried. The 95% column is a sample percentile, which lies below the true one about
+    /// half the time.
+    pub upper_95_95: Option<McCountedQuantile>,
 }
 
 /// A percentile that counts the flights with no value as past one end
@@ -821,6 +831,10 @@ pub struct McEllipse {
     pub major_heading_deg: f64,
     /// The share of the flights tried that landed inside it, a failed flight counted outside.
     pub inside: f64,
+    /// The share of all the flights the same scatter could give that land inside it is at least
+    /// this, with 95% confidence: the one-sided Clopper–Pearson lower bound, a failed flight
+    /// counted outside.
+    pub inside_at_least: f64,
 }
 
 /// What an ellipse about a run's landings holds.
@@ -834,13 +848,20 @@ pub enum EllipseKind {
     NextFlight,
 }
 
-/// An envelope flag the flights of a run raise.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+/// An envelope flag and the flights of a run that raise it.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
 pub struct McFlag {
     /// Which flag.
     pub flag: FlagKind,
-    /// How many flights raise it.
+    /// How many flights that flew to the ground raise it.
     pub flights: usize,
+    /// How many flights failed: each may have raised it before it failed, so the run supports
+    /// anything from `flights` to `flights + failed`.
+    pub failed: usize,
+    /// The share of all the flights the same scatter could give that raise it is at most this,
+    /// with 95% confidence: the one-sided Clopper–Pearson upper bound on `flights + failed` of
+    /// the flights tried. With none of 100 it is 2.95%, not zero.
+    pub up_to: f64,
 }
 
 /// The sidecar `hpr mc --export` writes beside its CSV, `runs.meta.json` for `runs.csv`: the
@@ -956,6 +977,18 @@ pub enum FlagKind {
     OutsideCoreBand,
     /// Past Mach 3.5, the envelope's top.
     BeyondEnvelope,
+}
+
+impl FlagKind {
+    /// Every flag, in the order the output lists them.
+    pub const ALL: [Self; 6] = [
+        Self::UnstableUnderPower,
+        Self::UnstableWithoutMargin,
+        Self::BeyondValidatedRange,
+        Self::HighAngleOfAttack,
+        Self::OutsideCoreBand,
+        Self::BeyondEnvelope,
+    ];
 }
 
 /// The design flown.

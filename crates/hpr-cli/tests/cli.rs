@@ -9001,3 +9001,97 @@ fn the_delay_band_gives_no_speed_the_held_flight_doesnt_predict() {
         "{printed}"
     );
 }
+
+#[test]
+fn mc_bounds_its_flags_and_shares() {
+    // Issue 1260: the synthetic two-stage rocket passes the validated range on every flight. Four
+    // of four raise it, so its share is at most 100% at 95%; the five flags none raised are
+    // each at most 1 − 0.05^(1/4) = 52.71% (the one-sided Clopper–Pearson bound on none of
+    // four), not zero, and a run this short has no 95/95 bound: it takes 59 flights.
+    let path = repo_file("validation/designs/synthetic-two-stage-75mm-54mm.json");
+    let args = [
+        "mc",
+        path.as_str(),
+        "--offline",
+        "--runs",
+        "4",
+        "--seed",
+        "1",
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    let flags = document["flags"].as_array().unwrap();
+    assert_eq!(flags.len(), 1, "{flags:?}");
+    assert_eq!(flags[0]["flag"], "beyond_validated_range");
+    assert_eq!(
+        (flags[0]["flights"].as_u64(), flags[0]["failed"].as_u64()),
+        (Some(4), Some(0))
+    );
+    assert_eq!(flags[0]["up_to"].as_f64(), Some(1.0));
+    let unraised = document["unraised_flags"].as_array().unwrap();
+    assert_eq!(unraised.len(), 5, "{unraised:?}");
+    for flag in unraised {
+        assert_eq!(flag["flights"].as_u64(), Some(0), "{flag}");
+        let up_to = flag["up_to"].as_f64().unwrap();
+        assert!((up_to - 0.527_129_195_498_412_09).abs() < 1e-12, "{flag}");
+    }
+    assert_eq!(document["apogee_m"]["upper_95_95"], Value::Null);
+    let shown = streams(&[&args[..], &["--color", "never"]].concat());
+    assert!(
+        shown
+            .err
+            .contains("in 4 of 4 flights; up to 100.0% at 95%\n"),
+        "{}",
+        shown.err
+    );
+    let out = shown.out.replace('\n', " ");
+    assert!(
+        out.contains(
+            "no flight raised these flags; each could still be up to 52.8% of flights at 95%:"
+        ),
+        "{out}"
+    );
+    assert!(out.contains("apogee none, it takes 59 flights"), "{out}");
+
+    // Two of 100 flights fail on a mass scattered below zero. Every flag's bound counts them as
+    // raising it: none raised and two failed is at most 6.1619%, the bound on two of 100. The
+    // 95/95 bound is the second largest of the 100, so with two flights above every value it is
+    // unbounded.
+    let pods = repo_file("validation/fixtures/ork/pod-flights/pods-none.ork");
+    let args = [
+        "mc",
+        pods.as_str(),
+        "--motor",
+        "H54",
+        "--runs",
+        "100",
+        "--mass-sd",
+        "0.45",
+    ];
+    let document = json(&args, 0, "mc.schema.json");
+    assert_eq!(document["failed"]["count"].as_u64(), Some(2));
+    let unraised = document["unraised_flags"].as_array().unwrap();
+    assert_eq!(unraised.len(), 6, "{unraised:?}");
+    let up_to = unraised[0]["up_to"].as_f64().unwrap();
+    assert!((up_to - 0.061_619_200_396_040_708).abs() < 1e-12, "{up_to}");
+    assert_eq!(unraised[0]["failed"].as_u64(), Some(2));
+    assert_eq!(document["apogee_m"]["upper_95_95"], "unbounded");
+    let ellipse = &document["landing"]["ellipses"][1];
+    let (inside, at_least) = (
+        ellipse["inside"].as_f64().unwrap(),
+        ellipse["inside_at_least"].as_f64().unwrap(),
+    );
+    assert!(at_least < inside, "{ellipse}");
+    let out = streams(&[&args[..], &["--color", "never"]].concat())
+        .out
+        .replace('\n', " ");
+    assert!(
+        out.contains(
+            "each could still be up to 6.2% of flights at 95%, counting the 2 that failed"
+        ),
+        "{out}"
+    );
+    assert!(
+        out.contains("apogee unbounded, too many flights failed;"),
+        "{out}"
+    );
+}

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1067" viewBox="0 0 760 1067" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1195" viewBox="0 0 760 1195" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">What `hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03` prints, as a terminal shows it</title>
 <desc id="desc">The command line, then each line it printed, long lines wrapped; balloons A, B, C mark the lines the page explains. Drawn by cargo xtask cli from the same run as the page&apos;s text.</desc>
-<rect width="760" height="1067" fill="#F3F4F7"/>
-<rect x="40" y="16" width="712" height="1035" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
+<rect width="760" height="1195" fill="#F3F4F7"/>
+<rect x="40" y="16" width="712" height="1163" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
 <text x="52" y="39" xml:space="preserve" font-weight="600" fill="#0B0F1C">$ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02</text>
 <text x="52" y="55" xml:space="preserve" font-weight="600" fill="#0B0F1C">    --drag-sd 0.05 --impulse-sd 0.03</text>
 <text x="52" y="71" xml:space="preserve" fill="#0B0F1C">Level 1 guide rocket (level-1.ork)</text>
@@ -18,51 +18,59 @@
 <text x="52" y="247" xml:space="preserve" fill="#0B0F1C">opening shock (g)             1.2      1.5      0.9      1.0      1.0      3.5</text>
 <text x="52" y="263" xml:space="preserve" fill="#0B0F1C">opening airspeed (m/s)        5.1      4.7      2.4      0.8      4.6      8.8</text>
 <text x="52" y="279" xml:space="preserve" fill="#0B0F1C">opening airspeed (ft/s)        17       15        8        3       15       29</text>
-<text x="52" y="311" xml:space="preserve" fill="#0B0F1C">200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad</text>
-<text x="52" y="327" xml:space="preserve" fill="#0B0F1C">landing ellipse                   semi-major            semi-minor  heading   flights inside</text>
-<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T            74.5%</text>
-<text x="52" y="359" xml:space="preserve" fill="#0B0F1C">95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.0%</text>
-<text x="52" y="375" xml:space="preserve" fill="#0B0F1C">95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.5%</text>
-<text x="52" y="407" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
-<text x="52" y="423" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical</text>
-<text x="52" y="439" xml:space="preserve" fill="#0B0F1C">    rail above its aft end, in calm air</text>
-<text x="52" y="455" xml:space="preserve" fill="#0B0F1C">scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03</text>
-<text x="52" y="471" xml:space="preserve" fill="#0B0F1C">note: the file&apos;s 1 recovery device flies as OpenRocket flies it. Each opens fully at its event,</text>
-<text x="52" y="487" xml:space="preserve" fill="#0B0F1C">    with the file&apos;s drag coefficient or OpenRocket&apos;s own. Once one opens, the rocket descends as a</text>
-<text x="52" y="503" xml:space="preserve" fill="#0B0F1C">    point under the open devices&apos; drag alone</text>
-<text x="52" y="519" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #67: a cone-like nose&apos;s or shoulder&apos;s pressure drag reads</text>
-<text x="52" y="535" xml:space="preserve" fill="#0B0F1C">    high from Mach 0.8 (about twice a measured cone&apos;s at Mach 0.85, still +15% at 1.5). So the</text>
-<text x="52" y="551" xml:space="preserve" fill="#0B0F1C">    apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look</text>
-<text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    better than they are. This flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225</text>
-<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">    against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the</text>
-<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">    flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach</text>
-<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    0.84 at 1.7 s</text>
-<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a</text>
-<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy&apos;s Calisto at Mach</text>
-<text x="52" y="679" xml:space="preserve" fill="#0B0F1C">    0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter</text>
-<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">    margin and largest dynamic pressure look better than they are</text>
-<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers</text>
-<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    above OpenRocket&apos;s on four private designs, cause unknown; this flight&apos;s may read high by as</text>
-<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">    much</text>
-<text x="52" y="759" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1290: on one of two wind-tunnel models, the center</text>
-<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">    of pressure sat 0.11 to 0.92 calibers aft of the tunnel&apos;s at Mach 0.6 and 0.8, as the report&apos;s</text>
-<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">    curve reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may</text>
-<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">    read high. This flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="823" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: the center of pressure sat 0.67 to 1.35</text>
-<text x="52" y="839" xml:space="preserve" fill="#0B0F1C">    calibers aft of a wind tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin</text>
-<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">    may read high. This flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
-<text x="52" y="903" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
-<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
-<text x="52" y="935" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in its day&apos;s air from</text>
-<text x="52" y="951" xml:space="preserve" fill="#0B0F1C">ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee</text>
-<text x="52" y="967" xml:space="preserve" fill="#0B0F1C">was within 10% on 31 and read low on 15, by at most 20%. These flights were flown in the standard</text>
-<text x="52" y="983" xml:space="preserve" fill="#0B0F1C">atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;</text>
-<text x="52" y="999" xml:space="preserve" fill="#0B0F1C">--weather flies the day&apos;s air. Plan a waiver or a field&apos;s ceiling with room above this apogee; the</text>
-<text x="52" y="1015" xml:space="preserve" fill="#0B0F1C">altimeter&apos;s reading is the one to log, and the RSO decides.</text>
-<text x="52" y="1031" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="52" y="295" xml:space="preserve" fill="#0B0F1C">95/95 upper bounds (at least 95% of flights below, at 95% confidence; a failed flight counted</text>
+<text x="52" y="311" xml:space="preserve" fill="#0B0F1C">above): apogee 1155.2 m (3790 ft); landing distance 0.9 m (3 ft)</text>
+<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">200 of 200 flights landed, centered 0.7 m (2 ft) west and 0.0 m (0 ft) north of the pad</text>
+<text x="52" y="359" xml:space="preserve" fill="#0B0F1C">landing ellipse                   semi-major            semi-minor  heading   flights inside</text>
+<text x="52" y="375" xml:space="preserve" fill="#0B0F1C">50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T  74.5% (≥ 68.9%)</text>
+<text x="52" y="391" xml:space="preserve" fill="#0B0F1C">95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T  98.0% (≥ 95.4%)</text>
+<text x="52" y="407" xml:space="preserve" fill="#0B0F1C">95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T  98.5% (≥ 96.1%)</text>
+<text x="52" y="423" xml:space="preserve" fill="#0B0F1C">(≥ …) is the share&apos;s lower bound at 95%, of all the flights this scatter could give, a failed</text>
+<text x="52" y="439" xml:space="preserve" fill="#0B0F1C">flight counted outside</text>
+<text x="52" y="471" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
+<text x="52" y="487" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical</text>
+<text x="52" y="503" xml:space="preserve" fill="#0B0F1C">    rail above its aft end, in calm air</text>
+<text x="52" y="519" xml:space="preserve" fill="#0B0F1C">scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03</text>
+<text x="52" y="535" xml:space="preserve" fill="#0B0F1C">note: the file&apos;s 1 recovery device flies as OpenRocket flies it. Each opens fully at its event,</text>
+<text x="52" y="551" xml:space="preserve" fill="#0B0F1C">    with the file&apos;s drag coefficient or OpenRocket&apos;s own. Once one opens, the rocket descends as a</text>
+<text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    point under the open devices&apos; drag alone</text>
+<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">no flight raised these flags; each could still be up to 1.5% of flights at 95%: a static margin</text>
+<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">below zero under power; a pitching moment that turns it away under power, with no margin; faster</text>
+<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">than any public flight HPR Sim has been checked against; above 15° angle of attack after the</text>
+<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">rail; past Mach 2.5, the core band&apos;s top; past Mach 3.5, the envelope&apos;s top</text>
+<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #67: a cone-like nose&apos;s or shoulder&apos;s pressure drag reads</text>
+<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    high from Mach 0.8 (about twice a measured cone&apos;s at Mach 0.85, still +15% at 1.5). So the</text>
+<text x="52" y="679" xml:space="preserve" fill="#0B0F1C">    apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look</text>
+<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">    better than they are. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225</text>
+<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the</text>
+<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">    flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach</text>
+<text x="52" y="759" xml:space="preserve" fill="#0B0F1C">    0.84 at 1.7 s</text>
+<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a</text>
+<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">    smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy&apos;s Calisto at Mach</text>
+<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">    0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter</text>
+<text x="52" y="823" xml:space="preserve" fill="#0B0F1C">    margin and largest dynamic pressure look better than they are</text>
+<text x="52" y="839" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers</text>
+<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">    above OpenRocket&apos;s on four private designs, cause unknown; this flight&apos;s may read high by as</text>
+<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">    much</text>
+<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1290: on one of two wind-tunnel models, the center</text>
+<text x="52" y="903" xml:space="preserve" fill="#0B0F1C">    of pressure sat 0.11 to 0.92 calibers aft of the tunnel&apos;s at Mach 0.6 and 0.8, as the report&apos;s</text>
+<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">    curve reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may</text>
+<text x="52" y="935" xml:space="preserve" fill="#0B0F1C">    read high. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="951" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: the center of pressure sat 0.67 to 1.35</text>
+<text x="52" y="967" xml:space="preserve" fill="#0B0F1C">    calibers aft of a wind tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin</text>
+<text x="52" y="983" xml:space="preserve" fill="#0B0F1C">    may read high. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="999" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
+<text x="52" y="1031" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
+<text x="52" y="1047" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
+<text x="52" y="1063" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 8.0% above the logged one. HPR Sim flew each in its day&apos;s air from</text>
+<text x="52" y="1079" xml:space="preserve" fill="#0B0F1C">ERA5, a weather reanalysis, and each logged apogee is the height climbed in it. The simulated apogee</text>
+<text x="52" y="1095" xml:space="preserve" fill="#0B0F1C">was within 10% on 31 and read low on 15, by at most 20%. These flights were flown in the standard</text>
+<text x="52" y="1111" xml:space="preserve" fill="#0B0F1C">atmosphere. On a day warmer than it at the site, the rocket can climb higher than this apogee;</text>
+<text x="52" y="1127" xml:space="preserve" fill="#0B0F1C">--weather flies the day&apos;s air. Plan a waiver or a field&apos;s ceiling with room above this apogee; the</text>
+<text x="52" y="1143" xml:space="preserve" fill="#0B0F1C">altimeter&apos;s reading is the one to log, and the RSO decides.</text>
+<text x="52" y="1159" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
 <line x1="27" y1="163.3" x2="40" y2="163.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="163.3" r="9" fill="#0B0F1C"/><text x="18" y="167.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">A</text>
-<line x1="27" y1="323.3" x2="40" y2="323.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="323.3" r="9" fill="#0B0F1C"/><text x="18" y="327.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">B</text>
-<line x1="27" y1="899.3" x2="40" y2="899.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="899.3" r="9" fill="#0B0F1C"/><text x="18" y="903.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">C</text>
+<line x1="27" y1="355.3" x2="40" y2="355.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="355.3" r="9" fill="#0B0F1C"/><text x="18" y="359.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">B</text>
+<line x1="27" y1="1027.3" x2="40" y2="1027.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="1027.3" r="9" fill="#0B0F1C"/><text x="18" y="1031.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">C</text>
 </svg>

@@ -17,7 +17,7 @@
 use std::error::Error;
 
 use hpr::hpr_analysis::montecarlo::{Dispersion, MonteCarlo};
-use hpr::hpr_analysis::statistics::Distribution;
+use hpr::hpr_analysis::statistics::{CountedQuantile, Distribution};
 use hpr::rocket::{Fins, Mass, MotorTube, Nose, Tube, material};
 use hpr::{
     CanopyType, Device, DeviceDrag, Environment, FinCrossSection, FinPlanform, Flight, Motor,
@@ -133,6 +133,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     )?;
     let east = run.distribution(|flight| flight.landing.as_ref().map(|l| l.east_m))?;
     row("landing east (m)", nominal_landing.east_m, &east)?;
+    // The 95% column is the sample's own percentile. For a waiver's ceiling or a field's edge,
+    // the 95/95 bound: with 95% confidence, 95% of all such flights lie below it (Wilks).
+    let bound = |spread: &Distribution| match spread.upper_95_95() {
+        // Rounded up, as a bound is.
+        Some(CountedQuantile::Value(value)) => format!("{:.0} m", value.ceil()),
+        Some(CountedQuantile::Unbounded) => "unbounded".to_owned(),
+        None => "none (it takes 59 flights)".to_owned(),
+    };
+    println!(
+        "95/95 upper bounds: apogee {}, landing distance {}",
+        bound(&apogee),
+        bound(&distance)
+    );
     println!();
     // The landings as ellipses: each holds a share of them if they spread normally. The last row
     // allows for 200 flights giving only an estimate of the spread: a new flight lands inside it
@@ -148,7 +161,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Landing ellipses, centered {:.0} m east and {north:.0} m {north_or_south} of the pad:",
         center[0]
     );
-    println!("                       semi-major  semi-minor  heading  landings inside");
+    println!("                       semi-major  semi-minor  heading  landings inside  at least");
     for (name, ellipse) in [
         ("50%", landing.ellipse(0.5)?),
         ("95%", landing.ellipse(0.95)?),
@@ -157,16 +170,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         let ellipse = ellipse.ok_or("too few landings")?;
         let inside = landing.share_inside(&ellipse).ok_or("no flights")?;
         println!(
-            "{name:<21} {:>9.0} m {:>9.0} m {:>7.0}° {:>15.1}%",
+            "{name:<21} {:>9.0} m {:>9.0} m {:>7.0}° {:>15.1}% {:>8.1}%",
             ellipse.semi_major_m,
             ellipse.semi_minor_m,
             ellipse.major_heading_rad.to_degrees(),
-            100.0 * inside.low
+            100.0 * inside.low,
+            // A lower bound, rounded down to a tenth of a percent.
+            (1000.0 * inside.low_bound).floor() / 10.0
         );
     }
     println!();
     let share = apogee.share_at_least(1100.0)?.ok_or("no flights")?;
-    println!("Reached 1,100 m: {:.1}% of the flights", 100.0 * share.low);
+    println!(
+        "Reached 1,100 m: {:.1}% of the flights\n  of all such flights, at least {:.1}% and at \
+         most {:.1}%, each at 95%",
+        100.0 * share.low,
+        // Each bound rounded outward to a tenth of a percent.
+        (1000.0 * share.low_bound).floor() / 10.0,
+        (1000.0 * share.high_bound).ceil() / 10.0
+    );
     // Why the mean apogee isn't the nominal one: the nominal flight with 5% less and 5% more
     // drag.
     let height = |drag_scale: f64| -> Result<f64, Box<dyn Error>> {
