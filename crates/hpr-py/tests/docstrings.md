@@ -459,6 +459,12 @@ missing flights allow. They are `-inf` and `inf` when too many have no value for
 to bound them, and `None` when every flight has one. NumPy's `nanpercentile` drops the
 missing flights instead, so it reads each tail short if they would have fallen beyond it.
 
+`upper_95_95` is Wilks's one-sided 95/95 upper tolerance bound: at 95% confidence, at least
+95% of the flights this scatter could give lie at or below it. It is one of the run's largest
+values, the largest at 59 to 92 flights and the second largest at 93 to 123. A flight with
+no value counts as above it, so it is `inf` when too many have none, and `None` under 59
+flights, the fewest that give the bound.
+
 ### `MonteCarlo.to_csv`
 
 The table as CSV text, the bytes `hpr mc --export` writes for the same run. A header gives

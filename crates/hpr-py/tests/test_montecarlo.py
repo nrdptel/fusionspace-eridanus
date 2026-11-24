@@ -157,9 +157,14 @@ def test_a_spread_is_hpr_mcs_failed_flights_counted(runs):
     for name in ("apogee_m", "landing_distance_m"):
         spread = run.spread(name)
         expected = dict(output[name])
-        for key, end in (("p05_counting_missing", -math.inf), ("p95_counting_missing", math.inf)):
+        for key, end in (
+            ("p05_counting_missing", -math.inf),
+            ("p95_counting_missing", math.inf),
+            ("upper_95_95", math.inf),
+        ):
             tail = expected[key]
-            expected[key] = end if tail == "unbounded" else tail["value"]
+            if tail is not None:
+                expected[key] = end if tail == "unbounded" else tail["value"]
         assert spread == expected, name
         values = run[name]
         # NumPy's nanpercentile drops the failed flights, as the p05 and p95 do; the counting
@@ -180,6 +185,16 @@ def test_with_every_flight_flown_a_spread_counts_nothing_missing(repo):
     spread = run.spread("apogee_m")
     assert spread["count"] == spread["attempted"] == 8
     assert spread["p05_counting_missing"] is None and spread["p95_counting_missing"] is None
+    # Under 59 flights no order statistic is a 95/95 bound.
+    assert spread["upper_95_95"] is None
+
+
+def test_the_95_95_bound_is_the_largest_of_59_flights(repo):
+    # Wilks: at 59 flights, 1 - 0.95**59 = 0.952 is the chance the largest tops the true 95%.
+    run = monte_carlo(repo, runs=59, seed=1, drag_sd_fraction=0.05)
+    assert run.failed == 0
+    spread = run.spread("apogee_m")
+    assert spread["upper_95_95"] == spread["max"] == numpy.max(run["apogee_m"])
 
 
 def test_the_nominal_flight_and_the_dispersion(runs):
