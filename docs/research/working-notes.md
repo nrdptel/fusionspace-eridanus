@@ -24,7 +24,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   front re-flown, CMA-ES at 2.5 cal), page `docs/optimization.md#trade-offs-a-pareto-front`.
 - Integer variables (ADR-140): `Variable::integer` (whole bounds, `encode`: nearest, ties down,
   clamped), CMA-ES with margin in `cmaes.rs` (`correct_margin`, `Run::margin_scale`,
-  `Run::integer_margin` = 1/(nλ)), private `optimize::normal` (`libm::erfc`, AS 241),
+  `Run::integer_margin` = 1/(nλ)), private `optimize::normal` (`libm::erfc`, Φ only), shared `statistics::normal_quantile` (AS 241),
   `benchmark::mixed`;
 - `tests/mixed.rs` holds six cases to `tests/fixtures/cmawm/cmawm.json`
   (`validation/oracles/cmawm/cmawm_runs.py`, cmaes 0.13.1, "positive" = weights zeroed); example
