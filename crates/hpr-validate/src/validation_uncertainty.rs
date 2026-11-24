@@ -421,7 +421,8 @@ struct Unfinished {
 /// `work` on every item, on as many threads as the machine has, the results in the items'
 /// order. Each result depends on its item alone, so the threads change nothing but the time.
 fn in_parallel<T: Sync, R: Send>(items: &[T], work: impl Fn(&T) -> R + Sync) -> Vec<R> {
-    // A flight's stack frames are large unoptimized: a thread gets the main thread's 8 MB.
+    // A flight's stack frames are large unoptimized: a thread gets 8 MB, the main thread's on
+    // Linux and macOS.
     const STACK_BYTES: usize = 8 << 20;
     let threads = std::thread::available_parallelism()
         .map_or(1, usize::from)

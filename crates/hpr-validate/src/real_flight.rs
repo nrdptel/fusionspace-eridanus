@@ -3370,8 +3370,10 @@ impl RealFlightReport {
              those is exact, and E carries their errors with the model's own.\n\n\
              - **Five inputs are moved:** the mass without motors, each motor's total impulse, \
              the wind, the rail's angle and the temperature of the air. The drag is not one of \
-             them: it is the model this report tests.\n\
-             - **Each has a standard uncertainty,** listed under the table with its source. \
+             them: it is the model this report tests. The impulse's factor scales a motor's \
+             thrust and its propellant's mass together, as more or less of the same \
+             propellant would.\n\
+             - **Each has a standard uncertainty,** listed under the tables with its source. \
              Most are figures for a kind of input, not for this flight's own: no team here \
              published a measured uncertainty for its rocket, and the ones that hobby and \
              student sources print are nearly all assumed ([the survey][sigmas]).\n\
@@ -3399,54 +3401,72 @@ impl RealFlightReport {
             "How far to trust it: u_input is as good as the five figures put in, and a larger \
              u_input makes a wider band, which an error fits inside more easily.\n\n\
              - **Smaller readings taken.** The teams' masses are taken as weighed; a mass that \
-             is a design figure would spread like the design file's row, twenty times wider. \
-             The impulse takes the lower end of its source's 2.5% to 3.1%; the band's section \
-             says what the other end does. ERA5's wind takes the daytime figure; this project's \
-             own comparison of ERA5 with flights' GPS descents stands further apart than that, \
-             the canopy's own motion included ([the report][descent-wind]). ERA5's air takes the lower end of 0.9 to 1.35 K.\n\
+             is a design figure would spread like the design file's row, about twenty times \
+             wider. The impulse takes the floor of its range, 2.5% to 3.56%: the floor holds \
+             only if all of the scatter between two tests of a motor is the test stand's. Its \
+             factor carries the propellant's mass with the thrust; more thrust from the same \
+             propellant would move the apogee more. ERA5's wind takes the daytime figure; this \
+             project's own comparison of ERA5 with flights' GPS descents stands further apart \
+             than that, the canopy's own motion included ([the report][descent-wind]). ERA5's \
+             air takes the lower end of 0.9 to 1.35 K. The band's section says what the \
+             impulse's other end does to the count.\n\
              - **Larger readings taken.** Air and wind that aren't the day's get bounds wide \
              enough for any day, on Prometheus too, whose weather file is of the same date a \
-             year later and is likely nearer its day than that.\n\
+             year later and is likely nearer its day than that. The rail takes 1° across its \
+             heading as well as along it, where the sources give 1° to 5° of heading, a \
+             smaller turn on a rail near the vertical. An error in the wind or the air is \
+             taken as the same at every height, which moves an apogee more than one that \
+             changes with height.\n\
              - **Borrowed.** Three flights' thrust curves are their teams' own or of no stated \
              origin, and take the commercial motors' figure for want of one.\n\
              - **Left out,** each of which would add to u_input: the burn time at a fixed \
              impulse, the center of mass, a thrust or fin misalignment, the rail's length and \
              friction, the pad's pressure and the site's elevation. The inputs are drawn \
-             independently, and each error is taken as the same at every height.\n\
+             independently.\n\
              - **Not corrected.** Four known effects have a sign and are left in E. hpr flies \
              ERA5's air dry, which reads 0.08% to 0.65% low ([the note][era5-air], §4). \
              Andromeda's and Juno III's thrust files stand off their motors' catalog or \
              recorded impulse, as the sections above say. A rocket as built is heavier than \
              its design file, by a median 7.4% of the dry mass ([the note][as-built]), so a \
-             flight on a design file's mass is flown light and reads high from that cause.\n"
+             flight on a design file's mass is flown light and reads high from that cause. \
+             The spread such a mass takes here is about that median, not about the file's \
+             value. The band's section says which call rests on it.\n"
         );
         let _ = writeln!(
             out,
-            "| flight | each alone, half the difference (m): mass; impulse; wind east, north; \
-             rail up, across; air | their root sum of squares (m) | the two hypercubes' spreads \
-             (m) | u_input (m) | u_input, share of the apogee | mean of the {SAMPLES} less the \
-             report's apogee (m) |"
+            "Each number alone, half the difference of its two apogees (m), and the root sum \
+             of squares of the seven:\n\n\
+             | flight | mass | impulse | wind east | wind north | rail up | rail across | air \
+             | root sum of squares |"
         );
-        let _ = writeln!(out, "|---|---|---:|---:|---:|---:|---:|");
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|---:|");
         for row in rows {
-            let half = |at: usize| {
-                row.input
-                    .components
-                    .get(at)
-                    .map_or_else(String::new, |each| fmt_signed(each.half_difference_m(), 1))
-            };
+            let halves = row
+                .input
+                .components
+                .iter()
+                .map(|each| fmt_signed(each.half_difference_m(), 1))
+                .collect::<Vec<_>>()
+                .join(" | ");
             let _ = writeln!(
                 out,
-                "| {} | {}; {}; {}, {}; {}, {}; {} | {} | {} | {} | {}% | {} |",
+                "| {} | {halves} | {} |",
                 row.id,
-                half(0),
-                half(1),
-                half(2),
-                half(3),
-                half(4),
-                half(5),
-                half(6),
                 fmt_number(row.input.local_m, 1),
+            );
+        }
+        let _ = writeln!(
+            out,
+            "\nAll seven drawn together, {SAMPLES} flights:\n\n\
+             | flight | each hypercube's spread (m) | u_input (m) | u_input, share of the \
+             apogee | mean of the {SAMPLES} less the report's apogee (m) |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|");
+        for row in rows {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {}% | {} |",
+                row.id,
                 row.input
                     .hypercubes_m
                     .iter()
@@ -3580,7 +3600,7 @@ impl RealFlightReport {
                          flights, by at most {} m ({}). There the seven inputs' own bends, each \
                          the mean of an input's two flights alone less the report's apogee, \
                          sum to {} m. The band is about E on the report's own flight, not about \
-                         that mean.",
+                         the mean of the samples.",
                         rows.len(),
                         fmt_number((under(row) * 10.0).ceil() / 10.0, 1),
                         row.id,
@@ -3605,10 +3625,21 @@ impl RealFlightReport {
 
     /// `text` with each path under `docs/` that ends in `.md` made a link to the file in the
     /// repository, so that a source named in a table of the code reaches its note in one click.
-    fn with_links(text: &str) -> String {
+    pub(crate) fn with_links(text: &str) -> String {
         let mut out = String::new();
         let mut rest = text;
         while let Some(at) = rest.find("docs/") {
+            // A path starts the text or follows a space or a bracket: not the middle of a URL
+            // or of another word.
+            let starts = rest[..at]
+                .chars()
+                .next_back()
+                .is_none_or(|before| before == ' ' || before == '(');
+            if !starts {
+                out.push_str(&rest[..at + 5]);
+                rest = &rest[at + 5..];
+                continue;
+            }
             let path_len = rest[at..]
                 .find(|c: char| !(c.is_ascii_alphanumeric() || "/-_.".contains(c)))
                 .unwrap_or(rest.len() - at);
@@ -3647,8 +3678,12 @@ impl RealFlightReport {
              account for the whole error. The model's own error is then known only to be \
              smaller than |E| + {k}·u_val, and its sign isn't known. That is not a pass: it \
              says this comparison can't see the model's error through its inputs.\n\
-             - **Outside it,** the model's error has the sign of E, and its size lies between \
-             |E| − {k}·u_val and |E| + {k}·u_val.\n\
+             - **Outside it,** the three parts can't account for the error. What is left has \
+             the sign of E and a size between |E| − {k}·u_val and |E| + {k}·u_val. It is the \
+             model's error together with whatever the section above leaves out of u_input or \
+             leaves uncorrected in E, and it is only as firm as the inputs' figures: the \
+             sentence under the table says which calls change at the other end of the \
+             impulse's range.\n\
              - **Meeting the band is not the aim.** A larger uncertainty always meets it, so a \
              count of flights inside rewards knowing less. What the band is for is the size \
              and sign of the model's error where it can be told (Eça, Dowding and Roache 2020, \
@@ -3733,7 +3768,9 @@ impl RealFlightReport {
     /// The sentences under the band's table: how many flights with a band lie within it and
     /// which, how many lie outside with hpr high and with hpr low, how many have no band, and
     /// what the count would be with the impulse's standard uncertainty at the other end of its
-    /// source's range ([`Self::validation_at_impulse_m`]).
+    /// range ([`Self::validation_at_impulse_m`]), which flights lie outside at both ends, and
+    /// what it would be with a rocket's growth as built taken out of the flights on a design
+    /// file's mass ([`Self::error_as_built_m`]).
     pub(crate) fn band_sentence(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
         let k = crate::validation_uncertainty::COVERAGE_K;
         let banded = rows
@@ -3764,6 +3801,13 @@ impl RealFlightReport {
         let (high, high_ids) = named(&|corrected_m, within| !within && corrected_m > 0.0);
         let (low, low_ids) = named(&|corrected_m, within| !within && corrected_m <= 0.0);
         let other = crate::input_uncertainty::IMPULSE_OTHER_END;
+        let listed = |ids: &[&str]| {
+            if ids.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", ids.join(", "))
+            }
+        };
         let at_other = banded
             .iter()
             .filter(|(row, corrected_m, _)| {
@@ -3772,24 +3816,83 @@ impl RealFlightReport {
             })
             .map(|(row, ..)| row.id.as_str())
             .collect::<Vec<_>>();
-        let at_other_ids = if at_other.is_empty() {
+        let outside_both = banded
+            .iter()
+            .filter(|(row, _, within)| !within && !at_other.contains(&row.id.as_str()))
+            .map(|(row, ..)| row.id.as_str())
+            .collect::<Vec<_>>();
+        // The flights on a design file's mass, with the median growth of a rocket as built
+        // taken out of the error.
+        let grown = banded
+            .iter()
+            .filter_map(|(row, _, _)| Some((row, Self::error_as_built_m(row)?)))
+            .collect::<Vec<_>>();
+        let as_built = if grown.is_empty() {
             String::new()
         } else {
-            format!(" ({})", at_other.join(", "))
+            let within_as_built = banded
+                .iter()
+                .filter(|(row, corrected_m, _)| {
+                    let error_m = Self::error_as_built_m(row).unwrap_or(*corrected_m);
+                    row.validation_m
+                        .is_some_and(|validation_m| error_m.abs() <= k * validation_m)
+                })
+                .map(|(row, ..)| row.id.as_str())
+                .collect::<Vec<_>>();
+            format!(
+                " The other way: with a rocket's median growth as built, {}% of the mass \
+                 without motors, taken out of each flight on a design file's mass, by the \
+                 mass's flight alone, the errors would be {}, and {} of the {} would lie \
+                 within{}.",
+                fmt_number(100.0 * crate::input_uncertainty::AS_BUILT_GROWTH, 1),
+                grown
+                    .iter()
+                    .map(|(row, error_m)| format!("{} m ({})", fmt_signed(*error_m, 1), row.id))
+                    .collect::<Vec<_>>()
+                    .join(" and "),
+                within_as_built.len(),
+                banded.len(),
+                listed(&within_as_built),
+            )
         };
         format!(
             "Of the {} flights with a band, the corrected |E| is within {k}·u_val on {inside}\
              {inside_ids} and outside it on {}: hpr high on {high}{high_ids}, hpr low on {low}\
-             {low_ids}. No u_D and so no band on {without} of the {} flights. With the \
-             impulse's standard uncertainty at {}%, the other end of its source's range, the \
-             seven parts put {} of the {} within{at_other_ids}.",
+             {low_ids}. No u_D and so no band on {without} of the {} flights. The count moves \
+             with the inputs' figures. With the impulse's standard uncertainty at {}%, the \
+             other end of its range, the seven parts put {} of the {} within{}, and {} outside \
+             at both ends{}.{as_built}",
             banded.len(),
             high + low,
             rows.len(),
-            fmt_number(100.0 * other, 1),
+            fmt_number(100.0 * other, 2),
             at_other.len(),
             banded.len(),
+            listed(&at_other),
+            outside_both.len(),
+            listed(&outside_both),
         )
+    }
+
+    /// The error against the corrected log that a flight on a design file's mass would have
+    /// with the median growth of a rocket as built taken out, m: the corrected error plus the
+    /// apogee's change for that much more mass, taken along the line from the report's flight
+    /// to the flight with one standard uncertainty more mass. `None` for a flight whose mass
+    /// isn't a design file's, or with no band.
+    pub(crate) fn error_as_built_m(
+        row: &crate::validation_uncertainty::UncertaintyRow,
+    ) -> Option<f64> {
+        let inputs = crate::input_uncertainty::stated(&row.id)?;
+        if !inputs.mass_is_a_design_files() {
+            return None;
+        }
+        let corrected_m = row.corrected_error_m()?;
+        let mass = row.input.components.first()?;
+        (mass.sigma > 0.0).then(|| {
+            corrected_m
+                + (mass.high_m - row.apogee_m) * crate::input_uncertainty::AS_BUILT_GROWTH
+                    / mass.sigma
+        })
     }
 
     /// The sentence under the data part's table: how many flights have a u_D, the largest u_D

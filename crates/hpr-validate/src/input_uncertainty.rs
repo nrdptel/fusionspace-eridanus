@@ -13,7 +13,7 @@
 //! The draws are Latin hypercubes, one of the two samplings the summary names (p. 19): for each
 //! input the normal distribution is cut into as many strata of equal probability as there are
 //! flights, each flight takes one stratum of each input, and the strata are paired across
-//! inputs at random ([`deviates`]). Every part of each input's distribution is then flown once,
+//! inputs at random. Every part of each input's distribution is then flown once,
 //! where plain random draws leave the spread of 200 flights known to about 5%. Two hypercubes
 //! of [`SAMPLES_EACH`] flights are flown on two seeds, and the report prints each one's spread
 //! beside the spread of both together: how far the two stand apart is how well the sample
@@ -85,9 +85,10 @@ pub struct Stated {
 const MASS_STATED: Stated = Stated {
     sigma: 0.005,
     basis: "the team's stated mass, taken as weighed",
-    from: "docs/research/dispersion-sigmas.md, §3: a Student Launch team disperses its own \
-           rocket's mass by 0.5% (NC State, 2023 flight readiness review, p. 53), assumed; \
-           hobby sources assume 0% to 3.9%, and no notebook here says its mass was weighed",
+    from: "docs/research/dispersion-sigmas.md, §3: 0.5% about a weighed mass is the note's own \
+           inference, and one student team's review disperses its rocket's mass by that; hobby \
+           sources assume 0% to 3.9% about a file's value, and no notebook here says its mass \
+           was weighed",
 };
 
 /// A design file's mass, with no record of a weighing.
@@ -99,26 +100,45 @@ const MASS_DESIGN_FILE: Stated = Stated {
            quartiles, a standard deviation of 10.75% for a normal spread (the range over 1.349)",
 };
 
-/// A commercial motor's impulse about its file's.
+/// A flown commercial motor's impulse about its file's curve, at the floor of its range.
+///
+/// The file's curve is one certification test, and the motor that flew is another motor of the
+/// type. The source gives how far two certification tests of one type stand apart: a standard
+/// deviation of 3.56 points. If every test is the type's mean plus a motor's own departure and
+/// the stand's measuring error, two tests differ by `2σ_motor² + 2σ_stand²` in variance, and a
+/// flown motor differs from its file by `2σ_motor² + σ_stand²`: one measuring error fewer. So
+/// the flown motor stands from 3.56/√2 = 2.5% off its file, if all of the scatter is the
+/// stand's, to 3.56%, if all of it is from motor to motor. The split isn't known.
 const IMPULSE_COMMERCIAL: Stated = Stated {
     sigma: 0.025,
     basis: "a commercial motor on its maker's or certifier's curve",
-    from: "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to M motors that Tripoli Motor \
-           Testing certified twice, in 2001 to 2004, differ by a standard deviation of 3.56 \
-           points between the two tests, so one test stands 3.56/√2 = 2.5% from the motor's \
-           mean; with a renamed 22nd motor, 3.1%",
+    from: "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor \
+           Testing tested a second time in 2001 to 2004 differ by a standard deviation of 3.56 \
+           points between their two tests (4.41 with a renamed 22nd motor). A flown motor \
+           against its file's curve is such a difference less one test's measuring error: from \
+           3.56/√2 = 2.5%, if all of the scatter is the measuring, to 3.56%, if all of it is \
+           from motor to motor. The floor is taken. The note calls the pairs no clean \
+           comparison of lots: some of the motors changed between their tests",
 };
 
-/// The other end of the range the commercial motors' source gives: the 22 pairs with the
-/// renamed motor, 4.41 points over √2. The report says what the band's count would be there.
-pub const IMPULSE_OTHER_END: f64 = 0.031;
+/// The other end of [`Drawn::Impulse`]'s range for a commercial motor: the pairs' own standard
+/// deviation, a flown motor against its file if all of the scatter is from motor to motor. The
+/// report says what the band's count would be there.
+pub const IMPULSE_OTHER_END: f64 = 0.0356;
+
+/// The median growth of a rocket as built over its design file's mass, as a fraction of the
+/// mass without motors (`docs/research/as-built-mass-growth.md`: 24 rockets; the note trusts
+/// the median little as a figure for all rockets, since one team supplies many of them). The
+/// spread a design file's mass takes is about this median, not about the file's value, and the
+/// report doesn't take the median out: it says what the band's count would be if it did.
+pub const AS_BUILT_GROWTH: f64 = 0.074;
 
 /// A curve that isn't a certifier's, on the commercial motors' figure.
 const IMPULSE_BORROWED: Stated = Stated {
     sigma: 0.025,
     basis: "a curve of the team's own or of no stated origin: no spread was found for one, so \
             the commercial motors' is borrowed",
-    from: IMPULSE_COMMERCIAL.from,
+    from: "docs/research/hpr-lot-impulse.md, §2, as for a commercial motor",
 };
 
 /// The reanalysis's wind at the flight's hour.
@@ -144,9 +164,11 @@ const RAIL: Stated = Stated {
     // One degree.
     sigma: std::f64::consts::PI / 180.0,
     basis: "the rail's stated angle",
-    from: "docs/research/dispersion-sigmas.md, §5: 1° in five of the seven hobby sources that \
-           disperse a launch angle, RocketPy's notebooks among them; each assumes it and none \
-           measured it",
+    from: "docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby \
+           sources that disperse a launch angle, RocketPy's notebooks among them; each assumes \
+           it and none measured it. The same 1° is taken on the axis across the heading, where \
+           the sources give 1° to 5° of heading, a smaller turn on a rail near the vertical: \
+           the larger reading",
 };
 
 /// The reanalysis's air at the flight's hour.
@@ -155,9 +177,9 @@ const AIR_REANALYSIS: Stated = Stated {
     basis: "ERA5's air at the flight's hour",
     from: "docs/research/era5-surface-temperature.md, §1: ERA5's mean temperature from the pad \
            to 1 to 3 km stands 0.9 to 1.35 K from soundings it never took in (Huang et al. \
-           2021, Tazhong; this project's average of their levels), the lower end taken; at \
-           stations it did take in, one level stands 0.72 to 0.85 K off (Taszarek et al. 2021, \
-           Table 2)",
+           2021, at Tazhong, a desert site; this project's average of their levels), the lower \
+           end taken; at stations it did take in, a level stands 0.72 K off at 700 hPa and \
+           0.85 K at 850 hPa, and 1.85 K at 10 m (Taszarek et al. 2021, p. 3218)",
 };
 
 /// Air that isn't the day's: the standard atmosphere, or another year's reanalysis.
@@ -246,6 +268,13 @@ pub const INPUTS: [FlightInputs; 12] = [
 ];
 
 impl FlightInputs {
+    /// Whether the flight's mass is a design file's, with no record of a weighing: the flights
+    /// [`AS_BUILT_GROWTH`] bears on.
+    #[must_use]
+    pub fn mass_is_a_design_files(&self) -> bool {
+        self.dry_mass == MASS_DESIGN_FILE
+    }
+
     /// The five inputs, each under the name the report lists it by, with the drawn number that
     /// stands for it (the first of two, for the wind and the rail).
     #[must_use]
@@ -450,7 +479,8 @@ impl InputDraw {
     ///
     /// # Errors
     ///
-    /// [`AtmosError`] if the warmed profile has no air, or its levels no longer rise.
+    /// [`AtmosError`] if the warmed profile has no air, or its levels no longer rise, or if the
+    /// draw adds a wind and the profile has none to add it to.
     pub fn launch_day(
         &self,
         environment: Environment,
@@ -472,10 +502,18 @@ impl InputDraw {
                 wind: Arc::new(wind.clone()),
                 ..environment
             },
-            None => Environment {
+            None if self.wind_east_m_s == 0.0 && self.wind_north_m_s == 0.0 => Environment {
                 atmosphere: Arc::new(drawn.clone()),
                 ..environment
             },
+            // A profile with no wind has no levels to add one at: the draw's wind would be
+            // dropped, and the flight flown in the old wind as if it had been moved.
+            None => {
+                return Err(AtmosError::Domain {
+                    what: "a wind drawn for a profile that has none, m/s",
+                    value: self.wind_east_m_s.hypot(self.wind_north_m_s),
+                });
+            }
         };
         Ok((environment, drawn))
     }
@@ -532,9 +570,10 @@ fn wind_plus(speed_m_s: f64, from_rad: f64, (east_m_s, north_m_s): (f64, f64)) -
 /// are applied as one rotation by `θ = √(up² + across²)` toward `(up·e_up + across·e_across)/θ`:
 /// `d′ = d cos θ + ê sin θ`, from which the new elevation and heading are read. A vertical rail
 /// has its two axes from its stated heading, so it leans along a plane and across it like any
-/// other. The roll follows the heading, `φ′ = φ + (A′ − A)`, which keeps the rocket's own roll
-/// attitude where a small turn of a near-vertical rail swings the heading far. No turn gives the
-/// rail back as it is.
+/// other. The roll follows the heading, `φ′ = φ + (A′ − A)`. On a vertical rail that keeps the
+/// rocket's own roll attitude exactly, where a small turn swings the heading far; on a rail
+/// leaned over it keeps it to within the heading's change times `1 − sin E`, under a degree
+/// here, which an apogee doesn't see. No turn gives the rail back as it is.
 #[must_use]
 pub fn turned(rail: Rail, up_rad: f64, across_rad: f64) -> Rail {
     let theta = up_rad.hypot(across_rad);
@@ -687,21 +726,19 @@ pub fn warmed(
 /// one, written from that description and not from the 1979 paper, which was not read.
 ///
 /// The median stands in for a point drawn evenly inside the stratum, the usual choice. A drawn
-/// point is unbiased, but the two end strata have no far edge, and one deep draw there moves a
-/// hypercube's spread by several percent: over 20,000 hypercubes of 100, a number's standard
-/// deviation scattered 1.3% about 1.005, and 1 in 120 stood over 1.05. On the medians every
-/// hypercube's 100 deviates are the same set, mean 0 and standard deviation 0.99864: 0.14%
-/// under the distribution's. On a flight that answers in a straight line that makes each
-/// hypercube's spread 0.14% too small, and `u_input`, the spread of two hypercubes about one
-/// mean, 0.39% too small. Only the pairing is left to the seed.
+/// point is unbiased, but the two end strata have no far edge, so one deep draw there moves a
+/// hypercube's spread and `u_input` with it. On the medians every hypercube's 100 deviates are
+/// the same set, mean 0 and standard deviation 0.99864: 0.14% under the distribution's. On a
+/// flight that answers in a straight line that makes each hypercube's spread 0.14% too small,
+/// and `u_input`, the spread of two hypercubes about one mean, 0.39% too small. Only the
+/// pairing is left to the seed.
 ///
 /// Each number's stream is keyed by the seed and the number alone
 /// (`hpr_core::random::SeededRng::for_stream`), so adding a number later leaves the others'
 /// deviates as they were.
 #[must_use]
-pub fn deviates(seed: u64, samples: u64) -> Vec<[f64; 7]> {
+pub(crate) fn deviates(seed: u64, samples: u64) -> Vec<[f64; 7]> {
     let n = usize::try_from(samples).unwrap_or(usize::MAX);
-    // A count of flights is far under 2^53.
     #[expect(
         clippy::cast_precision_loss,
         reason = "a count of flights is far under 2^53"
@@ -736,7 +773,7 @@ pub fn deviates(seed: u64, samples: u64) -> Vec<[f64; 7]> {
 }
 
 /// What each sample of a flight's dispersion draws, in the order flown: [`HYPERCUBES`]
-/// hypercubes of [`SAMPLES_EACH`] flights ([`deviates`]), the first on `seed` and each next one
+/// hypercubes of [`SAMPLES_EACH`] flights, the first on `seed` and each next one
 /// on the next whole number, every deviate times its number's standard uncertainty among
 /// `inputs`.
 #[must_use]
@@ -1180,9 +1217,22 @@ mod tests {
             ["macie-xl-1", "macie-xl-2"]
         );
         // The figures the sources give: 14.5 points of interquartile range over 1.349, 3.56
-        // points over √2, half the 20 mph limit, one degree, and 15 K as bounds.
+        // points over √2 as the impulse's floor and 3.56 as its other end, half the 20 mph
+        // limit, one degree, and 15 K as bounds.
         assert!((MASS_DESIGN_FILE.sigma - (0.131 + 0.014) / 1.349).abs() < 5e-5);
-        assert!((IMPULSE_COMMERCIAL.sigma - 0.0356 / SQRT_2).abs() < 2e-4);
+        assert!((IMPULSE_COMMERCIAL.sigma - IMPULSE_OTHER_END / SQRT_2).abs() < 2e-4);
+        assert_eq!(IMPULSE_OTHER_END, 0.0356);
+        assert_eq!(IMPULSE_BORROWED.sigma, IMPULSE_COMMERCIAL.sigma);
+        // The two design-file flights are the ones the growth as built bears on.
+        assert_eq!(
+            INPUTS
+                .iter()
+                .filter(|inputs| inputs.mass_is_a_design_files())
+                .map(|inputs| inputs.id)
+                .collect::<Vec<_>>(),
+            ["macie-xl-1", "macie-xl-2"]
+        );
+        assert_eq!(AS_BUILT_GROWTH, 0.074);
         assert!((WIND_NOT_THE_DAYS.sigma - 0.5 * 20.0 * 0.447_04).abs() < 1e-3);
         assert_eq!(RAIL.sigma.to_degrees(), 1.0);
         assert!((AIR_NOT_THE_DAYS.sigma - 15.0 / 3.0_f64.sqrt()).abs() < 1e-12);
@@ -1405,6 +1455,52 @@ mod tests {
         assert!((share - 0.0036).abs() < 0.0002, "{share}");
         // No warming and no wind is the profile itself.
         assert_eq!(warmed(&given, pad_m, 0.0, (0.0, 0.0)).unwrap(), given);
+    }
+
+    /// A draw's wind on a profile that has none is refused: with no levels to add it at, the
+    /// flight would fly in the old wind as if the wind had been moved. The air alone still
+    /// warms such a profile, and a draw that moves nothing gives it back.
+    #[test]
+    fn a_wind_drawn_for_a_windless_profile_is_refused() {
+        let standard = Ussa76::standard();
+        let levels = [0.0, 500.0, 1500.0, 3000.0, 5500.0, 9000.0]
+            .iter()
+            .map(|&height_msl_m| {
+                let air = standard.air(height_msl_m).unwrap().air;
+                SoundingLevel {
+                    height_msl_m,
+                    temperature_k: air.temperature_k,
+                    pressure_pa: Some(air.pressure_pa),
+                    relative_humidity: None,
+                    wind_speed_m_s: None,
+                    wind_direction_from_rad: None,
+                }
+            })
+            .collect();
+        let still = SoundingProfile::new(levels, 0.7, WindInterpolation::Components).unwrap();
+        assert!(still.wind().is_none());
+        let site = hpr_core::geodesy::Geodetic::from_degrees(40.0, -105.0, 400.0).unwrap();
+        let environment = || Environment::standard(site).unwrap();
+        let windy = InputDraw {
+            wind_east_m_s: 2.0,
+            ..InputDraw::NONE
+        };
+        assert!(matches!(
+            windy.launch_day(environment(), still.clone(), 400.0),
+            Err(AtmosError::Domain { value, .. }) if value == 2.0
+        ));
+        let warm = InputDraw {
+            air_k: 1.0,
+            ..InputDraw::NONE
+        };
+        let (_, air) = warm
+            .launch_day(environment(), still.clone(), 400.0)
+            .unwrap();
+        assert_ne!(air, still);
+        let (_, air) = InputDraw::NONE
+            .launch_day(environment(), still.clone(), 400.0)
+            .unwrap();
+        assert_eq!(air, still);
     }
 
     /// A wind added to a column is added at every height and leaves its air alone; added to a

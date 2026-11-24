@@ -2563,8 +2563,8 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
     let none = row("none", 5.0, None, 30.0);
     assert_eq!((none.validation_m, none.within), (None, None));
     assert_eq!(none.corrected_error_m(), None);
-    // A smaller input part never turns an outside flight inside: the same error as the edge's
-    // with 29.9 m of inputs is outside.
+    // A smaller input part gives a narrower band: the same error as the edge's with 29.9 m of
+    // inputs is outside.
     let narrower = row("narrower", 130.0 - 1e-9, Some((40.0, 30.0)), 29.9);
     assert_eq!(narrower.within, Some(false));
     // The exact edge, on parts with no rounding: |E corrected| = 2·u_val is within.
@@ -2577,8 +2577,7 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
 
     // With the impulse at 3.1% in place of 2.5%, its part of 18 m is 22.32 m; with the wind's
     // 24 m the seven parts sum to √(22.32² + 24²) = 32.775 m in place of 30, u_input scales
-    // with them, and with the log's 40 m u_val is √(32.775² + 40²) = 51.713 m: a band of
-    // 103.43 m, which takes in the 100.001 m and the 101 m and not the 400 m.
+    // with them, and with the log's 40 m u_val is √(32.775² + 40²) = 51.713 m.
     let at_other = RealFlightReport::validation_at_impulse_m(&over, 0.031)
         .expect("a flight with a u_D has a u_val");
     let by_hand = (22.32_f64 * 22.32 + 24.0 * 24.0 + 40.0 * 40.0).sqrt();
@@ -2594,19 +2593,82 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
         RealFlightReport::validation_at_impulse_m(&none, 0.031),
         None
     );
+    // At 3.56%, the other end of the impulse's range, the impulse's part is 25.632 m, the
+    // seven sum to √(25.632² + 24²) = 35.114 m and u_val is √(35.114² + 40²) = 53.226 m: a
+    // band of 106.45 m, which takes in the 100.001 m and the 101 m and not the 400 m.
+    let at_end = RealFlightReport::validation_at_impulse_m(&over, 0.0356).expect("a u_val");
+    assert!((at_end - 53.226).abs() < 1e-3, "{at_end}");
 
-    let rows = [edge, over, low, far, none];
+    // A flight on a design file's mass, with the growth as built taken out. Its mass's flight
+    // one standard uncertainty (10.75%) heavier is 40 m lower, so 7.4% more mass is
+    // 40 × 7.4/10.75 = 27.535 m lower: an error of −80 m, within the 100 m band, is −107.535 m
+    // with the growth out, and outside it. A flight on a team's mass has no such figure.
+    let mut design = row("macie-xl-1", -80.0, Some((40.0, 0.0)), 30.0);
+    design.input.components[0].sigma = 0.1075;
+    design.input.components[0].low_m = 1040.0;
+    design.input.components[0].high_m = 960.0;
+    assert_eq!(design.within, Some(true));
+    let grown_m = RealFlightReport::error_as_built_m(&design).expect("a design file's mass");
+    assert!((grown_m + 107.534_883_720_930_2).abs() < 1e-9, "{grown_m}");
+    let mut teams = design.clone();
+    teams.id = "cavour".to_owned();
+    assert_eq!(RealFlightReport::error_as_built_m(&teams), None);
+    assert_eq!(RealFlightReport::error_as_built_m(&edge), None);
+
+    let rows = [edge.clone(), over, low, far, none];
     assert_eq!(
         RealFlightReport::band_sentence(&rows),
         "Of the 4 flights with a band, the corrected |E| is within 2·u_val on 1 (edge) and \
          outside it on 3: hpr high on 2 (over, far), hpr low on 1 (low). No u_D and so no band \
-         on 1 of the 5 flights. With the impulse's standard uncertainty at 3.1%, the other end \
-         of its source's range, the seven parts put 3 of the 4 within (edge, over, low)."
+         on 1 of the 5 flights. The count moves with the inputs' figures. With the impulse's \
+         standard uncertainty at 3.56%, the other end of its range, the seven parts put 3 of \
+         the 4 within (edge, over, low), and 1 outside at both ends (far)."
+    );
+    assert_eq!(
+        RealFlightReport::band_sentence(&[edge, design]),
+        "Of the 2 flights with a band, the corrected |E| is within 2·u_val on 2 (edge, \
+         macie-xl-1) and outside it on 0: hpr high on 0, hpr low on 0. No u_D and so no band \
+         on 0 of the 2 flights. The count moves with the inputs' figures. With the impulse's \
+         standard uncertainty at 3.56%, the other end of its range, the seven parts put 2 of \
+         the 2 within (edge, macie-xl-1), and 0 outside at both ends. The other way: with a \
+         rocket's median growth as built, 7.4% of the mass without motors, taken out of each \
+         flight on a design file's mass, by the mass's flight alone, the errors would be \
+         -107.5 m (macie-xl-1), and 1 of the 2 would lie within (edge)."
     );
     assert_eq!(
         RealFlightReport::band_sentence(&rows[4..]),
         "No flight has a band: none of the 1 has a u_D."
     );
+}
+
+/// M1.14b18: a source's path under `docs/` becomes a link to the file, where it starts the text
+/// or follows a space or a bracket; a URL's own `docs/`, a word that ends in it and a path that
+/// isn't a Markdown file are left as they are, and a sentence's period stays outside the link.
+#[test]
+fn a_sources_path_becomes_a_link() {
+    use crate::real_flight::RealFlightReport;
+    let blob = "https://github.com/nrdptel/fusionspace-eridanus/blob/main/";
+    assert_eq!(
+        RealFlightReport::with_links("docs/research/a-note.md, §3: 0.5% (as docs/VALIDATION.md)."),
+        format!(
+            "[docs/research/a-note.md]({blob}docs/research/a-note.md), §3: 0.5% (as \
+             [docs/VALIDATION.md]({blob}docs/VALIDATION.md))."
+        )
+    );
+    assert_eq!(
+        RealFlightReport::with_links("See docs/physics/flight.md."),
+        format!("See [docs/physics/flight.md]({blob}docs/physics/flight.md).")
+    );
+    for plain in [
+        "at https://host/docs/x.md there",
+        "mydocs/x.md",
+        "the folder docs/ holds notes",
+        "docs/figure.svg",
+        "no path here: 3.56/√2 = 2.5%",
+        "",
+    ] {
+        assert_eq!(RealFlightReport::with_links(plain), plain);
+    }
 }
 
 /// M1.14b18: the sentence under the input part's table names the largest u_input and the
@@ -2667,8 +2729,8 @@ fn the_input_parts_sentence_names_the_largest_and_rounds_up() {
          hypercube's own spread at most 4.9% from it (first). The samples' mean lies below the \
          report's apogee on 1 of the 2 flights, by at most 12.4 m (second). There the seven \
          inputs' own bends, each the mean of an input's two flights alone less the report's \
-         apogee, sum to -9.0 m. The band is about E on the report's own flight, not about that \
-         mean."
+         apogee, sum to -9.0 m. The band is about E on the report's own flight, not about the \
+         mean of the samples."
     );
     // No mean under its apogee, and no flight at all.
     let alone = RealFlightReport::input_sentence(&[first]);

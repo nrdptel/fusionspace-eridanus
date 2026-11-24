@@ -40,13 +40,13 @@ use crate::error::AnalysisError;
 /// keeps its relative accuracy in the lower tail where `1 − erf` would cancel. A `p` over 1/2 is
 /// mirrored, `Φ⁻¹(p) = −Φ⁻¹(1 − p)`, so the search is always in the lower tail. The bracket
 /// starts at `[−40, 0]` (`Φ(−40)` is below the smallest positive `f64`) and is halved until its
-/// ends are neighboring numbers, and the upper end is returned: the smallest `x` whose `Φ` is
-/// at least `p`. So the result is as exact as `erfc` is, about one part in 10¹⁶ of `p`, and it
-/// never decreases as `p` grows.
+/// ends are neighboring numbers, and the upper end is returned: the smallest `x` whose computed
+/// `Φ` is at least `p`. So the result is within one step of `f64` of that `Φ`'s exact inverse,
+/// and it never decreases as `p` grows.
 ///
-/// The optimizer's integer margin keeps its own closed-form inverse, Wichura's AS 241; the two
-/// agree to rounding. This one costs about 60 evaluations of `erfc` for a `p` away from 1/2, and
-/// up to about 1,100 for one a rounding from it.
+/// The optimizer's integer margin keeps its own closed-form inverse, Wichura's AS 241, inside
+/// its module. This one costs about 60 evaluations of `erfc` for a `p` away from 1/2, and about
+/// 110 for one a rounding from it.
 #[must_use]
 pub fn normal_quantile(p: f64) -> f64 {
     if !(0.0..=1.0).contains(&p) {
@@ -605,10 +605,10 @@ mod tests {
         }
     }
 
-    /// The normal quantile on values from published tables: 1.959963984540054 at 0.975 (the
-    /// two-sided 95% point), 1.2815515655446004 at 0.9, 3.090232306167813 at 0.999 and
-    /// 6.361340902404056 at 1 − 10⁻¹⁰, with their mirror images; 1 at Φ(1) = 0.8413447460685429.
-    /// It is mirrored about 1/2, never decreases, and gives the edges as the doc says.
+    /// The normal quantile on tabulated values: 1.959963984540054 at 0.975 (the two-sided 95%
+    /// point), 1.2815515655446004 at 0.9 and 3.090232306167813 at 0.999, with their mirror
+    /// images; 1 at Φ(1) = 0.8413447460685429; −6.361340902404056 at 10⁻¹⁰. It inverts Φ down
+    /// to 10⁻¹⁰⁰, is mirrored about 1/2, never decreases, and gives the edges as the doc says.
     #[test]
     fn the_normal_quantile_on_tabulated_values_and_its_edges() {
         for (p, z) in [
@@ -620,14 +620,15 @@ mod tests {
             assert!((normal_quantile(p) - z).abs() < 1e-13, "{p}");
             assert!((normal_quantile(1.0 - p) + z).abs() < 1e-13, "{p}");
         }
-        // Deep in the lower tail the relative accuracy holds: 10⁻¹⁰ and 10⁻¹⁰⁰.
         assert!((normal_quantile(1e-10) + 6.361_340_902_404_056).abs() < 1e-12);
-        assert!((normal_quantile(1e-100) + 21.273_453_560_933_14).abs() < 1e-10);
-        // It inverts Φ: the share at or below the result is p.
-        for p in [1e-12, 0.005, 0.015, 0.25, 0.495, 0.5 - 1e-15] {
+        // It inverts Φ, deep into the lower tail: the share at or below the result is at least
+        // p, and a few steps of f64 below the result it is under p.
+        let share = |x: f64| 0.5 * libm::erfc(-x / std::f64::consts::SQRT_2);
+        for p in [1e-100, 1e-12, 0.005, 0.015, 0.25, 0.495, 0.5 - 1e-15] {
             let x = normal_quantile(p);
-            let share = 0.5 * libm::erfc(-x / std::f64::consts::SQRT_2);
-            assert!(((share - p) / p).abs() < 1e-14, "{p}: {share}");
+            assert!(x < 0.0, "{p}");
+            assert!(share(x) >= p, "{p}: {}", share(x));
+            assert!(share(x * (1.0 + 4.0 * f64::EPSILON)) < p, "{p}");
             assert_eq!(normal_quantile(1.0 - p), -normal_quantile(1.0 - (1.0 - p)));
         }
         // Never decreasing, through 1/2.

@@ -1452,6 +1452,36 @@ pub(crate) mod tests {
         }
     }
 
+    /// A mass factor set by hand scales a stage's mass without motors and its inertia by the
+    /// factor and leaves its center where it was; a factor of 1 changes nothing; a factor that
+    /// isn't finite and positive is refused.
+    #[test]
+    fn a_mass_factor_set_by_hand_scales_the_mass_and_its_inertia() {
+        let rocket = nominal().rocket;
+        let before = rocket.layout().unwrap();
+        let heavier = dry_mass_scaled(&rocket, 1.1).unwrap().layout().unwrap();
+        let (was, is) = (&before.stages[0].mass, &heavier.stages[0].mass);
+        assert!((is.mass_kg / was.mass_kg - 1.1).abs() < 1e-14);
+        assert!((is.cg_m.z - was.cg_m.z).abs() < 1e-14);
+        assert!((is.inertia_kg_m2.x_axis.x / was.inertia_kg_m2.x_axis.x - 1.1).abs() < 1e-14);
+        assert!((is.inertia_kg_m2.z_axis.z / was.inertia_kg_m2.z_axis.z - 1.1).abs() < 1e-14);
+        let same = dry_mass_scaled(&rocket, 1.0).unwrap().layout().unwrap();
+        assert!((same.stages[0].mass.mass_kg - was.mass_kg).abs() < 1e-14);
+        assert!((same.stages[0].mass.cg_m.z - was.cg_m.z).abs() < 1e-14);
+        for scale in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+            assert!(
+                matches!(
+                    dry_mass_scaled(&rocket, scale),
+                    Err(AnalysisError::Domain {
+                        what: "dry-mass factor",
+                        ..
+                    })
+                ),
+                "{scale}"
+            );
+        }
+    }
+
     #[test]
     fn each_dispersion_moves_its_input() {
         let run = MonteCarlo::new(nominal(), every_dispersion()).unwrap();
