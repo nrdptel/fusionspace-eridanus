@@ -79,7 +79,7 @@ CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose ti
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 0.52 s after apogee; the delay may fire 2.0 s short or long (NFPA 1125): climbing at 14.7 m/s (48 ft/s) to 2.52 s after apogee (no speed: falling with nothing open, a fall HPR Sim doesn't predict)
-descent               4.4 m/s (15 ft/s) at landing under `Parachute`
+vertical descent      4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
@@ -159,7 +159,7 @@ CG and CP             0.813 m (32.0 in) and 0.923 m (36.3 in) aft of the nose ti
 apogee                1100.7 m (3611 ft) above the site at 11.48 s
 rail exit speed       28.9 m/s (95 ft/s)
 delay                 apogee 9.82 s after burnout, with the charges held; the motor's set delay: 9 s; its charge fires 0.82 s before apogee; the delay may fire 1.8 s short or long (NFPA 1125): climbing at 26.6 m/s (87 ft/s) to falling at 9.5 m/s (31 ft/s)
-descent               4.5 m/s (15 ft/s) at landing under `Parachute`
+vertical descent      4.5 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s

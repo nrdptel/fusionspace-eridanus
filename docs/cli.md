@@ -382,7 +382,7 @@ CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose ti
 apogee                846.1 m (2776 ft) above the site at 11.21 s
 rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout, with the charges held
-descent               no recovery device opened, so the fall is not a prediction
+vertical descent      no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
@@ -524,7 +524,7 @@ CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose ti
 apogee                324.0 m (1063 ft) above the site at 9.12 s
 rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout, with the charges held
-descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
+vertical descent      14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
@@ -788,7 +788,7 @@ CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose ti
 apogee                877.4 m (2879 ft) above the site at 11.48 s
 rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout, with the charges held
-descent               no recovery device opened, so the fall is not a prediction
+vertical descent      no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from 3 m (9.8 ft) of rail above its aft end, 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T

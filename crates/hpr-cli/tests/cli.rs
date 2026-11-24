@@ -1626,7 +1626,7 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
              with the charges held leaves it shut)\n"
         ),
         &format!(
-            "descent               {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
+            "vertical descent      {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
             landing.descent_rate_m_s,
             landing.descent_rate_m_s / FOOT_M
         ),
@@ -3839,13 +3839,13 @@ fn sim_text_reads_by_name() {
             "apogee",
             "rail exit speed",
             "delay",
-            "descent"
+            "vertical descent"
         ],
         "{text}"
     );
     assert!(
         text.contains(
-            "descent               no recovery device opened, so the fall is not a prediction"
+            "vertical descent      no recovery device opened, so the fall is not a prediction"
         ),
         "{text}"
     );
@@ -3934,7 +3934,7 @@ fn sim_text_reads_by_name() {
     assert!(down(main_opens) > 5.0 && down(ground) > 2.0, "{document:#}");
     assert!((down(ground) - landing).abs() < 1e-9, "{document:#}");
     let line = format!(
-        "\ndescent               {:.1} m/s ({:.0} ft/s) at 150.0 m (492 ft) under `Drogue \
+        "\nvertical descent      {:.1} m/s ({:.0} ft/s) at 150.0 m (492 ft) under `Drogue \
          parachute`; {landing:.1} m/s ({:.0} ft/s) at landing with `Main parachute` open too\n",
         down(main_opens),
         down(main_opens) / FOOT_M,
@@ -3961,7 +3961,7 @@ fn sim_text_reads_by_name() {
     let flown = streams(&["sim", &late.to_string_lossy(), "--motor", "H54"]).out;
     let descent = flown
         .lines()
-        .find(|line| line.starts_with("descent "))
+        .find(|line| line.starts_with("vertical descent "))
         .unwrap_or_else(|| panic!("{flown}"));
     assert!(
         descent.contains(

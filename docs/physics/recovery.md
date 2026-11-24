@@ -50,7 +50,15 @@ part drifts and lands.
     airframe's drag, has already turned and is falling. If its device opens then, it opens slower
     than a real part's would. That takes a part whose drag is large for its mass, a light nose cone
     rather than a heavy payload. The airframe's own drag under a canopy is left out too. The same
-    holds for an ejected piece.
+    holds for an ejected piece. Knacke's steady descent adds the load's drag to the canopy's
+    (*Parachute Recovery Systems Design Manual*, NWC TP 6575, §4.5.1). Leaving it out makes the
+    descent under a device read fast and the drift read short, the side that flatters a field's
+    size. It matters most under a small drogue: the airframe's share of the drag there is 3% to
+    68% ([the broadside drag note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/broadside-body-drag.md),
+    §6).
+  - Canopies open together: after the main opens, its drag area and the drogue's are added.
+    Canopies flown together lose drag to each other (Knacke, on clusters), so the descent under both
+    can only read the same as it is or slower. OpenRocket adds them the same way.
   - The push of a separation's charge on the two stages (an ejection's is modeled, a
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at

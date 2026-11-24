@@ -129,7 +129,7 @@ CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose ti
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 0.52 s after apogee; the delay may fire 2.0 s short or long (NFPA 1125): climbing at 14.7 m/s (48 ft/s) to 2.52 s after apogee (no speed: falling with nothing open, a fall HPR Sim doesn't predict)
-descent               4.4 m/s (15 ft/s) at landing under `Parachute`
+vertical descent      4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s

@@ -413,7 +413,7 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         &flight.recovery,
         summary.apogee.as_ref().map(|apogee| apogee.time_s),
     );
-    figure(out, "descent", &descent(flight, braked))
+    figure(out, "vertical descent", &descent(flight, braked))
 }
 
 /// A station along the rocket, m aft of the nose tip to the millimeter, with inches:
