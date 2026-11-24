@@ -1710,7 +1710,16 @@ fn fly_with(
     let (year, month, day, hour) = flight.utc;
     let (environment, weather) = launch_day(flight, &weather_path, &weather_bytes)?;
     let (_, _, elevation_m) = flight.site;
+    // A flight of the input uncertainty: the air warmed and the wind moved once, for the flight
+    // and for the altimeter that reads it, and the rail turned.
+    let (environment, weather) = match variant.and_then(|variant| variant.inputs) {
+        Some(draw) => draw
+            .launch_day(environment, weather, elevation_m)
+            .map_err(|error| input(format!("{weather_path}, with its inputs moved: {error}")))?,
+        None => (environment, weather),
+    };
     let rail = rail_of(flight);
+    let rail = variant.map_or(rail, |variant| variant.rail(rail));
     let settings = FlightSettings {
         max_time_s: log_apogee_s + PAST_APOGEE_S,
         ..FlightSettings::default()
@@ -2373,6 +2382,26 @@ impl RealFlightReport {
                     "{id}: the formula component {formula:?} isn't its row's gap {gap_m:?}"
                 ));
             }
+            if !row.input.holds(id) {
+                return Err(format!(
+                    "{id}: the input part isn't its flight's stated inputs', its seven parts' \
+                     sum or the report's samples"
+                ));
+            }
+            if row.validation_m != row.validation_of_parts_m() {
+                return Err(format!(
+                    "{id}: the validation uncertainty {:?} isn't its three parts' {:?}",
+                    row.validation_m,
+                    row.validation_of_parts_m()
+                ));
+            }
+            if row.within != row.within_band() {
+                return Err(format!(
+                    "{id}: within the band is {:?}, and its error and uncertainty say {:?}",
+                    row.within,
+                    row.within_band()
+                ));
+            }
             if !row.holds() {
                 return Err(format!("{id}: a number of its row isn't finite"));
             }
@@ -2695,9 +2724,45 @@ impl RealFlightReport {
                     a.data.data_m.unwrap_or(0.0),
                     b.data.data_m.unwrap_or(0.0),
                 ),
+                ("input part", a.input.input_m, b.input.input_m),
+                ("input part's mean", a.input.mean_m, b.input.mean_m),
+                ("input part's local sum", a.input.local_m, b.input.local_m),
+                (
+                    "validation uncertainty",
+                    a.validation_m.unwrap_or(0.0),
+                    b.validation_m.unwrap_or(0.0),
+                ),
             ] {
                 if !same(x, y) {
                     return Err(format!("{}: the {what} is {x} committed, {y} flown", a.id));
+                }
+            }
+            // The input part's flights: each number alone, and each hypercube's spread.
+            let flights = |row: &crate::validation_uncertainty::UncertaintyRow| {
+                row.input
+                    .components
+                    .iter()
+                    .flat_map(|each| [each.sigma, each.low_m, each.high_m])
+                    .chain(row.input.hypercubes_m.iter().copied())
+                    .chain(row.input.hypercube_means_m.iter().copied())
+                    .collect::<Vec<f64>>()
+            };
+            let (committed, flown) = (flights(a), flights(b));
+            if committed.len() != flown.len()
+                || (a.input.seed, a.input.samples) != (b.input.seed, b.input.samples)
+                || (a.validation_m.is_some(), a.within) != (b.validation_m.is_some(), b.within)
+            {
+                return Err(format!(
+                    "{}: the input part's flights, its samples or its band differ",
+                    a.id
+                ));
+            }
+            for (x, y) in committed.into_iter().zip(flown) {
+                if !same(x, y) {
+                    return Err(format!(
+                        "{}: a flight of the input part is {x} committed, {y} flown",
+                        a.id
+                    ));
                 }
             }
         }
@@ -3036,8 +3101,8 @@ impl RealFlightReport {
              3·|difference|·r⁴/(r⁴ − 1). That is a band of about 95%, about two standard \
              deviations, so u_num is half of it.\n\
              - The data part, the log's own apogee uncertainty, is the next section's \
-             ([M1.14b17][m1-14b17]). The input part comes with [M1.14b18][m1-14b18]; until it \
-             does, no flight's E has a band (E ± 2·u_val).\n\n\
+             ([M1.14b17][m1-14b17]). The input part and the band, E ± 2·u_val, are the two \
+             sections after it ([M1.14b18][m1-14b18]).\n\n\
              How far to trust it: u_num measures what a finer step changes, not the models, the \
              inputs or the logs. The order 4 is assumed, the dense output's formal order; the \
              flights' own order isn't measured, and a lower one would make the index larger.\n"
@@ -3064,6 +3129,8 @@ impl RealFlightReport {
         }
         let _ = writeln!(out, "\n{}\n", Self::smallest_share(rows));
         Self::data_uncertainty_section(rows, out);
+        Self::input_uncertainty_section(rows, out);
+        Self::band_section(rows, out);
         let _ = writeln!(
             out,
             "[m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16\n\
@@ -3073,6 +3140,17 @@ impl RealFlightReport {
              0373-m1-14b7-in-three-the-numerical-part-first.md\n\
              [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
              0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md\n\
+             [adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
+             0376-m1-14b18-the-inputs-part-and-the-band.md\n\
+             [vv20]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/\
+             validation-uncertainty-vv20.md\n\
+             [descent-wind]: descent-wind.md\n\
+             [sigmas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/\
+             dispersion-sigmas.md\n\
+             [era5-air]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/\
+             era5-surface-temperature.md\n\
+             [as-built]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/\
+             as-built-mass-growth.md\n\
              [two-altimeters]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/\
              research/dual-altimeter-spread.md\n\
              [height-formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/\
@@ -3093,7 +3171,7 @@ impl RealFlightReport {
         let _ = writeln!(
             out,
             "This section puts a correction and a standard uncertainty, the data part u_D, on \
-             each log's own apogee, so that a later band can say how much of E the log could \
+             each log's own apogee, so that the band, below, can say how much of E the log could \
              explain ([M1.14b17][m1-14b17], decision [ADR-375][adr-375]). It uses published \
              figures for a kind of altimeter or its pressure sensor; they are not calibrations \
              of the units that flew.\n\n\
@@ -3216,10 +3294,7 @@ impl RealFlightReport {
                 .join(", ");
             let _ = writeln!(out, "- **{what}** ({flights}): {from}.");
         }
-        let _ = writeln!(
-            out,
-            "\nNo published accuracy, so no u_D, and no band when the input part comes:\n"
-        );
+        let _ = writeln!(out, "\nNo published accuracy, so no u_D and no band:\n");
         for row in rows.iter().filter(|row| row.data.data_m.is_none()) {
             let _ = writeln!(
                 out,
@@ -3273,9 +3348,569 @@ impl RealFlightReport {
              hpr's reads the air the flight is flown in, a reanalysis or the standard \
              atmosphere. Where they differ, hpr's reading moves and the log's doesn't: by about \
              0.35% of the reading for each kelvin of the air column ([the \
-             note][height-formulas]). That is an input's uncertainty, and it comes with the \
-             input part ([M1.14b18][m1-14b18]).\n"
+             note][height-formulas]). That is an input's uncertainty: the air is one of the \
+             five inputs of the next section.\n"
         );
+    }
+
+    /// The page's section on the input part: each flight's five inputs moved alone and drawn
+    /// together, the sentence that compares the two methods, and where each input's standard
+    /// uncertainty is stated.
+    fn input_uncertainty_section(
+        rows: &[crate::validation_uncertainty::UncertaintyRow],
+        out: &mut String,
+    ) {
+        use crate::input_uncertainty::{HYPERCUBES, SAMPLES, SAMPLES_EACH, stated};
+        let _ = writeln!(out, "## How much of each error the inputs could be\n");
+        let _ = writeln!(
+            out,
+            "The third part, u_input, is how far a flight's apogee moves over what isn't known \
+             of its inputs ([M1.14b18][m1-14b18], decision [ADR-376][adr-376]). hpr flies each \
+             flight on its example's stated mass, thrust curve, rail and weather file. None of \
+             those is exact, and E carries their errors with the model's own.\n\n\
+             - **Five inputs are moved:** the mass without motors, each motor's total impulse, \
+             the wind, the rail's angle and the temperature of the air. The drag is not one of \
+             them: it is the model this report tests. The impulse's factor scales a motor's \
+             thrust and its propellant's mass together, as more or less of the same \
+             propellant would.\n\
+             - **Each has a standard uncertainty,** listed under the tables with its source. \
+             Most are figures for a kind of input, not for this flight's own: no team here \
+             published a measured uncertainty for its rocket, and the ones that hobby and \
+             student sources print are nearly all assumed ([the survey][sigmas]).\n\
+             - **Alone.** Each input is moved one standard uncertainty down and one up, the \
+             rest held. Half the difference of the two apogees is that input's part: positive \
+             where more of the input flies higher. The wind and the rail have two parts each, \
+             one an axis. The root sum of squares of the seven is the local estimate of u_input, \
+             one of the two ways V&V 20 gives ([the note][vv20]).\n\
+             - **Together.** Each flight is flown {SAMPLES} times more with all seven numbers \
+             drawn at once from normal distributions: the standard's other way. The draws are \
+             {HYPERCUBES} Latin hypercubes of {SAMPLES_EACH} flights, which cut each input's \
+             distribution into {SAMPLES_EACH} equal shares and fly every share once. u_input is \
+             the standard deviation of the {SAMPLES} apogees. The table also gives each \
+             hypercube's own spread: how far the two stand apart is how well the sample knows \
+             its answer.\n\
+             - **The air is drawn once.** A column ΔT warmer keeps its pressure on the pad and \
+             its layers grow thicker. The flight is flown in that air, and the altimeter that \
+             reads hpr's apogee reads the same air: the reading falls by about 0.35% a kelvin \
+             while the height climbed rises a little in the thinner air.\n\
+             - **A check.** Flown with nothing moved, each flight gives the report's own apogee \
+             to the last bit, or the report is refused.\n"
+        );
+        let _ = writeln!(
+            out,
+            "How far to trust it: u_input is as good as the five figures put in, and a larger \
+             u_input makes a wider band, which an error fits inside more easily.\n\n\
+             - **Smaller readings taken.** The teams' masses are taken as weighed; a mass that \
+             is a design figure would spread like the design file's row, about twenty times \
+             wider. The impulse takes the floor of its range: 2.5% is the figure only if all \
+             of the scatter between two tests of a motor is the test stand's. The range runs \
+             to 3.56% if each test fired one motor, and to 5.03% if each figure is the mean of \
+             three. Its \
+             factor carries the propellant's mass with the thrust; more thrust from the same \
+             propellant would move the apogee more. ERA5's wind takes the daytime figure; this \
+             project's own comparison of ERA5 with flights' GPS descents stands further apart \
+             than that, the canopy's own motion included ([the report][descent-wind]). ERA5's \
+             air takes the lower end of 0.9 to 1.35 K. The band's section says what the \
+             impulse's other end does to the count.\n\
+             - **Larger readings taken.** Air and wind that aren't the day's get bounds wide \
+             enough for any day, on Prometheus too, whose weather file is of the same date a \
+             year later and is likely nearer its day than that. The rail takes 1° across its \
+             heading as well as along it, where the sources give 1° to 5° of heading, a \
+             smaller turn on a rail near the vertical. An error in the wind or the air is \
+             taken as the same at every height, which moves an apogee more than one that \
+             changes with height.\n\
+             - **Borrowed.** Three flights' thrust curves are their teams' own or of no stated \
+             origin, and take the commercial motors' figure for want of one.\n\
+             - **Left out,** each of which would add to u_input: the burn time at a fixed \
+             impulse, the center of mass, a thrust or fin misalignment, the rail's length and \
+             friction, the pad's pressure and the site's elevation. The inputs are drawn \
+             independently.\n\
+             - **Not corrected.** Four known effects have a sign and are left in E. hpr flies \
+             ERA5's air dry, which reads 0.08% to 0.65% low ([the note][era5-air], §4). \
+             Andromeda's and Juno III's thrust files stand off their motors' catalog or \
+             recorded impulse, as the sections above say. A rocket as built is heavier than \
+             its design file, by a median 7.4% of the dry mass ([the note][as-built]), so a \
+             flight on a design file's mass is flown light and reads high from that cause. \
+             The 10.75% such a mass takes here was measured about that median, and the draws \
+             are centered on the file's value: the median is left in E. The band's section \
+             says which call rests on it.\n"
+        );
+        let _ = writeln!(
+            out,
+            "Each number alone, half the difference of its two apogees (m), and the root sum \
+             of squares of the seven:\n\n\
+             | flight | mass | impulse | wind east | wind north | rail up | rail across | air \
+             | root sum of squares |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|---:|");
+        for row in rows {
+            let halves = row
+                .input
+                .components
+                .iter()
+                .map(|each| fmt_signed(each.half_difference_m(), 1))
+                .collect::<Vec<_>>()
+                .join(" | ");
+            let _ = writeln!(
+                out,
+                "| {} | {halves} | {} |",
+                row.id,
+                fmt_number(row.input.local_m, 1),
+            );
+        }
+        let _ = writeln!(
+            out,
+            "\nAll seven drawn together, {SAMPLES} flights:\n\n\
+             | flight | each hypercube's spread (m) | u_input (m) | u_input, share of the \
+             apogee | mean of the {SAMPLES} less the report's apogee (m) |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|");
+        for row in rows {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {}% | {} |",
+                row.id,
+                row.input
+                    .hypercubes_m
+                    .iter()
+                    .map(|each| fmt_number(*each, 1))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                fmt_number(row.input.input_m, 1),
+                fmt_number(100.0 * row.input.input_m / row.apogee_m, 2),
+                fmt_signed(row.input.mean_m - row.apogee_m, 1),
+            );
+        }
+        let _ = writeln!(out, "\n{}\n", Self::input_sentence(rows));
+        let _ = writeln!(out, "Where each input's standard uncertainty is stated:\n");
+        // Each input's distinct figures, in the order flights first take them.
+        let mut said: Vec<(
+            &'static str,
+            String,
+            crate::input_uncertainty::Stated,
+            Vec<&str>,
+        )> = Vec::new();
+        for row in rows {
+            let Some(inputs) = stated(&row.id) else {
+                continue;
+            };
+            for (name, which, figure) in inputs.each() {
+                match said
+                    .iter_mut()
+                    .find(|(each, _, known, _)| *each == name && *known == figure)
+                {
+                    Some((.., flights)) => flights.push(&row.id),
+                    None => said.push((name, which.written(figure.sigma), figure, vec![&row.id])),
+                }
+            }
+        }
+        for name in ["mass", "impulse", "wind", "rail", "air"] {
+            for (_, written, figure, flights) in said.iter().filter(|(each, ..)| *each == name) {
+                let flights = flights
+                    .iter()
+                    .map(|id| format!("`{id}`"))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let _ = writeln!(
+                    out,
+                    "- **{name}, {written}** ({flights}): {}. Source: {}.",
+                    figure.basis,
+                    Self::with_links(figure.from)
+                );
+            }
+        }
+        let _ = writeln!(out);
+    }
+
+    /// The sentence under the input part's table: the largest u_input in meters and as a share,
+    /// on how many flights the impulse's part is the largest of the seven, and how far the
+    /// local estimate and the two hypercubes stand from u_input, each rounded up so that "at
+    /// most" stays true.
+    pub(crate) fn input_sentence(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
+        let share =
+            |row: &crate::validation_uncertainty::UncertaintyRow| row.input.input_m / row.apogee_m;
+        let (Some(largest), Some(largest_share)) = (
+            rows.iter()
+                .max_by(|a, b| a.input.input_m.total_cmp(&b.input.input_m)),
+            rows.iter().max_by(|a, b| share(a).total_cmp(&share(b))),
+        ) else {
+            return "No flight has an input part.".to_owned();
+        };
+        let impulse_largest = rows
+            .iter()
+            .filter(|row| {
+                let size = |at: usize| {
+                    row.input
+                        .components
+                        .get(at)
+                        .map_or(0.0, |each| each.half_difference_m().abs())
+                };
+                (0..row.input.components.len()).all(|at| size(1) >= size(at))
+            })
+            .count();
+        // How far a figure stands from u_input, as a share of u_input.
+        let apart = |row: &crate::validation_uncertainty::UncertaintyRow, other_m: f64| {
+            if row.input.input_m > 0.0 {
+                100.0 * (other_m - row.input.input_m).abs() / row.input.input_m
+            } else {
+                0.0
+            }
+        };
+        let local =
+            |row: &crate::validation_uncertainty::UncertaintyRow| apart(row, row.input.local_m);
+        let cubes = |row: &crate::validation_uncertainty::UncertaintyRow| {
+            row.input
+                .hypercubes_m
+                .iter()
+                .map(|each| apart(row, *each))
+                .fold(0.0, f64::max)
+        };
+        let furthest = |by: &dyn Fn(&crate::validation_uncertainty::UncertaintyRow) -> f64| {
+            rows.iter()
+                .max_by(|a, b| by(a).total_cmp(&by(b)))
+                .map_or((0.0, ""), |row| (by(row), row.id.as_str()))
+        };
+        // "At most" rounds up, so that each bound stays true.
+        let up = |percent: f64| fmt_number((percent * 10.0).ceil() / 10.0, 1);
+        let (local_most, local_id) = furthest(&local);
+        let (cubes_most, cubes_id) = furthest(&cubes);
+        // How far the samples' mean lies under the report's apogee, and what the seven inputs'
+        // own bends sum to on the flight where that is furthest.
+        let under =
+            |row: &crate::validation_uncertainty::UncertaintyRow| row.apogee_m - row.input.mean_m;
+        let below = rows.iter().filter(|row| under(row) > 0.0).count();
+        let mean = rows
+            .iter()
+            .max_by(|a, b| under(a).total_cmp(&under(b)))
+            .filter(|row| under(row) > 0.0)
+            .map_or_else(
+                || {
+                    format!(
+                        "The samples' mean lies below the report's apogee on none of the {} \
+                         flights.",
+                        rows.len()
+                    )
+                },
+                |row| {
+                    let bends_m: f64 = row
+                        .input
+                        .components
+                        .iter()
+                        .map(|each| each.bend_m(row.apogee_m))
+                        .sum();
+                    format!(
+                        "The samples' mean lies below the report's apogee on {below} of the {} \
+                         flights, by at most {} m ({}). There the seven inputs' own bends, each \
+                         the mean of an input's two flights alone less the report's apogee, \
+                         sum to {} m. The band is about E on the report's own flight, not about \
+                         the mean of the samples.",
+                        rows.len(),
+                        fmt_number((under(row) * 10.0).ceil() / 10.0, 1),
+                        row.id,
+                        fmt_signed(bends_m, 1),
+                    )
+                },
+            );
+        format!(
+            "The largest u_input is {} m ({}); as a share of the apogee the largest is {}% ({}). \
+             On {impulse_largest} of the {} flights the impulse's part is the largest of the \
+             seven. The seven parts' root sum of squares stands at most {}% from u_input \
+             ({local_id}), and a hypercube's own spread at most {}% from it ({cubes_id}). {mean}",
+            fmt_number(largest.input.input_m, 1),
+            largest.id,
+            fmt_number(100.0 * share(largest_share), 2),
+            largest_share.id,
+            rows.len(),
+            up(local_most),
+            up(cubes_most),
+        )
+    }
+
+    /// `text` with each path under `docs/` that ends in `.md` made a link to the file in the
+    /// repository, so that a source named in a table of the code reaches its note in one click.
+    pub(crate) fn with_links(text: &str) -> String {
+        let mut out = String::new();
+        let mut rest = text;
+        while let Some(at) = rest.find("docs/") {
+            // A path starts the text or follows a space or a bracket: not the middle of a URL
+            // or of another word.
+            let starts = rest[..at]
+                .chars()
+                .next_back()
+                .is_none_or(|before| before == ' ' || before == '(');
+            if !starts {
+                out.push_str(&rest[..at + 5]);
+                rest = &rest[at + 5..];
+                continue;
+            }
+            let path_len = rest[at..]
+                .find(|c: char| !(c.is_ascii_alphanumeric() || "/-_.".contains(c)))
+                .unwrap_or(rest.len() - at);
+            let path = rest[at..at + path_len].trim_end_matches('.');
+            out.push_str(&rest[..at]);
+            if path.ends_with(".md") {
+                let _ = write!(
+                    out,
+                    "[{path}](https://github.com/nrdptel/fusionspace-eridanus/blob/main/{path})"
+                );
+            } else {
+                out.push_str(path);
+            }
+            rest = &rest[at + path.len()..];
+        }
+        out.push_str(rest);
+        out
+    }
+
+    /// The page's section on the band: each flight's three parts, its validation uncertainty,
+    /// and whether its error against the corrected log lies within twice it, with the count
+    /// and how to read it.
+    fn band_section(rows: &[crate::validation_uncertainty::UncertaintyRow], out: &mut String) {
+        let k = crate::validation_uncertainty::COVERAGE_K;
+        let _ = writeln!(
+            out,
+            "## The band: each error against its validation uncertainty\n"
+        );
+        let _ = writeln!(
+            out,
+            "The validation uncertainty u_val is the root sum of squares of the three parts, \
+             √(u_num² + u_input² + u_D²), and the band is {k} times it either side of zero \
+             ([M1.14b18][m1-14b18], decision [ADR-376][adr-376]). The error it is held against \
+             is E against the corrected log, from the section on the logs.\n\n\
+             - **Inside the band,** the integrator, the inputs and the log could between them \
+             account for the whole error. The model's own error is then known only to be \
+             smaller than |E| + {k}·u_val, and its sign isn't known. That is not a pass: it \
+             says this comparison can't see the model's error through its inputs.\n\
+             - **Outside it,** the three parts can't account for the error. What is left has \
+             the sign of E and a size between |E| − {k}·u_val and |E| + {k}·u_val. It is the \
+             model's error together with whatever the section above leaves out of u_input or \
+             leaves uncorrected in E, and it is only as firm as the inputs' figures: the \
+             sentence under the table says which calls change at the other end of the \
+             impulse's range.\n\
+             - **Meeting the band is not the aim.** A larger uncertainty always meets it, so a \
+             count of flights inside rewards knowing less. What the band is for is the size \
+             and sign of the model's error where it can be told (Eça, Dowding and Roache 2020, \
+             p. 5; [the note][vv20]).\n\
+             - **The factor {k}** takes the three parts' errors as roughly normal, for a band of \
+             about 95%.\n\
+             - **A flight with no u_D has no u_val** and no band: its log's part isn't known, \
+             and without it the root sum of squares would be too small.\n"
+        );
+        let _ = writeln!(
+            out,
+            "| flight | E corrected (m) | u_num (m) | u_input (m) | u_D (m) | u_val (m) | \
+             {k}·u_val (m) | \\|E corrected\\| over u_val | within {k}·u_val |"
+        );
+        let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|---|");
+        for row in rows {
+            let parts = (
+                row.corrected_error_m(),
+                row.data.data_m,
+                row.validation_m,
+                row.within,
+            );
+            let (Some(corrected_m), Some(data_m), Some(validation_m), Some(within)) = parts else {
+                let _ = writeln!(
+                    out,
+                    "| {} | none | {} | {} | none | none | none | none | no band |",
+                    row.id,
+                    fmt_number(row.numerical_m, 4),
+                    fmt_number(row.input.input_m, 1),
+                );
+                continue;
+            };
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                row.id,
+                fmt_signed(corrected_m, 1),
+                fmt_number(row.numerical_m, 4),
+                fmt_number(row.input.input_m, 1),
+                fmt_number(data_m, 2),
+                fmt_number(validation_m, 1),
+                fmt_number(k * validation_m, 1),
+                if validation_m > 0.0 {
+                    fmt_number(corrected_m.abs() / validation_m, 2)
+                } else {
+                    "none".to_owned()
+                },
+                if within { "yes" } else { "no" },
+            );
+        }
+        let _ = writeln!(out, "\n{}\n", Self::band_sentence(rows));
+    }
+
+    /// The validation uncertainty a row would have with its impulse's standard uncertainty at
+    /// `impulse_sigma` in place of its own, by the parts alone: the impulse's half difference
+    /// scaled by the ratio of the two, the seven parts' root sum of squares taken again, and
+    /// u_input scaled by the ratio of the new sum to the old. `None` for a row with no band.
+    pub(crate) fn validation_at_impulse_m(
+        row: &crate::validation_uncertainty::UncertaintyRow,
+        impulse_sigma: f64,
+    ) -> Option<f64> {
+        let data_m = row.data.data_m?;
+        let impulse = row.input.components.get(1)?;
+        let scaled = if impulse.sigma > 0.0 && row.input.local_m > 0.0 {
+            let half_m = impulse.half_difference_m();
+            let grown_m = half_m * impulse_sigma / impulse.sigma;
+            let local_m = (row.input.local_m * row.input.local_m - half_m * half_m
+                + grown_m * grown_m)
+                .max(0.0)
+                .sqrt();
+            row.input.input_m * local_m / row.input.local_m
+        } else {
+            row.input.input_m
+        };
+        Some(crate::validation_uncertainty::validation_uncertainty_m(
+            row.numerical_m,
+            scaled,
+            data_m,
+        ))
+    }
+
+    /// The sentences under the band's table: how many flights with a band lie within it and
+    /// which, how many lie outside with hpr high and with hpr low, how many have no band, and
+    /// what the count would be with the impulse's standard uncertainty at each top of its range
+    /// ([`Self::validation_at_impulse_m`]), which flights lie outside at all three figures, and
+    /// what it would be with a rocket's growth as built taken out of the flights on a design
+    /// file's mass ([`Self::error_as_built_m`]).
+    pub(crate) fn band_sentence(rows: &[crate::validation_uncertainty::UncertaintyRow]) -> String {
+        let k = crate::validation_uncertainty::COVERAGE_K;
+        let banded = rows
+            .iter()
+            .filter_map(|row| Some((row, row.corrected_error_m()?, row.within?)))
+            .collect::<Vec<_>>();
+        let without = rows.len() - banded.len();
+        if banded.is_empty() {
+            return format!(
+                "No flight has a band: none of the {} has a u_D.",
+                rows.len()
+            );
+        }
+        let named = |pick: &dyn Fn(f64, bool) -> bool| {
+            let ids = banded
+                .iter()
+                .filter(|(_, corrected_m, within)| pick(*corrected_m, *within))
+                .map(|(row, ..)| row.id.as_str())
+                .collect::<Vec<_>>();
+            let list = if ids.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", ids.join(", "))
+            };
+            (ids.len(), list)
+        };
+        let (inside, inside_ids) = named(&|_, within| within);
+        let (high, high_ids) = named(&|corrected_m, within| !within && corrected_m > 0.0);
+        let (low, low_ids) = named(&|corrected_m, within| !within && corrected_m <= 0.0);
+        let other = crate::input_uncertainty::IMPULSE_OTHER_END;
+        let listed = |ids: &[&str]| {
+            if ids.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", ids.join(", "))
+            }
+        };
+        let three = crate::input_uncertainty::IMPULSE_MEAN_OF_THREE_END;
+        let within_at = |impulse_sigma: f64| {
+            banded
+                .iter()
+                .filter(|(row, corrected_m, _)| {
+                    Self::validation_at_impulse_m(row, impulse_sigma)
+                        .is_some_and(|validation_m| corrected_m.abs() <= k * validation_m)
+                })
+                .map(|(row, ..)| row.id.as_str())
+                .collect::<Vec<_>>()
+        };
+        let at_other = within_at(other);
+        let at_three = within_at(three);
+        let outside_all = banded
+            .iter()
+            .filter(|(row, _, within)| {
+                !within
+                    && !at_other.contains(&row.id.as_str())
+                    && !at_three.contains(&row.id.as_str())
+            })
+            .map(|(row, ..)| row.id.as_str())
+            .collect::<Vec<_>>();
+        // The flights on a design file's mass, with the median growth of a rocket as built
+        // taken out of the error.
+        let grown = banded
+            .iter()
+            .filter_map(|(row, _, _)| Some((row, Self::error_as_built_m(row)?)))
+            .collect::<Vec<_>>();
+        let as_built = if grown.is_empty() {
+            String::new()
+        } else {
+            let within_as_built = banded
+                .iter()
+                .filter(|(row, corrected_m, _)| {
+                    let error_m = Self::error_as_built_m(row).unwrap_or(*corrected_m);
+                    row.validation_m
+                        .is_some_and(|validation_m| error_m.abs() <= k * validation_m)
+                })
+                .map(|(row, ..)| row.id.as_str())
+                .collect::<Vec<_>>();
+            format!(
+                " The other way: with a rocket's median growth as built, {}% of the mass \
+                 without motors, taken out of each flight on a design file's mass, by the \
+                 mass's flight alone, the errors would be {}, and {} of the {} would lie \
+                 within{}.",
+                fmt_number(100.0 * crate::input_uncertainty::AS_BUILT_GROWTH, 1),
+                grown
+                    .iter()
+                    .map(|(row, error_m)| format!("{} m ({})", fmt_signed(*error_m, 1), row.id))
+                    .collect::<Vec<_>>()
+                    .join(" and "),
+                within_as_built.len(),
+                banded.len(),
+                listed(&within_as_built),
+            )
+        };
+        format!(
+            "Of the {} flights with a band, the corrected |E| is within {k}·u_val on {inside}\
+             {inside_ids} and outside it on {}: hpr high on {high}{high_ids}, hpr low on {low}\
+             {low_ids}. No u_D and so no band on {without} of the {} flights. The count moves \
+             with the inputs' figures. With the impulse's standard uncertainty at {}%, the \
+             top of its range if each certification test fired one motor, the seven parts put \
+             {} of the {} within{}. At {}%, the top if each test's figure is the mean of three \
+             motors, they put {} of the {} within{}. Outside at all three figures: {}{}.\
+             {as_built}",
+            banded.len(),
+            high + low,
+            rows.len(),
+            fmt_number(100.0 * other, 2),
+            at_other.len(),
+            banded.len(),
+            listed(&at_other),
+            fmt_number(100.0 * three, 2),
+            at_three.len(),
+            banded.len(),
+            listed(&at_three),
+            outside_all.len(),
+            listed(&outside_all),
+        )
+    }
+
+    /// The error against the corrected log that a flight on a design file's mass would have
+    /// with the median growth of a rocket as built taken out, m: the corrected error plus the
+    /// apogee's change for that much more mass, taken along the line from the report's flight
+    /// to the flight with one standard uncertainty more mass. `None` for a flight whose mass
+    /// isn't a design file's, or with no band.
+    pub(crate) fn error_as_built_m(
+        row: &crate::validation_uncertainty::UncertaintyRow,
+    ) -> Option<f64> {
+        let inputs = crate::input_uncertainty::stated(&row.id)?;
+        if !inputs.mass_is_a_design_files() {
+            return None;
+        }
+        let corrected_m = row.corrected_error_m()?;
+        let mass = row.input.components.first()?;
+        (mass.sigma > 0.0).then(|| {
+            corrected_m
+                + (mass.high_m - row.apogee_m) * crate::input_uncertainty::AS_BUILT_GROWTH
+                    / mass.sigma
+        })
     }
 
     /// The sentence under the data part's table: how many flights have a u_D, the largest u_D

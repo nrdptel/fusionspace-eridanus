@@ -404,6 +404,7 @@ until someone rewrites it in plainer words.
 | [ADR-373: M1.14b7 in three, the numerical part first][adr-373] | A validation uncertainty for each real flight, after ASME V&V 20, is three increments. [M1.14b16](#m1-14b16) writes the combination (the root sum of squares of three parts, from a source that was read), pins it on a case worked by hand, and gives each public flight's comparison error beside its numerical part, from the flight flown again with the stepper's tolerances divided by 32. [M1.14b17](#m1-14b17) adds the data part, the log's own apogee uncertainty. [M1.14b18](#m1-14b18) adds the input part, the band, the count within it and the accuracy page. |  |
 | [ADR-374: The main's opening bound holds both the split and the walk][adr-374] | Where the descent's rate passes the main's mark more than once, the likeliest split ([ADR-366][adr-366]) can be earlier than Debrief's walk back from landing, and the log alone can't say which is the opening ([#1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). The reading stays the split; its bound adds the time between the two, and its 90% interval runs from the lower end of the interval about the split to the upper end of the interval about the walk's start. On the swinging flight of [#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903) the bound goes from 0.76 s to 19.21 s. In the synthetic census the main opening's mean bound goes from 2.03 to 2.05 s. |  |
 | [ADR-375: M1.14b17, the log's part of a real flight's validation uncertainty][adr-375] | Each public real flight's log apogee gets a standard uncertainty u_D from a published accuracy, its altimeter's or its pressure sensor's: 8 of the 12 flights, from 1.23 m (4.0 ft) to 10.09 m (33.1 ft). What is known to make a log read low or high is corrected, not added to u_D: Juno III's log by +16.32 m (53.5 ft). Each error against its corrected log is at least 17 times its u_D. Four flights have none and are listed by name. Both apogees are barometric readings, so the standard atmosphere's distance from the day's air is in both and stays out of u_D: counted as heights, an error changes by at most 0.10 points of its apogee. |  |
+| [ADR-376: M1.14b18, the inputs' part and the band][adr-376] | Each public flight gets an input part u_input: the standard deviation of its apogee over 200 flights with five inputs drawn at once (mass, total impulse, wind, rail angle, air temperature), each on a cited uncertainty. u_input runs from 23.8 m (78 ft) to 140.0 m (459 ft), the largest part on every flight. Each of the 8 flights with a u_D gets a validation uncertainty and a band of twice it about its error against the corrected log: 3 lie within, 5 outside. The count moves with the inputs: 6 or 7 within at two higher impulse figures, 2 with a rocket's growth as built taken out. The headline errors stay on the logs as logged. |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -674,7 +675,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b4"></a>[M1.14b4][done-1] | NASA's check cases 3 and 6 to 10 | done |
 | <a id="m1-14b5"></a>[M1.14b5][done-1] | Tip-off, measured with RocketPy's | done |
 | <a id="m1-14b6"></a>[M1.14b6][done-1] | Wind from the GPS descent, against the reanalysis | done |
-| <a id="m1-14b7"></a>[M1.14b7][phase-1] | A validation uncertainty per real flight | not yet done |
+| <a id="m1-14b7"></a>[M1.14b7][done-1] | A validation uncertainty per real flight | done |
 | <a id="m1-14b8"></a>[M1.14b8][phase-1] | MAPLEAF as a second open oracle | not yet done |
 | <a id="m1-14b9"></a>[M1.14b9][phase-1] | The tip-off pivot, held to RocketPy's | not yet done |
 | <a id="m1-14b10"></a>[M1.14b10][done-1] | Tip-off in every flight that has two guides | done |
@@ -685,7 +686,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m1-14b15"></a>[M1.14b15][done-1] | Tip-off by default | done |
 | <a id="m1-14b16"></a>[M1.14b16][done-1] | Combination, numerical part | done |
 | <a id="m1-14b17"></a>[M1.14b17][done-1] | The data part | done |
-| <a id="m1-14b18"></a>[M1.14b18][phase-1] | Input part, band | not yet done |
+| <a id="m1-14b18"></a>[M1.14b18][done-1] | Input part, band | done |
 | <a id="m1-14c"></a>[M1.14c][phase-1] | The normal force and drag near Mach 1, from 0.8 to 1.2, with the row at Mach 1.08 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14d"></a>[M1.14d][phase-1] | Faster than sound, Mach 1.2 to 2.5. First the four shapes that fall back to slender-body theory and so read more stable than they are: a step in a body's radius ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)), a flare behind a boattail too long for its wake ([issue #120](https://github.com/nrdptel/fusionspace-eridanus/issues/120)), a pointed tip steeper than 30° ([issue #121](https://github.com/nrdptel/fusionspace-eridanus/issues/121)) and a vertical tip steeper than its cap. Then drag, where HPR Sim reads 5.1% to 14.9% below RASAero II on RocketPy's Calisto rocket, and the body-alone misses [M1.8e](#m1-8e) left from Mach 1.5 to 2.3; and the rows from Mach 1.29 to 2.38 of [the Basic Finner's normal force](physics/aero.md#the-basic-finners-normal-force-against-drevs-range) | not yet done |
 | <a id="m1-14e"></a>[M1.14e][phase-1] | Large angles of attack: what the legal 20 mph wind costs, and a high-angle model if it costs more than 1%; how long the first moments off the rail stay steep, which tests the 1 s the high-angle flag allows; and the issues about high angles | not yet done |
@@ -1497,6 +1498,7 @@ is the milestone that added or will add that test.
 [adr-373]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0373-m1-14b7-in-three-the-numerical-part-first.md
 [adr-374]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0374-the-mains-opening-bound-holds-the-split-and-the-walk.md
 [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
+[adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0376-m1-14b18-the-inputs-part-and-the-band.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

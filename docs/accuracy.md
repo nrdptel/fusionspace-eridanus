@@ -800,7 +800,10 @@ which drag is right. The [real flights](#real-flights) below start to, one rocke
 **In short: HPR Sim has flown 12 public real flights and compared each with its altitude log.
 Read the way each log's altimeter reads the air, HPR Sim's [apogees](glossary.md#apogee) miss the
 logs' by 8.83% on average. That's outside the 5% target ([evidence row G24](evidence.md#g24)).
-With its sign the mean is −4.61%, and 7 of the 12 read low ([report][real-report]).**
+With its sign the mean is −4.61%, and 7 of the 12 read low ([report][real-report]). Each log is
+compared as logged. Where something is known to make a log read low or high, it is corrected
+only where each miss is held to its band ([the corrections][real-data-part],
+[the band](#the-band)).**
 
 **Seven are RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b), flown in ERA5 weather
 and compared as soon as they were flown ([the decision][adr-082]). Their mean is 5.97%,
@@ -1167,8 +1170,9 @@ for it instead of adding it to u_D. The largest correction is on Juno III, +16.3
 The report reads that log only to 24.60 s, while the rocket is still climbing. Measured against
 its corrected log, each of the 8 misses is at least 17 times its own u_D
 ([the same section][real-data-part]). So the log's part can't account for these misses either.
-The misses above stay on the logs as logged; whether they should take the corrections is
-[an open question](https://github.com/nrdptel/fusionspace-eridanus/issues/1615). The other 4
+The misses above stay on the logs as logged ([the decision][adr-376]). A correction is worked
+out for only 8 of the 12 logs, so correcting those rows would put two kinds of figure in one
+mean. The other 4
 flights have no published accuracy. One log is the team's own avionics, and RocketPy's notebooks
 call the other three only "COTS altimeter". The report lists them by name and gives them no u_D.
 
@@ -1177,8 +1181,8 @@ that flew. Pairs of altimeters flown on one rocket suggest about 0.39% of the ap
 whole unit
 ([the note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/dual-altimeter-spread.md)).
 On 7 of the 8, u_D is under that ([the section][real-data-part]), so on that evidence it is
-more likely too small than too large. Too small a u_D makes a later band narrower, which a miss
-fits inside less easily.
+more likely too small than too large. Too small a u_D makes the band below narrower, which a
+miss fits inside less easily.
 
 One thing is left out of u_D on purpose. A
 [barometric altimeter](glossary.md#barometric-altimeter) reports the
@@ -1189,8 +1193,80 @@ report's table also turns both apogees into heights climbed. A miss then changes
 22.6 m (74 ft), and by at most 0.10 percentage points of the apogee
 ([the report's table][real-conversion]). That change is the miss itself counted in the day's
 air, not an error of the log. What this doesn't cover is an error in the air the flight is
-simulated in. That is an input's uncertainty, and it comes with the inputs' part
-([M1.14b18](decisions-and-roadmap.md#m1-14b18)); until it does, no miss has a band.
+simulated in. That is an input's uncertainty: the air's temperature is one of the five inputs
+below.
+
+**How much of each miss the inputs could be.** HPR Sim flies each flight on a stated mass,
+thrust curve, rail angle and air: its example's, or a design file's in standard air for the two
+Macie XL flights. None of those is exact, so part of a miss could be theirs. The report gives
+five inputs a [standard deviation](glossary.md#standard-deviation) each, and lists every figure
+with its source ([the report's section][real-input-part]):
+
+- **the mass without motors:** 0.5% for a team's stated mass, taken as weighed, and 10.75% for a
+  design file's ([the same section][real-input-part]);
+- **each motor's [total impulse](glossary.md#total-impulse):** 2.5%
+  ([the same section][real-input-part]);
+- **the wind:** 2 m/s (6.6 ft/s) on each of two axes, for ERA5's wind at the flight's hour
+  ([the same section][real-input-part]);
+- **the rail's angle:** 1° on each of two axes ([the same section][real-input-part]);
+- **the air's temperature:** 0.9 K, for ERA5's air at the flight's hour
+  ([the same section][real-input-part]).
+
+Three flights whose wind and air aren't their own day's take wider figures. The report then
+flies each of the 12 flights 200 times more with all five drawn at once. That is a
+[Monte Carlo](glossary.md#monte-carlo) run on a Latin hypercube. Each input's distribution is
+cut into 100 equally likely shares. Every share is flown once in each of two sets
+([the same section][real-input-part]). The standard deviation of the 200 apogees is the inputs'
+part of the validation uncertainty, u_input ([M1.14b18](decisions-and-roadmap.md#m1-14b18)).
+[The decision behind it][adr-376] gives the reasons. The drag is not one of the inputs: it is
+what the comparison tests.
+
+u_input is by far the largest of the three parts. It runs from 23.8 m (78 ft) on Bella Lui to
+140.0 m (459 ft) on Prometheus ([the report's section][real-input-part]). On 10 of the 12
+flights the largest share of it is the motor's total impulse. These are figures for a kind of
+input, not measurements of the rockets that flew. No team here published a measured uncertainty
+for its own rocket's mass or motor. The impulse's figure is a floor. A commercial motor's file
+is taken to be one test of its type on a stand. For 21 AeroTech motor types that Tripoli Motor
+Testing tested a second time, the two tests differ by a standard deviation of 3.56%. Some of
+those motors changed between their tests. If all of that scatter is the test stand's, a flown
+motor stands 2.5% from its file, the figure used. If all of it is from motor to motor, it
+stands 3.56% off where each test fired one motor. In that same case it stands 5.03% off where
+each test's figure is the mean of three motors. Neither the split nor the number fired is
+known. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
+stated origin. They borrow the 2.5% ([the same section][real-input-part]).
+
+<a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
+and u_input (the inputs). They combine into the validation uncertainty, u_val: the square root
+of the sum of their squares. u_val is one standard deviation of the miss that a perfect model
+could still show. A miss is within its band when it is no more than twice u_val from zero. That
+covers about 95% if the three errors are roughly normal. The report holds each miss, measured
+against its corrected log, to its band ([the report's section][real-band]). Of the 8 flights
+with a u_D, 3 are within (Juno III, Lince and the first Macie XL flight) and 5 are outside. HPR
+Sim reads high on 2 of the 5 (NDRT 2020 and Cavour). It reads low on 3 (Prometheus, Genesis and
+the second Macie XL flight). The 4 flights with no u_D get no band.
+
+That count moves with the inputs' figures, both ways ([the same section][real-band]). With the
+impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
+the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket
+as built is usually heavier than its design file, by a median 7.4%. The note behind that median
+rates it low as a figure for rockets in general, since one team supplies many of its rockets.
+With it taken out of the two Macie XL flights, the first would be outside too on the figures
+used, and 2 of the 8 would be within.
+
+How to read a band:
+
+- **A miss outside its band** is more than the integrator, the inputs and the log can account
+  for between them, on the figures above. What is left has the miss's sign, and its size is the
+  miss, give or take the band. It is the model's own error together with anything the inputs'
+  part leaves out (the burn time, the center of mass, a misalignment, the rail's friction) and
+  the known effects the report doesn't correct ([its lists][real-input-part]).
+- **A miss within its band is not a pass.** It says this comparison can't tell the model's error
+  from the inputs', the log's and the integrator's. The model's error could be anything up to
+  the miss plus the band, either way.
+- **Meeting the band is not the aim.** A wider band is easier to meet, and the band widens with
+  every input that is known less well. So a count of flights within their bands would improve
+  by knowing less about them. What the band gives is the size and sign of what is left, on the
+  flights where that can be told.
 
 ### Real flights of the private collection
 
@@ -2041,6 +2117,9 @@ rest.
 [real-data-part]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-log-could-be
 [real-conversion]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#the-barometers-conversion-in-both-readings
 [adr-375]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0375-m1-14b17-the-logs-part-of-a-real-flights-validation-uncertainty.md
+[adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0376-m1-14b18-the-inputs-part-and-the-band.md
+[real-input-part]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#how-much-of-each-error-the-inputs-could-be
+[real-band]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#the-band-each-error-against-its-validation-uncertainty
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json

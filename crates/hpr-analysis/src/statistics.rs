@@ -25,10 +25,59 @@
 //!
 //! Every sum runs over the sorted values in order, so a summary is bit-for-bit the same however
 //! the values were computed, in parallel or not.
+//!
+//! [`normal_quantile`] is the standard normal distribution's inverse, for a sample stratified by
+//! probability.
 
 use serde::{Deserialize, Serialize};
 
 use crate::error::AnalysisError;
+
+/// `Φ⁻¹(p)`, the standard normal deviate with the share `p` of the distribution at or below it:
+/// `−∞` at 0, `+∞` at 1, and NaN for a `p` outside `[0, 1]` or not a number.
+///
+/// It inverts `Φ(x) = erfc(−x/√2)/2` by bisection, with `erfc` from the `libm` crate, which
+/// keeps its relative accuracy in the lower tail where `1 − erf` would cancel. A `p` over 1/2 is
+/// mirrored, `Φ⁻¹(p) = −Φ⁻¹(1 − p)`, so the search is always in the lower tail. The bracket
+/// starts at `[−40, 0]` (`Φ(−40)` is below the smallest positive `f64`) and is halved until its
+/// ends are neighboring numbers, and the upper end is returned: the smallest `x` whose computed
+/// `Φ` is at least `p`. So the result is within one step of `f64` of that `Φ`'s exact inverse,
+/// and it never decreases as `p` grows.
+///
+/// The optimizer's integer margin keeps its own closed-form inverse, Wichura's AS 241, inside
+/// its module. This one costs about 60 evaluations of `erfc` for a `p` away from 1/2, and about
+/// 110 for one a rounding from it.
+#[must_use]
+pub fn normal_quantile(p: f64) -> f64 {
+    if !(0.0..=1.0).contains(&p) {
+        return f64::NAN;
+    }
+    if p == 0.0 {
+        return f64::NEG_INFINITY;
+    }
+    if p == 1.0 {
+        return f64::INFINITY;
+    }
+    if p == 0.5 {
+        return 0.0;
+    }
+    if p > 0.5 {
+        // 1 − p is exact for a p from 1/2 to 1 (Sterbenz).
+        return -normal_quantile(1.0 - p);
+    }
+    let (mut low, mut high) = (-40.0_f64, 0.0_f64);
+    loop {
+        let middle = 0.5 * (low + high);
+        if middle <= low || middle >= high {
+            return high;
+        }
+        if 0.5 * libm::erfc(-middle / std::f64::consts::SQRT_2) < p {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+}
 
 /// The values a sample of runs gave, sorted, and how many runs were tried. It serializes as
 /// those two, and reads back through [`Distribution::new`]'s checks.
@@ -554,5 +603,48 @@ mod tests {
                     if value.to_bits() == p.to_bits()
             ));
         }
+    }
+
+    /// The normal quantile on tabulated values: 1.959963984540054 at 0.975 (the two-sided 95%
+    /// point), 1.2815515655446004 at 0.9 and 3.090232306167813 at 0.999, with their mirror
+    /// images; 1 at Φ(1) = 0.8413447460685429; −6.361340902404056 at 10⁻¹⁰. It inverts Φ down
+    /// to 10⁻¹⁰⁰, is mirrored about 1/2, never decreases, and gives the edges as the doc says.
+    #[test]
+    fn the_normal_quantile_on_tabulated_values_and_its_edges() {
+        for (p, z) in [
+            (0.975, 1.959_963_984_540_054),
+            (0.9, 1.281_551_565_544_600_4),
+            (0.999, 3.090_232_306_167_813),
+            (0.841_344_746_068_542_9, 1.0),
+        ] {
+            assert!((normal_quantile(p) - z).abs() < 1e-13, "{p}");
+            assert!((normal_quantile(1.0 - p) + z).abs() < 1e-13, "{p}");
+        }
+        assert!((normal_quantile(1e-10) + 6.361_340_902_404_056).abs() < 1e-12);
+        // It inverts Φ, deep into the lower tail: the share at or below the result is at least
+        // p, and a few steps of f64 below the result it is under p.
+        let share = |x: f64| 0.5 * libm::erfc(-x / std::f64::consts::SQRT_2);
+        for p in [1e-100, 1e-12, 0.005, 0.015, 0.25, 0.495, 0.5 - 1e-15] {
+            let x = normal_quantile(p);
+            assert!(x < 0.0, "{p}");
+            assert!(share(x) >= p, "{p}: {}", share(x));
+            assert!(share(x * (1.0 + 4.0 * f64::EPSILON)) < p, "{p}");
+            assert_eq!(normal_quantile(1.0 - p), -normal_quantile(1.0 - (1.0 - p)));
+        }
+        // Never decreasing, through 1/2.
+        let mut last = f64::NEG_INFINITY;
+        for step in 0..=2000 {
+            let x = normal_quantile(f64::from(step) / 2000.0);
+            assert!(x >= last, "{step}");
+            last = x;
+        }
+        assert_eq!(normal_quantile(0.5), 0.0);
+        assert_eq!(normal_quantile(0.0), f64::NEG_INFINITY);
+        assert_eq!(normal_quantile(1.0), f64::INFINITY);
+        assert!(normal_quantile(-0.1).is_nan());
+        assert!(normal_quantile(1.1).is_nan());
+        assert!(normal_quantile(f64::NAN).is_nan());
+        // The smallest positive number still has a quantile inside the bracket.
+        assert!(normal_quantile(f64::MIN_POSITIVE) > -40.0);
     }
 }

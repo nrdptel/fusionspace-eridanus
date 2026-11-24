@@ -31,8 +31,14 @@
 //! for what is known to make it read low or high ([`UncertaintyRow::corrected_error_m`]). Both
 //! apogees are barometric readings, so the standard atmosphere's distance from
 //! the day's air is in both and not in the data part; each row measures that conversion on
-//! both sides ([`UncertaintyRow::conversion_m`], [`UncertaintyRow::log_conversion_m`]). The
-//! input part comes in [M1.14b18][m1-14b18].
+//! both sides ([`UncertaintyRow::conversion_m`], [`UncertaintyRow::log_conversion_m`]).
+//!
+//! The input part is the apogee's spread over the flight's stated input uncertainties
+//! ([M1.14b18][m1-14b18], [`crate::input_uncertainty`]): each row carries its seven drawn
+//! numbers flown alone and the standard deviation of 200 flights with all of them drawn. With
+//! all three parts a row has its validation uncertainty and the band's call
+//! ([`UncertaintyRow::within_band`]), about the error against the corrected log; a flight with
+//! no data part has neither.
 //!
 //! [m1-14b16]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b16
 //! [m1-14b17]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-14b17
@@ -42,10 +48,13 @@
 
 use std::path::Path;
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use serde::{Deserialize, Serialize};
 
 use crate::correction::Variant;
 use crate::data_uncertainty::{DataPart, Measured, Term, data_part, instrument};
+use crate::input_uncertainty::{Drawn, InputDraw, InputPart, SEED, draws, input_part, stated};
 use crate::predicted_first::ComparedPrediction;
 use crate::real_flight::{FLIGHTS, FlightRow, RealFlightError, Varied, fly_varied};
 
@@ -140,6 +149,15 @@ pub struct UncertaintyRow {
     /// The data part: the log apogee's correction, its standard uncertainty `u_D` and their
     /// components, or why its altimeter has none ([`crate::data_uncertainty`]).
     pub data: DataPart,
+    /// The input part: the apogee's spread `u_input` over the flight's stated input
+    /// uncertainties, and each input moved alone ([`crate::input_uncertainty`]).
+    pub input: InputPart,
+    /// The validation uncertainty `u_val`, m ([`validation_uncertainty_m`] of the three parts).
+    /// `None` for a flight with no data part: without the log's part there is no `u_val`.
+    pub validation_m: Option<f64>,
+    /// Whether the error against the corrected log lies within the band, [`COVERAGE_K`] times
+    /// `u_val` either side of zero ([`UncertaintyRow::within_band`]). `None` with no `u_val`.
+    pub within: Option<bool>,
 }
 
 impl UncertaintyRow {
@@ -198,6 +216,27 @@ impl UncertaintyRow {
             .map(|correction_m| self.comparison_error_m - correction_m)
     }
 
+    /// The validation uncertainty its three parts give, m: their root sum of squares
+    /// ([`validation_uncertainty_m`]). `None` for a flight with no data part.
+    #[must_use]
+    pub fn validation_of_parts_m(&self) -> Option<f64> {
+        self.data
+            .data_m
+            .map(|data_m| validation_uncertainty_m(self.numerical_m, self.input.input_m, data_m))
+    }
+
+    /// Whether the error against the corrected log lies within [`COVERAGE_K`] times the
+    /// validation uncertainty of zero, `|E corrected| ≤ 2·u_val`. Inside, the three parts could
+    /// account for the whole error, and the model's own error is known only to be smaller than
+    /// `|E| + 2·u_val`, its sign not at all; outside, the model's error has the sign of `E`
+    /// (Eça, Dowding and Roache 2020, p. 5). `None` for a flight with no data part.
+    #[must_use]
+    pub fn within_band(&self) -> Option<bool> {
+        let corrected_m = self.corrected_error_m()?;
+        let validation_m = self.validation_of_parts_m()?;
+        Some(corrected_m.abs() <= COVERAGE_K * validation_m)
+    }
+
     /// Whether the numerical part is its two runs' ([`numerical_uncertainty_m`] on their
     /// [`refinement_ratio`]).
     #[must_use]
@@ -226,6 +265,10 @@ impl UncertaintyRow {
         .all(|x| x.is_finite())
             && self.numerical_holds()
             && self.data.holds(&self.id, self.log_apogee_m)
+            && self.input.holds(&self.id)
+            && self.validation_m == self.validation_of_parts_m()
+            && self.validation_m.is_none_or(f64::is_finite)
+            && self.within == self.within_band()
     }
 }
 
@@ -272,7 +315,8 @@ pub fn rows(
                (error_m, log_apogee_m): (f64, f64),
                coarse: Varied,
                fine: Varied,
-               data: DataPart| {
+               data: DataPart|
+     -> Result<Unfinished, RealFlightError> {
         let log_height_m = coarse.log_height_m.ok_or_else(|| {
             input(
                 id,
@@ -288,7 +332,7 @@ pub fn rows(
                     fine.steps_to_apogee, coarse.steps_to_apogee
                 ),
             })?;
-        Ok(UncertaintyRow {
+        Ok(Unfinished {
             id: id.to_owned(),
             comparison_error_m: error_m,
             apogee_m: coarse.apogee_m,
@@ -356,6 +400,159 @@ pub fn rows(
             part,
         )?);
     }
+    with_input_parts(root, out)
+}
+
+/// A row before its input part.
+struct Unfinished {
+    id: String,
+    comparison_error_m: f64,
+    apogee_m: f64,
+    apogee_step_halved_m: f64,
+    steps: u64,
+    steps_step_halved: u64,
+    numerical_m: f64,
+    log_apogee_m: f64,
+    height_apogee_m: f64,
+    log_height_m: f64,
+    data: DataPart,
+}
+
+/// `work` on every item, on as many threads as the machine has, the results in the items'
+/// order. Each result depends on its item alone, so the threads change nothing but the time.
+fn in_parallel<T: Sync, R: Send>(items: &[T], work: impl Fn(&T) -> R + Sync) -> Vec<R> {
+    // A flight's stack frames are large unoptimized: a thread gets 8 MB, the main thread's on
+    // Linux and macOS.
+    const STACK_BYTES: usize = 8 << 20;
+    let threads = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(items.len().max(1));
+    let next = AtomicUsize::new(0);
+    let mut done: Vec<(usize, R)> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                let worker = || {
+                    let mut done = Vec::new();
+                    loop {
+                        let at = next.fetch_add(1, Ordering::Relaxed);
+                        let Some(item) = items.get(at) else {
+                            return done;
+                        };
+                        done.push((at, work(item)));
+                    }
+                };
+                std::thread::Builder::new()
+                    .stack_size(STACK_BYTES)
+                    .spawn_scoped(scope, worker)
+            })
+            .collect();
+        let mut done = Vec::with_capacity(items.len());
+        for worker in workers {
+            match worker.map(std::thread::ScopedJoinHandle::join) {
+                Ok(Ok(results)) => done.extend(results),
+                // A worker that panicked: the panic goes on, as it would on one thread.
+                Ok(Err(panic)) => std::panic::resume_unwind(panic),
+                // A thread that couldn't start does no work; the others take its share, and the
+                // items it would have taken are flown below.
+                Err(_) => {}
+            }
+        }
+        done
+    });
+    // With no thread at all, the work is done here.
+    if done.is_empty() {
+        done = items.iter().map(&work).enumerate().collect();
+    }
+    done.sort_by_key(|&(at, _)| at);
+    done.into_iter().map(|(_, result)| result).collect()
+}
+
+/// Each row with its input part, its validation uncertainty and whether its error lies within
+/// the band. Every flight is flown [`crate::input_uncertainty::SAMPLES`] times with all its inputs drawn, twice for each
+/// drawn number moved alone, and once with nothing moved, which must be the report's own flight
+/// bit for bit: the flights of a draw are then the report's flight with its inputs moved and
+/// nothing else.
+fn with_input_parts(
+    root: &Path,
+    rows: Vec<Unfinished>,
+) -> Result<Vec<UncertaintyRow>, RealFlightError> {
+    let input = |id: &str, what: String| RealFlightError::Input {
+        flight: id.to_owned(),
+        what,
+    };
+    let weather = crate::public_predictions::checked_conversion(root)?;
+    // Each flight's draws: nothing moved, each number alone (low, then high), then the samples.
+    let mut jobs: Vec<(usize, InputDraw)> = Vec::new();
+    for (at, row) in rows.iter().enumerate() {
+        let inputs = stated(&row.id)
+            .ok_or_else(|| input(&row.id, "a flight with no stated inputs".to_owned()))?;
+        jobs.push((at, InputDraw::NONE));
+        for which in Drawn::ALL {
+            jobs.push((at, InputDraw::one(which, -1.0, inputs)));
+            jobs.push((at, InputDraw::one(which, 1.0, inputs)));
+        }
+        jobs.extend(draws(SEED, inputs).into_iter().map(|moved| (at, moved)));
+    }
+    let apogees = in_parallel(&jobs, |&(at, moved)| {
+        let id = rows[at].id.as_str();
+        let variant = Variant::drawn(moved);
+        match FLIGHTS.iter().find(|flight| flight.id == id) {
+            Some(flight) => fly_varied(root, flight, variant),
+            None => crate::public_predictions::varied_apogee_of(root, id, &weather, variant),
+        }
+        .map(|varied| varied.apogee_m)
+    });
+    let mut apogees = apogees.into_iter();
+    let mut out = Vec::with_capacity(rows.len());
+    for row in rows {
+        let inputs = stated(&row.id)
+            .ok_or_else(|| input(&row.id, "a flight with no stated inputs".to_owned()))?;
+        let mut next = || {
+            apogees
+                .next()
+                .ok_or_else(|| input(&row.id, "a flight of its input part is missing".to_owned()))?
+        };
+        let unmoved_m = next()?;
+        if unmoved_m != row.apogee_m {
+            return Err(input(
+                &row.id,
+                format!(
+                    "with no input moved the apogee is {unmoved_m}, the report's {}: the input \
+                     part's flights aren't the report's flight",
+                    row.apogee_m
+                ),
+            ));
+        }
+        let mut alone = [(0.0, 0.0); 7];
+        for pair in &mut alone {
+            *pair = (next()?, next()?);
+        }
+        // Every sample must fly: one that doesn't fails the report, so none is left out of
+        // the spread.
+        let samples = (0..crate::input_uncertainty::SAMPLES)
+            .map(|_| next())
+            .collect::<Result<Vec<f64>, _>>()?;
+        let part = input_part(inputs, alone, &samples).map_err(|what| input(&row.id, what))?;
+        let mut finished = UncertaintyRow {
+            id: row.id,
+            comparison_error_m: row.comparison_error_m,
+            apogee_m: row.apogee_m,
+            apogee_step_halved_m: row.apogee_step_halved_m,
+            steps: row.steps,
+            steps_step_halved: row.steps_step_halved,
+            numerical_m: row.numerical_m,
+            log_apogee_m: row.log_apogee_m,
+            height_apogee_m: row.height_apogee_m,
+            log_height_m: row.log_height_m,
+            data: row.data,
+            input: part,
+            validation_m: None,
+            within: None,
+        };
+        finished.validation_m = finished.validation_of_parts_m();
+        finished.within = finished.within_band();
+        out.push(finished);
+    }
     Ok(out)
 }
 
@@ -418,6 +615,9 @@ mod tests {
                 &Measured::default(),
             )
             .expect("no term to compute"),
+            input: crate::input_uncertainty::part_for_tests(20.0),
+            validation_m: None,
+            within: None,
         };
         assert!(!row.holds(), "0.48 isn't the float the formula gives");
         row.numerical_m = own;
