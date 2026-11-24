@@ -430,7 +430,7 @@
       "input": "Gravity",
       "flights": "every flight",
       "hpr": "WGS 84 normal gravity at the site's latitude and the rocket's height, the centrifugal term in it",
-      "mapleaf": "its `Flat` Earth model: GM/(R + z)² with R = 6371 km, the same at every latitude",
+      "mapleaf": "its `Flat` Earth model, the default: GM/(R + z)² with R = 6371 km, the same at every latitude. Its round and WGS 84 Earth models, which turn with the Earth and fly in an inertial frame, were not flown",
       "measured": "At ignition, HPR Sim's against MAPLEAF's: 9.7864 against 9.8182 m/s² (-0.32%) (`valetudo`), 9.8069 against 9.8190 m/s² (-0.12%) (`bella-lui`), 9.8026 against 9.8196 m/s² (-0.17%) (`ndrt-2020-nose-to-tail`). With MAPLEAF's gravity matched to HPR Sim's at the pad, the same-drag apogee differences go from +0.35% (`valetudo`), +0.13% (`bella-lui`), +0.14% (`ndrt-2020-nose-to-tail`) to +0.0011% (`valetudo`), +0.0012% (`bella-lui`), +0.0037% (`ndrt-2020-nose-to-tail`) ([the table](#with-mapleafs-gravity-matched))."
     },
     {

@@ -66,6 +66,9 @@ and every number below is the report's.
    same-drag flight is flown once more with MAPLEAF's gravity constant scaled so that its
    gravity at the pad is HPR Sim's ([the table][report-matched]). That flight is labeled as a
    measurement, not as MAPLEAF: the same-drag and own-drag tables fly MAPLEAF as it ships.
+   MAPLEAF also has a round and a WGS 84 Earth model. Both turn with the Earth and fly in an
+   inertial frame, whose log this comparison does not read; they were not flown, and the list
+   of what the two could not share says so.
 
 6. **Every flight leaves a vertical rail.** Flown on the one example rail that leans most,
    5.3° from the vertical, MAPLEAF at this commit moves the rocket up a line 10.60° from the

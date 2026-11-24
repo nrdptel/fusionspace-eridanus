@@ -1519,7 +1519,9 @@ fn not_shared(
             "WGS 84 normal gravity at the site's latitude and the rocket's height, the \
              centrifugal term in it"
                 .to_owned(),
-            "its `Flat` Earth model: GM/(R + z)² with R = 6371 km, the same at every latitude"
+            "its `Flat` Earth model, the default: GM/(R + z)² with R = 6371 km, the same at every \
+             latitude. Its round and WGS 84 Earth models, which turn with the Earth and fly in \
+             an inertial frame, were not flown"
                 .to_owned(),
             format!(
                 "At ignition, HPR Sim's against MAPLEAF's: {}. With MAPLEAF's gravity matched \
