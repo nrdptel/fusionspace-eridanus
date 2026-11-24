@@ -1158,8 +1158,8 @@ misses. This doesn't test the models, the inputs or the logs.
 **How much of each miss the log could be.** Part of a miss could also be the log's own error.
 For 8 of the 12 flights a published accuracy exists. The altimeter's own manual gives one for
 3. For the other 5 it is the datasheet of the pressure sensor the maker names. Prometheus's
-TeleMetrum has two in its manual: its log's 1 Pa steps point to one of them. The report
-combines it with
+TeleMetrum is the exception: its manual lists two sensors. The report takes the MS5607, whose
+output steps by 1 Pa, as its log does. The report combines that accuracy with
 the sensor's noise, the log's resolution (the smallest step it records) and its filter, where
 those are known. The result is the log's part of the validation uncertainty, u_D: one
 [standard deviation](glossary.md#standard-deviation) of the logged apogee
@@ -1168,10 +1168,11 @@ rule and its source. The largest u_D is 10.09 m (33.1 ft), on Prometheus
 ([the report's section][real-data-part]).
 
 Where something is known to make a log read low or high, the report corrects the log's apogee
-for it instead of adding it to u_D. A correction is what is added to the log's apogee. The
-largest is on Juno III, +16.32 m (53.5 ft). The report reads that log only to 24.60 s, while the
-rocket is still climbing. Juno III's miss is −174.8 m (−573 ft) on the log as logged. Against
-its corrected log it is −191.1 m (−627 ft). Measured that way, each of the 8 misses is at least 17 times its own u_D
+for it instead of adding it to u_D. A correction is what is added to the log's apogee, so a
+positive one says the log reads low. The largest is on Juno III, +16.32 m (53.5 ft). The report
+reads that log only to 24.60 s, while the rocket is still climbing. Juno III's miss, HPR Sim
+less the log, is −174.8 m (−573 ft) on the log as logged. Against its corrected log it is
+−191.1 m (−627 ft). Measured that way, each of the 8 misses is at least 17 times its own u_D
 ([the same section][real-data-part]). So the log's part can't account for these misses either.
 The misses above stay on the logs as logged ([the decision][adr-376]). A correction is worked
 out for only 8 of the 12 logs, so correcting those rows would put two kinds of figure in one
@@ -1234,16 +1235,17 @@ input, not measurements of the rockets that flew. No team here published a measu
 for its own rocket's mass or motor. The impulse's figure is a floor. A commercial motor's file
 is taken to be one test of its type on a stand. For 21 AeroTech motor types that Tripoli Motor
 Testing tested a second time, the two tests differ by a standard deviation of 3.56%. Some of
-those motors changed between their tests. The pairs are all one maker's; the other makers'
-motors borrow the figure. If all of that scatter is the test stand's, a flown motor stands 2.5%
+those motors changed between their tests. The 21 pairs are all AeroTech's. Other makers' motors
+are given the same figure: no pairs were found for them. If all of that scatter is the test stand's, a flown motor stands 2.5%
 from its file, the figure used. If all of it is from motor to motor, it stands 3.56% off where
 each test fired one motor. It stands 5.03% off where each test's figure is the mean of three
-motors. That top assumes three motors in both tests and the same measuring error in both. More
-motors a test would put it higher still. Unequal counts, or two stands that measure differently,
-move it either way. Neither the split nor the number fired is known. And 2.5% is a floor for the
-random part only. Say both tests of a pair share an error in a stand's calibration. It cancels in
-their difference, so the pairs can't show it. But it would still stand between a flown motor and
-its file. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
+motors. That top assumes three motors in each test. Had a test fired more, the top would be
+higher still, and unequal counts could move it either way. Neither the split nor the number
+fired is known. The 2.5% floor assumes both tests' stands measure equally well: if the file's
+stand measured better than the retest's, the floor would be lower. It is also a floor for the
+random part only. Both tests of a pair may share a calibration error of the stand. That error
+cancels in the pair's difference, so the pairs can't show it. But it would still separate a
+flown motor from its file. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
 stated origin. They borrow the 2.5% ([the same section][real-input-part]).
 
 <a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
@@ -1260,8 +1262,8 @@ That count moves with the inputs' figures, both ways ([the same section][real-ba
 impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
 the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket
 as built is usually heavier than its design file, by a median 7.4%. The note behind that median
-has low confidence in it as a figure for rockets in general. One team supplies many of its
-rockets. With that growth taken out of the two Macie XL flights, the first would be outside too on the figures
+has low confidence in it as a figure for rockets in general. One team supplies many of the
+rockets in it. With that growth taken out of the two Macie XL flights, the first would be outside too on the figures
 used, and 2 of the 8 would be within.
 
 How to read a band:

@@ -3227,8 +3227,8 @@ impl RealFlightReport {
              the apogee less that of the pressure on the pad. An error the same in pascals at \
              both would cancel if a pascal were the same height at both, but a pascal is more \
              height in the thinner air at the apogee. So the sensor's error on the pad leaves \
-             its size times the difference between the two heights a pascal moves: the \
-             \"pad offset\" component. The \"sensor\" component is how far the error may \
+             its size times the difference between a pascal's height at the apogee and on the \
+             pad: the \"pad offset\" component. The \"sensor\" component is how far the error may \
              have changed between the zero and the apogee.\n\n\
              Left out, for want of a published figure: the lag of a vented bay and its ports, a \
              bay outside 0 to 50 °C, the sensor's drift with age and with its supply voltage, \
@@ -3242,8 +3242,8 @@ impl RealFlightReport {
              change since the zero: larger than using it once, though not the largest \
              reading, since as independent bounds on the two pressures it would give more. \
              Prometheus's noise is the sensor's at its noisiest setting, as the altimeter's \
-             isn't published. One leans small: the sensor sheet's band after an autozero at \
-             one pressure is taken for the change since the altimeter's own zero on the pad, \
+             isn't published. One leans small: the sensor sheet's band after an autozero (the \
+             sensor zeroed against one known pressure) is taken for the change since the altimeter's own zero on the pad, \
              which the sheet doesn't describe; its band with no autozero is twice as wide \
              ([ADR-375][adr-375] leaves this open). Against all of that, two altimeters flown \
              on one rocket \
@@ -3955,15 +3955,10 @@ impl RealFlightReport {
         })
     }
 
-    /// The sentence under the data part's table: how many flights have a u_D, the largest u_D
-    /// and correction, how many are under the two-altimeter figure, how many have a u_D of zero
-    /// (and so no ratio), and the fewest times a flight's own u_D above zero goes into its
-    /// corrected |E|, rounded down as [`Self::smallest_share`] rounds. It says the log's part can't account for the errors only where every corrected
-    /// |E| is at least [`COVERAGE_K`](crate::validation_uncertainty::COVERAGE_K) times its u_D,
-    /// the band's own factor.
-    /// Which way the corrections move E, a sentence that starts with a space: "away from
-    /// zero" where the corrected |E| is larger than |E| as logged, "toward" it where smaller.
-    /// Empty with no correction.
+    /// Which way the corrections move E, a sentence that starts with a space: away from zero
+    /// where the corrected |E| is larger than |E| as logged, toward it where smaller. A
+    /// correction that leaves |E| as it was, or a corrected E that isn't a number, is in
+    /// neither list. Empty when both are.
     fn corrections_lean(
         with_part: &[(
             &crate::validation_uncertainty::UncertaintyRow,
@@ -3974,30 +3969,45 @@ impl RealFlightReport {
     ) -> String {
         let (mut away, mut toward) = (Vec::new(), Vec::new());
         for (row, _, correction_m, corrected_m) in with_part {
-            if *correction_m == 0.0 {
+            let (after, before) = (corrected_m.abs(), row.comparison_error_m.abs());
+            if *correction_m == 0.0 || !after.is_finite() || !before.is_finite() {
                 continue;
             }
-            if corrected_m.abs() > row.comparison_error_m.abs() {
+            if after > before {
                 away.push(row.id.as_str());
-            } else {
+            } else if after < before {
                 toward.push(row.id.as_str());
             }
         }
         let listed = |ids: &[&str]| match ids {
-            [] => "none".to_owned(),
+            [] => String::new(),
             [one] => (*one).to_owned(),
             [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
         };
-        if away.is_empty() && toward.is_empty() {
-            return String::new();
+        match (away.is_empty(), toward.is_empty()) {
+            (true, true) => String::new(),
+            (false, true) => format!(
+                " The corrections move E away from zero on {}.",
+                listed(&away)
+            ),
+            (true, false) => format!(
+                " The corrections move E toward zero on {}.",
+                listed(&toward)
+            ),
+            (false, false) => format!(
+                " The corrections move E away from zero on {} and toward it on {}.",
+                listed(&away),
+                listed(&toward)
+            ),
         }
-        format!(
-            " The corrections move E away from zero on {} and toward it on {}.",
-            listed(&away),
-            listed(&toward)
-        )
     }
 
+    /// The sentence under the data part's table: how many flights have a u_D, the largest u_D
+    /// and correction, how many are under the two-altimeter figure, how many have a u_D of zero
+    /// (and so no ratio), and the fewest times a flight's own u_D above zero goes into its
+    /// corrected |E|, rounded down as [`Self::smallest_share`] rounds. It says the log's part can't account for the errors only where every corrected
+    /// |E| is at least [`COVERAGE_K`](crate::validation_uncertainty::COVERAGE_K) times its u_D,
+    /// the band's own factor.
     pub(crate) fn smallest_data_share(
         rows: &[crate::validation_uncertainty::UncertaintyRow],
     ) -> String {

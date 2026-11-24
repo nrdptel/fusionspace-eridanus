@@ -163,12 +163,14 @@ choices, and called the Raven's the larger reading.)
   and with its supply voltage (the datasheet lists both apart), the pad sample's own noise and
   step, and how far noise lifts the highest of many samples on the two logs with a noise
   component. None has a published figure that fits.
-- The formula gap's own uncertainty. The gap corrects the log with nothing left in u_D, but it is
-  measured against the log's first pressure row, so that row's noise and step stay in it: 0.44 m
-  on Juno III's 10 Pa steps (3.6 Pa of noise and 10/√12 Pa of step, at 0.0962 m/Pa on the pad),
-  and 1.10 m to 1.24 m on the other four logs if their noise is the sensor's noisiest setting.
-  Added to each u_D as one more component it would raise none by more than 0.08 m (Cavour,
-  7.19 m to 7.27 m), so it is left out
+- The formula gap's own uncertainty, on the two logs whose gap is measured on their own pressure
+  column (Prometheus and Juno III; the Vega flights' formula term comes from the note's other
+  logs). The gap corrects the log with nothing left in u_D, but it is measured against the log's
+  first pressure row, so that row's noise and step stay in it: 0.44 m on Juno III's 10 Pa steps
+  (3.6 Pa of noise and 10/√12 Pa of step, at 0.0962 m/Pa on the pad), and 1.24 m on Prometheus's
+  if its noise is the sensor's noisiest setting (13 Pa at 0.0954 m/Pa). As one more component it
+  would raise Prometheus's u_D from 10.09 m to 10.17 m and Juno III's by 0.011 m, so it is left
+  out
   ([#1616](https://github.com/nrdptel/fusionspace-eridanus/issues/1616)).
 - Whether a PerfectFlite reads a difference of two standard altitudes or takes its pad as sea
   level ([the note][formulas]). The two differ by 0.68% at a 300 m pad, and the report has no site

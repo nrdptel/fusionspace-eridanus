@@ -131,8 +131,10 @@ fn rational((numerator, denominator): &([f64; 8], [f64; 7]), r: f64) -> f64 {
 /// three rational functions of degree 7 (in `p − 1/2` near the middle, and in
 /// `r = √(−ln min(p, 1 − p))` for the tails), accurate to about 1 part in 10¹⁶. The coefficients
 /// were transcribed from the listing in CPython's `statistics` module (PSF License), which prints
-/// the paper's 20 digits; the paper's own hash sums check the transcription. The crate's one
-/// inverse: the optimizer's integer margin and the stratified samples both take it.
+/// the paper's 20 digits; the paper's own hash sums check the transcription. The workspace's
+/// one inverse: the optimizer's integer margin here and `hpr-validate`'s stratified samples
+/// both take it. It is not monotone to the last bit: a step of `f64` up in `p` can lower it by a
+/// step, at the joins of its three functions and elsewhere. No caller needs it finer than that.
 #[must_use]
 pub fn normal_quantile(p: f64) -> f64 {
     if !(0.0..=1.0).contains(&p) {
@@ -715,7 +717,7 @@ mod tests {
     #[test]
     #[expect(
         clippy::excessive_precision,
-        reason = "17 digits of each 40-digit reference, which round to the nearest f64"
+        reason = "17 digits of each 50-digit reference, which round to the nearest f64"
     )]
     fn known_quantiles() {
         for (p, x) in [
@@ -743,11 +745,12 @@ mod tests {
         );
     }
 
-    /// Mirrored about 1/2 exactly, for the `p` that `1 − (1 − p)` rounds to, never decreasing on a fine grid through
-    /// both of AS 241's changes of function (`p` = 0.075 and 0.925, and `r` = 5 near
-    /// `p` = 1.4·10⁻¹¹), and finite at the smallest positive number.
+    /// Mirrored about 1/2 exactly, for the `p` that `1 − (1 − p)` rounds to; rising on a grid of
+    /// 20,001 points from 0 to 1, which crosses the central function's joins at `p` = 0.075 and
+    /// 0.925 (not to the last bit: see [`normal_quantile`]); rising across the tail's join at
+    /// `r` = 5, near `p` = 1.4·10⁻¹¹; and finite at the smallest positive number.
     #[test]
-    fn the_normal_quantile_is_mirrored_and_never_decreases() {
+    fn the_normal_quantile_is_mirrored_and_rises_on_a_grid() {
         for p in [
             1e-100,
             1e-12,

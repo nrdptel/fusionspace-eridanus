@@ -2454,6 +2454,20 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
     // A correction toward the simulation shrinks the ratio: 20 m less +15 m is 5 m, under u_D.
     let toward = say(&[corrected("a", 20.0, 6.0, 15.0)]);
     assert!(
+        toward.contains("The corrections move E toward zero on a."),
+        "{toward}"
+    );
+    // One side alone, and a correction that only flips E's sign, in neither list.
+    let away = say(&[
+        corrected("a", -20.0, 6.0, 15.0),
+        corrected("b", 1.0, 6.0, 2.0),
+    ]);
+    assert!(
+        away.contains("The corrections move E away from zero on a."),
+        "{away}"
+    );
+    assert!(!away.contains(" on b"), "{away}");
+    assert!(
         toward.contains("On a, u_D is larger than the corrected |E|"),
         "{toward}"
     );
