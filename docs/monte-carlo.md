@@ -128,8 +128,9 @@ How to read it:
   above that true percentile with 95% confidence (Wilks's tolerance bound, below). Here it is
   1,207 m (3,960 ft) for the apogee against the column's 1,199 m (3,934 ft), and 1,072 m
   (3,517 ft) for the landing distance against 997 m (3,271 ft). It covers only the scatter the
-  run was given, not the model's own error: [Accuracy](accuracy.md) gives that,
-  and a waiver needs room for both. The landing distance's bound says how far from the pad; the
+  run was given, not the model's own error. [Accuracy](accuracy.md) gives the apogee's, against
+  logged flights; the landing distance's hasn't been compared with real flights yet. A waiver
+  needs room for that error too. The landing distance's bound says how far from the pad; the
   next-flight ellipse below says whether the landings fit the field's shape.
 - **At least**, beside each ellipse, is a lower bound on the share of all such flights it holds,
   at about 95% confidence: the 200 flights' own share, 94.5% for the 95% ellipse, could be luck.

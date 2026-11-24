@@ -640,20 +640,20 @@ impl Distribution {
 mod tests {
     use super::*;
 
-    /// The one-sided 95% Clopper–Pearson bounds at 100 runs against exact values (the binomial
-    /// sums in 40-digit arithmetic, mpmath, bisected): none of 100 is at most
-    /// 1 − 0.05^(1/100) = 2.9513%; one of 100 at most 4.6560% and at least 0.05128%; four at most
-    /// 8.9196%; 65 between 56.392% and 72.925%. A run with no value moves each bound to its
-    /// unfavorable side: one passed and three missing is at most the four's 8.9196%.
+    /// More passed and missing than runs is refused, even where their sum overflows a `usize`.
     #[test]
     fn a_share_refuses_counts_past_its_runs_without_overflowing() {
-        // More passed and missing than runs is refused, even where the sum overflows a usize.
         assert_eq!(Share::of(usize::MAX, 1, 5), None);
         assert_eq!(Share::of(4, 2, 5), None);
         assert_eq!(Share::of(0, 0, 0), None);
         assert!(Share::of(3, 2, 5).is_some());
     }
 
+    /// The one-sided 95% Clopper–Pearson bounds at 100 runs against exact values (the binomial
+    /// sums in 40-digit arithmetic, mpmath, bisected): none of 100 is at most
+    /// 1 − 0.05^(1/100) = 2.9513%; one of 100 at most 4.6560% and at least 0.05128%; four at most
+    /// 8.9196%; 65 between 56.392% and 72.925%. A run with no value moves each bound to its
+    /// unfavorable side: one passed and three missing is at most the four's 8.9196%.
     #[test]
     #[expect(
         clippy::excessive_precision,

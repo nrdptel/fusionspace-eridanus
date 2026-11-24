@@ -1013,10 +1013,12 @@ mod flag_kind_tests {
     use super::FlagKind;
 
     #[test]
-    fn every_flag_is_in_all() {
+    fn flags_are_listed_in_declaration_order() {
         // `hpr mc` counts flags against `ALL`, so one missing from it would drop out of both
-        // `flags` and `unraised_flags`. The match has no wildcard: a new flag fails to compile
-        // here until it is given a place, and the place must be its place in `ALL`.
+        // `flags` and `unraised_flags`. The match has no wildcard, so a new flag fails to compile
+        // here until it is given a place. The loop then checks each flag `ALL` lists sits at that
+        // place, so it catches a mis-ordered `ALL`, not a flag left off its end; the CLI test
+        // `mc_bounds_its_flags_and_shares` counts all six.
         for (at, flag) in FlagKind::ALL.iter().enumerate() {
             let place = match flag {
                 FlagKind::UnstableUnderPower => 0,

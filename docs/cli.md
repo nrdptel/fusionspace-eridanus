@@ -1175,7 +1175,8 @@ below each (Wilks's tolerance bound: the second largest of 100 flights, the fift
 takes 59 flights to give one, and a failed flight counts above every value, so enough failures
 leave it unbounded ([how it is chosen](monte-carlo.md#failed-flights-are-counted)). In the JSON
 it is each spread's `upper_95_95`. It covers only the scatter given here, not the model's own
-error, which the note at the end gives: leave room for both.
+error. The note at the end gives the apogee's, against logged flights; the landing distance's
+hasn't been compared with real flights yet. Leave room for both.
 
 When a flight opened a recovery device, two more figures follow, each when any flight has a
 value for it. The opening shock is each flight's largest drag over the mass of the part hanging

@@ -9104,9 +9104,9 @@ fn mc_bounds_its_flags_and_shares() {
         ellipse["inside_at_least"].as_f64().unwrap(),
     );
     assert!(at_least < inside, "{ellipse}");
-    // Each count carries its bound: the two flights without a value or a landing, 2 of 100
-    // (6.1619%), and each failure's reason, 1 of 100 the Clopper–Pearson upper bound on one of 100,
-    // 4.6560%).
+    // Each count carries its bound: the two flights without a value or a landing are bounded as
+    // 2 of 100 (6.1619%), and each failure's reason as 1 of 100 (4.6560%), each the one-sided
+    // Clopper–Pearson upper bound.
     for spread in ["apogee_m", "landing_distance_m"] {
         let missing = document[spread]["missing_up_to"].as_f64().unwrap();
         assert!(
