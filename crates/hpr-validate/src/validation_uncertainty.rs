@@ -26,8 +26,8 @@
 //! gives 1.1 to 1.15 for a shifted one, and neither was checked against the standard).
 //!
 //! The data part is the log's own ([M1.14b17][m1-14b17], [`crate::data_uncertainty`]): each
-//! row carries its log apogee's standard uncertainty where its altimeter, or the pressure
-//! sensor its maker names, has a published accuracy, and the correction the log's apogee takes
+//! row carries its log apogee's standard uncertainty where its altimeter, or its pressure
+//! sensor (the one its maker names, or the one its log points to), has a published accuracy, and the correction the log's apogee takes
 //! for what is known to make it read low or high ([`UncertaintyRow::corrected_error_m`]). Both
 //! apogees are barometric readings, so the standard atmosphere's distance from
 //! the day's air is in both and not in the data part; each row measures that conversion on

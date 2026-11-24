@@ -706,7 +706,6 @@ pub struct FlightRow {
     /// For a log that keeps its pressure: the same gap with its sign, the height column less the
     /// standard atmosphere's reading, at the first of those rows with the highest height, m.
     /// Negative where the altimeter's own formula reads below the standard's.
-    #[serde(default)]
     pub pressure_reading_apogee_m: Option<f64>,
     /// For a flight that logged a satellite altitude: its highest above its first row, m.
     pub gnss_apogee_m: Option<f64>,
@@ -1345,7 +1344,11 @@ const GNSS_PAD_TOLERANCE_M: f64 = 150.0;
 /// The gap between a log's height column and the standard atmosphere's reading of its pressure
 /// column less that of the first row with one, over the rows up to [`Log::until_s`] whose time,
 /// height and pressure all read, m: its largest size, and its signed value (the height column
-/// less the reading) at the first of those rows with the highest height, the log's apogee.
+/// less the reading) at the first of those rows with the highest height.
+///
+/// That row must be the log's apogee as [`parse_log`] and `highest` read it from the time and
+/// height alone; a log whose apogee row has no pressure that reads is refused, so the signed gap
+/// is always taken at the apogee the report compares.
 fn pressure_reading_gap_m(
     log: &Log,
     column: usize,
@@ -1383,6 +1386,23 @@ fn pressure_reading_gap_m(
             _ => Some(row),
         })
         .ok_or_else(|| format!("{} has no pressure", log.file))?;
+    let heights = read_rows(
+        text,
+        log.header_lines,
+        &[log.time_column, log.height_column],
+    )
+    .into_iter()
+    .take_while(|row| log.until_s.is_none_or(|until| row[0] <= until))
+    .map(|row| (row[0], row[1]))
+    .collect::<Vec<_>>();
+    let (apogee_s, apogee_height) = highest(&heights);
+    if top[0].to_bits() != apogee_s.to_bits() || top[1].to_bits() != apogee_height.to_bits() {
+        return Err(format!(
+            "{}'s apogee row, at {apogee_s} s, has no pressure that reads; the highest row with \
+             one is at {} s",
+            log.file, top[0]
+        ));
+    }
     Ok((largest, gap(top)?))
 }
 
@@ -3189,8 +3209,9 @@ impl RealFlightReport {
              - **Corrections.** Where something is known to make a log read low or high, the \
              log's apogee is corrected by that effect's mean, and only its spread stays in u_D. \
              The table gives each correction in brackets beside its component, their sum, and E \
-             against the corrected log: E less the correction. The report's own errors, above, \
-             stay on the logs as logged.\n\
+             against the corrected log: E less the correction. A correction is signed: it is \
+             what is added to the log's apogee. The report's own errors, above, stay on the \
+             logs as logged.\n\
              - **The rules** are the *Guide to the expression of uncertainty in measurement*'s \
              (JCGM 100:2008). Bounds of ±a give a/√3 (4.3.7). A recognized effect of known sign \
              is corrected, not left in the uncertainty (3.2.4): for a log's error equally likely \
@@ -3198,30 +3219,41 @@ impl RealFlightReport {
              (F.2.4.5, with 4.3.7). A value kept in steps of δ gives δ/√12 (F.2.2.1). A maker's \
              \"typical\" figure has no rule in the guide; it is taken as one standard deviation, \
              the larger of the two readings it allows.\n\
-             - **Pressure to height.** A pascal at the apogee is 1/(ρ·g₀) of height, the \
-             standard atmosphere's hydrostatic equation, with ρ its density at the site's \
-             elevation plus the log's apogee.\n\
-             - **The zero on the pad.** A reading is a difference of two standard altitudes, \
-             and a pascal is more height in the thinner air at the apogee than on the pad. So \
-             the sensor's error on the pad doesn't cancel: it leaves its size times the \
-             difference between a pascal's two heights (\"pad offset\"). \"sensor\" is how far \
-             the error may have changed since the zero.\n\n\
+             - **Pressure to height.** A pascal is 1/(ρ·g₀) of height, the standard \
+             atmosphere's hydrostatic equation, with ρ its density there. The table gives it \
+             twice: first at the apogee (the site's elevation plus the log's apogee), then on \
+             the pad.\n\
+             - **The zero on the pad.** A reading is the standard altitude of the pressure at \
+             the apogee less that of the pressure on the pad. An error the same in pascals at \
+             both would cancel if a pascal were the same height at both, but a pascal is more \
+             height in the thinner air at the apogee. So the sensor's error on the pad leaves \
+             its size times the difference between the two heights a pascal moves: the \
+             \"pad offset\" component. The \"sensor\" component is how far the error may \
+             have changed between the zero and the apogee.\n\n\
              Left out, for want of a published figure: the lag of a vented bay and its ports, a \
              bay outside 0 to 50 °C, the sensor's drift with age and with its supply voltage, \
              the pad sample's own noise and step, how far noise lifts the highest of many \
              samples on the two logs with a noise component, and whether a PerfectFlite takes \
              its pad as sea level ([the note][height-formulas]).\n\n\
              Which way the choices lean: a larger u_D makes a wider band later, which an error \
-             fits inside more easily. Two choices take the larger reading: a \"typical\" figure \
-             as one standard deviation, and the Raven's one figure both for its error on the pad \
-             and for that error's change. Against that, two altimeters flown on one rocket \
+             fits inside more easily. Three choices lean it large. A \"typical\" figure is \
+             taken as one standard deviation, the larger of the two readings it allows. The \
+             Raven's one figure is used both for its error on the pad and for that error's \
+             change since the zero: larger than using it once, though not the largest \
+             reading, since as independent bounds on the two pressures it would give more. \
+             Prometheus's noise is the sensor's at its noisiest setting, as the altimeter's \
+             isn't published. One leans small: the sensor sheet's band after an autozero at \
+             one pressure is taken for the change since the altimeter's own zero on the pad, \
+             which the sheet doesn't describe; its band with no autozero is twice as wide \
+             ([ADR-375][adr-375] leaves this open). Against all of that, two altimeters flown \
+             on one rocket \
              differ by 0.37% at the median over 59 published flights, about 0.39% a unit \
              ([the note][two-altimeters]). The sentence under the table counts the flights whose \
              u_D is a smaller share of the apogee than that.\n"
         );
         let _ = writeln!(
             out,
-            "| flight | altimeter | log apogee (m) | a pascal at the apogee, on the pad (m) | \
+            "| flight | altimeter | log apogee (m) | a pascal's height (m): at the apogee, on the pad | \
              components, with corrections in brackets (m) | correction (m) | u_D (m) | u_D, share \
              of the apogee | E corrected (m) | \\|E corrected\\| over u_D |"
         );
@@ -3356,7 +3388,7 @@ impl RealFlightReport {
     /// The page's section on the input part: each flight's five inputs moved alone and drawn
     /// together, the sentence that compares the two methods, and where each input's standard
     /// uncertainty is stated.
-    fn input_uncertainty_section(
+    pub(crate) fn input_uncertainty_section(
         rows: &[crate::validation_uncertainty::UncertaintyRow],
         out: &mut String,
     ) {
@@ -3411,7 +3443,7 @@ impl RealFlightReport {
              project's own comparison of ERA5 with flights' GPS descents stands further apart \
              than that, the canopy's own motion included ([the report][descent-wind]). ERA5's \
              air takes the lower end of 0.9 to 1.35 K. The band's section says what the \
-             impulse's other end does to the count.\n\
+             impulse's two higher figures do to the count.\n\
              - **Larger readings taken.** Air and wind that aren't the day's get bounds wide \
              enough for any day, on Prometheus too, whose weather file is of the same date a \
              year later and is likely nearer its day than that. The rail takes 1° across its \
@@ -3443,14 +3475,22 @@ impl RealFlightReport {
              | root sum of squares |"
         );
         let _ = writeln!(out, "|---|---:|---:|---:|---:|---:|---:|---:|---:|");
+        let seven = crate::input_uncertainty::Drawn::ALL.len();
         for row in rows {
-            let halves = row
-                .input
-                .components
-                .iter()
-                .map(|each| fmt_signed(each.half_difference_m(), 1))
-                .collect::<Vec<_>>()
-                .join(" | ");
+            let components = &row.input.components;
+            // A row read back from a report of another shape keeps the table's columns and
+            // says what it holds, never a row of the wrong width.
+            let halves = if components.len() == seven {
+                components
+                    .iter()
+                    .map(|each| fmt_signed(each.half_difference_m(), 1))
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            } else {
+                let mut cells = vec!["not read".to_owned(); seven];
+                cells[0] = format!("{} numbers, not {seven}", components.len());
+                cells.join(" | ")
+            };
             let _ = writeln!(
                 out,
                 "| {} | {halves} | {} |",
@@ -3633,10 +3673,12 @@ impl RealFlightReport {
         let mut rest = text;
         while let Some(at) = rest.find("docs/") {
             // A path starts the text or follows a space or a bracket: not the middle of a URL
-            // or of another word.
+            // or of another word. The character before it may already be written out, where a
+            // skipped `docs/` ends right before this one.
             let starts = rest[..at]
                 .chars()
                 .next_back()
+                .or_else(|| out.chars().next_back())
                 .is_none_or(|before| before == ' ' || before == '(');
             if !starts {
                 out.push_str(&rest[..at + 5]);
@@ -3685,8 +3727,8 @@ impl RealFlightReport {
              the sign of E and a size between |E| − {k}·u_val and |E| + {k}·u_val. It is the \
              model's error together with whatever the section above leaves out of u_input or \
              leaves uncorrected in E, and it is only as firm as the inputs' figures: the \
-             sentence under the table says which calls change at the other end of the \
-             impulse's range.\n\
+             sentence under the table says which calls change at the impulse's two higher \
+             figures.\n\
              - **Meeting the band is not the aim.** A larger uncertainty always meets it, so a \
              count of flights inside rewards knowing less. What the band is for is the size \
              and sign of the model's error where it can be told (Eça, Dowding and Roache 2020, \
@@ -3854,8 +3896,8 @@ impl RealFlightReport {
             format!(
                 " The other way: with a rocket's median growth as built, {}% of the mass \
                  without motors, taken out of each flight on a design file's mass, by the \
-                 mass's flight alone, the errors would be {}, and {} of the {} would lie \
-                 within{}.",
+                 mass's flight alone, the errors would be {}, and at the figures used {} of \
+                 the {} would lie within{}.",
                 fmt_number(100.0 * crate::input_uncertainty::AS_BUILT_GROWTH, 1),
                 grown
                     .iter()
@@ -3914,11 +3956,48 @@ impl RealFlightReport {
     }
 
     /// The sentence under the data part's table: how many flights have a u_D, the largest u_D
-    /// and correction, how many are under the two-altimeter figure, and the fewest times a
-    /// flight's own u_D goes into its corrected |E|, rounded down as [`Self::smallest_share`]
-    /// rounds. It says the log's part can't account for the errors only where every corrected
+    /// and correction, how many are under the two-altimeter figure, how many have a u_D of zero
+    /// (and so no ratio), and the fewest times a flight's own u_D above zero goes into its
+    /// corrected |E|, rounded down as [`Self::smallest_share`] rounds. It says the log's part can't account for the errors only where every corrected
     /// |E| is at least [`COVERAGE_K`](crate::validation_uncertainty::COVERAGE_K) times its u_D,
     /// the band's own factor.
+    /// Which way the corrections move E, a sentence that starts with a space: "away from
+    /// zero" where the corrected |E| is larger than |E| as logged, "toward" it where smaller.
+    /// Empty with no correction.
+    fn corrections_lean(
+        with_part: &[(
+            &crate::validation_uncertainty::UncertaintyRow,
+            f64,
+            f64,
+            f64,
+        )],
+    ) -> String {
+        let (mut away, mut toward) = (Vec::new(), Vec::new());
+        for (row, _, correction_m, corrected_m) in with_part {
+            if *correction_m == 0.0 {
+                continue;
+            }
+            if corrected_m.abs() > row.comparison_error_m.abs() {
+                away.push(row.id.as_str());
+            } else {
+                toward.push(row.id.as_str());
+            }
+        }
+        let listed = |ids: &[&str]| match ids {
+            [] => "none".to_owned(),
+            [one] => (*one).to_owned(),
+            [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+        };
+        if away.is_empty() && toward.is_empty() {
+            return String::new();
+        }
+        format!(
+            " The corrections move E away from zero on {} and toward it on {}.",
+            listed(&away),
+            listed(&toward)
+        )
+    }
+
     pub(crate) fn smallest_data_share(
         rows: &[crate::validation_uncertainty::UncertaintyRow],
     ) -> String {
@@ -3968,20 +4047,34 @@ impl RealFlightReport {
             .filter(|(row, data_m, ..)| *data_m < TWO_ALTIMETERS_PER_UNIT * row.log_apogee_m.abs())
             .count();
         let under = format!(
-            "On {under} of them u_D is under {}% of the log's apogee, the two-altimeter figure.",
+            "On {under} of the {} flights with a u_D, it is under {}% of the log's apogee, the \
+             two-altimeter figure.",
+            with_part.len(),
             fmt_number(100.0 * TWO_ALTIMETERS_PER_UNIT, 2)
         );
-        let opening = format!("{counted} {largest} {corrected} {under}");
+        let opening = format!(
+            "{counted} {largest} {corrected}{} {under}",
+            Self::corrections_lean(&with_part)
+        );
         let fewest = with_part
             .iter()
             .filter(|(_, data_m, _, corrected_m)| *data_m > 0.0 && corrected_m.is_finite())
             .map(|(row, data_m, _, corrected_m)| (corrected_m.abs() / data_m, &row.id))
             .min_by(|a, b| a.0.total_cmp(&b.0));
+        let zero = with_part
+            .iter()
+            .filter(|(_, data_m, ..)| *data_m == 0.0)
+            .count();
+        let opening = match zero {
+            0 => opening,
+            1 => format!("{opening} One flight has a u_D of zero, so it has no ratio."),
+            _ => format!("{opening} {zero} flights have a u_D of zero, so they have no ratio."),
+        };
         match fewest {
             Some((times, id)) if times >= 1.0 => {
                 let each = format!(
-                    "Every flight with a u_D has a corrected |E| at least {} times its own u_D; \
-                     the fewest times is on {id}.",
+                    "Every flight with a u_D above zero has a corrected |E| at least {} times \
+                     its own u_D; the fewest times is on {id}.",
                     Self::rounded_down(times)
                 );
                 if times >= crate::validation_uncertainty::COVERAGE_K {
@@ -4344,7 +4437,8 @@ mod tests {
     /// The pressure gap against the standard's troposphere in closed form,
     /// `p = 101325 Pa (1 − L H / T₀)^(g₀′ M₀ / (R* L))`, on a pad 1400 m up and a height column
     /// in feet: a height 5 m off its pressure's reading less the pad's gives a 5 m gap, a row
-    /// whose pressure doesn't read is skipped, and rows past the cut don't count.
+    /// whose pressure doesn't read is skipped, and rows past the cut don't count. A log whose
+    /// apogee row is one of the skipped rows is refused, so the signed gap is the apogee's.
     #[test]
     fn a_height_column_is_held_to_its_pressure() {
         let pressure_hpa = |h: f64| {
@@ -4352,12 +4446,13 @@ mod tests {
         };
         let feet = |m: f64| m / 0.3048;
         let text = format!(
-            "t,h,p\n0,0,{}\n1,{},{}\n2,{},{}\n3,9999,x\n4,9999,{}\n",
+            "t,h,p\n0,0,{}\n1,{},{}\n2,{},{}\n3,{},x\n4,9999,{}\n",
             pressure_hpa(1400.0),
             feet(1000.0),
             pressure_hpa(2400.0),
             feet(2005.0),
             pressure_hpa(3400.0),
+            feet(1500.0),
             pressure_hpa(1400.0)
         );
         let log = Log {
@@ -4376,6 +4471,14 @@ mod tests {
         // The highest row read is the third, 5 m above its pressure's reading: the sign is kept.
         assert!((at_apogee - 5.0).abs() < 1e-6, "{at_apogee}");
         assert!(pressure_reading_gap_m(&log, 2, 100.0, "t,h,p\n").is_err());
+        // The same log with its apogee on the row whose pressure doesn't read.
+        let higher = text.replacen(&format!("3,{},x", feet(1500.0)), "3,9999,x", 1);
+        assert_ne!(higher, text);
+        let refused = pressure_reading_gap_m(&log, 2, 100.0, &higher).unwrap_err();
+        assert!(
+            refused.contains("apogee row, at 3 s, has no pressure"),
+            "{refused}"
+        );
         // A height column 10 m above its pressure's reading on the way up and 3 m below it at
         // the top: the largest gap is the first, the apogee's the second, with its sign.
         let text = format!(

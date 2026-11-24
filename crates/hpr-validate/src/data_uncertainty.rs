@@ -290,8 +290,9 @@ pub struct Instrument {
     pub id: &'static str,
     /// The altimeter, and how it is known.
     pub altimeter: &'static str,
-    /// Each stated source of error. Empty when no document read gives the altimeter, or the
-    /// pressure sensor its maker names, an accuracy.
+    /// Each stated source of error. Empty when no document read gives the altimeter, or its
+    /// pressure sensor, an accuracy: the sensor its maker names, or for Prometheus's TeleMetrum,
+    /// whose manual lists two, the MS5607 that the log's 1 Pa step points to.
     pub terms: &'static [Term],
     /// Why there are no terms, for an altimeter with no published accuracy; empty otherwise.
     pub without: &'static str,
@@ -918,8 +919,9 @@ mod tests {
     }
 
     /// Which way each rule errs, pinned on every kind of term: a larger bound, deviation, step,
-    /// range, share or constant never gives a smaller component, a larger gap gives a larger
-    /// correction and no uncertainty, and a component left out never makes `u_D` larger.
+    /// range, share or constant never gives a smaller component, a formula gap of any size gives
+    /// a correction of the same size and the opposite sign and no uncertainty, and a component
+    /// left out never makes `u_D` larger.
     #[test]
     fn a_larger_error_never_gives_a_smaller_part() {
         let measured = Measured {
@@ -1047,9 +1049,31 @@ mod tests {
             from,
         };
         assert_eq!(offset.component_m(1000.0, &level), Some((0.0, 0.0)));
-        // A formula gap is all correction.
+        // A formula gap is all correction, minus the gap: over gaps of either sign, a larger
+        // gap gives a correction larger in size and opposite in sign, and never an uncertainty.
         let gap = Term::FormulaGap { what, from };
         assert_eq!(gap.component_m(1000.0, &measured), Some((1.3, 0.0)));
+        let gaps = [-12.5, -1.3, -0.2, 0.0, 0.4, 3.0, 20.0];
+        for pair in gaps.windows(2) {
+            let corrected = |gap_m: f64| {
+                Term::FormulaGap { what, from }
+                    .component_m(
+                        1000.0,
+                        &Measured {
+                            formula_gap_m: Some(gap_m),
+                            ..measured
+                        },
+                    )
+                    .expect("a measured gap")
+            };
+            let (smaller, larger) = (corrected(pair[0]), corrected(pair[1]));
+            assert_eq!((smaller.1, larger.1), (0.0, 0.0), "{pair:?}");
+            assert!(larger.0 < smaller.0, "{pair:?}");
+            if pair[0].abs() < pair[1].abs() {
+                assert!(larger.0.abs() > smaller.0.abs(), "{pair:?}");
+            }
+            assert_eq!(larger.0, -pair[1]);
+        }
         let juno = instrument("juno-iii").expect("the flight is in the table");
         let whole = data_part(juno, 3151.507, &measured).expect("every input");
         let u_d = whole.data_m.expect("a published accuracy");
