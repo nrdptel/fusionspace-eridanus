@@ -8,7 +8,7 @@
 <text x="52" y="71" xml:space="preserve" fill="#0B0F1C">Level 1 guide rocket (level-1.ork)</text>
 <text x="52" y="87" xml:space="preserve" fill="#0B0F1C">configuration 1 of 2: [H170M-10]</text>
 <text x="52" y="103" xml:space="preserve" fill="#0B0F1C">help: --config flies the others, by number or name: 2 [I175WS-9]</text>
-<text x="52" y="135" xml:space="preserve" fill="#0B0F1C">200 simulated flights, seed 2026: 0 failed</text>
+<text x="52" y="135" xml:space="preserve" fill="#0B0F1C">200 simulated flights, seed 2026: 0 failed, up to 1.5% of flights at 95%</text>
 <text x="52" y="151" xml:space="preserve" fill="#0B0F1C">                          nominal     mean  std dev       5%   median      95%</text>
 <text x="52" y="167" xml:space="preserve" fill="#0B0F1C">apogee (m AGL)             1065.1   1072.4     41.5   1006.2   1072.8   1137.3</text>
 <text x="52" y="183" xml:space="preserve" fill="#0B0F1C">apogee (ft AGL)              3494     3519      136     3301     3520     3731</text>

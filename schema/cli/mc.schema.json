@@ -732,10 +732,16 @@
           "items": {
             "$ref": "#/$defs/McFailure"
           }
+        },
+        "up_to": {
+          "description": "The most of all the flights the same scatter could give that may fail, at 95% confidence:\nthe one-sided Clopper–Pearson upper bound on `count` of the flights tried\n(`hpr_analysis::statistics::Share`). With none failed of 100, 2.95%: none failing in a\nrun doesn't make a failure impossible.",
+          "type": "number",
+          "format": "double"
         }
       },
       "required": [
         "count",
+        "up_to",
         "reasons"
       ]
     },

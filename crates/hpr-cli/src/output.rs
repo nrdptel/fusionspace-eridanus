@@ -695,10 +695,15 @@ pub struct McDispersion {
 }
 
 /// The flights of a run that failed.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct McFailed {
     /// How many failed.
     pub count: usize,
+    /// The most of all the flights the same scatter could give that may fail, at 95% confidence:
+    /// the one-sided Clopper–Pearson upper bound on `count` of the flights tried
+    /// (`hpr_analysis::statistics::Share`). With none failed of 100, 2.95%: none failing in a
+    /// run doesn't make a failure impossible.
+    pub up_to: f64,
     /// Why, one entry for each distinct reason, in the order each first happened.
     pub reasons: Vec<McFailure>,
 }

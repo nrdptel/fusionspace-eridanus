@@ -1119,7 +1119,7 @@ $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 20
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
-200 simulated flights, seed 2026: 0 failed
+200 simulated flights, seed 2026: 0 failed, up to 1.5% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)              813.9    819.4     34.4    765.0    818.8    870.8
 apogee (ft AGL)              2670     2688      113     2510     2686     2857
@@ -1219,7 +1219,7 @@ $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 10
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
-100 simulated flights, seed 0: 2 failed
+100 simulated flights, seed 0: 2 failed, up to 6.2% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)              846.1    822.8     34.4    769.9    834.6    851.1
 apogee (ft AGL)              2776     2700      113     2526     2738     2792
@@ -1271,7 +1271,9 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-Two of the 100 flights failed. Counting them moves the apogee's 5% from 769.9 m (2,526 ft) down
+Two of the 100 flights failed. The run's first line bounds that count too: two failures in 100
+flights allow up to 6.2% of all such flights to fail, at 95% confidence, and none in 100 still
+allows up to 3.0% (`failed.up_to` in the JSON). Counting the two moves the apogee's 5% from 769.9 m (2,526 ft) down
 to 734.1 m (2,408 ft), and its 95% from 851.1 m (2,792 ft) up to 851.4 m (2,793 ft). Plan with the
 rows that count them.
 

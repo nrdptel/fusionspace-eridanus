@@ -148,7 +148,7 @@ Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 
-200 simulated flights, seed 2026: 0 failed
+200 simulated flights, seed 2026: 0 failed, up to 1.5% of flights at 95%
                           nominal     mean  std dev       5%   median      95%
 apogee (m AGL)             1065.1   1072.4     41.5   1006.2   1072.8   1137.3
 apogee (ft AGL)              3494     3519      136     3301     3520     3731

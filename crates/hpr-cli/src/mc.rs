@@ -416,8 +416,11 @@ fn failed(run: &Run) -> McFailed {
             }),
         }
     }
+    let count = run.failed().count();
     McFailed {
-        count: run.failed().count(),
+        count,
+        // A run tries at least one flight, so the share exists; 1.0 is the bound that claims nothing.
+        up_to: Share::of(count, 0, run.samples.len()).map_or(1.0, |share| share.high_bound),
         reasons,
     }
 }

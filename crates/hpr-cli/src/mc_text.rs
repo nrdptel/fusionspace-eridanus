@@ -35,11 +35,11 @@ pub(crate) fn print(
 ) -> io::Result<()> {
     design_lines(&run.design, out, diagnostics)?;
     writeln!(out)?;
-    let failed = if run.failed.count == 1 {
-        "1 failed".to_owned()
-    } else {
-        format!("{} failed", run.failed.count)
-    };
+    let failed = format!(
+        "{} failed, up to {} of flights at 95%",
+        run.failed.count,
+        percent_up(run.failed.up_to)
+    );
     writeln!(
         out,
         "{} simulated flights, seed {}: {failed}",

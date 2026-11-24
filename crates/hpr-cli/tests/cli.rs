@@ -9040,7 +9040,20 @@ fn mc_bounds_its_flags_and_shares() {
         assert!((up_to - 0.527_129_195_498_412_1).abs() < 1e-12, "{flag}");
     }
     assert_eq!(document["apogee_m"]["upper_95_95"], Value::Null);
+    // No failure in four flights still allows failures in up to 52.71% of them.
+    let failures_up_to = document["failed"]["up_to"].as_f64().unwrap();
+    assert!(
+        (failures_up_to - 0.527_129_195_498_412_1).abs() < 1e-12,
+        "{failures_up_to}"
+    );
     let shown = streams(&[&args[..], &["--color", "never"]].concat());
+    assert!(
+        shown
+            .out
+            .contains("4 simulated flights, seed 1: 0 failed, up to 52.8% of flights at 95%\n"),
+        "{}",
+        shown.out
+    );
     assert!(
         shown
             .err
@@ -9074,6 +9087,11 @@ fn mc_bounds_its_flags_and_shares() {
     ];
     let document = json(&args, 0, "mc.schema.json");
     assert_eq!(document["failed"]["count"].as_u64(), Some(2));
+    let failures_up_to = document["failed"]["up_to"].as_f64().unwrap();
+    assert!(
+        (failures_up_to - 0.061_619_200_396_040_71).abs() < 1e-12,
+        "{failures_up_to}"
+    );
     let unraised = document["unraised_flags"].as_array().unwrap();
     assert_eq!(unraised.len(), 6, "{unraised:?}");
     let up_to = unraised[0]["up_to"].as_f64().unwrap();
