@@ -19,8 +19,8 @@ The outlooks further down are still October 6's.
 ## In short
 
 Releases come in this order. A release is out once Neer, the project's owner, publishes it. By
-[the padded estimates](#when-each-release-may-come), 0.2 comes by the end of December 2026 and 1.0
-by the end of March 2028.
+[the padded estimates](#when-each-release-may-come), 0.2 may come by the end of December 2026 and
+1.0 by the end of March 2028.
 
 1. Release 0.1, the simulator.
 2. Release 0.2, the flight analyzer.
@@ -71,13 +71,14 @@ These are [estimates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/
 when its checklist passes, and none is cut short to meet a date. Each estimate counts the
 milestones ahead of its release in [the roadmap's queue](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md#queue).
 It sizes each by the pieces finished milestones have taken and goes at the pace of the last four
-weeks. That time is then doubled for 0.2, tripled for 0.3 and 0.4, and quadrupled for the app,
-the newest kind of work.
+weeks. That time is then padded by judgment: doubled for 0.2, tripled for 0.3 and 0.4, and
+quadrupled for 0.5 and 1.0. Those two hold the app, the newest kind of work.
 
 The padding is there because work has run long so far. [The log importers](decisions-and-roadmap.md#m7-1)
-were planned on October 12 as two pieces of work, each shipped on its own, and took 27. In
-November, each of five planning reviews added a milestone to the queue ahead of 0.3. The later a
-release, the more its estimate may move. Nothing after 1.0 has an estimate.
+were planned on October 12 as two pieces of work, each shipped on its own, and took 27 such
+pieces. In November, planning reviews added at least five milestones to the queue ahead of 0.3.
+A release that slips moves every later one with it, and the later a release, the more its
+estimate may move.
 
 ## How feasible each goal is
 

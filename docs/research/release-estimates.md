@@ -5,26 +5,30 @@
 inputs: the roadmap's queue, how many increments finished milestones took, and the pace of merges
 on `main`. At that pace alone, release 0.2 would come about December 9, 2026 and 1.0 about April
 23, 2027. Work here has run long, so each stretch of the queue is padded: its time doubled before
-0.2, tripled before 0.3 and before 0.4, and quadrupled before 0.5 and before 1.0, the app, the
-newest kind of work. That puts 0.2 by the end of December 2026, 0.3 by the end of May 2027, 0.4
-by the end of August 2027, 0.5 by the end of November 2027 and 1.0 by the end of March 2028. They
-are estimates, not promises: a release comes out only when its checklist passes.
+0.2, tripled before 0.3 and before 0.4, and quadrupled before 0.5 and before 1.0, the stretches
+that hold the app, the newest kind of work. The factors are judgments that rise with how new the
+work is. The stretches add up, so a release that slips moves every later one with it. That puts
+0.2 by the end of December 2026, 0.3 by the end of May 2027, 0.4 by the end of August 2027, 0.5
+by the end of November 2027 and 1.0 by the end of March 2028. 1.0's padded date is March 31, the
+last day of its month, so a little more work makes it April. They are estimates, not promises: a
+release comes out only when its checklist passes.
 
 ## The inputs
 
 1. **The queue.** On November 24, 2026, [the roadmap's queue](../ROADMAP.md#queue) put release
-   0.2 at place 7, 0.3 at 22, 0.4 at 35, 0.5 at 39 and 1.0 at 50. Each release waits on the
-   entries ahead of it.
+   0.2 at place 7, 0.3 at 22, 0.4 at 35, 0.5 at 39 and 1.0 at 50. The queue is worked in
+   order, so a release comes after the entries ahead of it, not only those its checklist names.
 2. **What a milestone takes.** An entry is split into increments as it is worked, each merged on
-   its own. In [the finished roadmap](../roadmap-done.md), the log importers (M7.1) took 27,
-   though [ADR-251](../decisions/0251-flight-log-importers-in-two-increments.md) planned two;
-   readings and smoothing (M7.2) took 10; release 0.1 (M10.1) 12; the fit from the boost (M7.3d)
-   6; every solid motor offline (M5.7) 5.
+   its own. Counted in [the finished roadmap](../roadmap-done.md) as increments with no parts of
+   their own, the log importers (M7.1) took 27, though
+   [ADR-251](../decisions/0251-flight-log-importers-in-two-increments.md) planned two; readings
+   and smoothing (M7.2) took 10; release 0.1 (M10.1) 12; the fit from the boost (M7.3d) 6, as its
+   M7.3d3 split into M7.3d4 to M7.3d7; every solid motor offline (M5.7) 5.
 3. **The pace.** From October 28 to November 24, 2026, 54 merges whose title starts with a
    milestone id landed on `main`: 13.5 a week. This command prints the count:
-   `git log a7c174c4 --since=2026-10-28T00:00 --format=%s | grep -cE '^M[0-9]+\.[0-9]+'`.
-   It counts follow-ups and withdrawals too, and misses an increment whose title names its
-   milestone later on, so it stands for the increments merged only roughly.
+   `TZ=UTC git log a7c174c4 --since=2026-10-28T00:00 --format=%s | grep -cE '^M[0-9]+\.[0-9]+'`.
+   It counts a follow-up or a merge landed again too, and misses an increment whose title names
+   its milestone later on, so it stands for the increments merged only roughly.
 
 ## Each entry's size
 
@@ -42,7 +46,7 @@ finished milestones above. The middle is halfway between them.
 | 7 | M10.2 release 0.2 | 5 | 12 | 8.5 |
 | | **before 0.2** | 18 | 40 | 29 |
 | 8 | M0.13 awareness and care on the sites | 2 | 5 | 3.5 |
-| 9 | M1.14 the rest: b12, c, d, e, f, g | 19 | 56 | 37.5 |
+| 9 | M1.14 the rest: b12, c, d, e, f, g (h, Mach 2.5 to 3.5, comes after 1.0) | 19 | 56 | 37.5 |
 | 10 | M2.3c2 logged traces | 1 | 3 | 2 |
 | 11 to 15 | M2.12 to M2.16, five measurements against the logs | 10 | 25 | 17.5 |
 | 16 | M2.3d4 a stage's override that adds to its parts | 2 | 4 | 3 |
@@ -103,7 +107,7 @@ Each stretch's middle, at 13.5 increments a week, then padded, then added up fro
 ## Why padded this much
 
 - **Milestones grow.** The log importers took 27 increments where two were planned.
-- **The queue grows.** In November, each of five planning reviews added a milestone ahead of 0.3:
+- **The queue grows.** In November, planning reviews added at least five milestones ahead of 0.3:
   descent rates ([ADR-338](../decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md)),
   landing points ([ADR-347](../decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md)),
   speed off the rail ([ADR-352](../decisions/0352-the-2026-11-16-review-speed-off-the-rail-held-to-accelerometer-logs-predictions-first.md)),
@@ -113,14 +117,13 @@ Each stretch's middle, at 13.5 increments a week, then padded, then added up fro
 - **Some targets may not be met.** The fit's intervals (M7.3g) may not pass their test again.
   Release 0.3 needs HPR Sim's mean apogee error on the held-out flights below OpenRocket's
   ([M10.3](../ROADMAP.md#phase-8-releases-adr-162)). On the private collection, HPR Sim's apogees miss by
-  12.10% on average and OpenRocket's by 11.26% ([the plan](../plan.md#how-feasible-each-goal-is)).
+  12.10% on average (mean absolute) and OpenRocket's by 11.26% ([the plan](../plan.md#how-feasible-each-goal-is)).
   Either one held back would mean a decision record and more work.
 - **The app is a new kind of work:** a user-interface choice first, then an acceptance pass on
   each of its milestones.
 
 ## Keeping them current
 
-A planning review compares the queue and the pace with this note. When a release can't make its
-month even at twice its time at the pace, the review moves its estimate later on the plan page,
-and in README's status line for the next release, and says why. An estimate moves earlier only
-once its release is within a month.
+Each planning review rechecks these estimates by this method, on the queue and the pace of the
+day, and moves a slipping one later on the plan page, and in README's status line for the next
+release, saying why.
