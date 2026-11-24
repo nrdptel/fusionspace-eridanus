@@ -131,10 +131,11 @@ fn rational((numerator, denominator): &([f64; 8], [f64; 7]), r: f64) -> f64 {
 /// three rational functions of degree 7 (in `p − 1/2` near the middle, and in
 /// `r = √(−ln min(p, 1 − p))` for the tails), accurate to about 1 part in 10¹⁶. The coefficients
 /// were transcribed from the listing in CPython's `statistics` module (PSF License), which prints
-/// the paper's 20 digits; the paper's own hash sums check the transcription. The workspace's
-/// one inverse: the optimizer's integer margin here and `hpr-validate`'s stratified samples
-/// both take it. It is not monotone to the last bit: a step of `f64` up in `p` can lower it by a
-/// step, at the joins of its three functions and elsewhere. No caller needs it finer than that.
+/// the paper's 20 digits; the paper's own hash sums check the transcription. The library
+/// code's one inverse (a test in `hpr-forensics` keeps a bisection of its own): the optimizer's
+/// integer margin here and `hpr-validate`'s stratified samples both take it. It is not monotone
+/// to the last bit: a step of `f64` up in `p` can lower it by a few steps, at the joins of its
+/// three functions and elsewhere. No caller needs it finer than that.
 #[must_use]
 pub fn normal_quantile(p: f64) -> f64 {
     if !(0.0..=1.0).contains(&p) {

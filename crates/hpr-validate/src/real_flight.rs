@@ -3242,8 +3242,8 @@ impl RealFlightReport {
              change since the zero: larger than using it once, though not the largest \
              reading, since as independent bounds on the two pressures it would give more. \
              Prometheus's noise is the sensor's at its noisiest setting, as the altimeter's \
-             isn't published. One leans small: the sensor sheet's band after an autozero (the \
-             sensor zeroed against one known pressure) is taken for the change since the altimeter's own zero on the pad, \
+             isn't published. One leans small: the sensor sheet's band after an autozero is \
+             taken for the change since the altimeter's own zero on the pad, \
              which the sheet doesn't describe; its band with no autozero is twice as wide \
              ([ADR-375][adr-375] leaves this open). Against all of that, two altimeters flown \
              on one rocket \
@@ -3957,8 +3957,7 @@ impl RealFlightReport {
 
     /// Which way the corrections move E, a sentence that starts with a space: away from zero
     /// where the corrected |E| is larger than |E| as logged, toward it where smaller. A
-    /// correction that leaves |E| as it was, or a corrected E that isn't a number, is in
-    /// neither list. Empty when both are.
+    /// correction that leaves |E| as it was, or an E that isn't finite, is in neither list. Empty when both are.
     fn corrections_lean(
         with_part: &[(
             &crate::validation_uncertainty::UncertaintyRow,
