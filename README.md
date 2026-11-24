@@ -11,7 +11,10 @@ checked against independent simulators and real flights, and the results are pub
 included.
 
 **Status: RELEASED.** Version 0.1.0, the first release, came out on October 8, 2026, but HPR Sim
-isn't ready to rely on yet. I'm working toward 0.2 here. The documentation is at
+isn't ready to rely on yet. I'm working toward 0.2 here, which I estimate by the end of December
+2026, with room for work running long
+([each release's estimate](https://hpr.fusionspace.co/plan.html#when-each-release-may-come)).
+The documentation is at
 <https://hpr.fusionspace.co/>: a searchable guide, with the API reference (rustdoc) beside it.
 
 ## What works today

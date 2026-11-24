@@ -57,8 +57,9 @@ says what 0.1.0 does, how far to trust it, and its known gaps. Among them are th
 make a number look safer than it is.
 
 Releases come at product boundaries, and I don't promise dates
-([Phase 8, releases](decisions-and-roadmap.md#m10-1)). [Plan](plan.md) says what each one holds
-and how likely each goal is:
+([Phase 8, releases](decisions-and-roadmap.md#m10-1)). [Plan](plan.md) gives
+[estimates](plan.md#when-each-release-may-come), padded for work running long, and says what each
+one holds and how likely each goal is:
 
 - 0.1, the simulator: the library, the command line and the Python package, with Monte Carlo
   dispersion from the command line and Python. It waited on
