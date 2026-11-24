@@ -1030,7 +1030,7 @@
           "format": "double"
         },
         "upper_95_95": {
-          "description": "Wilks's one-sided 95/95 upper tolerance bound: with 95% confidence, at least 95% of all\nthe flights the same scatter could give lie at or below it\n(`hpr_analysis::statistics::Distribution::upper_95_95`). The second largest of 100\nflights, each flight with no value placed above the largest; `null` with fewer than 59\nflights tried. The 95% column is a sample percentile, which lies below the true one about\nhalf the time.",
+          "description": "Wilks's one-sided 95/95 upper tolerance bound: with 95% confidence, at least 95% of all\nthe flights the same scatter could give lie at or below it\n(`hpr_analysis::statistics::Distribution::upper_95_95`). The second largest of 100\nflights, each flight with no value placed above the largest; `null` with fewer than 59\nflights tried. The 95% column is a sample percentile, which lies below the true one more\noften than not.",
           "anyOf": [
             {
               "$ref": "#/$defs/McCountedQuantile"

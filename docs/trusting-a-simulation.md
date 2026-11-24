@@ -179,8 +179,8 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 Read it in three parts. The table's `5%` and `95%` columns are
 [percentiles](glossary.md#percentile): most runs fell between them, a few on either side. The
-`95/95` line under it is the one to plan a ceiling with, and the first line's "0 failed, up to
-1.5%" says that no failure in 200 flights still allows failures in up to 1.5% of such flights
+`95/95` line under it is the one to plan a ceiling with. The first line's bound on the failed
+flights says how many of all such flights could fail, even where none of these did
 ([Monte Carlo dispersion](monte-carlo.md#failed-flights-are-counted)). The
 warnings name the known model gaps that bear on this flight, each with the side it pushes the
 numbers to. Here the drag may read high. If it does, the apogee reads low, the side that flatters
