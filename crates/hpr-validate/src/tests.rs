@@ -2394,12 +2394,18 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
     );
     assert!(text.contains("largest u_D is 17.00 m (a)"), "{text}");
     // a's 17 m is 2.06% of its 825.2 m; b's 5.58 m is 0.49% of its 1137.1 m: neither is under.
-    assert!(text.contains("On 0 of them u_D is under 0.39%"), "{text}");
+    assert!(
+        text.contains("On 0 of the 2 flights with a u_D, it is under 0.39%"),
+        "{text}"
+    );
     let small = say(&[
         row("a", 100.0, Some(3.5), 0.0),
         row("b", 100.0, Some(3.52), 0.0),
     ]);
-    assert!(small.contains("On 1 of them u_D is under 0.39%"), "{small}");
+    assert!(
+        small.contains("On 1 of the 2 flights with a u_D, it is under 0.39%"),
+        "{small}"
+    );
     // 174.8/17 = 10.28 rounds down to 10; b's 24.6 doesn't count.
     assert!(text.contains("at least 10 times"), "{text}");
     assert!(text.contains("fewest times is on a"), "{text}");
@@ -2438,13 +2444,57 @@ fn the_data_parts_sentences_count_round_down_and_name_the_edges() {
         "{moved}"
     );
     assert!(moved.contains("at least 11 times"), "{moved}");
+    // a's +15 m takes −174.8 m to −189.8 m, away from zero; b's −2 m takes −137.1 m to
+    // −135.1 m, toward it.
+    assert!(
+        moved.contains("The corrections move E away from zero on a and toward it on b."),
+        "{moved}"
+    );
+    assert!(!text.contains("The corrections move"), "{text}");
     // A correction toward the simulation shrinks the ratio: 20 m less +15 m is 5 m, under u_D.
     let toward = say(&[corrected("a", 20.0, 6.0, 15.0)]);
+    assert!(
+        toward.contains("The corrections move E toward zero on a."),
+        "{toward}"
+    );
+    // One side alone; a correction that only flips E's sign, and an E that isn't finite, in
+    // neither list.
+    let away = say(&[
+        corrected("a", -20.0, 6.0, 15.0),
+        corrected("b", 1.0, 6.0, 2.0),
+        corrected("c", f64::INFINITY, 6.0, 2.0),
+    ]);
+    assert!(
+        away.contains("The corrections move E away from zero on a."),
+        "{away}"
+    );
+    assert!(!away.contains("toward"), "{away}");
+    assert!(
+        !away.contains("on a, b") && !away.contains("on a and"),
+        "{away}"
+    );
     assert!(
         toward.contains("On a, u_D is larger than the corrected |E|"),
         "{toward}"
     );
     assert!(say(&[row("a", 5.0, None, 0.0)]).contains("No flight's altimeter has a published"));
+    // A u_D of zero has no ratio and is named; with every u_D zero no ratio is given at all.
+    let one_zero = say(&[
+        row("a", 174.8, Some(17.0), 0.0),
+        row("b", 50.0, Some(0.0), 0.0),
+    ]);
+    assert!(
+        one_zero.contains("One flight has a u_D of zero, so it has no ratio."),
+        "{one_zero}"
+    );
+    assert!(one_zero.contains("at least 10 times"), "{one_zero}");
+    let all_zero = say(&[row("a", 5.0, Some(0.0), 0.0), row("b", 7.0, Some(0.0), 0.0)]);
+    assert!(
+        all_zero.contains("2 flights have a u_D of zero, so they have no ratio."),
+        "{all_zero}"
+    );
+    assert!(!all_zero.contains("times"), "{all_zero}");
+    assert!(!all_zero.contains("can't account"), "{all_zero}");
     // The conversion: −40 m in both of a's readings, and b's two differ by 6 m, 5% of its E.
     let conversion = RealFlightReport::conversion_sentence(&[
         row("a", 100.0, None, 0.0),
@@ -2624,6 +2674,15 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
     assert_eq!(design.within, Some(true));
     let grown_m = RealFlightReport::error_as_built_m(&design).expect("a design file's mass");
     assert!((grown_m + 107.534_883_720_930_2).abs() < 1e-9, "{grown_m}");
+    // The figure starts from the corrected error, not the error as logged: with a correction of
+    // +12 m the −80 m is −92 m corrected and −119.535 m with the growth out.
+    let mut shifted = row("macie-xl-1", -80.0, Some((40.0, 12.0)), 30.0);
+    shifted.input.components[0] = design.input.components[0].clone();
+    let shifted_m = RealFlightReport::error_as_built_m(&shifted).expect("a design file's mass");
+    assert!(
+        (shifted_m + 119.534_883_720_930_2).abs() < 1e-9,
+        "{shifted_m}"
+    );
     let mut teams = design.clone();
     teams.id = "cavour".to_owned();
     assert_eq!(RealFlightReport::error_as_built_m(&teams), None);
@@ -2641,7 +2700,7 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
          within (edge, over, low, wide). Outside at all three figures: 1 (far)."
     );
     assert_eq!(
-        RealFlightReport::band_sentence(&[edge, design]),
+        RealFlightReport::band_sentence(&[edge, design.clone()]),
         "Of the 2 flights with a band, the corrected |E| is within 2·u_val on 2 (edge, \
          macie-xl-1) and outside it on 0: hpr high on 0, hpr low on 0. No u_D and so no band \
          on 0 of the 2 flights. The count moves with the inputs' figures. With the impulse's \
@@ -2651,17 +2710,34 @@ fn the_band_is_about_the_corrected_error_at_twice_the_three_parts() {
          (edge, macie-xl-1). Outside at all three figures: 0. The other way: with a \
          rocket's median growth as built, 7.4% of the mass without motors, taken out of each \
          flight on a design file's mass, by the mass's flight alone, the errors would be \
-         -107.5 m (macie-xl-1), and 1 of the 2 would lie within (edge)."
+         -107.5 m (macie-xl-1), and at the figures used 1 of the 2 would lie within (edge)."
     );
     assert_eq!(
         RealFlightReport::band_sentence(&rows[5..]),
         "No flight has a band: none of the 1 has a u_D."
     );
+
+    // The input part's table keeps its nine columns on a row with too few numbers.
+    let mut short = row("short", 10.0, Some((40.0, 0.0)), 30.0);
+    short.input.components.pop();
+    let mut section = String::new();
+    RealFlightReport::input_uncertainty_section(&[design, short], &mut section);
+    let cells = |id: &str| {
+        section
+            .lines()
+            .find(|line| line.starts_with(&format!("| {id} | ")) && line.matches('|').count() > 8)
+            .unwrap_or_else(|| panic!("no row for {id} in {section}"))
+            .to_owned()
+    };
+    assert_eq!(cells("macie-xl-1").matches('|').count(), 10);
+    let short_line = cells("short");
+    assert_eq!(short_line.matches('|').count(), 10, "{short_line}");
+    assert!(short_line.contains("6 numbers, not 7"), "{short_line}");
 }
 
 /// M1.14b18: a source's path under `docs/` becomes a link to the file, where it starts the text
-/// or follows a space or an opening bracket; a URL's own `docs/`, a word that ends in it and a path that
-/// isn't a Markdown file are left as they are, and a sentence's period stays outside the link.
+/// or follows a space or an opening bracket; a URL's own `docs/`, a word that ends in it (with
+/// another `docs/` right behind it, too) and a path that isn't a Markdown file are left as they are, and a sentence's period stays outside the link.
 #[test]
 fn a_sources_path_becomes_a_link() {
     use crate::real_flight::RealFlightReport;
@@ -2680,6 +2756,8 @@ fn a_sources_path_becomes_a_link() {
     for plain in [
         "at https://host/docs/x.md there",
         "mydocs/x.md",
+        "mydocs/docs/x.md",
+        "a/docs/docs/x.md and https://host/docs/docs/y.md",
         "the folder docs/ holds notes",
         "docs/figure.svg",
         "no path here: 3.56/√2 = 2.5%",

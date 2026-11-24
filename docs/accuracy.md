@@ -1147,7 +1147,8 @@ more: as the report flies it, and with the integrator's error tolerances divided
 takes 1.26 to 1.99 times the steps. ASME V&V 20 is a standard for putting an uncertainty on a
 comparison of a simulation with a measurement, and its solution verification is built on
 Roache's grid convergence index. That index, here on two runs, turns the two apogees into the
-integrator's part of a validation uncertainty, u_num ([M1.14b16](decisions-and-roadmap.md#m1-14b16)).
+integrator's part of a validation uncertainty, u_num
+([the integrator's part, M1.14b16](decisions-and-roadmap.md#m1-14b16)).
 [The decision behind it][adr-373] gives its assumptions; the standard itself wasn't read, only
 open texts on it. The largest
 u_num is 5.7093 mm (0.22 in), and every flight's miss is at least 2,700 times its own
@@ -1156,19 +1157,22 @@ misses. This doesn't test the models, the inputs or the logs.
 
 **How much of each miss the log could be.** Part of a miss could also be the log's own error.
 For 8 of the 12 flights a published accuracy exists. The altimeter's own manual gives one for
-3. For the other 5 it is the datasheet of the pressure sensor the maker names. The report
-combines it with
+3. For the other 5 it is the datasheet of the pressure sensor the maker names. Prometheus's
+TeleMetrum is the exception: its manual lists two sensors. The report takes the MS5607, whose
+output steps by 1 Pa, as its log does. The report combines that accuracy with
 the sensor's noise, the log's resolution (the smallest step it records) and its filter, where
 those are known. The result is the log's part of the validation uncertainty, u_D: one
 [standard deviation](glossary.md#standard-deviation) of the logged apogee
-([M1.14b17](decisions-and-roadmap.md#m1-14b17)). [The decision behind it][adr-375] gives each
+([the log's part, M1.14b17](decisions-and-roadmap.md#m1-14b17)). [The decision behind it][adr-375] gives each
 rule and its source. The largest u_D is 10.09 m (33.1 ft), on Prometheus
 ([the report's section][real-data-part]).
 
 Where something is known to make a log read low or high, the report corrects the log's apogee
-for it instead of adding it to u_D. The largest correction is on Juno III, +16.32 m (53.5 ft).
-The report reads that log only to 24.60 s, while the rocket is still climbing. Measured against
-its corrected log, each of the 8 misses is at least 17 times its own u_D
+for it instead of adding it to u_D. A correction is what is added to the log's apogee, so a
+positive one says the log reads low. The largest is on Juno III, +16.32 m (53.5 ft). The report
+reads that log only to 24.60 s, while the rocket is still climbing. Juno III's miss, HPR Sim
+less the log, is −174.8 m (−573 ft) on the log as logged. Against its corrected log it is
+−191.1 m (−627 ft). Measured that way, each of the 8 misses is at least 17 times its own u_D
 ([the same section][real-data-part]). So the log's part can't account for these misses either.
 The misses above stay on the logs as logged ([the decision][adr-376]). A correction is worked
 out for only 8 of the 12 logs, so correcting those rows would put two kinds of figure in one
@@ -1190,7 +1194,7 @@ One thing is left out of u_D on purpose. A
 a warm day that is less than the height climbed: by as much as 282.4 m (926 ft) on these
 flights. HPR Sim's apogee is read the same way, so that difference is in both numbers. The
 report's table also turns both apogees into heights climbed. A miss then changes by at most
-22.6 m (74 ft), and by at most 0.10 percentage points of the apogee
+22.6 m (74.1 ft), and by at most 0.10 percentage points of the apogee
 ([the report's table][real-conversion]). That change is the miss itself counted in the day's
 air, not an error of the log. What this doesn't cover is an error in the air the flight is
 simulated in. That is an input's uncertainty: the air's temperature is one of the five inputs
@@ -1212,12 +1216,15 @@ with its source ([the report's section][real-input-part]):
 - **the air's temperature:** 0.9 K, for ERA5's air at the flight's hour
   ([the same section][real-input-part]).
 
-Three flights whose wind and air aren't their own day's take wider figures. The report then
+Three flights fly wind and air that aren't their own day's: Prometheus and the two Macie XL
+flights. They take wider figures, 4.47 m/s (14.7 ft/s) on each axis of the wind and 8.66 K for
+the air. The report then
 flies each of the 12 flights 200 times more with all five drawn at once. That is a
 [Monte Carlo](glossary.md#monte-carlo) run on a Latin hypercube. Each input's distribution is
 cut into 100 equally likely shares. Every share is flown once in each of two sets
 ([the same section][real-input-part]). The standard deviation of the 200 apogees is the inputs'
-part of the validation uncertainty, u_input ([M1.14b18](decisions-and-roadmap.md#m1-14b18)).
+part of the validation uncertainty, u_input
+([the inputs' part, M1.14b18](decisions-and-roadmap.md#m1-14b18)).
 [The decision behind it][adr-376] gives the reasons. The drag is not one of the inputs: it is
 what the comparison tests.
 
@@ -1228,11 +1235,17 @@ input, not measurements of the rockets that flew. No team here published a measu
 for its own rocket's mass or motor. The impulse's figure is a floor. A commercial motor's file
 is taken to be one test of its type on a stand. For 21 AeroTech motor types that Tripoli Motor
 Testing tested a second time, the two tests differ by a standard deviation of 3.56%. Some of
-those motors changed between their tests. If all of that scatter is the test stand's, a flown
-motor stands 2.5% from its file, the figure used. If all of it is from motor to motor, it
-stands 3.56% off where each test fired one motor. In that same case it stands 5.03% off where
-each test's figure is the mean of three motors. Neither the split nor the number fired is
-known. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
+those motors changed between their tests. The 21 pairs are all AeroTech's. Other makers' motors
+are given the same figure: no pairs were found for them. If all of that scatter is the test stand's, a flown motor stands 2.5%
+from its file, the figure used. If all of it is from motor to motor, it stands 3.56% off where
+each test fired one motor. It stands 5.03% off where each test's figure is the mean of three
+motors. That top assumes three motors in each test. Had a test fired more, the top would be
+higher still, and unequal counts could move it either way. Neither the split nor the number
+fired is known. The 2.5% floor assumes both tests' stands measure equally well: if the file's
+stand measured better than the retest's, the floor would be lower. It is also a floor for the
+random part only. Both tests of a pair may share a calibration error of the stand. That error
+cancels in the pair's difference, so the pairs can't show it. But it would still separate a
+flown motor from its file. Three flights (Juno III, Andromeda and Erebus 11) fly a team's own curve or one of no
 stated origin. They borrow the 2.5% ([the same section][real-input-part]).
 
 <a id="the-band"></a>**The band.** The three parts are u_num (the integrator), u_D (the log)
@@ -1249,8 +1262,8 @@ That count moves with the inputs' figures, both ways ([the same section][real-ba
 impulse at 3.56%, 6 of the 8 would be within. At 5.03%, Prometheus would join them, for 7 of
 the 8. Only the second Macie XL flight is outside at all three figures. The other way, a rocket
 as built is usually heavier than its design file, by a median 7.4%. The note behind that median
-rates it low as a figure for rockets in general, since one team supplies many of its rockets.
-With it taken out of the two Macie XL flights, the first would be outside too on the figures
+has low confidence in it as a figure for rockets in general. One team supplies many of the
+rockets in it. With that growth taken out of the two Macie XL flights, the first would be outside too on the figures
 used, and 2 of the 8 would be within.
 
 How to read a band:

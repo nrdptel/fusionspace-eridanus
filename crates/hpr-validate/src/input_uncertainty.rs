@@ -120,13 +120,13 @@ const IMPULSE_COMMERCIAL: Stated = Stated {
     basis: "a commercial motor on its maker's or certifier's curve",
     from: "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor \
            Testing tested a second time in 2001 to 2004 differ by a standard deviation of 3.56 \
-           points between their two tests (4.41 with a renamed 22nd motor). A flown motor \
-           against its file's curve is such a difference less one test's measuring error: from \
-           3.56/√2 = 2.5%, if all of the scatter is the measuring, to 3.56%, if all of it is \
-           from motor to motor and each test fired one motor. The tests' records don't print \
-           how many they fired: where each figure is the mean of three, the least Tripoli \
-           Motor Testing's rules ask of such a retest today (§1), the top is 3.56·√2 = 5.03%. \
-           The floor, the same for any number fired, is taken. The note calls the pairs no \
+           points between their two tests (4.41 with a renamed 22nd motor). Where each test \
+           fired one motor, a flown motor against its file's curve is such a difference less \
+           one test's measuring error: from 3.56/√2 = 2.5%, if all of the scatter is the \
+           measuring, to 3.56%, if all of it is from motor to motor. The tests' records don't \
+           print how many they fired: where each figure is the mean of three, the least \
+           Tripoli Motor Testing's rules ask of such a retest today (§1), the top is \
+           3.56·√2 = 5.03%. The floor, the same 2.5% for any number fired, is taken. The note calls the pairs no \
            clean comparison of lots: some of the motors changed between their tests",
 };
 

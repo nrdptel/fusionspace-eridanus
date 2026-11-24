@@ -122,11 +122,19 @@ conversion to a height. It left three things open.
   bounds what the zero leaves, decision 4's second term.
 
 **Which way the choices lean.** A larger u_D makes a wider band later, which an error fits inside
-more easily. Two choices take the larger reading: a "typical" figure as one standard deviation
-(Macie XL, whose errors are over 100 times u_D either way), and the Raven's one figure used both
-for the pad's offset and for the change since (NDRT 2020, the one flight whose u_D is over the
-pairs' figure). The other figures are makers' limits for a kind of sensor, and on 7 of the 8
-flights u_D is under the pairs' 0.39%, so on that evidence it is more likely too small.
+more easily. Three choices lean it large: a "typical" figure as one standard deviation (Macie
+XL, whose errors are over 100 times u_D either way); the Raven's one figure used both for the
+pad's offset and for the change since (NDRT 2020, the one flight whose u_D is over the pairs'
+figure); and Prometheus's noise at the MS5607's noisiest setting, its altimeter's being
+unpublished. The Raven's double use is larger than using the figure once, not the largest
+reading: as independent bounds on the two pressures it would give
+100/√3 Pa × √(0.0966² + 0.0849²) m/Pa = 7.43 m in place of 5.62 m. One choice leans small: the
+sheet's band after an autozero is taken for the change since the pad's zero (the first point
+below); its band with no autozero is twice as wide. The other figures are makers' limits for a
+kind of sensor, and on 7 of the 8 flights u_D is under the pairs' 0.39%, so on that evidence it
+is more likely too small. (Amended for
+[#1616](https://github.com/nrdptel/fusionspace-eridanus/issues/1616): the first version named two
+choices, and called the Raven's the larger reading.)
 
 **What was measured** ([the report][report]).
 
@@ -155,6 +163,15 @@ flights u_D is under the pairs' 0.39%, so on that evidence it is more likely too
   and with its supply voltage (the datasheet lists both apart), the pad sample's own noise and
   step, and how far noise lifts the highest of many samples on the two logs with a noise
   component. None has a published figure that fits.
+- The formula gap's own uncertainty, on the two logs whose gap is measured on their own pressure
+  column (Prometheus and Juno III; the files the report reads for the Vega flights keep no
+  pressure, so their formula terms are the note's, measured on Vega files). The gap corrects the log with nothing left in u_D, but it is measured against the log's
+  first pressure row, so that row's noise and step stay in it: 0.44 m on Juno III's 10 Pa steps
+  (3.6 Pa of noise and 10/√12 Pa of step, at 0.0962 m/Pa on the pad), and 1.24 m on Prometheus's
+  if its noise is the sensor's noisiest setting (13 Pa at 0.0954 m/Pa). As one more component it
+  would raise Prometheus's u_D from 10.09 m to 10.16 m and Juno III's by 0.011 m, so it is left
+  out
+  ([#1616](https://github.com/nrdptel/fusionspace-eridanus/issues/1616)).
 - Whether a PerfectFlite reads a difference of two standard altitudes or takes its pad as sea
   level ([the note][formulas]). The two differ by 0.68% at a 300 m pad, and the report has no site
   elevation for Macie XL to size it with.
@@ -169,7 +186,9 @@ flights u_D is under the pairs' 0.39%, so on that evidence it is more likely too
 
 - *Each public flight's row gives its log apogee's standard uncertainty, each component cited.*
   The section's table and its list of sources, for the 8 flights with a published accuracy:
-  3 from the altimeter's own manual, 5 from the datasheet of the pressure sensor its maker names.
+  3 from the altimeter's own manual, 5 from the datasheet of a pressure sensor: the one the maker
+  names, or for Prometheus's TeleMetrum, whose manual lists two, the MS5607 its log's 1 Pa step
+  points to.
 - *The share the simulation and the log take from the same barometer is combined as a cited source
   gives it, or shown by a measurement to cancel.* The section's second table: the conversion in
   both readings and the error both ways.

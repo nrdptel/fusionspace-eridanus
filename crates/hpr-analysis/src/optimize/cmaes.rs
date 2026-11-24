@@ -815,7 +815,7 @@ impl Run {
                 // unchanged, eq. (14).
                 let threshold = if m <= first { first } else { last };
                 // `−Φ⁻¹(α)`: `1 − α` would round first.
-                let reach = -normal::quantile(alpha) * spread;
+                let reach = -crate::statistics::normal_quantile(alpha) * spread;
                 if (m - threshold).abs() <= reach {
                     continue;
                 }
@@ -850,8 +850,8 @@ impl Run {
             let r_up = q_up + excess * (q_up - half) / share;
             // Eq. (24): the mean and A that give the sides these chances.
             // `Φ⁻¹(1 − r) = −Φ⁻¹(r)`, without rounding `1 − r` first.
-            let chi_low = -normal::quantile(r_low);
-            let chi_up = -normal::quantile(r_up);
+            let chi_low = -crate::statistics::normal_quantile(r_low);
+            let chi_up = -crate::statistics::normal_quantile(r_up);
             let mean = (low * chi_up + up * chi_low) / (chi_low + chi_up);
             let a = (up - low) / ((chi_low + chi_up) * spread_unit);
             if mean.is_finite() && a.is_finite() && a > 0.0 {
@@ -1551,7 +1551,7 @@ mod tests {
 
         // An end mean never lands farther from its threshold than the reach, though
         // `threshold ± reach` rounds outward for some spreads: those are stepped back an ulp.
-        let reach_per_spread = -normal::quantile(1.0 / 12.0);
+        let reach_per_spread = -crate::statistics::normal_quantile(1.0 / 12.0);
         let mut stepped = 0;
         for k in 0..2000 {
             let sigma = 0.01 + 1e-4 * f64::from(k);

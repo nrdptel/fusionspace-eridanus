@@ -33,50 +33,133 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::AnalysisError;
 
+/// The numerator's and denominator's coefficients of AS 241's three rational functions, highest
+/// power first, as the paper prints them to 20 digits; each denominator's constant term is 1.
+#[expect(
+    clippy::excessive_precision,
+    reason = "the published digits, which round to the nearest f64"
+)]
+const CENTRAL: ([f64; 8], [f64; 7]) = (
+    [
+        2.509_080_928_730_122_672_7e3,
+        3.343_057_558_358_812_810_5e4,
+        6.726_577_092_700_870_085_3e4,
+        4.592_195_393_154_987_145_7e4,
+        1.373_169_376_550_946_112_5e4,
+        1.971_590_950_306_551_442_7e3,
+        1.331_416_678_917_843_774_5e2,
+        3.387_132_872_796_366_608_0,
+    ],
+    [
+        5.226_495_278_852_854_561_0e3,
+        2.872_908_573_572_194_267_4e4,
+        3.930_789_580_009_271_061_0e4,
+        2.121_379_430_158_659_586_7e4,
+        5.394_196_021_424_751_107_7e3,
+        6.871_870_074_920_579_083_0e2,
+        4.231_333_070_160_091_125_2e1,
+    ],
+);
+
+/// AS 241's function for `√(−ln min(p, 1 − p))` from 1.6 to 5.
+#[expect(
+    clippy::excessive_precision,
+    reason = "the published digits, which round to the nearest f64"
+)]
+const INTERMEDIATE: ([f64; 8], [f64; 7]) = (
+    [
+        7.745_450_142_783_414_076_40e-4,
+        2.272_384_498_926_918_458_33e-2,
+        2.417_807_251_774_506_117_70e-1,
+        1.270_458_252_452_368_382_58,
+        3.647_848_324_763_204_605_04,
+        5.769_497_221_460_691_405_50,
+        4.630_337_846_156_545_295_90,
+        1.423_437_110_749_683_577_34,
+    ],
+    [
+        1.050_750_071_644_416_843_24e-9,
+        5.475_938_084_995_344_946_00e-4,
+        1.519_866_656_361_645_719_66e-2,
+        1.481_039_764_274_800_745_90e-1,
+        6.897_673_349_851_000_045_50e-1,
+        1.676_384_830_183_803_849_40,
+        2.053_191_626_637_758_821_87,
+    ],
+);
+
+/// AS 241's function for `√(−ln min(p, 1 − p))` past 5.
+#[expect(
+    clippy::excessive_precision,
+    reason = "the published digits, which round to the nearest f64"
+)]
+const TAIL: ([f64; 8], [f64; 7]) = (
+    [
+        2.010_334_399_292_288_132_65e-7,
+        2.711_555_568_743_487_578_15e-5,
+        1.242_660_947_388_078_438_60e-3,
+        2.653_218_952_657_612_309_30e-2,
+        2.965_605_718_285_048_912_30e-1,
+        1.784_826_539_917_291_335_80,
+        5.463_784_911_164_114_369_90,
+        6.657_904_643_501_103_777_20,
+    ],
+    [
+        2.044_263_103_389_939_785_64e-15,
+        1.421_511_758_316_445_888_70e-7,
+        1.846_318_317_510_054_681_80e-5,
+        7.868_691_311_456_132_591_00e-4,
+        1.487_536_129_085_061_485_25e-2,
+        1.369_298_809_227_358_053_10e-1,
+        5.998_322_065_558_879_376_90e-1,
+    ],
+);
+
+/// A rational function by Horner's rule: `numerator(r)/denominator(r)`, the denominator's
+/// constant term 1.
+fn rational((numerator, denominator): &([f64; 8], [f64; 7]), r: f64) -> f64 {
+    let top = numerator.iter().fold(0.0, |acc, c| acc * r + c);
+    let bottom = denominator.iter().fold(0.0, |acc, c| acc * r + c) * r + 1.0;
+    top / bottom
+}
+
 /// `Φ⁻¹(p)`, the standard normal deviate with the share `p` of the distribution at or below it:
 /// `−∞` at 0, `+∞` at 1, and NaN for a `p` outside `[0, 1]` or not a number.
 ///
-/// It inverts `Φ(x) = erfc(−x/√2)/2` by bisection, with `erfc` from the `libm` crate, which
-/// keeps its relative accuracy in the lower tail where `1 − erf` would cancel. A `p` over 1/2 is
-/// mirrored, `Φ⁻¹(p) = −Φ⁻¹(1 − p)`, so the search is always in the lower tail. The bracket
-/// starts at `[−40, 0]` (`Φ(−40)` is below the smallest positive `f64`) and is halved until its
-/// ends are neighboring numbers, and the upper end is returned: the smallest `x` whose computed
-/// `Φ` is at least `p`. So the result is within one step of `f64` of that `Φ`'s exact inverse,
-/// and it never decreases as `p` grows.
-///
-/// The optimizer's integer margin keeps its own closed-form inverse, Wichura's AS 241, inside
-/// its module. This one costs about 60 evaluations of `erfc` for a `p` away from 1/2, and about
-/// 110 for one a rounding from it.
+/// It is M. J. Wichura's algorithm AS 241, "The Percentage Points of the Normal Distribution",
+/// *Applied Statistics* 37(3), 477–484 (1988), <https://doi.org/10.2307/2347330>: its `PPND16`,
+/// three rational functions of degree 7 (in `p − 1/2` near the middle, and in
+/// `r = √(−ln min(p, 1 − p))` for the tails), accurate to about 1 part in 10¹⁶. The coefficients
+/// were transcribed from the listing in CPython's `statistics` module (PSF License), which prints
+/// the paper's 20 digits; the paper's own hash sums check the transcription. The library
+/// code's one inverse (a test in `hpr-forensics` keeps a bisection of its own): the optimizer's
+/// integer margin here and `hpr-validate`'s stratified samples both take it. It is not monotone
+/// to the last bit: a step of `f64` up in `p` can lower it by a few steps, at the joins of its
+/// three functions and elsewhere. No caller needs it finer than that.
 #[must_use]
 pub fn normal_quantile(p: f64) -> f64 {
     if !(0.0..=1.0).contains(&p) {
         return f64::NAN;
     }
-    if p == 0.0 {
-        return f64::NEG_INFINITY;
+    let q = p - 0.5;
+    if q.abs() <= 0.425 {
+        return q * rational(&CENTRAL, 0.180_625 - q * q);
     }
-    if p == 1.0 {
-        return f64::INFINITY;
-    }
-    if p == 0.5 {
-        return 0.0;
-    }
-    if p > 0.5 {
-        // 1 − p is exact for a p from 1/2 to 1 (Sterbenz).
-        return -normal_quantile(1.0 - p);
-    }
-    let (mut low, mut high) = (-40.0_f64, 0.0_f64);
-    loop {
-        let middle = 0.5 * (low + high);
-        if middle <= low || middle >= high {
-            return high;
-        }
-        if 0.5 * libm::erfc(-middle / std::f64::consts::SQRT_2) < p {
-            low = middle;
+    let tail = if q < 0.0 { p } else { 1.0 - p };
+    if tail == 0.0 {
+        return if q < 0.0 {
+            f64::NEG_INFINITY
         } else {
-            high = middle;
-        }
+            f64::INFINITY
+        };
     }
+    let r = (-tail.ln()).sqrt();
+    let x = if r <= 5.0 {
+        rational(&INTERMEDIATE, r - 1.6)
+    } else {
+        rational(&TAIL, r - 5.0)
+    };
+    if q < 0.0 { -x } else { x }
 }
 
 /// The values a sample of runs gave, sorted, and how many runs were tried. It serializes as
@@ -605,46 +688,101 @@ mod tests {
         }
     }
 
-    /// The normal quantile on tabulated values: 1.959963984540054 at 0.975 (the two-sided 95%
-    /// point), 1.2815515655446004 at 0.9 and 3.090232306167813 at 0.999, with their mirror
-    /// images; 1 at Φ(1) = 0.8413447460685429; −6.361340902404056 at 10⁻¹⁰. It inverts Φ down
-    /// to 10⁻¹⁰⁰, is mirrored about 1/2, never decreases, and gives the edges as the doc says.
+    /// The paper's "hash sums", printed to check a transcription: each function's 15
+    /// coefficients written as `d.ddd… × 10ᵏ`, their mantissas `d.ddd…` added (the denominator's
+    /// constant 1 left out): 55.8831928806149014439, 49.3320650330161028904 and
+    /// 47.5258331754928967163.
     #[test]
-    fn the_normal_quantile_on_tabulated_values_and_its_edges() {
-        for (p, z) in [
-            (0.975, 1.959_963_984_540_054),
-            (0.9, 1.281_551_565_544_600_4),
-            (0.999, 3.090_232_306_167_813),
-            (0.841_344_746_068_542_9, 1.0),
+    #[expect(
+        clippy::excessive_precision,
+        reason = "the published hash sums, which round to the nearest f64"
+    )]
+    fn coefficients_match_the_papers_hash_sums() {
+        let mantissa = |c: &f64| c / 10f64.powf(c.log10().floor());
+        let sum = |(top, bottom): &([f64; 8], [f64; 7])| {
+            top.iter().map(mantissa).sum::<f64>() + bottom.iter().map(mantissa).sum::<f64>()
+        };
+        for (function, hash) in [
+            (&CENTRAL, 55.883_192_880_614_901_443_9),
+            (&INTERMEDIATE, 49.332_065_033_016_102_890_4),
+            (&TAIL, 47.525_833_175_492_896_716_3),
         ] {
-            assert!((normal_quantile(p) - z).abs() < 1e-13, "{p}");
-            assert!((normal_quantile(1.0 - p) + z).abs() < 1e-13, "{p}");
+            let got = sum(function);
+            assert!((got - hash).abs() <= 1e-15 * hash, "{got} against {hash}");
         }
-        assert!((normal_quantile(1e-10) + 6.361_340_902_404_056).abs() < 1e-12);
-        // It inverts Φ, deep into the lower tail: the share at or below the result is at least
-        // p, and a few steps of f64 below the result it is under p.
-        let share = |x: f64| 0.5 * libm::erfc(-x / std::f64::consts::SQRT_2);
-        for p in [1e-100, 1e-12, 0.005, 0.015, 0.25, 0.495, 0.5 - 1e-15] {
-            let x = normal_quantile(p);
-            assert!(x < 0.0, "{p}");
-            assert!(share(x) >= p, "{p}: {}", share(x));
-            assert!(share(x * (1.0 + 4.0 * f64::EPSILON)) < p, "{p}");
-            assert_eq!(normal_quantile(1.0 - p), -normal_quantile(1.0 - (1.0 - p)));
+    }
+
+    /// Quantiles to 17 digits, in 50-digit arithmetic (mpmath's `√2 erfinv(2p − 1)`, or
+    /// `findroot` on `ncdf` for 10⁻¹⁰⁰ and 10⁻³⁰⁰) at the `f64` nearest each `p`; within 2 parts in 10¹⁵,
+    /// a few rounding steps.
+    #[test]
+    #[expect(
+        clippy::excessive_precision,
+        reason = "17 digits of each 50-digit reference, which round to the nearest f64"
+    )]
+    fn known_quantiles() {
+        for (p, x) in [
+            (0.5, 0.0),
+            (0.975, 1.959_963_984_540_053_9),
+            (0.025, -1.959_963_984_540_054_2),
+            (0.841_344_746_068_542_9, 0.999_999_999_999_999_9),
+            (1e-10, -6.361_340_902_404_056_2),
+            (1e-100, -21.273_453_560_965_324),
+            (1e-300, -37.047_096_299_361_199),
+            (0.999, 3.090_232_306_167_813_3),
+        ] {
+            let got = normal_quantile(p);
+            assert!(
+                (got - x).abs() <= 2e-15 * x.abs().max(1.0),
+                "Φ⁻¹({p}) = {got}, not {x}"
+            );
         }
-        // Never decreasing, through 1/2.
+        assert_eq!(normal_quantile(0.0), f64::NEG_INFINITY);
+        assert_eq!(normal_quantile(1.0), f64::INFINITY);
+        assert!(
+            normal_quantile(-1e-300).is_nan()
+                && normal_quantile(1.5).is_nan()
+                && normal_quantile(f64::NAN).is_nan()
+        );
+    }
+
+    /// Mirrored about 1/2 exactly, for the `p` that `1 − (1 − p)` rounds to; rising on a grid of
+    /// 20,001 points from 0 to 1, which crosses the central function's joins at `p` = 0.075 and
+    /// 0.925 (not to the last bit: see [`normal_quantile`]); rising across the tail's join at
+    /// `r` = 5, near `p` = 1.4·10⁻¹¹; and finite at the smallest positive number.
+    #[test]
+    fn the_normal_quantile_is_mirrored_and_rises_on_a_grid() {
+        for p in [
+            1e-100,
+            1e-12,
+            0.005,
+            0.015,
+            0.075,
+            0.2,
+            0.25,
+            0.495,
+            0.5 - 1e-15,
+        ] {
+            assert!(normal_quantile(p) < 0.0, "{p}");
+            // 1 − (1 − p) is the share the upper call's tail sees, so the two agree exactly.
+            assert_eq!(
+                normal_quantile(1.0 - p),
+                -normal_quantile(1.0 - (1.0 - p)),
+                "{p}"
+            );
+        }
         let mut last = f64::NEG_INFINITY;
-        for step in 0..=2000 {
-            let x = normal_quantile(f64::from(step) / 2000.0);
+        for step in 0..=20_000 {
+            let x = normal_quantile(f64::from(step) / 20_000.0);
             assert!(x >= last, "{step}");
             last = x;
         }
-        assert_eq!(normal_quantile(0.5), 0.0);
-        assert_eq!(normal_quantile(0.0), f64::NEG_INFINITY);
-        assert_eq!(normal_quantile(1.0), f64::INFINITY);
-        assert!(normal_quantile(-0.1).is_nan());
-        assert!(normal_quantile(1.1).is_nan());
-        assert!(normal_quantile(f64::NAN).is_nan());
-        // The smallest positive number still has a quantile inside the bracket.
-        assert!(normal_quantile(f64::MIN_POSITIVE) > -40.0);
+        let r5 = (-25.0_f64).exp();
+        let (below, above) = (
+            normal_quantile(r5 * 0.999_999),
+            normal_quantile(r5 * 1.000_001),
+        );
+        assert!(below < above, "{below} {above}");
+        assert!(normal_quantile(f64::MIN_POSITIVE).is_finite());
     }
 }
