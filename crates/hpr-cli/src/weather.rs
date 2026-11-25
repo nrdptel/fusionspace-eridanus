@@ -178,13 +178,13 @@ pub struct Era5Args {
 }
 
 /// A source read: the profile and what the output says about it.
-struct Read {
-    source: WeatherSource,
-    read_from: ReadFrom,
-    position: WeatherPosition,
-    time_unix_s: i64,
+pub(crate) struct Read {
+    pub(crate) source: WeatherSource,
+    pub(crate) read_from: ReadFrom,
+    pub(crate) position: WeatherPosition,
+    pub(crate) time_unix_s: i64,
     run_unix_s: Option<i64>,
-    sounding: SoundingProfile,
+    pub(crate) sounding: SoundingProfile,
     dropped: Vec<DroppedLevel>,
 }
 
@@ -425,7 +425,7 @@ fn source_failure(
     Failure::library(message, help)
 }
 
-fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
+pub(crate) fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
     let time = parse_utc(&args.time)?;
     let api = if args.historical {
         OpenMeteoApi::HistoricalForecast
@@ -1046,7 +1046,7 @@ fn degrees(value: f64, [positive, negative]: [&str; 2]) -> String {
 }
 
 /// Reads a UTC time written `YYYY-MM-DDTHH[:MM[:SS]]Z`, as seconds since the Unix epoch.
-fn parse_utc(text: &str) -> Result<i64, Failure> {
+pub(crate) fn parse_utc(text: &str) -> Result<i64, Failure> {
     let bad = || {
         Failure::helped(
             format!("{text} is not a time in UTC"),

@@ -1,6 +1,8 @@
 # Comparing a flight with its simulation
 
 `hpr compare` shows how far a flight's logged height, speed and readings lie from a simulation of it.
+With `--plot` it draws them too: the log beside the simulation as designed and under the launch day's
+weather, from liftoff to landing ([Draw it](#draw-it)).
 
 This page is for a flyer or a team who has flown and wants to see where the simulation parted from the
 flight. NASA Student Launch's handbook asks for this comparison after a team's subscale flight and again
@@ -27,6 +29,7 @@ The simulation flies the same rocket in calm air, so you can see what a known le
 $ hpr compare validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json
 level-1-flown.csv against its simulation
   flown: level-1.ork, [H170M-10]
+  as designed: the 1976 standard atmosphere and no wind, at the site
   clocks: a shared liftoff, within 1.73 s; the log's at 10.10 s, the simulation's 0.10 s after ignition
   the simulation's height is read as a barometer on the pad would read it, as the log's is
 
@@ -101,6 +104,65 @@ which isn't the day you flew. `--json` adds every sample's residual, for a plot 
 A logger HPR Sim has no reader for is read by `--mapping` or `--layout`, as in
 [Reading your own logger](your-own-logger.md).
 
+## Draw it
+
+`--plot flight.svg` draws the log's altitude and vertical speed against the time since liftoff, from
+liftoff to landing, and the simulation's twice:
+
+- **As designed:** the 1976 standard atmosphere and no wind, at the site. It is what the design
+  predicted before anyone looked at the day.
+- **On the launch day:** the day's air and wind, from one of three places. Give one; the residuals
+  in the text are then against this flight, and otherwise against the flight as designed.
+
+| you give | the launch day's air and wind |
+|---|---|
+| `--launch-time 2023-06-23T23:00Z` | [Open-Meteo](weather.md)'s archive of past forecasts at the site, for that time in UTC |
+| `--launch-time log` | the same, at the time the log's GPS receiver gives at liftoff: an AltosUI CSV's |
+| `--weather profile.json` | a profile `hpr weather` wrote, from any of its sources |
+| `--wind`, `--wind-from`, `--temperature`, `--pressure` | values you enter: a wind the same at every height, and the air at the pad |
+
+The site is `--latitude` and `--longitude` where you give them. Where you give neither, it is the
+log's own: the median of its last GNSS fixes before liftoff, as `hpr analyze --ghost` places its pad.
+The height is always `--elevation`'s. `--offline` answers from the cache only, so a weather answer
+fetched once works with no network after; the values you enter never need one.
+
+Entered air is the standard atmosphere shifted to pass through your temperature and pressure at the
+pad ([the standard atmosphere](physics/atmosphere.md)). Leave one out and it is the standard's at
+`--elevation`. The pressure is the station's own, not one reduced to sea level, as a weather report
+gives it: a pressure more than 15% from the standard's at the pad's height is refused. At a 1,400 m
+(4,593 ft) field the standard's is 856 hPa, and a sea-level 1,013 hPa lies about 18% over it.
+
+The figure follows `hpr sim --plot`'s style. The log is solid and dark, its heights as it logged
+them and its speed [the smoother's](physics/smoother.md), derived from them. Each simulation is
+dashed: thin as designed, thick on the launch day. Each is read as the log's sensor reads it, so on
+a barometric log it is what a barometer on the pad would have read. Under the panels a table gives
+each reading three ways: the log's, with its bound and where it came from (measured or derived,
+from which track), then each simulation's. Under it, the figure says where the site and each
+simulation's air and wind came from, with the weather source's credit. The figure's data go beside
+it as a CSV file, with a sidecar naming the program that wrote them.
+
+A logged sample far off both simulations, such as an ejection charge's pressure spike, would stretch
+the axis until the flight is a line along its foot. So an axis holds the simulations' values, and
+the log's within one span of them either side. A logged sample past that runs off the panel's edge,
+and the figure counts such samples and gives the furthest.
+
+For example, on Prometheus, a public flight from the 2022 Spaceport America Cup whose AltosUI log
+is in [RocketPy's data](https://github.com/RocketPy-Team/RocketPy):
+
+```text
+hpr compare 2022-06-24-serial-5115-flight-0001-TeleMetrum.csv \
+    validation/designs/rocketpy-prometheus-2022-generic-motor.json --config example \
+    --elevation 1401 --rail-length 5.18 --inclination 80 --heading 75 \
+    --launch-time log --plot prometheus.svg
+```
+
+The site comes from the log's fixes, 32.93950° N, 106.91145° W, and the time from its GPS at
+liftoff, 2022-06-24 15:17:16 UTC. The launch day's air and wind are Open-Meteo's for that hour at
+its nearest grid point. A test runs this command on a recorded copy of that answer
+([`compare_plots_a_public_flight_on_its_logs_own_site_and_day`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)).
+That design's `.json` holds no parachute, so both simulations fall from apogee and their descents
+mean nothing, as the notes say.
+
 ## What a residual is
 
 A **residual** is the logged value less the simulated one. A positive height residual means the log read
@@ -153,7 +215,13 @@ read the log, the speed says why.
   `hpr sim` flies no recovery device from a rocket's `.json`; an `.ork` or `.hpr` flies its own.
 - On a staged flight the simulated track is the stack's, then the upper stage's, so a booster's log compares
   only up to the split.
-- It doesn't draw a plot yet ([M7.3e](decisions-and-roadmap.md#m7-3e)). It fits nothing: the
-  [least-squares fit](physics/flight-fit.md) is in the library, with no command yet.
+- `--launch-time log` reads a time from an AltosUI CSV only. AltOS's telemetry and flash records
+  keep two digits of the year, and the flash's date may not be the flight's. Other formats state no
+  date the reader trusts, so give the time.
+- The weather source's air and wind are a model's, hourly, on a grid some kilometers wide, not a
+  measurement at the pad. The figure shows the gap between the log and each simulation; it doesn't
+  say which part is the weather's.
+- It fits nothing: the [least-squares fit](physics/flight-fit.md) is in the library, with no
+  command yet ([M7.3f](decisions-and-roadmap.md#m7-3f)).
 
 For a record or a certification, the altimeter's own reading is the one to log, and the RSO decides.

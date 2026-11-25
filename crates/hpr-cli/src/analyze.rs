@@ -601,7 +601,7 @@ fn method(method: Method) -> ReadingMethod {
 }
 
 /// The track a reading came from, in words.
-fn source_words(source: ReadingSource) -> &'static str {
+pub(crate) fn source_words(source: ReadingSource) -> &'static str {
     match source {
         ReadingSource::Barometer => "the logger's barometric altitude",
         ReadingSource::Pressure => "the pressure, by the 1976 standard atmosphere",

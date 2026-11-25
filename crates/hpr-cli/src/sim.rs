@@ -70,7 +70,7 @@ pub struct SimArgs {
 }
 
 /// What `hpr sim` and `hpr mc` fly: the design, its motor and the launch.
-#[derive(Debug, clap::Args)]
+#[derive(Debug, Clone, clap::Args)]
 pub struct FlightArgs {
     /// The design: an OpenRocket .ork file, an HPR design (.hpr, or .hprz with its attachments),
     /// or a rocket described in JSON (.json)
@@ -205,6 +205,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         design_name,
         rocket: _,
         environment,
+        designed: _,
         devices,
         separations,
         added,
@@ -404,6 +405,11 @@ pub(crate) struct Setup {
     pub(crate) design_name: String,
     pub(crate) rocket: Rocket,
     pub(crate) environment: Environment,
+    /// The launch site's environment as the design flies with nothing said of the day: the
+    /// standard atmosphere and no wind. `hpr compare` flies it as designed ([M7.3e][m7-3e]).
+    ///
+    /// [m7-3e]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3e
+    pub(crate) designed: Environment,
     /// The devices flown, the last [`Setup::added`] of them HPR Sim's own (a separated flight's
     /// tumbles).
     pub(crate) devices: Vec<hpr::Device>,
@@ -592,6 +598,7 @@ impl Setup {
                      -106.9 --elevation 1400`",
                 )
             })?;
+        let designed = environment.clone();
         if let Some(speed) = flight.wind {
             environment = environment
                 .with_constant_wind(speed, flight.wind_from)
@@ -624,6 +631,7 @@ impl Setup {
             design_name,
             rocket,
             environment,
+            designed,
             devices,
             separations,
             added,
@@ -633,7 +641,16 @@ impl Setup {
     /// The flight's builder, from `flight`'s rail. The builder's own rail unless an angle is
     /// given, so a vertical launch is the library's default to the bit.
     pub(crate) fn builder(&self, flight: &FlightArgs) -> FlightBuilder<'_> {
-        let mut builder = Flight::builder(&self.rocket, &self.environment, flight.rail_length);
+        self.builder_in(&self.environment, flight)
+    }
+
+    /// [`Setup::builder`] in `environment` in place of the setup's own.
+    pub(crate) fn builder_in<'a>(
+        &'a self,
+        environment: &'a Environment,
+        flight: &FlightArgs,
+    ) -> FlightBuilder<'a> {
+        let mut builder = Flight::builder(&self.rocket, environment, flight.rail_length);
         if let Some(inclination) = flight.inclination {
             builder = builder.inclination_deg(inclination);
         }
@@ -770,6 +787,18 @@ fn weather_profile(path: &str, elevation_m: f64) -> Result<SoundingProfile, Fail
     let profile: SoundingProfile = serde_json::from_slice(&bytes).map_err(|error| {
         Failure::helped(format!("{shown}: not a weather profile: {error}"), help)
     })?;
+    flyable_profile(profile, elevation_m, &shown, help)
+}
+
+/// `profile`, named `shown` in a refusal, if it can be flown from a site `elevation_m` above sea
+/// level: it has levels, it gives winds, and the site lies within its heights. `help` says where
+/// a profile comes from.
+pub(crate) fn flyable_profile(
+    profile: SoundingProfile,
+    elevation_m: f64,
+    shown: &str,
+    help: &str,
+) -> Result<SoundingProfile, Failure> {
     // A profile holds at least one level, its heights increasing: `SoundingProfile`'s checks
     // refuse any other.
     let (Some(lowest), Some(highest)) = (profile.levels().first(), profile.levels().last()) else {
