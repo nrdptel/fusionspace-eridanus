@@ -855,6 +855,26 @@ Each figure is HPR Sim's value less MAPLEAF's, as a percentage of MAPLEAF's
   ([by part][mapleaf-drag]). MAPLEAF was flown with its defaults. Like HPR Sim, it then takes
   the [boundary layer](glossary.md#boundary-layer) as
   [turbulent over the whole rocket](physics/aero.md#drag).
+- **Where NDRT 2020's drag difference comes from.** Just after burnout MAPLEAF's drag
+  coefficient for NDRT 2020 is 0.1142 above HPR Sim's. Split by term,
+  [base drag](glossary.md#base-drag) is 58.3% of that 0.1142 and skin friction 44.3%, and the
+  rail buttons, which only HPR Sim has, take 3.5% back. The two codes share the base drag's
+  formula and differ in its area. MAPLEAF charges it on a base as wide as the rocket's largest
+  tube. NDRT 2020 ends in a narrower one, so MAPLEAF's base area is 1.715 times HPR Sim's
+  ([by term][mapleaf-drag-terms]).
+- **The friction's length.** MAPLEAF takes each body part's friction coefficient on that
+  part's own length, and the fins' on their
+  [mean aerodynamic chord](glossary.md#mean-aerodynamic-chord-mac). HPR Sim takes the whole
+  rocket's length for every part. A shorter length gives a higher coefficient, and MAPLEAF's
+  friction is the higher on every part ([by term][mapleaf-drag-terms]).
+- **What the measurements say of it.** Three committed measurements bear on the difference,
+  and they don't all point one way. NDRT 2020's logged flight points to MAPLEAF's whole drag as
+  the nearer: on its own drag, HPR Sim's apogee is 10.39% above the log. That is one flight of
+  a design whose fin edges and finish are placeholders, and it doesn't say which term is short.
+  A base measured in flight behind a [boattail](glossary.md#boattail) holds HPR Sim's base rule
+  the nearer, and a wind-tunnel body's drag reads high in HPR Sim before any higher friction.
+  So the comparison doesn't settle which term leaves HPR Sim's drag short on NDRT 2020
+  ([against a measurement][mapleaf-measured]).
 - **A leaning rail.** MAPLEAF at the pinned commit doesn't fly a leaning rail as given. On a
   rail 5.3° from the vertical it moves the rocket up a line 10.60° from the vertical, with its
   body 5.30° from it. So every flight here leaves a vertical rail in both codes
@@ -870,6 +890,8 @@ rocket at a time.
 [mapleaf-matched]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#with-mapleafs-gravity-matched
 [mapleaf-momentum]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#with-the-internal-momentum-force-added
 [mapleaf-drag]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#the-drag-each-flew
+[mapleaf-drag-terms]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#what-the-split-says
+[mapleaf-measured]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#against-a-measurement
 [mapleaf-rail]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#mapleaf-on-a-leaning-rail
 [adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
 

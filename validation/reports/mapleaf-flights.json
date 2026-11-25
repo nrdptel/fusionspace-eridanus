@@ -5,7 +5,7 @@
   "inputs": "validation/fixtures/flight/mapleaf-inputs.json",
   "inputs_sha256": "8578109cc75f89543719614c6955d5a2d620fc3178f5055a2235b20758e5b7c4",
   "flights": "validation/fixtures/flight/mapleaf-flights.json",
-  "flights_sha256": "be287e31976ad4d4e7751c29bddef6a10ecab3c11e92082f9dd6513f37e6beb2",
+  "flights_sha256": "3d98294444671dd2348982f6f263f0f9041c99d33f7b0f706733df7fb4a35f0e",
   "mapleaf_time_steps_s": [
     0.002,
     0.001
@@ -62,21 +62,54 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.024762212305169867
+              "axial_coefficient": 0.024762212305169867,
+              "terms": {
+                "friction": 0.024761057556731345,
+                "pressure": 1.1546718183421767e-6,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.158
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.3883818555167408
+              "axial_coefficient": 0.3883818555167408,
+              "terms": {
+                "friction": 0.25427737863983707,
+                "pressure": 0.0,
+                "base": 0.13410447567515787,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.158
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.12127030289366729
+              "axial_coefficient": 0.12127030289366729,
+              "terms": {
+                "friction": 0.010474246065358702,
+                "pressure": 0.11079605645306942,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.158
             },
             {
               "id": "rail-buttons",
-              "axial_coefficient": 0.024274524462454372
+              "axial_coefficient": 0.024274524462454372,
+              "terms": {
+                "friction": 0.0,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.024274524387343215
+              },
+              "friction_length_m": null
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.0809
         },
         "mapleaf": {
           "apogee_rise_m": 780.1598521277363,
@@ -89,17 +122,42 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.035167094148975446
+              "axial_coefficient": 0.035167094148975446,
+              "terms": {
+                "friction": 0.035165889037736445,
+                "pressure": 1.2051112390012372e-6,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.274
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.3937619531662925
+              "axial_coefficient": 0.3937619531662925,
+              "terms": {
+                "friction": 0.2595430037460549,
+                "pressure": 0.0,
+                "base": 0.13421894942023763,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 1.884
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.13462998108807023
+              "axial_coefficient": 0.13462998108807023,
+              "terms": {
+                "friction": 0.02187730870162818,
+                "pressure": 0.11083178841451048,
+                "base": 0.0,
+                "thickness": 0.0019208839719316126,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.04150876601184194
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.0809
         },
         "mapleaf_coarser_apogee_rise_m": 780.1926900766271,
         "mapleaf_coarser_rail_exit_speed_m_s": 22.504081423431483,
@@ -118,7 +176,8 @@
           "air_density_at_ignition_kg_m3": 1.1482486467681783,
           "after_burnout_mach": 0.3287242450027518,
           "after_burnout_axial_coefficient": 0.5578646033280978,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf": {
           "apogee_rise_m": 773.6568333729995,
@@ -128,7 +187,8 @@
           "air_density_at_ignition_kg_m3": 1.14824864713593,
           "after_burnout_mach": 0.3284971050159427,
           "after_burnout_axial_coefficient": 0.5578734586445276,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf_coarser_apogee_rise_m": 773.6864995944791,
         "mapleaf_coarser_rail_exit_speed_m_s": 22.50221419032081,
@@ -189,25 +249,66 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.014007096996779328
+              "axial_coefficient": 0.014007096996779328,
+              "terms": {
+                "friction": 0.013005344772995947,
+                "pressure": 0.0010017522229486021,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.6776
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.18844788504528875
+              "axial_coefficient": 0.18844788504528875,
+              "terms": {
+                "friction": 0.18844788503405788,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.6776
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.10250770918878437
+              "axial_coefficient": 0.10250770918878437,
+              "terms": {
+                "friction": 0.03913396288628141,
+                "pressure": 0.06337374629639382,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.6776
             },
             {
               "id": "rail-buttons",
-              "axial_coefficient": 0.006486977838737483
+              "axial_coefficient": 0.006486977838737483,
+              "terms": {
+                "friction": 0.0,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.00648697783835088
+              },
+              "friction_length_m": null
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.09861024847797763
+              "axial_coefficient": 0.09861024847797763,
+              "terms": {
+                "friction": 0.0036838508713143464,
+                "pressure": 0.01016542561508284,
+                "base": 0.08476097198570359,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.6776
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.135
         },
         "mapleaf": {
           "apogee_rise_m": 550.2938071711441,
@@ -220,21 +321,54 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.022009404712212167
+              "axial_coefficient": 0.022009404712212167,
+              "terms": {
+                "friction": 0.021005655518096408,
+                "pressure": 0.0010037491941157605,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.242
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.19252611695100919
+              "axial_coefficient": 0.19252611695100919,
+              "terms": {
+                "friction": 0.19252611695100919,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.3856
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.11645016062265483
+              "axial_coefficient": 0.11645016062265483,
+              "terms": {
+                "friction": 0.008330997364557528,
+                "pressure": 0.010166152029562324,
+                "base": 0.09795301122853499,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.05
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.1295097516026714
+              "axial_coefficient": 0.1295097516026714,
+              "terms": {
+                "friction": 0.06485541192003376,
+                "pressure": 0.06337554022849858,
+                "base": 0.0,
+                "thickness": 0.0012787994541390334,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.21238682880401225
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.135
         },
         "mapleaf_coarser_apogee_rise_m": 550.3110633628722,
         "mapleaf_coarser_rail_exit_speed_m_s": 18.65075129915031,
@@ -253,7 +387,8 @@
           "air_density_at_ignition_kg_m3": 1.1777225997331848,
           "after_burnout_mach": 0.2875071927367785,
           "after_burnout_axial_coefficient": 0.4100381142238597,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf": {
           "apogee_rise_m": 553.3862668107391,
@@ -263,7 +398,8 @@
           "air_density_at_ignition_kg_m3": 1.1777225998355345,
           "after_burnout_mach": 0.2874803845908841,
           "after_burnout_axial_coefficient": 0.4100361769314522,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf_coarser_apogee_rise_m": 553.4030141197799,
         "mapleaf_coarser_rail_exit_speed_m_s": 18.650170337079732,
@@ -324,29 +460,78 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.023785313572613376
+              "axial_coefficient": 0.023785313572613376,
+              "terms": {
+                "friction": 0.023174622941172264,
+                "pressure": 0.000610690623330153,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 3.391
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.03343776772732949
+              "axial_coefficient": 0.03343776772732949,
+              "terms": {
+                "friction": 0.03343776771592698,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 3.391
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.01809832819269946
+              "axial_coefficient": 0.01809832819269946,
+              "terms": {
+                "friction": 0.00634667089827309,
+                "pressure": 0.011751657288254712,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 3.391
             },
             {
               "id": "body-tube-2",
-              "axial_coefficient": 0.18209760147769716
+              "axial_coefficient": 0.18209760147769716,
+              "terms": {
+                "friction": 0.08931627826400063,
+                "pressure": 0.0,
+                "base": 0.09278132315159997,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 3.391
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.07658704997145747
+              "axial_coefficient": 0.07658704997145747,
+              "terms": {
+                "friction": 0.013654548237632954,
+                "pressure": 0.0629325017077078,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 3.391
             },
             {
               "id": "rail-buttons",
-              "axial_coefficient": 0.0040433649293940615
+              "axial_coefficient": 0.0040433649293940615,
+              "terms": {
+                "friction": 0.0,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.004043364928015246
+              },
+              "friction_length_m": null
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.155
         },
         "mapleaf": {
           "apogee_rise_m": 1307.5280573339105,
@@ -359,25 +544,66 @@
           "after_burnout_parts": [
             {
               "id": "nose",
-              "axial_coefficient": 0.03308839737620576
+              "axial_coefficient": 0.03308839737620576,
+              "terms": {
+                "friction": 0.03246264064235118,
+                "pressure": 0.0006257567338545755,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.61
             },
             {
               "id": "body-tube-1",
-              "axial_coefficient": 0.04713484676081065
+              "axial_coefficient": 0.04713484676081065,
+              "terms": {
+                "friction": 0.04713484676081065,
+                "pressure": 0.0,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.59
             },
             {
               "id": "tail-1",
-              "axial_coefficient": 0.024145653293413255
+              "axial_coefficient": 0.024145653293413255,
+              "terms": {
+                "friction": 0.01237884083934185,
+                "pressure": 0.011766812454071409,
+                "base": 0.0,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.127
             },
             {
               "id": "body-tube-2",
-              "axial_coefficient": 0.2573573944805757
+              "axial_coefficient": 0.2573573944805757,
+              "terms": {
+                "friction": 0.09800853663639969,
+                "pressure": 0.0,
+                "base": 0.15934885784417602,
+                "thickness": 0.0,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 2.064
             },
             {
               "id": "fins-1",
-              "axial_coefficient": 0.09050641681569051
+              "axial_coefficient": 0.09050641681569051,
+              "terms": {
+                "friction": 0.026543506547631233,
+                "pressure": 0.06296571855169435,
+                "base": 0.0,
+                "thickness": 0.0009971917163649365,
+                "parasitic": 0.0
+              },
+              "friction_length_m": 0.11829634669118569
             }
-          ]
+          ],
+          "after_burnout_base_diameter_m": 0.203
         },
         "mapleaf_coarser_apogee_rise_m": 1307.4692875224182,
         "mapleaf_coarser_rail_exit_speed_m_s": 19.32866402161223,
@@ -396,7 +622,8 @@
           "air_density_at_ignition_kg_m3": 1.2007514770728798,
           "after_burnout_mach": 0.5477235667044857,
           "after_burnout_axial_coefficient": 0.33795561936132207,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf": {
           "apogee_rise_m": 1402.0206033841507,
@@ -406,7 +633,8 @@
           "air_density_at_ignition_kg_m3": 1.2007514801485109,
           "after_burnout_mach": 0.5477326385923075,
           "after_burnout_axial_coefficient": 0.3379566167998396,
-          "after_burnout_parts": []
+          "after_burnout_parts": [],
+          "after_burnout_base_diameter_m": null
         },
         "mapleaf_coarser_apogee_rise_m": 1401.9925077963003,
         "mapleaf_coarser_rail_exit_speed_m_s": 19.328515125305216,
