@@ -85,14 +85,15 @@ pub struct CompareArgs {
         conflicts_with_all = ["mapping", "layout", "sheet"]
     )]
     pub recording: Option<usize>,
-    /// Draw the log's altitude and vertical speed, liftoff to landing, beside the simulation's as
-    /// designed and under the launch day's conditions, into this .svg file; its data go beside it
+    /// Draw the log's altitude and vertical speed, liftoff to landing, into this .svg file. Beside
+    /// them go the simulation's, as designed and under the launch day's conditions. Its data go
+    /// beside it
     #[arg(long, value_name = "FILE")]
     pub plot: Option<String>,
     /// The launch's time in UTC, such as 2023-06-23T23:00Z, or `log` for the time the log's GPS
-    /// receiver gives at liftoff (an AltosUI CSV's): fly the launch day's air and wind from
-    /// Open-Meteo's archive of past forecasts at the site, the log's GNSS fixes before liftoff
-    /// unless --latitude or --longitude is given. With --offline, from the cache alone
+    /// receiver gives at liftoff (an AltosUI CSV's). The launch day's air and wind then come from
+    /// Open-Meteo's archive of past forecasts at the site. The site is the log's GNSS fixes before
+    /// liftoff unless --latitude or --longitude is given. With --offline, from the cache alone
     #[arg(
         long,
         value_name = "TIME",
