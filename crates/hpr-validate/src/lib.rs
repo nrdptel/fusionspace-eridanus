@@ -56,6 +56,7 @@ pub mod correction;
 pub mod data_uncertainty;
 pub mod descent_wind;
 pub mod input_uncertainty;
+pub mod mapleaf;
 pub mod openrocket;
 pub mod predicted_first;
 pub mod public_predictions;

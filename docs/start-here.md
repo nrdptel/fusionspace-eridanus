@@ -42,8 +42,9 @@ it working on a small rocket and a public flight, and
 RASAero II.
 
 I built it to be checked, too. Every model cites a published source, and tests pin every model.
-The simulator is compared with RocketPy, [OpenRocket](https://openrocket.info/) and the logs of
-real flights, and the results are committed to the repository.
+The simulator is compared with RocketPy, [OpenRocket](https://openrocket.info/),
+[MAPLEAF](accuracy.md#three-flights-against-mapleaf) and the logs of real flights, and the results are committed
+to the repository.
 
 For now it covers only commercial off-the-shelf solid rocket motors
 ([COTS motors](glossary.md#cots-motor)), the kind you buy from a manufacturer. That stays true

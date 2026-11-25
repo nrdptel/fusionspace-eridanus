@@ -1,0 +1,451 @@
+{
+  "oracle": "MAPLEAF 0.8.16 at commit af970d3e8200832f5e70d537b15ad38dd74fa551",
+  "generator": "validation/oracles/mapleaf/flights.py",
+  "command": "refs/venv-mapleaf/bin/python -I validation/oracles/mapleaf/flights.py",
+  "model": "MAPLEAF's 6-DOF rigid body with its own aerodynamics (Barrowman's and Niskanen's methods as its Rocket package gives them), its US Standard Atmosphere table, its flat-Earth inverse-square gravity and its classical Runge-Kutta integrator at a fixed step",
+  "overrides": "every structural mass is zero but one point mass that carries the inputs' mass, center and inertia without propellant; the motor file is written from the inputs' rows; calm air; the rail stands straight up; no recovery, the run ends at apogee; the center of mass starts as far above the ground as HPR Sim's; in the same-drag flights the outside shape is left out and one TabulatedAeroForce carries the inputs' drag table; the two matched flights scale MAPLEAF's gravity constant, and the second adds HPR Sim's internal-momentum force to the thrust",
+  "inputs": {
+    "file": "validation/fixtures/flight/mapleaf-inputs.json",
+    "sha256": "8578109cc75f89543719614c6955d5a2d620fc3178f5055a2235b20758e5b7c4"
+  },
+  "python": {
+    "numpy": "1.22.1",
+    "scipy": "1.7.3",
+    "pandas": "1.3.5",
+    "matplotlib": "3.5.1",
+    "Cython": "0.29.26",
+    "python": "3.10.21"
+  },
+  "time_steps_s": [
+    0.002,
+    0.001
+  ],
+  "mapleaf_defaults_kept": {
+    "Rocket.Aero.fullyTurbulentBL": "true",
+    "Rocket.Aero.addZeroLengthBoatTailsToAccountForBaseDrag": "true",
+    "Environment.EarthModel": "Flat",
+    "Environment.AtmosphericPropertiesModel": "USStandardAtmosphere",
+    "Environment.TurbulenceModel": "None"
+  },
+  "leaning_rail": {
+    "case": "valetudo",
+    "rail_from_vertical_deg": 5.299999999999997,
+    "travel_from_vertical_deg": 10.59999999999999,
+    "body_axis_from_vertical_deg": 5.300000000000008,
+    "angle_of_attack_deg": 5.300000000000008,
+    "at_travel_m": 2.805825
+  },
+  "cases": [
+    {
+      "name": "valetudo",
+      "design": "validation/designs/rocketpy-valetudo.json",
+      "configuration": "example",
+      "guided_travel_m": 5.61165,
+      "inclination_deg": 90.0,
+      "heading_deg": 53.0,
+      "elevation_m": 668.0,
+      "propellant_center_line_departure_m": 0.0,
+      "own_drag": {
+        "metrics": {
+          "apogee_rise_m": 780.1598521277363,
+          "rail_exit_speed_m_s": 22.504144202359146
+        },
+        "coarser_step": {
+          "apogee_rise_m": 780.1926900766271,
+          "rail_exit_speed_m_s": 22.504081423431483
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 13782,
+          "apogee_rise_m": 780.1598521277363,
+          "apogee_time_s": 13.780999999997801,
+          "rail_exit_speed_m_s": 22.504144202359146,
+          "rail_exit_time_s": 0.5106182499749008,
+          "own_release": {
+            "time_s": 0.5099287441794842,
+            "speed_m_s": 22.473156807307294,
+            "body_travel_m": 5.596140128595937
+          },
+          "max_speed_m_s": 112.67077940024443,
+          "max_mach": 0.3343861881944155,
+          "ignition": {
+            "mass_kg": 9.666689772020137,
+            "cg_station_m": 1.2220810952229644,
+            "transverse_inertia_kg_m2": 4.181394388056773,
+            "axial_inertia_kg_m2": 0.007388152140644644
+          },
+          "burnout": {
+            "mass_kg": 8.258,
+            "cg_station_m": 1.1340731411964156,
+            "transverse_inertia_kg_m2": 3.6753647718227174,
+            "axial_inertia_kg_m2": 0.007
+          },
+          "gravity_at_ignition_m_s2": 9.818190051587914,
+          "air_density_at_ignition_kg_m3": 1.14824864713593,
+          "after_burnout": {
+            "time_s": 3.2594999999997523,
+            "mach": 0.33072123306771195,
+            "axial_coefficient": 0.5635590284033383,
+            "parts": [
+              {
+                "id": "nose",
+                "axial_coefficient": 0.035167094148975446
+              },
+              {
+                "id": "body-tube-1",
+                "axial_coefficient": 0.3937619531662925
+              },
+              {
+                "id": "fins-1",
+                "axial_coefficient": 0.13462998108807023
+              }
+            ]
+          }
+        }
+      },
+      "same_drag": {
+        "metrics": {
+          "apogee_rise_m": 773.6568333729995,
+          "rail_exit_speed_m_s": 22.502277604183877
+        },
+        "coarser_step": {
+          "apogee_rise_m": 773.6864995944791,
+          "rail_exit_speed_m_s": 22.50221419032081
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 13733,
+          "apogee_rise_m": 773.6568333729995,
+          "apogee_time_s": 13.732999999997828,
+          "rail_exit_speed_m_s": 22.502277604183877,
+          "rail_exit_time_s": 0.5106306965198916,
+          "own_release": {
+            "time_s": 0.5099411238949297,
+            "speed_m_s": 22.471298058729175,
+            "body_travel_m": 5.59613973916455
+          },
+          "max_speed_m_s": 112.05952677871254,
+          "max_mach": 0.3325538180774095,
+          "ignition": {
+            "mass_kg": 9.666689772020137,
+            "cg_station_m": 1.2220810952229644,
+            "transverse_inertia_kg_m2": 4.181394388056773,
+            "axial_inertia_kg_m2": 0.007388152140644644
+          },
+          "burnout": {
+            "mass_kg": 8.258,
+            "cg_station_m": 1.1340731411964156,
+            "transverse_inertia_kg_m2": 3.6753647718227174,
+            "axial_inertia_kg_m2": 0.007
+          },
+          "gravity_at_ignition_m_s2": 9.818190051587914,
+          "air_density_at_ignition_kg_m3": 1.14824864713593,
+          "after_burnout": {
+            "time_s": 3.2594999999997523,
+            "mach": 0.3284971050159427,
+            "axial_coefficient": 0.5578734586445276,
+            "parts": []
+          }
+        }
+      },
+      "gravity_matched": {
+        "gravity_scale": 0.9967606873298386,
+        "gravity_at_ignition_m_s2": 9.786385864155752,
+        "apogee_rise_m": 776.3553335154029,
+        "rail_exit_speed_m_s": 22.510220616534177,
+        "coarser_step": {
+          "apogee_rise_m": 776.3846971331777,
+          "rail_exit_speed_m_s": 22.510167303109952
+        }
+      },
+      "momentum_matched": {
+        "gravity_scale": 0.9967606873298386,
+        "gravity_at_ignition_m_s2": 9.786385864155752,
+        "apogee_rise_m": 776.3409121156681,
+        "rail_exit_speed_m_s": 22.509830794952187,
+        "coarser_step": {
+          "apogee_rise_m": 776.3391742725125,
+          "rail_exit_speed_m_s": 22.50983235552138
+        }
+      }
+    },
+    {
+      "name": "bella-lui",
+      "design": "validation/designs/rocketpy-bella-lui.json",
+      "configuration": "example",
+      "guided_travel_m": 3.5700499999999997,
+      "inclination_deg": 90.0,
+      "heading_deg": 45.0,
+      "elevation_m": 407.0,
+      "propellant_center_line_departure_m": 0.0,
+      "own_drag": {
+        "metrics": {
+          "apogee_rise_m": 550.2938071711441,
+          "rail_exit_speed_m_s": 18.650517283162763
+        },
+        "coarser_step": {
+          "apogee_rise_m": 550.3110633628722,
+          "rail_exit_speed_m_s": 18.65075129915031
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 11368,
+          "apogee_rise_m": 550.2938071711441,
+          "apogee_time_s": 11.36699999999914,
+          "rail_exit_speed_m_s": 18.650517283162763,
+          "rail_exit_time_s": 0.37776418980518417,
+          "own_release": {
+            "time_s": 0.3774126224148076,
+            "speed_m_s": 18.633382141580913,
+            "body_travel_m": 3.5634976134592766
+          },
+          "max_speed_m_s": 98.77428451107552,
+          "max_mach": 0.2919798145153544,
+          "ignition": {
+            "mass_kg": 19.050772243115052,
+            "cg_station_m": 1.578175944867327,
+            "transverse_inertia_kg_m2": 1.3490769976882566,
+            "axial_inertia_kg_m2": 0.06545102322184851
+          },
+          "burnout": {
+            "mass_kg": 18.227,
+            "cg_station_m": 1.5420458440774674,
+            "transverse_inertia_kg_m2": 0.7833681890526888,
+            "axial_inertia_kg_m2": 0.064244
+          },
+          "gravity_at_ignition_m_s2": 9.81899395385239,
+          "air_density_at_ignition_kg_m3": 1.1777225998355345,
+          "after_burnout": {
+            "time_s": 2.198499999999869,
+            "mach": 0.2881973469285802,
+            "axial_coefficient": 0.46049543388854763,
+            "parts": [
+              {
+                "id": "nose",
+                "axial_coefficient": 0.022009404712212167
+              },
+              {
+                "id": "body-tube-1",
+                "axial_coefficient": 0.19252611695100919
+              },
+              {
+                "id": "tail-1",
+                "axial_coefficient": 0.11645016062265483
+              },
+              {
+                "id": "fins-1",
+                "axial_coefficient": 0.1295097516026714
+              }
+            ]
+          }
+        }
+      },
+      "same_drag": {
+        "metrics": {
+          "apogee_rise_m": 553.3862668107391,
+          "rail_exit_speed_m_s": 18.64993620126196
+        },
+        "coarser_step": {
+          "apogee_rise_m": 553.4030141197799,
+          "rail_exit_speed_m_s": 18.650170337079732
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 11421,
+          "apogee_rise_m": 553.3862668107391,
+          "apogee_time_s": 11.41999999999911,
+          "rail_exit_speed_m_s": 18.64993620126196,
+          "rail_exit_time_s": 0.37776688348816656,
+          "own_release": {
+            "time_s": 0.37741530021394576,
+            "speed_m_s": 18.632802716192714,
+            "body_travel_m": 3.5634975672294096
+          },
+          "max_speed_m_s": 98.57940272736079,
+          "max_mach": 0.2914027163641034,
+          "ignition": {
+            "mass_kg": 19.050772243115052,
+            "cg_station_m": 1.578175944867327,
+            "transverse_inertia_kg_m2": 1.3490769976882566,
+            "axial_inertia_kg_m2": 0.06545102322184851
+          },
+          "burnout": {
+            "mass_kg": 18.227,
+            "cg_station_m": 1.5420458440774674,
+            "transverse_inertia_kg_m2": 0.7833681890526888,
+            "axial_inertia_kg_m2": 0.064244
+          },
+          "gravity_at_ignition_m_s2": 9.81899395385239,
+          "air_density_at_ignition_kg_m3": 1.1777225998355345,
+          "after_burnout": {
+            "time_s": 2.198499999999869,
+            "mach": 0.2874803845908841,
+            "axial_coefficient": 0.4100361769314522,
+            "parts": []
+          }
+        }
+      },
+      "gravity_matched": {
+        "gravity_scale": 0.9987724379145312,
+        "gravity_at_ignition_m_s2": 9.806940529157194,
+        "apogee_rise_m": 554.0986362709114,
+        "rail_exit_speed_m_s": 18.65223640857372,
+        "coarser_step": {
+          "apogee_rise_m": 554.1155117897978,
+          "rail_exit_speed_m_s": 18.65246812908947
+        }
+      },
+      "momentum_matched": {
+        "gravity_scale": 0.9987724379145312,
+        "gravity_at_ignition_m_s2": 9.806940529157194,
+        "apogee_rise_m": 554.0918322355011,
+        "rail_exit_speed_m_s": 18.65220044133117,
+        "coarser_step": {
+          "apogee_rise_m": 554.102871478071,
+          "rail_exit_speed_m_s": 18.652368548642976
+        }
+      }
+    },
+    {
+      "name": "ndrt-2020-nose-to-tail",
+      "design": "validation/designs/rocketpy-ndrt-2020-nose-to-tail.json",
+      "configuration": "example",
+      "guided_travel_m": 1.9676500000000003,
+      "inclination_deg": 90.0,
+      "heading_deg": 181.0,
+      "elevation_m": 206.0,
+      "propellant_center_line_departure_m": 4.440892098500626e-16,
+      "own_drag": {
+        "metrics": {
+          "apogee_rise_m": 1307.5280573339105,
+          "rail_exit_speed_m_s": 19.32846073558295
+        },
+        "coarser_step": {
+          "apogee_rise_m": 1307.4692875224182,
+          "rail_exit_speed_m_s": 19.32866402161223
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 16022,
+          "apogee_rise_m": 1307.5280573339105,
+          "apogee_time_s": 16.020999999996597,
+          "rail_exit_speed_m_s": 19.32846073558295,
+          "rail_exit_time_s": 0.24335457575773053,
+          "own_release": {
+            "time_s": 0.24251362366443016,
+            "speed_m_s": 19.24483818416997,
+            "body_travel_m": 1.9514318958213572
+          },
+          "max_speed_m_s": 187.18550951914415,
+          "max_mach": 0.5525195663646826,
+          "ignition": {
+            "mass_kg": 23.32099892838741,
+            "cg_station_m": 1.62272807684756,
+            "transverse_inertia_kg_m2": 84.06906986831405,
+            "axial_inertia_kg_m2": 0.1614460742959505
+          },
+          "burnout": {
+            "mass_kg": 20.846,
+            "cg_station_m": 1.4543398253861652,
+            "transverse_inertia_kg_m2": 78.42086967267696,
+            "axial_inertia_kg_m2": 0.15982
+          },
+          "gravity_at_ignition_m_s2": 9.819611444717003,
+          "air_density_at_ignition_kg_m3": 1.2007514801485109,
+          "after_burnout": {
+            "time_s": 1.923499999999899,
+            "mach": 0.5501668127743413,
+            "axial_coefficient": 0.4522327087266959,
+            "parts": [
+              {
+                "id": "nose",
+                "axial_coefficient": 0.03308839737620576
+              },
+              {
+                "id": "body-tube-1",
+                "axial_coefficient": 0.04713484676081065
+              },
+              {
+                "id": "tail-1",
+                "axial_coefficient": 0.024145653293413255
+              },
+              {
+                "id": "body-tube-2",
+                "axial_coefficient": 0.2573573944805757
+              },
+              {
+                "id": "fins-1",
+                "axial_coefficient": 0.09050641681569051
+              }
+            ]
+          }
+        }
+      },
+      "same_drag": {
+        "metrics": {
+          "apogee_rise_m": 1402.0206033841507,
+          "rail_exit_speed_m_s": 19.32831186692414
+        },
+        "coarser_step": {
+          "apogee_rise_m": 1401.9925077963003,
+          "rail_exit_speed_m_s": 19.328515125305216
+        },
+        "flown": {
+          "time_step_s": 0.001,
+          "steps": 16797,
+          "apogee_rise_m": 1402.0206033841507,
+          "apogee_time_s": 16.795999999997544,
+          "rail_exit_speed_m_s": 19.32831186692414,
+          "rail_exit_time_s": 0.2433545321004275,
+          "own_release": {
+            "time_s": 0.2425135737656402,
+            "speed_m_s": 19.244692429607362,
+            "body_travel_m": 1.951431899976939
+          },
+          "max_speed_m_s": 186.4561551601284,
+          "max_mach": 0.5503620998754983,
+          "ignition": {
+            "mass_kg": 23.32099892838741,
+            "cg_station_m": 1.62272807684756,
+            "transverse_inertia_kg_m2": 84.06906986831405,
+            "axial_inertia_kg_m2": 0.1614460742959505
+          },
+          "burnout": {
+            "mass_kg": 20.846,
+            "cg_station_m": 1.4543398253861652,
+            "transverse_inertia_kg_m2": 78.42086967267696,
+            "axial_inertia_kg_m2": 0.15982
+          },
+          "gravity_at_ignition_m_s2": 9.819611444717003,
+          "air_density_at_ignition_kg_m3": 1.2007514801485109,
+          "after_burnout": {
+            "time_s": 1.923499999999899,
+            "mach": 0.5477326385923075,
+            "axial_coefficient": 0.3379566167998396,
+            "parts": []
+          }
+        }
+      },
+      "gravity_matched": {
+        "gravity_scale": 0.9982721826706275,
+        "gravity_at_ignition_m_s2": 9.802644949895116,
+        "apogee_rise_m": 1403.8641971213335,
+        "rail_exit_speed_m_s": 19.329925721915995,
+        "coarser_step": {
+          "apogee_rise_m": 1403.8362523985002,
+          "rail_exit_speed_m_s": 19.330121005222942
+        }
+      },
+      "momentum_matched": {
+        "gravity_scale": 0.9982721826706275,
+        "gravity_at_ignition_m_s2": 9.802644949895116,
+        "apogee_rise_m": 1403.7605557590455,
+        "rail_exit_speed_m_s": 19.33095558736133,
+        "coarser_step": {
+          "apogee_rise_m": 1403.8249224812384,
+          "rail_exit_speed_m_s": 19.329873329499364
+        }
+      }
+    }
+  ]
+}
