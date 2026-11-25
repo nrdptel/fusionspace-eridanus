@@ -95,13 +95,11 @@ const ROW_RULE: f64 = 8.0;
 const INDENT_PX: f64 = 24.0;
 /// The most characters of a name the figure prints: a design's name, or a device's.
 const NAME_LIMIT: usize = 80;
-/// The most characters of the title the figure draws, its ellipsis apart, so the 20 px title
-/// ends over the panels at 0.6 em a character.
-const TITLE_LIMIT: usize = 66;
-/// The most characters in a line of the caption or of the note under the table, which then
-/// wraps: the figure's width less its margins, at 12 px Cascadia Mono's 7.2 px a character.
+/// The most cells in a line of the caption or of the note under the table, which then wraps:
+/// the figure's width less its margins, at 12 px Cascadia Mono's 7.2 px a cell. A character
+/// draws one cell, a wide one two ([`wide`]).
 const LIST_WIDTH: usize = 118;
-/// The most characters in a line of the event table's last column, which then wraps.
+/// The most cells in a line of the event table's last column, which then wraps.
 const EVENT_WIDTH: usize = 53;
 /// The event table's columns: the right edges of the number, the time, the altitude in meters
 /// and in feet, and the left edge of the events' names, px from the left margin.
@@ -453,7 +451,12 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
         .trust
         .strip_prefix(crate::trust::LABEL)
         .unwrap_or(figure.trust);
-    note.extend(crate::trust::wrap(body, LIST_WIDTH));
+    // The note's own lines, each held to the line's cells as the lines above are ([`wrap`]).
+    note.extend(
+        crate::trust::wrap(body, LIST_WIDTH)
+            .iter()
+            .flat_map(|line| wrap(line, LIST_WIDTH)),
+    );
     let note_top = table_bottom + 24.0;
     // The title block, last, where a printed copy shows it, as a drawing's (`principles.md` §1).
     let (block, block_bottom) = title_block(
@@ -463,7 +466,12 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let height = block_bottom + MARGIN;
 
     let title = text(figure.title, NAME_LIMIT);
-    let drawn_title = text(figure.title, TITLE_LIMIT);
+    // Fitted by width (#1632), as a wide character draws two cells: the title, at its size, to
+    // end over the panels; the subtitle within the right margin.
+    let drawn_title = escape(&fit(
+        figure.title,
+        (WIDTH - RIGHT - LEFT) * 12.0 / TITLE_SIZE,
+    ));
     // The hatching's line runs down the middle of its tile, which clips it, so no part of its
     // width is cut off.
     let mut svg = format!(
@@ -483,7 +491,7 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
         escape(&summary),
         // The title block's line (ADR-164): the program, its version and its designation.
         hpr::hpr_core::tool::stamp(),
-        text(figure.subtitle, LIST_WIDTH)
+        escape(&fit(figure.subtitle, WIDTH - MARGIN - LEFT))
     );
     lines(&mut svg, &caption, CAPTION_TOP, LEFT, INK_MUTED);
 
@@ -1208,18 +1216,33 @@ fn event_line(group: &Group) -> String {
 /// What a wrapped line's later lines start with.
 const INDENT: &str = "    ";
 
-/// `line`, plain text, in lines of at most `width` characters (more than [`INDENT`]'s), broken
-/// after a space where it can be, the later lines indented.
+/// `line`, plain text, in lines that each draw within `width` cells, a wide character counted
+/// as two ([`wide`]), so a line of them ends where it would run past the figure: broken after a
+/// space where it can be, the later lines indented. A `width` under [`INDENT`]'s and a wide
+/// character's is read as that, so each line takes a character.
 fn wrap(line: &str, width: usize) -> Vec<String> {
+    let width = width.max(INDENT.len() + 2);
     let mut lines = Vec::new();
     let mut rest: Vec<char> = line.chars().collect();
-    while rest.len() > width {
-        let cut = rest[..width]
+    loop {
+        // The characters from the line's start that draw within the width.
+        let mut cells = 0;
+        let fits = rest
+            .iter()
+            .take_while(|c| {
+                cells += if wide(**c) { 2 } else { 1 };
+                cells <= width
+            })
+            .count();
+        if fits == rest.len() {
+            break;
+        }
+        let cut = rest[..fits]
             .iter()
             .rposition(|c| *c == ' ')
             // Past the indent, so each line takes something.
             .filter(|at| *at > INDENT.len())
-            .map_or(width, |at| at + 1);
+            .map_or(fits, |at| at + 1);
         lines.push(rest[..cut].iter().collect::<String>().trim_end().to_owned());
         rest = INDENT.chars().chain(rest[cut..].iter().copied()).collect();
     }

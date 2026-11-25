@@ -8736,7 +8736,7 @@ fn a_refusal_in_flight_names_what_led_to_it() {
         );
         assert_eq!(
             lines[1],
-            "help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: \
+            "help: the flight came from pods-none.ork with `--motor H54 --elevation 1e9`: \
              check those values, or fly it without them"
         );
         let document = json_error(&args, 1, "input");
@@ -8748,6 +8748,39 @@ fn a_refusal_in_flight_names_what_led_to_it() {
             document["error"]["help"][0],
             lines[1].trim_start_matches("help: ")
         );
+    }
+}
+
+/// A hostile option value comes back in the `help:` line as it was typed, in exponent form, not
+/// as hundreds of digits (issue #1630), in `hpr sim` and in `hpr mc`'s nominal flight.
+#[test]
+fn a_refusal_writes_a_hostile_value_back_short() {
+    let probe = repo_file(PROBE);
+    for command in ["sim", "mc"] {
+        for (option, value) in [("--wind", "1e300"), ("--elevation", "1e300")] {
+            let args = [command, probe.as_str(), "--motor", "H54", option, value];
+            let output = hpr(&args);
+            assert_eq!(output.status.code(), Some(1), "{output:?}");
+            let stderr = text(&output.stderr);
+            let lines: Vec<&str> = stderr.lines().collect();
+            assert_eq!(lines.len(), 2, "{stderr}");
+            assert!(
+                lines[0].starts_with("error: the simulator refused the flight: "),
+                "{stderr}"
+            );
+            assert_eq!(
+                lines[1],
+                format!(
+                    "help: the flight came from pods-none.ork with `--motor H54 {option} {value}`: \
+                     check those values, or fly it without them"
+                )
+            );
+            let document = json_error(&args, 1, "input");
+            assert_eq!(
+                document["error"]["help"][0],
+                lines[1].trim_start_matches("help: ")
+            );
+        }
     }
 }
 

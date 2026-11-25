@@ -242,12 +242,16 @@ next to no air. Nothing slows the rocket, and it passes Mach 5, where the aerody
 ```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9
 error: the flight stopped: it reached Mach 5.835; the aerodynamics stop at Mach 5 (the normal force's range)
-help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: check those values, or fly it without them
+help: the flight came from pods-none.ork with `--motor H54 --elevation 1e9`: check those values, or fly it without them
 $ echo $?
 1
 ```
 
 <!-- cli: end -->
+
+The `help:` line writes a number in plain digits when it is zero, or when its size, the sign aside,
+is at least 0.001 and under a million. Any other number comes back in exponent form, so the billion
+above reads `1e9`, and `1e300` would come back as `1e300`, not as 301 digits.
 
 When no launch option was given, the `help:` line points at the design: its motor, masses and
 parts.
