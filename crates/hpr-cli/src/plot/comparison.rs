@@ -141,9 +141,10 @@ const COLUMNS_FOUR: [(f64, f64); 4] =
 /// How far past the simulations' values, in spans of them, an axis reaches for the log's.
 const LOGGED_REACH: f64 = 1.0;
 /// How far under zero, as a fraction of a panel's largest value, a value is taken as zero for
-/// the axis: one that draws no further under its foot than a line's spill ([`SPILL`], 1 px) on
-/// the tallest panel ([`PANEL_HEIGHTS`], 360 px), so nothing it lets through is cut. A logger's
-/// noise on the pad is that small: 3 m on a flight of 4 km is a quarter of a pixel there.
+/// the axis: one whose line's middle draws no further under its foot than a line's spill
+/// ([`SPILL`], 1 px) on the tallest panel ([`PANEL_HEIGHTS`], 360 px), where the panel's clip
+/// ends, so at most the lower half of the log's 2 px line is cut there. A logger's noise on the
+/// pad is that small: 3 m on a flight of 4 km is a quarter of a pixel there.
 const GROUND_SLACK: f64 = SPILL / PANEL_HEIGHTS.1;
 
 /// How wide a line of the caption or the notes draws, px at 12 px: [`LIST_WIDTH`] characters.
@@ -239,7 +240,8 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let height = block_bottom + MARGIN;
 
     let title = text(figure.title, NAME_LIMIT);
-    // Fitted by width, as a wide character draws two cells: at the title's size, over the panels.
+    // Fitted by width, as a wide character draws two cells: at the title's size, within the
+    // right margin.
     let drawn_title = escape(&fit(
         figure.title,
         (WIDTH - MARGIN - LEFT) * 12.0 / TITLE_SIZE,
@@ -378,7 +380,7 @@ fn value_axis(panel: &Panel<'_>) -> (f64, f64, f64, Option<(usize, f64)>) {
     }
     // A value a hair under the ground, as a barometer's reading or a landing can be, would add a
     // whole step under it: within [`GROUND_SLACK`] of the axis's top it is taken as on the ground,
-    // and draws within the line's spill, as the axis spans at least that top.
+    // and its line's middle draws within the spill, as the axis spans at least that top.
     let top = kept.iter().fold(0.0_f64, |most, v| most.max(v.abs()));
     let (lo, hi, step) = axis(kept.into_iter().map(|v| {
         if v < 0.0 && -v <= GROUND_SLACK * top {

@@ -121,7 +121,7 @@ Give one source. `--launch-time` can't be combined with the others, and `--weath
 |---|---|
 | `--launch-time 2023-06-23T23:00Z` | [Open-Meteo](weather.md)'s archive of past forecasts at the site, for that time in UTC |
 | `--launch-time log` | the same, at the time the log's GPS receiver gives at liftoff: an AltosUI CSV's |
-| `--weather profile.json` | a profile `hpr weather` wrote, from any of its sources |
+| `--weather profile.json` | a profile `hpr weather` wrote, which must give winds and reach down to the site's height |
 | `--wind`, `--wind-from`, `--temperature`, `--pressure` | values you enter: a wind the same at every height, from the north unless `--wind-from` says otherwise, and the air at the pad |
 
 The site is `--latitude` and `--longitude` where you give them. Where you give neither, it is the
@@ -130,7 +130,7 @@ log's own: the median of its last GNSS (satellite navigation) fixes before lifto
 and `--longitude` before `--launch-time` will run. The height is always `--elevation`'s.
 
 The first run with `--launch-time` fetches the weather, so it needs a network. After that,
-`--offline` answers from the cache. The values you enter never need a network.
+`--offline` answers that site and time from the cache. The values you enter never need a network.
 
 Entered air is the standard atmosphere shifted to pass through your temperature and pressure at the
 pad ([the standard atmosphere](physics/atmosphere.md)). Leave one out and it is the standard's at
@@ -165,10 +165,11 @@ hpr compare 2022-06-24-serial-5115-flight-0001-TeleMetrum.csv \
 
 The site comes from the log's fixes, 32.93950° N, 106.91145° W, and the time from its GPS at
 liftoff, 15:17:16 UTC on June 24, 2022. The launch day's air and wind are Open-Meteo's for that hour at
-its nearest grid point. The log's apogee reads 3,892.1 m (12,769 ft) above the pad. Read as its barometer would
-read them, the two simulations reach 4,052.5 m (13,296 ft) as designed and 3,955.4 m (12,977 ft) on the launch day, so the
-apogee's residual against the launch day is −63.3 m (−208 ft). A test runs this command on a recorded copy
-of Open-Meteo's answer and checks these numbers
+its nearest grid point. The log's apogee reads 3,892.1 m (12,769 ft) above the pad. The two
+simulations' apogees, read the way its barometer reads them, are 4,052.5 m (13,296 ft) as designed
+and 3,955.4 m (12,977 ft) on the launch day, so the apogee's residual against the launch day is
+−63.3 m (−208 ft). A test runs this command on a recorded copy of Open-Meteo's answer and checks
+these numbers
 ([`compare_plots_a_public_flight_on_its_logs_own_site_and_day`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)).
 It needs a checkout of RocketPy's data, so it runs where that is present, not in every build.
 That design's `.json` holds no parachute, so both simulations fall from apogee and their descents

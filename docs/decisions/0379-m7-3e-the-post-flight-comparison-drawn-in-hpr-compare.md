@@ -34,21 +34,20 @@ one simulation in whatever air its options gave.
 3. **The launch day comes from one source at a time.** `--launch-time TIME` asks Open-Meteo's
    archive of past forecasts at the site, the profile checked as `--weather`'s is (it gives winds,
    and the site's elevation lies within its levels). `--weather` flies a profile from any of
-   `hpr weather`'s sources. Values entered are `--wind` and `--wind-from`, as `hpr sim` takes them,
+   `hpr weather`'s sources that gives winds and reaches the site's height. Values entered are `--wind` and `--wind-from`, as `hpr sim` takes them,
    and the air at the pad: `--temperature` (°C) and `--pressure` (hPa), the 1976 standard shifted
    to pass through them (`Ussa76::anchored`), either one the standard's at `--elevation` when left
    out. `--launch-time` conflicts with the others.
-4. **Entered air no pad has is refused.** A temperature outside −90 to 60 °C, past the World
+4. **Entered air past the records is refused.** A temperature outside −90 to 60 °C, past the World
    Meteorological Organization's ground records, is refused. So is a pressure more than 15% from
-   the standard's at the pad's height, past the sea-level records (870 and 1,083.8 hPa, 14% under
+   the standard's at the pad's height, past the sea-level records (870 and 1,083.8 hPa, the second the highest below 750 m, 14% under
    and 7% over 1,013.25 hPa). A weather report's pressure is reduced to sea level, and at a 1,400 m
    field it lies about 18% over the standard's 856 hPa, so that mistake is caught there.
    Near sea level the two pressures differ less than 15% and pass, and so does the air flown.
 5. **The log's site is its GNSS fixes before liftoff.** Where neither `--latitude` nor `--longitude`
    is given (both 0, the defaults), the site is the median of the log's last fixes before liftoff,
    or its first fix, as `hpr analyze --ghost` places its pad. That holds with or without a launch
-   day, so a log with fixes now flies from its own site: only gravity's and the Earth's rotation's
-   part of the flight moves. A log with no fix keeps 0° N, 0° E, and `--launch-time` is then
+   day, so a log with fixes now flies from its own site, where before it flew from 0° N, 0° E. A log with no fix keeps 0° N, 0° E, and `--launch-time` is then
    refused. The height is always `--elevation`'s: a receiver's height may be above the ellipsoid or
    above sea level, and the profile's check needs the site's height above sea level.
 6. **The log's date is read only where the reader trusts it.** `--launch-time log` takes the time an
@@ -76,8 +75,9 @@ one simulation in whatever air its options gave.
    span of the simulated values either side; a logged sample past that runs off the panel's edge,
    and the figure counts them and gives the furthest. A value under the ground by at most 1/360 of
    the panel's largest, a logger's noise on the pad, is taken as on it for the axis, so it doesn't
-   add a whole step underneath. On the tallest panel, 360 px, it draws at most 1 px under the foot,
-   within the line's own half-width, so nothing it lets through is cut.
+   add a whole step underneath. On the tallest panel, 360 px, its line's middle draws at most 1 px
+   under the foot, where the panel's clip ends, so at most the lower half of the log's 2 px line is
+   cut there.
 10. **Its data go beside it,** as `hpr sim --plot`'s do: a CSV with each line's points and a sidecar
     naming the program and carrying the trust note. The figure carries no date of issue, but a
     weather answer from the cache names when it was fetched, so two runs a fetch apart differ in

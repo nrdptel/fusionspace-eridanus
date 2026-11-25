@@ -2048,7 +2048,7 @@ hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4
 ```
 
 `--plot flight.svg` draws the log's altitude and vertical speed beside the simulation's, as designed
-and on the launch day. The launch day's air and wind come from `--launch-time` (Open-Meteo's archive
+and, where you give its conditions, on the launch day. The launch day's air and wind come from `--launch-time` (Open-Meteo's archive
 at the site), `--weather`, or values entered: `--wind`, `--temperature` and `--pressure`
 ([Draw it](comparing-a-flight.md#draw-it)).
 

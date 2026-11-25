@@ -9509,7 +9509,7 @@ fn compare_flies_the_weather_sources_launch_day() {
     assert!(text(&refused.stderr).contains("Open-Meteo"), "{refused:?}");
 }
 
-/// M7.3e's refusals: a launch time the log can't give, a site no one gives, air no pad has (a
+/// M7.3e's refusals: a launch time the log can't give, a site no one gives, air past the records (a
 /// pressure reduced to sea level among it), and a figure's file that isn't one or that the run
 /// reads.
 #[test]

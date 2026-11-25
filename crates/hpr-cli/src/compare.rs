@@ -1,10 +1,12 @@
 //! `hpr compare`: a flight log against a simulation of it (`hpr_forensics::residuals`), each
 //! residual the logged value less the simulated one; with `--plot`, a figure of the log beside the
-//! simulation as designed and under the launch day's conditions ([M7.3e][m7-3e], ADR-379).
+//! simulation as designed and, where they are given, under the launch day's conditions
+//! ([M7.3e][m7-3e], ADR-379).
 //!
 //! The launch day's conditions come from one place: Open-Meteo's archive of past forecasts at the
 //! launch's time (`--launch-time`), a weather profile (`--weather`), or values entered (`--wind`,
-//! `--temperature`, `--pressure`), so the command works offline. The site is the one given, or,
+//! `--temperature`, `--pressure`), so the command works offline from values entered or a cached
+//! answer. The site is the one given, or,
 //! where none is, the log's GNSS fixes before liftoff, as `hpr analyze --ghost` places its pad.
 //!
 //! [m7-3e]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3e
@@ -40,8 +42,9 @@ use crate::{Failure, Out};
 const TEMPERATURE_C: (f64, f64) = (-90.0, 60.0);
 /// How far a pad's pressure may lie from the 1976 standard atmosphere's at its height before
 /// `--pressure` is refused, as a fraction: past the deepest low and the highest high measured at
-/// sea level, 870 hPa (Typhoon Tip, 1979) and 1,083.8 hPa (Agata, 1968), 14% under and 7% over
-/// the standard's 1,013.25 hPa, as the World Meteorological Organization's archive lists them. A
+/// sea level, 870 hPa (Typhoon Tip, 1979) and 1,083.8 hPa (Agata, 1968, the highest below 750 m),
+/// 14% under and 7% over the standard's 1,013.25 hPa, as the World Meteorological Organization's
+/// archive lists them. A
 /// pressure reduced to sea level, as a weather report gives it, lies about 18% over the
 /// standard's 856 hPa at a 1,400 m field (1,013 hPa), and is refused there; nearer sea level the
 /// two differ less, and so does the air flown.
@@ -1241,7 +1244,8 @@ mod tests {
         assert_eq!(logged_time(&garbled, 2.5), None);
     }
 
-    /// Entered air is the standard's where a value isn't entered, and air no pad has is refused.
+    /// Entered air is the standard's where a value isn't entered, and air past the records is
+    /// refused.
     #[test]
     fn entered_air_is_checked_and_anchored() {
         // The air flown passes through the values entered, at the pad.
