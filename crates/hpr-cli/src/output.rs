@@ -2033,6 +2033,11 @@ pub struct Compare {
     pub design: String,
     /// The configuration flown.
     pub configuration: String,
+    /// The launch site flown from, and where its place came from.
+    pub site: CompareSite,
+    /// The conditions the simulation the residuals are against flew in: the launch day's where
+    /// any are given, else as designed.
+    pub flown_in: CompareFlownIn,
     /// How the clocks were lined up: `shared liftoff`.
     pub method: String,
     /// What the log's height stands for, and so how the simulation's is read.
@@ -2053,8 +2058,71 @@ pub struct Compare {
     pub speed_m_s: CompareSpeed,
     /// Each reading beside the simulation's.
     pub rows: Vec<CompareRow>,
+    /// The figure `--plot` drew, its data and their sidecar; null without `--plot`.
+    pub plot: Option<ComparePlot>,
     /// What to bear in mind in reading them, as the text form's notes say.
     pub notes: Vec<String>,
+}
+
+/// The launch site `hpr compare` flies from.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CompareSite {
+    /// Latitude, degrees north.
+    pub latitude_deg: f64,
+    /// Longitude, degrees east.
+    pub longitude_deg: f64,
+    /// Height above sea level, m, as given.
+    pub elevation_m: f64,
+    /// Where the latitude and longitude came from.
+    pub from: SiteFrom,
+}
+
+/// Where a comparison's site came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum SiteFrom {
+    /// `--latitude` or `--longitude` gave it.
+    Given,
+    /// The median of the log's last GNSS fixes before liftoff.
+    LogFixesBeforeLiftoff,
+    /// The log's first GNSS fix: it holds none before liftoff.
+    LogFirstFix,
+    /// Neither: no site was given and the log holds no GNSS fix, so 0° N, 0° E.
+    Default,
+}
+
+/// The conditions a comparison's simulation flew in.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CompareFlownIn {
+    /// As designed, or on the launch day.
+    pub conditions: CompareConditions,
+    /// Where the air and wind came from, in words: the weather source, its time, place and
+    /// credit, or the values entered.
+    pub detail: String,
+}
+
+/// As designed, or on the launch day.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum CompareConditions {
+    /// The 1976 standard atmosphere and no wind, at the site.
+    AsDesigned,
+    /// The launch day's air and wind: from Open-Meteo's archive, a weather profile, or values
+    /// entered.
+    LaunchDay,
+}
+
+/// The files `hpr compare --plot` writes.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct ComparePlot {
+    /// The figure, an SVG file.
+    pub path: String,
+    /// The figure's data, a CSV file beside it.
+    pub data: String,
+    /// The data's sidecar: the program that wrote them, and the trust note.
+    pub meta: String,
+    /// The data's rows.
+    pub rows: usize,
 }
 
 /// What a log's height stands for.

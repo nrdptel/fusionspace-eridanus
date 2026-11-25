@@ -217,6 +217,35 @@ pub(crate) fn signed_text(what: TimelineWhat, value: f64) -> String {
     format!("{sign}{}", value_text(what, value))
 }
 
+/// A log's cell, its value with its bound, its interval and whether it is a floor, but not what it
+/// came from, on one line; a withheld cell says why.
+pub(crate) fn value_bound_text(what: TimelineWhat, cell: &TimelineCell) -> String {
+    match cell {
+        TimelineCell::Read {
+            value,
+            bound,
+            interval,
+            is_floor,
+            ..
+        } => {
+            let within = bound
+                .map(|bound| format!(", within {}", bound_text(what, bound)))
+                .unwrap_or_default();
+            let floor = if *is_floor {
+                ", a floor: the true value may lie any amount above it"
+            } else {
+                ""
+            };
+            format!(
+                "{}{within}{}{floor}",
+                value_text(what, *value),
+                interval_text(what, *interval)
+            )
+        }
+        TimelineCell::Withheld { detail } => format!("withheld: {detail}"),
+    }
+}
+
 /// A log's cell, with its bound, its interval and what it came from, on one line.
 pub(crate) fn cell_text(what: TimelineWhat, cell: &TimelineCell) -> String {
     match cell {
@@ -250,7 +279,7 @@ pub(crate) fn cell_text(what: TimelineWhat, cell: &TimelineCell) -> String {
 }
 
 /// A reading's provenance, in a word or two.
-fn provenance_words(provenance: ReadingProvenance) -> &'static str {
+pub(crate) fn provenance_words(provenance: ReadingProvenance) -> &'static str {
     match provenance {
         ReadingProvenance::Measured => "measured",
         ReadingProvenance::Derived => "derived",

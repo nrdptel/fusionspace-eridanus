@@ -138,6 +138,8 @@ fn unit(value_name: &str) -> Option<&'static str> {
         "S" => Some("s"),
         "M_S" => Some("m/s"),
         "HOUR" => Some("h"),
+        "C" => Some("°C"),
+        "HPA" => Some("hPa"),
         "S_OR_P" => Some("s"),
         "DOLLARS" => Some("US dollars"),
         _ => None,

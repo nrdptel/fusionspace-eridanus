@@ -96,6 +96,18 @@ Options:
       --recording <N>
           Which recording to read from a file that holds several, counting from 0
 
+      --plot <FILE>
+          Draw the log's altitude and vertical speed, liftoff to landing, into this .svg file. Beside them go the simulation's: as designed, and under the launch day's conditions where they are given. Its data go beside it
+
+      --launch-time <TIME>
+          The launch's time in UTC, such as 2023-06-23T23:00Z, or `log` for the time the log's GPS receiver gives at liftoff (an AltosUI CSV's). The launch day's air and wind then come from Open-Meteo's archive of past forecasts at the site. The site is the log's GNSS fixes before liftoff unless --latitude or --longitude is given. With --offline, from the cache alone
+
+      --temperature <C>
+          The air's temperature at the pad on the launch day, °C, as you measured it: the standard atmosphere is shifted to pass through it. Without it, the standard's at --elevation
+
+      --pressure <HPA>
+          The air's pressure at the pad on the launch day, hPa: the station's own, not one reduced to sea level as a weather report's is. Without it, the standard atmosphere's at --elevation
+
   -h, --help
           Print help (see a summary with '-h')
 

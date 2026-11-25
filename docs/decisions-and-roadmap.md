@@ -407,6 +407,7 @@ until someone rewrites it in plainer words.
 | [ADR-376: M1.14b18, the inputs' part and the band][adr-376] | Each public flight gets an input part u_input: the standard deviation of its apogee over 200 flights with five inputs drawn at once (mass, total impulse, wind, rail angle, air temperature), each on a cited uncertainty. u_input runs from 23.8 m (78 ft) to 140.0 m (459 ft), the largest part on every flight. Each of the 8 flights with a u_D gets a validation uncertainty and a band of twice it about its error against the corrected log: 3 lie within, 5 outside. The count moves with the inputs: 6 or 7 within at two higher impulse figures, 2 with a rocket's growth as built taken out. The headline errors stay on the logs as logged. |
 | [ADR-377: No release waits on users, and release 0.2 comes next][adr-377] | Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison ([M1.14b8](#m1-14b8)): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the figures' digits and wording check ([M0.9g](#m0-9g)). The Bayesian interval moves to 0.3 unchanged. |  |
 | [ADR-378: MAPLEAF as a second open oracle, flown on three public designs][adr-378] | MAPLEAF 0.8.16 (MIT) at commit `af970d3` runs as an outside program in a pinned Python 3.10 environment and flies three public designs from inputs HPR Sim writes. Each difference is HPR Sim's value less MAPLEAF's. With one drag table in both codes, the apogees differ by +0.13% to +0.35% and the rail-exit speeds by +0.007% to +0.034%. With MAPLEAF's gravity also matched to HPR Sim's at the pad, the apogees are within 0.019 m (0.063 ft). With each code's own aerodynamics the apogees differ by −0.22%, +1.00% and +7.63%. Nothing is gated. MAPLEAF does not fly a leaning rail as given, so every flight leaves a vertical one. |
+| [ADR-379: M7.3e, the post-flight comparison drawn by `hpr compare --plot`][adr-379] | `hpr compare --plot FILE.svg` draws the log's altitude and vertical speed from liftoff to landing beside the simulation's: as designed (the 1976 standard atmosphere, no wind), and under the launch day's conditions where they are given. Those come from Open-Meteo's archive of past forecasts at the site and launch time (`--launch-time`, or `--launch-time log` for an AltosUI CSV's GPS time), a weather profile (`--weather`), or values entered (`--wind`, `--temperature`, `--pressure`), so it works offline from values entered or a cached answer. The site is the log's GNSS fixes before liftoff unless one is given. The figure's table gives each reading's provenance. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -970,7 +971,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3d5"></a>[M7.3d5][done-5] | The cut on a real barometer | done |
 | <a id="m7-3d6"></a>[M7.3d6][done-5] | The collection's errors by halves | done |
 | <a id="m7-3d7"></a>[M7.3d7][done-5] | The scoreboard row | done |
-| <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
+| <a id="m7-3e"></a>[M7.3e][done-5] | The post-flight comparison | done |
 | <a id="m7-3f"></a>[M7.3f][phase-5] | The fit on the command line and in Python | not yet done |
 | <a id="m7-3g"></a>[M7.3g][phase-5] | The least-squares intervals pass again | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1505,6 +1506,7 @@ is the milestone that added or will add that test.
 [adr-376]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0376-m1-14b18-the-inputs-part-and-the-band.md
 [adr-377]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md
 [adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
+[adr-379]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0379-m7-3e-the-post-flight-comparison-drawn-in-hpr-compare.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -741,7 +741,14 @@ fn panel_svg(
         ));
         k += 1;
     }
-    us_scale(svg, panel, (top, bottom), lo, hi, &y_of);
+    us_scale(
+        svg,
+        (panel.us_unit, panel.us_unit_si),
+        (top, bottom),
+        lo,
+        hi,
+        &y_of,
+    );
     for group in groups {
         svg.push_str(&format!(
             "<line x1=\"{x:.1}\" y1=\"{top:.1}\" x2=\"{x:.1}\" y2=\"{bottom:.1}\" \
@@ -790,7 +797,7 @@ fn panel_svg(
 /// panel's SI axis, `lo` to `hi`. It has no gridlines: those are the SI scale's.
 fn us_scale(
     svg: &mut String,
-    panel: &Panel,
+    (us_unit, us_unit_si): (&str, f64),
     (top, bottom): (f64, f64),
     lo: f64,
     hi: f64,
@@ -803,11 +810,11 @@ fn us_scale(
          stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>\n",
         right + 2.0 * TICK,
         top - 12.0,
-        panel.us_unit,
+        us_unit,
     ));
-    let (ticks, step) = inner_ticks(lo / panel.us_unit_si, hi / panel.us_unit_si);
+    let (ticks, step) = inner_ticks(lo / us_unit_si, hi / us_unit_si);
     for v in ticks {
-        let y = y_of(v * panel.us_unit_si);
+        let y = y_of(v * us_unit_si);
         svg.push_str(&format!(
             "<line x1=\"{right}\" y1=\"{y:.1}\" x2=\"{:.1}\" y2=\"{y:.1}\" \
              stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>\
@@ -1422,6 +1429,8 @@ fn escape(s: &str) -> String {
     }
     out
 }
+
+pub(crate) mod comparison;
 
 #[cfg(test)]
 mod tests;

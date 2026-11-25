@@ -109,7 +109,11 @@ pub fn availability(name: &str) -> Option<Availability> {
                 "a flight log, as `hpr analyze` reads it".to_owned(),
                 "a design, its motor and the launch, as `hpr sim` reads them".to_owned(),
             ],
-            writes: text_or_json(),
+            writes: vec![
+                "text".to_owned(),
+                "JSON".to_owned(),
+                "a figure as `.svg`, with its data as `.csv`".to_owned(),
+            ],
         }),
         "weather" => Some(Availability::Available {
             reads: vec![

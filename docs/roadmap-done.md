@@ -428,6 +428,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3d5 The cut on a real barometer ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d6 The collection's errors by halves ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d7 The scoreboard row ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3e The post-flight comparison ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.5 The bias every simulator shares ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5a The rule before the fit ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5b The correction, fitted and judged ([Phase 6](#phase-6-design-experience-library-level))
@@ -2222,6 +2223,10 @@ One line per milestone or increment, in the order it was archived within its pha
         half's fit aggregates; the held-out half's stay private, their file's SHA-256 committed and checked.
       - [x] **M7.3d7 The scoreboard row** (ADR-330). *Done when:* M7.3d's *done when*, whole, the scoreboard's
         `accuracy.from-boost` included.
+  - [x] **M7.3e The post-flight comparison** (ADR-379). *Done when:* one `hpr` command draws predicted and logged altitude
+    and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
+    the weather source's wind and air, or values entered, so it works offline; a test runs it on a public
+    flight; the plot carries each reading's provenance.
 ## Phase 6: Design experience (library level)
 
 - [x] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on

@@ -68,8 +68,8 @@ one holds and how likely each goal is:
   ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
   them is drag that reads high above Mach 0.8, so the apogee there reads low.
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
-  file. Then it compares a log with its simulation, which works today. Drawing the two together,
-  and fitting the rocket's drag from the log on the command line and in Python, are still to come.
+  file. Then it compares a log with its simulation and draws the two together, which work today.
+  Fitting the rocket's drag from the log on the command line and in Python is still to come.
   A fit exists in the Rust library, but its drag interval fails one synthetic test
   ([how well it holds](physics/flight-fit.md#how-well-it-holds)).
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
@@ -262,8 +262,11 @@ were seen while its rules were set. It isn't yet checked against a real flight's
 smoother](physics/smoother.md)).
 
 `hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
-simulated, phase by phase, and each reading beside the simulation's, read the same way
-([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing.
+simulated, phase by phase. It sets each reading beside the simulation's, read the same way
+([Comparing a flight with its simulation](comparing-a-flight.md)). With `--plot` it draws the log beside
+the simulation as designed and, where you give the day's conditions, under them. Those come from
+Open-Meteo's archive at the log's own site and time, or from values you enter
+([Draw it](comparing-a-flight.md#draw-it)). It reports the gap and fits nothing.
 In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,
 a constant wind and the mass to a log. Each has a 90% interval tested on the synthetic
 flights (the wind's on logs with a track), on sets seen while its model was chosen. All pass but one. On the set flown with a model unlike the simulator's own, the true drag falls below its interval too often. There the fitted drag reads high, and a flight predicted with it would come out low ([how well it holds](physics/flight-fit.md#how-well-it-holds)). No `hpr` command runs it yet, and no real flight has checked its intervals.

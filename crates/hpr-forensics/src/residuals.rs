@@ -214,9 +214,13 @@ impl Simulated {
     }
 
     /// The moment at `t`, by straight lines between the samples; the first moment before the flight,
-    /// where the rocket sits on the pad; `None` after it.
+    /// where the rocket sits on the pad; `None` after it, and at a time that isn't a number.
     fn at(&self, t: f64) -> Option<Moment> {
         let (first, last) = (self.moments.first()?, self.moments.last()?);
+        // NaN passes both tests below, and the search would then find no moment before it.
+        if t.is_nan() {
+            return None;
+        }
         if t > last.time_s {
             return None;
         }
@@ -274,6 +278,50 @@ impl Simulated {
     pub fn top_reading_m(&self, kind: HeightKind) -> Option<f64> {
         let (at, _) = self.top()?;
         Some(self.read_height_m(at, kind)).filter(|reading| reading.is_finite())
+    }
+
+    /// The flight's lines as a sensor of `kind` reads them, for a figure ([M7.3e][m7-3e]): its
+    /// height above the pad, m, and that height's rate, m/s, up, at each moment from `liftoff_s`,
+    /// s on the flight's clock, to the flight's end, each at its time after that liftoff. A
+    /// barometer's reading and its rate, or the height climbed and its rate, as [`compare`] reads
+    /// them; `liftoff_s` is [`Comparison::simulated_liftoff_s`], so the lines start on the
+    /// comparison's clock. Both are empty where the flight ends before `liftoff_s`, or where
+    /// `liftoff_s` isn't a number.
+    ///
+    /// [m7-3e]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3e
+    #[must_use]
+    pub fn read_lines(&self, kind: HeightKind, liftoff_s: f64) -> (Vec<LinePoint>, Vec<LinePoint>) {
+        // At the liftoff itself, unless that is before the flight's first moment, which the
+        // moments after then start from.
+        let first = self
+            .at(liftoff_s)
+            .filter(|moment| moment.time_s == liftoff_s);
+        let after = self
+            .moments
+            .iter()
+            .filter(|moment| moment.time_s > liftoff_s)
+            .copied();
+        first
+            .into_iter()
+            .chain(after)
+            .map(|moment| {
+                let time_after_liftoff_s = moment.time_s - liftoff_s;
+                let (height, speed) = match kind {
+                    HeightKind::Barometric => (moment.reading_m, moment.reading_speed_m_s),
+                    HeightKind::Geometric => (moment.height_m, moment.speed_m_s),
+                };
+                (
+                    LinePoint {
+                        time_after_liftoff_s,
+                        value: height,
+                    },
+                    LinePoint {
+                        time_after_liftoff_s,
+                        value: speed,
+                    },
+                )
+            })
+            .unzip()
     }
 
     /// The height as a sensor of `kind` reads it at `t`, above the pad, m.
@@ -628,12 +676,9 @@ pub fn compare(
         .collect();
 
     let window = Window::of(read, liftoff.time_s, log);
-    let pad_m = read.pad_altitude_m.unwrap_or(0.0);
-    let (track_s, track_m) = readings::height_track(log).unwrap_or_default();
-    let height_samples = track_s
-        .iter()
-        .zip(&track_m)
-        .map(|(&t, &altitude)| (t, altitude - pad_m, None));
+    let height_samples = logged_heights(log, read)
+        .into_iter()
+        .map(|(t, height)| (t, height, None));
     let height_m =
         window.residuals(
             height_samples,
@@ -646,11 +691,7 @@ pub fn compare(
         );
     // Fused with a GNSS receiver, the smoother's speed leaves the barometer's scale for the height
     // climbed, which is neither side's here: set aside, it stands on the log's height.
-    let smoothed = match kind {
-        HeightKind::Barometric => smoother::smooth(&without_gnss(log)),
-        HeightKind::Geometric => smoother::smooth(log),
-    };
-    let speed_m_s = match smoothed {
+    let speed_m_s = match smoothed(log, kind) {
         Ok(smoothed) => {
             let samples = smoothed
                 .time_s
@@ -686,6 +727,85 @@ pub fn compare(
         speed_m_s,
         rows,
     })
+}
+
+/// The log's height samples, each `(time on its clock, s; height above its pad, m)`: the samples
+/// [`compare`] and [`logged_lines`] both take.
+fn logged_heights(log: &FlightLog, read: &Readings) -> Vec<(f64, f64)> {
+    let pad_m = read.pad_altitude_m.unwrap_or(0.0);
+    let (track_s, track_m) = readings::height_track(log).unwrap_or_default();
+    track_s
+        .iter()
+        .zip(&track_m)
+        .map(|(&t, &altitude)| (t, altitude - pad_m))
+        .collect()
+}
+
+/// The smoother's track of `log` for a height read as `kind`. Fused with a GNSS receiver, the
+/// smoother's speed leaves the barometer's scale for the height climbed, which is neither side's
+/// on a barometric log: set aside there, it stands on the log's height.
+fn smoothed(log: &FlightLog, kind: HeightKind) -> Result<smoother::Smoothed, smoother::Withheld> {
+    match kind {
+        HeightKind::Barometric => smoother::smooth(&without_gnss(log)),
+        HeightKind::Geometric => smoother::smooth(log),
+    }
+}
+
+/// One point of a line a figure draws.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct LinePoint {
+    /// Seconds after the line's own liftoff.
+    pub time_after_liftoff_s: f64,
+    /// The value: a height above the pad, m, or a vertical speed, m/s, up.
+    pub value: f64,
+}
+
+/// The log's lines, as a figure of the comparison draws them ([M7.3e][m7-3e]).
+///
+/// They are the samples [`compare`] sets against the simulation, from the log's liftoff to its
+/// landing, or to its end where it reads none, but every one of them: [`Residuals::points`] drops
+/// a sample past the simulated flight's end, and a figure shouldn't.
+///
+/// [m7-3e]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3e
+#[derive(Debug, Clone, PartialEq)]
+pub struct LoggedLines {
+    /// The log's own height samples, unsmoothed, m above its pad.
+    pub height_m: Vec<LinePoint>,
+    /// The smoother's vertical speed, m/s, up, on the height's scale; `None` where the smoother
+    /// gives none, as [`Comparison::speed_m_s`] says why.
+    pub speed_m_s: Option<Vec<LinePoint>>,
+}
+
+/// `log`'s lines, read as `read`, on the clock `comparison` lined up: see [`LoggedLines`].
+#[must_use]
+pub fn logged_lines(log: &FlightLog, read: &Readings, comparison: &Comparison) -> LoggedLines {
+    let window = Window::of(read, comparison.log_liftoff_s, log);
+    let inside = |t: f64, value: f64| {
+        let after = t - window.liftoff_s;
+        // Written so that a time that isn't a number falls outside too, as in the residuals.
+        ((0.0..=window.end_s).contains(&after) && value.is_finite()).then_some(LinePoint {
+            time_after_liftoff_s: after,
+            value,
+        })
+    };
+    let height_m = logged_heights(log, read)
+        .into_iter()
+        .filter_map(|(t, height)| inside(t, height))
+        .collect();
+    let speed_m_s = smoothed(log, comparison.height_read_as)
+        .ok()
+        .map(|smoothed| {
+            smoothed
+                .time_s
+                .iter()
+                .zip(&smoothed.speed_m_s)
+                .filter_map(|(&t, &speed)| inside(t, speed))
+                .collect()
+        });
+    LoggedLines {
+        height_m,
+        speed_m_s,
+    }
 }
 
 /// `log` with its GNSS altitude set aside.
@@ -1283,6 +1403,100 @@ mod tests {
             last.time_after_liftoff_s < 3.0 + 180.0 / 9.8 + 20.0 + 0.1,
             "{last:?}"
         );
+    }
+
+    /// A figure's logged lines keep every sample from liftoff to the landing, past the simulated
+    /// flight's end too, which the residuals drop; and the speed is the smoother's on the same clock.
+    #[test]
+    fn the_logged_lines_run_from_liftoff_to_the_landing() {
+        let environment = environment(None);
+        // The simulation stops 20 s after apogee, long before the log lands.
+        let end = 3.0 + 180.0 / 9.8 + 20.0;
+        let simulation = simulated(
+            &environment,
+            |t| if t <= end { flown(t) } else { flown(end) },
+        );
+        let simulation = Simulated {
+            moments: simulation
+                .moments
+                .into_iter()
+                .filter(|moment| moment.time_s <= end)
+                .collect(),
+        };
+        let log = logged(20.0, |t| flown(t).0);
+        let read = readings::read(&log);
+        let comparison = compare(&log, &read, &simulation, Some(HeightKind::Geometric)).unwrap();
+        assert!(comparison.height_m.past_simulation > 100);
+        let lines = logged_lines(&log, &read, &comparison);
+        let first = lines.height_m.first().unwrap();
+        let last = lines.height_m.last().unwrap();
+        assert!(first.time_after_liftoff_s >= 0.0 && first.time_after_liftoff_s < 0.05);
+        // To the landing the reader finds, within a sample of the closed form's.
+        let landing_s = read.landing.value().unwrap().time_s - comparison.log_liftoff_s;
+        assert!(
+            (last.time_after_liftoff_s - landing_s).abs() < 1e-9,
+            "{last:?}"
+        );
+        assert!((landing_s - landed_s()).abs() < 0.5, "{landing_s}");
+        assert_eq!(
+            lines.height_m.len(),
+            comparison.height_m.points.len() + comparison.height_m.past_simulation
+        );
+        // The heights are the log's own samples less its pad, as the residuals take them.
+        for point in &comparison.height_m.points {
+            let drawn = lines
+                .height_m
+                .iter()
+                .find(|line| line.time_after_liftoff_s == point.time_after_liftoff_s)
+                .unwrap();
+            assert_eq!(drawn.value, point.logged);
+        }
+        let speed = lines.speed_m_s.unwrap();
+        let Speed::Read(residuals) = &comparison.speed_m_s else {
+            panic!("{:?}", comparison.speed_m_s);
+        };
+        assert!(speed.len() >= residuals.points.len());
+        // The climb's top speed, 180 m/s at burnout, within the smoother's lag.
+        let top = speed
+            .iter()
+            .fold(0.0_f64, |most, point| most.max(point.value));
+        assert!((top - 180.0).abs() < 10.0, "{top}");
+    }
+
+    /// A simulation's lines start at its liftoff on the comparison's clock and run to its end, read
+    /// as the log's sensor reads them: on a warm day a barometer's reading and its rate fall short
+    /// of the height climbed and its speed.
+    #[test]
+    fn the_simulated_lines_are_read_as_the_log_is() {
+        let warm = AtmosphereModel::Standard(Ussa76::with_offset(20.0, 101_325.0).unwrap());
+        let environment = environment(Some(warm));
+        let simulation = simulated(&environment, flown);
+        let liftoff_s = 0.3;
+        let (heights, speeds) = simulation.read_lines(HeightKind::Barometric, liftoff_s);
+        let (climbed, rates) = simulation.read_lines(HeightKind::Geometric, liftoff_s);
+        assert_eq!(heights.len(), speeds.len());
+        assert_eq!(heights.first().unwrap().time_after_liftoff_s, 0.0);
+        assert!((climbed.first().unwrap().value - flown(liftoff_s).0).abs() < 1e-9);
+        let last = simulation.moments.last().unwrap();
+        assert_eq!(
+            heights.last().unwrap().time_after_liftoff_s,
+            last.time_s - liftoff_s
+        );
+        let top = |line: &[LinePoint]| line.iter().fold(0.0_f64, |most, p| most.max(p.value));
+        let top_m = flown(3.0 + 180.0 / 9.8).0;
+        assert!((top(&climbed) - top_m).abs() < 1.0, "{}", top(&climbed));
+        // About 7% low at 20 K warm, as a_barometric_log_is_compared_with_a_barometers_reading.
+        let low = 1.0 - top(&heights) / top(&climbed);
+        assert!((0.05..0.09).contains(&low), "{low}");
+        assert!(top(&speeds) < top(&rates));
+        // Before the flight's first moment, the lines start from that moment.
+        let (early, _) = simulation.read_lines(HeightKind::Geometric, -1.0);
+        assert_eq!(early.len(), simulation.moments.len());
+        assert_eq!(early[0].time_after_liftoff_s, 1.0);
+        // A liftoff that isn't a number gives no lines, not a panic.
+        let (none, no_rates) = simulation.read_lines(HeightKind::Barometric, f64::NAN);
+        assert!(none.is_empty() && no_rates.is_empty());
+        assert!(simulation.at(f64::NAN).is_none());
     }
 
     /// A reading keeps the provenance M7.2 gave it; the simulation's states none.

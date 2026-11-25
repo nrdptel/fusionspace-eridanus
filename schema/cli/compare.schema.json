@@ -17,6 +17,10 @@
       "description": "The design's file.",
       "type": "string"
     },
+    "flown_in": {
+      "description": "The conditions the simulation the residuals are against flew in: the launch day's where\nany are given, else as designed.",
+      "$ref": "#/$defs/CompareFlownIn"
+    },
     "height_m": {
       "description": "The log's samples less the simulated height, m above the pad.",
       "$ref": "#/$defs/CompareResiduals"
@@ -53,6 +57,17 @@
         "type": "string"
       }
     },
+    "plot": {
+      "description": "The figure `--plot` drew, its data and their sidecar; null without `--plot`.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComparePlot"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "reaches_landing": {
       "description": "Whether the residuals run to a landing read from the log, not just to the log's end.",
       "type": "boolean"
@@ -73,6 +88,10 @@
       "description": "The simulated liftoff, as the same reader finds it, s after ignition.",
       "type": "number",
       "format": "double"
+    },
+    "site": {
+      "description": "The launch site flown from, and where its place came from.",
+      "$ref": "#/$defs/CompareSite"
     },
     "speed_m_s": {
       "description": "The smoother's vertical speed less the simulated, m/s, up; or why it is withheld.",
@@ -115,6 +134,8 @@
     "logger",
     "design",
     "configuration",
+    "site",
+    "flown_in",
     "method",
     "height_read_as",
     "log_liftoff_s",
@@ -128,6 +149,39 @@
     "notes"
   ],
   "$defs": {
+    "CompareConditions": {
+      "description": "As designed, or on the launch day.",
+      "oneOf": [
+        {
+          "description": "The 1976 standard atmosphere and no wind, at the site.",
+          "type": "string",
+          "const": "as_designed"
+        },
+        {
+          "description": "The launch day's air and wind: from Open-Meteo's archive, a weather profile, or values\nentered.",
+          "type": "string",
+          "const": "launch_day"
+        }
+      ]
+    },
+    "CompareFlownIn": {
+      "description": "The conditions a comparison's simulation flew in.",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "As designed, or on the launch day.",
+          "$ref": "#/$defs/CompareConditions"
+        },
+        "detail": {
+          "description": "Where the air and wind came from, in words: the weather source, its time, place and\ncredit, or the values entered.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conditions",
+        "detail"
+      ]
+    },
     "ComparePhase": {
       "description": "How a phase's residuals fall.",
       "type": "object",
@@ -182,6 +236,36 @@
         "rms",
         "largest",
         "largest_at_s"
+      ]
+    },
+    "ComparePlot": {
+      "description": "The files `hpr compare --plot` writes.",
+      "type": "object",
+      "properties": {
+        "data": {
+          "description": "The figure's data, a CSV file beside it.",
+          "type": "string"
+        },
+        "meta": {
+          "description": "The data's sidecar: the program that wrote them, and the trust note.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The figure, an SVG file.",
+          "type": "string"
+        },
+        "rows": {
+          "description": "The data's rows.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "data",
+        "meta",
+        "rows"
       ]
     },
     "ComparePoint": {
@@ -284,6 +368,37 @@
         "what",
         "logged",
         "simulated"
+      ]
+    },
+    "CompareSite": {
+      "description": "The launch site `hpr compare` flies from.",
+      "type": "object",
+      "properties": {
+        "elevation_m": {
+          "description": "Height above sea level, m, as given.",
+          "type": "number",
+          "format": "double"
+        },
+        "from": {
+          "description": "Where the latitude and longitude came from.",
+          "$ref": "#/$defs/SiteFrom"
+        },
+        "latitude_deg": {
+          "description": "Latitude, degrees north.",
+          "type": "number",
+          "format": "double"
+        },
+        "longitude_deg": {
+          "description": "Longitude, degrees east.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "latitude_deg",
+        "longitude_deg",
+        "elevation_m",
+        "from"
       ]
     },
     "CompareSpeed": {
@@ -480,6 +595,31 @@
           "description": "The whole log after liftoff, where its apogee isn't read whole.",
           "type": "string",
           "const": "flight"
+        }
+      ]
+    },
+    "SiteFrom": {
+      "description": "Where a comparison's site came from.",
+      "oneOf": [
+        {
+          "description": "`--latitude` or `--longitude` gave it.",
+          "type": "string",
+          "const": "given"
+        },
+        {
+          "description": "The median of the log's last GNSS fixes before liftoff.",
+          "type": "string",
+          "const": "log_fixes_before_liftoff"
+        },
+        {
+          "description": "The log's first GNSS fix: it holds none before liftoff.",
+          "type": "string",
+          "const": "log_first_fix"
+        },
+        {
+          "description": "Neither: no site was given and the log holds no GNSS fix, so 0° N, 0° E.",
+          "type": "string",
+          "const": "default"
         }
       ]
     },

@@ -262,7 +262,11 @@ adds a source.
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`
   are two answers recorded unchanged on 2026-09-30 from Open-Meteo's historical-forecast and
   forecast APIs, for 32.99° N, 106.97° W and two hours each; the example
-  `crates/hpr/examples/open_meteo_weather.rs` reads the first. Weather data by Open-Meteo.com, licensed CC BY 4.0
+  `crates/hpr/examples/open_meteo_weather.rs` reads the first.
+  `open-meteo-historical-prometheus.json` was recorded unchanged on 2026-11-25 (UTC) from the
+  historical-forecast API for 32.9395° N, 106.91145° W, 2022-06-24 15:00 to 16:00 UTC, the site
+  and hour of a public flight's log, for `hpr compare --launch-time log`'s test. Weather data by
+  Open-Meteo.com, licensed CC BY 4.0
   (<https://creativecommons.org/licenses/by/4.0/>). `hpr_net::open_meteo` also fetches such
   answers at run time, when a program asks, and caches them on the user's disk; each answer
   carries this credit for the program to show.

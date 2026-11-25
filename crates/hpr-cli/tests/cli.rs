@@ -8226,7 +8226,7 @@ fn every_numeric_option_reads_typed_numbers() {
                 .map(|name| name.as_str().to_owned());
             assert!(
                 value_name.as_deref().is_some_and(|value_name| [
-                    "M", "MM", "DEG", "S", "M_S", "HOUR", "N", "FRACTION"
+                    "M", "MM", "DEG", "S", "M_S", "HOUR", "C", "HPA", "N", "FRACTION"
                 ]
                 .contains(&value_name)),
                 "{name}: {value_name:?}"
@@ -9169,6 +9169,514 @@ fn compare_reports_residuals_for_a_real_flight() {
         "{}",
         document["speed_m_s"]
     );
+}
+
+/// A cache holding Open-Meteo's recorded answers for these `(latitude, longitude, time)`
+/// requests to its historical-forecast API, as fetching them online leaves it.
+fn open_meteo_cache(requests: &[(f64, f64, i64)]) -> tempfile::TempDir {
+    use hpr::hpr_net::open_meteo::{self, OpenMeteoApi, OpenMeteoRequest};
+    use hpr::hpr_net::{Cache, Client, Mode, Replay};
+    let dir = tempfile::tempdir().unwrap();
+    let replay = Replay::open(root().join("crates/hpr-net/tests/fixtures/replay")).unwrap();
+    let client = Client::new(&replay, Cache::new(dir.path()), Mode::Online);
+    let now_s = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    for &(latitude, longitude, time_s) in requests {
+        let request = OpenMeteoRequest::new(
+            latitude,
+            longitude,
+            time_s,
+            OpenMeteoApi::HistoricalForecast,
+        );
+        open_meteo::fetch(&client, &request, now_s).unwrap();
+    }
+    dir
+}
+
+/// A path's stroke: its color, whether it is dashed, and its width.
+type Stroke = (String, bool, String);
+
+/// What a comparison's figure draws: in each panel, the paths by stroke, dash and width; and its
+/// texts. Every text's box, at 7.2 px a character (two for one from U+1100), lies on the figure
+/// at least 8 px from its sides: nothing is cut off.
+fn compare_figure(path: &str) -> (Vec<Vec<Stroke>>, String) {
+    let svg = std::fs::read_to_string(path).unwrap();
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let width: f64 = document
+        .root_element()
+        .attribute("width")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let mut texts = String::new();
+    for node in document
+        .descendants()
+        .filter(|node| node.has_tag_name("text"))
+    {
+        let content: String = node
+            .descendants()
+            .filter(roxmltree::Node::is_text)
+            .filter_map(|n| n.text())
+            .collect();
+        let x: f64 = node.attribute("x").unwrap().parse().unwrap();
+        let size: f64 = node
+            .attribute("font-size")
+            .map_or(12.0, |size| size.parse().unwrap());
+        let advance: f64 = content
+            .chars()
+            .map(|c| if c >= '\u{1100}' { 2.0 } else { 1.0 })
+            .sum::<f64>()
+            * 0.6
+            * size;
+        let (x0, x1) = match node.attribute("text-anchor") {
+            Some("end") => (x - advance, x),
+            Some("middle") => (x - advance / 2.0, x + advance / 2.0),
+            _ => (x, x + advance),
+        };
+        assert!(x0 >= 8.0 && x1 <= width - 8.0, "{content:?}: {x0} to {x1}");
+        texts.push_str(&content);
+        texts.push('\n');
+    }
+    let panels = ["altitude", "speed"]
+        .iter()
+        .map(|id| {
+            let group = document
+                .descendants()
+                .find(|node| node.attribute("id") == Some(id))
+                .unwrap();
+            group
+                .children()
+                .filter(|node| node.has_tag_name("path"))
+                .map(|path| {
+                    (
+                        path.attribute("stroke").unwrap().to_owned(),
+                        path.attribute("stroke-dasharray").is_some(),
+                        path.attribute("stroke-width").unwrap().to_owned(),
+                    )
+                })
+                .collect()
+        })
+        .collect();
+    (panels, texts)
+}
+
+/// The log, ink and solid, 2 px; the simulation as designed, dashed in the predicted color, 1 px;
+/// on the launch day, the same at 2 px.
+fn logged_line() -> Stroke {
+    ("#0B0F1C".to_owned(), false, "2".to_owned())
+}
+fn designed_line() -> Stroke {
+    ("#A22488".to_owned(), true, "1".to_owned())
+}
+fn launch_day_line() -> Stroke {
+    ("#A22488".to_owned(), true, "2".to_owned())
+}
+
+/// The highest altitude a line of a comparison's data reaches, m.
+fn line_peak(data: &str, line: &str) -> f64 {
+    data.lines()
+        .skip(1)
+        .filter_map(|row| {
+            let cells: Vec<&str> = row.split(',').collect();
+            (cells[0] == line).then(|| cells[2].parse::<f64>().ok())?
+        })
+        .fold(f64::NEG_INFINITY, f64::max)
+}
+
+/// M7.3e: `hpr compare --plot` draws the log beside its simulation as designed and under the
+/// launch day's conditions, here values entered, so it works offline; the readings keep their
+/// provenance on the figure, and the document says where the conditions came from.
+#[test]
+fn compare_draws_a_log_beside_its_simulation_as_designed_and_on_the_launch_day() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let plot = folder
+        .path()
+        .join("flight.svg")
+        .to_string_lossy()
+        .into_owned();
+    let entered = [
+        "--wind",
+        "6",
+        "--wind-from",
+        "270",
+        "--temperature",
+        "35",
+        "--pressure",
+        "1000",
+    ];
+    let args = [
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+        "--plot",
+        plot.as_str(),
+    ];
+    let output = hpr(&[&args[..], &entered, &["--json"]].concat());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    validate("compare.schema.json", &document);
+    assert_eq!(document["flown_in"]["conditions"], "launch_day");
+    let detail = document["flown_in"]["detail"].as_str().unwrap();
+    for said in [
+        "a wind entered of 6.0 m/s from 270°",
+        "air of 35.0 °C (entered) and 1000.0 hPa (entered) at the pad",
+    ] {
+        assert!(detail.contains(said), "{detail}");
+    }
+    assert_eq!(document["site"]["from"], "default");
+    let files = &document["plot"];
+    assert_eq!(files["path"], plot.as_str());
+    let data = std::fs::read_to_string(files["data"].as_str().unwrap()).unwrap();
+    assert!(data.starts_with("line,time after liftoff [s],altitude [m],vertical speed [m/s]\r\n"));
+    assert_eq!(
+        data.lines().count(),
+        1 + files["rows"].as_u64().unwrap() as usize
+    );
+    for line in ["\nlogged,", "\nas designed,", "\nlaunch day,"] {
+        assert!(data.contains(line), "{line}");
+    }
+    // The launch day's flight flies the day's air and wind. Hot air at the pad makes a barometer
+    // read low, as the pressure falls more slowly with height than the standard's, and a
+    // crosswind turns the rocket into it; the thinner air lifts it, but here the apogee as the
+    // log's barometer reads it comes out 1.8% lower than as designed (1,520 m against 1,548 m).
+    let (designed, day) = (
+        line_peak(&data, "as designed"),
+        line_peak(&data, "launch day"),
+    );
+    assert!(designed - day > 0.01 * designed, "{designed} {day}");
+    // The residuals are against the launch day's flight.
+    let apogee = &document["rows"][0];
+    assert_eq!(apogee["what"], "apogee_height");
+    let simulated = apogee["simulated"]["value"].as_f64().unwrap();
+    assert!((simulated - day).abs() < 1.0, "{simulated} {day}");
+    let meta: Value =
+        serde_json::from_str(&std::fs::read_to_string(files["meta"].as_str().unwrap()).unwrap())
+            .unwrap();
+    assert_eq!(meta["kind"], "compared");
+    let (panels, texts) = compare_figure(&plot);
+    for panel in &panels {
+        assert_eq!(
+            panel,
+            &vec![designed_line(), launch_day_line(), logged_line()],
+            "{panels:?}"
+        );
+    }
+    // Each reading's provenance, and the conditions each simulation flew in.
+    for said in [
+        "measured, from the",
+        "derived, from the",
+        "AS DESIGNED",
+        "LAUNCH DAY",
+        "As designed: the 1976 standard atmosphere and no wind, at the site.",
+        "Launch day: a wind entered of 6.0 m/s from 270°",
+        "HOW FAR TO TRUST IT",
+    ] {
+        assert!(texts.contains(said), "{said}\n{texts}");
+    }
+    // The text says what it wrote, and where its residuals' simulation flew.
+    let text = hpr(&[&args[..], &entered].concat());
+    assert_eq!(text.status.code(), Some(0), "{text:?}");
+    let text = String::from_utf8_lossy(&text.stdout).into_owned();
+    assert!(
+        text.contains("  on the launch day: a wind entered"),
+        "{text}"
+    );
+    assert!(text.contains(&format!("wrote {plot} (the log beside its simulation")));
+
+    // With no launch day given, only the flight as designed is drawn, and the figure says why.
+    let output = hpr(&[&args[..], &["--json"]].concat());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(document["flown_in"]["conditions"], "as_designed");
+    let (panels, texts) = compare_figure(&plot);
+    for panel in &panels {
+        assert_eq!(panel, &vec![designed_line(), logged_line()], "{panels:?}");
+    }
+    assert!(texts.contains("Launch day: no conditions given"), "{texts}");
+    assert!(!texts.contains("LAUNCH DAY"));
+}
+
+/// M7.3e: `--launch-time` flies the weather source's air and wind at the site and time, from the
+/// cache offline, credited, and the residuals are against that flight; the same answer written as
+/// a profile flies the same through `--weather`; with nothing cached offline it is refused.
+#[test]
+fn compare_flies_the_weather_sources_launch_day() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let plot = folder
+        .path()
+        .join("flight.svg")
+        .to_string_lossy()
+        .into_owned();
+    let args = [
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+        "--latitude",
+        "32.99",
+        "--longitude",
+        "-106.97",
+        "--elevation",
+        "1400",
+        "--launch-time",
+        "2025-06-21T15:30Z",
+        "--plot",
+        plot.as_str(),
+        "--json",
+    ];
+    let cache = open_meteo_cache(&[(32.99, -106.97, 1_750_519_800)]);
+    let output = hpr_cached(&args, cache.path());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    validate("compare.schema.json", &document);
+    assert_eq!(document["flown_in"]["conditions"], "launch_day");
+    assert_eq!(document["site"]["from"], "given");
+    let detail = document["flown_in"]["detail"].as_str().unwrap();
+    for said in [
+        "Open-Meteo's archive of past forecasts for 2025-06-21T15:30:00Z (the time given)",
+        "nearest the site given; from the cache, fetched ",
+        "Weather data by Open-Meteo.com (CC BY 4.0)",
+    ] {
+        assert!(detail.contains(said), "{detail}");
+    }
+    let (panels, texts) = compare_figure(&plot);
+    assert_eq!(
+        panels[0],
+        vec![designed_line(), launch_day_line(), logged_line()]
+    );
+    assert!(texts.contains("Open-Meteo.com (CC BY 4.0)"), "{texts}");
+    let data = std::fs::read_to_string(document["plot"]["data"].as_str().unwrap()).unwrap();
+    let (designed, day) = (
+        line_peak(&data, "as designed"),
+        line_peak(&data, "launch day"),
+    );
+    // The day's air and wind are flown: the recorded answer's air at the ground is 28.0 to
+    // 31.2 °C, where the standard's at 1,400 m is 5.9 °C, so the barometer's apogee reads lower
+    // (1,644 m against 1,673 m), and the residuals are against that flight.
+    assert!(designed - day > 0.01 * designed, "{designed} {day}");
+    let simulated = document["rows"][0]["simulated"]["value"].as_f64().unwrap();
+    assert!((simulated - day).abs() < 1.0, "{simulated} {day}");
+    // The same answer written as a profile by `hpr weather` and flown by --weather is the same
+    // launch day.
+    let profile = folder.path().join("profile.json");
+    let profile = profile.to_str().unwrap();
+    let recording = repo_file("crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json");
+    let written = hpr(&[
+        "weather",
+        "open-meteo",
+        "--time",
+        "2025-06-21T15:30Z",
+        "--from",
+        &recording,
+        "--output",
+        profile,
+    ]);
+    assert_eq!(written.status.code(), Some(0), "{written:?}");
+    let mut by_profile: Vec<&str> = args[..args.len() - 5].to_vec();
+    by_profile.extend(["--weather", profile, "--plot", plot.as_str(), "--json"]);
+    let output = hpr(&by_profile);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let flown: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(flown["flown_in"]["conditions"], "launch_day");
+    let data = std::fs::read_to_string(flown["plot"]["data"].as_str().unwrap()).unwrap();
+    assert!(
+        flown["flown_in"]["detail"]
+            .as_str()
+            .unwrap()
+            .contains("the weather profile profile.json"),
+        "{flown:#}"
+    );
+    assert_eq!(line_peak(&data, "launch day"), day);
+    // Offline with nothing cached: refused, naming the source.
+    let empty = tempfile::tempdir().unwrap();
+    let refused = hpr_cached(&args[..args.len() - 1], empty.path());
+    assert_eq!(refused.status.code(), Some(1), "{refused:?}");
+    assert!(text(&refused.stderr).contains("Open-Meteo"), "{refused:?}");
+}
+
+/// M7.3e's refusals: a launch time the log can't give, a site no one gives, air past the records (a
+/// pressure reduced to sea level among it), and a figure's file that isn't one or that the run
+/// reads.
+#[test]
+fn compare_refuses_launch_days_and_figures_it_cant_use() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let base = [
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+    ];
+    let refused = |rest: &[&str], said: &str| {
+        let output = hpr(&[&base[..], rest].concat());
+        assert_eq!(output.status.code(), Some(1), "{rest:?}: {output:?}");
+        let error = text(&output.stderr);
+        assert!(error.contains(said), "{rest:?}: {error}");
+    };
+    refused(
+        &["--latitude", "32.99", "--launch-time", "log"],
+        "the log gives no time of its own at liftoff",
+    );
+    refused(
+        &["--launch-time", "2025-06-21T15:30Z"],
+        "no GNSS fix to place the site by",
+    );
+    refused(
+        &["--elevation", "1400", "--pressure", "1013"],
+        "lies within 15% of the standard atmosphere's 856.",
+    );
+    refused(
+        &["--temperature", "95"],
+        "air at a pad lies between -90 and 60 °C",
+    );
+    let png = folder
+        .path()
+        .join("flight.png")
+        .to_string_lossy()
+        .into_owned();
+    refused(&["--plot", png.as_str()], "--plot writes an .svg file");
+    refused(&["--plot", ""], "an empty name: --plot writes an .svg file");
+    let over = folder.path().join("log.svg").to_string_lossy().into_owned();
+    std::fs::copy(&log, &over).unwrap();
+    let output = hpr(&[
+        "compare",
+        over.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+        "--plot",
+        over.as_str(),
+    ]);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    assert!(
+        text(&output.stderr).contains("this run reads that file"),
+        "{output:?}"
+    );
+    // One source of the launch day's air at a time.
+    let output = hpr(&[
+        &base[..],
+        &["--launch-time", "2025-06-21T15:30Z", "--wind", "3"],
+    ]
+    .concat());
+    assert_eq!(output.status.code(), Some(2), "{output:?}");
+}
+
+/// M7.3e on a public flight, by the command a person would type: Prometheus's TeleMetrum log
+/// places the site by its GNSS fixes and dates the launch by its GPS time, and Open-Meteo's
+/// recorded answer for them gives the day's air and wind. Needs RocketPy's checkout.
+#[test]
+fn compare_plots_a_public_flight_on_its_logs_own_site_and_day() {
+    let log = root().join(
+        "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
+    );
+    if !log.exists() {
+        eprintln!("skipped: {} isn't fetched", log.display());
+        return;
+    }
+    let log = log.to_string_lossy().into_owned();
+    let design = root()
+        .join("validation/designs/rocketpy-prometheus-2022-generic-motor.json")
+        .to_string_lossy()
+        .into_owned();
+    let folder = tempfile::tempdir().unwrap();
+    let plot = folder
+        .path()
+        .join("prometheus.svg")
+        .to_string_lossy()
+        .into_owned();
+    // 2022-06-24T15:17:16Z, the log's GPS time at liftoff, at its fixes' median.
+    let cache = open_meteo_cache(&[(32.9395, -106.91145, 1_656_083_836)]);
+    let output = hpr_cached(
+        &[
+            "compare",
+            log.as_str(),
+            design.as_str(),
+            "--config",
+            "example",
+            "--elevation",
+            "1401",
+            "--rail-length",
+            "5.18",
+            "--inclination",
+            "80",
+            "--heading",
+            "75",
+            "--launch-time",
+            "log",
+            "--plot",
+            plot.as_str(),
+            "--json",
+        ],
+        cache.path(),
+    );
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    validate("compare.schema.json", &document);
+    assert_eq!(document["site"]["from"], "log_fixes_before_liftoff");
+    assert!((document["site"]["latitude_deg"].as_f64().unwrap() - 32.9395).abs() < 1e-3);
+    assert!((document["site"]["longitude_deg"].as_f64().unwrap() + 106.9114).abs() < 1e-3);
+    let detail = document["flown_in"]["detail"].as_str().unwrap();
+    assert!(
+        detail.contains("for 2022-06-24T15:17:16Z (the log's GPS time at liftoff)"),
+        "{detail}"
+    );
+    assert!(
+        detail.contains("nearest the log's GNSS fixes before liftoff"),
+        "{detail}"
+    );
+    let data = std::fs::read_to_string(document["plot"]["data"].as_str().unwrap()).unwrap();
+    // The apogees the page quotes: the log's reading, each simulation's line read as the log's
+    // barometer reads it, and the residual, logged less the launch day's.
+    let apogee = &document["rows"][0];
+    assert_eq!(apogee["what"], "apogee_height");
+    let near = |value: f64, quoted: f64| (value - quoted).abs() < 0.05;
+    assert!(
+        near(apogee["logged"]["value"].as_f64().unwrap(), 3892.1),
+        "{apogee}"
+    );
+    assert!(near(line_peak(&data, "as designed"), 4052.5), "{data:.200}");
+    assert!(near(line_peak(&data, "launch day"), 3955.4), "{data:.200}");
+    assert!(
+        near(apogee["logged_minus_simulated"].as_f64().unwrap(), -63.3),
+        "{apogee}"
+    );
+    let (panels, texts) = compare_figure(&plot);
+    for panel in &panels {
+        assert_eq!(
+            panel,
+            &vec![designed_line(), launch_day_line(), logged_line()],
+            "{panels:?}"
+        );
+    }
+    for said in [
+        "from the log's GNSS fixes before liftoff",
+        "measured, from the",
+        "logger's barometric",
+        "accelerometer",
+        "Weather data by Open-Meteo.com",
+    ] {
+        assert!(texts.contains(said), "{said}\n{texts}");
+    }
 }
 
 /// Issue #1257: a delay too short fires the charge while the rocket climbs, so the flown apogee
