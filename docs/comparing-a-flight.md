@@ -1,12 +1,11 @@
 # Comparing a flight with its simulation
 
 `hpr compare` shows how far a flight's logged height, speed and readings lie from a simulation of it.
-With `--plot` it draws them too: the log beside the simulation as designed and under the launch day's
-weather, from liftoff to landing ([Draw it](#draw-it)).
 
 This page is for a flyer or a team who has flown and wants to see where the simulation parted from the
 flight. NASA Student Launch's handbook asks for this comparison after a team's subscale flight and again
-after its full-scale flight. Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
+after its full-scale flight. With `--plot` the command draws it: the log beside the simulation as
+designed and under the launch day's weather, from liftoff to landing ([Draw it](#draw-it)). Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
