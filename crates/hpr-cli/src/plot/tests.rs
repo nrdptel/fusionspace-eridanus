@@ -640,6 +640,119 @@ fn a_long_event_line_wraps() {
     }
 }
 
+/// A wide character, such as a Japanese letter or an emoji, draws two cells, so text counted by
+/// its characters ran past the figure's right edge (#1632). With wide characters in the design's
+/// name, the configuration's line and a device's name, every text's box, by its width at its
+/// size and its anchor, lies on the figure: the title ends over the panels, and each line that
+/// starts at the left ends within the right margin.
+#[test]
+fn wide_characters_stay_on_the_figure() {
+    // Lines of wide characters wrap by their cells, lose nothing, and end at any width.
+    let wide_line = format!("{} {}", "風".repeat(30), "🚀".repeat(30));
+    for width in [0, 1, 5, 6, 7, 10, 53, 118] {
+        let lines = wrap(&wide_line, width);
+        let most = width.max(INDENT.len() + 2);
+        for line in &lines {
+            assert!(width_px(line) <= most as f64 * CHAR_PX, "{width}: {line:?}");
+        }
+        assert_eq!(
+            lines.concat().replace(' ', ""),
+            wide_line.replace(' ', ""),
+            "{width}"
+        );
+    }
+    assert_eq!(
+        wrap("風風風風 風風風風", 10),
+        ["風風風風", "    風風風", "    風"]
+    );
+
+    let points = [point(0.0, 0.0), point(1.0, 10.0), point(2.0, 0.0)];
+    let events = [
+        event(EventKind::Liftoff, 0.0),
+        event(EventKind::Trigger(0), 0.5),
+        event(EventKind::Deployment(0), 0.5),
+        event(EventKind::Trigger(1), 1.0),
+        event(EventKind::Deployment(1), 1.0),
+        event(EventKind::GroundHit, 2.0),
+    ];
+    let devices = [
+        format!("降下傘 {}", "パラシュート ".repeat(12)),
+        "🪂".repeat(90),
+    ];
+    // The issue's case, 33 wide characters and 33 narrow ones, then names of wide ones only.
+    let mixed = format!("{}{}", "機".repeat(33), "n".repeat(33));
+    let titles = [mixed, "機".repeat(200), "🚀".repeat(67)];
+    let subtitles = [
+        format!("configuration 1 of 1: [{}]", "発動機".repeat(60)),
+        "構成 ".repeat(100),
+    ];
+    for (title, subtitle) in titles.iter().zip(subtitles.iter().cycle()) {
+        let svg = svg(&Figure {
+            title,
+            subtitle,
+            catalog_as_of: "2026-01-02",
+            trust: &STANDARD_AIR_NOTE,
+            data_file: "機体.csv",
+            points: &points,
+            events: &events,
+            devices: &devices,
+            unpredicted: Some((1.0, 2.0)),
+            apogee: None,
+            top_speed: None,
+        });
+        let document = roxmltree::Document::parse(&svg).unwrap();
+        let height: f64 = document
+            .root_element()
+            .attribute("height")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let (mut checked, mut with_wide) = (0, 0);
+        for node in document
+            .descendants()
+            .filter(|node| node.has_tag_name("text"))
+        {
+            let content: String = node
+                .descendants()
+                .filter(roxmltree::Node::is_text)
+                .filter_map(|n| n.text())
+                .collect();
+            let x: f64 = node.attribute("x").unwrap().parse().unwrap();
+            let y: f64 = node.attribute("y").unwrap().parse().unwrap();
+            let size: f64 = node
+                .attribute("font-size")
+                .map_or(12.0, |size| size.parse().unwrap());
+            let width = width_px(&content) * size / 12.0;
+            let (x0, x1) = match node.attribute("text-anchor") {
+                Some("end") => (x - width, x),
+                Some("middle") => (x - width / 2.0, x + width / 2.0),
+                _ => (x, x + width),
+            };
+            assert!(x0 >= 0.0 && x1 <= WIDTH, "{content:?}: {x0} to {x1}");
+            assert!(
+                y - size >= 0.0 && y + 0.3 * size <= height,
+                "{content:?} at {y}"
+            );
+            // A line set from its left end: the title, the subtitle, the caption, the table's
+            // names, the notes and the title block's cells.
+            if node.attribute("text-anchor").is_none() {
+                assert!(x1 <= WIDTH - MARGIN + 1e-9, "{content:?}: ends at {x1}");
+            }
+            if size == TITLE_SIZE {
+                assert!(x1 <= WIDTH - RIGHT + 1e-9, "{content:?}: ends at {x1}");
+                assert!(content.ends_with('…'), "{content:?}");
+            }
+            if content.chars().any(wide) {
+                with_wide += 1;
+            }
+            checked += 1;
+        }
+        // The title, the subtitle, the event table's wrapped names and the title block's cells.
+        assert!(checked > 40, "{checked}");
+        assert!(with_wide >= 10, "{with_wide}");
+    }
+}
+
 /// Each panel gives both units (ADR-164 §6, ADR-210): its SI title on the left, its US unit's
 /// over a second scale on the right, whose ticks sit at round US values where those values fall on
 /// the SI axis; the event table gives each height in feet beside meters.
