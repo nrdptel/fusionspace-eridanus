@@ -8226,7 +8226,7 @@ fn every_numeric_option_reads_typed_numbers() {
                 .map(|name| name.as_str().to_owned());
             assert!(
                 value_name.as_deref().is_some_and(|value_name| [
-                    "M", "MM", "DEG", "S", "M_S", "HOUR", "N", "FRACTION"
+                    "M", "MM", "DEG", "S", "M_S", "HOUR", "C", "HPA", "N", "FRACTION"
                 ]
                 .contains(&value_name)),
                 "{name}: {value_name:?}"
