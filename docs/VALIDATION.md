@@ -23,7 +23,8 @@ provenance.
 - **Four levels of evidence:**
   1. Analytic and unit tests.
   2. Component-level references (tables and worked examples).
-  3. Code-to-code (RocketPy, OpenRocket).
+  3. Code-to-code (RocketPy, OpenRocket, and MAPLEAF on three subsonic flights straight up in
+     calm air).
   4. Real flights.
 
   Code-to-code agreement isn't truth. Real flights are the final arbiter, and their uncertainty

@@ -191,6 +191,11 @@ design file and logs. OpenRocket and RocketPy haven't flown them here yet
 (see the planned milestones [an open benchmark](decisions-and-roadmap.md#m2-6) and
 [the other tools' cells](decisions-and-roadmap.md#m2-9)).
 
+MAPLEAF, another open-source simulator, has flown three public designs beside HPR Sim, subsonic
+and straight up in calm air. That compares how the two codes fly a rocket, not how close either
+comes to a real flight, and it isn't on the scoreboard
+([Three flights against MAPLEAF](accuracy.md#three-flights-against-mapleaf)).
+
 The steps to a first answer are counted from a design's `.ork` file to its apogee and its landing
 spread. HPR Sim takes 2 commands at a command line, or 10 lines of Python. OpenRocket flies it in
 7 clicks in its window, but its newest release has no Monte Carlo for the spread. RocketPy's

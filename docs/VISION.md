@@ -186,7 +186,7 @@ Decisions Neer confirmed at kickoff:
 | V3 | Design a rocket: parametric component model, parts catalog, design checks | M1.4, M5.5, M8.x |
 | V4 | Import and export OpenRocket `.ork`, RockSim `.rkt`, RASAero `.CDX1`, RocketPy, and motor files `.eng`/`.rse` | M1.3, M3.x |
 | V5 | Our own open design format that improves on the existing ones and builds on `.ork` | M3.3 |
-| V6 | Validation against free simulators (RocketPy, OpenRocket) and real flight data, published openly | M2.x |
+| V6 | Validation against free simulators (RocketPy, OpenRocket, and MAPLEAF on three subsonic flights straight up in calm air) and real flight data, published openly | M2.x |
 | V7 | Online weather, site/elevation, parts, and live motor stock from motor.fusionspace.co, all optional | M5.x |
 | V8 | Works fully offline on macOS, Windows and Linux | every milestone |
 | V9 | Competition challenges: constraint specs, optimizer, live stock and prices | M6.x |

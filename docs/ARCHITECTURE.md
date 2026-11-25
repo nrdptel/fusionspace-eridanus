@@ -210,7 +210,8 @@ at their own positions, but nothing that flies a hybrid or a liquid
 2. Property tests.
 3. Snapshot tests for I/O.
 4. Component-level references (tables and worked examples from papers).
-5. Code-to-code against RocketPy and OpenRocket.
+5. Code-to-code against RocketPy and OpenRocket, and against MAPLEAF on three subsonic flights
+   straight up in calm air ([the decision that added MAPLEAF](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md)).
 6. Real flights.
 7. Benchmarks and performance budgets.
 
