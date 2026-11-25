@@ -582,7 +582,7 @@ is longer. The last 0.25 s is left out.
 Walking back from landing, the run of samples whose rate stays within the main's mark is the
 main's descent. The mark is 1.6 times the main's rate, or 3 m/s (9.8 ft/s) more than the rate if
 that is more. The run's first sample is the opening.
-These marks are Debrief's, set on its own logs.
+These two figures are Debrief's, set on its own logs.
 
 That walk stops at the first rate past the mark, however short. A real descent passes it more
 than once: the rocket swings under its main, and a coarse log's rates scatter. So HPR Sim asks
@@ -674,15 +674,18 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   the noise, 61 rates by 12 draws. The split reads two canopies on all 732, the opening and each
   leg's rate within its bound.
 - **The real flight that showed the fault**, a StratoLogger CF's log from a public forum thread
-  (cited in the issue, not committed). The test reads the log only where it is cached. Where
-  the file is absent, as it is in CI, the test stops early and checks nothing. So CI runs the
-  two invented cases above and not this one. Its rocket swings under the main. The issue measures the drogue's
+  (cited in the issue, not committed). Its rocket swings under the main. The issue measures the drogue's
   descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s and the drogue's descent
   17.3 m/s (57 ft/s), within 1.4 m/s (5 ft/s). The opening's bound is 19.21 s: 0.76 s around the
   split, and 18.45 s more to the walk's start at the swing. The log alone can't rule that out. The charge fired 2.85 s before the reading: the
   bound leaves out the time a canopy takes to come out and fill.
+
+The third test reads its log only where it is cached, under the untracked `refs/` folder. Where
+the file is absent, as it is in CI, the test stops early and passes without checking anything.
+So CI runs the two invented cases and not the real flight's. The real flight's figures here are
+checked only on a machine that holds the log.
 
 That is one real flight with a logged charge time ([evidence row G10](../evidence.md#g10)).
 A second, the public Genesis flight, has a simulation beside its log: the walk read the log as

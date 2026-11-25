@@ -19,9 +19,9 @@ part drifts and lands.
   than the log's to 1.07 m/s (3.5 ft/s) faster, and slower is the side that flatters a landing.
   Each difference is the simulation's and the log reading's together. No error over the five is
   worked out as one number yet: that is for [M2.12, descent rates against the logs][m2-12].
-  [The canopies](log-readings.md#the-canopies) gives the rule a log's rates and its main's
-  opening are read by. It also says which flights the opening's bound was tested on, and that
-  the bound leaves out the time a canopy takes to fill
+  [The canopies](log-readings.md#the-canopies) gives the rule that reads a log's descent rates
+  and its main's opening. It also says which flights the opening was checked on, and that the
+  opening's bound leaves out the time a canopy takes to fill
   ([issue #779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)).
   - The descent under a parachute matches [RocketPy](../glossary.md#rocketpy)'s for five example
     rockets, started from the same state near apogee. All 30 metrics are within 3%, the largest
