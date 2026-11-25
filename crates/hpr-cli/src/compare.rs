@@ -522,6 +522,16 @@ fn logged_time(log: &FlightLog, liftoff_s: f64) -> Option<i64> {
     })
 }
 
+/// A number typed on the command line, written back in an error: as typed where it is of an
+/// everyday size, else in exponent form, so `1e300` comes back as `1e300` and not as 301 digits.
+fn as_given(value: f64) -> String {
+    if value == 0.0 || (1e-3..1e6).contains(&value.abs()) || !value.is_finite() {
+        format!("{value}")
+    } else {
+        format!("{value:e}")
+    }
+}
+
 /// The air of a temperature, °C, and a pressure, hPa, entered at the pad `elevation_m` above sea
 /// level, either one the standard atmosphere's where it isn't entered: the 1976 standard shifted to
 /// pass through both ([`Ussa76::anchored`]); and those values in words. A temperature outside
@@ -534,7 +544,7 @@ fn entered(
 ) -> Result<(Ussa76, String), Failure> {
     let standard = Ussa76::standard().sample(elevation_m).map_err(|error| {
         Failure::library(
-            format!("--elevation {elevation_m}: {error}"),
+            format!("--elevation {}: {error}", as_given(elevation_m)),
             "give the site's height above sea level in meters",
         )
     })?;
@@ -543,8 +553,10 @@ fn entered(
     {
         return Err(Failure::helped(
             format!(
-                "--temperature {celsius}: air at a pad lies between {} and {} °C",
-                TEMPERATURE_C.0, TEMPERATURE_C.1
+                "--temperature {}: air at a pad lies between {} and {} °C",
+                as_given(celsius),
+                TEMPERATURE_C.0,
+                TEMPERATURE_C.1
             ),
             "give the temperature in degrees Celsius, such as `--temperature 31`",
         ));
@@ -557,9 +569,10 @@ fn entered(
     {
         return Err(Failure::helped(
             format!(
-                "--pressure {hpa}: the air's pressure at a pad {} m above sea level lies within \
+                "--pressure {}: the air's pressure at a pad {} m above sea level lies within \
                  {}% of the standard atmosphere's {} hPa there",
-                fixed(elevation_m, 0),
+                as_given(hpa),
+                as_given(elevation_m.round()),
                 fixed(100.0 * PRESSURE_FROM_STANDARD, 0),
                 fixed(standard_hpa, 1)
             ),
@@ -636,7 +649,11 @@ fn plot_files(args: &CompareArgs) -> Result<Option<(String, String, String)>, Fa
     let Some(path) = &args.plot else {
         return Ok(None);
     };
-    let shown = crate::printable(path);
+    let shown = if path.is_empty() {
+        "an empty name".to_owned()
+    } else {
+        crate::printable(path)
+    };
     let svg = Path::new(path)
         .extension()
         .and_then(|extension| extension.to_str())
@@ -1231,5 +1248,17 @@ mod tests {
         assert!(entered(Some(-91.0), None, 0.0).is_err());
         assert!(entered(Some(f64::NAN), None, 0.0).is_err());
         assert!(entered(None, Some(f64::NAN), 0.0).is_err());
+        // A hostile number comes back short, not as hundreds of digits.
+        for (temperature, pressure) in [(Some(1e300), None), (None, Some(1e-300))] {
+            let Err(failure) = entered(temperature, pressure, 0.0) else {
+                panic!("{temperature:?} {pressure:?} flown");
+            };
+            let said = format!("{failure:?}");
+            assert!(said.contains("1e300") || said.contains("1e-300"), "{said}");
+            assert!(said.len() < 600, "{said}");
+        }
+        assert_eq!(as_given(-0.0), "-0");
+        assert_eq!(as_given(1013.25), "1013.25");
+        assert_eq!(as_given(f64::NAN), "NaN");
     }
 }

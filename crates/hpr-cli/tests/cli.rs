@@ -9487,6 +9487,7 @@ fn compare_refuses_launch_days_and_figures_it_cant_use() {
         .to_string_lossy()
         .into_owned();
     refused(&["--plot", png.as_str()], "--plot writes an .svg file");
+    refused(&["--plot", ""], "an empty name: --plot writes an .svg file");
     let over = folder.path().join("log.svg").to_string_lossy().into_owned();
     std::fs::copy(&log, &over).unwrap();
     let output = hpr(&[
