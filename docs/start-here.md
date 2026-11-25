@@ -264,7 +264,7 @@ smoother](physics/smoother.md)).
 `hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
 simulated, phase by phase. It sets each reading beside the simulation's, read the same way
 ([Comparing a flight with its simulation](comparing-a-flight.md)). With `--plot` it draws the log beside
-the simulation twice: as designed, and under the launch day's weather. That weather comes from
+the simulation as designed and, where you give the day's conditions, under them. Those come from
 Open-Meteo's archive at the log's own site and time, or from values you enter
 ([Draw it](comparing-a-flight.md#draw-it)). It reports the gap and fits nothing.
 In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,

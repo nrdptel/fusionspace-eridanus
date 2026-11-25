@@ -34,11 +34,11 @@
 use hpr::hpr_forensics::residuals::LinePoint;
 
 use super::{
-    CANVAS, CAPTION_TOP, CHAIN, DASHED, FONT, INK, INK_MUTED, LEFT, LIST_LINE, LIST_WIDTH, MARGIN,
-    NAME_LIMIT, PANEL_GAP, PREDICTED, RIGHT, ROW_RULE, RULE, RULE_STRONG, SIZE, SPILL,
-    SUBTITLE_TOP, SURFACE, TITLE_LIMIT, TITLE_SIZE, TITLE_TOP, TRUST_LABEL, VERTICAL, WIDTH, axis,
-    bank, cut, escape, label, lines, number, pixel, text, thin, tick, title_block, us_scale,
-    width_px, wrap,
+    CANVAS, CAPTION_TOP, CHAIN, CHAR_PX, DASHED, FONT, INDENT, INDENT_PX, INK, INK_MUTED, LEFT,
+    LIST_LINE, LIST_WIDTH, MARGIN, NAME_LIMIT, PANEL_GAP, PANEL_HEIGHTS, PREDICTED, RIGHT,
+    ROW_RULE, RULE, RULE_STRONG, SIZE, SPILL, SUBTITLE_TOP, SURFACE, TITLE_SIZE, TITLE_TOP,
+    TRUST_LABEL, VERTICAL, WIDTH, axis, bank, cut, escape, fit, label, lines, number, pixel, text,
+    thin, tick, title_block, us_scale, width_px,
 };
 use crate::units::FOOT_M;
 
@@ -141,9 +141,23 @@ const COLUMNS_FOUR: [(f64, f64); 4] =
 /// How far past the simulations' values, in spans of them, an axis reaches for the log's.
 const LOGGED_REACH: f64 = 1.0;
 /// How far under zero, as a fraction of a panel's largest value, a value is taken as zero for
-/// the axis: at most 1.8 px under its foot on the tallest panel ([`super::PANEL_HEIGHTS`], 360 px),
-/// as a logger's noise on the pad is (3 m on a flight of 4 km, a quarter of a pixel there).
-const GROUND_SLACK: f64 = 0.005;
+/// the axis: one that draws no further under its foot than a line's spill ([`SPILL`], 1 px) on
+/// the tallest panel ([`PANEL_HEIGHTS`], 360 px), so nothing it lets through is cut. A logger's
+/// noise on the pad is that small: 3 m on a flight of 4 km is a quarter of a pixel there.
+const GROUND_SLACK: f64 = SPILL / PANEL_HEIGHTS.1;
+
+/// How wide a line of the caption or the notes draws, px at 12 px: [`LIST_WIDTH`] characters.
+const LIST_PX: f64 = LIST_WIDTH as f64 * CHAR_PX;
+
+/// `sentence` in lines for the notes, each drawn within [`LIST_PX`] by its width ([`fill`], so a
+/// wide character counts two cells and a control character goes), the later lines indented.
+fn note_lines(sentence: &str) -> Vec<String> {
+    let mut out = fill(sentence, LIST_PX - INDENT_PX);
+    for line in out.iter_mut().skip(1) {
+        line.insert_str(0, INDENT);
+    }
+    out
+}
 
 /// The figure, as an SVG document.
 pub(crate) fn svg(figure: &Figure<'_>) -> String {
@@ -160,8 +174,7 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let summary = summary(figure);
     let caption: Vec<String> = [summary.as_str(), LINES]
         .iter()
-        .flat_map(|paragraph| wrap(paragraph, LIST_WIDTH))
-        .map(|line| line.trim_start().to_owned())
+        .flat_map(|paragraph| fill(paragraph, LIST_PX))
         .collect();
     let mut frames = Vec::with_capacity(panels.len());
     let mut top = CAPTION_TOP + (caption.len() - 1) as f64 * LIST_LINE + PANEL_GAP;
@@ -185,33 +198,30 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
         .map(String::as_str)
         .chain([figure.clock])
     {
-        note.extend(wrap(sentence, LIST_WIDTH));
+        note.extend(note_lines(sentence));
     }
     if let Some(detail) = figure.speed_withheld {
-        note.extend(wrap(
-            &format!("The log's speed is withheld: {detail}"),
-            LIST_WIDTH,
-        ));
+        note.extend(note_lines(&format!(
+            "The log's speed is withheld: {detail}"
+        )));
     }
     for (panel, outside) in panels.iter().zip(&past) {
         if let Some((count, furthest)) = outside {
             let unit = if panel.ground { "m" } else { "m/s" };
-            note.extend(wrap(
-                &format!(
-                    "{count} logged {} past the {} axis, more than a span of the simulations' \
+            note.extend(note_lines(&format!(
+                "{count} logged {} past the {} axis, more than a span of the simulations' \
                      values from them, {}: they run off the panel's edge. The furthest is \
                      {}\u{a0}{unit}.",
-                    if *count == 1 {
-                        "sample lies"
-                    } else {
-                        "samples lie"
-                    },
-                    if panel.ground { "altitude" } else { "speed" },
-                    "most often a garbled sample or an ejection charge's pressure spike",
-                    number(*furthest, 1),
-                ),
-                LIST_WIDTH,
-            ));
+                if *count == 1 {
+                    "sample lies"
+                } else {
+                    "samples lie"
+                },
+                if panel.ground { "altitude" } else { "speed" },
+                "such as a garbled sample, an ejection charge's pressure spike, or a \
+                     simulation far off the flight",
+                number(*furthest, 1),
+            )));
         }
     }
     note.push(String::new());
@@ -229,7 +239,11 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let height = block_bottom + MARGIN;
 
     let title = text(figure.title, NAME_LIMIT);
-    let drawn_title = text(figure.title, TITLE_LIMIT);
+    // Fitted by width, as a wide character draws two cells: at the title's size, over the panels.
+    let drawn_title = escape(&fit(
+        figure.title,
+        (WIDTH - MARGIN - LEFT) * 12.0 / TITLE_SIZE,
+    ));
     let mut svg = format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{WIDTH}\" height=\"{height}\" \
          viewBox=\"0 0 {WIDTH} {height}\" font-family=\"{FONT}\" font-size=\"12\" \
@@ -244,7 +258,7 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
          <text x=\"{LEFT}\" y=\"{SUBTITLE_TOP}\" fill=\"{INK_MUTED}\">{}</text>\n",
         escape(&summary),
         hpr::hpr_core::tool::stamp(),
-        text(figure.subtitle, LIST_WIDTH)
+        escape(&fit(figure.subtitle, WIDTH - MARGIN - LEFT))
     );
     lines(&mut svg, &caption, CAPTION_TOP, LEFT, INK_MUTED);
     for (panel, (top, height, scale)) in panels.iter().zip(&frames) {
@@ -364,7 +378,7 @@ fn value_axis(panel: &Panel<'_>) -> (f64, f64, f64, Option<(usize, f64)>) {
     }
     // A value a hair under the ground, as a barometer's reading or a landing can be, would add a
     // whole step under it: within [`GROUND_SLACK`] of the axis's top it is taken as on the ground,
-    // and draws within the line's spill.
+    // and draws within the line's spill, as the axis spans at least that top.
     let top = kept.iter().fold(0.0_f64, |most, v| most.max(v.abs()));
     let (lo, hi, step) = axis(kept.into_iter().map(|v| {
         if v < 0.0 && -v <= GROUND_SLACK * top {
@@ -791,12 +805,18 @@ mod tests {
              above sea level; a 5.18 m rail at 84.0° above the horizon."
                 .to_owned(),
             "As designed: the 1976 standard atmosphere and no wind, at the site.".to_owned(),
+            // A file name may hold wide characters and a control character.
+            "Launch day: the weather profile 打ち上げ日の気象観測データ打ち上げ日の気象観測データ打ち上げ日の\
+             気象観測データ打ち上げ日の気象観測データ\u{1}.json, its wind and air."
+                .to_owned(),
         ];
-        let title = "a-very-long-log-file-name-from-a-ground-station-export-2022-06-24-flight-0001.csv \
-                     against its simulation";
+        // Wide characters draw two cells each: 33 of them and 33 narrow ones overrun a cut by count.
+        let title = "打ち上げ記録打ち上げ記録打ち上げ記録打ち上げ記録打ち上げ記録打ち上げ記録打ち上げ記 \
+                     flight-0001-from-a-ground-station.csv against its simulation";
         svg(&Figure {
             title,
-            subtitle: "rocket.ork, [M1378R-P]; logged by TeleMetrum v2.0",
+            subtitle: "ロケットの設計ファイルの名前がとても長い場合でも図の端を越えないことを確かめる設計.ork, \
+                       [M1378R-P]; logged by TeleMetrum v2.0, a ground station export",
             catalog_as_of: "2026-11-01",
             data_file: "out.plot.csv",
             logged_height: &height,

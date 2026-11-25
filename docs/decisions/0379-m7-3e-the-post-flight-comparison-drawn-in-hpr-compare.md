@@ -1,7 +1,7 @@
-# ADR-379: M7.3e, the post-flight comparison drawn by `hpr compare --plot` (2026-11-25)
+# ADR-379: M7.3e, the post-flight comparison drawn by `hpr compare --plot` (2026-11-24)
 
 - **Status:** accepted; carries out [M7.3e][m7-3e] ([ADR-257][adr-257] §4, [ADR-314][adr-314]); changes no number the residuals print for a log with no GNSS fix
-- **Summary:** `hpr compare --plot FILE.svg` draws the log's altitude and vertical speed from liftoff to landing beside the simulation's twice: as designed (the 1976 standard atmosphere, no wind) and under the launch day's conditions. Those come from Open-Meteo's archive of past forecasts at the site and launch time (`--launch-time`, or `--launch-time log` for an AltosUI CSV's GPS time), a weather profile (`--weather`), or values entered (`--wind`, `--temperature`, `--pressure`), so it works offline. The site is the log's GNSS fixes before liftoff unless one is given. The figure's table gives each reading's provenance.
+- **Summary:** `hpr compare --plot FILE.svg` draws the log's altitude and vertical speed from liftoff to landing beside the simulation's: as designed (the 1976 standard atmosphere, no wind), and under the launch day's conditions where they are given. Those come from Open-Meteo's archive of past forecasts at the site and launch time (`--launch-time`, or `--launch-time log` for an AltosUI CSV's GPS time), a weather profile (`--weather`), or values entered (`--wind`, `--temperature`, `--pressure`), so it works offline from values entered or a cached answer. The site is the log's GNSS fixes before liftoff unless one is given. The figure's table gives each reading's provenance.
 
 [m7-3e]: ../decisions-and-roadmap.md#m7-3e
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -40,15 +40,15 @@ one simulation in whatever air its options gave.
    out. `--launch-time` conflicts with the others.
 4. **Entered air no pad has is refused.** A temperature outside −90 to 60 °C, past the World
    Meteorological Organization's ground records, is refused. So is a pressure more than 15% from
-   the standard's at the pad's height, past the sea-level records (870 and 1,083.3 hPa, 14% under
+   the standard's at the pad's height, past the sea-level records (870 and 1,083.8 hPa, 14% under
    and 7% over 1,013.25 hPa). A weather report's pressure is reduced to sea level, and at a 1,400 m
-   field it lies about 18% over the standard's 856 hPa, so the commonest mistake is caught there.
+   field it lies about 18% over the standard's 856 hPa, so that mistake is caught there.
    Near sea level the two pressures differ less than 15% and pass, and so does the air flown.
 5. **The log's site is its GNSS fixes before liftoff.** Where neither `--latitude` nor `--longitude`
    is given (both 0, the defaults), the site is the median of the log's last fixes before liftoff,
    or its first fix, as `hpr analyze --ghost` places its pad. That holds with or without a launch
    day, so a log with fixes now flies from its own site: only gravity's and the Earth's rotation's
-   small part of the flight moves. A log with no fix keeps 0° N, 0° E, and `--launch-time` is then
+   part of the flight moves. A log with no fix keeps 0° N, 0° E, and `--launch-time` is then
    refused. The height is always `--elevation`'s: a receiver's height may be above the ellipsoid or
    above sea level, and the profile's check needs the site's height above sea level.
 6. **The log's date is read only where the reader trusts it.** `--launch-time log` takes the time an
@@ -74,9 +74,10 @@ one simulation in whatever air its options gave.
    spike would stretch an axis until the flight is a line at its foot (Juno III's log holds a 7.8 km
    residual, ADR-314). So each axis holds every simulated value and each logged value within one
    span of the simulated values either side; a logged sample past that runs off the panel's edge,
-   and the figure counts them and gives the furthest. A value under the ground by at most 0.5% of the
-   panel's largest, a logger's noise on the pad, is taken as on it for the axis, so it doesn't add
-   a whole step underneath; it draws at most 1.8 px under the foot.
+   and the figure counts them and gives the furthest. A value under the ground by at most 1/360 of
+   the panel's largest, a logger's noise on the pad, is taken as on it for the axis, so it doesn't
+   add a whole step underneath. On the tallest panel, 360 px, it draws at most 1 px under the foot,
+   within the line's own half-width, so nothing it lets through is cut.
 10. **Its data go beside it,** as `hpr sim --plot`'s do: a CSV with each line's points and a sidecar
     naming the program and carrying the trust note. The figure carries no date of issue, but a
     weather answer from the cache names when it was fetched, so two runs a fetch apart differ in
@@ -85,7 +86,7 @@ one simulation in whatever air its options gave.
 **How it is checked.** On a public flight, Prometheus 2022's AltosUI log from RocketPy's data, a
 test runs the command a person would type with `--launch-time log`: the site comes from the log's
 fixes (32.93950° N, 106.91145° W), the time from its GPS (2022-06-24T15:17:16Z), and Open-Meteo's
-answer for them, recorded on 2026-11-25, comes from the cache. It needs the gitignored checkout,
+answer for them, recorded on 2026-11-25 (UTC), comes from the cache. It needs the gitignored checkout,
 as M7.3a's real-flight test does. Tests that CI runs draw a constructed log against values entered
 and against Open-Meteo's earlier recorded answer, and check the lines' styles, the provenance, the
 conditions' words and every text's box on the figure. Others pin the refusals and the log's GPS

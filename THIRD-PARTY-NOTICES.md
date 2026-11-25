@@ -263,7 +263,7 @@ adds a source.
   are two answers recorded unchanged on 2026-09-30 from Open-Meteo's historical-forecast and
   forecast APIs, for 32.99° N, 106.97° W and two hours each; the example
   `crates/hpr/examples/open_meteo_weather.rs` reads the first.
-  `open-meteo-historical-prometheus.json` was recorded unchanged on 2026-11-25 from the
+  `open-meteo-historical-prometheus.json` was recorded unchanged on 2026-11-25 (UTC) from the
   historical-forecast API for 32.9395° N, 106.91145° W, 2022-06-24 15:00 to 16:00 UTC, the site
   and hour of a public flight's log, for `hpr compare --launch-time log`'s test. Weather data by
   Open-Meteo.com, licensed CC BY 4.0

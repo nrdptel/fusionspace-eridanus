@@ -5,7 +5,7 @@
 This page is for a flyer or a team who has flown and wants to see where the simulation parted from the
 flight. NASA Student Launch's handbook asks for this comparison after a team's subscale flight and again
 after its full-scale flight. With `--plot` the command draws it: the log beside the simulation as
-designed and under the launch day's weather, from liftoff to landing ([Draw it](#draw-it)). Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
+designed and, if you give it, under the launch day's weather ([Draw it](#draw-it)). Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
@@ -106,30 +106,38 @@ A logger HPR Sim has no reader for is read by `--mapping` or `--layout`, as in
 ## Draw it
 
 `--plot flight.svg` draws the log's altitude and vertical speed against the time since liftoff, from
-liftoff to landing, and the simulation's twice:
+liftoff to landing. Beside them it draws the simulation's:
 
 - **As designed:** the 1976 standard atmosphere and no wind, at the site. It is what the design
-  predicted before anyone looked at the day.
-- **On the launch day:** the day's air and wind, from one of three places. Give one; the residuals
+  predicted before anyone looked at the day. It is always drawn.
+- **On the launch day:** the day's air and wind, drawn when you give them. They come from one of
+  four sources in the table; the first two differ only in where the time comes from. The residuals
   in the text are then against this flight, and otherwise against the flight as designed.
+
+Give one source. `--launch-time` can't be combined with the others, and `--weather` can't go with
+`--wind`, `--temperature` or `--pressure`, as it gives its own wind and air.
 
 | you give | the launch day's air and wind |
 |---|---|
 | `--launch-time 2023-06-23T23:00Z` | [Open-Meteo](weather.md)'s archive of past forecasts at the site, for that time in UTC |
 | `--launch-time log` | the same, at the time the log's GPS receiver gives at liftoff: an AltosUI CSV's |
 | `--weather profile.json` | a profile `hpr weather` wrote, from any of its sources |
-| `--wind`, `--wind-from`, `--temperature`, `--pressure` | values you enter: a wind the same at every height, and the air at the pad |
+| `--wind`, `--wind-from`, `--temperature`, `--pressure` | values you enter: a wind the same at every height, from the north unless `--wind-from` says otherwise, and the air at the pad |
 
 The site is `--latitude` and `--longitude` where you give them. Where you give neither, it is the
-log's own: the median of its last GNSS fixes before liftoff, as `hpr analyze --ghost` places its pad.
-The height is always `--elevation`'s. `--offline` answers from the cache only, so a weather answer
-fetched once works with no network after; the values you enter never need one.
+log's own: the median of its last GNSS (satellite navigation) fixes before liftoff, as
+[`hpr analyze --ghost`](cli.md#a-ghost-file) places its pad. A log with no fix needs `--latitude`
+and `--longitude` before `--launch-time` will run. The height is always `--elevation`'s.
+
+The first run with `--launch-time` fetches the weather, so it needs a network. After that,
+`--offline` answers from the cache. The values you enter never need a network.
 
 Entered air is the standard atmosphere shifted to pass through your temperature and pressure at the
 pad ([the standard atmosphere](physics/atmosphere.md)). Leave one out and it is the standard's at
-`--elevation`. The pressure is the station's own, not one reduced to sea level, as a weather report
-gives it: a pressure more than 15% from the standard's at the pad's height is refused. At a 1,400 m
-(4,593 ft) field the standard's is 856 hPa, and a sea-level 1,013 hPa lies about 18% over it.
+`--elevation`. The pressure is the station's own, not one reduced to sea level as a weather report
+gives it. At a 1,400 m (4,593 ft) field the standard pressure is 856 hPa, and a weather report's
+1,013 hPa is about 18% higher. A pressure more than 15% from the standard's at the pad's height is
+refused, so that one is.
 
 The figure follows `hpr sim --plot`'s style. The log is solid and dark, its heights as it logged
 them and its speed [the smoother's](physics/smoother.md), derived from them. Each simulation is
@@ -157,10 +165,19 @@ hpr compare 2022-06-24-serial-5115-flight-0001-TeleMetrum.csv \
 
 The site comes from the log's fixes, 32.93950° N, 106.91145° W, and the time from its GPS at
 liftoff, 15:17:16 UTC on June 24, 2022. The launch day's air and wind are Open-Meteo's for that hour at
-its nearest grid point. A test runs this command on a recorded copy of that answer
+its nearest grid point. The log's apogee reads 3,892.1 m (12,769 ft) above the pad. Read as its barometer would
+read them, the two simulations reach 4,052.5 m (13,296 ft) as designed and 3,955.4 m (12,977 ft) on the launch day, so the
+apogee's residual against the launch day is −63.3 m (−208 ft). A test runs this command on a recorded copy
+of Open-Meteo's answer and checks these numbers
 ([`compare_plots_a_public_flight_on_its_logs_own_site_and_day`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)).
+It needs a checkout of RocketPy's data, so it runs where that is present, not in every build.
 That design's `.json` holds no parachute, so both simulations fall from apogee and their descents
 mean nothing, as the notes say.
+
+The launch day's line flies a weather model's air and wind, hourly and on a grid some kilometers
+wide, not a measurement at the pad. So the gap between it and the log isn't all the simulator's.
+How far back Open-Meteo's archive of past forecasts reaches is Open-Meteo's to say; for a flight
+before it, give a profile from another source through `--weather`.
 
 ## What a residual is
 
@@ -215,8 +232,8 @@ read the log, the speed says why.
 - On a staged flight the simulated track is the stack's, then the upper stage's, so a booster's log compares
   only up to the split.
 - `--launch-time log` reads a time from an AltosUI CSV only. AltOS's telemetry and flash records
-  keep two digits of the year, and the flash's date may not be the flight's. Other formats state no
-  date the reader trusts, so give the time.
+  keep two digits of the year, and the flash's date may not be the flight's. Some other formats,
+  such as GPX or NMEA tracks, do state dates, but the command doesn't read them yet, so give the time.
 - The weather source's air and wind are a model's, hourly, on a grid some kilometers wide, not a
   measurement at the pad. The figure shows the gap between the log and each simulation; it doesn't
   say which part is the weather's.

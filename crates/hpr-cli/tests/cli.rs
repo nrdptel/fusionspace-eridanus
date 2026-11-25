@@ -9274,6 +9274,17 @@ fn launch_day_line() -> Stroke {
     ("#A22488".to_owned(), true, "2".to_owned())
 }
 
+/// The highest altitude a line of a comparison's data reaches, m.
+fn line_peak(data: &str, line: &str) -> f64 {
+    data.lines()
+        .skip(1)
+        .filter_map(|row| {
+            let cells: Vec<&str> = row.split(',').collect();
+            (cells[0] == line).then(|| cells[2].parse::<f64>().ok())?
+        })
+        .fold(f64::NEG_INFINITY, f64::max)
+}
+
 /// M7.3e: `hpr compare --plot` draws the log beside its simulation as designed and under the
 /// launch day's conditions, here values entered, so it works offline; the readings keep their
 /// provenance on the figure, and the document says where the conditions came from.
@@ -9333,6 +9344,20 @@ fn compare_draws_a_log_beside_its_simulation_as_designed_and_on_the_launch_day()
     for line in ["\nlogged,", "\nas designed,", "\nlaunch day,"] {
         assert!(data.contains(line), "{line}");
     }
+    // The launch day's flight flies the day's air and wind. Hot air at the pad makes a barometer
+    // read low, as the pressure falls more slowly with height than the standard's, and a
+    // crosswind turns the rocket into it; the thinner air lifts it, but here the apogee as the
+    // log's barometer reads it comes out 1.8% lower than as designed (1,520 m against 1,548 m).
+    let (designed, day) = (
+        line_peak(&data, "as designed"),
+        line_peak(&data, "launch day"),
+    );
+    assert!(designed - day > 0.01 * designed, "{designed} {day}");
+    // The residuals are against the launch day's flight.
+    let apogee = &document["rows"][0];
+    assert_eq!(apogee["what"], "apogee_height");
+    let simulated = apogee["simulated"]["value"].as_f64().unwrap();
+    assert!((simulated - day).abs() < 1.0, "{simulated} {day}");
     let meta: Value =
         serde_json::from_str(&std::fs::read_to_string(files["meta"].as_str().unwrap()).unwrap())
             .unwrap();
@@ -9381,7 +9406,8 @@ fn compare_draws_a_log_beside_its_simulation_as_designed_and_on_the_launch_day()
 }
 
 /// M7.3e: `--launch-time` flies the weather source's air and wind at the site and time, from the
-/// cache offline, credited; with nothing cached offline it is refused.
+/// cache offline, credited, and the residuals are against that flight; the same answer written as
+/// a profile flies the same through `--weather`; with nothing cached offline it is refused.
 #[test]
 fn compare_flies_the_weather_sources_launch_day() {
     let folder = tempfile::tempdir().unwrap();
@@ -9434,6 +9460,48 @@ fn compare_flies_the_weather_sources_launch_day() {
         vec![designed_line(), launch_day_line(), logged_line()]
     );
     assert!(texts.contains("Open-Meteo.com (CC BY 4.0)"), "{texts}");
+    let data = std::fs::read_to_string(document["plot"]["data"].as_str().unwrap()).unwrap();
+    let (designed, day) = (
+        line_peak(&data, "as designed"),
+        line_peak(&data, "launch day"),
+    );
+    // The day's air and wind are flown: the recorded answer's air at the ground is 28.0 to
+    // 31.2 °C, where the standard's at 1,400 m is 5.9 °C, so the barometer's apogee reads lower
+    // (1,644 m against 1,673 m), and the residuals are against that flight.
+    assert!(designed - day > 0.01 * designed, "{designed} {day}");
+    let simulated = document["rows"][0]["simulated"]["value"].as_f64().unwrap();
+    assert!((simulated - day).abs() < 1.0, "{simulated} {day}");
+    // The same answer written as a profile by `hpr weather` and flown by --weather is the same
+    // launch day.
+    let profile = folder.path().join("profile.json");
+    let profile = profile.to_str().unwrap();
+    let recording = repo_file("crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json");
+    let written = hpr(&[
+        "weather",
+        "open-meteo",
+        "--time",
+        "2025-06-21T15:30Z",
+        "--from",
+        &recording,
+        "--output",
+        profile,
+    ]);
+    assert_eq!(written.status.code(), Some(0), "{written:?}");
+    let mut by_profile: Vec<&str> = args[..args.len() - 5].to_vec();
+    by_profile.extend(["--weather", profile, "--plot", plot.as_str(), "--json"]);
+    let output = hpr(&by_profile);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let flown: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(flown["flown_in"]["conditions"], "launch_day");
+    let data = std::fs::read_to_string(flown["plot"]["data"].as_str().unwrap()).unwrap();
+    assert!(
+        flown["flown_in"]["detail"]
+            .as_str()
+            .unwrap()
+            .contains("the weather profile profile.json"),
+        "{flown:#}"
+    );
+    assert_eq!(line_peak(&data, "launch day"), day);
     // Offline with nothing cached: refused, naming the source.
     let empty = tempfile::tempdir().unwrap();
     let refused = hpr_cached(&args[..args.len() - 1], empty.path());
@@ -9575,6 +9643,22 @@ fn compare_plots_a_public_flight_on_its_logs_own_site_and_day() {
     assert!(
         detail.contains("nearest the log's GNSS fixes before liftoff"),
         "{detail}"
+    );
+    let data = std::fs::read_to_string(document["plot"]["data"].as_str().unwrap()).unwrap();
+    // The apogees the page quotes: the log's reading, each simulation's line read as the log's
+    // barometer reads it, and the residual, logged less the launch day's.
+    let apogee = &document["rows"][0];
+    assert_eq!(apogee["what"], "apogee_height");
+    let near = |value: f64, quoted: f64| (value - quoted).abs() < 0.05;
+    assert!(
+        near(apogee["logged"]["value"].as_f64().unwrap(), 3892.1),
+        "{apogee}"
+    );
+    assert!(near(line_peak(&data, "as designed"), 4052.5), "{data:.200}");
+    assert!(near(line_peak(&data, "launch day"), 3955.4), "{data:.200}");
+    assert!(
+        near(apogee["logged_minus_simulated"].as_f64().unwrap(), -63.3),
+        "{apogee}"
     );
     let (panels, texts) = compare_figure(&plot);
     for panel in &panels {

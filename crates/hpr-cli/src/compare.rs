@@ -40,7 +40,7 @@ use crate::{Failure, Out};
 const TEMPERATURE_C: (f64, f64) = (-90.0, 60.0);
 /// How far a pad's pressure may lie from the 1976 standard atmosphere's at its height before
 /// `--pressure` is refused, as a fraction: past the deepest low and the highest high measured at
-/// sea level, 870 hPa (Typhoon Tip, 1979) and 1,083.3 hPa (Agata, 1968), 14% under and 7% over
+/// sea level, 870 hPa (Typhoon Tip, 1979) and 1,083.8 hPa (Agata, 1968), 14% under and 7% over
 /// the standard's 1,013.25 hPa, as the World Meteorological Organization's archive lists them. A
 /// pressure reduced to sea level, as a weather report gives it, lies about 18% over the
 /// standard's 856 hPa at a 1,400 m field (1,013 hPa), and is refused there; nearer sea level the
@@ -86,8 +86,8 @@ pub struct CompareArgs {
     )]
     pub recording: Option<usize>,
     /// Draw the log's altitude and vertical speed, liftoff to landing, into this .svg file. Beside
-    /// them go the simulation's, as designed and under the launch day's conditions. Its data go
-    /// beside it
+    /// them go the simulation's: as designed, and under the launch day's conditions where they are
+    /// given. Its data go beside it
     #[arg(long, value_name = "FILE")]
     pub plot: Option<String>,
     /// The launch's time in UTC, such as 2023-06-23T23:00Z, or `log` for the time the log's GPS
@@ -488,8 +488,9 @@ fn logged_time(log: &FlightLog, liftoff_s: f64) -> Option<i64> {
                 .copied()
                 .filter(|v| v.fract() == 0.0)
         };
-        let year = value(0).filter(|year| *year >= 1980.0)?;
-        // Whole numbers, checked above, and a year past 1980: each converts exactly.
+        // A four-digit year from GPS's start on: a garbled one is no time the log gives.
+        let year = value(0).filter(|year| (1980.0..=9999.0).contains(year))?;
+        // Whole numbers, checked above, and a year of four digits: each converts exactly.
         #[allow(
             clippy::cast_possible_truncation,
             clippy::cast_sign_loss,
@@ -536,7 +537,7 @@ fn as_given(value: f64) -> String {
 /// level, either one the standard atmosphere's where it isn't entered: the 1976 standard shifted to
 /// pass through both ([`Ussa76::anchored`]); and those values in words. A temperature outside
 /// [`TEMPERATURE_C`], or a pressure further from the standard's than [`PRESSURE_FROM_STANDARD`], is
-/// refused: neither is air at a pad, and the second is most often a pressure reduced to sea level.
+/// refused: neither is air at a pad, and the second may be a pressure reduced to sea level.
 fn entered(
     temperature_c: Option<f64>,
     pressure_hpa: Option<f64>,
@@ -1234,11 +1235,20 @@ mod tests {
         let mut short = altos(LogFormat::AltosCsv, 0);
         short.channels[1].values = vec![22.0; 4];
         assert_eq!(logged_time(&short, 2.5), None);
+        // A garbled year is no time the log gives.
+        let mut garbled = altos(LogFormat::AltosCsv, 0);
+        garbled.channels[1].values = vec![1e9; 4];
+        assert_eq!(logged_time(&garbled, 2.5), None);
     }
 
     /// Entered air is the standard's where a value isn't entered, and air no pad has is refused.
     #[test]
     fn entered_air_is_checked_and_anchored() {
+        // The air flown passes through the values entered, at the pad.
+        let (air, _) = entered(Some(35.0), Some(1000.0), 100.0).unwrap();
+        let pad = air.sample(100.0).unwrap().air;
+        assert!((pad.temperature_k - 308.15).abs() < 1e-9, "{pad:?}");
+        assert!((pad.pressure_pa - 100_000.0).abs() < 1e-6, "{pad:?}");
         let (_, words) = entered(Some(35.0), None, 1400.0).unwrap();
         assert!(words.contains("35.0 °C (entered)"), "{words}");
         assert!(words.contains("856."), "{words}");

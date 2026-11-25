@@ -214,9 +214,13 @@ impl Simulated {
     }
 
     /// The moment at `t`, by straight lines between the samples; the first moment before the flight,
-    /// where the rocket sits on the pad; `None` after it.
+    /// where the rocket sits on the pad; `None` after it, and at a time that isn't a number.
     fn at(&self, t: f64) -> Option<Moment> {
         let (first, last) = (self.moments.first()?, self.moments.last()?);
+        // NaN passes both tests below, and the search would then find no moment before it.
+        if t.is_nan() {
+            return None;
+        }
         if t > last.time_s {
             return None;
         }
@@ -281,7 +285,8 @@ impl Simulated {
     /// s on the flight's clock, to the flight's end, each at its time after that liftoff. A
     /// barometer's reading and its rate, or the height climbed and its rate, as [`compare`] reads
     /// them; `liftoff_s` is [`Comparison::simulated_liftoff_s`], so the lines start on the
-    /// comparison's clock. Both are empty where the flight ends before `liftoff_s`.
+    /// comparison's clock. Both are empty where the flight ends before `liftoff_s`, or where
+    /// `liftoff_s` isn't a number.
     ///
     /// [m7-3e]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3e
     #[must_use]
@@ -1488,6 +1493,10 @@ mod tests {
         let (early, _) = simulation.read_lines(HeightKind::Geometric, -1.0);
         assert_eq!(early.len(), simulation.moments.len());
         assert_eq!(early[0].time_after_liftoff_s, 1.0);
+        // A liftoff that isn't a number gives no lines, not a panic.
+        let (none, no_rates) = simulation.read_lines(HeightKind::Barometric, f64::NAN);
+        assert!(none.is_empty() && no_rates.is_empty());
+        assert!(simulation.at(f64::NAN).is_none());
     }
 
     /// A reading keeps the provenance M7.2 gave it; the simulation's states none.
