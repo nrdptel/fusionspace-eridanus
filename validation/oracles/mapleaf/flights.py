@@ -354,6 +354,155 @@ def leaning_rail(case, folder):
     }
 
 
+# How closely the terms MAPLEAF's own parts give must close: each part's force against the log's,
+# and a part's terms against its force, as a fraction of the rocket's whole axial force.
+TERMS_TOLERANCE = 1e-9
+
+
+def drag_terms(case, folder, burnt, burn_out_s, coefficient):
+    """Each part's axial coefficient just after burnout by term, from MAPLEAF's own parts.
+
+    MAPLEAF logs each part's force whole. Here a fresh rocket is built from the definition the
+    flight flew, put at the logged state `burnt`, and each part is asked for its force again:
+    first as it is, which must give the log's force back, then with one piece of MAPLEAF's drag
+    switched off at a time. What a switch takes away is that piece:
+
+    - before the motor's shut-off time, a boat tail has no base drag (Rocket/boatTail.py,
+      `BoatTail.getAppliedForce`): the base term;
+    - with `AeroFunctions.getBaseDragCoefficient` at zero, a part loses everything scaled by the
+      base drag coefficient: the base, a narrowing part's pressure drag, and a blunt trailing
+      edge's;
+    - with `AeroFunctions.getSkinFrictionCoefficient` at zero, a body part loses its friction, and
+      the fins their friction and their thickness drag, which MAPLEAF scales by the same
+      coefficient (Rocket/Fins.py, `_getPreComputedFinAeroData`);
+    - with `AeroFunctions.getBluntBodyCd_ZeroBaseDrag` at zero, the fins lose their blunt leading
+      edge's drag;
+    - with the fin set's planform area at zero, the fins lose their thickness drag alone.
+
+    A nose keeps its pressure drag through all of them, so that is what is left of it. For every
+    other part nothing may be left: a part with a piece none of the switches reaches is refused.
+    The fins' friction, found by difference, must also be MAPLEAF's own coefficient at the mean
+    aerodynamic chord on the fins' wetted area (Niskanen eq. 3.85's thickness factor), so the
+    planform switch is shown to take the thickness drag and nothing else.
+
+    Returns, for each part's MAPLEAF name, its `terms` (friction, pressure, base, thickness: they
+    sum to its coefficient), and the length MAPLEAF took its friction coefficient on; and the
+    diameter of the base MAPLEAF charges base drag on.
+    """
+    from MAPLEAF.Motion import AeroParameters, Vector
+    from MAPLEAF.Rocket import AeroFunctions, BoatTail, FinSet, NoseCone
+    from MAPLEAF.SimulationRunners import Simulation
+
+    definition_path = pathlib.Path(folder) / f"{case['name']}.mapleaf"
+
+    def evaluate(time_s, without=(), mutate=None):
+        here = os.getcwd()
+        stdout = sys.stdout
+        os.chdir(folder)
+        try:
+            rocket = Simulation(simDefinitionFilePath=str(definition_path), silent=True).createRocket()
+        finally:
+            os.chdir(here)
+            sys.stdout = stdout
+        # A fresh rocket each time, as MAPLEAF's parts remember their last answer; a helper is
+        # switched off only after the rocket is built, as the fins use the friction when made.
+        if mutate is not None:
+            mutate(rocket)
+        saved = {name: getattr(AeroFunctions, name) for name in without}
+        for name in without:
+            setattr(AeroFunctions, name, lambda *args, **kwargs: 0.0)
+        try:
+            state = rocket.rigidBody.state
+            state.position = Vector(*(burnt[f"Position{axis}(m)"] for axis in "XYZ"))
+            state.velocity = Vector(*(burnt[f"Velocity{axis}(m/s)"] for axis in "XYZ"))
+            air = rocket._getEnvironmentalConditions(time_s, state)
+            center = rocket.getCG(time_s, state)
+            parts = [part for stage in rocket.stages for part in stage.components]
+            forces = {part.name: part.getAppliedForce(state, time_s, air, center).force.Z for part in parts}
+        finally:
+            for name, function in saved.items():
+                setattr(AeroFunctions, name, function)
+        return forces, rocket, state, air
+
+    def no_planform(rocket):
+        for stage in rocket.stages:
+            for part in stage.components:
+                if isinstance(part, FinSet):
+                    part.planformArea = 0
+
+    time_s = burnt["Time(s)"]
+    whole, rocket, state, air = evaluate(time_s)
+    burning, *_ = evaluate(0.5 * burn_out_s)
+    no_base_coefficient, *_ = evaluate(time_s, without=("getBaseDragCoefficient",))
+    no_friction, *_ = evaluate(time_s, without=("getSkinFrictionCoefficient",))
+    no_blunt_edge, *_ = evaluate(time_s, without=("getBluntBodyCd_ZeroBaseDrag",))
+    no_thickness, *_ = evaluate(time_s, mutate=no_planform)
+
+    scale = abs(burnt["AeroFZ(N)"])
+
+    def close(a, b):
+        return abs(a - b) <= TERMS_TOLERANCE * scale
+
+    mach = AeroParameters.getMachNumber(state, air)
+    result = {}
+    base_diameter_m = None
+    for part in (part for stage in rocket.stages for part in stage.components):
+        name = part.name
+        column = f"{name}FZ(N)" if name.startswith("Auto-Added") else f"Sustainer.{name}FZ(N)"
+        if column not in burnt or not close(whole[name], burnt[column]):
+            raise SystemExit(f"{case['name']}: MAPLEAF's {name}, asked again at the logged state, does not give its logged force")
+        if whole[name] == 0.0:
+            continue
+        with_base_coefficient = whole[name] - no_base_coefficient[name]
+        with_friction = whole[name] - no_friction[name]
+        base = whole[name] - burning[name]
+        if isinstance(part, FinSet):
+            thickness = whole[name] - no_thickness[name]
+            friction = with_friction - thickness
+            leading_edge = whole[name] - no_blunt_edge[name]
+            trailing_edge = with_base_coefficient
+            pressure = leading_edge + trailing_edge
+            length_m = part.MACLength
+            own = AeroFunctions.getSkinFrictionCoefficient(
+                state, air, part.MACLength, mach, part.surfaceRoughness, rocket.fullyTurbulentBL
+            )
+            by_formula = (
+                -own
+                * (part.wettedArea / rocket.Aref)
+                * (1 + 2 * part.thickness / part.MACLength)
+                * part.numFins
+                * AeroParameters.getDynamicPressure(state, air)
+                * rocket.Aref
+            )
+            if base != 0.0 or not close(friction, by_formula):
+                raise SystemExit(f"{case['name']}: MAPLEAF's fin friction is not its coefficient on the fins' wetted area")
+        else:
+            thickness = 0.0
+            friction = with_friction
+            pressure = with_base_coefficient - base
+            length_m = part.length
+            if isinstance(part, NoseCone):
+                # Its pressure drag is its own formula, which no switch reaches.
+                pressure += whole[name] - friction - with_base_coefficient
+            if isinstance(part, BoatTail) and base != 0.0:
+                if base_diameter_m is not None:
+                    raise SystemExit(f"{case['name']}: MAPLEAF charges base drag on two parts")
+                base_diameter_m = math.sqrt(4.0 * part.bottomArea / math.pi)
+        if not close(friction + pressure + base + thickness, whole[name]):
+            raise SystemExit(f"{case['name']}: MAPLEAF's {name} has drag that is none of friction, pressure, base or thickness")
+        # A term a part has none of is written 0.0, not the -0.0 its sign change gives.
+        result[name] = {
+            "terms": {
+                "friction": coefficient(friction) + 0.0,
+                "pressure": coefficient(pressure) + 0.0,
+                "base": coefficient(base) + 0.0,
+                "thickness": coefficient(thickness) + 0.0,
+            },
+            "friction_length_m": length_m,
+        }
+    return result, base_diameter_m
+
+
 def fly(case, time_step_s, folder, same_drag=False):
     """Runs MAPLEAF on one case at one step and returns what its logs hold."""
     steps, evaluations = run_mapleaf(case, time_step_s, folder, same_drag=same_drag)
@@ -423,8 +572,11 @@ def fly(case, time_step_s, folder, same_drag=False):
     def axial_coefficient(row, column="AeroFZ(N)"):
         # A force along the body axis, as a coefficient on the reference area: the log gives the
         # force in body axes, z from the tail to the nose.
+        return force_coefficient(row, row[column])
+
+    def force_coefficient(row, force_n):
         velocity = math.sqrt(sum(row[k] ** 2 for k in ("VelocityX(m/s)", "VelocityY(m/s)", "VelocityZ(m/s)")))
-        return -row[column] / (0.5 * row["AirDensity(kg/m^3)"] * velocity**2 * area)
+        return -force_n / (0.5 * row["AirDensity(kg/m^3)"] * velocity**2 * area)
 
     # Each part's share, under the id the inputs give it. MAPLEAF adds a boat tail of no length
     # behind a rocket that ends in a tube, to carry the base drag: it is counted with the last
@@ -451,6 +603,23 @@ def fly(case, time_step_s, folder, same_drag=False):
         parts.append({"id": case["fins"]["id"], "axial_coefficient": axial_coefficient(burnt, "Sustainer.FinsFZ(N)")})
         if abs(sum(part["axial_coefficient"] for part in parts) - whole) > 1e-9 * abs(whole):
             raise SystemExit(f"{case['name']}: MAPLEAF's parts do not sum to its whole axial force")
+        # Each part's coefficient by term, from MAPLEAF's own parts asked again at this state.
+        by_name, base_diameter_m = drag_terms(
+            case, folder, burnt, burn_out_s, lambda force_n: force_coefficient(burnt, force_n)
+        )
+        names = [f"Part{index}" for index in range(len(case["body"]))] + ["Fins"]
+        for part, name in zip(parts, names):
+            part["terms"] = by_name[name]["terms"]
+            part["friction_length_m"] = by_name[name]["friction_length_m"]
+        added = by_name.get("Auto-AddedZeroLengthBoatTail")
+        if added is not None:
+            # The added boat tail has no surface: its whole force is base drag.
+            if added["terms"]["friction"] != 0.0 or added["terms"]["pressure"] != 0.0:
+                raise SystemExit(f"{case['name']}: MAPLEAF's added boat tail has drag that is not base drag")
+            parts[-2]["terms"]["base"] += added["terms"]["base"]
+        for part in parts:
+            if abs(sum(part["terms"].values()) - part["axial_coefficient"]) > 1e-9 * abs(whole):
+                raise SystemExit(f"{case['name']}: the terms of MAPLEAF's {part['id']} do not sum to its axial force")
 
     return {
         "time_step_s": time_step_s,
@@ -471,7 +640,8 @@ def fly(case, time_step_s, folder, same_drag=False):
             "mach": burnt["Mach"],
             "axial_coefficient": whole,
             "parts": parts,
-        },
+        }
+        | ({} if same_drag else {"base_diameter_m": base_diameter_m}),
     }
 
 

@@ -89,17 +89,39 @@
             "parts": [
               {
                 "id": "nose",
-                "axial_coefficient": 0.035167094148975446
+                "axial_coefficient": 0.035167094148975446,
+                "terms": {
+                  "friction": 0.035165889037736445,
+                  "pressure": 1.2051112390012372e-06,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.274
               },
               {
                 "id": "body-tube-1",
-                "axial_coefficient": 0.3937619531662925
+                "axial_coefficient": 0.3937619531662925,
+                "terms": {
+                  "friction": 0.2595430037460549,
+                  "pressure": 0.0,
+                  "base": 0.13421894942023763,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 1.884
               },
               {
                 "id": "fins-1",
-                "axial_coefficient": 0.13462998108807023
+                "axial_coefficient": 0.13462998108807023,
+                "terms": {
+                  "friction": 0.02187730870162818,
+                  "pressure": 0.11083178841451048,
+                  "base": 0.0,
+                  "thickness": 0.0019208839719316126
+                },
+                "friction_length_m": 0.04150876601184194
               }
-            ]
+            ],
+            "base_diameter_m": 0.0809
           }
         }
       },
@@ -222,21 +244,50 @@
             "parts": [
               {
                 "id": "nose",
-                "axial_coefficient": 0.022009404712212167
+                "axial_coefficient": 0.022009404712212167,
+                "terms": {
+                  "friction": 0.021005655518096408,
+                  "pressure": 0.0010037491941157605,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.242
               },
               {
                 "id": "body-tube-1",
-                "axial_coefficient": 0.19252611695100919
+                "axial_coefficient": 0.19252611695100919,
+                "terms": {
+                  "friction": 0.19252611695100919,
+                  "pressure": 0.0,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 2.3856
               },
               {
                 "id": "tail-1",
-                "axial_coefficient": 0.11645016062265483
+                "axial_coefficient": 0.11645016062265483,
+                "terms": {
+                  "friction": 0.008330997364557528,
+                  "pressure": 0.010166152029562324,
+                  "base": 0.09795301122853499,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.05
               },
               {
                 "id": "fins-1",
-                "axial_coefficient": 0.1295097516026714
+                "axial_coefficient": 0.1295097516026714,
+                "terms": {
+                  "friction": 0.06485541192003376,
+                  "pressure": 0.06337554022849858,
+                  "base": 0.0,
+                  "thickness": 0.0012787994541390334
+                },
+                "friction_length_m": 0.21238682880401225
               }
-            ]
+            ],
+            "base_diameter_m": 0.135
           }
         }
       },
@@ -359,25 +410,61 @@
             "parts": [
               {
                 "id": "nose",
-                "axial_coefficient": 0.03308839737620576
+                "axial_coefficient": 0.03308839737620576,
+                "terms": {
+                  "friction": 0.03246264064235118,
+                  "pressure": 0.0006257567338545755,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.61
               },
               {
                 "id": "body-tube-1",
-                "axial_coefficient": 0.04713484676081065
+                "axial_coefficient": 0.04713484676081065,
+                "terms": {
+                  "friction": 0.04713484676081065,
+                  "pressure": 0.0,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.59
               },
               {
                 "id": "tail-1",
-                "axial_coefficient": 0.024145653293413255
+                "axial_coefficient": 0.024145653293413255,
+                "terms": {
+                  "friction": 0.01237884083934185,
+                  "pressure": 0.011766812454071409,
+                  "base": 0.0,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 0.127
               },
               {
                 "id": "body-tube-2",
-                "axial_coefficient": 0.2573573944805757
+                "axial_coefficient": 0.2573573944805757,
+                "terms": {
+                  "friction": 0.09800853663639969,
+                  "pressure": 0.0,
+                  "base": 0.15934885784417602,
+                  "thickness": 0.0
+                },
+                "friction_length_m": 2.064
               },
               {
                 "id": "fins-1",
-                "axial_coefficient": 0.09050641681569051
+                "axial_coefficient": 0.09050641681569051,
+                "terms": {
+                  "friction": 0.026543506547631233,
+                  "pressure": 0.06296571855169435,
+                  "base": 0.0,
+                  "thickness": 0.0009971917163649365
+                },
+                "friction_length_m": 0.11829634669118569
               }
-            ]
+            ],
+            "base_diameter_m": 0.203
           }
         }
       },

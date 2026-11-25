@@ -846,6 +846,14 @@ Each figure is HPR Sim's value less MAPLEAF's, as a percentage of MAPLEAF's
   MAPLEAF's, and MAPLEAF's is the higher on each of the 12 parts both codes have
   ([by part][mapleaf-drag]). MAPLEAF was flown with its defaults. Like HPR Sim, it then takes
   the [boundary layer](glossary.md#boundary-layer) as turbulent over the whole rocket.
+  Split by term, base drag carries 58.3% of NDRT 2020's difference and skin friction 44.3%;
+  the rail buttons, which only HPR Sim has, take 3.5% back. The base drag differs by an area,
+  not a formula. MAPLEAF charges it on a base as wide as the rocket's largest tube, and NDRT 2020
+  ends in a narrower one, so MAPLEAF's base area is 1.715 times HPR Sim's. The friction differs
+  by a length. MAPLEAF takes each part's friction coefficient on that part's own length, and
+  HPR Sim on the whole rocket's, which gives MAPLEAF the higher friction on every part
+  ([by term][mapleaf-drag-terms]). No committed measurement says which code is nearer on a
+  shape like these.
 - **A leaning rail.** MAPLEAF at the pinned commit doesn't fly a leaning rail as given. On a
   rail 5.3° from the vertical it moves the rocket up a line 10.60° from the vertical, with its
   body 5.30° from it. So every flight here leaves a vertical rail in both codes
@@ -861,6 +869,7 @@ rocket at a time.
 [mapleaf-matched]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#with-mapleafs-gravity-matched
 [mapleaf-momentum]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#with-the-internal-momentum-force-added
 [mapleaf-drag]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#the-drag-each-flew
+[mapleaf-drag-terms]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#what-the-split-says
 [mapleaf-rail]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/mapleaf-flights.md#mapleaf-on-a-leaning-rail
 [adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
 

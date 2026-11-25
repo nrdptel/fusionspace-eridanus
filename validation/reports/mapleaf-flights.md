@@ -57,7 +57,7 @@ The added force moves MAPLEAF's apogee by up to 0.104 m (0.342 ft) and its rail-
 
 ### The drag each flew
 
-Each code's aerodynamic force along the axis just after burnout, as a coefficient on HPR Sim's reference area, whole and by part. The base drag is counted with the last body part in both codes. The two are read at slightly different Mach numbers, each at its own flight's.
+Each code's aerodynamic force along the axis just after burnout, as a coefficient on HPR Sim's reference area, whole, by part and by term. The base drag is counted with the last body part in both codes. The two are read at slightly different Mach numbers, each at its own flight's.
 
 | design | Mach number, HPR Sim | Mach number, MAPLEAF | axial coefficient, HPR Sim | axial coefficient, MAPLEAF | difference |
 |---|---:|---:|---:|---:|---:|
@@ -84,6 +84,123 @@ Each code's aerodynamic force along the axis just after burnout, as a coefficien
 | `ndrt-2020-nose-to-tail` | `rail-buttons` | 0.0040 | none |
 
 Of the 12 parts both codes have, MAPLEAF's coefficient is the higher on 12.
+
+Each part's coefficient by term: skin friction, pressure drag, base drag, the thickness drag MAPLEAF adds for its fins, and the rail buttons' drag, which only HPR Sim has. From here to the end of this section a difference is MAPLEAF's value less HPR Sim's. A term a code does not have for a part reads `none` and counts as zero in the difference.
+
+| design | part | term | HPR Sim | MAPLEAF | MAPLEAF less HPR Sim |
+|---|---|---|---:|---:|---:|
+| `valetudo` | `nose` | friction | 0.0248 | 0.0352 | +0.0104 |
+| `valetudo` | `nose` | pressure | 0.0000 | 0.0000 | 0.0000 |
+| `valetudo` | `body-tube-1` | friction | 0.2543 | 0.2595 | +0.0053 |
+| `valetudo` | `body-tube-1` | base | 0.1341 | 0.1342 | +0.0001 |
+| `valetudo` | `fins-1` | friction | 0.0105 | 0.0219 | +0.0114 |
+| `valetudo` | `fins-1` | pressure | 0.1108 | 0.1108 | 0.0000 |
+| `valetudo` | `fins-1` | thickness | none | 0.0019 | +0.0019 |
+| `valetudo` | `rail-buttons` | rail buttons | 0.0243 | none | -0.0243 |
+| `bella-lui` | `nose` | friction | 0.0130 | 0.0210 | +0.0080 |
+| `bella-lui` | `nose` | pressure | 0.0010 | 0.0010 | 0.0000 |
+| `bella-lui` | `body-tube-1` | friction | 0.1884 | 0.1925 | +0.0041 |
+| `bella-lui` | `fins-1` | friction | 0.0391 | 0.0649 | +0.0257 |
+| `bella-lui` | `fins-1` | pressure | 0.0634 | 0.0634 | 0.0000 |
+| `bella-lui` | `fins-1` | thickness | none | 0.0013 | +0.0013 |
+| `bella-lui` | `rail-buttons` | rail buttons | 0.0065 | none | -0.0065 |
+| `bella-lui` | `tail-1` | friction | 0.0037 | 0.0083 | +0.0046 |
+| `bella-lui` | `tail-1` | pressure | 0.0102 | 0.0102 | 0.0000 |
+| `bella-lui` | `tail-1` | base | 0.0848 | 0.0980 | +0.0132 |
+| `ndrt-2020-nose-to-tail` | `nose` | friction | 0.0232 | 0.0325 | +0.0093 |
+| `ndrt-2020-nose-to-tail` | `nose` | pressure | 0.0006 | 0.0006 | 0.0000 |
+| `ndrt-2020-nose-to-tail` | `body-tube-1` | friction | 0.0334 | 0.0471 | +0.0137 |
+| `ndrt-2020-nose-to-tail` | `tail-1` | friction | 0.0063 | 0.0124 | +0.0060 |
+| `ndrt-2020-nose-to-tail` | `tail-1` | pressure | 0.0118 | 0.0118 | 0.0000 |
+| `ndrt-2020-nose-to-tail` | `body-tube-2` | friction | 0.0893 | 0.0980 | +0.0087 |
+| `ndrt-2020-nose-to-tail` | `body-tube-2` | base | 0.0928 | 0.1593 | +0.0666 |
+| `ndrt-2020-nose-to-tail` | `fins-1` | friction | 0.0137 | 0.0265 | +0.0129 |
+| `ndrt-2020-nose-to-tail` | `fins-1` | pressure | 0.0629 | 0.0630 | 0.0000 |
+| `ndrt-2020-nose-to-tail` | `fins-1` | thickness | none | 0.0010 | +0.0010 |
+| `ndrt-2020-nose-to-tail` | `rail-buttons` | rail buttons | 0.0040 | none | -0.0040 |
+
+The terms summed over each design's parts, with each term's share of the whole difference.
+
+| design | term | HPR Sim | MAPLEAF | MAPLEAF less HPR Sim | share of the difference |
+|---|---|---:|---:|---:|---:|
+| `valetudo` | friction | 0.2895 | 0.3166 | +0.0271 | +555.9% |
+| `valetudo` | pressure | 0.1108 | 0.1108 | 0.0000 | +0.7% |
+| `valetudo` | base | 0.1341 | 0.1342 | +0.0001 | +2.4% |
+| `valetudo` | thickness | none | 0.0019 | +0.0019 | +39.4% |
+| `valetudo` | rail buttons | 0.0243 | none | -0.0243 | -498.4% |
+| `valetudo` | whole | 0.5587 | 0.5636 | +0.0049 | +100.0% |
+| `bella-lui` | friction | 0.2443 | 0.2867 | +0.0424 | +84.2% |
+| `bella-lui` | pressure | 0.0745 | 0.0745 | 0.0000 | 0.0% |
+| `bella-lui` | base | 0.0848 | 0.0980 | +0.0132 | +26.2% |
+| `bella-lui` | thickness | none | 0.0013 | +0.0013 | +2.5% |
+| `bella-lui` | rail buttons | 0.0065 | none | -0.0065 | -12.9% |
+| `bella-lui` | whole | 0.4101 | 0.4605 | +0.0504 | +100.0% |
+| `ndrt-2020-nose-to-tail` | friction | 0.1659 | 0.2165 | +0.0506 | +44.3% |
+| `ndrt-2020-nose-to-tail` | pressure | 0.0753 | 0.0754 | +0.0001 | +0.1% |
+| `ndrt-2020-nose-to-tail` | base | 0.0928 | 0.1593 | +0.0666 | +58.3% |
+| `ndrt-2020-nose-to-tail` | thickness | none | 0.0010 | +0.0010 | +0.9% |
+| `ndrt-2020-nose-to-tail` | rail buttons | 0.0040 | none | -0.0040 | -3.5% |
+| `ndrt-2020-nose-to-tail` | whole | 0.3380 | 0.4522 | +0.1142 | +100.0% |
+
+The diameter of the base each code charges its base drag on, and MAPLEAF's base area over HPR Sim's.
+
+| design | base diameter, HPR Sim | base diameter, MAPLEAF | base area, MAPLEAF's over HPR Sim's |
+|---|---:|---:|---:|
+| `valetudo` | 0.0809 m | 0.0809 m | 1.000 |
+| `bella-lui` | 0.1350 m | 0.1350 m | 1.000 |
+| `ndrt-2020-nose-to-tail` | 0.1550 m | 0.2030 m | 1.715 |
+
+The length each code takes a part's friction coefficient on. HPR Sim takes the rocket's whole length for every part. MAPLEAF takes the part's own length, and the mean aerodynamic chord for the fins.
+
+| design | part | friction length, HPR Sim | friction length, MAPLEAF |
+|---|---|---:|---:|
+| `valetudo` | `nose` | 2.158 m | 0.274 m |
+| `valetudo` | `body-tube-1` | 2.158 m | 1.884 m |
+| `valetudo` | `fins-1` | 2.158 m | 0.042 m |
+| `bella-lui` | `nose` | 2.678 m | 0.242 m |
+| `bella-lui` | `body-tube-1` | 2.678 m | 2.386 m |
+| `bella-lui` | `fins-1` | 2.678 m | 0.212 m |
+| `bella-lui` | `tail-1` | 2.678 m | 0.050 m |
+| `ndrt-2020-nose-to-tail` | `nose` | 3.391 m | 0.610 m |
+| `ndrt-2020-nose-to-tail` | `body-tube-1` | 3.391 m | 0.590 m |
+| `ndrt-2020-nose-to-tail` | `tail-1` | 3.391 m | 0.127 m |
+| `ndrt-2020-nose-to-tail` | `body-tube-2` | 3.391 m | 2.064 m |
+| `ndrt-2020-nose-to-tail` | `fins-1` | 3.391 m | 0.118 m |
+
+The terms that carry each design's difference, the largest share first, each with its difference and its share of the whole:
+
+- `valetudo`: MAPLEAF's coefficient is 0.0049 the higher: friction 0.0271 (555.9%), thickness 0.0019 (39.4%), base 0.0001 (2.4%), pressure 0.0000 (0.7%), rail buttons -0.0243 (-498.4%).
+- `bella-lui`: MAPLEAF's coefficient is 0.0504 the higher: friction 0.0424 (84.2%), base 0.0132 (26.2%), thickness 0.0013 (2.5%), pressure 0.0000 (0.0%), rail buttons -0.0065 (-12.9%).
+- `ndrt-2020-nose-to-tail`: MAPLEAF's coefficient is 0.1142 the higher: base 0.0666 (58.3%), friction 0.0506 (44.3%), thickness 0.0010 (0.9%), pressure 0.0001 (0.1%), rail buttons -0.0040 (-3.5%).
+
+#### What each term is in the two codes
+
+Each row names the formula a code uses and the source its own code cites for it. MAPLEAF's files are those of its `MAPLEAF` package at the pinned commit.
+
+| term | HPR Sim | MAPLEAF |
+|---|---|---|
+| Skin friction coefficient | Niskanen's turbulent coefficient `1/(1.5 ln R - 5.6)^2`, or past the critical Reynolds number `51 (R_s/L)^-1.039` the rough wall's `0.032 (R_s/L)^0.2` (Niskanen 2009, eq. 3.78 to 3.81). `R` and `L` are on the rocket's whole length for every part, the fins too (`skin_friction_coefficient` in `crates/hpr-aero/src/drag.rs`). | The same formulas (`getSkinFrictionCoefficient` in `Rocket/AeroFunctions.py`, which cites Barrowman 1967 eq. 4-7 and Niskanen eq. 3.81). `R` and `L` are on each part's own length: the nose's, each tube's, the transition's, and the fins' mean aerodynamic chord. |
+| Its factor for compressibility at these Mach numbers | `1 - 0.1 M^2` on a smooth or a rough wall (Niskanen eq. 3.82). | `1 - 0.12 M^2` on a surface given any roughness and `1 - 0.10 M^2` on one given none. Its comment cites Barrowman's eq. 4-9 and 4-10; Barrowman's smooth wall, eq. 4-9, reads `1 - 0.09 M^2`. |
+| Friction of a body part | The coefficient times `1 + 1/(2 f_B)`, `f_B` the rocket's fineness ratio (Niskanen eq. 3.85). | The same factor, citing Barrowman eq. 4-16. |
+| Friction of the fins | The coefficient times `1 + 2t/c`, `t` the thickness and `c` the mean aerodynamic chord, on the fins' faces (Niskanen eq. 3.85). | The same, citing Niskanen eq. 3.85 (`_getPreComputedFinAeroData` in `Rocket/Fins.py`). |
+| Pressure drag | A nose by Niskanen's eq. 3.86 and 3.87, a narrowing part by the boattail rule (eq. 3.88), a fin's blunt edges by eq. 3.89 to 3.93. | A nose and a narrowing part by the same rules (it cites Niskanen eq. 3.87 and 3.88). A fin's blunt leading edge cites Barrowman eq. 4-22, and its blunt trailing edge Niskanen's section 3.4.4. |
+| Base drag | `0.12 + 0.13 M^2` below Mach 1 (Niskanen eq. 3.94) on the area of the aft base, less a burning motor's. Up to Mach 0.8 a base right behind a boattail keeps `d_B/d_1` of that, its own diameter over the boattail's fore diameter ([ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)). | The same coefficient (`getBaseDragCoefficient`, which cites no source) on the bottom area of a boat tail, and only after the motor's shut-off time. A rocket that ends in a tube is given a boat tail of no length for it, as wide as the rocket's largest body tube. The code's own comment says the bottom tube's diameter is still to be used there (`_ensureBaseDragIsAccountedFor` in `Rocket/rocket.py`). |
+| Thickness drag of the fins | None. Niskanen takes a fin's thickness into account in the friction's `1 + 2t/c` alone (p. 49). | Barrowman's subsonic thickness drag for each fin (its constant cites Barrowman eq. 4-36), added to the friction with its `1 + 2t/c`. The code marks that section as not working quite right. |
+| Rail buttons | Niskanen's rule for a rail pin (p. 52). | No such part. |
+| Interference between the fins and the body | None: neglected, as Niskanen does (p. 41). | None in the drag: its fin and body factors act on the normal force. |
+
+#### What the split says
+
+Neither code is the truth, and the terms are read at one instant of each flight. Within that:
+
+- **Base drag is the largest term of the largest difference, and it comes from an area, not from a formula.** The two codes use one coefficient. On `ndrt-2020-nose-to-tail` MAPLEAF charges it on a base as wide as the rocket's largest tube, where the rocket ends in a narrower one, so its base area is the larger by the ratio in the table. On `valetudo`, which ends in its only tube, the two base terms agree. On `bella-lui`, which ends in a boat tail, the base diameters agree, and HPR Sim's term is the lower by its relief behind a boattail.
+- **Friction is higher in MAPLEAF on every part of every design, and it comes from the length.** A shorter length gives a higher coefficient on either branch: the rough wall's rises with `R_s/L`, and the turbulent one falls as the Reynolds number rises. The sources read for this report do not start the length again at each body part. Niskanen's Reynolds number is on "the length of the rocket" (p. 20), and his one coefficient serves the body and the fins (eq. 3.85). MIL-HDBK-762's sample calculation (Table 5-4) takes the body's Reynolds number on the body's length. For the fins the sources differ: the handbook takes the fin's chord, as MAPLEAF does, and Niskanen the rocket's length, as HPR Sim does. [Issue #484](https://github.com/nrdptel/fusionspace-eridanus/issues/484) is open to measure that choice on the Arcas wind-tunnel model.
+- **Pressure drag carries none of it.** The two follow the same rules, and its difference reads 0.0000 on every part in the first table.
+- **Two terms belong to one code only.** MAPLEAF's thickness drag is small on all three. HPR Sim's rail buttons nearly cancel MAPLEAF's higher friction on `valetudo`, which is why the whole difference there is small.
+
+#### Against a measurement
+
+No committed reference measures a quantity that both codes' numbers here can be held to. MAPLEAF has flown only these three designs, and none of the measured shapes is one of them. The nearest two are the Arcas wind-tunnel model (`validation/fixtures/aero/arcas-robin-wind-tunnel.json`: the forebody's axial force, the base left out, from Mach 0.6 up) and the Hermes A-3A's base pressure in flight (`validation/fixtures/aero/hermes-a3a-base-drag.json`: Mach 0.65 to 0.79). Each is compared with HPR Sim on the [aerodynamics page](https://hpr.fusionspace.co/physics/aero.html), and neither with MAPLEAF. So this report does not say which code's drag is nearer a measurement on a like shape. It does say that the largest term of the largest difference is a base wider than the rocket's aft end.
 
 ## What the two could not share
 

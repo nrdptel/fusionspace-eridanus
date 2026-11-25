@@ -80,6 +80,47 @@ const ADR_FILE: &str = "0378-mapleaf-as-a-second-open-oracle-flown-on-three-publ
 /// value (of the rocket's length, for a center of mass): `flights.py` refuses a run outside it
 /// and [`run`] checks the committed flights again.
 const MASS_TOLERANCE: f64 = 1e-6;
+/// How closely a part's terms must sum to its axial coefficient in MAPLEAF's flights, as a
+/// fraction of the whole coefficient: `flights.py` refuses a run outside it, and [`run`] checks
+/// the committed flights again.
+const MAPLEAF_TERMS_TOLERANCE: f64 = 1e-9;
+/// The same for HPR Sim's parts, and for its parts against its flight's whole coefficient: the
+/// buildup is worked out again from the flight's sample.
+const HPR_TERMS_TOLERANCE: f64 = 1e-6;
+/// What the report's page says after its tables of the drag by term (*The drag each flew*): each
+/// term's formula in the two codes with the source its code cites, the reading of the tables, and
+/// what the committed measurements can and cannot settle. Written by hand and kept here so the
+/// page stays generated. Its only numbers are the formulas' constants, the sources' equation and
+/// page numbers and the two references' Mach ranges; the tables and the sentences before it
+/// carry every computed one.
+const DRAG_TERMS_NOTE: &str = r#"#### What each term is in the two codes
+
+Each row names the formula a code uses and the source its own code cites for it. MAPLEAF's files are those of its `MAPLEAF` package at the pinned commit.
+
+| term | HPR Sim | MAPLEAF |
+|---|---|---|
+| Skin friction coefficient | Niskanen's turbulent coefficient `1/(1.5 ln R - 5.6)^2`, or past the critical Reynolds number `51 (R_s/L)^-1.039` the rough wall's `0.032 (R_s/L)^0.2` (Niskanen 2009, eq. 3.78 to 3.81). `R` and `L` are on the rocket's whole length for every part, the fins too (`skin_friction_coefficient` in `crates/hpr-aero/src/drag.rs`). | The same formulas (`getSkinFrictionCoefficient` in `Rocket/AeroFunctions.py`, which cites Barrowman 1967 eq. 4-7 and Niskanen eq. 3.81). `R` and `L` are on each part's own length: the nose's, each tube's, the transition's, and the fins' mean aerodynamic chord. |
+| Its factor for compressibility at these Mach numbers | `1 - 0.1 M^2` on a smooth or a rough wall (Niskanen eq. 3.82). | `1 - 0.12 M^2` on a surface given any roughness and `1 - 0.10 M^2` on one given none. Its comment cites Barrowman's eq. 4-9 and 4-10; Barrowman's smooth wall, eq. 4-9, reads `1 - 0.09 M^2`. |
+| Friction of a body part | The coefficient times `1 + 1/(2 f_B)`, `f_B` the rocket's fineness ratio (Niskanen eq. 3.85). | The same factor, citing Barrowman eq. 4-16. |
+| Friction of the fins | The coefficient times `1 + 2t/c`, `t` the thickness and `c` the mean aerodynamic chord, on the fins' faces (Niskanen eq. 3.85). | The same, citing Niskanen eq. 3.85 (`_getPreComputedFinAeroData` in `Rocket/Fins.py`). |
+| Pressure drag | A nose by Niskanen's eq. 3.86 and 3.87, a narrowing part by the boattail rule (eq. 3.88), a fin's blunt edges by eq. 3.89 to 3.93. | A nose and a narrowing part by the same rules (it cites Niskanen eq. 3.87 and 3.88). A fin's blunt leading edge cites Barrowman eq. 4-22, and its blunt trailing edge Niskanen's section 3.4.4. |
+| Base drag | `0.12 + 0.13 M^2` below Mach 1 (Niskanen eq. 3.94) on the area of the aft base, less a burning motor's. Up to Mach 0.8 a base right behind a boattail keeps `d_B/d_1` of that, its own diameter over the boattail's fore diameter ([ADR-362](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0362-base-drag-behind-a-boattail-below-mach-0-8-held-to-the-hermes-a-3a.md)). | The same coefficient (`getBaseDragCoefficient`, which cites no source) on the bottom area of a boat tail, and only after the motor's shut-off time. A rocket that ends in a tube is given a boat tail of no length for it, as wide as the rocket's largest body tube. The code's own comment says the bottom tube's diameter is still to be used there (`_ensureBaseDragIsAccountedFor` in `Rocket/rocket.py`). |
+| Thickness drag of the fins | None. Niskanen takes a fin's thickness into account in the friction's `1 + 2t/c` alone (p. 49). | Barrowman's subsonic thickness drag for each fin (its constant cites Barrowman eq. 4-36), added to the friction with its `1 + 2t/c`. The code marks that section as not working quite right. |
+| Rail buttons | Niskanen's rule for a rail pin (p. 52). | No such part. |
+| Interference between the fins and the body | None: neglected, as Niskanen does (p. 41). | None in the drag: its fin and body factors act on the normal force. |
+
+#### What the split says
+
+Neither code is the truth, and the terms are read at one instant of each flight. Within that:
+
+- **Base drag is the largest term of the largest difference, and it comes from an area, not from a formula.** The two codes use one coefficient. On `ndrt-2020-nose-to-tail` MAPLEAF charges it on a base as wide as the rocket's largest tube, where the rocket ends in a narrower one, so its base area is the larger by the ratio in the table. On `valetudo`, which ends in its only tube, the two base terms agree. On `bella-lui`, which ends in a boat tail, the base diameters agree, and HPR Sim's term is the lower by its relief behind a boattail.
+- **Friction is higher in MAPLEAF on every part of every design, and it comes from the length.** A shorter length gives a higher coefficient on either branch: the rough wall's rises with `R_s/L`, and the turbulent one falls as the Reynolds number rises. The sources read for this report do not start the length again at each body part. Niskanen's Reynolds number is on "the length of the rocket" (p. 20), and his one coefficient serves the body and the fins (eq. 3.85). MIL-HDBK-762's sample calculation (Table 5-4) takes the body's Reynolds number on the body's length. For the fins the sources differ: the handbook takes the fin's chord, as MAPLEAF does, and Niskanen the rocket's length, as HPR Sim does. [Issue #484](https://github.com/nrdptel/fusionspace-eridanus/issues/484) is open to measure that choice on the Arcas wind-tunnel model.
+- **Pressure drag carries none of it.** The two follow the same rules, and its difference reads 0.0000 on every part in the first table.
+- **Two terms belong to one code only.** MAPLEAF's thickness drag is small on all three. HPR Sim's rail buttons nearly cancel MAPLEAF's higher friction on `valetudo`, which is why the whole difference there is small.
+
+#### Against a measurement
+
+No committed reference measures a quantity that both codes' numbers here can be held to. MAPLEAF has flown only these three designs, and none of the measured shapes is one of them. The nearest two are the Arcas wind-tunnel model (`validation/fixtures/aero/arcas-robin-wind-tunnel.json`: the forebody's axial force, the base left out, from Mach 0.6 up) and the Hermes A-3A's base pressure in flight (`validation/fixtures/aero/hermes-a3a-base-drag.json`: Mach 0.65 to 0.79). Each is compared with HPR Sim on the [aerodynamics page](https://hpr.fusionspace.co/physics/aero.html), and neither with MAPLEAF. So this report does not say which code's drag is nearer a measurement on a like shape. It does say that the largest term of the largest difference is a base wider than the rocket's aft end."#;
 
 /// The inputs file: what HPR Sim flies of each design, for MAPLEAF to fly too.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -679,6 +720,16 @@ pub struct Flown {
     /// That coefficient by part, under the design's ids: the base drag is with the last body
     /// part in both codes.
     pub after_burnout_parts: Vec<PartDrag>,
+    /// The diameter of the base the code charges its base drag on there, m; `None` for a flight
+    /// on the shared drag table, which has no parts.
+    ///
+    /// MAPLEAF's is its own part's, as `flights.py` reads it. HPR Sim's is the aft diameter of
+    /// the design's last body part: with the motor off, its buildup charges the base drag on
+    /// that part's whole aft area ([`hpr_aero::ComponentDragTerms::base_area_m2`]; only a
+    /// thrusting motor's area is taken from it). A boattail ahead of the base scales HPR Sim's
+    /// base drag coefficient and leaves the area alone, so the two codes' base terms can differ
+    /// by more than their base areas do.
+    pub after_burnout_base_diameter_m: Option<f64>,
 }
 
 /// One part's share of a code's axial coefficient.
@@ -688,6 +739,150 @@ pub struct PartDrag {
     pub id: String,
     /// Its share of the axial coefficient, on HPR Sim's reference area.
     pub axial_coefficient: f64,
+    /// That share by term: the terms sum to it.
+    pub terms: DragTerms,
+    /// The length the code took the part's skin-friction coefficient on, m: the length in its
+    /// Reynolds number and its relative roughness. `None` for a part with no friction.
+    ///
+    /// HPR Sim takes every part's on the rocket's whole length
+    /// ([`hpr_aero::AeroModel::length_m`]). MAPLEAF takes a body part's on the part's own length
+    /// and the fins' on their mean aerodynamic chord.
+    pub friction_length_m: Option<f64>,
+}
+
+/// A part's axial coefficient by term, on HPR Sim's reference area. Each code names its own
+/// terms, and a term a code does not have is zero.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+pub struct DragTerms {
+    /// Skin friction.
+    pub friction: f64,
+    /// Pressure drag: a nose's, a narrowing part's, a step's, and the fins' leading and trailing
+    /// edges'.
+    pub pressure: f64,
+    /// Base drag, with the last body part.
+    pub base: f64,
+    /// MAPLEAF's subsonic drag of a fin's thickness, which it adds beside the fins' friction.
+    /// HPR Sim has no such term.
+    pub thickness: f64,
+    /// HPR Sim's parasitic drag, of launch lugs and rail buttons ([`hpr_aero::Drag::parasitic`]).
+    /// MAPLEAF has no such part, and its flights file no such field.
+    #[serde(default)]
+    pub parasitic: f64,
+}
+
+impl DragTerms {
+    /// The terms' sum: the part's axial coefficient.
+    #[must_use]
+    pub fn sum(&self) -> f64 {
+        self.friction + self.pressure + self.base + self.thickness + self.parasitic
+    }
+}
+
+/// One of the two codes compared.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Code {
+    Hpr,
+    Mapleaf,
+}
+
+impl Code {
+    /// The code's name in a sentence.
+    fn name(self) -> &'static str {
+        match self {
+            Self::Hpr => "HPR Sim",
+            Self::Mapleaf => "MAPLEAF",
+        }
+    }
+
+    /// How closely its parts' terms must sum to each part's coefficient, as a fraction of the
+    /// whole coefficient.
+    fn terms_tolerance(self) -> f64 {
+        match self {
+            Self::Hpr => HPR_TERMS_TOLERANCE,
+            Self::Mapleaf => MAPLEAF_TERMS_TOLERANCE,
+        }
+    }
+}
+
+/// What does not hold of a flight's drag by term, in words; `None` when all of it holds.
+///
+/// A flight on the shared table has no base diameter. A flight on a code's own drag has one,
+/// and each of its parts has terms that are numbers and sum to the part's coefficient, a
+/// friction length where it has friction, and no term its code does not have. HPR Sim's
+/// friction lengths are one length, the rocket's.
+fn terms_problem(code: Code, flown: &Flown, same_drag: bool) -> Option<String> {
+    let name = code.name();
+    let length_holds = |length_m: f64| length_m.is_finite() && length_m > 0.0;
+    match flown.after_burnout_base_diameter_m {
+        Some(diameter_m) if same_drag => {
+            return Some(format!(
+                "{name} has a base diameter ({diameter_m} m) on the shared drag table"
+            ));
+        }
+        None if !same_drag => return Some(format!("{name} has no base diameter")),
+        Some(diameter_m) if !length_holds(diameter_m) => {
+            return Some(format!("{name}'s base diameter is {diameter_m} m"));
+        }
+        _ => {}
+    }
+    let whole = flown.after_burnout_axial_coefficient.abs();
+    let mut rocket_length_m = None;
+    for part in &flown.after_burnout_parts {
+        let (id, terms) = (&part.id, &part.terms);
+        let values = [
+            terms.friction,
+            terms.pressure,
+            terms.base,
+            terms.thickness,
+            terms.parasitic,
+        ];
+        if values.iter().any(|value| !value.is_finite())
+            || !within(
+                terms.sum(),
+                part.axial_coefficient,
+                code.terms_tolerance() * whole,
+            )
+        {
+            return Some(format!(
+                "{name}'s terms for {id} are not its coefficient's: they sum to {}, and it is {}",
+                terms.sum(),
+                part.axial_coefficient
+            ));
+        }
+        let absent = match code {
+            Code::Hpr => terms.thickness,
+            Code::Mapleaf => terms.parasitic,
+        };
+        if absent != 0.0 {
+            return Some(format!(
+                "{name}'s {id} has a term {name} does not have ({absent})"
+            ));
+        }
+        match part.friction_length_m {
+            Some(length_m) if !length_holds(length_m) => {
+                return Some(format!("{name}'s friction length for {id} is {length_m} m"));
+            }
+            None if terms.friction != 0.0 => {
+                return Some(format!("{name}'s {id} has friction and no friction length"));
+            }
+            Some(_) if code == Code::Hpr && terms.friction == 0.0 => {
+                return Some(format!(
+                    "{name}'s {id} has a friction length and no friction"
+                ));
+            }
+            _ => {}
+        }
+        // HPR Sim's Reynolds number is on one length for every part.
+        if code == Code::Hpr
+            && let Some(length_m) = part.friction_length_m
+            && *rocket_length_m.get_or_insert(length_m) != length_m
+        {
+            return Some(format!(
+                "{name}'s friction lengths are not one length: {id}'s is {length_m} m"
+            ));
+        }
+    }
+    None
 }
 
 /// The two codes on one design with one drag.
@@ -1085,9 +1280,9 @@ fn fly_hpr(root: &Path, case: &InputCase, same_drag: bool) -> Result<Flown, Vali
         .atmosphere
         .air(case.site.elevation_m + start.height_above_ground_m)
         .map_err(|error| refuse(format!("{}: {error}", case.name)))?;
-    let after_burnout_parts = if same_drag {
-        // One table is the whole drag: it has no parts.
-        Vec::new()
+    let (after_burnout_parts, after_burnout_base_diameter_m) = if same_drag {
+        // One table is the whole drag: it has no parts, and no base of its own.
+        (Vec::new(), None)
     } else {
         // The drag buildup's parts at that instant, in the air HPR Sim flew it through.
         let there = environment
@@ -1104,27 +1299,117 @@ fn fly_hpr(root: &Path, case: &InputCase, same_drag: bool) -> Result<Flown, Vali
                 ),
             )
             .map_err(|error| refuse(format!("{}: {error}", case.name)))?;
-        let own: Vec<PartDrag> = parts
-            .into_iter()
-            .filter(|part| part.drag.axial_coefficient != 0.0)
-            .map(|part| PartDrag {
+        // The buildup's Reynolds number is on the rocket's whole length for every part
+        // (`AeroModel::buildup_components`), which is the length MAPLEAF was handed.
+        let rocket_length_m = simulation.aero().length_m();
+        if !within(rocket_length_m, case.length_m, 1e-9 * case.length_m) {
+            return Err(refuse(format!(
+                "{}: HPR Sim's drag is worked out on a length of {rocket_length_m} m, and the \
+                 inputs' is {} m",
+                case.name, case.length_m
+            )));
+        }
+        let mut own = Vec::new();
+        for part in parts {
+            let drag = part.drag;
+            if drag.axial_coefficient == 0.0 {
+                continue;
+            }
+            // A stated coefficient stands in place of a part's own drag, and is none of the
+            // report's terms.
+            if drag.stated != 0.0 {
+                return Err(refuse(format!(
+                    "{}: {} flies a stated drag coefficient ({}), which is none of the terms \
+                     compared",
+                    case.name, part.id, drag.stated
+                )));
+            }
+            // The page calls the parasitic term the rail buttons': a launch lug's would be
+            // named wrongly.
+            if drag.parasitic != 0.0
+                && !case
+                    .not_passed
+                    .contains(&format!("{} (rail buttons)", part.id))
+            {
+                return Err(refuse(format!(
+                    "{}: {} has parasitic drag and is not rail buttons",
+                    case.name, part.id
+                )));
+            }
+            let terms = DragTerms {
+                friction: drag.friction,
+                pressure: drag.pressure,
+                base: drag.base,
+                thickness: 0.0,
+                parasitic: drag.parasitic,
+            };
+            // The terms are at zero lift, and the axial coefficient is their sum times a factor
+            // of the angle of attack, 1 at none: these flights go straight up, so the two agree.
+            if !within(
+                terms.sum(),
+                drag.axial_coefficient,
+                HPR_TERMS_TOLERANCE * after.axial_coefficient.abs(),
+            ) {
+                return Err(refuse(format!(
+                    "{}: the terms of HPR Sim's {} sum to {}, and its axial coefficient at an \
+                     angle of attack of {} rad is {}",
+                    case.name,
+                    part.id,
+                    terms.sum(),
+                    after.angle_of_attack_rad,
+                    drag.axial_coefficient
+                )));
+            }
+            own.push(PartDrag {
                 id: part.id,
-                axial_coefficient: part.drag.axial_coefficient,
-            })
-            .collect();
+                axial_coefficient: drag.axial_coefficient,
+                terms,
+                friction_length_m: (terms.friction != 0.0).then_some(rocket_length_m),
+            });
+        }
+        // The base drag is charged on the last body part's aft area, which the inputs give as a
+        // diameter: the buildup's own base area must be that one, on that part and no other.
+        let last = case
+            .body
+            .last()
+            .ok_or_else(|| refuse(format!("{}: no body parts", case.name)))?;
+        let base_area_m2 = std::f64::consts::FRAC_PI_4 * last.aft_diameter_m.powi(2);
+        for terms in simulation.aero().drag_terms() {
+            let expected_m2 = if terms.id == last.id {
+                base_area_m2
+            } else {
+                0.0
+            };
+            if !within(terms.base_area_m2, expected_m2, 1e-9 * base_area_m2) {
+                return Err(refuse(format!(
+                    "{}: HPR Sim charges base drag on {} m² of {}, and the last body part, {}, \
+                     has an aft area of {base_area_m2} m²",
+                    case.name, terms.base_area_m2, terms.id, last.id
+                )));
+            }
+        }
+        if let Some(part) = own
+            .iter()
+            .find(|part| part.terms.base != 0.0 && part.id != last.id)
+        {
+            return Err(refuse(format!(
+                "{}: HPR Sim's {} has base drag and is not the last body part, {}",
+                case.name, part.id, last.id
+            )));
+        }
         // The parts are the flight's own coefficient, worked out again from its sample.
         let sum: f64 = own.iter().map(|part| part.axial_coefficient).sum();
         if !within(
             sum,
             after.axial_coefficient,
-            1e-6 * after.axial_coefficient.abs(),
+            HPR_TERMS_TOLERANCE * after.axial_coefficient.abs(),
         ) {
             return Err(refuse(format!(
                 "{}: HPR Sim's parts sum to {sum}, and its flight's axial coefficient there is {}",
                 case.name, after.axial_coefficient
             )));
         }
-        own
+        (own, Some(last.aft_diameter_m))
     };
     Ok(Flown {
         apogee_rise_m: summary
@@ -1155,6 +1440,7 @@ fn fly_hpr(root: &Path, case: &InputCase, same_drag: bool) -> Result<Flown, Vali
         after_burnout_mach: after.mach,
         after_burnout_axial_coefficient: after.axial_coefficient,
         after_burnout_parts,
+        after_burnout_base_diameter_m,
     })
 }
 
@@ -1259,8 +1545,26 @@ fn compare(
             .and_then(|flown| flown.get("after_burnout"))
             .and_then(|after| after.get("parts"))
             .and_then(|parts| serde_json::from_value(parts.clone()).ok())
-            .ok_or_else(|| refuse(format!("{FLIGHTS_JSON} gives no parts")))?,
+            .ok_or_else(|| {
+                refuse(format!(
+                    "{FLIGHTS_JSON} gives no parts, or parts without their terms, for {}'s \
+                     {flights} flight: fly MAPLEAF again and commit it",
+                    case.name
+                ))
+            })?,
+        after_burnout_base_diameter_m: if same_drag {
+            None
+        } else {
+            Some(number(
+                found,
+                &["flown", "after_burnout", "base_diameter_m"],
+            )?)
+        },
     };
+    // MAPLEAF's terms are its parts', before HPR Sim is flown against them.
+    if let Some(what) = terms_problem(Code::Mapleaf, &mapleaf, same_drag) {
+        return Err(refuse(format!("{}: in {FLIGHTS_JSON}, {what}", case.name)));
+    }
     let hpr = fly_hpr(root, case, same_drag)?;
     Ok(Compared::of(
         hpr,
@@ -1779,6 +2083,187 @@ fn not_shared(
     ]
 }
 
+/// The ids of a comparison's parts in the tables' order: HPR Sim's, then any only MAPLEAF has.
+fn part_ids(compared: &Compared) -> Vec<&str> {
+    let mut ids: Vec<&str> = compared
+        .hpr
+        .after_burnout_parts
+        .iter()
+        .map(|part| part.id.as_str())
+        .collect();
+    for part in &compared.mapleaf.after_burnout_parts {
+        if !ids.contains(&part.id.as_str()) {
+            ids.push(&part.id);
+        }
+    }
+    ids
+}
+
+/// The part with an id among a code's parts.
+fn part_by_id<'a>(parts: &'a [PartDrag], id: &str) -> Option<&'a PartDrag> {
+    parts.iter().find(|part| part.id == id)
+}
+
+/// A term of the axial coefficient as the page names it.
+struct Term {
+    /// Its name on the page.
+    name: &'static str,
+    /// Its value among a part's terms.
+    of: fn(&DragTerms) -> f64,
+    /// Whether HPR Sim's buildup has such a term.
+    hpr: bool,
+    /// Whether MAPLEAF has.
+    mapleaf: bool,
+}
+
+/// The terms in the page's order. HPR Sim's parasitic term is the rail buttons' on these
+/// designs, which [`fly_hpr`] checks.
+const TERMS: [Term; 5] = [
+    Term {
+        name: "friction",
+        of: |terms| terms.friction,
+        hpr: true,
+        mapleaf: true,
+    },
+    Term {
+        name: "pressure",
+        of: |terms| terms.pressure,
+        hpr: true,
+        mapleaf: true,
+    },
+    Term {
+        name: "base",
+        of: |terms| terms.base,
+        hpr: true,
+        mapleaf: true,
+    },
+    Term {
+        name: "thickness",
+        of: |terms| terms.thickness,
+        hpr: false,
+        mapleaf: true,
+    },
+    Term {
+        name: "rail buttons",
+        of: |terms| terms.parasitic,
+        hpr: true,
+        mapleaf: false,
+    },
+];
+
+/// One term in both codes, for a part or summed over a design's parts: `None` for a code that
+/// has no such term, or not the part.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct TermPair {
+    /// The term's name on the page.
+    name: &'static str,
+    /// HPR Sim's value.
+    hpr: Option<f64>,
+    /// MAPLEAF's.
+    mapleaf: Option<f64>,
+}
+
+impl TermPair {
+    /// MAPLEAF's value less HPR Sim's, a value a code does not have counting as zero.
+    fn difference(&self) -> f64 {
+        self.mapleaf.unwrap_or(0.0) - self.hpr.unwrap_or(0.0)
+    }
+
+    /// Whether either code has a value that is not zero: a term neither has is not listed.
+    fn in_either(&self) -> bool {
+        [self.hpr, self.mapleaf]
+            .into_iter()
+            .flatten()
+            .any(|value| value != 0.0)
+    }
+}
+
+/// One part's terms in both codes, in [`TERMS`]' order; `None` for a code without the part.
+fn part_terms(hpr: Option<&PartDrag>, mapleaf: Option<&PartDrag>) -> Vec<TermPair> {
+    TERMS
+        .iter()
+        .map(|term| TermPair {
+            name: term.name,
+            hpr: hpr.filter(|_| term.hpr).map(|part| (term.of)(&part.terms)),
+            mapleaf: mapleaf
+                .filter(|_| term.mapleaf)
+                .map(|part| (term.of)(&part.terms)),
+        })
+        .collect()
+}
+
+/// Each term summed over a comparison's parts, in [`TERMS`]' order.
+fn summed_terms(compared: &Compared) -> Vec<TermPair> {
+    // Summed from 0.0, so a code with no parts has a plain zero.
+    let sum = |flown: &Flown, term: &Term| {
+        flown
+            .after_burnout_parts
+            .iter()
+            .fold(0.0, |sum, part| sum + (term.of)(&part.terms))
+    };
+    TERMS
+        .iter()
+        .map(|term| TermPair {
+            name: term.name,
+            hpr: term.hpr.then(|| sum(&compared.hpr, term)),
+            mapleaf: term.mapleaf.then(|| sum(&compared.mapleaf, term)),
+        })
+        .collect()
+}
+
+/// MAPLEAF's whole axial coefficient just after burnout less HPR Sim's.
+fn whole_difference(compared: &Compared) -> f64 {
+    compared.mapleaf.after_burnout_axial_coefficient - compared.hpr.after_burnout_axial_coefficient
+}
+
+/// The summed terms either code has, the one with the largest share of the whole difference
+/// first: a term that differs the way the whole does comes before one that differs against it.
+fn carrying_terms(compared: &Compared) -> Vec<TermPair> {
+    let toward = if whole_difference(compared) < 0.0 {
+        -1.0
+    } else {
+        1.0
+    };
+    let mut terms: Vec<TermPair> = summed_terms(compared)
+        .into_iter()
+        .filter(TermPair::in_either)
+        .collect();
+    terms.sort_by(|a, b| (toward * b.difference()).total_cmp(&(toward * a.difference())));
+    terms
+}
+
+/// The area of MAPLEAF's base over HPR Sim's, from the two base diameters; `None` where a
+/// flight has none.
+fn base_area_ratio(compared: &Compared) -> Option<f64> {
+    let hpr_m = compared.hpr.after_burnout_base_diameter_m?;
+    let mapleaf_m = compared.mapleaf.after_burnout_base_diameter_m?;
+    Some((mapleaf_m / hpr_m).powi(2))
+}
+
+/// `value` to `decimals` places, with a plus sign on a positive one if `plus`. A value that
+/// rounds to zero is written with no sign.
+fn rounded(value: f64, decimals: usize, plus: bool) -> String {
+    let text = if plus {
+        format!("{value:+.decimals$}")
+    } else {
+        format!("{value:.decimals$}")
+    };
+    if text.bytes().any(|digit| (b'1'..=b'9').contains(&digit)) {
+        text
+    } else {
+        text.trim_start_matches(['+', '-']).to_owned()
+    }
+}
+
+/// `difference` as a share of the `whole` difference, in percent to one decimal; `none` where
+/// the whole is zero and there is no share to give.
+fn share(difference: f64, whole: f64, plus: bool) -> String {
+    if whole == 0.0 {
+        return "none".to_owned();
+    }
+    format!("{}%", rounded(percent(difference, whole), 1, plus))
+}
+
 /// The feet of a bound in meters that was rounded outward to three places, rounded outward
 /// again: the pair then converts, and both still bound the value.
 fn bound_feet(m: f64) -> f64 {
@@ -2097,8 +2582,8 @@ impl MapleafReport {
             page,
             "### The drag each flew\n\n\
              Each code's aerodynamic force along the axis just after burnout, as a coefficient \
-             on HPR Sim's reference area, whole and by part. The base drag is counted with the \
-             last body part in both codes. The two are read at slightly different Mach numbers, \
+             on HPR Sim's reference area, whole, by part and by term. The base drag is counted \
+             with the last body part in both codes. The two are read at slightly different Mach numbers, \
              each at its own flight's.\n\n\
              | design | Mach number, HPR Sim | Mach number, MAPLEAF | axial coefficient, HPR \
              Sim | axial coefficient, MAPLEAF | difference |\n|---|---:|---:|---:|---:|---:|"
@@ -2131,13 +2616,7 @@ impl MapleafReport {
                     |part| format!("{:.4}", part.axial_coefficient),
                 )
             };
-            let mut ids: Vec<&str> = hpr.iter().map(|part| part.id.as_str()).collect();
-            for part in mapleaf {
-                if !ids.contains(&part.id.as_str()) {
-                    ids.push(&part.id);
-                }
-            }
-            for id in ids {
+            for id in part_ids(&row.own_drag) {
                 let _ = writeln!(
                     page,
                     "| `{}` | `{id}` | {} | {} |",
@@ -2170,6 +2649,165 @@ impl MapleafReport {
             shared.len(),
             shared.iter().filter(|(ours, theirs)| theirs > ours).count(),
         );
+        self.drag_terms_tables(page);
+    }
+
+    /// The own-drag section's coefficients by term, the two inputs the terms differ by, and
+    /// which terms carry each design's difference.
+    fn drag_terms_tables(&self, page: &mut String) {
+        let coefficient = |value: Option<f64>| {
+            value.map_or_else(|| "none".to_owned(), |value| rounded(value, 4, false))
+        };
+        let _ = writeln!(
+            page,
+            "Each part's coefficient by term: skin friction, pressure drag, base drag, the \
+             thickness drag MAPLEAF adds for its fins, and the rail buttons' drag, which only \
+             HPR Sim has. From here to the end of this section a difference is MAPLEAF's value \
+             less HPR Sim's. A term a code does not have for a part reads `none` and counts as \
+             zero in the difference.\n\n\
+             | design | part | term | HPR Sim | MAPLEAF | MAPLEAF less HPR Sim |\n\
+             |---|---|---|---:|---:|---:|"
+        );
+        for row in &self.rows {
+            let (hpr, mapleaf) = (
+                &row.own_drag.hpr.after_burnout_parts,
+                &row.own_drag.mapleaf.after_burnout_parts,
+            );
+            for id in part_ids(&row.own_drag) {
+                for term in part_terms(part_by_id(hpr, id), part_by_id(mapleaf, id)) {
+                    if term.in_either() {
+                        let _ = writeln!(
+                            page,
+                            "| `{}` | `{id}` | {} | {} | {} | {} |",
+                            row.name,
+                            term.name,
+                            coefficient(term.hpr),
+                            coefficient(term.mapleaf),
+                            rounded(term.difference(), 4, true),
+                        );
+                    }
+                }
+            }
+        }
+        let _ = writeln!(
+            page,
+            "\nThe terms summed over each design's parts, with each term's share of the whole \
+             difference.\n\n\
+             | design | term | HPR Sim | MAPLEAF | MAPLEAF less HPR Sim | share of the \
+             difference |\n|---|---|---:|---:|---:|---:|"
+        );
+        for row in &self.rows {
+            let whole = whole_difference(&row.own_drag);
+            for term in summed_terms(&row.own_drag) {
+                if term.in_either() {
+                    let _ = writeln!(
+                        page,
+                        "| `{}` | {} | {} | {} | {} | {} |",
+                        row.name,
+                        term.name,
+                        coefficient(term.hpr),
+                        coefficient(term.mapleaf),
+                        rounded(term.difference(), 4, true),
+                        share(term.difference(), whole, true),
+                    );
+                }
+            }
+            let _ = writeln!(
+                page,
+                "| `{}` | whole | {:.4} | {:.4} | {} | {} |",
+                row.name,
+                row.own_drag.hpr.after_burnout_axial_coefficient,
+                row.own_drag.mapleaf.after_burnout_axial_coefficient,
+                rounded(whole, 4, true),
+                share(whole, whole, true),
+            );
+        }
+        let diameter = |flown: &Flown| {
+            flown.after_burnout_base_diameter_m.map_or_else(
+                || "none".to_owned(),
+                |diameter_m| format!("{diameter_m:.4} m"),
+            )
+        };
+        let _ = writeln!(
+            page,
+            "\nThe diameter of the base each code charges its base drag on, and MAPLEAF's base \
+             area over HPR Sim's.\n\n\
+             | design | base diameter, HPR Sim | base diameter, MAPLEAF | base area, MAPLEAF's \
+             over HPR Sim's |\n|---|---:|---:|---:|"
+        );
+        for row in &self.rows {
+            let (hpr, mapleaf) = (&row.own_drag.hpr, &row.own_drag.mapleaf);
+            let _ = writeln!(
+                page,
+                "| `{}` | {} | {} | {} |",
+                row.name,
+                diameter(hpr),
+                diameter(mapleaf),
+                base_area_ratio(&row.own_drag)
+                    .map_or_else(|| "none".to_owned(), |ratio| format!("{ratio:.3}")),
+            );
+        }
+        let _ = writeln!(
+            page,
+            "\nThe length each code takes a part's friction coefficient on. HPR Sim takes the \
+             rocket's whole length for every part. MAPLEAF takes the part's own length, and the \
+             mean aerodynamic chord for the fins.\n\n\
+             | design | part | friction length, HPR Sim | friction length, MAPLEAF |\n\
+             |---|---|---:|---:|"
+        );
+        for row in &self.rows {
+            let (hpr, mapleaf) = (
+                &row.own_drag.hpr.after_burnout_parts,
+                &row.own_drag.mapleaf.after_burnout_parts,
+            );
+            for id in part_ids(&row.own_drag) {
+                let length = |parts| part_by_id(parts, id).and_then(|part| part.friction_length_m);
+                let (ours, theirs) = (length(hpr), length(mapleaf));
+                if ours.is_some() || theirs.is_some() {
+                    let written = |length_m: Option<f64>| {
+                        length_m.map_or_else(
+                            || "none".to_owned(),
+                            |length_m| format!("{length_m:.3} m"),
+                        )
+                    };
+                    let _ = writeln!(
+                        page,
+                        "| `{}` | `{id}` | {} | {} |",
+                        row.name,
+                        written(ours),
+                        written(theirs)
+                    );
+                }
+            }
+        }
+        let _ = writeln!(
+            page,
+            "\nThe terms that carry each design's difference, the largest share first, each \
+             with its difference and its share of the whole:\n"
+        );
+        for row in &self.rows {
+            let whole = whole_difference(&row.own_drag);
+            let terms = carrying_terms(&row.own_drag)
+                .iter()
+                .map(|term| {
+                    format!(
+                        "{} {} ({})",
+                        term.name,
+                        rounded(term.difference(), 4, false),
+                        share(term.difference(), whole, false)
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
+            let _ = writeln!(
+                page,
+                "- `{}`: MAPLEAF's coefficient is {} the {}: {terms}.",
+                row.name,
+                rounded(whole.abs(), 4, false),
+                if whole < 0.0 { "lower" } else { "higher" },
+            );
+        }
+        let _ = writeln!(page, "\n{DRAG_TERMS_NOTE}\n");
     }
 
     /// Whether the report holds together and `markdown` is its page.
@@ -2178,8 +2816,9 @@ impl MapleafReport {
     ///
     /// The first thing that does not hold, in words: a case list that is not [`CASES`], a flight
     /// with a number that is not finite and positive, a difference that is not its two flights',
-    /// parts that do not sum to their whole, a not-shared list that is not the numbers', or a
-    /// page that is not [`Self::to_markdown`]'s.
+    /// parts that do not sum to their whole, a part's terms that do not sum to the part, a
+    /// friction length or a base diameter that is missing or is not a length, a not-shared list
+    /// that is not the numbers', or a page that is not [`Self::to_markdown`]'s.
     pub fn check_consistent(&self, markdown: &str) -> Result<(), String> {
         if !self.oracle.contains(MAPLEAF_COMMIT) {
             return Err(format!(
@@ -2198,7 +2837,11 @@ impl MapleafReport {
                 ("own drag", &row.own_drag, false),
                 ("same drag", &row.same_drag, true),
             ] {
-                for (code, flown) in [("HPR Sim", &compared.hpr), ("MAPLEAF", &compared.mapleaf)] {
+                for (which, flown) in [
+                    (Code::Hpr, &compared.hpr),
+                    (Code::Mapleaf, &compared.mapleaf),
+                ] {
+                    let code = which.name();
                     for (what, value) in [
                         ("apogee", flown.apogee_rise_m),
                         ("rail-exit speed", flown.rail_exit_speed_m_s),
@@ -2228,6 +2871,9 @@ impl MapleafReport {
                             "{}, {kind}: {code}'s parts are not its axial coefficient's",
                             row.name
                         ));
+                    }
+                    if let Some(what) = terms_problem(which, flown, same_drag) {
+                        return Err(format!("{}, {kind}: {what}", row.name));
                     }
                 }
                 let again = Compared::of(
@@ -2425,6 +3071,59 @@ mod tests {
         flights["cases"][0]["own_drag"]["flown"]["burnout"]["mass_kg"] = (logged * 1.001).into();
         let said = refusal(&inputs_text, &serde_json::to_string(&flights).unwrap());
         assert!(said.contains("MAPLEAF's mass_kg at burnout"), "{said}");
+
+        // Each of the next is one edit to the drag MAPLEAF's own-drag flight gives just after
+        // burnout, on the first case.
+        let edited = |edit: &dyn Fn(&mut Value)| {
+            let mut flights: Value = serde_json::from_str(&flights_text).unwrap();
+            edit(&mut flights["cases"][0]["own_drag"]["flown"]["after_burnout"]);
+            refusal(&inputs_text, &serde_json::to_string(&flights).unwrap())
+        };
+
+        // Flights from before the terms were written: a part without them.
+        let said = edited(&|after| {
+            let part = after["parts"][0].as_object_mut().unwrap();
+            assert!(part.remove("terms").is_some());
+        });
+        assert!(said.contains("parts without their terms"), "{said}");
+
+        // A term that is not its part's: the terms no longer sum to the part's coefficient.
+        let said = edited(&|after| {
+            let base = after["parts"][1]["terms"]["base"].as_f64().unwrap();
+            assert!(base > 0.0);
+            after["parts"][1]["terms"]["base"] = (base * 1.001).into();
+        });
+        assert!(
+            said.contains("MAPLEAF's terms for body-tube-1 are not its coefficient's"),
+            "{said}"
+        );
+
+        // A part with friction and no length its friction was taken on.
+        let said = edited(&|after| {
+            let part = after["parts"][0].as_object_mut().unwrap();
+            assert!(part.remove("friction_length_m").is_some());
+        });
+        assert!(
+            said.contains("MAPLEAF's nose has friction and no friction length"),
+            "{said}"
+        );
+
+        // No base diameter, and one that is not a length.
+        let said = edited(&|after| {
+            assert!(
+                after
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("base_diameter_m")
+                    .is_some()
+            );
+        });
+        assert!(said.contains("base_diameter_m"), "{said}");
+        let said = edited(&|after| after["base_diameter_m"] = (-0.0809).into());
+        assert!(
+            said.contains("MAPLEAF's base diameter is -0.0809 m"),
+            "{said}"
+        );
     }
 
     /// An edited number, sentence or page is caught by the report's own check.
@@ -2457,6 +3156,97 @@ mod tests {
             said.contains("MAPLEAF's parts are not its axial coefficient's"),
             "{said}"
         );
+
+        // A term moved in either code: the part's terms no longer sum to it.
+        let mut edited = report.clone();
+        edited.rows[1].own_drag.mapleaf.after_burnout_parts[0]
+            .terms
+            .friction += 1e-6;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("own drag: MAPLEAF's terms for nose are not its coefficient's"),
+            "{said}"
+        );
+        let mut edited = report.clone();
+        edited.rows[2].own_drag.hpr.after_burnout_parts[1]
+            .terms
+            .base += 1e-4;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("own drag: HPR Sim's terms for body-tube-1 are not its coefficient's"),
+            "{said}"
+        );
+
+        // Drag moved from one term to another, the sum kept: the page gives each term.
+        let mut edited = report.clone();
+        let terms = &mut edited.rows[2].own_drag.hpr.after_burnout_parts[0].terms;
+        terms.friction -= 1e-3;
+        terms.pressure += 1e-3;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(said.contains("is not the report's page"), "{said}");
+
+        // A term its code does not have.
+        let mut edited = report.clone();
+        let terms = &mut edited.rows[0].own_drag.hpr.after_burnout_parts[0].terms;
+        terms.friction -= 1e-3;
+        terms.thickness += 1e-3;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("HPR Sim's nose has a term HPR Sim does not have"),
+            "{said}"
+        );
+
+        // A friction length: HPR Sim's is one length for every part, a part with friction has
+        // one in either code, and the page gives each.
+        let mut edited = report.clone();
+        edited.rows[0].own_drag.hpr.after_burnout_parts[1].friction_length_m = Some(1.884);
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("HPR Sim's friction lengths are not one length"),
+            "{said}"
+        );
+        let mut edited = report.clone();
+        edited.rows[1].own_drag.mapleaf.after_burnout_parts[2].friction_length_m = None;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("MAPLEAF's tail-1 has friction and no friction length"),
+            "{said}"
+        );
+        let mut edited = report.clone();
+        let length_m =
+            &mut edited.rows[1].own_drag.mapleaf.after_burnout_parts[2].friction_length_m;
+        *length_m = length_m.map(|length_m| length_m + 0.001);
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(said.contains("is not the report's page"), "{said}");
+
+        // The base diameter: an own-drag flight has one, a same-drag flight none, and the page
+        // gives each.
+        let mut edited = report.clone();
+        edited.rows[2]
+            .own_drag
+            .mapleaf
+            .after_burnout_base_diameter_m = None;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("own drag: MAPLEAF has no base diameter"),
+            "{said}"
+        );
+        let mut edited = report.clone();
+        edited.rows[2].same_drag.hpr.after_burnout_base_diameter_m =
+            edited.rows[2].own_drag.hpr.after_burnout_base_diameter_m;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(
+            said.contains("same drag: HPR Sim has a base diameter"),
+            "{said}"
+        );
+        let mut edited = report.clone();
+        edited.rows[2]
+            .own_drag
+            .mapleaf
+            .after_burnout_base_diameter_m =
+            edited.rows[2].own_drag.hpr.after_burnout_base_diameter_m;
+        let said = edited.check_consistent(&page).unwrap_err();
+        assert!(said.contains("is not the report's page"), "{said}");
 
         let mut edited = report.clone();
         edited.rows[0].gravity_matched.apogee_difference_m += 0.01;
@@ -2520,6 +3310,37 @@ mod tests {
         let said = report.reproduces(&moved).unwrap_err();
         assert!(
             said.contains("rows[0].own_drag.hpr.apogee_rise_m"),
+            "{said}"
+        );
+
+        // The drag by term is flown too: a term, a friction length and a base diameter each
+        // reproduce or are named.
+        let mut rounded = report.clone();
+        rounded.rows[2].own_drag.hpr.after_burnout_parts[0]
+            .terms
+            .friction *= 1.0 + 1e-9;
+        report.reproduces(&rounded).unwrap();
+        let mut moved = report.clone();
+        moved.rows[2].own_drag.hpr.after_burnout_parts[0]
+            .terms
+            .friction *= 1.0 + 1e-4;
+        let said = report.reproduces(&moved).unwrap_err();
+        assert!(
+            said.contains("rows[2].own_drag.hpr.after_burnout_parts[0].terms.friction"),
+            "{said}"
+        );
+        let mut moved = report.clone();
+        moved.rows[0].own_drag.mapleaf.after_burnout_parts[2].friction_length_m = None;
+        let said = report.reproduces(&moved).unwrap_err();
+        assert!(
+            said.contains("rows[0].own_drag.mapleaf.after_burnout_parts[2].friction_length_m"),
+            "{said}"
+        );
+        let mut moved = report.clone();
+        moved.rows[1].own_drag.hpr.after_burnout_base_diameter_m = Some(0.156);
+        let said = report.reproduces(&moved).unwrap_err();
+        assert!(
+            said.contains("rows[1].own_drag.hpr.after_burnout_base_diameter_m"),
             "{said}"
         );
 
@@ -2640,6 +3461,175 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// The drag by term, from the committed report's data: each part's terms are the part,
+    /// each design's terms are its whole difference, and on the design with the largest
+    /// difference the base term carries the most of it, on a base MAPLEAF takes wider.
+    #[test]
+    fn the_drag_terms_hold_together() {
+        let report = committed();
+        for row in &report.rows {
+            let compared = &row.own_drag;
+            let (hpr_whole, mapleaf_whole) = (
+                compared.hpr.after_burnout_axial_coefficient,
+                compared.mapleaf.after_burnout_axial_coefficient,
+            );
+            // Every part's terms sum to its coefficient, in both codes.
+            for (code, flown, tolerance) in [
+                ("HPR Sim", &compared.hpr, 1e-6 * hpr_whole),
+                ("MAPLEAF", &compared.mapleaf, 1e-9 * mapleaf_whole),
+            ] {
+                assert!(!flown.after_burnout_parts.is_empty(), "{}", row.name);
+                for part in &flown.after_burnout_parts {
+                    let terms = &part.terms;
+                    let sum = terms.friction
+                        + terms.pressure
+                        + terms.base
+                        + terms.thickness
+                        + terms.parasitic;
+                    assert!(
+                        (sum - part.axial_coefficient).abs() <= tolerance,
+                        "{}: {code}'s {} has terms that sum to {sum}, not {}",
+                        row.name,
+                        part.id,
+                        part.axial_coefficient
+                    );
+                }
+            }
+            // The terms' differences sum to the whole difference: nothing is left outside them.
+            let terms = summed_terms(compared);
+            assert_eq!(terms.len(), TERMS.len());
+            let sum: f64 = terms.iter().map(TermPair::difference).sum();
+            let whole = mapleaf_whole - hpr_whole;
+            assert_eq!(whole, whole_difference(compared));
+            assert!(
+                (sum - whole).abs() <= 1e-6 * hpr_whole + 1e-9 * mapleaf_whole,
+                "{}: the terms' differences sum to {sum}, and the whole difference is {whole}",
+                row.name
+            );
+            // The listed terms are all of them that either code has, each once.
+            let listed = carrying_terms(compared);
+            let listed_sum: f64 = listed.iter().map(TermPair::difference).sum();
+            assert!((listed_sum - sum).abs() <= 1e-12, "{}", row.name);
+            assert!(
+                listed
+                    .windows(2)
+                    .all(|pair| pair[0].difference() / whole >= pair[1].difference() / whole),
+                "{}: {listed:?}",
+                row.name
+            );
+            // A same-drag flight has no parts to split.
+            for flown in [&row.same_drag.hpr, &row.same_drag.mapleaf] {
+                assert!(flown.after_burnout_parts.is_empty(), "{}", row.name);
+                assert_eq!(flown.after_burnout_base_diameter_m, None, "{}", row.name);
+            }
+        }
+
+        let row = report
+            .rows
+            .iter()
+            .find(|row| row.name == "ndrt-2020-nose-to-tail")
+            .unwrap();
+        let compared = &row.own_drag;
+        let whole = whole_difference(compared);
+        assert!(whole > 0.0, "{whole}");
+        let terms = summed_terms(compared);
+        let base = terms.iter().find(|term| term.name == "base").unwrap();
+        for term in &terms {
+            assert!(
+                term.name == "base" || term.difference() / whole < base.difference() / whole,
+                "{} carries {} of {whole}, and the base {}",
+                term.name,
+                term.difference(),
+                base.difference()
+            );
+        }
+        assert_eq!(carrying_terms(compared)[0].name, "base");
+        let (hpr_m, mapleaf_m) = (
+            compared.hpr.after_burnout_base_diameter_m.unwrap(),
+            compared.mapleaf.after_burnout_base_diameter_m.unwrap(),
+        );
+        assert!(mapleaf_m > hpr_m, "{mapleaf_m} m against {hpr_m} m");
+        assert!(base_area_ratio(compared).unwrap() > 1.0);
+    }
+
+    /// A term a code lacks reads as none and counts as zero; a term neither code has is not
+    /// listed; the largest share comes first whichever code is the higher.
+    #[test]
+    fn terms_pair_up_and_sort_by_share() {
+        let part = |id: &str, terms: DragTerms| PartDrag {
+            id: id.to_owned(),
+            axial_coefficient: terms.sum(),
+            terms,
+            friction_length_m: Some(1.0),
+        };
+        let ours = part(
+            "fins",
+            DragTerms {
+                friction: 0.03,
+                pressure: 0.05,
+                parasitic: 0.004,
+                ..DragTerms::default()
+            },
+        );
+        let theirs = part(
+            "fins",
+            DragTerms {
+                friction: 0.02,
+                pressure: 0.05,
+                thickness: 0.002,
+                ..DragTerms::default()
+            },
+        );
+        let pairs = part_terms(Some(&ours), Some(&theirs));
+        let named = |name: &str| *pairs.iter().find(|pair| pair.name == name).unwrap();
+        assert_eq!(named("thickness").hpr, None);
+        assert_eq!(named("thickness").mapleaf, Some(0.002));
+        assert_eq!(named("thickness").difference(), 0.002);
+        assert_eq!(named("rail buttons").mapleaf, None);
+        assert_eq!(named("rail buttons").difference(), -0.004);
+        assert!(named("pressure").in_either());
+        assert!(!named("base").in_either());
+        // A part only one code has: none of its terms in the other.
+        let alone = part_terms(Some(&ours), None);
+        assert!(alone.iter().all(|pair| pair.mapleaf.is_none()));
+        assert_eq!(
+            alone.iter().map(TermPair::difference).sum::<f64>(),
+            -ours.axial_coefficient
+        );
+
+        // Whole flights of those parts: HPR Sim's coefficient is the higher here, so the term
+        // that takes MAPLEAF's furthest below comes first.
+        let flown = |part: &PartDrag| Flown {
+            after_burnout_axial_coefficient: part.axial_coefficient,
+            after_burnout_parts: vec![part.clone()],
+            ..committed().rows[0].own_drag.hpr.clone()
+        };
+        let compared = Compared::of(flown(&ours), flown(&theirs), 0.0, 0.0);
+        assert!(whole_difference(&compared) < 0.0);
+        let order: Vec<&str> = carrying_terms(&compared)
+            .iter()
+            .map(|term| term.name)
+            .collect();
+        assert_eq!(order, ["friction", "rail buttons", "pressure", "thickness"]);
+    }
+
+    /// A number that rounds to zero is written without a sign, and a share of no difference is
+    /// not a number to write.
+    #[test]
+    fn a_rounded_zero_has_no_sign() {
+        assert_eq!(rounded(-0.00004, 4, false), "0.0000");
+        assert_eq!(rounded(-0.00004, 4, true), "0.0000");
+        assert_eq!(rounded(0.00004, 4, true), "0.0000");
+        assert_eq!(rounded(-0.00006, 4, false), "-0.0001");
+        assert_eq!(rounded(0.0664, 4, true), "+0.0664");
+        assert_eq!(rounded(0.0664, 4, false), "0.0664");
+        assert_eq!(rounded(-0.004, 4, true), "-0.0040");
+        assert_eq!(share(-0.004, 0.1142, false), "-3.5%");
+        assert_eq!(share(0.0664, 0.1142, true), "+58.1%");
+        assert_eq!(share(0.00001, 0.1142, true), "0.0%");
+        assert_eq!(share(0.01, 0.0, true), "none");
     }
 
     /// A bound is rounded away from zero, never toward it.

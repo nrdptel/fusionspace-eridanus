@@ -14,7 +14,7 @@
 //!   boattail rule (eq. 3.88, [`boattail_factor`]) to Mach 0.8 and their supersonic wave drag
 //!   from Mach 1 ([`crate::afterbody`]); a lip in a boattail's wake loses a share of its own.
 //! - **Base drag** ([`base_drag_coefficient`], eq. 3.94) on the aft base, less the thrusting
-//!   motors' area, relieved behind a boattail faster than sound ([`crate::afterbody`]).
+//!   motors' area, relieved behind a boattail ([`crate::afterbody`]).
 //! - **Fin pressure drag** ([`fin_pressure_drag_coefficient`], eq. 3.89–3.93) on the fins' frontal
 //!   area `N t s`.
 //! - **Parasitic drag** of launch lugs and rail buttons ([`launch_lug_drag`], eq. 3.95–3.96, and
