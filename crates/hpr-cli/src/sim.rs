@@ -32,6 +32,7 @@ use crate::output::{
     SimFlight, SimHeld, SimIssue, SimMotor, SimMotorSource, Stability, Summary, Termination,
     ThrustCurveMotor, WarningKind,
 };
+use crate::typed::as_given;
 use crate::{Failure, Out};
 
 /// How long after apogee the first recovery device may open for the landing to count as braked,
@@ -1298,14 +1299,16 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
     option("config", word(&flight.config));
     option("motor", word(&flight.motor));
     option("mount", word(&flight.mount));
+    // A number as typed at an everyday size, else in exponent form (#1630): `--wind 1e300` comes
+    // back as it was typed, not as 301 digits.
     option(
         "delay",
         flight.delay.map(|delay| match delay {
-            Delay::Seconds(seconds) => seconds.to_string(),
+            Delay::Seconds(seconds) => as_given(seconds),
             _ => "P".to_owned(),
         }),
     );
-    let unless = |value: f64, default: f64| (value != default).then(|| value.to_string());
+    let unless = |value: f64, default: f64| (value != default).then(|| as_given(value));
     option("latitude", unless(flight.latitude, 0.0));
     option("longitude", unless(flight.longitude, 0.0));
     option("elevation", unless(flight.elevation, 0.0));
@@ -1313,9 +1316,9 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
         "rail-length",
         unless(flight.rail_length, DEFAULT_RAIL_LENGTH_M),
     );
-    option("inclination", flight.inclination.map(|v| v.to_string()));
-    option("heading", flight.heading.map(|v| v.to_string()));
-    option("wind", flight.wind.map(|v| v.to_string()));
+    option("inclination", flight.inclination.map(as_given));
+    option("heading", flight.heading.map(as_given));
+    option("wind", flight.wind.map(as_given));
     option("wind-from", unless(flight.wind_from, 0.0));
     option("weather", word(&flight.weather));
     if flight.no_tip_off {
@@ -4107,10 +4110,56 @@ mod tests {
             [
                 "--motor H54",
                 "--delay P",
-                "--elevation 1000000000",
+                "--elevation 1e9",
                 "--heading -10",
                 "--wind 4",
                 "--wind-from 270",
+            ]
+        );
+        // A hostile value comes back as typed, in exponent form, not as hundreds of digits
+        // (#1630); every number an option takes is written so.
+        assert_eq!(
+            typed(&["hpr", "sim", "a.ork", "--wind", "1e300"]),
+            ["--wind 1e300"]
+        );
+        let hostile = typed(&[
+            "hpr",
+            "sim",
+            "a.ork",
+            "--motor",
+            "H54",
+            "--delay",
+            "1e300",
+            "--latitude",
+            "-1e300",
+            "--longitude",
+            "1e300",
+            "--elevation",
+            "1e300",
+            "--rail-length",
+            "1e300",
+            "--inclination",
+            "1e300",
+            "--heading",
+            "1e-300",
+            "--wind",
+            "1e300",
+            "--wind-from",
+            "1e300",
+        ]);
+        assert_eq!(
+            hostile,
+            [
+                "--motor H54",
+                "--delay 1e300",
+                "--latitude -1e300",
+                "--longitude 1e300",
+                "--elevation 1e300",
+                "--rail-length 1e300",
+                "--inclination 1e300",
+                "--heading 1e-300",
+                "--wind 1e300",
+                "--wind-from 1e300",
             ]
         );
     }

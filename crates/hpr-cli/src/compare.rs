@@ -32,6 +32,7 @@ use crate::output::{
     ResidualPhase, SiteFrom, TimelineCell, TimelineWhat,
 };
 use crate::sim::{FlightArgs, Setup, file_name, flight_refused, same_file};
+use crate::typed::as_given;
 use crate::units::{fixed, meters, seconds_bound, speed};
 use crate::weather::{Fetching, OpenMeteoArgs};
 use crate::{Failure, Out};
@@ -524,16 +525,6 @@ fn logged_time(log: &FlightLog, liftoff_s: f64) -> Option<i64> {
             .filter(|&i| times[i] > liftoff_s)
             .find_map(at)
     })
-}
-
-/// A number typed on the command line, written back in an error: as typed where it is of an
-/// everyday size, else in exponent form, so `1e300` comes back as `1e300` and not as 301 digits.
-fn as_given(value: f64) -> String {
-    if value == 0.0 || (1e-3..1e6).contains(&value.abs()) || !value.is_finite() {
-        format!("{value}")
-    } else {
-        format!("{value:e}")
-    }
 }
 
 /// The air of a temperature, °C, and a pressure, hPa, entered at the pad `elevation_m` above sea
@@ -1271,8 +1262,5 @@ mod tests {
             assert!(said.contains("1e300") || said.contains("1e-300"), "{said}");
             assert!(said.len() < 600, "{said}");
         }
-        assert_eq!(as_given(-0.0), "-0");
-        assert_eq!(as_given(1013.25), "1013.25");
-        assert_eq!(as_given(f64::NAN), "NaN");
     }
 }

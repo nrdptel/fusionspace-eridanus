@@ -72,6 +72,17 @@ pub(crate) fn read<T: FromStr>(text: &str) -> Result<T, String> {
     })
 }
 
+/// A number typed on the command line, written back in an error or its help: as typed where it
+/// is of an everyday size, else in exponent form, so `1e300` comes back as `1e300` and not as
+/// 301 digits.
+pub(crate) fn as_given(value: f64) -> String {
+    if value == 0.0 || (1e-3..1e6).contains(&value.abs()) || !value.is_finite() {
+        format!("{value}")
+    } else {
+        format!("{value:e}")
+    }
+}
+
 /// `text` trimmed and without its thousands separators ([`ungrouped`]), for a reader of its own
 /// to read; the error is [`read`]'s question about a comma that isn't one.
 pub(crate) fn plain(text: &str) -> Result<String, String> {
@@ -215,6 +226,24 @@ pub(crate) fn read_as(command: &clap::Command, matches: &clap::ArgMatches) -> Ve
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A number comes back as typed at an everyday size, and short past it either way.
+    #[test]
+    fn a_number_is_written_back_short() {
+        assert_eq!(as_given(-0.0), "-0");
+        assert_eq!(as_given(1013.25), "1013.25");
+        assert_eq!(as_given(-33.9), "-33.9");
+        assert_eq!(as_given(999_999.0), "999999");
+        assert_eq!(as_given(1e6), "1e6");
+        assert_eq!(as_given(0.001), "0.001");
+        assert_eq!(as_given(0.000_5), "5e-4");
+        assert_eq!(as_given(1e300), "1e300");
+        assert_eq!(as_given(-1e300), "-1e300");
+        assert_eq!(as_given(1e-300), "1e-300");
+        assert_eq!(as_given(f64::MAX).len(), "1.7976931348623157e308".len());
+        assert_eq!(as_given(f64::NAN), "NaN");
+        assert_eq!(as_given(f64::INFINITY), "inf");
+    }
 
     #[test]
     fn spaces_are_trimmed_and_thousands_separators_dropped() {

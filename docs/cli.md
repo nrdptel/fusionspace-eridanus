@@ -233,16 +233,18 @@ $ echo $?
 <!-- cli: end -->
 
 A refusal raised by the simulator, rather than by an option, says so. It rounds its number to four
-significant digits and names the options that shaped the flight, as they were read. Here an
-elevation of a billion meters, chosen only to force the refusal, puts the launch site where there's
-next to no air. Nothing slows the rocket, and it passes Mach 5, where the aerodynamics stop:
+significant digits and names the options that shaped the flight, as they were read. A number from
+0.001 up to a million comes back in plain digits, and any other in exponent form, so `1e300` comes
+back as `1e300` and not as 301 digits. Here an elevation of a billion meters, chosen only to force
+the refusal, puts the launch site where there's next to no air. Nothing slows the rocket, and it
+passes Mach 5, where the aerodynamics stop:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9`, exits 1 -->
 
 ```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9
 error: the flight stopped: it reached Mach 5.835; the aerodynamics stop at Mach 5 (the normal force's range)
-help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: check those values, or fly it without them
+help: the flight came from pods-none.ork with `--motor H54 --elevation 1e9`: check those values, or fly it without them
 $ echo $?
 1
 ```
