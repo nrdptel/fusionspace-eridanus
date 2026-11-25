@@ -582,7 +582,7 @@ is longer. The last 0.25 s is left out.
 Walking back from landing, the run of samples whose rate stays within the main's mark is the
 main's descent. The mark is 1.6 times the main's rate, or 3 m/s (9.8 ft/s) more than the rate if
 that is more. The run's first sample is the opening.
-The 1.6 and the 3 m/s are Debrief's, set on its own logs.
+The 1.6 and the 3 m/s (9.8 ft/s) are Debrief's, set on its own logs.
 
 That walk stops at the first rate past the mark, however short. A real descent passes it more
 than once: the rocket swings under its main, and a coarse log's rates scatter. So HPR Sim asks
