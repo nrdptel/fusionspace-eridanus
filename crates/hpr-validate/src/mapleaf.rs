@@ -92,11 +92,11 @@ const HPR_TERMS_TOLERANCE: f64 = 1e-6;
 /// what the committed measurements can and cannot settle. Written by hand and kept here so the
 /// page stays generated. What it says of the tables, and each figure it takes from another
 /// committed report or fixture, is pinned by the tests `the_note_reads_the_tables_right` and
-/// `the_note_quotes_the_committed_measurements`: when a table or a source moves, they fail and
-/// name the sentence.
+/// `the_note_quotes_the_committed_measurements`: when a table or a source moves past what the
+/// note says, one of them fails.
 const DRAG_TERMS_NOTE: &str = r#"#### What each term is in the two codes
 
-Each row names the formula a code uses and the source its own code cites for it, or says that the code has no such term. MAPLEAF's files are those of its `MAPLEAF` package at the pinned commit. `M` is the Mach number, `R` the [Reynolds number](https://hpr.fusionspace.co/glossary.html#reynolds-number) on the length `L`, and `R_s` the surface's [roughness length](https://hpr.fusionspace.co/glossary.html#roughness-length).
+Each row names the formula a code uses and the source its own code cites for it, or says that the code has no such term. MAPLEAF's files are those of its `MAPLEAF` package at the pinned commit. `M` is the Mach number, `R` the [Reynolds number](https://hpr.fusionspace.co/glossary.html#reynolds-number) on the length `L`, and `R_s` the surface's roughness height, set by its finish.
 
 | term | HPR Sim | MAPLEAF |
 |---|---|---|
@@ -110,27 +110,29 @@ Each row names the formula a code uses and the source its own code cites for it,
 | Rail buttons | Niskanen's rule for a rail pin (p. 52). | No such part. |
 | Interference between the fins and the body | None: neglected, as Niskanen does (p. 41). | None in the drag: its fin and body factors act on the normal force. |
 
-Neither code has a drag term outside these rows. Each part's terms above sum to the part's coefficient, to one part in a million of the whole for HPR Sim and one in a billion for MAPLEAF, so no interference drag is hidden in a part. A MAPLEAF nose's pressure drag is read as what its friction leaves of the nose's force.
+In these three flights neither code has a drag term outside these rows. Each part's terms above sum to the part's coefficient, to one part in a million of the whole for HPR Sim and one in a billion for MAPLEAF, so no interference drag is hidden in a part. A MAPLEAF nose's pressure drag is read as what its friction leaves of the nose's force.
 
 #### What the split says
 
-Base drag and skin friction carry `ndrt-2020-nose-to-tail`'s difference, the largest of the three. Each comes from what a shared formula is given, an area or a length. These tables compare two codes at one instant of each flight; the measurements come in the next section.
+Base drag and skin friction carry `ndrt-2020-nose-to-tail`'s difference, the largest of the three. The two codes give a shared formula different inputs: an area for base drag and a length for friction. These tables compare two codes at one instant of each flight; the measurements come in the next section.
 
-- **Base drag is the largest term of the largest difference, and it comes from an area, not from a formula.** The two codes use one coefficient. On `ndrt-2020-nose-to-tail` MAPLEAF charges it on a base as wide as the rocket's largest tube. The rocket ends in a narrower one, so MAPLEAF's base area is the larger by the ratio in the table of base diameters. On `valetudo`, which ends in its only tube, the two base terms are within 0.0002. On `bella-lui`, which ends in a boattail, the base diameters agree, and HPR Sim's base term is `d_B/d_1` of MAPLEAF's: its relief behind a boattail.
+- **Base drag is the largest term of the largest difference, and it comes from an area, not from a formula.** The two codes use one coefficient. On `ndrt-2020-nose-to-tail` MAPLEAF charges it on a base as wide as the rocket's largest tube. The rocket ends in a narrower one, so MAPLEAF's base area is the larger by the ratio in the table of base diameters. On `valetudo`, which ends in its only tube, the two base terms differ by 0.0001. On `bella-lui`, which ends in a boattail, the base diameters agree, and HPR Sim's base term is `d_B/d_1` of MAPLEAF's: its relief behind a boattail.
 - **Friction is higher in MAPLEAF on every part of every design, and every one of its friction lengths is the shorter.** A shorter length gives a higher coefficient on either branch. The rough wall's coefficient rises with `R_s/L`, and the turbulent one falls as the Reynolds number rises. The tables don't size the length's effect apart from two smaller differences in the rows above. MAPLEAF's compressibility factor on a rough wall lowers its friction, and its area on a narrowing part raises it.
-- **The sources read for this report take a body's friction on one length.** Niskanen's Reynolds number is on "the length of the rocket" (p. 20), and his one coefficient serves the body and the fins (eq. 3.85). MIL-HDBK-762's sample calculation (Table 5-4) takes the body's Reynolds number on the body's length. For the fins the sources differ: the handbook takes the fin's chord, as MAPLEAF does, and Niskanen the rocket's length, as HPR Sim does. [Issue #484](https://github.com/nrdptel/fusionspace-eridanus/issues/484) is open to measure the fins' choice on the Arcas wind-tunnel model.
+- **The sources read for this report take a body's friction on one length.** Niskanen writes of the Reynolds number that "In most cases, the length used is the length of the rocket" (p. 20), and his one coefficient serves the body and the fins (eq. 3.85). MIL-HDBK-762's sample calculation (Table 5-4) takes the body's Reynolds number on the body's length. For the fins the sources differ: the handbook takes the fin's chord, as MAPLEAF does, and Niskanen the rocket's length, as HPR Sim does. [Issue #484](https://github.com/nrdptel/fusionspace-eridanus/issues/484) is open to measure the fins' choice on the Arcas wind-tunnel model.
 - **Pressure drag carries almost none of it.** The two codes follow the same rules. In the table by part and term, no part's pressure drag differs by more than 0.0001.
 - **Two terms belong to one code only.** MAPLEAF's thickness drag is under 0.002 on each design. On `valetudo` HPR Sim's rail buttons take back most of MAPLEAF's higher friction, which is why the whole difference there is small and the shares are large.
 
 #### Against a measurement
 
-Three committed measurements bear on where the two codes differ, and they don't all point one way. None was flown or computed in MAPLEAF, so each item says only what the committed numbers allow.
+Three committed measurements bear on where the two codes differ, and they don't all point one way. MAPLEAF was run on none of them as measured, so each item says only what the committed numbers allow.
 
-- **The logged flights of two of these designs.** Bella Lui and NDRT 2020 are among the [real flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md), which HPR Sim flies on the launch day's weather and rail. On its own drag, HPR Sim's apogee is 10.39% above NDRT 2020's logged 1320.4 m. On the constant coefficient of 0.44 that the RocketPy example gives the rocket, it is 0.16% above. MAPLEAF's coefficient just after burnout is 0.4522 here and HPR Sim's 0.3380. So on NDRT 2020's whole drag the log points to MAPLEAF as the nearer. It doesn't say which term is short. A log measures the whole drag over a flight, and the design's fin edges and finish are placeholders for what the example doesn't record. On Bella Lui HPR Sim's apogee is 1.11% above the logged 459.0 m, and the two codes' apogees here are 1.00% apart, so that log doesn't separate them.
+- **NDRT 2020's logged flight.** NDRT 2020 is among the [real flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md), which HPR Sim flies on the launch day's weather and rail. On its own drag, HPR Sim's apogee is 10.39% above NDRT 2020's logged 1320.4 m. On a constant coefficient of 0.44, which the RocketPy example gives the rocket with no source, it is 0.16% above. MAPLEAF's coefficient just after burnout is 0.4522 here and HPR Sim's 0.3380. So on NDRT 2020's whole drag the log points to MAPLEAF as the nearer.
+- **What that log doesn't say.** It doesn't say which term is short, or that drag alone is. A log holds the whole flight, with its mass, thrust and weather, and the design's fin edges and finish are placeholders for what the example doesn't record. MAPLEAF's own flight of the design here leaves a vertical rail in calm air, so its apogee is not the launch day's.
+- **Bella Lui's logged flight.** HPR Sim's apogee is 1.11% above the logged 459.0 m, and the two codes' apogees here are 1.00% apart. That flight's inputs alone leave its apogee uncertain by 5.12%, so the log doesn't separate the two codes.
 - **The base behind a boattail, which is `bella-lui`'s base difference.** The Hermes A-3A's base drag was measured in flight from Mach 0.65 to 0.79, above these flights' Mach numbers (`validation/fixtures/aero/base-drag-under-power.json`, power off). The flat-base coefficient on the base's own area, which is MAPLEAF's rule, reads 0.050 to 0.064 above the measured, 0.0574 in the mean. HPR Sim's rule with its relief reads 0.025 to 0.035 above, 0.0303 in the mean. Both read high, and HPR Sim's is the nearer.
-- **The friction of a body.** The Arcas wind-tunnel model's forebody axial force leaves out the base (`validation/fixtures/aero/drag-vs-mach.json`). At Mach 0.6 with the fins off, HPR Sim's friction and pressure drag together read 13.8% above the shorter model's and 22.8% above the longer's. A shorter friction length raises the friction and leaves the pressure drag as it is. So a body part's own length, MAPLEAF's choice, would read further above that measurement than the rocket's whole length does.
+- **The friction of a body.** The Arcas wind-tunnel model's forebody axial force leaves out the base (`validation/fixtures/aero/drag-vs-mach.json`). At Mach 0.6 with the fins off, HPR Sim's friction and pressure drag together read 13.8% above the shorter model's and 22.8% above the longer's. Most of that excess is the boattail's pressure drag, which both codes take by one rule ([why it misses](https://hpr.fusionspace.co/physics/aero.html#drag-against-the-arcas-robin-wind-tunnel)), so the measurement doesn't isolate the friction. By the formulas, a shorter friction length raises the friction and leaves the pressure drag as it is. A body part's own length, MAPLEAF's choice, would then read further above that measurement than the rocket's whole length does.
 
-No committed measurement covers `ndrt-2020-nose-to-tail`'s largest term, the base behind an aft tube narrower than the rocket's largest. So the two references hold HPR Sim's choice the nearer for one term each, on other shapes. The one logged flight holds MAPLEAF's whole drag the nearer on NDRT 2020. This report does not settle which term leaves HPR Sim's drag short on that flight."#;
+No committed measurement covers `ndrt-2020-nose-to-tail`'s largest term, the base behind an aft tube narrower than the rocket's largest. The Hermes reference holds HPR Sim's base rule the nearer behind a boattail, and the Arcas one reads high in HPR Sim before any higher friction. The one logged flight holds MAPLEAF's whole drag the nearer on NDRT 2020. This report does not settle which term leaves HPR Sim's drag short on that flight."#;
 
 /// The inputs file: what HPR Sim flies of each design, for MAPLEAF to fly too.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -2709,7 +2711,8 @@ impl MapleafReport {
              divided by the whole difference in the coefficient, so a design's shares add to \
              100%. A term that works against the whole difference has a negative share, and the \
              other shares then add to more than 100%. On `valetudo` the whole difference is \
-             small beside its terms, so its shares are large.\n\n\
+             small beside its terms, so its shares are large. A share is taken before \
+             rounding, so a difference that reads 0.0000 can still have one.\n\n\
              | design | term | HPR Sim | MAPLEAF | MAPLEAF less HPR Sim | share of the \
              difference |\n|---|---|---:|---:|---:|---:|"
         );
@@ -3586,6 +3589,10 @@ mod tests {
                 "the note no longer says: {text}"
             );
         };
+        sentence(
+            "to one part in a million of the whole for HPR Sim and one in a billion for MAPLEAF",
+        );
+        assert_eq!((HPR_TERMS_TOLERANCE, MAPLEAF_TERMS_TOLERANCE), (1e-6, 1e-9));
         sentence("Friction is higher in MAPLEAF on every part of every design");
         sentence("every one of its friction lengths is the shorter");
         sentence("no part's pressure drag differs by more than 0.0001");
@@ -3631,6 +3638,33 @@ mod tests {
                 .fold(0.0, f64::max)
         };
 
+        // "Base drag and skin friction carry `ndrt-2020-nose-to-tail`'s difference, the largest
+        // of the three": its whole difference is the largest, and the two terms are its first
+        // and second, together nearly all of it.
+        sentence(
+            "Base drag and skin friction carry `ndrt-2020-nose-to-tail`'s difference, the largest \
+             of the three",
+        );
+        sentence("Base drag is the largest term of the largest difference");
+        let ndrt_whole = whole_difference(&row("ndrt-2020-nose-to-tail").own_drag);
+        for other in ["valetudo", "bella-lui"] {
+            assert!(
+                ndrt_whole > whole_difference(&row(other).own_drag).abs(),
+                "{other}"
+            );
+        }
+        let carrying = carrying_terms(&row("ndrt-2020-nose-to-tail").own_drag);
+        assert_eq!(
+            (carrying[0].name, carrying[1].name),
+            ("base", "friction"),
+            "{carrying:?}"
+        );
+        let two = carrying[0].difference() + carrying[1].difference();
+        assert!(
+            (two / ndrt_whole - 1.0).abs() < 0.05,
+            "{two} of {ndrt_whole}"
+        );
+
         // "On `ndrt-2020-nose-to-tail` MAPLEAF charges it on a base as wide as the rocket's
         // largest tube. The rocket ends in a narrower one".
         sentence("MAPLEAF charges it on a base as wide as the rocket's largest tube");
@@ -3650,8 +3684,8 @@ mod tests {
             Some(last.aft_diameter_m)
         );
 
-        // "On `valetudo`, which ends in its only tube, the two base terms are within 0.0002."
-        sentence("which ends in its only tube, the two base terms are within 0.0002");
+        // "On `valetudo`, which ends in its only tube, the two base terms differ by 0.0001."
+        sentence("which ends in its only tube, the two base terms differ by 0.0001");
         let (valetudo, valetudo_case) = (&row("valetudo").own_drag, case("valetudo"));
         let tubes = valetudo_case
             .body
@@ -3661,7 +3695,7 @@ mod tests {
         assert_eq!(tubes, 1);
         assert_eq!(valetudo_case.body.last().unwrap().kind, BodyKind::Tube);
         let (hpr_base, mapleaf_base) = term(valetudo, "base");
-        assert!((mapleaf_base - hpr_base).abs() < 2e-4);
+        assert_eq!(rounded(mapleaf_base - hpr_base, 4, true), "+0.0001");
         // "On `valetudo` HPR Sim's rail buttons take back most of MAPLEAF's higher friction,
         // which is why the whole difference there is small".
         sentence("HPR Sim's rail buttons take back most of MAPLEAF's higher friction");
@@ -3732,12 +3766,14 @@ mod tests {
             number(&ndrt, "log_apogee_m")
         ));
         sentence(&format!("it is {on_example:.2}% above"));
-        sentence("the constant coefficient of 0.44");
+        sentence(
+            "a constant coefficient of 0.44, which the RocketPy example gives the rocket with no source",
+        );
         assert!(
             ndrt["explanation"]
                 .as_str()
                 .unwrap()
-                .contains("a constant 0.44")
+                .contains("a constant 0.44 the notebook gives no source for")
         );
         let compared = &row("ndrt-2020-nose-to-tail").own_drag;
         let (hpr, mapleaf) = (
@@ -3747,11 +3783,22 @@ mod tests {
         sentence(&format!(
             "MAPLEAF's coefficient just after burnout is {mapleaf:.4} here and HPR Sim's {hpr:.4}"
         ));
-        // "the log points to MAPLEAF as the nearer": HPR Sim's apogee is past the log by far
-        // more than on the example's constant, its drag is the lower of the two codes', and
-        // MAPLEAF's coefficient is the nearer the constant.
+        // "the log points to MAPLEAF as the nearer": HPR Sim's apogee is above the log by more
+        // than twice that comparison's validation uncertainty, the example's constant brings
+        // it nearer, HPR Sim's drag is the lower of the two codes', and MAPLEAF's coefficient
+        // is the nearer the constant.
         sentence("the log points to MAPLEAF as the nearer");
-        assert!(error > 5.0 * on_example.abs() && on_example.abs() < 1.0);
+        let uncertainty = flights["validation_uncertainty"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|flight| flight["id"] == "ndrt-2020")
+            .unwrap();
+        assert_eq!(uncertainty["within"], false);
+        assert!(
+            number(uncertainty, "comparison_error_m") > 2.0 * number(uncertainty, "validation_m")
+        );
+        assert!(error > 0.0 && on_example.abs() < error);
         assert!(hpr < mapleaf && (mapleaf - 0.44).abs() < (hpr - 0.44).abs());
 
         let bella = flight("bella-lui");
@@ -3763,9 +3810,21 @@ mod tests {
              apogees here are {apart:.2}% apart",
             number(&bella, "log_apogee_m")
         ));
-        // "that log doesn't separate them": either code would be within HPR Sim's own distance
-        // from the log.
-        assert!(apart > 0.0 && (error - apart).abs() <= error);
+        // "That flight's inputs alone leave its apogee uncertain by 5.12%, so the log doesn't
+        // separate the two codes": HPR Sim's distance from the log and the two codes' distance
+        // from each other are each well inside it.
+        let uncertainty = flights["validation_uncertainty"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|flight| flight["id"] == "bella-lui")
+            .unwrap();
+        let inputs_percent =
+            100.0 * number(&uncertainty["input"], "input_m") / number(uncertainty, "apogee_m");
+        sentence(&format!(
+            "That flight's inputs alone leave its apogee uncertain by {inputs_percent:.2}%"
+        ));
+        assert!(error.abs() < 0.5 * inputs_percent && apart.abs() < 0.5 * inputs_percent);
 
         // The Hermes A-3A's base drag, power off.
         let hermes = read("validation/fixtures/aero/base-drag-under-power.json");
