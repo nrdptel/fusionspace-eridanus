@@ -128,12 +128,15 @@ The designs are in the report's order: Valetudo, Bella Lui, NDRT 2020.
   are HPR Sim's internal-momentum terms, the Coriolis force, the two atmosphere codes, mass
   between the motor file's rows, and the integrators. Their effects are inside that difference
   together, and it bounds none of them alone.
-- **Internal-momentum terms.** Added to MAPLEAF's thrust, the force moves MAPLEAF's apogee by
-  −0.014 m, −0.007 m and −0.104 m. Between MAPLEAF's two steps the flights that carry it move
+- **Internal-momentum terms.** Added to MAPLEAF's thrust, the force moves MAPLEAF's apogee at
+  its 1 ms step by −0.014 m, −0.007 m and −0.104 m. Between MAPLEAF's two steps the flights that carry it move
   by up to 0.065 m (0.214 ft), so the measurement sizes the terms and does not settle them
-  ([issue 1626][issue-1626]). With the force added the apogee differences are +0.014 m, +0.007 m
-  and +0.085 m, larger than without it on all three designs, and NDRT 2020's rail-exit
-  difference grows from −0.00018 m/s to −0.00121 m/s. The one sharp reading is Valetudo's
+  ([issue 1626][issue-1626]). At the 1 ms step the apogee differences with the force added are
+  +0.014 m, +0.007 m and +0.085 m, larger than without it on all three designs. At the 2 ms step
+  they are nearer than without it on Valetudo and Bella Lui and farther on NDRT 2020, so the
+  direction is not resolved either. NDRT 2020's rail-exit difference at 1 ms grows from
+  −0.00018 m/s to −0.00121 m/s, a change inside that flight's own step change. The one sharp
+  reading is Valetudo's
   rail-exit speed, where the two codes differed most: the force moves MAPLEAF's by −0.00039 m/s,
   and the difference left is under 0.00001 m/s.
 - **Gravity.** Matching it takes the same-drag apogee differences from +0.13% to +0.35% down to
