@@ -329,6 +329,11 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
     ),
     // SVG's attribute, spelled as the ARIA standard spells it.
     ("crates/hpr-cli/src/plot.rs", "aria-labelledby", Reason::Key),
+    (
+        "crates/hpr-cli/src/plot/comparison.rs",
+        "aria-labelledby",
+        Reason::Key,
+    ),
     ("xtask/src/guides.rs", "aria-labelledby", Reason::Key),
     (
         "xtask/src/guides/stability.rs",

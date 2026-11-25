@@ -157,7 +157,7 @@ hpr compare 2022-06-24-serial-5115-flight-0001-TeleMetrum.csv \
 ```
 
 The site comes from the log's fixes, 32.93950° N, 106.91145° W, and the time from its GPS at
-liftoff, 2022-06-24 15:17:16 UTC. The launch day's air and wind are Open-Meteo's for that hour at
+liftoff, 15:17:16 UTC on June 24, 2022. The launch day's air and wind are Open-Meteo's for that hour at
 its nearest grid point. A test runs this command on a recorded copy of that answer
 ([`compare_plots_a_public_flight_on_its_logs_own_site_and_day`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)).
 That design's `.json` holds no parachute, so both simulations fall from apogee and their descents

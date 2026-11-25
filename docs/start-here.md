@@ -262,11 +262,11 @@ were seen while its rules were set. It isn't yet checked against a real flight's
 smoother](physics/smoother.md)).
 
 `hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
-simulated, phase by phase, and each reading beside the simulation's, read the same way
+simulated, phase by phase. It sets each reading beside the simulation's, read the same way
 ([Comparing a flight with its simulation](comparing-a-flight.md)). With `--plot` it draws the log beside
-the simulation as designed and under the launch day's weather, from Open-Meteo's archive at the log's
-own site and time or values you enter ([Draw it](comparing-a-flight.md#draw-it)). It reports the gap and
-fits nothing.
+the simulation twice: as designed, and under the launch day's weather. That weather comes from
+Open-Meteo's archive at the log's own site and time, or from values you enter
+([Draw it](comparing-a-flight.md#draw-it)). It reports the gap and fits nothing.
 In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,
 a constant wind and the mass to a log. Each has a 90% interval tested on the synthetic
 flights (the wind's on logs with a track), on sets seen while its model was chosen. All pass but one. On the set flown with a model unlike the simulator's own, the true drag falls below its interval too often. There the fitted drag reads high, and a flight predicted with it would come out low ([how well it holds](physics/flight-fit.md#how-well-it-holds)). No `hpr` command runs it yet, and no real flight has checked its intervals.
