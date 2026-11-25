@@ -579,14 +579,15 @@ the least-squares slope of the filtered track over 1 s, widened where needed to 
 track's steps. A fit that would need more than 10 s is refused (`step_too_coarse`). The main's
 rate is the median of that rate over the last 2 s before landing, or the fit's span where that
 is longer. The last 0.25 s is left out.
-Walking back from landing, the run of samples whose rate stays within 1.6 times the main's is the
-main's descent. The limit is 3 m/s (9.8 ft/s) more than the main's rate if that is more. Its first sample is the opening.
-These marks are Debrief's, set on its own logs.
+Walking back from landing, the run of samples whose rate stays within the main's mark is the
+main's descent. The mark is 1.6 times the main's rate, or 3 m/s (9.8 ft/s) more than the rate if
+that is more. The run's first sample is the opening.
+The 1.6 and the 3 m/s (9.8 ft/s) are Debrief's, set on its own logs.
 
-That walk stops at the first rate past the limit, however short. A real descent passes it more
+That walk stops at the first rate past the mark, however short. A real descent passes it more
 than once: the rocket swings under its main, and a coarse log's rates scatter. So HPR Sim asks
 where one change in the descent is likeliest ([ADR-366][adr-366]). Call a rate *slow* if it is
-within the limit and *fast* if it is past it. Split the descent's $n$ rates, from apogee to
+within the mark and *fast* if it is past it. Split the descent's $n$ rates, from apogee to
 landing, at $s$, with $a$ slow ones among the $s$ before the split and $c$ among the $n - s$
 after it. If the rates were
 independent, slow with one chance before the split and another after, the split's log-likelihood
@@ -594,7 +595,7 @@ at the best two chances would be
 
 $$
 \begin{aligned}
-L(s) &= \ell(a, s) + \ell(c, n - s), \\
+\Lambda(s) &= \ell(a, s) + \ell(c, n - s), \\
 \ell(k, m) &= k \ln\frac{k}{m} \\
 &+ (m - k) \ln\frac{m - k}{m}
 \end{aligned}
@@ -606,7 +607,7 @@ Hinkley, "Inference about the change-point in a sequence of binomial variables",
 1970, pp. 477–488).
 A side that is all slow or all fast has $\ell = 0$, the most it can be. A side that mixes them
 has less, and the more evenly it mixes, the less. The main's descent starts at the split with the
-greatest $L$. HPR Sim adds one condition: the later side must hold the larger share of slow
+greatest $\Lambda$. HPR Sim adds one condition: the later side must hold the larger share of slow
 rates, since the main is the slower canopy. Of two splits as likely, the one nearer landing is
 taken.
 
@@ -620,8 +621,8 @@ taken.
 
 A worked case: 100 fast rates of a drogue, then 8 slow, a bounce of 10 fast, and 30 slow to
 landing. The walk stops after the bounce, after 118 rates. There
-$L = \ell(8, 118) + 0 = -29.25$: eight slow rates sit in the drogue's leg. After 100 rates, the
-first slowing, $L = 0 + \ell(38, 48) = -24.56$: ten fast rates sit in the main's. The split is
+$\Lambda = \ell(8, 118) + 0 = -29.25$: eight slow rates sit in the drogue's leg. After 100 rates, the
+first slowing, $\Lambda = 0 + \ell(38, 48) = -24.56$: ten fast rates sit in the main's. The split is
 there. With a drogue's leg of 20 rates and 4 slow ones before a bounce of 6, the balance falls
 the other way, and the split is after the bounce.
 
@@ -633,7 +634,7 @@ than the walk's start, and the log alone can't say which is the opening:
 
 - **A swing under the main** makes the walk's start late. The split is right
   ([#903](https://github.com/nrdptel/fusionspace-eridanus/issues/903)).
-- **A drogue falling near the limit,** slow for a few seconds and then fast just before the main
+- **A drogue falling near the mark,** slow for a few seconds and then fast just before the main
   opens, makes the split early. If that is what happened, the walk is right
   ([issue #1593](https://github.com/nrdptel/fusionspace-eridanus/issues/1593)). Take 30 slow rates,
   200 fast, 100 slow, 25 fast and 1,000 slow, the main opening at the 355th. The split is at 230:
@@ -673,8 +674,7 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   the noise, 61 rates by 12 draws. The split reads two canopies on all 732, the opening and each
   leg's rate within its bound.
 - **The real flight that showed the fault**, a StratoLogger CF's log from a public forum thread
-  (cited in the issue, not committed; the test reads it where it is cached, and reads
-  nothing elsewhere). Its rocket swings under the main. The issue measures the drogue's
+  (cited in the issue, not committed). Its rocket swings under the main. The issue measures the drogue's
   descent at about 17.3 m/s (56.8 ft/s) and puts the opening between 87 and 92 s, the log's
   header giving the main charge at 87.15 s. The walk read the opening at 108.45 s and the
   drogue's descent at 14.6 m/s (48 ft/s). The split reads 90.00 s and the drogue's descent
@@ -682,7 +682,11 @@ a drogue at 18 m/s (59 ft/s) and a main opened 750 m (2,461 ft) up.
   split, and 18.45 s more to the walk's start at the swing. The log alone can't rule that out. The charge fired 2.85 s before the reading: the
   bound leaves out the time a canopy takes to come out and fill.
 
-That is one real flight with a logged charge time ([evidence row G10](../evidence.md#g10)).
+The third test reads its log only where it is cached, under the untracked `refs/` folder. Where
+the file is absent, as it is in CI, the test stops early and passes without checking anything.
+So CI runs the two invented cases and not the real flight's.
+
+The real flight above is one with a logged charge time ([evidence row G10](../evidence.md#g10)).
 A second, the public Genesis flight, has a simulation beside its log: the walk read the log as
 one canopy, and the split reads the main's opening 806.18 m (2,645 ft) up, where the simulation
 opens it at 797.33 m (2,616 ft). No bound is stated for that height, and the simulation's
