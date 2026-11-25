@@ -213,6 +213,12 @@ The census doesn't count 60 more real flights, from a private collection. On tho
 apogees are +8.01% above their logs on average and OpenRocket's +6.72%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
+The census doesn't count three flights against MAPLEAF, a third open-source simulator, either:
+subsonic, straight up in calm air. When both codes fly the same drag and gravity, their apogees
+agree within 0.019 m (0.063 ft). With each code's own drag they differ by −0.22% to +7.63%.
+Neither code is the truth: this compares the two, not either with a real flight
+([MAPLEAF](docs/accuracy.md#three-flights-against-mapleaf)).
+
 "Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which
 correct the point it takes the burn's turning moments about
 ([why](docs/accuracy.md#whole-flights-against-rocketpy)).
