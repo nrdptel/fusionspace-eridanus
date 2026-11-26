@@ -19,7 +19,9 @@
 //!   repository, and the page shows that folder's path, which changes from run to run, as
 //!   `<the scratch folder>`.
 //!
-//! `--check` (and the test below, which the gate runs) fails when a committed copy differs.
+//! `--check` (and the test below, which the gate runs) fails when a committed copy differs. A guide
+//! that runs the least-squares fit ([`FITTED_GUIDES`]) is held exactly on the platform that writes
+//! it and by its words on the others ([`words`]).
 
 use std::cell::RefCell;
 use std::io::{self, Write};
@@ -45,7 +47,7 @@ const SCHEMAS: &str = "schema/cli";
 /// The guide's page.
 const PAGE: &str = "docs/cli.md";
 /// The how-to guides, whose examples are run as the guide's are.
-const GUIDES: [&str; 8] = [
+const GUIDES: [&str; 9] = [
     "docs/fly-your-ork.md",
     "docs/physics/motor.md",
     "docs/pick-a-motor.md",
@@ -54,7 +56,57 @@ const GUIDES: [&str; 8] = [
     "docs/simulator-tour.md",
     "docs/your-own-logger.md",
     "docs/comparing-a-flight.md",
+    "docs/fitting-a-flight.md",
 ];
+/// The guides whose examples run the least-squares fit. Its last digits differ from one platform
+/// to another: of one run, Windows printed a burn time scale of 1.036 where macOS printed 1.037.
+/// The platforms' math libraries are the likely cause, which hasn't been isolated. Their committed
+/// outputs are held exactly on the platform that writes them ([`WRITING_PLATFORM`]) and by their
+/// words on the others ([`words`]), as the fit's own reports are
+/// (`cargo xtask fit --other-platform`).
+const FITTED_GUIDES: [&str; 1] = ["docs/fitting-a-flight.md"];
+
+/// Whether this build is the one the committed outputs are written on: macOS on Apple silicon,
+/// which CI's macOS runners are too.
+const WRITING_PLATFORM: bool = cfg!(all(target_os = "macos", target_arch = "aarch64"));
+
+/// `text` without what a fit's last digits can move: each number is a `#`, with the minus sign
+/// before it if a space or a bracket comes before that; each run of spaces is one space, since a
+/// column is as wide as its widest number; and each `warning:` line is left out, since a known
+/// issue's warning turns on at a Mach number and a fitted flight can sit on one. So a number's
+/// sign is held on the writing platform only.
+fn words(text: &str) -> String {
+    let mut out = String::new();
+    for line in text.lines().filter(|line| !line.starts_with("warning: ")) {
+        let chars: Vec<char> = line.chars().collect();
+        let digit = |at: usize| chars.get(at).is_some_and(char::is_ascii_digit);
+        let mut at = 0;
+        while at < chars.len() {
+            let c = chars[at];
+            at += 1;
+            if c.is_ascii_digit() {
+                // The rest of the number: its digits, and a point or comma between two of them.
+                while digit(at) || (matches!(chars.get(at), Some('.' | ',')) && digit(at + 1)) {
+                    at += 1;
+                }
+                // The sign before it, after a space or a bracket: a value that rounds to zero
+                // can lose its own. A hyphen inside a name stays.
+                if [" -", "(-", " −", "(−"]
+                    .iter()
+                    .any(|sign| out.ends_with(sign))
+                {
+                    out.pop();
+                }
+                out.push('#');
+            } else if c != ' ' || !out.ends_with(' ') {
+                out.push(c);
+            }
+        }
+        out.push('\n');
+    }
+    out
+}
+
 /// The terminal figures (ADR-247 §3): each drawn from its page's example of the same command, with
 /// lettered callouts at the lines the page explains.
 const SHOTS: [Shot; 2] = [
@@ -134,22 +186,32 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// Fails unless every output is committed as `cargo xtask cli` writes it.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
     let outputs = outputs(root)?;
-    check_against(root, &outputs, &|path| {
-        std::fs::read_to_string(root.join(path)).ok()
-    })
+    check_against(
+        root,
+        &outputs,
+        &|path| std::fs::read_to_string(root.join(path)).ok(),
+        WRITING_PLATFORM,
+    )
 }
 
 /// [`check`] of `outputs`, each output's committed text as `committed` reads it, by its path from
-/// the root.
+/// the root. With `exact`, every output is held character for character; without, as on a
+/// platform that doesn't write them, a guide of [`FITTED_GUIDES`] is held by its [`words`].
 fn check_against(
     root: &Path,
     outputs: &[(PathBuf, String)],
     committed: &dyn Fn(&Path) -> Option<String>,
+    exact: bool,
 ) -> Result<(), String> {
     let mut stale = Vec::new();
     for (path, text) in outputs {
         let committed = committed(path);
-        if committed.as_deref() != Some(text) {
+        let by_words = !exact && FITTED_GUIDES.iter().any(|guide| Path::new(guide) == path);
+        let same = match &committed {
+            Some(committed) if by_words => words(committed) == words(text),
+            other => other.as_deref() == Some(text),
+        };
+        if !same {
             stale.push(format!(
                 "{}{}",
                 path.display(),
@@ -576,6 +638,33 @@ mod tests {
         );
     }
 
+    /// What a fit's last digits can move is taken out of a text, and nothing else is.
+    #[test]
+    fn words_keep_all_but_numbers_widths_and_warnings() {
+        let one = "  drag scale   1.038 †   0.984 to 1.086 *  1.000 ± 0.109\n  wind  -0.1 m/s (0 ft/s)\n\
+                   warning: drag: issue #67: reads high from Mach 0.8\nnote: 1,000 flights\n";
+        let other = "  drag scale  0.99 †  0.9 to 12.25 *  1.000 ± 0.109\n  wind 0.1 m/s (−3 ft/s)\n\
+                     note: 999 flights\n";
+        assert_eq!(
+            words(one),
+            "\x20drag scale # † # to # * # ± #\n wind # m/s (# ft/s)\nnote: # flights\n"
+        );
+        assert_eq!(words(one), words(other));
+        // A point, a comma or a hyphen that isn't part of a number stays.
+        assert_eq!(words("H170M-10, 3.\n"), "H#M-#, #.\n");
+        assert_ne!(words("leaves 50.\n"), words("leaves 50\n"));
+        assert_ne!(words("1, 2\n"), words("1 2\n"));
+        // A word, a mark or a line that differs still differs.
+        for moved in [
+            one.replace("drag scale", "drag factor"),
+            one.replace(" †", ""),
+            one.replace("note: 1,000 flights\n", ""),
+            one.replace("warning: drag", "note: drag"),
+        ] {
+            assert_ne!(words(&moved), words(one), "{moved}");
+        }
+    }
+
     /// Every output is committed as the command writes it; and the check fails a terminal figure
     /// whose committed copy differs from what the run draws, naming it.
     #[test]
@@ -583,7 +672,44 @@ mod tests {
         let root = crate::designs::root().unwrap();
         let outputs = outputs(&root).unwrap();
         let on_disk = |path: &Path| std::fs::read_to_string(root.join(path)).ok();
-        check_against(&root, &outputs, &on_disk).unwrap();
+        check_against(&root, &outputs, &on_disk, WRITING_PLATFORM).unwrap();
+        // A guide that runs the fit is held by its words on another platform: a digit that moved
+        // passes there and fails here, and a word that moved fails on both.
+        for guide in FITTED_GUIDES {
+            let guide = Path::new(guide);
+            let fitted_row = "\n  impulse scale          0.";
+            let digit = |path: &Path| {
+                let text = on_disk(path)?;
+                Some(if path == guide {
+                    assert!(text.contains(fitted_row), "{}", guide.display());
+                    text.replacen(fitted_row, "\n  impulse scale          1.", 1)
+                } else {
+                    text
+                })
+            };
+            check_against(&root, &outputs, &digit, false).unwrap();
+            let error = check_against(&root, &outputs, &digit, true).unwrap_err();
+            assert!(
+                error.contains(&format!("stale: {}", guide.display())),
+                "{error}"
+            );
+            let word = |path: &Path| {
+                let text = on_disk(path)?;
+                Some(if path == guide {
+                    text.replacen(fitted_row, "\n  impulse  scale         0.", 1)
+                        .replacen("\n  impulse  scale", "\n  thrust scale", 1)
+                } else {
+                    text
+                })
+            };
+            for exact in [false, true] {
+                let error = check_against(&root, &outputs, &word, exact).unwrap_err();
+                assert!(
+                    error.contains(&format!("stale: {}", guide.display())),
+                    "{error}"
+                );
+            }
+        }
         for shot in &SHOTS {
             let figure = Path::new(shot.path);
             assert!(
@@ -600,10 +726,10 @@ mod tests {
                     text
                 })
             };
-            let error = check_against(&root, &outputs, &moved).unwrap_err();
+            let error = check_against(&root, &outputs, &moved, WRITING_PLATFORM).unwrap_err();
             assert!(error.contains(&format!("stale: {}", shot.path)), "{error}");
             let missing = |path: &Path| if path == figure { None } else { on_disk(path) };
-            let error = check_against(&root, &outputs, &missing).unwrap_err();
+            let error = check_against(&root, &outputs, &missing, WRITING_PLATFORM).unwrap_err();
             assert!(
                 error.contains(&format!("{} (not committed)", shot.path)),
                 "{error}"

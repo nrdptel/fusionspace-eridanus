@@ -409,6 +409,7 @@ until someone rewrites it in plainer words.
 | [ADR-378: MAPLEAF as a second open oracle, flown on three public designs][adr-378] | MAPLEAF 0.8.16 (MIT) at commit `af970d3` runs as an outside program in a pinned Python 3.10 environment and flies three public designs from inputs HPR Sim writes. Each difference is HPR Sim's value less MAPLEAF's. With one drag table in both codes, the apogees differ by +0.13% to +0.35% and the rail-exit speeds by +0.007% to +0.034%. With MAPLEAF's gravity also matched to HPR Sim's at the pad, the apogees are within 0.019 m (0.063 ft). With each code's own aerodynamics the apogees differ by −0.22%, +1.00% and +7.63%. Nothing is gated. MAPLEAF does not fly a leaning rail as given, so every flight leaves a vertical one. |
 | [ADR-379: M7.3e, the post-flight comparison drawn by `hpr compare --plot`][adr-379] | `hpr compare --plot FILE.svg` draws the log's altitude and vertical speed from liftoff to landing beside the simulation's: as designed (the 1976 standard atmosphere, no wind), and under the launch day's conditions where they are given. Those come from Open-Meteo's archive of past forecasts at the site and launch time (`--launch-time`, or `--launch-time log` for an AltosUI CSV's GPS time), a weather profile (`--weather`), or values entered (`--wind`, `--temperature`, `--pressure`), so it works offline from values entered or a cached answer. The site is the log's GNSS fixes before liftoff unless one is given. The figure's table gives each reading's provenance. |  |
 | [ADR-380: The 2026-11-26 review: time to apogee held to the logs, predictions first][adr-380] | A flyer picks a motor's ejection delay, or sets a timer, from the time a simulator says the rocket takes to reach the top. No report scores that time against a log for either program on the private collection. This record promotes an idea the backlog has held since 2026-10-24, scoring it: the analyzer's reading of the time from liftoff to apogee gets an interval of its own, checked on synthetic logs; each program's prediction is sealed, written down and locked by its hash before any error is computed, so it can't be changed once an error is seen; then the errors go on new rows `accuracy.time-to-apogee` and `bias.time-to-apogee`, in percent and in seconds. |  |
+| [ADR-381: M7.3f, the fit on the command line and in Python][adr-381] | `hpr fit` and Python's `FlightLog.fit` run one library function, `hpr::fit::fit`, so both give the same numbers. It fits a design's simulation to its log by least squares and gives each parameter with its 90% interval or why it has none, what the fit was told, and each reading's provenance. The fitted flight's known-issue warnings come with it, and the drag scale's interval carries [ADR-368][adr-368]'s caveat. A log of height alone is told at least the wind its intervals were sized in, a value outside the tested range is marked, a track's wind carries its own caveat, a flight that separates is refused, and no threshold calls a fit good or bad. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -976,7 +977,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3d6"></a>[M7.3d6][done-5] | The collection's errors by halves | done |
 | <a id="m7-3d7"></a>[M7.3d7][done-5] | The scoreboard row | done |
 | <a id="m7-3e"></a>[M7.3e][done-5] | The post-flight comparison | done |
-| <a id="m7-3f"></a>[M7.3f][phase-5] | The fit on the command line and in Python | not yet done |
+| <a id="m7-3f"></a>[M7.3f][done-5] | The fit on the command line and in Python | done |
 | <a id="m7-3g"></a>[M7.3g][phase-5] | The least-squares intervals pass again | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][done-6] | The bias every simulator shares | done |
@@ -1512,6 +1513,7 @@ is the milestone that added or will add that test.
 [adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
 [adr-379]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0379-m7-3e-the-post-flight-comparison-drawn-in-hpr-compare.md
 [adr-380]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md
+[adr-381]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0381-m7-3f-the-fit-on-the-command-line-and-in-python.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

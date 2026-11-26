@@ -55,6 +55,9 @@ pub enum Kind {
     Copied,
     /// A measurement set against a model: a log against a simulation of it.
     Compared,
+    /// A model fitted to a measurement: a simulation's inputs moved until it passes through a
+    /// log.
+    Fitted,
 }
 
 /// The air a run flew in, which decides whether its note may quote the report's low side as it
@@ -233,6 +236,20 @@ pub(crate) fn compared() -> String {
          altimeter's own reading is the one to log, and the RSO decides.{MORE}{SITE}\
          comparing-a-flight.html",
         readings_checked()
+    )
+}
+
+/// `hpr fit`'s note: what a fitted scale is, what its intervals were tested on, and what to rely
+/// on instead.
+pub(crate) fn fitted() -> String {
+    format!(
+        "{LABEL} Fitted: the simulation's drag, impulse, wind and mass moved until it passes \
+         through the log, on the inputs you gave. A scale is the factor that best fits this one \
+         flight, not the rocket's drag at every speed, and the simulation's own errors go into \
+         the scales with nothing to say so. The 90% intervals were tested on synthetic flights \
+         only: no real flight has checked them. Don't size a flight to a waiver or a field's \
+         ceiling from a fitted scale alone; the altimeter's own reading is the one to log, and \
+         the RSO decides.{MORE}{SITE}fitting-a-flight.html"
     )
 }
 

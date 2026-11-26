@@ -22,6 +22,7 @@ only when its checklist passes.
 1. **The queue.** On November 26, 2026, [the roadmap's queue](../ROADMAP.md#queue) put release
    0.2 at place 5, 0.3 at 21, 0.4 at 34, 0.5 at 38 and 1.0 at 49. The queue is worked in
    order, so a release comes after the entries ahead of it, not only those its checklist names.
+   M7.3f, at place 1 here, has merged since, so each place on the live queue is one lower.
 2. **What a milestone takes.** An entry is split into increments as it is worked, each merged on
    its own. Counted in [the finished roadmap](../roadmap-done.md) as increments with no parts of
    their own, the log importers (M7.1) took 27, though

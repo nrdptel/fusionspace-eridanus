@@ -1315,10 +1315,10 @@ found = "no other program's CZML or glTF of a real rocket flight to set beside a
 id = "G38"
 surface = "The least-squares fit"
 claim = "Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval tested on two sets of synthetic flights, seen while its model was chosen. All pass on both sets but the drag scale's on set B, which fails on its lower tail: too many truths lie below it, so its fitted drag reads high there"
-pages = ["physics/flight-fit.md#in-short", "accuracy.md#where-each-model-stands"]
+pages = ["physics/flight-fit.md#in-short", "fitting-a-flight.md#what-it-leaves-out", "accuracy.md#where-each-model-stands"]
 kind = "calibration"
 wanted = "real"
-not_checked = "a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind"
+not_checked = "a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. Nor that the wind fitted from a log with a track is the flight's when the fit is told another: in one test it settles far from it (#1646)"
 issue = 1104
 
 [[row.searched]]

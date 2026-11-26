@@ -7,6 +7,7 @@
     reason = "tests state their expectations by unwrapping and panicking"
 )]
 
+mod fit;
 mod left_out;
 
 use hpr_design::{

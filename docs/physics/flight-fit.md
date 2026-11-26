@@ -39,8 +39,8 @@ impulse, wind and mass, and where the fit fails its tests.
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
-  told the design, rail, site and the day's air, and takes them as right. It's in the library only,
-  with no `hpr` command yet. Its [prediction from the boost](#apogee-from-the-boost) has been
+  told the design, rail, site and the day's air, and takes them as right. `hpr fit` and Python's
+  `FlightLog.fit` run it ([Fitting a simulation to a flight](../fitting-a-flight.md)). Its [prediction from the boost](#apogee-from-the-boost) has been
   compared with a logged apogee on 2 public flights, both cut after their burn, on logs that
   stay under 227.7 m/s (747 ft/s): an anecdote, not a measure.
 
@@ -81,12 +81,16 @@ On the synthetic flights, the stated ranges are those the flights draw from
 
 A sensor's errors would otherwise land in the drag, so the fit also solves for them. On every log
 that's the clock offset, the height offset and a height that drifts over the flight. On a barometer
-it's also the reading's gain, a scale on the heights it reads. And it's the port's pressure
-coefficient: how much the airflow past the vent lowers the pressure it reads. A barometer's bins at
+it's also the reading's gain, a scale on the heights it reads. The fit is told the gain is 1 give
+or take 0.14%, one standard deviation. That is an MS5607's ±0.25%
+([the pressure's terms](synthetic-flights.md#the-pressure)) taken as an even draw. And it's the
+port's pressure coefficient: how much the airflow past the vent lowers the pressure it reads. A barometer's bins at
 or past Mach 0.8 are left out, where the port's error grows past the range the fit holds. The cut is
 taken again from the flight each pass finds. The burn time also has a scale, not reported, since a motor's
 impulse and its burn trade against each other. A wind of either sign lowers the top. So a log of height
 alone is flown in a wind of the stated range's root-mean-square speed, 5.16 m/s (16.9 ft/s).
+[`hpr fit`](../fitting-a-flight.md#the-wind-on-a-log-of-height-alone) keeps that as a floor: on such a
+log a wind you give that is slower is raised to it, along its own direction, and a stronger one stands.
 
 The parameters' standard errors come from the fit's curvature, taken from the product of its
 Jacobian with itself as Gauss-Newton does ([standard error](../glossary.md#standard-error)). Two things widen them:
@@ -232,7 +236,7 @@ the wind first, then the rest. Its 90% intervals don't pass
 their test yet: 7 of the 10 tests pass, 5 parameters on each of 2 sets. Set A's drag, set B's drag
 and set B's impulse miss too many truths on one side, so there they're too narrow or off center.
 Until they pass, read the least-squares intervals, which fail one test of their own 10
-([set B's drag](#how-well-it-holds)). Like the fit, it's in the library only, and no real flight has checked
+([set B's drag](#how-well-it-holds)). It's in the Rust library only, and like the fit, no real flight has checked
 it.
 
 The posterior is what the fit's unknowns could be, given the log and the stated ranges. The

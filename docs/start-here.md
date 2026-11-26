@@ -68,10 +68,10 @@ one holds and how likely each goal is:
   ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
   them is drag that reads high above Mach 0.8, so the apogee there reads low.
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
-  file. Then it compares a log with its simulation and draws the two together, which work today.
-  Fitting the rocket's drag from the log on the command line and in Python is still to come.
-  A fit exists in the Rust library, but its drag interval fails one synthetic test
-  ([how well it holds](physics/flight-fit.md#how-well-it-holds)).
+  file. Then it compares a log with its simulation and draws the two together, and fits the
+  simulation to the log from the command line and Python. Those work today
+  ([Fitting a simulation to a flight](fitting-a-flight.md)). The fit's drag interval fails one
+  synthetic test ([how well it holds](physics/flight-fit.md#how-well-it-holds)).
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
   flight's likely faults ranked from its log. It adds a second,
   [Bayesian interval](physics/flight-fit.md#the-bayesian-option) on the fitted drag.
@@ -267,9 +267,9 @@ simulated, phase by phase. It sets each reading beside the simulation's, read th
 the simulation as designed and, where you give the day's conditions, under them. Those come from
 Open-Meteo's archive at the log's own site and time, or from values you enter
 ([Draw it](comparing-a-flight.md#draw-it)). It reports the gap and fits nothing.
-In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,
-a constant wind and the mass to a log. Each has a 90% interval tested on the synthetic
-flights (the wind's on logs with a track), on sets seen while its model was chosen. All pass but one. On the set flown with a model unlike the simulator's own, the true drag falls below its interval too often. There the fitted drag reads high, and a flight predicted with it would come out low ([how well it holds](physics/flight-fit.md#how-well-it-holds)). No `hpr` command runs it yet, and no real flight has checked its intervals.
+`hpr fit` goes further, and so does `FlightLog.fit` in Python ([Fitting a simulation to a flight](fitting-a-flight.md)).
+Their [least-squares fit](physics/flight-fit.md) fits the drag, the impulse, a constant wind and the mass to a log. Each has a 90% interval tested on the synthetic
+flights (the wind's on logs with a track), on sets seen while its model was chosen. All pass but one. On the set flown with a model unlike the simulator's own, the true drag falls below its interval too often. There the fitted drag reads high, and a flight predicted with it would come out low ([how well it holds](physics/flight-fit.md#how-well-it-holds)). The command prints that caveat with the interval. No real flight has checked its intervals.
 A [Bayesian option](physics/flight-fit.md#the-bayesian-option) gives a second kind of interval from the same fit; it doesn't pass its test yet, so use the least-squares ones.
 The library also [predicts apogee from a log cut after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It is run on 7 of the 12 public flights, those compared along their climb. It predicts 2 of the 7, too few to say whether it beats the forward simulation: Bella Lui at +1.2% (forward +1.1%) and NDRT 2020 at −3.6% (forward +10.4%), both cut after the burn. The other 5 reach that speed before a cut ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). In the private collection it predicts the 21 flights it can cut and fit, the slower ones: 36 others reach that speed before a cut. It reads each log up to the cut, which the forward simulation doesn't. Its mean absolute apogee error is 3.19% against the forward simulation's 9.37% on the 12 flights of the calibration half. On the 9 held out from later model choices (but not blind), it is 3.53% against 16.76%. Without the flights that deployed something before apogee, it is 3.00% against 10.11% on the calibration half's 8 and 3.04% against 10.41% on the held-out half's 3, too few for an interval ([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists it as `accuracy.from-boost`.
 
@@ -604,8 +604,7 @@ These are left out of a flight, or approximated:
   Sim knows is read. The formats with no sample, such as CATS's, are
   [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
   ([the register's row on these formats](evidence.md#g9)). `hpr compare` sets a log against a simulation of it.
-  A fit of the drag, impulse, wind and mass to a log exists in the Rust library. It reaches the
-  command line and Python in release 0.2
+  `hpr fit` fits the drag, impulse, wind and mass to a log, from the command line and Python
   ([the fit on the command line](decisions-and-roadmap.md#m7-3f)).
 
 <a id="how-far-to-trust-it"></a>

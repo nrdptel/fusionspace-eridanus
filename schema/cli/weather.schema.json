@@ -195,6 +195,11 @@
           "description": "A measurement set against a model: a log against a simulation of it.",
           "type": "string",
           "const": "compared"
+        },
+        {
+          "description": "A model fitted to a measurement: a simulation's inputs moved until it passes through a\nlog.",
+          "type": "string",
+          "const": "fitted"
         }
       ]
     },

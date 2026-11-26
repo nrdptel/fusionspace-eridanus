@@ -520,7 +520,8 @@ only on simulated two-stage flights ([evidence row G36](evidence.md#g36)).
   pair, or read a pair from Python ([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086),
   [#1085](https://github.com/nrdptel/fusionspace-eridanus/issues/1085)).
 - Compare a flight with its simulation: `hpr compare` does that
-  ([Comparing a flight with its simulation](comparing-a-flight.md)).
+  ([Comparing a flight with its simulation](comparing-a-flight.md)). `hpr fit` fits the
+  simulation to the log ([Fitting a simulation to a flight](fitting-a-flight.md)).
 - Check the heights near the speed of sound. It withholds the top speed from 227.7 m/s
   (747 ft/s), Mach 0.8 in the coldest air the bounds allow
   ([the top speed](physics/log-readings.md#each-reading)). It doesn't withhold the heights read

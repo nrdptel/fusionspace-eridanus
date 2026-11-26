@@ -12,11 +12,15 @@ use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::FlightLog as Record;
 use hpr::hpr_flightdata::readings;
 use hpr::hpr_flightdata::smoother::{self, Smoothed, Withheld};
+use hpr::hpr_forensics::residuals::HeightKind;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyList};
 use serde::Serialize;
 
+use crate::flight::Environment;
+use crate::models::Raised;
+use crate::rocket::Rocket;
 use crate::{error, to_python};
 
 /// What ``FlightLog.smoothed`` gives: the track and its card as text, or why there is none.
@@ -336,6 +340,148 @@ impl FlightLog {
             Err(withheld) => SmoothedOutcome::Withheld(withheld),
         };
         to_python(py, &outcome)
+    }
+
+    /// Fits ``rocket``'s simulation to this log by least squares, as ``hpr fit`` does, and gives
+    /// the fit as a dict. The simulation's drag, its motor's impulse and burn time, a constant
+    /// wind and the structure's mass are moved until its flight, read as the log's sensor reads
+    /// it, passes through the log's heights from a second before liftoff to apogee. A log with
+    /// latitude and longitude is fitted through its drift too.
+    ///
+    /// ``fit(rocket, environment, rail_length_m, *, inclination_deg=90.0, heading_deg=0.0,
+    /// tip_off=True, height_reads=None)``: the launch is given as ``Flight`` takes it. The
+    /// environment's air is flown as given. Its wind, averaged over the climb, is what the fit is
+    /// told of the wind before the log. A log with no latitude and longitude can't tell the wind,
+    /// so on one the fit is told a wind of at least 5.16 m/s, the wind its intervals were sized
+    /// in: a slower wind is raised to that along its own direction, and calm air to that toward
+    /// the east. ``height_reads`` is ``"barometer"`` or ``"height_climbed"``; with ``None`` the
+    /// log's main altitude is taken as a barometer's.
+    ///
+    /// ``parameters`` lists six dicts, in the fit's order: ``drag_scale``, ``impulse_scale``,
+    /// ``burn_time_scale``, ``wind_east_m_s``, ``wind_north_m_s`` and ``mass_scale``, named by
+    /// ``parameter``. Each holds its ``value``, a factor or for the wind a speed in m/s, its
+    /// ``standard_error``, and what the fit was told of it, ``stated`` (``mean`` and ``sd``).
+    /// ``interval_90`` is its least-squares 90% interval, ``low`` and ``high``, or ``None`` with
+    /// ``no_interval`` saying why: ``"not_asked"`` for the burn time's scale,
+    /// ``"height_alone"`` for the wind on a log with no latitude and longitude, and
+    /// ``"no_standard_error"`` where its standard error sizes none.
+    ///
+    /// ``tested_range`` is the range the intervals were tested over, ``low`` and ``high``: what
+    /// the synthetic flights drew that parameter's true value from, and for a wind component the
+    /// fastest wind drawn, either way. ``outside_tested_range`` says the fitted value lies
+    /// outside it, or for the wind that the fitted wind is faster. No test covers the fit's
+    /// intervals out there, and ``text`` marks the value with a ``†``.
+    ///
+    /// ``caveat`` is ``None`` for an interval that passes its test on the synthetic flights. The
+    /// drag scale's doesn't: on flights flown with a model unlike the fit's own, ``below`` of
+    /// ``flights`` truths lay below it where ``meant`` are meant. Its ``message`` says which way
+    /// that errs: the fitted drag may read high, and a flight predicted from it low.
+    ///
+    /// ``readings`` says what was read from the log and where each came from: ``liftoff`` (or
+    /// ``None`` for a log that starts in flight), ``apogee``, ``height_track`` and
+    /// ``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
+    /// measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
+    ///
+    /// ``wind_caveat`` is ``None`` for a log of height alone. On a log with latitude and
+    /// longitude it is a sentence to read with the wind: the fitted wind can settle far from
+    /// the flight's, with a narrow interval about it, so give the day's wind.
+    ///
+    /// ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
+    /// ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read
+    /// wrong on this flight, the fitted scales take that error in.
+    ///
+    /// The dict also holds ``height_read_as``, in ``height_reads``' two words, the residual's
+    /// ``rms_m`` and ``misfit_share``, ``converged``, ``clock_offset_s``, ``height_offset_m``,
+    /// ``flights_flown``, ``stated_apogee_m``, ``fitted_apogee_m``, ``fitted_apogee_time_s``
+    /// (seconds after ignition) and ``fitted_max_mach``. The two apogees are the climb's as the
+    /// fit flies it, with no recovery device opening. ``text`` is the whole fit as lines of text
+    /// to print.
+    ///
+    /// The intervals were tested on synthetic flights only. A scale is the factor that best fits
+    /// this one flight, not the rocket's drag at every speed.
+    ///
+    /// Raises ``HprError`` for a log with no apogee or too little of its climb, a flight that
+    /// separates, a launch that can't be flown, and a log no flight of the design passes through.
+    #[pyo3(signature = (
+        rocket, environment, rail_length_m, *, inclination_deg = 90.0, heading_deg = 0.0,
+        tip_off = true, height_reads = None
+    ))]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Python's keyword arguments, one per option of a launch"
+    )]
+    fn fit<'py>(
+        &self,
+        py: Python<'py>,
+        rocket: &Bound<'py, Rocket>,
+        environment: &Environment,
+        rail_length_m: f64,
+        inclination_deg: f64,
+        heading_deg: f64,
+        tip_off: bool,
+        height_reads: Option<&str>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let height_read_as = match height_reads {
+            None => None,
+            Some("barometer") => Some(HeightKind::Barometric),
+            Some("height_climbed") => Some(HeightKind::Geometric),
+            Some(other) => {
+                return Err(error(format!(
+                    "height_reads is {other:?}, and must be \"barometer\", \"height_climbed\" \
+                     or None"
+                )));
+            }
+        };
+        // A copy, so the rocket isn't held borrowed while the fit flies without the GIL.
+        let rocket = rocket.borrow().rocket.clone();
+        let raised = Raised::default();
+        let environment = environment.bound(py, &raised);
+        let builder = hpr::Flight::builder(&rocket, &environment, rail_length_m)
+            .inclination_deg(inclination_deg)
+            .heading_deg(heading_deg)
+            .tip_off(tip_off);
+        let fitted = py.detach(|| hpr::fit::fit(&builder, &self.log, height_read_as));
+        // A wind function's exception is raised in place of the fit's refusal.
+        if let Some(raised) = raised.take() {
+            return Err(raised);
+        }
+        let fitted = fitted.map_err(error)?;
+        let given = to_python(py, &fitted)?;
+        let dict = given.cast::<PyDict>()?;
+        // Each caveat with its sentences, each warning as `Flight.issue_warnings` gives it.
+        if let Some(parameters) = dict.get_item("parameters")? {
+            for (row, fitted) in parameters.cast::<PyList>()?.iter().zip(&fitted.parameters) {
+                if let (Some(caveat), Some(said)) =
+                    (fitted.caveat, row.cast::<PyDict>()?.get_item("caveat")?)
+                {
+                    said.cast::<PyDict>()?
+                        .set_item("message", caveat.message(fitted.parameter))?;
+                }
+            }
+        }
+        let warnings = PyList::empty(py);
+        for warning in &fitted.issue_warnings {
+            let said = PyDict::new(py);
+            said.set_item("issue", warning.number())?;
+            said.set_item("kind", warning.issue.kind().name())?;
+            said.set_item("url", warning.issue.url())?;
+            said.set_item("max_mach", warning.max_mach.value)?;
+            said.set_item("time_s", warning.max_mach.time_s)?;
+            said.set_item("parts", warning.parts.clone())?;
+            said.set_item("message", warning.message())?;
+            warnings.append(said)?;
+        }
+        dict.set_item("issue_warnings", warnings)?;
+        dict.set_item(
+            "height_read_as",
+            match fitted.height_read_as {
+                HeightKind::Barometric => "barometer",
+                HeightKind::Geometric => "height_climbed",
+            },
+        )?;
+        dict.set_item("wind_caveat", fitted.wind_caveat())?;
+        dict.set_item("text", fitted.lines().join("\n"))?;
+        Ok(given)
     }
 
     /// The whole record as a dict of lists, gaps as ``None``: the document ``hpr analyze

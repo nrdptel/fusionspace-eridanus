@@ -295,6 +295,7 @@ only the files each command really reads. "Not yet" commands exit with [status 3
 | `hpr mc` | Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with `--export` | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Set a flight log against a simulation of it: how far the logged height and speed lie from the simulated, and each reading beside the simulation's | a flight log, as `hpr analyze` reads it, a design, its motor and the launch, as `hpr sim` reads them | text, JSON, a figure as `.svg`, with its data as `.csv` | available ([how to use it](cli.md#hpr-compare)) |
+| `hpr fit` | Fit a design's simulation to its flight's log: the drag, impulse, wind and mass it points to, most with a 90% interval | a flight log, as `hpr analyze` reads it, a design, its motor and the launch, as `hpr sim` reads them | text, JSON | available ([how to use it](cli.md#hpr-fit)) |
 | `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON, a ghost file as `.json`, `.czml` or `.gltf` | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
@@ -2037,7 +2038,7 @@ gives:
 
 ## Logs and weather
 
-`hpr analyze` reads an altimeter's flight log, `hpr compare` sets one against a simulation of it, and `hpr weather` writes the air and wind over a launch site.
+`hpr analyze` reads an altimeter's flight log, `hpr compare` sets one against a simulation of it, `hpr fit` fits the simulation to it, and `hpr weather` writes the air and wind over a launch site.
 
 ### `hpr compare`
 
@@ -2059,6 +2060,40 @@ at the site), `--weather`, or values entered: `--wind`, `--temperature` and `--p
 ```text
 hpr compare flight.csv rocket.ork --motor CTI-J350 --elevation 1401 --launch-time log --plot flight.svg
 ```
+
+### `hpr fit`
+
+`hpr fit` fits a design's simulation to its flight's log by least squares. It takes the log, then the
+design, its motor and the launch, as `hpr compare` takes them, with the same options but `--plot`.
+It prints what it read from the log, each with its source and whether it was measured or derived.
+Then it prints the drag scale, the impulse scale, the burn time scale, the wind and the structure's
+mass scale, each with its 90% interval or why it has none, and what the fit was told before the log.
+[Fitting a simulation to a flight](fitting-a-flight.md) says how to read the result.
+
+```text
+hpr fit flight.pf2 rocket.ork --motor CTI-J350
+```
+
+The launch day's air and wind come from `--launch-time`, `--weather`, or values entered. The wind
+given, averaged over the climb, is what the fit is told of the wind before the log. On a log with
+no latitude and longitude it is raised to 5.16 m/s (16.9 ft/s) if it is slower
+([why](fitting-a-flight.md#the-wind-on-a-log-of-height-alone)).
+
+```text
+hpr fit flight.pf2 rocket.ork --motor CTI-J350 --wind 4 --temperature 28
+```
+
+The drag scale's interval fails one of its tests on synthetic flights, so it prints with a caveat
+that says which way it errs ([the caveat](fitting-a-flight.md#the-caveat)). On a log with latitude
+and longitude the wind prints with a caveat of its own: it can settle far from the flight's wind,
+with a narrow interval about it
+([the wind on a log with a track](fitting-a-flight.md#the-wind-on-a-log-with-a-track)). The warnings of each
+known issue the fitted flight meets follow the result, as `hpr sim` gives them. A fitted value
+outside the range the intervals were tested over prints with a `†`
+([the mark](fitting-a-flight.md#the-mark-on-a-value-outside-the-tested-range)). A log with no
+apogee, a flight that separates and a log no flight of the design passes through are refused, each
+with its reason ([When it refuses](fitting-a-flight.md#when-it-refuses)). `--json` prints the
+document that `schema/cli/fit.schema.json` describes.
 
 ### `hpr analyze`
 

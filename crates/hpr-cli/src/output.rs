@@ -2064,6 +2064,201 @@ pub struct Compare {
     pub notes: Vec<String>,
 }
 
+/// `hpr fit`, as JSON: a design's simulation fitted to its flight's log by least squares, each
+/// parameter with its 90% interval, each thing read from the log with where it came from.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct Fit {
+    /// What kind of result this is: a model fitted to a measurement.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with.
+    pub trust: String,
+    /// The log, as given.
+    pub log: String,
+    /// The logger, as the log names it.
+    pub logger: String,
+    /// The design's file.
+    pub design: String,
+    /// The configuration flown.
+    pub configuration: String,
+    /// The launch site flown from, and where its place came from.
+    pub site: CompareSite,
+    /// The conditions the fit's flights flew in, but for the wind, which the fit moves: the
+    /// launch day's where any are given, else as designed.
+    pub flown_in: CompareFlownIn,
+    /// What the log's height stands for, and so how each simulated flight's is read.
+    pub height_read_as: HeightReadAs,
+    /// What the fit read from the log, each with its source and provenance.
+    pub readings: FitReadings,
+    /// Each parameter, in the fit's order: the drag scale, the impulse scale, the burn time's
+    /// scale, the wind toward the east and the north, and the structure's mass scale.
+    pub parameters: Vec<FitParameter>,
+    /// The heights' residual's RMS, m: the log's height less the fitted flight's, over the bins
+    /// read.
+    pub rms_m: f64,
+    /// That residual as a share of the spread of the heights read.
+    pub misfit_share: f64,
+    /// Whether the fit ended where no step lowered its misfit further.
+    pub converged: bool,
+    /// The log's clock at the simulation's zero, s.
+    pub clock_offset_s: f64,
+    /// What the log's pad reads above the simulation's, m.
+    pub height_offset_m: f64,
+    /// Simulations flown for the fit.
+    pub flights_flown: u64,
+    /// The apogee of the climb as stated, before the fit, m above the pad: flown as the fit flies
+    /// it, with no recovery device opening.
+    pub stated_apogee_m: f64,
+    /// The apogee of the climb at the fitted parameters, m above the pad, flown the same way;
+    /// null if it reaches none.
+    pub fitted_apogee_m: Option<f64>,
+    /// When that climb reaches its apogee, s after ignition.
+    pub fitted_apogee_time_s: Option<f64>,
+    /// The top Mach number of the flight at the fitted parameters, flown to the ground with the
+    /// design's recovery: the Mach number its warnings speak of.
+    pub fitted_max_mach: Option<f64>,
+    /// The caveat on the wind of a log with a horizontal track: the fitted wind can settle far
+    /// from the flight's, with a narrow interval about it. Null for a log of height alone, whose
+    /// wind states no interval.
+    pub wind_caveat: Option<String>,
+    /// The known issues the flight at the fitted parameters meets: where HPR Sim's drag or
+    /// stability is known to read wrong on this flight, the fit's numbers take that error in.
+    pub issues: Vec<SimIssue>,
+    /// What to bear in mind in reading them, as the text form's notes say.
+    pub notes: Vec<String>,
+}
+
+/// What `hpr fit` read from the log.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct FitReadings {
+    /// The liftoff the fit's window starts a second before; null for a log that starts in
+    /// flight, whose first sample stands for it.
+    pub liftoff: Option<FitLiftoff>,
+    /// The apogee the window ends at.
+    pub apogee: FitApogee,
+    /// The heights read.
+    pub height_track: FitTrack,
+    /// The horizontal track read, east and north of the pad from the log's latitude and
+    /// longitude; null for a log of height alone.
+    pub horizontal_track: Option<FitTrack>,
+}
+
+/// The liftoff a fit's window starts by.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct FitLiftoff {
+    /// Its time, s on the log's clock.
+    pub time_s: f64,
+    /// The bound its error stays within, s.
+    pub bound_s: f64,
+    /// The track it was read from.
+    pub source: ReadingSource,
+    /// Whether it was measured or derived.
+    pub provenance: ReadingProvenance,
+}
+
+/// The apogee a fit's window ends at.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct FitApogee {
+    /// Its time, s on the log's clock.
+    pub time_s: f64,
+    /// The bound the time's error stays within, s.
+    pub time_bound_s: f64,
+    /// Its height above the pad, m.
+    pub height_m: f64,
+    /// The bound the height's error stays within, m.
+    pub bound_m: f64,
+    /// The track it was read from.
+    pub source: ReadingSource,
+    /// Whether it was measured or derived.
+    pub provenance: ReadingProvenance,
+}
+
+/// A track of the log a fit read.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct FitTrack {
+    /// The sensor it came from.
+    pub source: ReadingSource,
+    /// Whether its values were measured or derived.
+    pub provenance: ReadingProvenance,
+    /// Its quarter-second bins that hold a sample, from a second before liftoff to apogee.
+    pub bins: usize,
+    /// The bins the fit read: a barometer's at or past Mach 0.8 on the fitted flight are left
+    /// out.
+    pub bins_read: usize,
+}
+
+/// One parameter as `hpr fit` found it.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct FitParameter {
+    /// Which parameter.
+    pub parameter: FitParameterName,
+    /// The fit's value: a factor, or for the wind a speed in m/s.
+    pub value: f64,
+    /// Its standard error, from the fit's own residuals.
+    pub standard_error: f64,
+    /// The middle of what the fit was told of it before the log.
+    pub stated_mean: f64,
+    /// The standard deviation of what the fit was told of it.
+    pub stated_sd: f64,
+    /// Its least-squares 90% interval; null where none is stated (`no_interval` says why).
+    pub interval_90: Option<ReadingInterval>,
+    /// Why it states no interval; null where it states one.
+    pub no_interval: Option<FitNoInterval>,
+    /// The caveat its interval carries; null for an interval that passes its test.
+    pub caveat: Option<FitCaveat>,
+    /// The range the fit's intervals were tested over: what the synthetic flights drew its true
+    /// value from. For a wind component it is the fastest wind drawn, either way.
+    pub tested_range: ReadingInterval,
+    /// Whether the fitted value lies outside `tested_range`, or for the wind, whether the fitted
+    /// wind is faster than the fastest drawn. No test covers the fit's intervals out there, this
+    /// parameter's or another's.
+    pub outside_tested_range: bool,
+}
+
+/// A parameter of the fit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum FitParameterName {
+    /// The factor on the rocket's zero-lift drag.
+    DragScale,
+    /// The factor on the motor's total impulse.
+    ImpulseScale,
+    /// The factor on the motor's burn time: moved by the fit, not asked of it.
+    BurnTimeScale,
+    /// The constant wind's speed toward the east, m/s.
+    WindEastMS,
+    /// The constant wind's speed toward the north, m/s.
+    WindNorthMS,
+    /// The factor on the structure's mass: the rocket without its motors.
+    MassScale,
+}
+
+/// Why a fitted parameter states no 90% interval.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum FitNoInterval {
+    /// The fit isn't asked for it: the burn time's scale.
+    NotAsked,
+    /// A log of height alone can't tell the wind.
+    HeightAlone,
+    /// Its standard error sizes no interval: it isn't a number above zero, or an end of the
+    /// interval it gives isn't finite.
+    NoStandardError,
+}
+
+/// The caveat on a fitted parameter's interval that fails its test on the synthetic flights and
+/// is recorded as failing.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct FitCaveat {
+    /// The synthetic flights whose truth lay below the interval, as recorded.
+    pub below: u64,
+    /// The flights of the set.
+    pub flights: u64,
+    /// How many a 90% interval is meant to leave below it.
+    pub meant: u64,
+    /// The caveat in sentences, with which way the interval errs.
+    pub message: String,
+}
+
 /// The launch site `hpr compare` flies from.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct CompareSite {
@@ -2889,6 +3084,7 @@ pub fn schemas() -> Vec<(&'static str, String)> {
         ("analyze.schema.json", schema::<Analyze>()),
         ("analyze-together.schema.json", schema::<AnalyzeTogether>()),
         ("compare.schema.json", schema::<Compare>()),
+        ("fit.schema.json", schema::<Fit>()),
         (
             "analyze-record.schema.json",
             schema::<hpr::hpr_flightdata::log::FlightLog>(),

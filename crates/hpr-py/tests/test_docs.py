@@ -14,7 +14,9 @@ it. The guides check (`cargo xtask guides`) lets a number stand in a marked bloc
 import contextlib
 import io
 import os
+import platform
 import re
+import sys
 
 BLOCK = re.compile(r"```(python|text)(?:,wrap)?\n(.*?)```", re.DOTALL)
 PYTHON_EXAMPLE = "<!-- python: example -->"
@@ -24,6 +26,22 @@ MARKED = re.compile(
     "^" + re.escape(PYTHON_EXAMPLE) + r"\n(.*?)^" + re.escape(PYTHON_END) + "$", re.DOTALL | re.MULTILINE
 )
 WRITE = os.environ.get("HPR_WRITE_DOCS") == "1"
+# The pages whose examples run the least-squares fit. Its last digits differ from one platform to
+# another, likely with the platform's math library: of one run, Linux printed a wind of 0.100 m/s
+# where macOS printed 0.101. Their outputs are held exactly on the platform that writes them,
+# macOS on Apple silicon, and by their words on the others, as `cargo xtask cli` holds the same
+# pages' command-line examples.
+FITTED = {"docs/fitting-a-flight.md"}
+WRITING_PLATFORM = sys.platform == "darwin" and platform.machine() == "arm64"
+NUMBER = re.compile(r"(?:(?<=[ (])[-−])?[0-9]+(?:[.,][0-9]+)*")
+
+
+def words(text):
+    """`text` without what a fit's last digits can move: each number a `#`, with the minus sign
+    before it if a space or a bracket comes before that, and each run of spaces one space. So a
+    number's sign is held on the writing platform only."""
+    return re.sub(r" +", " ", NUMBER.sub("#", text))
+
 TOUR = "docs/simulator-tour.md"
 
 
@@ -79,7 +97,10 @@ def run_page(repo, monkeypatch, name, pairs):
                 file.write(written)
     else:
         for (start, end), output in outputs:
-            assert page[start:end] == output, f"{name}: stale output (HPR_WRITE_DOCS=1 rewrites it)"
+            shown = page[start:end]
+            if name in FITTED and not WRITING_PLATFORM:
+                shown, output = words(shown), words(output)
+            assert shown == output, f"{name}: stale output (HPR_WRITE_DOCS=1 rewrites it)"
     return namespace
 
 
@@ -146,3 +167,17 @@ def test_the_package_readme_runs(repo):
         exec(compile(code, "crates/hpr-py/README.md", "exec"), {})
     apogee_m, highest_m = (float(value) for value in out.getvalue().split())
     assert 0.0 < highest_m <= apogee_m
+
+
+def test_words_keep_all_but_numbers_and_widths():
+    one = "drag_scale: 1.038, 0.985 to 1.086\nwind_east_m_s: -0.101, height_alone\n6 known issues met\n"
+    other = "drag_scale: 0.99, 0.9 to 12.25\nwind_east_m_s:  0.100, height_alone\n3 known issues met\n"
+    assert words(one) == "drag_scale: #, # to #\nwind_east_m_s: #, height_alone\n# known issues met\n"
+    assert words(one) == words(other)
+    assert words(one.replace("height_alone", "not_asked")) != words(one)
+    assert words(one.replace("6 known issues met\n", "")) != words(one)
+    # A point, a comma or a hyphen that isn't part of a number stays, as `cargo xtask cli` keeps it.
+    assert words("H170M-10, 3.\n") == "H#M-#, #.\n"
+    assert words("leaves 50.\n") != words("leaves 50\n")
+    assert words("1, 2\n") != words("1 2\n")
+    assert words("wind (−3 ft/s) -0.1\n") == "wind (# ft/s) #\n"

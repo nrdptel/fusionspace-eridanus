@@ -256,7 +256,8 @@ fn binned(samples: impl Iterator<Item = (f64, f64)>, from_s: f64, to_s: f64) -> 
         .collect()
 }
 
-/// A log's height and any horizontal track, on `read`'s pad, from `read`'s liftoff to its apogee;
+/// A log's height and any horizontal track, on `read`'s pad, from a second before `read`'s liftoff
+/// to its apogee;
 /// `None` where the reader withheld the apogee, the pad, or too few bins hold a sample to fit, so
 /// the log can say nothing.
 #[must_use]
@@ -271,6 +272,16 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
         HeightKind::of(apogee.source),
         false,
     )
+}
+
+/// As [`observations`], its heights read as `kind` whatever track the apogee came from: for a
+/// log whose owner says what its height stands for, as `hpr compare --height-reads` takes it.
+#[must_use]
+pub fn observations_as(log: &FlightLog, read: &Readings, kind: HeightKind) -> Option<Observations> {
+    let Reading::Read(apogee) = &read.apogee else {
+        return None;
+    };
+    observations_until(log, read, apogee.time_s, kind, false)
 }
 
 /// A log's height and any horizontal track, on `read`'s pad, from a second before `read`'s

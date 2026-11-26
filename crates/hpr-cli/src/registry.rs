@@ -115,6 +115,13 @@ pub fn availability(name: &str) -> Option<Availability> {
                 "a figure as `.svg`, with its data as `.csv`".to_owned(),
             ],
         }),
+        "fit" => Some(Availability::Available {
+            reads: vec![
+                "a flight log, as `hpr analyze` reads it".to_owned(),
+                "a design, its motor and the launch, as `hpr sim` reads them".to_owned(),
+            ],
+            writes: vec!["text".to_owned(), "JSON".to_owned()],
+        }),
         "weather" => Some(Availability::Available {
             reads: vec![
                 "Open-Meteo, a University of Wyoming sounding, GFS or RAP, fetched or saved, a whole GFS file"

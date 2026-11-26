@@ -46,6 +46,8 @@
 
 [Comparing a flight with its simulation](comparing-a-flight.md)
 
+[Fitting a simulation to a flight](fitting-a-flight.md)
+
 [Your own rocket](your-own-rocket.md)
 
 [How a flight is simulated](how-a-flight-is-simulated.md)

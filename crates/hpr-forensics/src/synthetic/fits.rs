@@ -139,6 +139,19 @@ impl Asked {
         !matches!(self, Self::WindEast | Self::WindNorth)
     }
 
+    /// The range the flights' truths of it are drawn from: what its interval was tested over, and
+    /// no further. A wind component's is the most the wind blows, either way; the mass's is the
+    /// true mass on a weighed one, [`WEIGHED_WITHIN`] off either way.
+    #[must_use]
+    pub fn drawn(self) -> (f64, f64) {
+        match self {
+            Self::DragScale => super::DRAG_SCALE_DRAWN,
+            Self::ImpulseScale => super::IMPULSE_SCALE_DRAWN,
+            Self::WindEast | Self::WindNorth => (-super::MAX_WIND_M_S, super::MAX_WIND_M_S),
+            Self::MassScale => (1.0 / (1.0 + WEIGHED_WITHIN), 1.0 / (1.0 - WEIGHED_WITHIN)),
+        }
+    }
+
     /// Its place in [`Parameters::to_array`].
     #[must_use]
     pub fn index(self) -> usize {
@@ -175,9 +188,16 @@ impl Asked {
 pub fn stated_for(observed: Option<&Observations>) -> Stated {
     let mut stated = stated();
     if observed.is_some_and(|o| o.horizontal.is_empty()) {
-        stated[Asked::WindEast.index()].mean = super::MAX_WIND_M_S / 3.0_f64.sqrt();
+        stated[Asked::WindEast.index()].mean = height_alone_wind_m_s();
     }
     stated
+}
+
+/// The wind a log of height alone is flown in, m/s ([`stated_for`]): the RMS of a speed drawn
+/// evenly from calm to [`super::MAX_WIND_M_S`], which is that most over √3.
+#[must_use]
+pub fn height_alone_wind_m_s() -> f64 {
+    super::MAX_WIND_M_S / 3.0_f64.sqrt()
 }
 
 /// How far a flight's weighed mass lies from its structure's, a share of it, either way: a
@@ -910,6 +930,38 @@ pub fn shares(asked: Asked, drift: bool) -> Shares {
         (Asked::MassScale, true) => (-1.68, 1.72),
     };
     Shares { low, high }
+}
+
+/// Least-squares intervals that fail [ADR-257][adr-257] §1's test and are recorded as failing
+/// ([ADR-368][adr-368]): each has more truths below it than the 5% a 90% interval allows, on the
+/// set named, and holds its other two counts. The number is the count below as recorded, of the
+/// set's [`Set::count`] flights. `cargo xtask fit` holds each cell to its entry: the run stops if
+/// the cell passes, so that a gap that closes leaves the list, if it fails on another count, or
+/// if the count below grows. A surface that prints such an interval reads this list for the
+/// caveat it must carry ([`known_gap_of`]).
+///
+/// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+/// [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
+pub const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 80)];
+
+/// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
+/// list.
+#[must_use]
+pub fn known_gap(set: Set, asked: Asked) -> Option<u64> {
+    KNOWN_GAPS
+        .iter()
+        .find(|gap| (gap.0, gap.1) == (set, asked))
+        .map(|gap| gap.2)
+}
+
+/// The known gap of `asked`'s least-squares interval, on whichever set it fails: the set and the
+/// recorded count of truths below the interval. `None` for an interval that passes on every set.
+#[must_use]
+pub fn known_gap_of(asked: Asked) -> Option<(Set, u64)> {
+    KNOWN_GAPS
+        .iter()
+        .find(|gap| gap.1 == asked)
+        .map(|gap| (gap.0, gap.2))
 }
 
 #[cfg(test)]
