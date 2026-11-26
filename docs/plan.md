@@ -8,8 +8,11 @@ date as work ships or the roadmap changes. Releases come at product boundaries, 
 The release rows and the paragraph under them were brought up to date on November 24, 2026, when
 releases stopped waiting on outside users ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
 [Estimates of when each release may come](#when-each-release-may-come) were added the same day
-and made again on November 26, 2026, which moved 1.0's a month later. The outlooks further down
-are still October 6's.
+and made again on November 26, 2026. That moved 1.0's from the end of March to the end of April
+2028. Its padded date moved one day, to April 1, which rounds up to a new month: a new milestone,
+time to apogee against the logs, joined the queue
+([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md)).
+The outlooks further down are still October 6's.
 
 > **How far to trust it.** Each goal's outlook here is a judgment, from the work done so far. It's
 > based on the roadmap and the validation results as of October 6, 2026. The release estimates are
@@ -71,8 +74,8 @@ whether flyers want the tool ([the decision record](https://github.com/nrdptel/f
 These are [estimates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/release-estimates.md), made on November 26, 2026, and not promises. A release still comes out only
 when its checklist passes, and none is cut short to meet a date. Each estimate counts the
 milestones ahead of its release in [the roadmap's queue](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md#queue).
-It sizes each by the pieces finished milestones have taken and goes at the pace of the last four
-weeks. That time is then padded by judgment, one stretch between releases at a time. The stretch
+It sizes each by the pieces finished milestones have taken and goes at the pace of the 29 days
+before. That time is then padded by judgment, one stretch between releases at a time. The stretch
 to 0.2 is doubled, the next two tripled, and the two that hold the app, the newest kind of work,
 quadrupled.
 

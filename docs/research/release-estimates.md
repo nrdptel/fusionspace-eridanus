@@ -1,5 +1,8 @@
 # Release estimates: how they were made
 
+This note shows how the plan's release estimates were made. Trust them as padded guesses, not
+promises.
+
 **Bottom line:** on November 26, 2026, each release's estimate on [the
 plan](https://hpr.fusionspace.co/plan.html#when-each-release-may-come) was made from three inputs:
 the roadmap's queue, how many increments finished milestones took, and the pace of merges on `main`.
@@ -10,8 +13,9 @@ app, the newest kind of work. The factors are judgments, largest for the app. Th
 so a release that slips moves every later one with it. That puts 0.2 by the end of December 2026,
 0.3 by the end of May 2027, 0.4 by the end of August 2027, 0.5 by the end of November 2027 and 1.0
 by the end of April 2028. 0.3's padded date is May 25, six days before its month ends, so a little
-more work makes it June. They are estimates, not promises: a release comes out only when its
-checklist passes.
+more work makes it June. 1.0's is April 1, the first day of its month, so a little less work, or
+the pace unrounded, puts it back in March. They are estimates, not promises: a release comes out
+only when its checklist passes.
 
 ## The inputs
 
@@ -25,7 +29,7 @@ checklist passes.
    and smoothing (M7.2) took 10; release 0.1 (M10.1) 12; the fit from the boost (M7.3d) 6, as its
    M7.3d3 split into M7.3d4 to M7.3d7; every solid motor offline (M5.7) 5. One ran short: the
    post-flight comparison drawn (M7.3e), sized here at 3 to 6 on November 24, merged as one.
-3. **The pace.** From October 28 to November 25, 2026, 29 days, 56 merges whose title starts with
+3. **The pace.** From October 28 to November 25, 2026 (UTC), 29 days, 56 merges whose title starts with
    a milestone id landed on `main`: 13.5 a week. This command prints the count:
    `TZ=UTC git log 69bead4f --since=2026-10-28T00:00 --format=%s | grep -cE '^M[0-9]+\.[0-9]+'`.
    It counts a follow-up or a merge landed again too, and misses an increment whose title names
@@ -34,7 +38,8 @@ checklist passes.
 ## Each entry's size
 
 Low and high are the fewest and the most increments the entry might take, judged against the
-finished milestones above. The middle is halfway between them.
+finished milestones above. The middle is halfway between them. An M-number names a milestone in
+[the roadmap](../ROADMAP.md).
 
 | place | entry | low | high | middle |
 |---|---|---|---|---|
@@ -97,7 +102,8 @@ it would move 0.3 and every later release.
 ## The arithmetic
 
 Each stretch's middle, at 13.5 increments a week, then padded, then added up from November 26,
-2026, in whole days. The last column rounds the padded date up to the end of its month.
+2026, in whole days, a part of a day dropped. The last column rounds the padded date up to the end
+of its month.
 
 | release | weeks at the pace | at the pace alone | padding | padded weeks, summed | padded date | posted |
 |---|---|---|---|---|---|---|
@@ -119,8 +125,11 @@ Each stretch's middle, at 13.5 increments a week, then padded, then added up fro
   ([ADR-370](../decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md))
   and time to apogee
   ([ADR-380](../decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md)).
-  That last one, 2 to 5 increments ahead of 0.3 and so tripled, is what moved 1.0's padded date
-  from the last days of March 2028 into April.
+  That last one, 2 to 5 increments ahead of 0.3 and so tripled, adds about 0.8 week to every
+  release from 0.3 on. Work finished since November 24 took off about 0.9 week, and this estimate
+  starts two days later. So 1.0's padded date moved one day, from March 31 to April 1, 2028, and
+  the rounding carried its posted month into April. At the pace unrounded, 13.52 a week, the same
+  arithmetic gives March 31.
 - **Some targets may not be met.** The fit's intervals (M7.3g) may not pass their test again.
   Release 0.3 needs HPR Sim's mean apogee error on the held-out flights below OpenRocket's
   ([M10.3](../ROADMAP.md#phase-8-releases-adr-162)). On the private collection, HPR Sim's apogees miss by

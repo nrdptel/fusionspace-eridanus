@@ -99,28 +99,30 @@ Placed with [ADR-380][adr-380], which promotes the first; the other three are SO
   24.12 ahead" on `accuracy.collection`, 12.10% against 11.26% over the same 60 flights (read
   2026-11-26), who can't tell whether 0.84 points is more than the flights' scatter. Workflow: the
   fixture report gives the mean of HPR Sim's absolute error less OpenRocket's, flight by flight,
-  with a 95% interval from a bootstrap that resamples sources and the exact sign-flip interval
-  ([ADR-257][adr-257]), on the collection and on each half; the scoreboard prints it beside the two
-  cells and keeps its words. Moves: `accuracy.collection` and `accuracy.held-out`, as the difference
-  between the two programs' cells, shown. *Done when:* a test pins the statistic on a synthetic set
-  whose programs differ by a known amount in half its sources; the report gives the difference, both
-  intervals and the counts of flights and sources; a probe that resamples flights fails the test.
+  with two 95% intervals after [ADR-257][adr-257]'s, each made by source here since one source's
+  flights err together: one redraws whole sources, one flips each source's sign. The scoreboard
+  prints it beside the two cells and keeps its words. Moves: `accuracy.collection` and
+  `accuracy.held-out`, as the difference between the two programs' cells, shown. *Done when:* a test
+  pins the statistic on a synthetic set whose programs differ by a known amount in half its sources;
+  the report gives the difference, both intervals and the counts of flights and sources, on the
+  collection and on each half of its sources; a probe that redraws or flips flights fails the test.
 - SOON: where a rocket lands with nothing open. User: a flyer preparing a Class 3 flight's analysis,
-  and the committee reviewing it. Tripoli's Class 3 committee asked OpenRocket on 2026-11-23 for
-  the dispersion of ballistic flights, which by the request its Monte Carlo leaves out, and for runs
-  from a command line ([its issue 3496][or-3496], read 2026-11-26). Workflow: `hpr mc` flies every
-  draw again with every recovery charge held and gives that landing area beside the recovered one,
-  each share with its bound ([the Monte Carlo page][mc]). Moves: `accuracy.landing`
-  ([M2.13][m2-13]'s row), on the tracked flights that came down with nothing open, counted apart.
-  *Done when:* a test with a probe pins that the area's 95% radius errs wide, not narrow, on a set of
-  known scatter; the report gives each tracked ballistic flight's miss, or says none is tracked.
+  and the committee reviewing it. Tripoli's Class 3 committee asked OpenRocket on 2026-11-23 for the
+  dispersion of ballistic flights, which by the request its Monte Carlo leaves out ([its issue
+  3496][or-3496], read 2026-11-26). Workflow: `hpr mc` flies every draw again with every recovery
+  charge held and gives that landing area beside the recovered one, each share with its bound ([the
+  Monte Carlo page][mc]). Moves: `accuracy.landing` ([M2.13][m2-13]'s row), on the tracked flights
+  that came down with nothing open, counted apart. *Done when:* a test with a probe pins that the
+  area's 95% radius, an order statistic's upper bound, errs wide on a set of known scatter; the page
+  says the fall is flown stable and nose first, and that a tumbling or broken rocket lands
+  elsewhere; the report gives each tracked ballistic flight's miss, or says none is tracked.
 - SOON: the delay a flight had. User: a flyer back from the field with a log, asking whether the
   delay they drilled was right. Workflow: `hpr compare` prints the log's time from burnout to
-  apogee, with its interval, beside the delay flown and the simulated [optimum delay][optimum], and
-  under them the committed `accuracy.time-to-apogee` figure with its count. Moves:
-  `accuracy.time-to-apogee`, from a report's figure to a command a flyer runs. *Done when:* a test
-  runs it on a synthetic log and finds the true coast inside the printed interval; it prints no time
-  where the log's burnout is a floor, and says why; its page gives the measured error and its date.
+  apogee, with its interval, beside the delay's label, the delay the log shows the charge fired at,
+  the simulated [optimum delay][optimum] and the committed `accuracy.time-to-apogee` figure. Moves:
+  `accuracy.time-to-apogee`, from a report to a command. *Done when:* the printed interval passes
+  [M2.17][m2-17]'s coverage line on its synthetic set; it prints no time where the log's burnout is
+  only a lower bound, and says why; its page gives the measured error and its date.
 
 ## MAINTAINER'S CALL (money, outreach)
 
