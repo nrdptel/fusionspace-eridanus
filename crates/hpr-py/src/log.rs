@@ -345,22 +345,32 @@ impl FlightLog {
     /// Fits ``rocket``'s simulation to this log by least squares, as ``hpr fit`` does, and gives
     /// the fit as a dict. The simulation's drag, its motor's impulse and burn time, a constant
     /// wind and the structure's mass are moved until its flight, read as the log's sensor reads
-    /// it, passes through the log's heights from liftoff to apogee. A log with latitude and
-    /// longitude is fitted through its drift too.
+    /// it, passes through the log's heights from a second before liftoff to apogee. A log with
+    /// latitude and longitude is fitted through its drift too.
     ///
     /// ``fit(rocket, environment, rail_length_m, *, inclination_deg=90.0, heading_deg=0.0,
     /// tip_off=True, height_reads=None)``: the launch is given as ``Flight`` takes it. The
     /// environment's air is flown as given. Its wind, averaged over the climb, is what the fit is
-    /// told of the wind before the log. ``height_reads`` is ``"barometer"`` or
-    /// ``"height_climbed"``; with ``None`` the log's main altitude is taken as a barometer's.
+    /// told of the wind before the log. A log with no latitude and longitude can't tell the wind,
+    /// so on one the fit is told a wind of at least 5.16 m/s, the wind its intervals were sized
+    /// in: a slower wind is raised to that along its own direction, and calm air to that toward
+    /// the east. ``height_reads`` is ``"barometer"`` or ``"height_climbed"``; with ``None`` the
+    /// log's main altitude is taken as a barometer's.
     ///
     /// ``parameters`` lists six dicts, in the fit's order: ``drag_scale``, ``impulse_scale``,
     /// ``burn_time_scale``, ``wind_east_m_s``, ``wind_north_m_s`` and ``mass_scale``, named by
     /// ``parameter``. Each holds its ``value``, a factor or for the wind a speed in m/s, its
     /// ``standard_error``, and what the fit was told of it, ``stated`` (``mean`` and ``sd``).
     /// ``interval_90`` is its least-squares 90% interval, ``low`` and ``high``, or ``None`` with
-    /// ``no_interval`` saying why: ``"not_asked"`` for the burn time's scale, and
-    /// ``"height_alone"`` for the wind on a log with no latitude and longitude.
+    /// ``no_interval`` saying why: ``"not_asked"`` for the burn time's scale,
+    /// ``"height_alone"`` for the wind on a log with no latitude and longitude, and
+    /// ``"no_standard_error"`` where the fit gave it no standard error.
+    ///
+    /// ``tested_range`` is the range the intervals were tested over, ``low`` and ``high``: what
+    /// the synthetic flights drew that parameter's true value from, and for a wind component the
+    /// fastest wind drawn, either way. ``outside_tested_range`` says the fitted value lies
+    /// outside it, or for the wind that the fitted wind is faster. No test covers the fit's
+    /// intervals out there, and ``text`` marks the value with a ``†``.
     ///
     /// ``caveat`` is ``None`` for an interval that passes its test on the synthetic flights. The
     /// drag scale's doesn't: on flights flown with a model unlike the fit's own, ``below`` of
@@ -372,6 +382,11 @@ impl FlightLog {
     /// ``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
     /// measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
     ///
+    /// ``wind_caveat`` is ``None`` for a log of height alone. On a log with latitude and
+    /// longitude it is a sentence to read with the wind: the fitted wind can settle on another
+    /// wind that leaves much the same drift, with a narrow interval about it, so give the day's
+    /// wind.
+    ///
     /// ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
     /// ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read
     /// wrong on this flight, the fitted scales take that error in.
@@ -379,7 +394,9 @@ impl FlightLog {
     /// The dict also holds ``height_read_as``, in ``height_reads``' two words, the residual's
     /// ``rms_m`` and ``misfit_share``, ``converged``, ``clock_offset_s``, ``height_offset_m``,
     /// ``flights_flown``, ``stated_apogee_m``, ``fitted_apogee_m``, ``fitted_apogee_time_s``
-    /// and ``fitted_max_mach``. ``text`` is the whole fit as lines of text to print.
+    /// (seconds after ignition) and ``fitted_max_mach``. The two apogees are the climb's as the
+    /// fit flies it, with no recovery device opening. ``text`` is the whole fit as lines of text
+    /// to print.
     ///
     /// The intervals were tested on synthetic flights only. A scale is the factor that best fits
     /// this one flight, not the rocket's drag at every speed.
@@ -463,6 +480,7 @@ impl FlightLog {
                 HeightKind::Geometric => "height_climbed",
             },
         )?;
+        dict.set_item("wind_caveat", fitted.wind_caveat())?;
         dict.set_item("text", fitted.lines().join("\n"))?;
         Ok(given)
     }

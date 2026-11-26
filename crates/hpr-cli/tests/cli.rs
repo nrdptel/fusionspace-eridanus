@@ -10110,6 +10110,38 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
             (&Value::Null, &json!("height_alone"), &Value::Null)
         );
     }
+    // No wind was given, and a log of height alone is told the wind its intervals were sized
+    // in: 20 mph over √3, toward the east.
+    let told = fit_parameter(&document, "wind_east_m_s")["stated_mean"]
+        .as_f64()
+        .unwrap();
+    assert!(
+        (told - 20.0 * 0.447_04 / 3.0_f64.sqrt()).abs() < 1e-12,
+        "{told}"
+    );
+    assert_eq!(
+        fit_parameter(&document, "wind_north_m_s")["stated_mean"],
+        0.0
+    );
+    // Each value lies inside the range the intervals were tested over, so none is marked.
+    for row in document["parameters"].as_array().unwrap() {
+        assert_eq!(row["outside_tested_range"], false, "{row}");
+    }
+    assert_eq!(drag["tested_range"], json!({"low": 0.8, "high": 1.2}));
+    assert_eq!(
+        fit_parameter(&document, "impulse_scale")["tested_range"],
+        json!({"low": 0.94, "high": 1.06})
+    );
+    assert_eq!(
+        burn["tested_range"],
+        json!({"low": 0.9, "high": 1.1}),
+        "{burn}"
+    );
+    // A log of height alone states no interval on the wind, so the wind's caveat isn't its.
+    assert_eq!(document["wind_caveat"], Value::Null);
+    // The trust note is one run of prose: no line break and no run of spaces.
+    let trust = document["trust"].as_str().unwrap();
+    assert!(!trust.contains("  ") && !trust.contains('\n'), "{trust:?}");
     // ADR-368's caveat: on the drag scale's interval, and on no other.
     let caveat = &drag["caveat"];
     assert_eq!(
@@ -10166,12 +10198,17 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
         " *  1.000 ± 0.109\n  impulse scale          ",
         "    1.000 ± 0.033\n  burn time scale        ",
         "  none              1.000 ± 0.055\n  wind toward the east   ",
-        "  none              0.0 ± 3.9 m/s (0 ± 13 ft/s)\n  wind toward the north  ",
-        "  none              0.0 ± 3.9 m/s (0 ± 13 ft/s)\n  structure mass scale   ",
+        // A wind takes two rows: meters per second, and feet per second under them.
+        "  none              5.2 ± 3.9 m/s\n                         (",
+        "  (17 ± 13 ft/s)\n  wind toward the north  ",
+        "  none              0.0 ± 3.9 m/s\n                         (",
+        "  (0 ± 13 ft/s)\n  structure mass scale   ",
         "    1.000 ± 0.011\n  * This interval fails its test: the caveat below.\n  The burn time \
          scale states no interval: not asked of the fit.\n  The wind states no interval: a log \
-         of height alone can't tell the wind.\n  Caveat. The drag scale's 90% interval fails its \
-         test.",
+         of height alone can't tell the wind.\n  So the fit is told a wind of at least 5.2 m/s \
+         (17 ft/s), the wind its intervals were sized in.\n  Caveat. The drag scale's 90% \
+         interval fails its test.",
+        " quarter-second bins from 1 s before liftoff to apogee\n",
         "The fitted flight\n  heights' residual  ",
         "How far to trust it. Fitted: ",
         "More: https://hpr.fusionspace.co/fitting-a-flight.html\n",
@@ -10192,6 +10229,45 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
     for line in out.lines() {
         assert!(line.chars().count() <= 100, "{line:?}");
     }
+    assert!(!out.contains('†'), "{out}");
+    // A printed interval never claims less than the number holds: each end is rounded outward,
+    // by less than the last digit printed.
+    for (name, starts) in [
+        ("drag_scale", "  drag scale  "),
+        ("impulse_scale", "  impulse scale  "),
+        ("mass_scale", "  structure mass scale  "),
+    ] {
+        let line = out.lines().find(|line| line.starts_with(starts)).unwrap();
+        let cells: Vec<&str> = line.split_whitespace().collect();
+        let to = cells.iter().position(|cell| *cell == "to").unwrap();
+        let (low, high): (f64, f64) = (
+            cells[to - 1].parse().unwrap(),
+            cells[to + 1].parse().unwrap(),
+        );
+        let interval = &fit_parameter(&document, name)["interval_90"];
+        let (held_low, held_high) = (
+            interval["low"].as_f64().unwrap(),
+            interval["high"].as_f64().unwrap(),
+        );
+        assert!(low <= held_low && held_low - low < 0.001, "{line}");
+        assert!(high >= held_high && high - held_high < 0.001, "{line}");
+    }
+    // The apogee's bound too, to a tenth of a meter.
+    let bound = read["apogee"]["bound_m"].as_f64().unwrap();
+    let apogee = out
+        .lines()
+        .find(|line| line.starts_with("  apogee   "))
+        .unwrap();
+    let said: f64 = apogee
+        .split_once(", within ")
+        .unwrap()
+        .1
+        .split_once(" m ")
+        .unwrap()
+        .0
+        .parse()
+        .unwrap();
+    assert!(said >= bound && said - bound < 0.1, "{apogee}");
     assert!(
         printed.err.contains("warning: stability: issue #172: "),
         "{}",
@@ -10300,8 +10376,12 @@ fn fit_reads_the_guides_log_and_takes_the_wind_given() {
             < 1.0
     );
     assert!(!fit_holds(&calm, "impulse_scale", 1.0));
-    assert_eq!(fit_parameter(&calm, "wind_east_m_s")["stated_mean"], 0.0);
-    // Told the wind: 6 m/s from the west blows toward the east.
+    // No wind given: a log of height alone is told the wind its intervals were sized in.
+    let told = fit_parameter(&calm, "wind_east_m_s")["stated_mean"]
+        .as_f64()
+        .unwrap();
+    assert!((told - 5.162).abs() < 0.001, "{told}");
+    // Told a stronger wind, the fit takes it: 6 m/s from the west blows toward the east.
     let windy = json(
         &[&args[..], &["--wind", "6", "--wind-from", "270"]].concat(),
         0,
@@ -10319,6 +10399,274 @@ fn fit_reads_the_guides_log_and_takes_the_wind_given() {
             .abs()
             < 1e-9
     );
+}
+
+/// A log with latitude and longitude beside its heights, of `design`'s own flight in a wind of
+/// `wind_m_s` from `from_deg`: `hpr sim --export`'s position turned into fixes about
+/// (32.99°, −106.97°).
+fn track_log(folder: &Path, design: &str, wind_m_s: &str, from_deg: &str) -> (String, String) {
+    let export = folder.join("flown.csv").to_string_lossy().into_owned();
+    let output = hpr(&[
+        "sim",
+        design,
+        "--wind",
+        wind_m_s,
+        "--wind-from",
+        from_deg,
+        "--export",
+        export.as_str(),
+        "--interval",
+        "0.05",
+    ]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let text = std::fs::read_to_string(&export).unwrap();
+    let mut lines = text.lines();
+    let header: Vec<&str> = lines.next().unwrap().split(',').collect();
+    let at = |name: &str| header.iter().position(|column| *column == name).unwrap();
+    let columns = [
+        at("time [s]"),
+        at("height above ground [m]"),
+        at("position east [m]"),
+        at("position north [m]"),
+    ];
+    let rows: Vec<[f64; 4]> = lines
+        .map(|line| {
+            let cells: Vec<&str> = line.split(',').collect();
+            columns.map(|column| cells[column].parse().unwrap())
+        })
+        .collect();
+    // The mean radius of the Earth (IUGG R₁), as the fit turns a fix's angles into meters.
+    let (radius_m, latitude_deg, longitude_deg) = (6_371_008.8_f64, 32.99_f64, -106.97_f64);
+    let (first, last) = (rows[0], rows[rows.len() - 1]);
+    let line = |time_s: f64, row: &[f64; 4]| {
+        let north_deg = ((row[3] - first[3]) / radius_m).to_degrees();
+        let east_deg =
+            ((row[2] - first[2]) / (radius_m * latitude_deg.to_radians().cos())).to_degrees();
+        format!(
+            "{time_s},{},{},{}\n",
+            row[1],
+            latitude_deg + north_deg,
+            longitude_deg + east_deg
+        )
+    };
+    let pad_s = 10.0;
+    let mut log = String::from("Time,Altitude,Lat,Lon\n");
+    for step in 0..200 {
+        log.push_str(&line(f64::from(step) * 0.05, &first));
+    }
+    for row in &rows {
+        log.push_str(&line(row[0] + pad_s, row));
+    }
+    for step in 1..=200 {
+        log.push_str(&line(last[0] + pad_s + f64::from(step) * 0.05, &last));
+    }
+    let log_path = folder.join("track.csv").to_string_lossy().into_owned();
+    std::fs::write(&log_path, log).unwrap();
+    let mapping = json!({
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+            {"name": "Time", "quantity": null, "unit": "s"},
+            {"name": "Altitude", "quantity": "altitude_above_ground", "unit": "m"},
+            {"name": "Lat", "quantity": "latitude", "unit": "deg"},
+            {"name": "Lon", "quantity": "longitude", "unit": "deg"},
+        ],
+    });
+    let mapping_path = folder
+        .join("track.mapping.json")
+        .to_string_lossy()
+        .into_owned();
+    std::fs::write(&mapping_path, mapping.to_string()).unwrap();
+    (log_path, mapping_path)
+}
+
+/// M7.3f on a log with a GNSS track: the wind states its interval, the fit is told the wind
+/// given (none here) and not the wind of a log of height alone, and the widest table the
+/// command prints, a wind's interval in both units, still fits 100 columns.
+#[test]
+fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let (log, mapping) = track_log(folder.path(), &design, "4", "250");
+    let args = ["fit", &log, &design, "--mapping", &mapping];
+    let document = json(&args, 0, "fit.schema.json");
+    let track = &document["readings"]["horizontal_track"];
+    assert_eq!(
+        (&track["source"], &track["provenance"]),
+        (&json!("gnss"), &json!("measured")),
+        "{track}"
+    );
+    // Flown in 4 m/s from 250°: 3.76 m/s toward the east and 1.37 toward the north.
+    let (east, north) = (
+        4.0 * 20.0_f64.to_radians().cos(),
+        4.0 * 20.0_f64.to_radians().sin(),
+    );
+    assert!(fit_holds(&document, "wind_east_m_s", east), "{document}");
+    assert!(fit_holds(&document, "wind_north_m_s", north), "{document}");
+    for wind in ["wind_east_m_s", "wind_north_m_s"] {
+        let wind = fit_parameter(&document, wind);
+        assert_eq!(wind["no_interval"], Value::Null, "{wind}");
+        // No wind was given, and with a track that is what the fit is told.
+        assert_eq!(wind["stated_mean"], 0.0, "{wind}");
+        assert_eq!(wind["outside_tested_range"], false, "{wind}");
+        let fastest = wind["tested_range"]["high"].as_f64().unwrap();
+        assert!((fastest - 20.0 * 0.447_04).abs() < 1e-12, "{wind}");
+    }
+    let out = streams(&[&args[..], &["--color", "never"]].concat()).out;
+    for said in [
+        "  drift    ",
+        " quarter-second bins east and north of the pad\n           measured, from the GNSS fixes\n",
+        " m/s   0.0 ± 3.9 m/s\n                         (",
+        " ft/s)   (0 ± 13 ft/s)\n  wind toward the north  ",
+        " ft/s)   (0 ± 13 ft/s)\n  structure mass scale   ",
+    ] {
+        assert!(out.contains(said), "{said:?} in\n{out}");
+    }
+    assert!(!out.contains("can't tell the wind"), "{out}");
+    assert!(!out.contains("So the fit is told"), "{out}");
+    // The wind of a log with a track carries its caveat, under the intervals.
+    let caveat = document["wind_caveat"].as_str().unwrap();
+    assert!(
+        caveat.starts_with(
+            "The fitted wind can settle on another wind that leaves much the same drift, with a \
+             narrow interval about it: "
+        ),
+        "{caveat}"
+    );
+    assert!(
+        caveat.ends_with("https://github.com/nrdptel/fusionspace-eridanus/issues/1646"),
+        "{caveat}"
+    );
+    assert!(
+        out.contains(
+            "\n  Caveat. The fitted wind can settle on another wind that leaves much the same \
+             drift, with a narrow\n  interval about it: "
+        ),
+        "{out}"
+    );
+    for line in out.lines() {
+        assert!(line.chars().count() <= 100, "{line:?}");
+    }
+    // A wind's printed interval is rounded outward too.
+    let line = out
+        .lines()
+        .find(|line| line.starts_with("  wind toward the east  "))
+        .unwrap();
+    let cells: Vec<&str> = line.split_whitespace().collect();
+    let to = cells.iter().position(|cell| *cell == "to").unwrap();
+    let (low, high): (f64, f64) = (
+        cells[to - 1].parse().unwrap(),
+        cells[to + 1].parse().unwrap(),
+    );
+    let interval = &fit_parameter(&document, "wind_east_m_s")["interval_90"];
+    let (held_low, held_high) = (
+        interval["low"].as_f64().unwrap(),
+        interval["high"].as_f64().unwrap(),
+    );
+    assert!(low <= held_low && held_low - low < 0.1, "{line}");
+    assert!(high >= held_high && high - held_high < 0.1, "{line}");
+}
+
+/// A known gap, reproduced so it stays in sight ([issue #1646]): on a log with a track the fitted
+/// wind can settle on another wind that leaves much the same drift. The 54 mm design's own
+/// flight in a 9 m/s wind toward the east, fitted from calm air, comes out as a wind the other
+/// way, and its 90% interval misses the true wind by far. Told the true wind, the fit stays by
+/// it. The caveat every such fit carries says so. When the fit is fixed this test fails: turn it
+/// around and take the caveat out.
+///
+/// [issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
+#[test]
+fn fit_can_settle_on_another_wind_that_leaves_the_same_drift() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let (log, mapping) = track_log(folder.path(), &design, "9", "270");
+    let args = ["fit", &log, &design, "--mapping", &mapping];
+    let from_calm = json(&args, 0, "fit.schema.json");
+    let east = fit_parameter(&from_calm, "wind_east_m_s");
+    assert!(east["value"].as_f64().unwrap() < 0.0, "{east}");
+    assert!(
+        east["interval_90"]["high"].as_f64().unwrap() < 4.5,
+        "{east}"
+    );
+    assert!(!fit_holds(&from_calm, "wind_east_m_s", 9.0), "{east}");
+    // Nothing else in the fit shows it: the heights are passed as closely as on any fit here.
+    assert!(from_calm["rms_m"].as_f64().unwrap() < 2.0, "{from_calm}");
+    assert_eq!(from_calm["converged"], true);
+    assert!(
+        from_calm["wind_caveat"]
+            .as_str()
+            .unwrap()
+            .contains("a true wind of 9 m/s (20 mph) has fitted as a wind the other way"),
+        "{from_calm}"
+    );
+    // Told the day's wind, as the caveat asks, the fit stays within 1 m/s of it.
+    let told = json(
+        &[&args[..], &["--wind", "9", "--wind-from", "270"]].concat(),
+        0,
+        "fit.schema.json",
+    );
+    let east = fit_parameter(&told, "wind_east_m_s");
+    assert!(
+        (east["value"].as_f64().unwrap() - 9.0).abs() < 1.0,
+        "{east}"
+    );
+}
+
+/// A fit bends its scales as far as it must to pass a log, so a log of another rocket's flight
+/// can still be fitted: the 54 mm design passes the level 1 rocket's log with far more drag and
+/// far less impulse than it states. No threshold calls that fit bad. Each value that lies
+/// outside the range the intervals were tested over is marked, with the range.
+#[test]
+fn fit_marks_a_value_outside_the_range_its_intervals_were_tested_over() {
+    let log = repo_file("validation/fixtures/logs/compare/level-1-flown.csv");
+    let mapping = repo_file("validation/fixtures/logs/compare/level-1.mapping.json");
+    let other = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let args = ["fit", &log, &other, "--mapping", &mapping];
+    let document = json(&args, 0, "fit.schema.json");
+    // It passes through the log: to under 2 m, though the design isn't the log's.
+    assert!(document["rms_m"].as_f64().unwrap() < 2.0, "{document}");
+    let drag = fit_parameter(&document, "drag_scale");
+    let impulse = fit_parameter(&document, "impulse_scale");
+    assert!(drag["value"].as_f64().unwrap() > 1.4, "{drag}");
+    assert!(impulse["value"].as_f64().unwrap() < 0.8, "{impulse}");
+    assert_eq!(drag["outside_tested_range"], true);
+    assert_eq!(impulse["outside_tested_range"], true);
+    assert_eq!(
+        fit_parameter(&document, "mass_scale")["outside_tested_range"],
+        false
+    );
+    let out = streams(&[&args[..], &["--color", "never"]].concat()).out;
+    for said in [
+        "  † The drag scale lies outside 0.800 to 1.200, the range the intervals were tested \
+         over.\n",
+        "  † The impulse scale lies outside 0.940 to 1.060, the range the intervals were tested \
+         over.\n",
+    ] {
+        assert!(out.contains(said), "{said:?} in\n{out}");
+    }
+    // The mark stands after each fitted value it speaks of, and after no other.
+    let marked: Vec<&str> = out
+        .lines()
+        .filter(|line| line.contains(" †  "))
+        .map(|line| line.trim_start().split("  ").next().unwrap())
+        .collect();
+    assert_eq!(marked, ["drag scale", "impulse scale"], "{out}");
+    for line in out.lines() {
+        assert!(line.chars().count() <= 100, "{line:?}");
+    }
+    // The guide's own design on the same log: its impulse scale lies inside its range, and its
+    // drag scale too, so nothing is marked.
+    let own = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let document = json(
+        &["fit", &log, &own, "--mapping", &mapping],
+        0,
+        "fit.schema.json",
+    );
+    for row in document["parameters"].as_array().unwrap() {
+        assert_eq!(row["outside_tested_range"], false, "{row}");
+    }
 }
 
 /// What can't be fitted is refused with its reason and where to look: a log with no flight in
@@ -10422,6 +10770,13 @@ fn fit_fits_a_public_flight() {
         "{drag}"
     );
     assert_eq!(drag["caveat"]["below"], 80);
+    // It lies below the 0.8 the intervals were tested down to, and is marked so. The wind and
+    // the mass lie inside their ranges.
+    assert_eq!(drag["outside_tested_range"], true, "{drag}");
+    for name in ["wind_east_m_s", "wind_north_m_s", "mass_scale"] {
+        let row = fit_parameter(&document, name);
+        assert_eq!(row["outside_tested_range"], false, "{row}");
+    }
     // The log's readings, each with where it came from.
     let read = &document["readings"];
     assert_eq!(read["apogee"]["source"], "barometer");
@@ -10451,4 +10806,11 @@ fn fit_fits_a_public_flight() {
         "{out}"
     );
     assert!(out.contains("  Caveat. The drag scale's 90% interval fails its test."));
+    assert!(
+        out.contains(
+            "  † The drag scale lies outside 0.800 to 1.200, the range the intervals were tested \
+             over.\n"
+        ),
+        "{out}"
+    );
 }

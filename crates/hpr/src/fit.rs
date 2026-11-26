@@ -4,8 +4,8 @@
 //! **What it is for.** A flyer with a design and the log of its flight asks what the flight says
 //! about the design. [`fit`] changes the drag, the motor's impulse and burn time, a constant wind
 //! and the structure's mass until the simulated flight, read as the log's sensor reads it, passes
-//! through the log's heights from liftoff to apogee, and through its horizontal track where it
-//! holds one. It is the least-squares fit of [`hpr_forensics::fit`] (Levenberg 1944, Marquardt
+//! through the log's heights from a second before liftoff to apogee, and through its horizontal
+//! track where it holds one. It is the least-squares fit of [`hpr_forensics::fit`] (Levenberg 1944, Marquardt
 //! 1963), flown on the launch a [`FlightBuilder`] describes.
 //!
 //! **What it states.** Each parameter comes with its standard error and, where one can be stated,
@@ -13,7 +13,8 @@
 //! ([`hpr_forensics::synthetic::fits::shares`]). The shares were fitted with each parameter held
 //! to one stated range ([`hpr_forensics::synthetic::fits::stated`]), so the fit holds a real
 //! flight's to the same: a drag scale and an impulse scale about 1, the mass about the design's,
-//! and the wind about the wind the launch gives. Three things come with the numbers:
+//! and the wind about the wind the launch gives. On a log of height alone that wind is at least
+//! the one the shares were fitted in ([`fit`]). Three things come with the numbers:
 //!
 //! - **Where each reading came from.** The fit reads the log between its liftoff and its apogee,
 //!   so [`LogFit::readings`] gives both, and the tracks read, each with its sensor and whether it
@@ -39,6 +40,7 @@ use hpr_flightdata::readings::interval::Interval;
 use hpr_flightdata::readings::{self, Provenance, Reading, Source};
 use hpr_forensics::fit::{self as least_squares, Forward, Noise, Parameters, Prior, Stated};
 use hpr_forensics::residuals::{HeightKind, Simulated, Track};
+use hpr_forensics::synthetic::BURN_TIME_SCALE_DRAWN;
 use hpr_forensics::synthetic::fits::{self as calibrated, Asked};
 use hpr_forensics::synthetic::truth::SHEAR_REFERENCE_HEIGHT_M;
 use hpr_sim::{IssueWarning, Simulation};
@@ -49,6 +51,9 @@ use crate::flight::{Flight, FlightBuilder};
 
 /// The issue that holds the fix for the drag scale's interval ([`Caveat`]).
 pub const INTERVAL_ISSUE_URL: &str = "https://github.com/nrdptel/fusionspace-eridanus/issues/1108";
+
+/// The issue that records the wind a log's track can't settle ([`LogFit::wind_caveat`]).
+pub const WIND_ISSUE_URL: &str = "https://github.com/nrdptel/fusionspace-eridanus/issues/1646";
 
 /// The heights the launch's wind is averaged over for the fit's stated wind, evenly from the pad
 /// to the stated flight's apogee.
@@ -128,6 +133,9 @@ pub enum NoInterval {
     /// A log of height alone can't tell the wind: nothing in a height speaks to it, so its
     /// value is what was stated of it and an interval would only be the stated range's.
     HeightAlone,
+    /// The fit gave it no standard error to size an interval with: one that isn't a number, or
+    /// isn't above zero.
+    NoStandardError,
 }
 
 impl NoInterval {
@@ -137,6 +145,7 @@ impl NoInterval {
         match self {
             Self::NotAsked => "not asked of the fit",
             Self::HeightAlone => "a log of height alone can't tell the wind",
+            Self::NoStandardError => "the fit gave it no standard error",
         }
     }
 }
@@ -220,6 +229,15 @@ pub struct Fitted {
     /// The caveat its interval carries; `None` for an interval that passes its test, and where
     /// no interval is stated.
     pub caveat: Option<Caveat>,
+    /// The range the fit's intervals were tested over: what the synthetic flights drew its true
+    /// value from ([`hpr_forensics::synthetic::fits::Asked::drawn`], and the burn time's
+    /// [`hpr_forensics::synthetic::BURN_TIME_SCALE_DRAWN`]). For a wind component it is the
+    /// fastest wind drawn, either way.
+    pub tested_range: Interval,
+    /// Whether the fitted value lies outside [`Fitted::tested_range`], or for the wind, whether
+    /// the fitted wind is faster than the fastest drawn. No test covers the fit's intervals out
+    /// there, this parameter's or another's.
+    pub outside_tested_range: bool,
 }
 
 /// A time the fit took from the log's readings.
@@ -259,7 +277,8 @@ pub struct TrackRead {
     pub source: Source,
     /// Whether its values were measured or derived.
     pub provenance: Provenance,
-    /// Its bins of [`hpr_forensics::fit::BIN_S`] that hold a sample, liftoff to apogee.
+    /// Its bins of [`hpr_forensics::fit::BIN_S`] that hold a sample, from a second before liftoff
+    /// to apogee.
     pub bins: usize,
     /// The bins the fit read. A barometer's bins at or past Mach 0.8 on the fitted flight are
     /// left out, as its port reads the flow over the nose there.
@@ -304,19 +323,20 @@ pub struct LogFit {
     pub height_offset_m: f64,
     /// Simulations flown for the fit.
     pub flights_flown: u64,
-    /// The apogee of the flight as stated, before the fit, m above the pad.
+    /// The apogee of the climb as stated, before the fit, m above the pad: the launch flown as the
+    /// fit flies it, with no recovery device opening.
     pub stated_apogee_m: f64,
-    /// The apogee of the flight at the fitted parameters, m above the pad; `None` if it reaches
-    /// none.
+    /// The apogee of the climb at the fitted parameters, m above the pad, flown the same way;
+    /// `None` if it reaches none.
     pub fitted_apogee_m: Option<f64>,
-    /// When the flight at the fitted parameters reaches its apogee, s after ignition; `None` if
-    /// it reaches none.
+    /// When that climb reaches its apogee, s after ignition; `None` if it reaches none.
     pub fitted_apogee_time_s: Option<f64>,
-    /// The top Mach number of the flight at the fitted parameters.
+    /// The top Mach number of the flight at the fitted parameters, flown to the ground with the
+    /// launch's recovery: the Mach number its warnings speak of.
     pub fitted_max_mach: Option<f64>,
-    /// The known issues the flight at the fitted parameters meets ([`hpr_sim::issues`]): where
-    /// HPR Sim's drag or stability is known to read wrong on this flight, the fit's numbers take
-    /// that error in.
+    /// The known issues the flight at the fitted parameters meets ([`hpr_sim::issues`]), flown to
+    /// the ground with the launch's recovery: where HPR Sim's drag or stability is known to read
+    /// wrong on this flight, the fit's numbers take that error in.
     pub issue_warnings: Vec<IssueWarning>,
 }
 
@@ -325,6 +345,27 @@ impl LogFit {
     #[must_use]
     pub fn parameter(&self, parameter: Parameter) -> Option<&Fitted> {
         self.parameters.iter().find(|f| f.parameter == parameter)
+    }
+
+    /// The caveat on the wind of a log with a horizontal track; `None` for a log of height alone,
+    /// whose wind states no interval.
+    ///
+    /// The drift a wind leaves isn't monotonic in the wind: a stable rocket flies upwind under
+    /// thrust and the air then carries it back, so two winds can leave much the same track. The
+    /// search starts at the wind it was told and can stop at the nearer of the two. On one design a
+    /// true wind of 9 m/s, fitted from calm air, came out as a wind the other way with a narrow
+    /// interval about it ([the issue][WIND_ISSUE_URL]; a test of the command reproduces it).
+    #[must_use]
+    pub fn wind_caveat(&self) -> Option<String> {
+        self.readings.horizontal_track.as_ref().map(|_| {
+            format!(
+                "The fitted wind can settle on another wind that leaves much the same drift, \
+                 with a narrow interval about it: started from calm air, a true wind of 9 m/s \
+                 (20 mph) has fitted as a wind the other way. So give the day's wind, and take a \
+                 fitted wind that disagrees with the field's as unsettled. Recorded, not fixed: \
+                 {WIND_ISSUE_URL}"
+            )
+        })
     }
 
     /// The fit as lines of text, in SI units: what was read with its source and provenance,
@@ -338,7 +379,7 @@ impl LogFit {
             lines.push(format!(
                 "  liftoff        {:.2} s ± {:.2} s  ({}, from {})",
                 liftoff.time_s,
-                liftoff.bound_s,
+                up(liftoff.bound_s, 2),
                 provenance_words(liftoff.provenance),
                 source_words(liftoff.source),
             ));
@@ -348,14 +389,14 @@ impl LogFit {
         lines.push(format!(
             "  apogee         {:.1} m ± {:.1} m at {:.2} s ± {:.2} s  ({}, from {})",
             read.apogee.height_m,
-            read.apogee.bound_m,
+            up(read.apogee.bound_m, 1),
             read.apogee.time_s,
-            read.apogee.time_bound_s,
+            up(read.apogee.time_bound_s, 2),
             provenance_words(read.apogee.provenance),
             source_words(read.apogee.source),
         ));
         lines.push(format!(
-            "  heights        {} of {} bins of {} s, read as {}  ({}, from {})",
+            "  heights        {} of {} bins of {} s from 1 s before liftoff, read as {}  ({}, from {})",
             read.height_track.bins_read,
             read.height_track.bins,
             least_squares::BIN_S,
@@ -392,17 +433,26 @@ impl LogFit {
             };
             let digits = if fitted.parameter.is_speed() { 1 } else { 3 };
             let interval = match &fitted.interval_90 {
+                // Rounded outward: a printed interval never claims less than it holds.
                 Some(interval) => format!(
                     "{:.digits$} to {:.digits$}{unit}{}",
-                    interval.low,
-                    interval.high,
+                    down(interval.low, digits),
+                    up(interval.high, digits),
                     if fitted.caveat.is_some() { " *" } else { "" },
                 ),
                 None => "none".to_owned(),
             };
             rows.push([
                 fitted.parameter.name().to_owned(),
-                format!("{:.digits$}{unit}", fitted.value),
+                format!(
+                    "{:.digits$}{unit}{}",
+                    fitted.value,
+                    if fitted.outside_tested_range {
+                        " †"
+                    } else {
+                        ""
+                    }
+                ),
                 interval,
                 format!(
                     "{:.digits$} ± {:.digits$}{unit}",
@@ -430,12 +480,33 @@ impl LogFit {
         if self.parameters.iter().any(|f| f.caveat.is_some()) {
             lines.push("  * This interval fails its test: the caveat below.".to_owned());
         }
+        lines.extend(self.outside_lines());
         for (why, whose) in [
             (NoInterval::NotAsked, "The burn time scale"),
             (NoInterval::HeightAlone, "The wind"),
         ] {
             if self.parameters.iter().any(|f| f.no_interval == Some(why)) {
                 lines.push(format!("  {whose} states no interval: {}.", why.words()));
+            }
+        }
+        if self
+            .parameters
+            .iter()
+            .any(|f| f.no_interval == Some(NoInterval::HeightAlone))
+        {
+            lines.push(format!(
+                "  So the fit is told a wind of at least {:.1} m/s, the wind its intervals were sized \
+                 in.",
+                height_alone_wind_m_s()
+            ));
+        }
+        for fitted in &self.parameters {
+            if fitted.no_interval == Some(NoInterval::NoStandardError) {
+                lines.push(format!(
+                    "  The {} states no interval: {}.",
+                    fitted.parameter.name(),
+                    NoInterval::NoStandardError.words()
+                ));
             }
         }
         lines.push(format!(
@@ -456,12 +527,69 @@ impl LogFit {
                 lines.push(format!("Caveat. {}", caveat.message(fitted.parameter)));
             }
         }
+        if let Some(caveat) = self.wind_caveat() {
+            lines.push(String::new());
+            lines.push(format!("Caveat. {caveat}"));
+        }
         for warning in &self.issue_warnings {
             lines.push(String::new());
             lines.push(format!("Warning. {}", warning.message()));
         }
         lines
     }
+}
+
+impl LogFit {
+    /// A line for each parameter fitted outside the range its interval was tested over, in SI
+    /// units; the wind's two components share one.
+    fn outside_lines(&self) -> Vec<String> {
+        let mut lines = Vec::new();
+        let mut wind = false;
+        for fitted in self.parameters.iter().filter(|f| f.outside_tested_range) {
+            let tested = fitted.tested_range;
+            if fitted.parameter.is_speed() {
+                if !wind {
+                    lines.push(format!(
+                        "  † The wind is faster than {:.1} m/s, the fastest the intervals were tested \
+                         in.",
+                        tested.high
+                    ));
+                }
+                wind = true;
+            } else {
+                lines.push(format!(
+                    "  † The {} lies outside {:.3} to {:.3}, the range the intervals were tested \
+                     over.",
+                    fitted.parameter.name(),
+                    tested.low,
+                    tested.high
+                ));
+            }
+        }
+        lines
+    }
+}
+
+/// `value` rounded up to `digits` decimal places, for a bound or an interval's upper end: a
+/// printed bound never claims less than the number holds. A part in 10⁹ is let go, so a value
+/// stored a hair over its exact decimal isn't printed a step higher.
+fn up(value: f64, digits: usize) -> f64 {
+    let scale = 10_f64.powi(i32::try_from(digits).unwrap_or(0));
+    let scaled = value * scale;
+    (scaled - scaled.abs() * 1e-9).ceil() / scale
+}
+
+/// `value` rounded down to `digits` decimal places, for an interval's lower end.
+fn down(value: f64, digits: usize) -> f64 {
+    -up(-value, digits)
+}
+
+/// The least wind speed the fit is told on a log of height alone, m/s: the wind the synthetic
+/// flights' fits of such logs were told, the stated range's RMS speed
+/// ([`hpr_forensics::synthetic::fits::stated_for`]).
+#[must_use]
+pub fn height_alone_wind_m_s() -> f64 {
+    calibrated::height_alone_wind_m_s()
 }
 
 /// A reading's provenance, in a word.
@@ -642,16 +770,42 @@ fn mean_wind(environment: &hpr_sim::Environment, climb_m: f64) -> Result<(f64, f
     Ok((east, north))
 }
 
+/// What the fit is told of the wind's mean, m/s toward the east and the north, from the
+/// launch's `mean` wind.
+///
+/// On a log with a track it is the launch's. A log of height alone can't tell the wind, and a
+/// wind of either sign lowers a flight's top, so a fit told calm air puts an unknown wind's loss
+/// into the drag and the impulse. The synthetic flights' fits of such logs were told the stated
+/// range's RMS speed ([`hpr_forensics::synthetic::fits::stated_for`]), and the shares that size
+/// the intervals were fitted that way. So on a log of height alone a launch's wind slower than
+/// that is raised to it, along its own direction, or toward the east in calm air, as those fits
+/// were told. A stronger wind stands: the fit's spread over the wind grows with the wind it is
+/// told, so its intervals are then no narrower than the shares were fitted on.
+fn stated_wind(mean: (f64, f64), height_alone: bool) -> (f64, f64) {
+    let (east, north) = mean;
+    let least = height_alone_wind_m_s();
+    let speed = east.hypot(north);
+    if !height_alone || speed >= least {
+        (east, north)
+    } else if speed > f64::EPSILON {
+        (east * least / speed, north * least / speed)
+    } else {
+        (least, 0.0)
+    }
+}
+
 /// Fits `launch`'s flight to `log` by least squares.
 ///
 /// The launch gives the design, its motor, the rail, the site and the air, as a simulation of
 /// the flight would take them. The log's height is read as a barometer's or as a height climbed
 /// by the track its apogee came from, or as `height_read_as` says. The fit is told each
 /// parameter's stated range ([`hpr_forensics::synthetic::fits::stated`]), its wind centered on
-/// the launch's own, averaged over the stated flight's climb.
+/// the launch's own, averaged over the stated climb. On a log of height alone that wind is at
+/// least [`height_alone_wind_m_s`], the wind the intervals' shares were fitted in.
 ///
-/// The warnings are those of the flight at the fitted parameters, flown to the ground with the
-/// launch's recovery.
+/// The fit flies the climb with no recovery device opening, and the stated and fitted apogees
+/// are that climb's. The warnings are those of the flight at the fitted parameters, flown to the
+/// ground with the launch's recovery.
 ///
 /// # Errors
 ///
@@ -678,7 +832,8 @@ pub fn fit(
     }
     .ok_or_else(|| {
         Refused::Log(
-            "too few quarter-second bins of its climb hold a height, or its climb is too long"
+            "its climb can't be read: the pad's height is withheld, it holds no heights, or its \
+             climb is too short or too long"
                 .to_owned(),
         )
     })?;
@@ -687,15 +842,26 @@ pub fn fit(
         return Err(Refused::Staged(inputs.separations.len()));
     }
 
-    // The flight as stated: its apogee sizes the climb the launch's wind is averaged over.
-    let stated_flight = launch.fly()?;
-    let stated_apogee_m = stated_flight.apogee_m().ok_or(Refused::NoApogee)?;
-    let (wind_east_m_s, wind_north_m_s) = mean_wind(&inputs.environment, stated_apogee_m)?;
+    // The fit flies the climb with nothing open, so the climb as stated is flown the same way:
+    // its apogee is the one the fitted climb's is set beside, and it sizes the climb the launch's
+    // wind is averaged over.
+    let recovery = std::mem::take(&mut inputs.recovery);
+    let own_drag = inputs.drag.is_some();
+    let stated_climb = Flight::flown(
+        inputs.simulation().map_err(Error::from)?,
+        &inputs.environment,
+        own_drag,
+        &mut (),
+    )?;
+    let stated_apogee_m = stated_climb.apogee_m().ok_or(Refused::NoApogee)?;
+    let (wind_east_m_s, wind_north_m_s) = stated_wind(
+        mean_wind(&inputs.environment, stated_apogee_m)?,
+        observed.horizontal.is_empty(),
+    );
     let mut stated: Stated = calibrated::stated();
     stated[Asked::WindEast.index()].mean = wind_east_m_s;
     stated[Asked::WindNorth.index()].mean = wind_north_m_s;
 
-    let recovery = std::mem::take(&mut inputs.recovery);
     let environment = &inputs.environment;
     let mut forward = Flown {
         ground_msl_m: environment.site().height_m - environment.geoid_undulation_m,
@@ -713,6 +879,10 @@ pub fn fit(
     }
     let track = !observed.horizontal.is_empty();
     let values = answer.parameters.to_array();
+    let wind_speed_m_s = answer
+        .parameters
+        .wind_east_m_s
+        .hypot(answer.parameters.wind_north_m_s);
     let parameters = Parameter::ALL
         .iter()
         .zip(values.iter().zip(&answer.standard_errors).zip(&stated))
@@ -728,6 +898,16 @@ pub fn fit(
             let interval_90 = asked
                 .filter(|_| no_interval.is_none())
                 .and_then(|asked| calibrated::shares(asked, track).interval(value, standard_error));
+            // Shares state no interval only on a standard error that isn't a number above zero.
+            let no_interval = no_interval
+                .or_else(|| interval_90.is_none().then_some(NoInterval::NoStandardError));
+            let (low, high) = asked.map_or(BURN_TIME_SCALE_DRAWN, Asked::drawn);
+            let tested_range = Interval { low, high };
+            let outside_tested_range = if parameter.is_speed() {
+                wind_speed_m_s > high
+            } else {
+                value < low || value > high
+            };
             Fitted {
                 parameter,
                 value,
@@ -736,24 +916,35 @@ pub fn fit(
                 interval_90,
                 no_interval,
                 caveat: asked.filter(|_| interval_90.is_some()).and_then(Caveat::of),
+                tested_range,
+                outside_tested_range,
             }
         })
         .collect();
 
-    // The flight the fit found, flown whole: its warnings are the fit's.
+    // The climb the fit found, flown as the fit flew it: its apogee is the fitted one. Then the
+    // same flight flown whole with the launch's recovery, where it has any: its warnings are the
+    // fit's.
     let mut fitted_inputs =
         forward
             .inputs(&answer.parameters, None)
             .map_err(|_| Refused::NotFlown {
                 flown: answer.flown,
             })?;
-    fitted_inputs.recovery = recovery;
-    let own_drag = fitted_inputs.drag.is_some();
-    let simulation = fitted_inputs
-        .simulation()
-        .and_then(|simulation| simulation.with_structure_mass_scale(answer.parameters.mass_scale))
-        .map_err(Error::from)?;
-    let fitted_flight = Flight::flown(simulation, &fitted_inputs.environment, own_drag, &mut ())?;
+    let flown = |inputs: &FlightInputs| -> Result<Flight, Error> {
+        let simulation = inputs.simulation().and_then(|simulation| {
+            simulation.with_structure_mass_scale(answer.parameters.mass_scale)
+        })?;
+        Flight::flown(simulation, &inputs.environment, own_drag, &mut ())
+    };
+    let fitted_climb = flown(&fitted_inputs)?;
+    let fitted_whole = if recovery.is_empty() {
+        None
+    } else {
+        fitted_inputs.recovery = recovery;
+        Some(flown(&fitted_inputs)?)
+    };
+    let warned = fitted_whole.as_ref().unwrap_or(&fitted_climb);
 
     let rms_m = answer.rms_m.unwrap_or(f64::NAN);
     let bins_read = answer.read.iter().filter(|read| **read).count();
@@ -798,9 +989,9 @@ pub fn fit(
         height_offset_m: answer.height_offset_m,
         flights_flown: answer.flown,
         stated_apogee_m,
-        fitted_apogee_m: fitted_flight.apogee_m(),
-        fitted_apogee_time_s: fitted_flight.apogee_time_s(),
-        fitted_max_mach: fitted_flight.max_mach(),
-        issue_warnings: fitted_flight.issue_warnings().to_vec(),
+        fitted_apogee_m: fitted_climb.apogee_m(),
+        fitted_apogee_time_s: fitted_climb.apogee_time_s(),
+        fitted_max_mach: warned.max_mach(),
+        issue_warnings: warned.issue_warnings().to_vec(),
     })
 }

@@ -139,6 +139,19 @@ impl Asked {
         !matches!(self, Self::WindEast | Self::WindNorth)
     }
 
+    /// The range the flights' truths of it are drawn from: what its interval was tested over, and
+    /// no further. A wind component's is the most the wind blows, either way; the mass's is the
+    /// true mass on a weighed one, [`WEIGHED_WITHIN`] off either way.
+    #[must_use]
+    pub fn drawn(self) -> (f64, f64) {
+        match self {
+            Self::DragScale => super::DRAG_SCALE_DRAWN,
+            Self::ImpulseScale => super::IMPULSE_SCALE_DRAWN,
+            Self::WindEast | Self::WindNorth => (-super::MAX_WIND_M_S, super::MAX_WIND_M_S),
+            Self::MassScale => (1.0 / (1.0 + WEIGHED_WITHIN), 1.0 / (1.0 - WEIGHED_WITHIN)),
+        }
+    }
+
     /// Its place in [`Parameters::to_array`].
     #[must_use]
     pub fn index(self) -> usize {
@@ -175,9 +188,16 @@ impl Asked {
 pub fn stated_for(observed: Option<&Observations>) -> Stated {
     let mut stated = stated();
     if observed.is_some_and(|o| o.horizontal.is_empty()) {
-        stated[Asked::WindEast.index()].mean = super::MAX_WIND_M_S / 3.0_f64.sqrt();
+        stated[Asked::WindEast.index()].mean = height_alone_wind_m_s();
     }
     stated
+}
+
+/// The wind a log of height alone is flown in, m/s ([`stated_for`]): the RMS of a speed drawn
+/// evenly from calm to [`super::MAX_WIND_M_S`], which is that most over √3.
+#[must_use]
+pub fn height_alone_wind_m_s() -> f64 {
+    super::MAX_WIND_M_S / 3.0_f64.sqrt()
 }
 
 /// How far a flight's weighed mass lies from its structure's, a share of it, either way: a

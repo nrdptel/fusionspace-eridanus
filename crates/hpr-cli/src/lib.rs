@@ -187,7 +187,7 @@ pub enum Command {
     /// the simulated, and each reading beside the simulation's
     Compare(compare::CompareArgs),
     /// Fit a design's simulation to its flight's log: the drag, impulse, wind and mass it points
-    /// to, each with a 90% interval
+    /// to, most with a 90% interval
     Fit(fit::FitArgs),
     /// Read a flight log and print its readings, with no design file
     Analyze(analyze::AnalyzeArgs),

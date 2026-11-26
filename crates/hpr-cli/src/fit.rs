@@ -28,7 +28,7 @@ use crate::output::{
     ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
 };
 use crate::sim::{FlightArgs, Setup, file_name, flight_refused};
-use crate::units::{fixed, meters, seconds_bound, speed};
+use crate::units::{fixed, meters, meters_bound, rounded_down, rounded_up, seconds_bound, speed};
 use crate::{Failure, Out};
 
 /// The widest line of the text form's own sentences, as the trust note is wrapped.
@@ -174,7 +174,7 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 .to_owned(),
         );
     }
-    if stated.is_none() {
+    if stated.is_none() && fitted.height_read_as == HeightKind::Barometric {
         notes.push(
             "a log's main altitude, or a column you mapped, is taken as a barometer's: give \
              --height-reads height-climbed for a GPS receiver's"
@@ -189,11 +189,7 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         );
     }
     if !fitted.converged {
-        notes.push(
-            "the fit stopped before it settled: take its numbers as rough, and its intervals as \
-             too narrow"
-                .to_owned(),
-        );
+        notes.push("the fit stopped before it settled: take its numbers as rough".to_owned());
     }
     let document = Fit {
         kind: crate::trust::Kind::Fitted,
@@ -234,6 +230,7 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         fitted_apogee_m: fitted.fitted_apogee_m,
         fitted_apogee_time_s: fitted.fitted_apogee_time_s,
         fitted_max_mach: fitted.fitted_max_mach,
+        wind_caveat: fitted.wind_caveat(),
         issues: fitted
             .issue_warnings
             .iter()
@@ -324,6 +321,7 @@ fn parameter_document(fitted: &Fitted) -> FitParameter {
         no_interval: fitted.no_interval.map(|why| match why {
             NoInterval::NotAsked => FitNoInterval::NotAsked,
             NoInterval::HeightAlone => FitNoInterval::HeightAlone,
+            NoInterval::NoStandardError => FitNoInterval::NoStandardError,
         }),
         caveat: fitted.caveat.map(|caveat| FitCaveat {
             below: caveat.below,
@@ -331,6 +329,11 @@ fn parameter_document(fitted: &Fitted) -> FitParameter {
             meant: caveat.meant,
             message: caveat.message(fitted.parameter),
         }),
+        tested_range: ReadingInterval {
+            low: fitted.tested_range.low,
+            high: fitted.tested_range.high,
+        },
+        outside_tested_range: fitted.outside_tested_range,
     }
 }
 
@@ -423,13 +426,13 @@ fn text_lines(document: &Fit) -> Vec<String> {
     lines.push(format!(
         "  apogee   {}, within {}, at {:.2} s, within {} s",
         meters(read.apogee.height_m),
-        meters(read.apogee.bound_m),
+        meters_bound(read.apogee.bound_m),
         read.apogee.time_s,
         seconds_bound(read.apogee.time_bound_s)
     ));
     lines.push(from(read.apogee.provenance, read.apogee.source));
     lines.push(format!(
-        "  heights  {} of {} quarter-second bins from liftoff to apogee",
+        "  heights  {} of {} quarter-second bins from 1 s before liftoff to apogee",
         read.height_track.bins_read, read.height_track.bins
     ));
     lines.push(from(read.height_track.provenance, read.height_track.source));
@@ -456,45 +459,73 @@ fn text_lines(document: &Fit) -> Vec<String> {
         "90% interval".to_owned(),
         "told before the log".to_owned(),
     ]];
+    let feet = |value: f64| value / crate::units::FOOT_M;
     for fitted in &document.parameters {
-        let speed_like = is_speed(fitted.parameter);
-        let figure = |value: f64| {
-            if speed_like {
-                speed(value)
-            } else {
-                fixed(value, 3)
-            }
-        };
-        let interval = match &fitted.interval_90 {
-            Some(interval) => format!(
-                "{} to {}{}",
-                figure(interval.low),
-                figure(interval.high),
-                if fitted.caveat.is_some() { " *" } else { "" }
-            ),
-            None => "none".to_owned(),
-        };
-        let told = if speed_like {
-            format!(
-                "{} ± {} m/s ({} ± {} ft/s)",
-                fixed(fitted.stated_mean, 1),
-                fixed(fitted.stated_sd, 1),
-                fixed(fitted.stated_mean / crate::units::FOOT_M, 0),
-                fixed(fitted.stated_sd / crate::units::FOOT_M, 0)
-            )
+        let mark = if fitted.caveat.is_some() { " *" } else { "" };
+        let outside = if fitted.outside_tested_range {
+            " †"
         } else {
-            format!(
-                "{} ± {}",
-                fixed(fitted.stated_mean, 3),
-                fixed(fitted.stated_sd, 3)
-            )
+            ""
         };
-        rows.push([
-            parameter_name(fitted.parameter).to_owned(),
-            figure(fitted.value),
-            interval,
-            told,
-        ]);
+        if is_speed(fitted.parameter) {
+            // A speed takes two rows, meters per second and under them feet per second, so the
+            // table keeps its width whatever the wind. Intervals round outward: a printed
+            // interval never claims less than it holds.
+            let (si, us) = match &fitted.interval_90 {
+                Some(interval) => (
+                    format!(
+                        "{} to {} m/s{mark}",
+                        fixed(rounded_down(interval.low, 1), 1),
+                        fixed(rounded_up(interval.high, 1), 1)
+                    ),
+                    format!(
+                        "({} to {} ft/s)",
+                        fixed(rounded_down(feet(interval.low), 0), 0),
+                        fixed(rounded_up(feet(interval.high), 0), 0)
+                    ),
+                ),
+                None => ("none".to_owned(), String::new()),
+            };
+            rows.push([
+                parameter_name(fitted.parameter).to_owned(),
+                format!("{} m/s{outside}", fixed(fitted.value, 1)),
+                si,
+                format!(
+                    "{} ± {} m/s",
+                    fixed(fitted.stated_mean, 1),
+                    fixed(fitted.stated_sd, 1)
+                ),
+            ]);
+            rows.push([
+                String::new(),
+                format!("({} ft/s)", fixed(feet(fitted.value), 0)),
+                us,
+                format!(
+                    "({} ± {} ft/s)",
+                    fixed(feet(fitted.stated_mean), 0),
+                    fixed(feet(fitted.stated_sd), 0)
+                ),
+            ]);
+        } else {
+            let interval = match &fitted.interval_90 {
+                Some(interval) => format!(
+                    "{} to {}{mark}",
+                    fixed(rounded_down(interval.low, 3), 3),
+                    fixed(rounded_up(interval.high, 3), 3)
+                ),
+                None => "none".to_owned(),
+            };
+            rows.push([
+                parameter_name(fitted.parameter).to_owned(),
+                format!("{}{outside}", fixed(fitted.value, 3)),
+                interval,
+                format!(
+                    "{} ± {}",
+                    fixed(fitted.stated_mean, 3),
+                    fixed(fitted.stated_sd, 3)
+                ),
+            ]);
+        }
     }
     let width = |column: usize| {
         rows.iter()
@@ -528,6 +559,31 @@ fn text_lines(document: &Fit) -> Vec<String> {
     if document.parameters.iter().any(|f| f.caveat.is_some()) {
         lines.push("  * This interval fails its test: the caveat below.".to_owned());
     }
+    // A value outside what the intervals were tested over; the wind's two components share a line.
+    let mut wind_said = false;
+    for fitted in document
+        .parameters
+        .iter()
+        .filter(|f| f.outside_tested_range)
+    {
+        let tested = &fitted.tested_range;
+        if is_speed(fitted.parameter) {
+            if !wind_said {
+                lines.push(format!(
+                    "  † The wind is faster than {}, the fastest the intervals were tested in.",
+                    speed(tested.high)
+                ));
+            }
+            wind_said = true;
+        } else {
+            lines.push(format!(
+                "  † The {} lies outside {} to {}, the range the intervals were tested over.",
+                parameter_name(fitted.parameter),
+                fixed(tested.low, 3),
+                fixed(tested.high, 3)
+            ));
+        }
+    }
     if without(FitNoInterval::NotAsked) {
         lines.push(format!(
             "  The burn time scale states no interval: {}.",
@@ -539,6 +595,19 @@ fn text_lines(document: &Fit) -> Vec<String> {
             "  The wind states no interval: {}.",
             NoInterval::HeightAlone.words()
         ));
+        lines.push(format!(
+            "  So the fit is told a wind of at least {}, the wind its intervals were sized in.",
+            speed(library::height_alone_wind_m_s())
+        ));
+    }
+    for fitted in &document.parameters {
+        if fitted.no_interval == Some(FitNoInterval::NoStandardError) {
+            lines.push(format!(
+                "  The {} states no interval: {}.",
+                parameter_name(fitted.parameter),
+                NoInterval::NoStandardError.words()
+            ));
+        }
     }
     for fitted in &document.parameters {
         if let Some(caveat) = &fitted.caveat {
@@ -548,6 +617,13 @@ fn text_lines(document: &Fit) -> Vec<String> {
                     .map(|line| format!("  {line}")),
             );
         }
+    }
+    if let Some(caveat) = &document.wind_caveat {
+        lines.extend(
+            crate::trust::wrap(&format!("Caveat. {caveat}"), WIDTH - 2)
+                .iter()
+                .map(|line| format!("  {line}")),
+        );
     }
     lines.push(String::new());
     lines.push("The fitted flight".to_owned());

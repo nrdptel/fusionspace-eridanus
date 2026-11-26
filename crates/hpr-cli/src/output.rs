@@ -2105,15 +2105,21 @@ pub struct Fit {
     pub height_offset_m: f64,
     /// Simulations flown for the fit.
     pub flights_flown: u64,
-    /// The apogee of the flight as stated, before the fit, m above the pad.
+    /// The apogee of the climb as stated, before the fit, m above the pad: flown as the fit flies
+    /// it, with no recovery device opening.
     pub stated_apogee_m: f64,
-    /// The apogee of the flight at the fitted parameters, m above the pad; null if it reaches
-    /// none.
+    /// The apogee of the climb at the fitted parameters, m above the pad, flown the same way;
+    /// null if it reaches none.
     pub fitted_apogee_m: Option<f64>,
-    /// When the flight at the fitted parameters reaches its apogee, s from its liftoff.
+    /// When that climb reaches its apogee, s after ignition.
     pub fitted_apogee_time_s: Option<f64>,
-    /// The top Mach number of the flight at the fitted parameters.
+    /// The top Mach number of the flight at the fitted parameters, flown to the ground with the
+    /// design's recovery: the Mach number its warnings speak of.
     pub fitted_max_mach: Option<f64>,
+    /// The caveat on the wind of a log with a horizontal track: the fitted wind can settle on
+    /// another wind that leaves much the same drift. Null for a log of height alone, whose wind
+    /// states no interval.
+    pub wind_caveat: Option<String>,
     /// The known issues the flight at the fitted parameters meets: where HPR Sim's drag or
     /// stability is known to read wrong on this flight, the fit's numbers take that error in.
     pub issues: Vec<SimIssue>,
@@ -2173,7 +2179,7 @@ pub struct FitTrack {
     pub source: ReadingSource,
     /// Whether its values were measured or derived.
     pub provenance: ReadingProvenance,
-    /// Its quarter-second bins that hold a sample, liftoff to apogee.
+    /// Its quarter-second bins that hold a sample, from a second before liftoff to apogee.
     pub bins: usize,
     /// The bins the fit read: a barometer's at or past Mach 0.8 on the fitted flight are left
     /// out.
@@ -2199,6 +2205,13 @@ pub struct FitParameter {
     pub no_interval: Option<FitNoInterval>,
     /// The caveat its interval carries; null for an interval that passes its test.
     pub caveat: Option<FitCaveat>,
+    /// The range the fit's intervals were tested over: what the synthetic flights drew its true
+    /// value from. For a wind component it is the fastest wind drawn, either way.
+    pub tested_range: ReadingInterval,
+    /// Whether the fitted value lies outside `tested_range`, or for the wind, whether the fitted
+    /// wind is faster than the fastest drawn. No test covers the fit's intervals out there, this
+    /// parameter's or another's.
+    pub outside_tested_range: bool,
 }
 
 /// A parameter of the fit.
@@ -2227,6 +2240,8 @@ pub enum FitNoInterval {
     NotAsked,
     /// A log of height alone can't tell the wind.
     HeightAlone,
+    /// The fit gave it no standard error to size an interval with.
+    NoStandardError,
 }
 
 /// The caveat on a fitted parameter's interval that fails its test on the synthetic flights and

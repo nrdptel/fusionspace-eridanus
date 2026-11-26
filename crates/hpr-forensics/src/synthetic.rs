@@ -234,6 +234,15 @@ pub(crate) const NOISE_LOG_KEY: u64 = 17;
 /// ([`fits::sampling`]).
 pub(crate) const POSTERIOR_KEY: u64 = 18;
 
+/// The range a flight's impulse scale is drawn from, evenly.
+pub const IMPULSE_SCALE_DRAWN: (f64, f64) = (0.94, 1.06);
+
+/// The range a flight's drag scale is drawn from, evenly.
+pub const DRAG_SCALE_DRAWN: (f64, f64) = (0.8, 1.2);
+
+/// The range a flight's burn time's factor is drawn from.
+pub const BURN_TIME_SCALE_DRAWN: (f64, f64) = (0.90, 1.10);
+
 /// The most the wind blows, m/s: 20 mph, the most the NAR's high-power safety code allows.
 pub const MAX_WIND_M_S: f64 = 20.0 * 0.447_04;
 /// The rail's largest angle from vertical, degrees, inside the safety code's 20°.
@@ -248,9 +257,13 @@ pub fn draw(set: Set, index: u64) -> Draw {
         ((rng.uniform() * DESIGNS.len() as f64) as usize).min(DESIGNS.len() - 1)
     };
     let mut motor = stream(seed, index, Key::Motor);
-    let impulse_scale = between(&mut motor, 0.94, 1.06);
-    let burn_time_scale = between(&mut motor, 0.90, 1.10);
-    let drag_scale = between(&mut stream(seed, index, Key::Drag), 0.8, 1.2);
+    let impulse_scale = between(&mut motor, IMPULSE_SCALE_DRAWN.0, IMPULSE_SCALE_DRAWN.1);
+    let burn_time_scale = between(&mut motor, BURN_TIME_SCALE_DRAWN.0, BURN_TIME_SCALE_DRAWN.1);
+    let drag_scale = between(
+        &mut stream(seed, index, Key::Drag),
+        DRAG_SCALE_DRAWN.0,
+        DRAG_SCALE_DRAWN.1,
+    );
     let mut wind = stream(seed, index, Key::Wind);
     let wind_speed_m_s = between(&mut wind, 0.0, MAX_WIND_M_S);
     let wind_from_rad = between(&mut wind, 0.0, turn);
@@ -416,6 +429,9 @@ mod tests {
         ]) {
             let draws: Vec<Draw> = (0..set.count()).map(|k| draw(set, k)).collect();
             let column = |f: fn(&Draw) -> f64| draws.iter().map(f).collect::<Vec<_>>();
+            assert_eq!(IMPULSE_SCALE_DRAWN, (0.94, 1.06));
+            assert_eq!(DRAG_SCALE_DRAWN, (0.8, 1.2));
+            assert_eq!(BURN_TIME_SCALE_DRAWN, (0.90, 1.10));
             assert!(fills(&column(|d| d.impulse_scale), 0.94, 1.06), "{set:?}");
             assert!(fills(&column(|d| d.burn_time_scale), 0.90, 1.10), "{set:?}");
             assert!(fills(&column(|d| d.drag_scale), 0.8, 1.2), "{set:?}");

@@ -1,4 +1,4 @@
-Fit a design's simulation to its flight's log: the drag, impulse, wind and mass it points to, each with a 90% interval
+Fit a design's simulation to its flight's log: the drag, impulse, wind and mass it points to, most with a 90% interval
 
 Usage: hpr fit [OPTIONS] <LOG> <DESIGN>
 

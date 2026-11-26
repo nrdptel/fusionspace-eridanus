@@ -53,6 +53,8 @@ def same_fit(fitted, printed):
         assert mine["interval_90"] == theirs["interval_90"], name
         assert mine["no_interval"] == theirs["no_interval"], name
         assert mine["caveat"] == theirs["caveat"], name
+        assert mine["tested_range"] == theirs["tested_range"], name
+        assert mine["outside_tested_range"] == theirs["outside_tested_range"], name
     for number in [
         "rms_m",
         "misfit_share",
@@ -67,6 +69,7 @@ def same_fit(fitted, printed):
     ]:
         assert fitted[number] == printed[number], number
     assert fitted["height_read_as"] == printed["height_read_as"]
+    assert fitted["wind_caveat"] == printed["wind_caveat"]
     for reading in ["liftoff", "apogee", "height_track", "horizontal_track"]:
         mine, theirs = fitted["readings"][reading], printed["readings"][reading]
         assert (mine is None) == (theirs is None), reading
@@ -116,6 +119,24 @@ def test_a_fit_is_the_one_hpr_fit_prints(repo, hpr_cli):
     )
     for wind in ["wind_east_m_s", "wind_north_m_s"]:
         assert (rows[wind]["interval_90"], rows[wind]["no_interval"]) == (None, "height_alone")
+    # The site's air is calm. A log of height alone is told the wind its intervals were sized
+    # in, 20 mph over √3, toward the east, and the text says so.
+    assert rows["wind_east_m_s"]["stated"]["mean"] == pytest.approx(20 * 0.44704 / 3**0.5, abs=1e-12)
+    assert rows["wind_north_m_s"]["stated"]["mean"] == 0.0
+    assert (
+        "\n  So the fit is told a wind of at least 5.2 m/s, the wind its intervals were sized in.\n"
+        in fitted["text"]
+    )
+    assert " bins of 0.25 s from 1 s before liftoff, read as " in fitted["text"]
+    # Each value lies inside the range the intervals were tested over: none is marked.
+    assert rows["drag_scale"]["tested_range"] == {"low": 0.8, "high": 1.2}
+    assert rows["impulse_scale"]["tested_range"] == {"low": 0.94, "high": 1.06}
+    assert not any(row["outside_tested_range"] for row in rows.values())
+    assert "†" not in fitted["text"]
+    # A wind stronger than that, given, is the wind told: 7 m/s from the west blows east.
+    windy = hpr.Environment(*SITE, wind_speed_m_s=7.0, wind_from_deg=270.0)
+    told = by_name(log.fit(rocket, windy, RAIL_M))["wind_east_m_s"]["stated"]["mean"]
+    assert told == pytest.approx(7.0, abs=1e-9)
     # Read 4% low: less impulse than the motor's file states, outside what its interval holds.
     assert rows["impulse_scale"]["interval_90"]["high"] < 1.0
 
@@ -125,6 +146,8 @@ def test_a_fit_is_the_one_hpr_fit_prints(repo, hpr_cli):
         assert readings[reading]["source"] == "barometer"
         assert readings[reading]["provenance"] == "measured"
     assert readings["horizontal_track"] is None
+    # With no track the wind states no interval, so the wind's caveat isn't this fit's.
+    assert fitted["wind_caveat"] is None
     assert 0 < readings["height_track"]["bins_read"] <= readings["height_track"]["bins"]
 
 
@@ -138,7 +161,10 @@ def test_the_interval_that_fails_its_test_carries_the_caveat(repo):
     assert (caveat["below"], caveat["flights"], caveat["meant"]) == (80, 1000, 50)
     # The committed report of the intervals' test holds the same count.
     report = json.loads((repo / "validation/reports/fit-intervals.json").read_text())
-    assert f'"below": {caveat["below"]}' in json.dumps(report)
+    (set_b,) = [row for row in report["sets"] if row["set"] == "b"]
+    (check,) = [row for row in set_b["checks"] if row["asked"] == "drag-scale"]
+    counts = check["test"]["counts"]
+    assert (counts["below"], counts["given"]) == (caveat["below"], caveat["flights"])
     # Which way it errs: the fitted drag high, a flight predicted with it low.
     assert (
         "80 truths lay below the interval, where a 90% interval leaves 50. So its lower end can "
@@ -212,6 +238,13 @@ def test_a_public_flight_fits_as_hpr_fit_prints_it(repo, hpr_cli):
     assert abs(drag["value"] - 0.71) < 0.1
     assert drag["interval_90"]["high"] < 1.0
     assert drag["caveat"]["below"] == 80
+    # Below the 0.8 the intervals were tested down to, and marked so.
+    assert drag["outside_tested_range"] and drag["value"] < drag["tested_range"]["low"]
+    assert not rows["mass_scale"]["outside_tested_range"]
+    assert (
+        "  † The drag scale lies outside 0.800 to 1.200, the range the intervals were tested over."
+        in fitted["text"]
+    )
     assert fitted["readings"]["apogee"]["source"] == "barometer"
     assert fitted["readings"]["apogee"]["provenance"] == "measured"
     assert [w["issue"] for w in fitted["issue_warnings"]] == [73, 18, 172]

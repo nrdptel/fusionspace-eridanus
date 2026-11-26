@@ -87,6 +87,8 @@ or past Mach 0.8 are left out, where the port's error grows past the range the f
 taken again from the flight each pass finds. The burn time also has a scale, not reported, since a motor's
 impulse and its burn trade against each other. A wind of either sign lowers the top. So a log of height
 alone is flown in a wind of the stated range's root-mean-square speed, 5.16 m/s (16.9 ft/s).
+[`hpr fit`](../fitting-a-flight.md#the-wind-on-a-log-of-height-alone) keeps that as a floor: on such a
+log a wind you give that is slower is raised to it, along its own direction, and a stronger one stands.
 
 The parameters' standard errors come from the fit's curvature, taken from the product of its
 Jacobian with itself as Gauss-Newton does ([standard error](../glossary.md#standard-error)). Two things widen them:

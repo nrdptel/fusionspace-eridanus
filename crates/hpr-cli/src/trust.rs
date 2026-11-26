@@ -243,7 +243,13 @@ pub(crate) fn compared() -> String {
 /// on instead.
 pub(crate) fn fitted() -> String {
     format!(
-        "{LABEL} Fitted: the simulation's drag, impulse, wind and mass moved until it passes          through the log, on the inputs you gave. A scale is the factor that best fits this one          flight, not the rocket's drag at every speed, and the simulation's own errors go into          the scales with nothing to say so. The 90% intervals were tested on synthetic flights          only: no real flight has checked them. Don't size a flight to a waiver or a field's          ceiling from a fitted scale alone; the altimeter's own reading is the one to log, and          the RSO decides.{MORE}{SITE}fitting-a-flight.html"
+        "{LABEL} Fitted: the simulation's drag, impulse, wind and mass moved until it passes \
+         through the log, on the inputs you gave. A scale is the factor that best fits this one \
+         flight, not the rocket's drag at every speed, and the simulation's own errors go into \
+         the scales with nothing to say so. The 90% intervals were tested on synthetic flights \
+         only: no real flight has checked them. Don't size a flight to a waiver or a field's \
+         ceiling from a fitted scale alone; the altimeter's own reading is the one to log, and \
+         the RSO decides.{MORE}{SITE}fitting-a-flight.html"
     )
 }
 

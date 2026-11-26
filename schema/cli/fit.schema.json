@@ -22,7 +22,7 @@
       "type": "string"
     },
     "fitted_apogee_m": {
-      "description": "The apogee of the flight at the fitted parameters, m above the pad; null if it reaches\nnone.",
+      "description": "The apogee of the climb at the fitted parameters, m above the pad, flown the same way;\nnull if it reaches none.",
       "type": [
         "number",
         "null"
@@ -30,7 +30,7 @@
       "format": "double"
     },
     "fitted_apogee_time_s": {
-      "description": "When the flight at the fitted parameters reaches its apogee, s from its liftoff.",
+      "description": "When that climb reaches its apogee, s after ignition.",
       "type": [
         "number",
         "null"
@@ -38,7 +38,7 @@
       "format": "double"
     },
     "fitted_max_mach": {
-      "description": "The top Mach number of the flight at the fitted parameters.",
+      "description": "The top Mach number of the flight at the fitted parameters, flown to the ground with the\ndesign's recovery: the Mach number its warnings speak of.",
       "type": [
         "number",
         "null"
@@ -116,7 +116,7 @@
       "$ref": "#/$defs/CompareSite"
     },
     "stated_apogee_m": {
-      "description": "The apogee of the flight as stated, before the fit, m above the pad.",
+      "description": "The apogee of the climb as stated, before the fit, m above the pad: flown as the fit flies\nit, with no recovery device opening.",
       "type": "number",
       "format": "double"
     },
@@ -147,6 +147,13 @@
     "trust": {
       "description": "The trust note the text form ends with.",
       "type": "string"
+    },
+    "wind_caveat": {
+      "description": "The caveat on the wind of a log with a horizontal track: the fitted wind can settle on\nanother wind that leaves much the same drift. Null for a log of height alone, whose wind\nstates no interval.",
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [
@@ -355,6 +362,11 @@
           "description": "A log of height alone can't tell the wind.",
           "type": "string",
           "const": "height_alone"
+        },
+        {
+          "description": "The fit gave it no standard error to size an interval with.",
+          "type": "string",
+          "const": "no_standard_error"
         }
       ]
     },
@@ -395,6 +407,10 @@
             }
           ]
         },
+        "outside_tested_range": {
+          "description": "Whether the fitted value lies outside `tested_range`, or for the wind, whether the fitted\nwind is faster than the fastest drawn. No test covers the fit's intervals out there, this\nparameter's or another's.",
+          "type": "boolean"
+        },
         "parameter": {
           "description": "Which parameter.",
           "$ref": "#/$defs/FitParameterName"
@@ -414,6 +430,10 @@
           "type": "number",
           "format": "double"
         },
+        "tested_range": {
+          "description": "The range the fit's intervals were tested over: what the synthetic flights drew its true\nvalue from. For a wind component it is the fastest wind drawn, either way.",
+          "$ref": "#/$defs/ReadingInterval"
+        },
         "value": {
           "description": "The fit's value: a factor, or for the wind a speed in m/s.",
           "type": "number",
@@ -425,7 +445,9 @@
         "value",
         "standard_error",
         "stated_mean",
-        "stated_sd"
+        "stated_sd",
+        "tested_range",
+        "outside_tested_range"
       ]
     },
     "FitParameterName": {
@@ -508,7 +530,7 @@
       "type": "object",
       "properties": {
         "bins": {
-          "description": "Its quarter-second bins that hold a sample, liftoff to apogee.",
+          "description": "Its quarter-second bins that hold a sample, from a second before liftoff to apogee.",
           "type": "integer",
           "format": "uint",
           "minimum": 0

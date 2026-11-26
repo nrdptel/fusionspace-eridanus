@@ -126,7 +126,9 @@ enum Tail {
     Step,
 }
 
-/// A 54 mm rocket on an I377 with this nose, these fins' edges and this tail.
+/// A 54 mm rocket on an I377 with this nose, these fins' edges and this tail. Its fins span
+/// 90 mm, which holds its static margin near 1 caliber with each tail, so it flies straight in a
+/// wind as in still air.
 fn shaped(nose: NoseShape, nose_length_m: f64, edges: FinCrossSection, tail: Tail) -> Rocket {
     let mut rocket = Rocket::new("A 54 mm test rocket", 0.0563).unwrap();
     rocket
@@ -147,7 +149,7 @@ fn shaped(nose: NoseShape, nose_length_m: f64, edges: FinCrossSection, tail: Tai
         .add_fins(
             Fins::new(
                 3,
-                trapezoid([0.12, 0.05, 0.055, 0.07]),
+                trapezoid([0.12, 0.05, 0.09, 0.07]),
                 0.003175,
                 material("birch_plywood").unwrap(),
             )
@@ -202,7 +204,13 @@ fn a_fit_finds_the_drag_a_log_was_flown_with() {
     let rocket = built();
     let environment = environment();
     let launch = Flight::builder(&rocket, &environment, 1.8);
-    let log = logged(&launch, 1.15, false);
+    // A log of height alone is told the wind the intervals were sized in, so the log is flown in
+    // it: toward the east, which is from 270°.
+    let told = Environment::new(32.99, -106.97, 1400.0)
+        .unwrap()
+        .with_constant_wind(fit::height_alone_wind_m_s(), 270.0)
+        .unwrap();
+    let log = logged(&Flight::builder(&rocket, &told, 1.8), 1.15, false);
     let fitted = fit::fit(&launch, &log, Some(HeightKind::Geometric)).unwrap();
     assert!(fitted.converged);
     assert!(fitted.rms_m < 1.0, "{}", fitted.rms_m);
@@ -233,8 +241,36 @@ fn a_fit_finds_the_drag_a_log_was_flown_with() {
             (wind.interval_90, wind.no_interval, wind.caveat),
             (None, Some(NoInterval::HeightAlone), None)
         );
-        // Calm air was given, so calm is what the fit was told.
-        assert_eq!(wind.stated.mean, 0.0);
+    }
+    // Calm air was given. A log of height alone is told the wind its intervals were sized in:
+    // the calibration's own, 20 mph over √3, toward the east.
+    let told_east = row(&fitted, Parameter::WindEast).stated.mean;
+    assert_eq!(told_east, fit::height_alone_wind_m_s());
+    assert_eq!(
+        told_east,
+        hpr_forensics::synthetic::fits::height_alone_wind_m_s()
+    );
+    assert!((told_east - 20.0 * 0.447_04 / 3.0_f64.sqrt()).abs() < 1e-12);
+    assert_eq!(row(&fitted, Parameter::WindNorth).stated.mean, 0.0);
+    // Every value lies inside what its interval was tested over, so none is marked.
+    for fitted in &fitted.parameters {
+        assert!(!fitted.outside_tested_range, "{fitted:?}");
+    }
+    // Each range is what the synthetic flights drew: the test's truths, and no further.
+    let tested = |parameter| {
+        let tested = row(&fitted, parameter).tested_range;
+        (tested.low, tested.high)
+    };
+    assert_eq!(tested(Parameter::DragScale), (0.8, 1.2));
+    assert_eq!(tested(Parameter::ImpulseScale), (0.94, 1.06));
+    assert_eq!(tested(Parameter::BurnTimeScale), (0.90, 1.10));
+    assert_eq!(tested(Parameter::MassScale), (1.0 / 1.02, 1.0 / 0.98));
+    for wind in [Parameter::WindEast, Parameter::WindNorth] {
+        let (low, high) = tested(wind);
+        assert!(
+            (high - 20.0 * 0.447_04).abs() < 1e-12 && low == -high,
+            "{high}"
+        );
     }
     // What was read, and where from: the log's own altitude, measured.
     let read = fitted.readings;
@@ -266,19 +302,48 @@ fn a_fit_finds_the_drag_a_log_was_flown_with() {
     for said in [
         "liftoff ",
         "(measured, from the logger's barometric altitude)",
-        "read as a height climbed",
+        "bins of 0.25 s from 1 s before liftoff, read as a height climbed",
         "drift          none: a log of height alone",
         "  told before the log\n  drag scale  ",
         " *  1.000 ± 0.109\n  impulse scale  ",
         "  none  ",
         "  * This interval fails its test: the caveat below.\n  The burn time scale states no \
          interval: not asked of the fit.\n  The wind states no interval: a log of height alone \
-         can't tell the wind.\n",
+         can't tell the wind.\n  So the fit is told a wind of at least 5.2 m/s, the wind its \
+         intervals were sized in.\n",
         "Caveat. The drag scale's 90% interval fails its test.",
         "Warning. issue #172",
     ] {
         assert!(text.contains(said), "{said:?} in\n{text}");
     }
+    assert!(!text.contains('†'), "{text}");
+    // A printed interval never claims less than the number holds: each end is rounded outward,
+    // by less than the last digit printed.
+    for parameter in [
+        Parameter::DragScale,
+        Parameter::ImpulseScale,
+        Parameter::MassScale,
+    ] {
+        let starts = format!("  {}  ", parameter.name());
+        let line = text.lines().find(|line| line.starts_with(&starts)).unwrap();
+        let cells: Vec<&str> = line.split_whitespace().collect();
+        let to = cells.iter().position(|cell| *cell == "to").unwrap();
+        let (low, high): (f64, f64) = (
+            cells[to - 1].parse().unwrap(),
+            cells[to + 1].parse().unwrap(),
+        );
+        let held = row(&fitted, parameter).interval_90.unwrap();
+        assert!(low <= held.low && held.low - low < 0.001, "{line}");
+        assert!(high >= held.high && high - held.high < 0.001, "{line}");
+    }
+    // A log of the same flight in still air fits too: its drag's interval still holds 1.15.
+    let still = fit::fit(
+        &launch,
+        &logged(&launch, 1.15, false),
+        Some(HeightKind::Geometric),
+    )
+    .unwrap();
+    assert!(holds(&still, Parameter::DragScale, 1.15));
     // It reads back as it was written.
     let json = serde_json::to_string(&fitted).unwrap();
     assert_eq!(serde_json::from_str::<LogFit>(&json).unwrap(), fitted);
@@ -320,16 +385,92 @@ fn a_log_with_a_track_states_the_wind() {
         text.contains("east and north of the pad  (measured, from the GNSS fixes)"),
         "{text}"
     );
-    // Told the wind it flew in, a launch states that wind to the fit.
-    let told = fit::fit(
-        &Flight::builder(&rocket, &windy, 1.8),
+    // The wind of a log with a track carries its caveat, in the text too; a log of height alone,
+    // whose wind states no interval, carries none.
+    let caveat = fitted.wind_caveat().unwrap();
+    assert!(
+        caveat.starts_with(
+            "The fitted wind can settle on another wind that leaves much the same drift, with a \
+             narrow interval about it: "
+        ) && caveat.ends_with(fit::WIND_ISSUE_URL),
+        "{caveat}"
+    );
+    assert!(fitted.lines().contains(&format!("Caveat. {caveat}")));
+    let by_height = fit::fit(
+        &launch,
         &logged(&Flight::builder(&rocket, &windy, 1.8), 1.0, false),
         Some(HeightKind::Geometric),
     )
     .unwrap();
-    let stated = row(&told, Parameter::WindEast).stated;
-    assert!((stated.mean - 5.0).abs() < 1e-9, "{stated:?}");
-    assert!(row(&told, Parameter::WindNorth).stated.mean.abs() < 1e-9);
+    assert_eq!(by_height.wind_caveat(), None);
+    assert!(!by_height.lines().join("\n").contains("can settle on"));
+    // On a log with a track, the wind given is the wind told: calm here.
+    assert_eq!(east.stated.mean, 0.0);
+    assert_eq!(row(&fitted, Parameter::WindNorth).stated.mean, 0.0);
+    // Its fitted wind is slower than the fastest its interval was tested in, so it isn't marked.
+    let tested = east.tested_range;
+    assert!((tested.high - 20.0 * 0.447_04).abs() < 1e-12, "{tested:?}");
+    assert_eq!(tested.low, -tested.high);
+    assert!(!east.outside_tested_range);
+    assert!(!text.contains('†'), "{text}");
+}
+
+/// What a log of height alone is told of the wind: at least the wind its intervals' shares were
+/// fitted in, along the wind the launch gives. A fit told calm air on such a log would have
+/// narrower intervals than any test covered, on the drag's flattering side.
+#[test]
+fn a_log_of_height_alone_is_told_at_least_the_wind_its_intervals_were_sized_in() {
+    let rocket = built();
+    let least = fit::height_alone_wind_m_s();
+    let site = |speed_m_s: f64, from_deg: f64| {
+        Environment::new(32.99, -106.97, 1400.0)
+            .unwrap()
+            .with_constant_wind(speed_m_s, from_deg)
+            .unwrap()
+    };
+    let calm = environment();
+    let log = logged(&Flight::builder(&rocket, &calm, 1.8), 1.0, false);
+    let fitted = |environment: &Environment| {
+        fit::fit(
+            &Flight::builder(&rocket, environment, 1.8),
+            &log,
+            Some(HeightKind::Geometric),
+        )
+        .unwrap()
+    };
+    let told = |fitted: &LogFit| {
+        (
+            row(fitted, Parameter::WindEast).stated.mean,
+            row(fitted, Parameter::WindNorth).stated.mean,
+        )
+    };
+    // Calm air: the least wind, toward the east, as the synthetic flights' fits were told.
+    let in_calm = fitted(&calm);
+    assert_eq!(told(&in_calm), (least, 0.0));
+    // A slower wind than that, from the south: raised to it, along its own way, toward the north.
+    let (east, north) = told(&fitted(&site(2.0, 180.0)));
+    assert!(
+        east.abs() < 1e-9 && (north - least).abs() < 1e-9,
+        "{east} {north}"
+    );
+    // A faster one, from the west, stands as given.
+    let faster = fitted(&site(7.0, 270.0));
+    let (east, north) = told(&faster);
+    assert!(
+        (east - 7.0).abs() < 1e-9 && north.abs() < 1e-9,
+        "{east} {north}"
+    );
+    // The wind told widens the drag's interval: the more wind, the wider.
+    let width = |fitted: &LogFit| {
+        let interval = row(fitted, Parameter::DragScale).interval_90.unwrap();
+        interval.high - interval.low
+    };
+    assert!(
+        width(&faster) > width(&in_calm),
+        "{} {}",
+        width(&faster),
+        width(&in_calm)
+    );
 }
 
 /// ADR-163 §4's list, each issue on a fit whose flight meets its condition (M7.3f): #67, #68,
@@ -388,10 +529,34 @@ fn a_fit_carries_each_warning_its_flight_meets() {
         );
         assert!(carrier.lines().contains(&said), "{said}");
     }
-    // The warnings are the fitted flight's own: the same launch flown plainly raises the same.
+    // The same launch flown plainly raises the same.
     let rocket = shaped(ogive, 0.25, FinCrossSection::Airfoil, Tail::SteepBoattail);
     let flown = Flight::builder(&rocket, &environment, 1.8).fly().unwrap();
     assert_eq!(numbers(&sharp), super::numbers(&flown));
+    // The warnings are the fitted flight's, not the stated one's. A log flown with half the drag
+    // fits to a faster flight, which passes Mach 0.6 and meets #1290; as stated it stays under.
+    let slow = built();
+    let launch = Flight::builder(&slow, &environment, 1.8);
+    let stated = launch.fly().unwrap();
+    assert!(stated.max_mach().unwrap() < 0.58);
+    assert_eq!(super::numbers(&stated), [18, 172]);
+    let faster = fit::fit(&launch, &logged(&launch, 0.5, false), None).unwrap();
+    assert!(faster.fitted_max_mach.unwrap() > 0.61);
+    assert_eq!(numbers(&faster), [18, 172, 1290]);
+    // That drag scale lies outside what its interval was tested over, and is marked so.
+    let drag = row(&faster, Parameter::DragScale);
+    assert!(drag.value < 0.8 && drag.outside_tested_range, "{drag:?}");
+    assert!(!row(&faster, Parameter::ImpulseScale).outside_tested_range);
+    assert!(!row(&faster, Parameter::MassScale).outside_tested_range);
+    let text = faster.lines().join("\n");
+    assert!(
+        text.contains(
+            "\n  † The drag scale lies outside 0.800 to 1.200, the range the intervals were tested \
+             over.\n"
+        ),
+        "{text}"
+    );
+    assert_eq!(text.matches('†').count(), 2, "{text}");
     // A subsonic flight meets no condition that is a speed past Mach 0.8.
     let slow = built();
     let launch = Flight::builder(&slow, &environment, 1.8);
@@ -492,7 +657,7 @@ fn the_interval_that_fails_its_test_carries_the_caveat() {
 }
 
 /// What can't be fitted is refused, each by its own reason: a log with no flight in it, a flight
-/// that comes apart, and a log of some other rocket's flight.
+/// that comes apart, and a log no flight of the design passes through.
 #[test]
 fn a_log_that_cant_be_fitted_is_refused() {
     let rocket = built();
@@ -515,14 +680,12 @@ fn a_log_that_cant_be_fitted_is_refused() {
         .separation(hpr_sim::Separation::new(Trigger::Apogee, 0));
     let refused = fit::fit(&staged, &log, None).unwrap_err();
     assert!(matches!(refused, Refused::Staged(1)), "{refused}");
-    // Another rocket's flight: twice as high as this design can be made to fly.
-    let fast = shaped(
-        NoseShape::Ogive { radius_ratio: 1.0 },
-        0.25,
-        FinCrossSection::Rounded,
-        Tail::Plain,
-    );
-    let other = logged(&Flight::builder(&fast, &environment, 1.8), 1.0, false);
+    // The rocket's own heights on a clock at half speed: no drag, impulse or mass makes the same
+    // climb take twice as long.
+    let other = FlightLog {
+        time_s: log.time_s.iter().map(|t| 2.0 * t).collect(),
+        ..log.clone()
+    };
     let refused = fit::fit(&launch, &other, Some(HeightKind::Geometric)).unwrap_err();
     assert!(
         matches!(refused, Refused::SaysNothing { misfit_share } if misfit_share > 0.1),
