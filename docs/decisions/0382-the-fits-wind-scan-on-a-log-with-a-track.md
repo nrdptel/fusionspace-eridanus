@@ -29,7 +29,7 @@ stated range made the wrong low the lower one.
 1. **A scan, then searches from its lows.** After the first pass's search, on a log with a track,
    the fit flies 97 constant winds with its other unknowns held where that search left them: calm
    air and every 1.5 m/s to 12 m/s in 12 directions. A grid point whose `χ²` is no higher than its
-   neighbours' is a low. Lows within 1.5 m/s of the first answer's wind are passed over, and the
+   neighbors' is a low. Lows within 1.5 m/s of the first answer's wind are passed over, and the
    search starts again from the three lowest of the rest.
 2. **Compared at the last pass.** Every answer goes on to the second pass, which re-weighs the
    track by the chosen answer's residual noise, and the lowest `χ²` there stands, the first of

@@ -129,7 +129,7 @@ search from calm air settled at 1.4 m/s (4.6 ft/s) toward the west, with an inte
 
 So after the first pass the fit scans the wind. It flies 97 constant winds with its other inputs
 held where that pass left them: calm air, and every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s) in
-12 directions 30° apart. A point of the scan whose $\chi^2$ is no higher than its neighbours' is a
+12 directions 30° apart. A point of the scan whose $\chi^2$ is no higher than its neighbors' is a
 low. One within 1.5 m/s of the first answer's wind lies in the low the search already found, and
 is passed over. The search starts again from the three lowest of the rest. Every answer goes on to
 the second pass, and the one with the lowest $\chi^2$ there stands. An answer found from a low of
@@ -138,7 +138,7 @@ saw: before this rule, two such searches on the synthetic flights ran out to abo
 flown in about 6 m/s ([the decision record][adr-382]). The search from the stated wind counts
 wherever it ends. The answers are compared at the
 second pass because its noise sets the track's weight: at the first pass's guess, twice the floor,
-the wind's stated range could favour the wrong low. The scan's lowest point needn't be the flight's
+the wind's stated range could favor the wrong low. The scan's lowest point needn't be the flight's
 wind, since the other inputs are held where a wrong wind left them. That's why it starts from
 several lows. A low between the scan's points can still be missed, and a flight's wind past
 12 m/s (27 mph), past what a launch is flown in, is found only by a search from a wind given near

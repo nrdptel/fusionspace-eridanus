@@ -689,7 +689,7 @@ fn within_scan(x: &[f64; UNKNOWNS]) -> bool {
 /// so its drift isn't monotonic in the wind, and the track's misfit can hold a second minimum far
 /// from the flight's wind: on the 54 mm synthetic design flown in 9 m/s, a search from calm air
 /// settled at 1.4 m/s the other way, `χ²` 82 against 15.6 at the flight's. A low is a grid point
-/// whose `χ²` is no higher than its neighbours' (the next ways on its ring, the next rings in its
+/// whose `χ²` is no higher than its neighbors' (the next ways on its ring, the next rings in its
 /// way, or every point of the first ring for calm air). A low within one step of `x`'s own wind
 /// lies in the basin the search already settled in, and is passed over. The
 /// [`WIND_SCAN_STARTS`] lowest of the rest are returned, lowest first, each as the wind toward
