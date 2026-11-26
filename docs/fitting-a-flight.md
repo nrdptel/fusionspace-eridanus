@@ -19,9 +19,9 @@ simulation of it. Seeing how far the two lie apart, with nothing fitted, is
 On a log with latitude and longitude (a track) the fitted wind can be wrong, with a narrow interval
 about it ([why](#the-wind-on-a-log-with-a-track)).
 
-The tests run the command on one public logged flight, NDRT's 2020 flight, on a machine that has
-fetched its log. CI runs it on the invented log below. The public flight shows that the command runs
-on a real log, not that its answer is right. Its fitted drag scale lies below 0.8, outside the range
+The tests run the command on one public logged flight, NDRT's 2020 flight, and on the invented log
+below. CI's Linux jobs fetch that flight's log from RocketPy's data, so the tests can't pass it over
+there. The public flight shows that the command runs on a real log, not that its answer is right. Its fitted drag scale lies below 0.8, outside the range
 the intervals were tested over, and prints [marked so](#the-mark-on-a-value-outside-the-tested-range).
 
 ## Run it
