@@ -127,11 +127,11 @@ Fitted up to the cut: residual RMS 3.37 m, misfit share 0.0131, 61 simulations f
 
 Stated wind: 9.76 m/s toward the east, 2.11 m/s toward the north. The fit's model in ERA5's own wind lands +0.000 m from the forward simulation's apogee.
 
-Fitted whole log: residual RMS 24.49 m, misfit share 0.0185, 197 simulations flown.
+Fitted whole log: residual RMS 24.49 m, misfit share 0.0185, 294 simulations flown.
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 0.836 | 0.073 | 0.684 to 0.929 |
+| drag scale | 0.836 | 0.073 | 0.683 to 0.929 |
 | impulse scale | 1.016 | 0.026 | 0.968 to 1.055 |
 | burn time scale | 0.925 | 0.054 | none |
 | wind toward the east (m/s) | 11.206 | 3.874 | 5.976 to 16.551 |
@@ -150,11 +150,11 @@ Fitted whole log: not fitted.
 
 Stated wind: 8.89 m/s toward the east, 6.64 m/s toward the north. The fit's model in ERA5's own wind lands +0.000 m from the forward simulation's apogee.
 
-Fitted whole log: residual RMS 10.70 m, misfit share 0.0122, 74 simulations flown.
+Fitted whole log: residual RMS 10.70 m, misfit share 0.0122, 230 simulations flown.
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.075 | 0.024 | 1.026 to 1.106 |
+| drag scale | 1.075 | 0.024 | 1.025 to 1.106 |
 | impulse scale | 0.972 | 0.012 | 0.949 to 0.991 |
 | burn time scale | 1.243 | 0.037 | none |
 | wind toward the east (m/s) | 12.207 | 0.837 | 11.077 to 13.362 |
