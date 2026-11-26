@@ -8,9 +8,10 @@ date as work ships or the roadmap changes. Releases come at product boundaries, 
 The release rows and the paragraph under them were brought up to date on November 24, 2026, when
 releases stopped waiting on outside users ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
 [Estimates of when each release may come](#when-each-release-may-come) were added the same day
-and made again on November 26, 2026. That moved 1.0's from the end of March to the end of April
-2028. Its padded date moved one day, to April 1, which rounds up to a new month: a new milestone,
-time to apogee against the logs, joined the queue
+and made again on November 26, 2026. That moved 1.0's estimate from the end of March to the end
+of April 2028. The padded date itself moved one day, to April 1, and rounding carried it into a
+new month. A new milestone, time to apogee against the logs, joined the queue, and finished work
+took off about as much time as it added
 ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md)).
 The outlooks further down are still October 6's.
 

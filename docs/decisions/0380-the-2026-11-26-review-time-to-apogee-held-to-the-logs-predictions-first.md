@@ -1,7 +1,7 @@
 # ADR-380: The 2026-11-26 review: time to apogee held to the logs, predictions first (2026-11-26)
 
 - **Status:** accepted; promotes [M2.17][m2-17] to the [queue][queue], fourteenth, after [M2.16][m2-16] (the next flight from the last one's log), in two increments: [M2.17a][m2-17a], the rule, the reading and the predictions merged first, then [M2.17b][m2-17b], the errors, for HPR Sim and OpenRocket 24.12.
-- **Summary:** A flyer picks a motor's ejection delay, or sets a timer, from the time a simulator says the rocket takes to reach the top. No report scores that time against a log for either program on the private collection. This record promotes an idea the backlog has held since 2026-10-24, scoring it: the analyzer's reading of the time from liftoff to apogee gets an interval of its own, checked on synthetic logs; each program's prediction is sealed, written down and locked by its hash before any error is computed, so it can't be tuned to the answer; then the errors go on new rows `accuracy.time-to-apogee` and `bias.time-to-apogee`, in percent and in seconds.
+- **Summary:** A flyer picks a motor's ejection delay, or sets a timer, from the time a simulator says the rocket takes to reach the top. No report scores that time against a log for either program on the private collection. This record promotes an idea the backlog has held since 2026-10-24, scoring it: the analyzer's reading of the time from liftoff to apogee gets an interval of its own, checked on synthetic logs; each program's prediction is sealed, written down and locked by its hash before any error is computed, so it can't be changed once an error is seen; then the errors go on new rows `accuracy.time-to-apogee` and `bias.time-to-apogee`, in percent and in seconds.
 
 [m2-17]: ../decisions-and-roadmap.md#m2-17
 [m2-17a]: ../decisions-and-roadmap.md#m2-17a
@@ -84,16 +84,16 @@ arithmetic on that table, HPR Sim's time differs from the log's by 1.07 s on ave
 average of each flight's logged time), with its sign +0.26 s; 3 of the 7 differ by more than 1 s
 and 2 by more than 1.5 s. The [residuals report][resid] gives the analyzer's time from liftoff to
 apogee beside HPR Sim's, the clocks lined up at liftoff as this record's rule lines them, for 6 of
-the 7: the analyzer withholds the fourth flight's liftoff and apogee. On those 6 the two differ by
-0.72 s on average, with its sign −0.06 s; 2 differ by more than 1 s and none by more than 1.5 s.
-The clock alone moves a flight's difference by up to 0.50 s between the two tables, and the fifth
-flight's sign with it.
+the 7: the analyzer withholds the fourth flight's apogee, a spike at its top. On those 6 the two
+differ by 0.72 s on average, with its sign −0.06 s (HPR Sim's less the log's); 2 differ by more
+than 1 s and none by more than 1.5 s. The two tables' choices of where a time starts and ends move
+a flight's difference by up to 0.50 s, and the fifth flight's sign with it.
 
 The tables hint that the time is not the apogee's error over again, and no more than hint. On the
 residuals report's table the fifth flight's simulated apogee is above the log's while its time is
 0.20 s short, on a reading with no interval stated. On the first table the fourth flight's apogee
-is 5.55% low while its time is 9.05% long, on the log the analyzer withholds, which the rule
-below would refuse. No validation report scores a time for the private collection, and none gives
+is 5.55% low while its time is 9.05% long, on the log whose apogee the analyzer withholds, which
+the rule below would refuse. No validation report scores a time for the private collection, and none gives
 OpenRocket's time for a logged flight; one research note gives OpenRocket's mean time to apogee
 for two groups of the collection's flights, with no log's time beside ([early deployments][edb]).
 The backlog has held the idea since 2026-10-24 ([a second observable for each logged
@@ -123,8 +123,8 @@ Six hazards shape the rule.
   second means little without the reading's width beside it.
 - **The two clocks start differently.** A log starts where its logger did, and the analyzer's
   liftoff is the last sample on the pad. A simulation starts at ignition and moves a little
-  later. Both times must run from first motion. Between the two public tables above, the clock
-  alone moves a flight's difference by up to 0.50 s.
+  later. Both times must run from first motion. Between the two public tables above, where a
+  time starts and ends moves a flight's difference by up to 0.50 s.
 - **A charge before the top ends the climb.** 20 of the 72 flights have one noted. Their logged
   time is not a coast's.
 - **The climbs have been read, the times not scored.** The fits from the boost and the
@@ -132,10 +132,11 @@ Six hazards shape the rule.
   has set a plain prediction's time beside a log's for the collection. So the flights are held to
   sealed predictions; they are not blind.
 - **A barometer lags.** The pressure inside a vented bay follows the air outside late
-  ([how a vented bay lags][vent]), so a barometer's highest reading comes after the top. Its
-  reading of liftoff comes late too, so part of the lag cancels in the time between them. The
-  lag's direction is known, so the reading corrects for it and carries only what is uncertain of
-  its size. The synthetic check must include it.
+  ([how a vented bay lags][vent]), so a barometer's highest reading comes after the top. A lag
+  delays the reading of liftoff too, by an amount that note doesn't give, so how much cancels in
+  the time between them is for the rule to source. The lag's direction is known, so the reading
+  corrects for it at a sourced size and carries the rest as width. The synthetic check must
+  include it.
 - **The reading's intervals lean by logger today.** On synthetic logs the apogee time's interval
   misses mostly to one side on one logger family, whose sample rate drops at apogee, and to the
   other side on another; the first family's logs alone fail the test the pooled set passes
@@ -149,9 +150,9 @@ Six hazards shape the rule.
      - **The reading.** The analyzer reads the time from liftoff to apogee from a log's
        barometer track, with a 90% interval of the time's own. The liftoff's and the apogee
        time's errors come from one track and one lag, so the rule fixes, beforehand, how the
-       interval is made without taking the two as independent. The reading corrects the lag's
-       known delay at each end and its interval carries what is uncertain of the lag's size,
-       which the rule takes from a stated source. Where the log has a burnout that is not a floor
+       interval is made without taking the two as independent. The reading corrects for the lag
+       at each end, at a size the rule takes from a stated source, and its interval carries what
+       is uncertain of that size. Where the log has a burnout that is not a floor
        (a reading the true value may lie above), it also gives the time from burnout to apogee,
        with its interval; this increment's set doesn't check that interval, one reason decision 3
        shows that time and doesn't hold it. The reading never uses a simulation: it lives in
@@ -162,7 +163,10 @@ Six hazards shape the rule.
      - **What it refuses.** A log whose liftoff or apogee the analyzer withholds, among them one
        that starts off the pad and one whose top a disturbance spoils, such as a deployment's
        pressure pulse; one whose apogee is a floor; one that ends before its apogee; and one with
-       no barometer's track. No refusal is decided from a time read, a prediction or an error.
+       no barometer's track. Which pulses spoil a top is the analyzer's own disturbed-top test,
+       fixed before the set is drawn: a pulse it withholds is the refused kind, and one it reads
+       through belongs to the pulse level below. No refusal is decided from a time read, a
+       prediction or an error.
      - **The synthetic check.** Before it reads any real log, the reading is checked on
        synthetic logs whose liftoff and apogee times are known. The rule states, with a source
        for each, the levels the set covers:
@@ -262,8 +266,8 @@ Six hazards shape the rule.
 3. **What the rows can't say.** The time from liftoff to apogee is not a delay. A motor's delay
    runs from its own burnout and scatters by itself ([motor delay spread][delay-spread]), and
    the row leaves that out. The time from burnout to apogee, where both sides give it, also
-   holds the error of the motor file's burn time, and the log's burnout is the coarsest of the
-   three readings; so it is shown, not held. The rows say nothing of an upper stage's timing
+   holds the error of the motor file's burn time, and the log's burnout is a coarse reading; so
+   it is shown, not held. The rows say nothing of an upper stage's timing
    apart from its rocket's, of a flight whose charge fired before the top, or of a flight no
    barometer logged. A time's error has more than one cause: the impulse, the mass, the drag
    and the day's air each move it, and this record claims no diagnosis from it.

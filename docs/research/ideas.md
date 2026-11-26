@@ -105,7 +105,7 @@ Placed with [ADR-380][adr-380], which promotes the first; the other three are SO
   `accuracy.held-out`, as the difference between the two programs' cells, shown. *Done when:* a test
   pins the statistic on a synthetic set whose programs differ by a known amount in half its sources;
   the report gives the difference, both intervals and the counts of flights and sources, on the
-  collection and on each half of its sources; a probe that redraws or flips flights fails the test.
+  collection and on each of its two halves; a probe that redraws or flips flights fails the test.
 - SOON: where a rocket lands with nothing open. User: a flyer preparing a Class 3 flight's analysis,
   and the committee reviewing it. Tripoli's Class 3 committee asked OpenRocket on 2026-11-23 for the
   dispersion of ballistic flights, which by the request its Monte Carlo leaves out ([its issue
@@ -114,15 +114,15 @@ Placed with [ADR-380][adr-380], which promotes the first; the other three are SO
   Monte Carlo page][mc]). Moves: `accuracy.landing` ([M2.13][m2-13]'s row), on the tracked flights
   that came down with nothing open, counted apart. *Done when:* a test with a probe pins that the
   area's 95% radius, an order statistic's upper bound, errs wide on a set of known scatter; the page
-  says the fall is flown stable and nose first, and that a tumbling or broken rocket lands
+  says what attitude the fall is flown in, and that a rocket falling another way lands
   elsewhere; the report gives each tracked ballistic flight's miss, or says none is tracked.
 - SOON: the delay a flight had. User: a flyer back from the field with a log, asking whether the
   delay they drilled was right. Workflow: `hpr compare` prints the log's time from burnout to
   apogee, with its interval, beside the delay's label, the delay the log shows the charge fired at,
   the simulated [optimum delay][optimum] and the committed `accuracy.time-to-apogee` figure. Moves:
   `accuracy.time-to-apogee`, from a report to a command. *Done when:* the printed interval passes
-  [M2.17][m2-17]'s coverage line on its synthetic set; it prints no time where the log's burnout is
-  only a lower bound, and says why; its page gives the measured error and its date.
+  [M2.17][m2-17]'s coverage line on a synthetic set of its own; it prints no time where the log's
+  burnout is only a lower bound, and says why; its page gives the measured error and its date.
 
 ## MAINTAINER'S CALL (money, outreach)
 
