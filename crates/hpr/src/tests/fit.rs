@@ -384,25 +384,6 @@ fn a_log_with_a_track_states_the_wind() {
         text.contains("east and north of the pad  (measured, from the GNSS fixes)"),
         "{text}"
     );
-    // The wind of a log with a track carries its caveat, in the text too; a log of height alone,
-    // whose wind states no interval, carries none.
-    let caveat = fitted.wind_caveat().unwrap();
-    assert!(
-        caveat.starts_with(
-            "The fitted wind can settle far from the flight's, with a narrow interval about it: \
-             on one design, "
-        ) && caveat.ends_with(fit::WIND_ISSUE_URL),
-        "{caveat}"
-    );
-    assert!(fitted.lines().contains(&format!("Caveat. {caveat}")));
-    let by_height = fit::fit(
-        &launch,
-        &logged(&Flight::builder(&rocket, &windy, 1.8), 1.0, false),
-        Some(HeightKind::Geometric),
-    )
-    .unwrap();
-    assert_eq!(by_height.wind_caveat(), None);
-    assert!(!by_height.lines().join("\n").contains("can settle far"));
     // On a log with a track, the wind given is the wind told: calm here.
     assert_eq!(east.stated.mean, 0.0);
     assert_eq!(row(&fitted, Parameter::WindNorth).stated.mean, 0.0);
@@ -573,7 +554,7 @@ fn a_fit_carries_each_warning_its_flight_meets() {
 #[test]
 fn the_interval_that_fails_its_test_carries_the_caveat() {
     // The list `cargo xtask fit` holds the report to: one cell, set B's drag scale.
-    assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale, 80)]);
+    assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale, 79)]);
     let rocket = built();
     let environment = environment();
     let launch = Flight::builder(&rocket, &environment, 1.8);
@@ -582,7 +563,7 @@ fn the_interval_that_fails_its_test_carries_the_caveat() {
     assert_eq!(
         caveat,
         Caveat {
-            below: 80,
+            below: 79,
             flights: 1_000,
             meant: 50
         }
@@ -639,7 +620,7 @@ fn the_interval_that_fails_its_test_carries_the_caveat() {
         message,
         format!(
             "The drag scale's 90% interval fails its test. On 1,000 synthetic flights flown \
-             with a model unlike the fit's own, 80 truths lay below the interval, where a 90% \
+             with a model unlike the fit's own, 79 truths lay below the interval, where a 90% \
              interval leaves 50. So its lower end can read too high: take the fitted drag scale \
              as reading high, and a flight predicted with it as reading low. Recorded, not \
              fixed: {INTERVAL_ISSUE_URL}"

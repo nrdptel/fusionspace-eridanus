@@ -69,7 +69,6 @@ def same_fit(fitted, printed):
     ]:
         assert fitted[number] == printed[number], number
     assert fitted["height_read_as"] == printed["height_read_as"]
-    assert fitted["wind_caveat"] == printed["wind_caveat"]
     for reading in ["liftoff", "apogee", "height_track", "horizontal_track"]:
         mine, theirs = fitted["readings"][reading], printed["readings"][reading]
         assert (mine is None) == (theirs is None), reading
@@ -146,8 +145,6 @@ def test_a_fit_is_the_one_hpr_fit_prints(repo, hpr_cli):
         assert readings[reading]["source"] == "barometer"
         assert readings[reading]["provenance"] == "measured"
     assert readings["horizontal_track"] is None
-    # With no track the wind states no interval, so the wind's caveat isn't this fit's.
-    assert fitted["wind_caveat"] is None
     assert 0 < readings["height_track"]["bins_read"] <= readings["height_track"]["bins"]
 
 
@@ -156,9 +153,9 @@ def test_the_interval_that_fails_its_test_carries_the_caveat(repo):
     log = hpr.FlightLog.read(repo / LEVEL_1_LOG, mapping=mapping)
     fitted = log.fit(hpr.Rocket.from_file(repo / LEVEL_1), hpr.Environment(*SITE), RAIL_M)
     rows = by_name(fitted)
-    # ADR-368: the drag scale's interval left 80 of 1,000 truths below it, where 50 are meant.
+    # ADR-368: the drag scale's interval left 79 of 1,000 truths below it, where 50 are meant.
     caveat = rows["drag_scale"]["caveat"]
-    assert (caveat["below"], caveat["flights"], caveat["meant"]) == (80, 1000, 50)
+    assert (caveat["below"], caveat["flights"], caveat["meant"]) == (79, 1000, 50)
     # The committed report of the intervals' test holds the same count.
     report = json.loads((repo / "validation/reports/fit-intervals.json").read_text())
     (set_b,) = [row for row in report["sets"] if row["set"] == "b"]
@@ -167,7 +164,7 @@ def test_the_interval_that_fails_its_test_carries_the_caveat(repo):
     assert (counts["below"], counts["given"]) == (caveat["below"], caveat["flights"])
     # Which way it errs: the fitted drag high, a flight predicted with it low.
     assert (
-        "80 truths lay below the interval, where a 90% interval leaves 50. So its lower end can "
+        "79 truths lay below the interval, where a 90% interval leaves 50. So its lower end can "
         "read too high: take the fitted drag scale as reading high, and a flight predicted with "
         "it as reading low." in caveat["message"]
     )
@@ -237,7 +234,7 @@ def test_a_public_flight_fits_as_hpr_fit_prints_it(repo, hpr_cli):
     drag = rows["drag_scale"]
     assert abs(drag["value"] - 0.71) < 0.1
     assert drag["interval_90"]["high"] < 1.0
-    assert drag["caveat"]["below"] == 80
+    assert drag["caveat"]["below"] == 79
     # Below the 0.8 the intervals were tested down to, and marked so.
     assert drag["outside_tested_range"] and drag["value"] < drag["tested_range"]["low"]
     assert not rows["mass_scale"]["outside_tested_range"]

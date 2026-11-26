@@ -230,7 +230,6 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         fitted_apogee_m: fitted.fitted_apogee_m,
         fitted_apogee_time_s: fitted.fitted_apogee_time_s,
         fitted_max_mach: fitted.fitted_max_mach,
-        wind_caveat: fitted.wind_caveat(),
         issues: fitted
             .issue_warnings
             .iter()
@@ -624,13 +623,6 @@ fn text_lines(document: &Fit) -> Vec<String> {
                     .map(|line| format!("  {line}")),
             );
         }
-    }
-    if let Some(caveat) = &document.wind_caveat {
-        lines.extend(
-            crate::trust::wrap(&format!("Caveat. {caveat}"), WIDTH - 2)
-                .iter()
-                .map(|line| format!("  {line}")),
-        );
     }
     lines.push(String::new());
     lines.push("The fitted flight".to_owned());

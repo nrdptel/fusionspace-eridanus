@@ -10137,8 +10137,6 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
         json!({"low": 0.9, "high": 1.1}),
         "{burn}"
     );
-    // A log of height alone states no interval on the wind, so the wind's caveat isn't its.
-    assert_eq!(document["wind_caveat"], Value::Null);
     // The trust note is one run of prose: no line break and no run of spaces.
     let trust = document["trust"].as_str().unwrap();
     assert!(!trust.contains("  ") && !trust.contains('\n'), "{trust:?}");
@@ -10151,7 +10149,7 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
     let message = caveat["message"].as_str().unwrap();
     assert!(
         message.contains(
-            "80 truths lay below the interval, where a 90% interval leaves 50. So its lower end \
+            "79 truths lay below the interval, where a 90% interval leaves 50. So its lower end \
              can read too high: take the fitted drag scale as reading high, and a flight \
              predicted with it as reading low."
         ),
@@ -10408,22 +10406,32 @@ fn fit_reads_the_guides_log_and_takes_the_wind_given() {
 }
 
 /// A log with latitude and longitude beside its heights, of `design`'s own flight in a wind of
-/// `wind_m_s` from `from_deg`: `hpr sim --export`'s position turned into fixes about
-/// (32.99°, −106.97°).
-fn track_log(folder: &Path, design: &str, wind_m_s: &str, from_deg: &str) -> (String, String) {
+/// `wind_m_s` from `from_deg`, flown with `more` of `hpr sim`'s options: `hpr sim --export`'s
+/// position turned into fixes about (32.99°, −106.97°).
+fn track_log(
+    folder: &Path,
+    design: &str,
+    wind_m_s: &str,
+    from_deg: &str,
+    more: &[&str],
+) -> (String, String) {
     let export = folder.join("flown.csv").to_string_lossy().into_owned();
     let output = hpr(&[
-        "sim",
-        design,
-        "--wind",
-        wind_m_s,
-        "--wind-from",
-        from_deg,
-        "--export",
-        export.as_str(),
-        "--interval",
-        "0.05",
-    ]);
+        &[
+            "sim",
+            design,
+            "--wind",
+            wind_m_s,
+            "--wind-from",
+            from_deg,
+            "--export",
+            export.as_str(),
+            "--interval",
+            "0.05",
+        ],
+        more,
+    ]
+    .concat());
     assert_eq!(output.status.code(), Some(0), "{output:?}");
     let text = std::fs::read_to_string(&export).unwrap();
     let mut lines = text.lines();
@@ -10495,7 +10503,7 @@ fn track_log(folder: &Path, design: &str, wind_m_s: &str, from_deg: &str) -> (St
 fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
     let folder = tempfile::tempdir().unwrap();
     let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
-    let (log, mapping) = track_log(folder.path(), &design, "4", "250");
+    let (log, mapping) = track_log(folder.path(), &design, "4", "250", &[]);
     let args = ["fit", &log, &design, "--mapping", &mapping];
     let document = json(&args, 0, "fit.schema.json");
     let track = &document["readings"]["horizontal_track"];
@@ -10532,26 +10540,6 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
     }
     assert!(!out.contains("can't tell the wind"), "{out}");
     assert!(!out.contains("So the fit is told"), "{out}");
-    // The wind of a log with a track carries its caveat, under the intervals.
-    let caveat = document["wind_caveat"].as_str().unwrap();
-    assert!(
-        caveat.starts_with(
-            "The fitted wind can settle far from the flight's, with a narrow interval about it: \
-             on one design, "
-        ),
-        "{caveat}"
-    );
-    assert!(
-        caveat.ends_with("https://github.com/nrdptel/fusionspace-eridanus/issues/1646"),
-        "{caveat}"
-    );
-    assert!(
-        out.contains(
-            "\n  Caveat. The fitted wind can settle far from the flight's, with a narrow interval \
-             about it: on one\n  design, "
-        ),
-        "{out}"
-    );
     for line in out.lines() {
         assert!(line.chars().count() <= 100, "{line:?}");
     }
@@ -10575,62 +10563,74 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
     assert!(high >= held_high && high - held_high < 0.1, "{line}");
 }
 
-/// A known gap, reproduced so it stays in sight ([issue #1646]): on a log with a track the fitted
-/// wind can settle far from the flight's. The 54 mm design's own flight in a 9 m/s wind toward
-/// the east, fitted from calm air, comes out as a wind the other way, and its 90% interval, under
-/// 2 m/s wide, misses the true wind. The heights' residual lies within 0.5 m of the residual
-/// when the fit is told the true wind. Told so, each component of the fitted wind stays within
-/// 1 m/s of the true one. The caveat every such fit carries says
-/// so. When the fit is fixed this test fails: turn it around and take the caveat out.
+/// [Issue #1646]: on a log with a track the misfit can hold a second minimum in the wind, far
+/// from the flight's, as the drift isn't monotonic in the wind: the 54 mm design flown in 9 m/s
+/// toward the east drifts 56 m east, in 4 m/s 52 m west. A search from calm air once settled
+/// there, at 1.41 m/s toward the west with an interval under 2 m/s wide. So the fit starts its
+/// search again from the lows of a scan of the wind. Each of the issue's flights, fitted from
+/// calm air or from a wrong wind, now states an interval that holds the wind it was flown in,
+/// and no caveat on the wind is printed.
 ///
-/// [issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
+/// [Issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
 #[test]
-fn fit_can_settle_far_from_the_wind_a_track_was_flown_in() {
-    let folder = tempfile::tempdir().unwrap();
+fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
     let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
-    let (log, mapping) = track_log(folder.path(), &design, "9", "270");
-    let args = ["fit", &log, &design, "--mapping", &mapping];
-    let from_calm = json(&args, 0, "fit.schema.json");
-    let east = fit_parameter(&from_calm, "wind_east_m_s");
-    assert!(east["value"].as_f64().unwrap() < 0.0, "{east}");
-    let (low, high) = (
-        east["interval_90"]["low"].as_f64().unwrap(),
-        east["interval_90"]["high"].as_f64().unwrap(),
-    );
-    // Narrow, and nowhere near the 9 m/s flown.
-    assert!(high - low < 2.0 && high < 4.5, "{east}");
-    assert!(!fit_holds(&from_calm, "wind_east_m_s", 9.0), "{east}");
-    assert_eq!(from_calm["converged"], true);
-    assert!(
-        from_calm["wind_caveat"]
-            .as_str()
-            .unwrap()
-            .contains("a true wind of 9 m/s (20 mph) fitted as a wind the other way"),
-        "{from_calm}"
-    );
-    // Told the day's wind, as the caveat asks, the fit stays within 1 m/s of it.
-    let told = json(
-        &[&args[..], &["--wind", "9", "--wind-from", "270"]].concat(),
-        0,
-        "fit.schema.json",
-    );
-    let east = fit_parameter(&told, "wind_east_m_s");
-    assert!(
-        (east["value"].as_f64().unwrap() - 9.0).abs() < 1.0,
-        "{east}"
-    );
-    let north = fit_parameter(&told, "wind_north_m_s");
-    assert!(north["value"].as_f64().unwrap().abs() < 1.0, "{north}");
-    // The heights' residual doesn't show which fit is the flight's: both pass within 2 m, and
-    // the two residuals lie within half a meter of each other.
-    let (wrong, right) = (
-        from_calm["rms_m"].as_f64().unwrap(),
-        told["rms_m"].as_f64().unwrap(),
-    );
-    assert!(
-        wrong < 2.0 && right < 2.0 && (wrong - right).abs() < 0.5,
-        "{wrong} {right}"
-    );
+    // The wind flown toward the east, m/s, the wind the fit is told, and the rail, m.
+    for (flown, told, rail) in [
+        ("2", "0", "1.5"),
+        ("4", "0", "1.5"),
+        ("6", "0", "1.5"),
+        ("9", "0", "1.5"),
+        ("9", "0", "3"),
+        ("9", "3", "1.5"),
+    ] {
+        let folder = tempfile::tempdir().unwrap();
+        let (log, mapping) = track_log(
+            folder.path(),
+            &design,
+            flown,
+            "270",
+            &["--rail-length", rail],
+        );
+        let args = [
+            "fit",
+            &log,
+            &design,
+            "--mapping",
+            &mapping,
+            "--rail-length",
+            rail,
+            "--wind",
+            told,
+            "--wind-from",
+            "270",
+        ];
+        let document = json(&args, 0, "fit.schema.json");
+        let case = format!("flown {flown} m/s, told {told} m/s, rail {rail} m");
+        let truth: f64 = flown.parse().unwrap();
+        assert_eq!(document["converged"], true, "{case}: {document}");
+        assert!(
+            fit_holds(&document, "wind_east_m_s", truth),
+            "{case}: {}",
+            fit_parameter(&document, "wind_east_m_s")
+        );
+        assert!(
+            fit_holds(&document, "wind_north_m_s", 0.0),
+            "{case}: {}",
+            fit_parameter(&document, "wind_north_m_s")
+        );
+        assert!(document.get("wind_caveat").is_none(), "{case}: {document}");
+        if flown == "9" && told == "0" && rail == "1.5" {
+            // Where the search from calm air stopped: now within 0.5 m/s of the flight's wind.
+            let east = fit_parameter(&document, "wind_east_m_s")["value"]
+                .as_f64()
+                .unwrap();
+            assert!((east - truth).abs() < 0.5, "{case}: {east}");
+            let out = streams(&[&args[..], &["--color", "never"]].concat()).out;
+            assert!(!out.contains("Caveat. The fitted wind"), "{out}");
+            assert!(!out.contains("issues/1646"), "{out}");
+        }
+    }
 }
 
 /// A fit bends its scales as far as it must to pass a log, so a log of another rocket's flight
@@ -10788,7 +10788,7 @@ fn fit_fits_a_public_flight() {
         (drag["value"].as_f64().unwrap() - 0.71).abs() < 0.1,
         "{drag}"
     );
-    assert_eq!(drag["caveat"]["below"], 80);
+    assert_eq!(drag["caveat"]["below"], 79);
     // It lies below the 0.8 the intervals were tested down to, and is marked so. The wind and
     // the mass lie inside their ranges.
     assert_eq!(drag["outside_tested_range"], true, "{drag}");

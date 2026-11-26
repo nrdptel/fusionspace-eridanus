@@ -2116,10 +2116,6 @@ pub struct Fit {
     /// The top Mach number of the flight at the fitted parameters, flown to the ground with the
     /// design's recovery: the Mach number its warnings speak of.
     pub fitted_max_mach: Option<f64>,
-    /// The caveat on the wind of a log with a horizontal track: the fitted wind can settle far
-    /// from the flight's, with a narrow interval about it. Null for a log of height alone, whose
-    /// wind states no interval.
-    pub wind_caveat: Option<String>,
     /// The known issues the flight at the fitted parameters meets: where HPR Sim's drag or
     /// stability is known to read wrong on this flight, the fit's numbers take that error in.
     pub issues: Vec<SimIssue>,

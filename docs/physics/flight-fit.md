@@ -17,7 +17,7 @@ impulse, wind and mass, and where the fit fails its tests.
   [synthetic flights](synthetic-flights.md), and only as a whole. By least squares, each
   parameter's interval is tested on two sets of test flights
   ([the sets](synthetic-flights.md#the-sets)). A truth is the value a test flight was flown with.
-  On set B the drag scale's interval misses on the low side: 80 of 1,000 truths lie below it,
+  On set B the drag scale's interval misses on the low side: 79 of 1,000 truths lie below it,
   where the test passes at 74 or fewer. There the fitted drag reads high, so a
   flight predicted with it would come out low. It's a recorded gap
   ([ADR-368, the gap recorded and not fitted away][adr-368];
@@ -48,8 +48,10 @@ impulse, wind and mass, and where the fit fails its tests.
 
 The fit reads the log's heights, as a median every 0.25 s, from a second before liftoff to apogee.
 A track is the log's latitude and longitude, from a GNSS receiver such as GPS. Where the log holds
-one, the fit reads the drift as well, which is what speaks to the wind. It flies the simulation about 70 times a fit, which
-takes about a second of one processor core. It steps the inputs by the
+one, the fit reads the drift as well, which is what speaks to the wind. On a log of height alone it
+flies the simulation about 80 times a fit, which takes about a second of one processor core. On a log
+with a track it's about 180, with [the wind's scan](#a-second-answer-in-the-wind): the medians on
+set A's slice of [the report][report]. It steps the inputs by the
 Levenberg-Marquardt rule, a damped Gauss-Newton search, until the sum $\chi^2$ stops falling. It
 has three parts, the heights', the track's and the stated ranges':
 
@@ -115,6 +117,33 @@ another, on 1,000 flights of its logger with a barometer and receiver.
 
 Each fit also says whether it stopped at the bottom of $\chi^2$ within 60 steps a pass.
 
+### A second answer in the wind
+
+On a log with a track, $\chi^2$ can have a second low in the wind, far from the flight's
+([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)). A rocket turns into
+the wind under thrust and flies upwind, and the air then carries it back, so its drift doesn't grow
+steadily with the wind. The search steps downhill from where it starts, so it can settle in the
+wrong low. On the 54 mm (2.1 in) synthetic design flown in 9 m/s (20 mph) toward the east, a
+search from calm air settled at 1.4 m/s (4.6 ft/s) toward the west, with an interval under 2 m/s
+(7 ft/s) wide.
+
+So after the first pass the fit scans the wind. It flies 97 constant winds with its other inputs
+held where that pass left them: calm air, and every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s) in
+12 directions 30° apart. A point of the scan whose $\chi^2$ is no higher than its neighbours' is a
+low. One within 1.5 m/s of the first answer's wind lies in the low the search already found, and
+is passed over. The search starts again from the three lowest of the rest. Every answer goes on to
+the second pass, and the one with the lowest $\chi^2$ there stands. An answer found from a low of
+the scan counts only if its wind lies within the scan's 12 m/s. Past it lie lows the scan never
+saw: before this rule, two such searches on the synthetic flights ran out to about 14 m/s on flights
+flown in about 6 m/s ([the decision record][adr-382]). The search from the stated wind counts
+wherever it ends. The answers are compared at the
+second pass because its noise sets the track's weight: at the first pass's guess, twice the floor,
+the wind's stated range could favour the wrong low. The scan's lowest point needn't be the flight's
+wind, since the other inputs are held where a wrong wind left them. That's why it starts from
+several lows. A low between the scan's points can still be missed, and a flight's wind past
+12 m/s (27 mph), past what a launch is flown in, is found only by a search from a wind given near
+it.
+
 ### When a log has nothing to fit
 
 A log with nothing to fit gives back its stated range and says so. That's any of these:
@@ -177,10 +206,10 @@ The counts are flights:
 
 | Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
-| drag scale | 32, 909, 59 | 80, 889, 31: fails |
-| impulse scale | 35, 910, 55 | 50, 914, 36 |
-| wind toward the east, m/s | 77, 1,350, 70 | 71, 1,353, 73 |
-| wind toward the north, m/s | 57, 1,382, 58 | 63, 1,372, 62 |
+| drag scale | 32, 909, 59 | 79, 890, 31: fails |
+| impulse scale | 34, 911, 55 | 51, 912, 37 |
+| wind toward the east, m/s | 78, 1,350, 69 | 71, 1,353, 73 |
+| wind toward the north, m/s | 58, 1,381, 58 | 62, 1,373, 62 |
 | mass on the weighed mass | 40, 908, 52 | 42, 900, 58 |
 
 At 1,000 flights a tail passes with 29 to 74 truths. So set B's drag fails on its lower tail, and
@@ -192,7 +221,7 @@ half the stated range's 90% width:
 | Parameter | Median width (factor) | Stated width (factor) |
 |---|---:|---:|
 | drag scale | 0.117 | 0.36 |
-| impulse scale | 0.0402 | 0.108 |
+| impulse scale | 0.0403 | 0.108 |
 | mass on the weighed mass | 0.0349 | 0.036 |
 
 So it tells of the drag and impulse, and not of the mass. On logs with a track, a wind's median
@@ -202,15 +231,15 @@ On pure noise nothing is told ([the report's noise table][report]). The log read
 ±5 m (16 ft) and ±1,000 m (3,281 ft) away. Noise is also handed straight to the fit. On height alone it's
 ±5 m (16 ft), ±50 m (164 ft) or ±1,000 m (3,281 ft). With a track of ±5 m (16 ft), it's ±5 m (16 ft)
 or ±1,000 m (3,281 ft). It says nothing in all 200
-flights of each. The fit's residual is at least 0.95 of the heights' spread, against 0.1 allowed.
+flights of each. The fit's residual is at least 0.967 of the heights' spread, against 0.1 allowed.
 
 Those counts have limits:
 
 - Sets A and B were seen. The barometer's unknowns, the track's floor, the split of shares by track
   and set B's truth were chosen after reading their counts. So were which logs are counted and which
   hold a wind, the wind's flight count, the misfit's cut of 0.1, and both widenings. Only the shares themselves come from flights kept apart.
-- Set B's drag fails. 80 of its 1,000 truths lie below their intervals, 6 more than pass. Its 889
-  inside and 31 above pass. Its fit runs high by 0.00711 on average, and what makes it run high
+- Set B's drag fails. 79 of its 1,000 truths lie below their intervals, 5 more than pass. Its 890
+  inside and 31 above pass. Its fit runs high by 0.00728 on average, and what makes it run high
   isn't measured. A drag scale that reads high makes a flight predicted with it come out low, the
   side that flatters a field's ceiling
   ([which miss flatters](../trusting-a-simulation.md#which-miss-flatters)). On a flight whose
@@ -219,9 +248,9 @@ Those counts have limits:
   ([ADR-368, the gap recorded and not fitted away][adr-368]), and
   [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
-  holds 67 of its 96 truths, and its wind toward the north 125 of 161.
+  holds 68 of its 96 truths, and its wind toward the north 125 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
-  misses more often. Set B's drag interval holds 353 of 439 such flights, and 536 of 561 that fit
+  misses more often. Set B's drag interval holds 353 of 439 such flights, and 537 of 561 that fit
   better (the issue that tracks it: [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
 - Some fits stop short of the bottom of $\chi^2$. Among the flights counted and the wind's, 2 on set
   A and 6 on set B did, counting set B's truths' own fits.
@@ -306,11 +335,11 @@ It's held to the same test as the least-squares fit, on the same flights
 
 | Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
-| drag scale | 30, 885, 85: fails | 79, 865, 56: fails |
-| impulse scale | 70, 877, 53 | 79, 884, 37: fails |
-| wind toward the east, m/s | 59, 1,382, 56 | 68, 1,344, 85 |
-| wind toward the north, m/s | 58, 1,382, 57 | 85, 1,320, 92 |
-| mass on the weighed mass | 53, 885, 62 | 62, 869, 69 |
+| drag scale | 30, 885, 85: fails | 78, 867, 55: fails |
+| impulse scale | 70, 877, 53 | 80, 884, 36: fails |
+| wind toward the east, m/s | 60, 1,382, 55 | 67, 1,344, 86 |
+| wind toward the north, m/s | 59, 1,382, 56 | 85, 1,321, 91 |
+| mass on the weighed mass | 53, 885, 62 | 61, 870, 69 |
 
 On the 1,000 flights of drag, impulse and mass, a tail passes with 29 to 74 truths, and the inside
 with 868 to 930. On the wind's 1,497, a tail passes with 49 to 104, and the inside with 1,308 to
@@ -320,19 +349,19 @@ with 868 to 930. On the wind's 1,497, a tail passes with 49 to 104, and the insi
   ([ADR-321][adr-321]). Before, the posterior took the track's noise as the least-squares fit
   states it. Then from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
   on set A is now 0.383 m/s (1.26 ft/s) east, against least squares' 0.38 m/s (1.25 ft/s). Set
-  B's wind leans: 85 and 92 of its truths fall above, near the 104 that pass. Its mean error is
-  −0.0239 m/s (−0.078 ft/s) east and −0.0247 m/s (−0.081 ft/s) north. Set B's wind grows with
+  B's wind leans: 86 and 91 of its truths fall above, near the 104 that pass. Its mean error is
+  −0.027 m/s (−0.089 ft/s) east and −0.0245 m/s (−0.080 ft/s) north. Set B's wind grows with
   height, and on a track the posterior's wind doesn't, which may be why; that isn't measured.
-  Toward the north it's also close to too narrow. 85 truths fall below as well, and 1,320 fall
+  Toward the north it's also close to too narrow. 85 truths fall below as well, and 1,321 fall
   inside, where 1,308 is the fewest that pass. Set A's wind is close to too wide: 1,382
   of 1,497 truths fall inside on each component, and 1,384 is the most that pass.
 - **The wind's pass leans on thin posteriors.** On the committed slice, every 21st fit, 294 wind
   intervals are counted. The 220 from posteriors of 100 or more effective draws miss 14 truths,
-  6.4%, where 10% belong. The 74 under 100 miss 10, 13.5%. So the well-drawn intervals may still be
+  6.4%, where 10% belong. The 74 under 100 miss 9, 12.2%. So the well-drawn intervals may still be
   too wide, and the thin ones, too narrow, may bring the tails up to 5%. The report doesn't split
   its counts this way yet.
 - **Set A's drag sits low and set B's impulse high.** 85 of set A's drag truths fall above, and
-  79 of set B's impulse truths below. 72 of set A's 85 above are on logs of height alone, 776 of
+  80 of set B's impulse truths below. 72 of set A's 85 above are on logs of height alone, 776 of
   its 1,000 flights. Height-alone logs are the only ones where
   the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated range,
   but it isn't measured yet, and set B's impulse leans the other way. Set A's drag is
@@ -340,13 +369,13 @@ with 868 to 930. On the wind's 1,497, a tail passes with 49 to 104, and the insi
   rest, set B's drag among them, are open work for [M7.3c7, every count passing][m7-3c7].
 - **Set A's impulse passes near its edge.** 70 of its truths fall below, 4 short of 74, the most
   that pass. That's the same side as set B's: it too reads high, which flatters the motor.
-- **Set B's drag fails, and its widened probe passes.** 79 of its truths fall below, where 74 is
-  the most that pass, and 865 fall inside, where 868 is the fewest. The same intervals widened to
-  1.25 times pass, at 56 below, 909 inside and 35 above. So by this test they're too narrow on
+- **Set B's drag fails, and its widened probe passes.** 78 of its truths fall below, where 74 is
+  the most that pass, and 867 fall inside, where 868 is the fewest. The same intervals widened to
+  1.25 times pass, at 56 below, 910 inside and 34 above. So by this test they're too narrow on
   set B as they come.
 
 Drag and impulse are identified on set A, at median widths of 0.0916 and 0.039 (least squares:
-0.117 and 0.0402), of 0.36 and 0.108 stated. The mass isn't, at 0.034 of 0.036. On pure noise
+0.117 and 0.0403), of 0.36 and 0.108 stated. The mass isn't, at 0.034 of 0.036. On pure noise
 nothing is identified by either method. But the reader or the fit turns away every noise log before a posterior is
 drawn, so that says nothing of the sampler itself.
 
@@ -356,7 +385,7 @@ result is flagged as too few to read, but its interval still counts in the table
 draws can leave an interval too narrow or off center, so take it as rough. All 10 tests, the 7
 that pass and the 3 that fail, include those posteriors. On the wind, the slice suggests they
 cause more than their share of misses (above). Of the
-flights counted, 2,276 on set A had a posterior, 541 of them with fewer than 100 effective draws;
+flights counted, 2,276 on set A had a posterior, 542 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1 and the median 154. On set B, 722 of 2,296 had fewer than 100;
 the fewest was 1 and the median 139. That's about a quarter on set A and nearly a third on set B, the
 loss on logs with a track: before the track was read anew, 319 and 392 fell short. A
@@ -600,6 +629,7 @@ little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It rea
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 [adr-321]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0321-m7-3c4-in-three-the-track-as-a-receiver-reads-it.md
+[adr-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
 [adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
 [m7-3c4]: ../decisions-and-roadmap.md#m7-3c4

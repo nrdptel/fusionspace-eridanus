@@ -147,13 +147,6 @@
     "trust": {
       "description": "The trust note the text form ends with.",
       "type": "string"
-    },
-    "wind_caveat": {
-      "description": "The caveat on the wind of a log with a horizontal track: the fitted wind can settle far\nfrom the flight's, with a narrow interval about it. Null for a log of height alone, whose\nwind states no interval.",
-      "type": [
-        "string",
-        "null"
-      ]
     }
   },
   "required": [

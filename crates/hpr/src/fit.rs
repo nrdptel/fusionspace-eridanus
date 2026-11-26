@@ -52,9 +52,6 @@ use crate::flight::{Flight, FlightBuilder};
 /// The issue that holds the fix for the drag scale's interval ([`Caveat`]).
 pub const INTERVAL_ISSUE_URL: &str = "https://github.com/nrdptel/fusionspace-eridanus/issues/1108";
 
-/// The issue that records the wind a log's track can't settle ([`LogFit::wind_caveat`]).
-pub const WIND_ISSUE_URL: &str = "https://github.com/nrdptel/fusionspace-eridanus/issues/1646";
-
 /// The heights the launch's wind is averaged over for the fit's stated wind, evenly from the pad
 /// to the stated flight's apogee.
 const WIND_LEVELS: u32 = 100;
@@ -347,27 +344,6 @@ impl LogFit {
         self.parameters.iter().find(|f| f.parameter == parameter)
     }
 
-    /// The caveat on the wind of a log with a horizontal track; `None` for a log of height alone,
-    /// whose wind states no interval.
-    ///
-    /// The search starts at the wind the fit is told and can stop far from the flight's. On one
-    /// design a true wind of 9 m/s, fitted from calm air, came out as a wind the other way with a
-    /// narrow interval about it, and the heights' residual didn't show it
-    /// ([the issue][WIND_ISSUE_URL]; a test of the command reproduces it). Why isn't settled: on
-    /// that design the drift at apogee isn't monotonic in the wind, which the issue records.
-    #[must_use]
-    pub fn wind_caveat(&self) -> Option<String> {
-        self.readings.horizontal_track.as_ref().map(|_| {
-            format!(
-                "The fitted wind can settle far from the flight's, with a narrow interval about \
-                 it: on one design, started from calm air, a true wind of 9 m/s (20 mph) fitted \
-                 as a wind the other way, and the heights' residual didn't show it. So give the \
-                 day's wind, and take a fitted wind that disagrees with the field's as unsettled. \
-                 Recorded, not fixed: {WIND_ISSUE_URL}"
-            )
-        })
-    }
-
     /// The fit as lines of text, in SI units: what was read with its source and provenance,
     /// each parameter with its interval or why it has none, the caveats and the warnings.
     #[must_use]
@@ -528,10 +504,6 @@ impl LogFit {
                 lines.push(String::new());
                 lines.push(format!("Caveat. {}", caveat.message(fitted.parameter)));
             }
-        }
-        if let Some(caveat) = self.wind_caveat() {
-            lines.push(String::new());
-            lines.push(format!("Caveat. {caveat}"));
         }
         for warning in &self.issue_warnings {
             lines.push(String::new());

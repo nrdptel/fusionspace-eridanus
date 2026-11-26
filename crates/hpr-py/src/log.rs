@@ -382,10 +382,6 @@ impl FlightLog {
     /// ``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
     /// measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
     ///
-    /// ``wind_caveat`` is ``None`` for a log of height alone. On a log with latitude and
-    /// longitude it is a sentence to read with the wind: the fitted wind can settle far from
-    /// the flight's, with a narrow interval about it, so give the day's wind.
-    ///
     /// ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
     /// ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read
     /// wrong on this flight, the fitted scales take that error in.
@@ -479,7 +475,6 @@ impl FlightLog {
                 HeightKind::Geometric => "height_climbed",
             },
         )?;
-        dict.set_item("wind_caveat", fitted.wind_caveat())?;
         dict.set_item("text", fitted.lines().join("\n"))?;
         Ok(given)
     }
