@@ -640,7 +640,11 @@ pub enum Refused {
 
 /// Flies the launch for the fit: its design, rail, site and air, with the fit's scales and its
 /// constant wind in place of the launch's own.
-struct Flown {
+///
+/// It is meant to fly what [`hpr_forensics::synthetic::fits::Flown`], the model the 90%
+/// intervals' shares were fitted with, flies for the same launch and parameters; a test holds
+/// the two to it.
+pub(crate) struct Flown {
     /// The launch, with no recovery: the fit reads the climb.
     inputs: FlightInputs,
     /// The first flight's simulation, whose supersonic table the others fly on.
@@ -650,6 +654,16 @@ struct Flown {
 }
 
 impl Flown {
+    /// The fit's flights of the launch `inputs`, its recovery already taken off.
+    pub(crate) fn new(inputs: FlightInputs) -> Self {
+        let environment = &inputs.environment;
+        Self {
+            ground_msl_m: environment.site().height_m - environment.geoid_undulation_m,
+            inputs,
+            tables: None,
+        }
+    }
+
     /// The launch's inputs with `p`'s scales on its motors and drag, and `p`'s wind, constant
     /// or growing with height by `shear`.
     fn inputs(&self, p: &Parameters, shear: Option<f64>) -> Result<FlightInputs, String> {
@@ -845,12 +859,7 @@ pub fn fit(
     stated[Asked::WindEast.index()].mean = wind_east_m_s;
     stated[Asked::WindNorth.index()].mean = wind_north_m_s;
 
-    let environment = &inputs.environment;
-    let mut forward = Flown {
-        ground_msl_m: environment.site().height_m - environment.geoid_undulation_m,
-        inputs,
-        tables: None,
-    };
+    let mut forward = Flown::new(inputs);
     let answer = least_squares::fit(Some(&observed), &stated, Noise::FromResiduals, &mut forward);
     if !answer.fitted {
         return Err(match answer.misfit_share {
