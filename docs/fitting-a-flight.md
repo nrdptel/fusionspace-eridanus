@@ -1,7 +1,7 @@
 # Fitting a simulation to a flight
 
-`hpr fit` moves a simulation's drag, motor impulse, wind and mass until its flight passes through a
-log's heights. It prints each fitted value with a 90% interval.
+`hpr fit` moves a simulation's drag, impulse, wind and mass until its flight passes through a
+log's heights, and gives each a 90% interval.
 
 This page is for a flyer who has flown a rocket and wants to know what the flight says about the
 simulation of it. Seeing how far the two lie apart, with nothing fitted, is
