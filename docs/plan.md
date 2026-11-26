@@ -7,12 +7,13 @@ and how likely each goal is to work out.
 date as work ships or the roadmap changes. Releases come at product boundaries, not on dates.
 The release rows and the paragraph under them were brought up to date on November 24, 2026, when
 releases stopped waiting on outside users ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md)).
-[Estimates of when each release may come](#when-each-release-may-come) were added the same day.
-The outlooks further down are still October 6's.
+[Estimates of when each release may come](#when-each-release-may-come) were added the same day
+and made again on November 26, 2026, which moved 1.0's a month later. The outlooks further down
+are still October 6's.
 
 > **How far to trust it.** Each goal's outlook here is a judgment, from the work done so far. It's
 > based on the roadmap and the validation results as of October 6, 2026. The release estimates are
-> guesses from November 24, 2026, padded because work has run long, and not promises. For what
+> guesses from November 26, 2026, padded because work has run long, and not promises. For what
 > comes next and in what order, rely on [the roadmap](decisions-and-roadmap.md) instead, and for
 > what's done, on a published release.
 
@@ -20,7 +21,7 @@ The outlooks further down are still October 6's.
 
 Releases come in this order. A release is out once Neer, the project's owner, publishes it. By
 [the padded estimates](#when-each-release-may-come), 0.2 may come by the end of December 2026 and
-1.0 by the end of March 2028.
+1.0 by the end of April 2028.
 
 1. Release 0.1, the simulator.
 2. Release 0.2, the flight analyzer.
@@ -65,9 +66,9 @@ whether flyers want the tool ([the decision record](https://github.com/nrdptel/f
 | 0.3 accuracy and diagnosis | by the end of May 2027 |
 | 0.4 the competition kit | by the end of August 2027 |
 | 0.5 the app preview | by the end of November 2027 |
-| 1.0 the app | by the end of March 2028 |
+| 1.0 the app | by the end of April 2028 |
 
-These are [estimates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/release-estimates.md), made on November 24, 2026, and not promises. A release still comes out only
+These are [estimates](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/release-estimates.md), made on November 26, 2026, and not promises. A release still comes out only
 when its checklist passes, and none is cut short to meet a date. Each estimate counts the
 milestones ahead of its release in [the roadmap's queue](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md#queue).
 It sizes each by the pieces finished milestones have taken and goes at the pace of the last four
@@ -77,7 +78,7 @@ quadrupled.
 
 The padding is there because work has run long so far. [The log importers](decisions-and-roadmap.md#m7-1)
 were planned on October 12 as two pieces of work, each shipped on its own, and took 27 such
-pieces. In November, planning reviews added at least five milestones to the queue ahead of 0.3.
+pieces. In November, planning reviews added at least six milestones to the queue ahead of 0.3.
 A release that slips moves every later one with it, and the later a release, the more its
 estimate may move.
 
