@@ -33,12 +33,13 @@ WRITE = os.environ.get("HPR_WRITE_DOCS") == "1"
 # pages' command-line examples.
 FITTED = {"docs/fitting-a-flight.md"}
 WRITING_PLATFORM = sys.platform == "darwin" and platform.machine() == "arm64"
-NUMBER = re.compile(r"(?:(?<=[ (])[-−])?\d+(?:[.,]\d+)*")
+NUMBER = re.compile(r"(?:(?<=[ (])[-−])?[0-9]+(?:[.,][0-9]+)*")
 
 
 def words(text):
-    """`text` without what a fit's last digits can move: each number a `#`, each run of spaces
-    one space."""
+    """`text` without what a fit's last digits can move: each number a `#`, with the minus sign
+    before it if a space or a bracket comes before that, and each run of spaces one space. So a
+    number's sign is held on the writing platform only."""
     return re.sub(r" +", " ", NUMBER.sub("#", text))
 
 TOUR = "docs/simulator-tour.md"
@@ -175,3 +176,8 @@ def test_words_keep_all_but_numbers_and_widths():
     assert words(one) == words(other)
     assert words(one.replace("height_alone", "not_asked")) != words(one)
     assert words(one.replace("6 known issues met\n", "")) != words(one)
+    # A point, a comma or a hyphen that isn't part of a number stays, as `cargo xtask cli` keeps it.
+    assert words("H170M-10, 3.\n") == "H#M-#, #.\n"
+    assert words("leaves 50.\n") != words("leaves 50\n")
+    assert words("1, 2\n") != words("1 2\n")
+    assert words("wind (−3 ft/s) -0.1\n") == "wind (# ft/s) #\n"

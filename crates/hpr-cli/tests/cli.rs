@@ -10579,7 +10579,8 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
 /// wind can settle far from the flight's. The 54 mm design's own flight in a 9 m/s wind toward
 /// the east, fitted from calm air, comes out as a wind the other way, and its 90% interval, under
 /// 2 m/s wide, misses the true wind. The heights' residual lies within 0.5 m of the residual
-/// when the fit is told the true wind, where it stays within 1 m/s of it. The caveat every such fit carries says
+/// when the fit is told the true wind. Told so, each component of the fitted wind stays within
+/// 1 m/s of the true one. The caveat every such fit carries says
 /// so. When the fit is fixed this test fails: turn it around and take the caveat out.
 ///
 /// [issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646

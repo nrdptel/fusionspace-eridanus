@@ -60,9 +60,10 @@ const GUIDES: [&str; 9] = [
 ];
 /// The guides whose examples run the least-squares fit. Its last digits differ from one platform
 /// to another: of one run, Windows printed a burn time scale of 1.036 where macOS printed 1.037.
-/// The platforms' math libraries are the likely cause, not an isolated one. Their committed outputs are held exactly on the
-/// platform that writes them ([`WRITING_PLATFORM`]) and by their words on the others ([`words`]),
-/// as the fit's own reports are (`cargo xtask fit --other-platform`).
+/// The platforms' math libraries are the likely cause, which hasn't been isolated. Their committed
+/// outputs are held exactly on the platform that writes them ([`WRITING_PLATFORM`]) and by their
+/// words on the others ([`words`]), as the fit's own reports are
+/// (`cargo xtask fit --other-platform`).
 const FITTED_GUIDES: [&str; 1] = ["docs/fitting-a-flight.md"];
 
 /// Whether this build is the one the committed outputs are written on: macOS on Apple silicon,
@@ -72,7 +73,8 @@ const WRITING_PLATFORM: bool = cfg!(all(target_os = "macos", target_arch = "aarc
 /// `text` without what a fit's last digits can move: each number is a `#`, with the minus sign
 /// before it if a space or a bracket comes before that; each run of spaces is one space, since a
 /// column is as wide as its widest number; and each `warning:` line is left out, since a known
-/// issue's warning turns on at a Mach number and a fitted flight can sit on one.
+/// issue's warning turns on at a Mach number and a fitted flight can sit on one. So a number's
+/// sign is held on the writing platform only.
 fn words(text: &str) -> String {
     let mut out = String::new();
     for line in text.lines().filter(|line| !line.starts_with("warning: ")) {

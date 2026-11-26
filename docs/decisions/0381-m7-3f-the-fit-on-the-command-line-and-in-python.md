@@ -109,8 +109,8 @@ travel with every fit.
     far from the flight's, with a narrow interval about it. The 54 mm synthetic design's own
     flight in a 9 m/s wind, fitted from calm air, comes out as a wind the other way. Its interval
     is under 2 m/s wide and misses the true wind, and the heights' residual lies within 0.5 m of
-    the residual of the fit told the true wind. Told the true wind, the fit stays within 1 m/s of
-    it. The cause isn't isolated, and no test says how near the wind told has to be. The
+    the residual of the fit told the true wind. Told the true wind, each component of the fitted
+    wind stays within 1 m/s of it. The cause isn't isolated, and no test says how near the wind told has to be. The
     wind's interval still passes its test on the synthetic flights, so that test doesn't see it.
     The search is the one the intervals were sized with, and changing it here would leave them
     untested. So every fit of a log with a track prints a caveat that says what can happen and to

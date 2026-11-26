@@ -81,8 +81,10 @@ On the synthetic flights, the stated ranges are those the flights draw from
 
 A sensor's errors would otherwise land in the drag, so the fit also solves for them. On every log
 that's the clock offset, the height offset and a height that drifts over the flight. On a barometer
-it's also the reading's gain, a scale on the heights it reads. And it's the port's pressure
-coefficient: how much the airflow past the vent lowers the pressure it reads. A barometer's bins at
+it's also the reading's gain, a scale on the heights it reads. The fit is told the gain is 1 give
+or take 0.14%, one standard deviation. That is an MS5607's ±0.25%
+([the pressure's terms](synthetic-flights.md#the-pressure)) taken as an even draw. And it's the
+port's pressure coefficient: how much the airflow past the vent lowers the pressure it reads. A barometer's bins at
 or past Mach 0.8 are left out, where the port's error grows past the range the fit holds. The cut is
 taken again from the flight each pass finds. The burn time also has a scale, not reported, since a motor's
 impulse and its burn trade against each other. A wind of either sign lowers the top. So a log of height
