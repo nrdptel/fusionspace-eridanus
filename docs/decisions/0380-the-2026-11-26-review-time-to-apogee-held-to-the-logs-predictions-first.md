@@ -91,15 +91,16 @@ a flight's difference by up to 0.50 s, and the fifth flight's sign with it.
 
 The tables hint that the time is not the apogee's error over again, and no more than hint. On the
 residuals report's table the fifth flight's simulated apogee is above the log's while its time is
-0.20 s short, on a reading with no interval stated. On the first table the fourth flight's apogee
-is 5.55% low while its time is 9.05% long, on the log whose apogee the analyzer withholds, which
-the rule below would refuse. No validation report scores a time for the private collection, and none gives
-OpenRocket's time for a logged flight; one research note gives OpenRocket's mean time to apogee
-for two groups of the collection's flights, with no log's time beside ([early deployments][edb]).
-The backlog has held the idea since 2026-10-24 ([a second observable for each logged
-flight][idea], [ADR-289][adr-289]'s review), with the row it proposed, `accuracy.time-to-apogee`;
-the 2026-11-11 review added that the collection's times can still be sealed before anyone sees
-their errors ([the collection's other predictions][seal-idea], [ADR-338][adr-338]'s review).
+0.20 s short, on a reading with no interval stated. On the first table the fourth flight's apogee is
+5.55% low while its time is 9.05% long, on the log whose apogee the analyzer withholds, which the
+rule below would refuse. No validation report scores a time for the private collection, and none
+gives OpenRocket's time for a logged flight; one research note gives OpenRocket's mean time to
+apogee for two groups of the collection's flights, with no log's time beside ([early
+deployments][edb]). The backlog has held the idea since 2026-10-24 ([a second observable for each
+logged flight][idea], [ADR-289][adr-289]'s review), with the row it proposed,
+`accuracy.time-to-apogee`; the 2026-11-11 review added that the collection's times can still be
+sealed before anyone sees their errors ([the collection's other predictions][seal-idea],
+[ADR-338][adr-338]'s review).
 
 The analyzer has most of the reading. From a log's height track it reads the liftoff and the
 apogee's time, each with a bound and a 90% interval ([M7.2][m7-2]; [the intervals][reading]). It
@@ -163,10 +164,12 @@ Six hazards shape the rule.
      - **What it refuses.** A log whose liftoff or apogee the analyzer withholds, among them one
        that starts off the pad and one whose top a disturbance spoils, such as a deployment's
        pressure pulse; one whose apogee is a floor; one that ends before its apogee; and one with
-       no barometer's track. Which pulses spoil a top is the analyzer's own disturbed-top test,
-       fixed before the set is drawn: a pulse it withholds is the refused kind, and one it reads
-       through belongs to the pulse level below. No refusal is decided from a time read, a
-       prediction or an error.
+       no barometer's track. On the synthetic set, which pulses must be refused is fixed from the
+       generator's truth before the reading runs, never from what the analyzer withholds: a pulse
+       that moves the time of the track's highest reading by more than the width line's bound for
+       its level. The analyzer must withhold each of those. A smaller pulse it may read or
+       withhold; those it reads belong to the pulse level below. No refusal is decided from a
+       time read, a prediction or an error.
      - **The synthetic check.** Before it reads any real log, the reading is checked on
        synthetic logs whose liftoff and apogee times are known. The rule states, with a source
        for each, the levels the set covers:
@@ -184,13 +187,13 @@ Six hazards shape the rule.
      - **The three lines.** The set must meet [ADR-347][adr-347]'s three lines as [M2.14a][m2-14a]
        states them. Coverage: over the set, the share of readings whose 90% interval holds the true
        time isn't below 90% by a one-sided exact binomial test at the 5% level, and at no level
-       under 80%; each logger family's logs alone pass the same test, and the report gives each
-       family's misses below and above. Width: at every level, the 90th percentile of the
-       half-widths is under a bound the rule fixes beforehand from that level's rate, noise, step
-       and lag. Refusal: every log that must be refused is refused. Each line is shown able to fail:
-       a reader that widens every interval tenfold, one that refuses nothing, one that reports every
-       interval at a tenth of its width, and one that counts the time from the log's first sample
-       each fail the set.
+       under 80%; each logger family's logs alone pass the same test, and so do the pulse level's;
+       the report gives each family's misses below and above and the share of pulses withheld.
+       Width: at every level, the 90th percentile of the half-widths is under a bound the rule fixes
+       beforehand from that level's rate, noise, step and lag. Refusal: every log that must be
+       refused is refused. Each line is shown able to fail: a reader that widens every interval
+       tenfold, one that refuses nothing, one that reports every interval at a tenth of its width,
+       and one that counts the time from the log's first sample each fail the set.
      - **The predictions.** Each program's prediction is its own time from its rocket's first
        motion off the pad to its apogee, flown as the fixture report flies the flight, with
        nothing deployed before the top: HPR Sim's at this increment's merge, and OpenRocket
