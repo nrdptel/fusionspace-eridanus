@@ -408,6 +408,7 @@ until someone rewrites it in plainer words.
 | [ADR-377: No release waits on users, and release 0.2 comes next][adr-377] | Through release 1.0, nothing waits on outside users, their feedback, the maintainer's own use, or anyone designing or flying a rocket. Where a release needs a person to try it, emulated flyers stand in: written personas from public sources, played by reviewers who didn't build the work, with planted defects measuring what they catch. They show whether a careful newcomer can finish the tasks, not whether flyers want the tool. Release 0.2, the flight analyzer, comes next, after the MAPLEAF comparison ([M1.14b8](#m1-14b8)): the post-flight plot, the fit on the command line and in Python with its intervals passing again, a spread on each flight's apogee, and the figures' digits and wording check ([M0.9g](#m0-9g)). The Bayesian interval moves to 0.3 unchanged. |  |
 | [ADR-378: MAPLEAF as a second open oracle, flown on three public designs][adr-378] | MAPLEAF 0.8.16 (MIT) at commit `af970d3` runs as an outside program in a pinned Python 3.10 environment and flies three public designs from inputs HPR Sim writes. Each difference is HPR Sim's value less MAPLEAF's. With one drag table in both codes, the apogees differ by +0.13% to +0.35% and the rail-exit speeds by +0.007% to +0.034%. With MAPLEAF's gravity also matched to HPR Sim's at the pad, the apogees are within 0.019 m (0.063 ft). With each code's own aerodynamics the apogees differ by −0.22%, +1.00% and +7.63%. Nothing is gated. MAPLEAF does not fly a leaning rail as given, so every flight leaves a vertical one. |
 | [ADR-379: M7.3e, the post-flight comparison drawn by `hpr compare --plot`][adr-379] | `hpr compare --plot FILE.svg` draws the log's altitude and vertical speed from liftoff to landing beside the simulation's: as designed (the 1976 standard atmosphere, no wind), and under the launch day's conditions where they are given. Those come from Open-Meteo's archive of past forecasts at the site and launch time (`--launch-time`, or `--launch-time log` for an AltosUI CSV's GPS time), a weather profile (`--weather`), or values entered (`--wind`, `--temperature`, `--pressure`), so it works offline from values entered or a cached answer. The site is the log's GNSS fixes before liftoff unless one is given. The figure's table gives each reading's provenance. |  |
+| [ADR-380: The 2026-11-26 review: time to apogee held to the logs, predictions first][adr-380] | A flyer picks a motor's ejection delay, or sets a timer, from the time a simulator says the rocket takes to reach the top. No report scores that time against a log for either program on the private collection. This record promotes an idea the backlog has held since 2026-10-24, scoring it: the analyzer's reading of the time from liftoff to apogee gets an interval of its own, checked on synthetic logs; each program's prediction is sealed, written down and locked by its hash before any error is computed, so it can't be changed once an error is seen; then the errors go on new rows `accuracy.time-to-apogee` and `bias.time-to-apogee`, in percent and in seconds. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -793,6 +794,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-16"></a>[M2.16][phase-1] | The next flight from the last one's log | not yet done |
 | <a id="m2-16a"></a>[M2.16a][phase-1] | The synthetic check, the fits and the predictions | not yet done |
 | <a id="m2-16b"></a>[M2.16b][phase-1] | The errors | not yet done |
+| <a id="m2-17"></a>[M2.17][phase-1] | Time to apogee against the logs | not yet done |
+| <a id="m2-17a"></a>[M2.17a][phase-1] | The rule, the reading and the predictions | not yet done |
+| <a id="m2-17b"></a>[M2.17b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1507,6 +1511,7 @@ is the milestone that added or will add that test.
 [adr-377]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0377-no-release-waits-on-users-and-release-0-2-comes-next.md
 [adr-378]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0378-mapleaf-as-a-second-open-oracle-flown-on-three-public-designs.md
 [adr-379]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0379-m7-3e-the-post-flight-comparison-drawn-in-hpr-compare.md
+[adr-380]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
