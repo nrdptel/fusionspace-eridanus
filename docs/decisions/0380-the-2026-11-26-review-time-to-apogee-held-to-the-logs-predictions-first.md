@@ -14,6 +14,7 @@
 [m2-13]: ../decisions-and-roadmap.md#m2-13
 [m2-14]: ../decisions-and-roadmap.md#m2-14
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
+[m2-3c2]: ../decisions-and-roadmap.md#m2-3c2
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [queue]: ../ROADMAP.md#queue
 [ideas]: ../research/ideas.md
@@ -52,7 +53,8 @@ no outside users ([ADR-322][adr-322]). The rows on the [scoreboard][score] and t
 promoted since 2026-11-11 score how high a rocket goes, how fast it comes down
 ([M2.12][m2-12]), where it lands ([M2.13][m2-13]), how fast it leaves the rail ([M2.14][m2-14]),
 its drag in the coast ([M2.15][m2-15]) and its next flight's height ([M2.16][m2-16]). None scores
-when it reaches the top.
+when it reaches the top. The queued trace comparison ([M2.3c2][m2-3c2]) gives one figure for a
+whole climb, the heights' RMS, in which a late top and a low one can't be told apart.
 
 A flyer uses that time directly. A motor's ejection charge fires a set delay after burnout, and
 the delay to pick is the time from burnout to apogee: HPR Sim prints it as the
@@ -186,8 +188,8 @@ Five hazards shape the rule.
        - the mean absolute and the mean signed error, in percent of the read time and in
          seconds;
        - how many predictions are long and how many short;
-       - how many differ from the reading by more than 1.5 s, the figure NFPA 1125 allows a
-         motor's own delay;
+       - how many differ from the reading by more than 1.5 s, the least NFPA 1125 lets a
+         motor's own delay differ from its label;
        - the median half-width of the readings' intervals;
        - how many readings have the prediction inside their interval, out of how many.
      - It gives, for each program, how many flights' sealed apogee error and time error have
