@@ -61,7 +61,7 @@ The parts catalog's ideas were placed by [ADR-197, the parts catalog][adr-197]; 
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-19)
+## Earlier planning reviews (2026-10-08 to 2026-11-22)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by cause
 (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause ([M2.3c6][m2-3c6],
@@ -84,48 +84,43 @@ landings, is [M2.13][m2-13]. The 2026-11-16 review's three ([ADR-352][adr-352]) 
 milestone, the speed off the rail against the accelerometer logs, is [M2.14][m2-14]. The 2026-11-19
 review's three ([ADR-360][adr-360]) went to [accuracy against real flights,
 continued](ideas-accuracy-2.md); the milestone it promoted, drag in the coast against the logs, is
-[M2.15][m2-15].
+[M2.15][m2-15]. The 2026-11-22 review's three ([ADR-370][adr-370]) went there too; its milestone,
+the next flight from the last one's log, is [M2.16][m2-16].
 
-## The 2026-11-22 planning review
+## The 2026-11-26 planning review
 
-Placed with [ADR-370][adr-370], which promotes the first; the other three are SOON.
+Placed with [ADR-380][adr-380], which promotes the first; the other three are SOON.
 
-- PROMOTED ([M2.16][m2-16]): the next flight predicted from the last one's log. User: a flyer with a
-  logged flight of a rocket, planning its next on another motor. Workflow: the fit's drag scale on the
-  earlier flight's log is carried to the later flight; the fixture report sets it against the plain
-  prediction and a by-hand ratio for both programs, every prediction sealed first. Moves: new rows
-  `accuracy.second-flight` and `bias.second-flight`. *Done when:* [M2.16][m2-16]'s.
-- SOON: the apogee in the morning's forecast air. User: a flyer setting a waiver ceiling or a contest
-  target on launch morning, who has a forecast, not the reanalysis the collection's rows fly in. 48 of
-  the collection's 72 flights not marked excluded have a launch time that isn't assumed (counted
-  2026-11-22). Workflow: the fixture report flies each of them again in a GFS forecast issued before
-  the launch hour, read from a public archive of past runs whose terms allow it (NOMADS, which
-  `hpr-net` reads, keeps only recent ones), beside the same flight in the day's ERA5 air. Moves:
-  `accuracy.collection` and `bias.collection`, as shown figures in forecast air beside the held ones.
-  *Done when:* the rule fixes the forecast's lead time before any flight is flown; the report gives
-  both programs' mean absolute and signed errors in both airs on the same flights, with each flight
-  lacking an archived forecast counted by cause; and a test refuses a forecast issued after the launch
-  hour.
-- SOON: the Monte Carlo's drag scatter, measured. User: a flyer reading `hpr mc`'s 90% apogee range
-  for a waiver. The drag's scatter is today a guessed spread around HPR Sim's own drag ([trusting a
-  simulation](../trusting-a-simulation.md)). Workflow: from [M2.16a][m2-16a]'s fits, the report gives
-  the fitted drag scale's spread across rockets (the drag error a first flight carries) and between
-  flights of one rocket (what a carried fit leaves), each less the share a fit's own noise adds, read
-  from the synthetic sets' fitted scales around their truths; [M2.8][m2-8]'s run takes the first as
-  its drag scatter. A fitted scale also holds some of what the run scatters apart (mass, impulse,
-  wind), so the spread is set beside those scatters, not added blind. Moves: `uncertainty.range-50`
-  and `uncertainty.range-90`, HPR Sim's cells. *Done when:* both spreads are given with their count of
-  rockets and a bootstrap 95% interval; the scatter is merged before any coverage is computed; and the
-  report gives how many logged apogees fall in the 50% and 90% ranges, with Clopper–Pearson intervals,
-  with the measured scatter and with today's, each rocket scored on a spread made without it.
-- SOON: a rocket's log book, its next flight flown from its last. User: the flyer of [M2.16][m2-16],
-  once its rows land. Workflow: `hpr` keeps a local file of one rocket's flights, each with its design
-  file and log; asked for the next flight, it fits the latest log by [M2.16a][m2-16a]'s rule and flies
-  the new plan with that drag scale, printing beside the apogee the committed `accuracy.second-flight`
-  figure and the count of rockets it rests on. Moves: `accuracy.second-flight`, from a report's figure
-  to a command a flyer runs. *Done when:* a test flies a synthetic pair through the command and
-  matches the report's carried-fit apogee to the meter; the command refuses a log the fit refuses,
-  with its cause; and its page gives the measured error with its count and date.
+- PROMOTED ([M2.17][m2-17]): time to apogee against the logs. User: a flyer picking a motor's
+  ejection delay, or setting a timer, from the simulated time to the top. Workflow: the analyzer's
+  time from liftoff to apogee, with its interval, is set against each program's sealed prediction.
+  Moves: new rows `accuracy.time-to-apogee` and `bias.time-to-apogee`. *Done when:* [M2.17][m2-17]'s.
+- SOON: the gap to OpenRocket with its interval. User: a reader of the scoreboard's "OpenRocket
+  24.12 ahead" on `accuracy.collection`, 12.10% against 11.26% over the same 60 flights (read
+  2026-11-26), who can't tell whether 0.84 points is more than the flights' scatter. Workflow: the
+  fixture report gives the mean of HPR Sim's absolute error less OpenRocket's, flight by flight,
+  with a 95% interval from a bootstrap that resamples sources and the exact sign-flip interval
+  ([ADR-257][adr-257]), on the collection and on each half; the scoreboard prints it beside the two
+  cells and keeps its words. Moves: `accuracy.collection` and `accuracy.held-out`, as the difference
+  between the two programs' cells, shown. *Done when:* a test pins the statistic on a synthetic set
+  whose programs differ by a known amount in half its sources; the report gives the difference, both
+  intervals and the counts of flights and sources; a probe that resamples flights fails the test.
+- SOON: where a rocket lands with nothing open. User: a flyer preparing a Class 3 flight's analysis,
+  and the committee reviewing it. Tripoli's Class 3 committee asked OpenRocket on 2026-11-23 for
+  the dispersion of ballistic flights, which by the request its Monte Carlo leaves out, and for runs
+  from a command line ([its issue 3496][or-3496], read 2026-11-26). Workflow: `hpr mc` flies every
+  draw again with every recovery charge held and gives that landing area beside the recovered one,
+  each share with its bound ([the Monte Carlo page][mc]). Moves: `accuracy.landing`
+  ([M2.13][m2-13]'s row), on the tracked flights that came down with nothing open, counted apart.
+  *Done when:* a test with a probe pins that the area's 95% radius errs wide, not narrow, on a set of
+  known scatter; the report gives each tracked ballistic flight's miss, or says none is tracked.
+- SOON: the delay a flight had. User: a flyer back from the field with a log, asking whether the
+  delay they drilled was right. Workflow: `hpr compare` prints the log's time from burnout to
+  apogee, with its interval, beside the delay flown and the simulated [optimum delay][optimum], and
+  under them the committed `accuracy.time-to-apogee` figure with its count. Moves:
+  `accuracy.time-to-apogee`, from a report's figure to a command a flyer runs. *Done when:* a test
+  runs it on a synthetic log and finds the true coast inside the printed interval; it prints no time
+  where the log's burnout is a floor, and says why; its page gives the measured error and its date.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -196,5 +191,8 @@ Placed with [ADR-370][adr-370], which promotes the first; the other three are SO
 [m2-15]: ../decisions-and-roadmap.md#m2-15
 [adr-370]: ../decisions/0370-the-2026-11-22-review-the-next-flight-predicted-from-the-last-ones-log.md
 [m2-16]: ../decisions-and-roadmap.md#m2-16
-[m2-16a]: ../decisions-and-roadmap.md#m2-16a
-[m2-8]: ../decisions-and-roadmap.md#m2-8
+[adr-380]: ../decisions/0380-the-2026-11-26-review-time-to-apogee-held-to-the-logs-predictions-first.md
+[m2-17]: ../decisions-and-roadmap.md#m2-17
+[or-3496]: https://github.com/openrocket/openrocket/issues/3496
+[mc]: ../monte-carlo.md
+[optimum]: ../physics/metrics.md#optimum-ejection-delay
