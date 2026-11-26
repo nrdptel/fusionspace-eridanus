@@ -10144,7 +10144,7 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
     let caveat = &drag["caveat"];
     assert_eq!(
         (&caveat["below"], &caveat["flights"], &caveat["meant"]),
-        (&json!(80), &json!(1000), &json!(50))
+        (&json!(79), &json!(1000), &json!(50))
     );
     let message = caveat["message"].as_str().unwrap();
     assert!(

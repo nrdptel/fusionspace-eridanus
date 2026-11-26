@@ -2942,8 +2942,8 @@ mod tests {
             check
         }
         let known = report.sets[1].checks[0].test;
-        assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale, 80)]);
-        assert_eq!(known.counts.below, 80);
+        assert_eq!(KNOWN_GAPS, [(Set::B, Asked::DragScale, 79)]);
+        assert_eq!(known.counts.below, 79);
         // One more below than recorded is a gap that grew, on the platform that writes the
         // report; another platform may stand 5 flights off, and no further.
         let grown = |more: u64, room: u64| {
