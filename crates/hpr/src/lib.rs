@@ -91,6 +91,7 @@
 
 pub mod environment;
 pub mod error;
+pub mod fit;
 pub mod flight;
 pub mod guide;
 pub mod motor;

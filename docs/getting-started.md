@@ -357,7 +357,8 @@ You don't have to take these numbers on trust. Four ways to test them:
   the flight's apogee, liftoff, top speed and landing
   ([Reading a flight log](reading-a-flight-log.md)). Each comes within a stated bound, or is
   withheld by name. A GPS track alone gives no readings. `hpr compare` sets a log against a
-  simulation of it ([Comparing a flight with its simulation](comparing-a-flight.md)).
+  simulation of it ([Comparing a flight with its simulation](comparing-a-flight.md)), and `hpr fit`
+  fits the simulation to it ([Fitting a simulation to a flight](fitting-a-flight.md)).
 - To compare with another simulator, by hand, enter the same rocket, motor, rail and wind in
   OpenRocket or RocketPy, and compare the apogee. Give both the same surface finish and rail
   guides. For this rocket, the OpenRocket file's finish and launch lugs take HPR Sim's drag

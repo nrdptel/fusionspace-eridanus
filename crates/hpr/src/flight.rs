@@ -301,12 +301,30 @@ impl FlightBuilder<'_> {
     ///
     /// As [`FlightBuilder::fly`], and whatever `observer` returns.
     pub fn fly_with(&self, observer: &mut dyn Observer) -> Result<Flight, Error> {
-        let simulation = self.simulation()?;
+        let own_drag = self.drag_model.is_some() || self.drag_table.is_some();
+        Flight::flown(
+            self.simulation()?,
+            self.environment.sim(),
+            own_drag,
+            observer,
+        )
+    }
+}
+
+impl Flight {
+    /// Flies `simulation`, built to fly in `environment`, to its end, and gathers the flight's
+    /// metrics and the known issues it meets. `own_drag` says the simulation flies a drag table
+    /// or model in place of HPR Sim's buildup, which drops the buildup's drag issues.
+    pub(crate) fn flown(
+        simulation: Simulation,
+        environment: &hpr_sim::Environment,
+        own_drag: bool,
+        observer: &mut dyn Observer,
+    ) -> Result<Self, Error> {
         let mut metrics = FlightMetrics::new();
         let result = simulation.run(&mut (&mut metrics, observer))?;
-        let summary = metrics.summary(&result, self.environment.sim())?;
+        let summary = metrics.summary(&result, environment)?;
         // The drag issues are hpr's buildup's: a flight on a drag of its own meets none.
-        let own_drag = self.drag_model.is_some() || self.drag_table.is_some();
         let mut issue_warnings = if own_drag {
             Vec::new()
         } else {
@@ -381,7 +399,6 @@ impl FlightBuilder<'_> {
         ));
         // A wind is read by height above mean sea level: the site's ellipsoidal height less the
         // geoid's undulation, plus a height above the site.
-        let environment = self.environment.sim();
         let ground_msl_m = environment.site().height_m - environment.geoid_undulation_m;
         let top_msl_m = ground_msl_m + hpr_sim::issues::highest_height_m(&result);
         issue_warnings.extend(hpr_sim::issues::wind_issue_warnings(
@@ -389,7 +406,7 @@ impl FlightBuilder<'_> {
             [ground_msl_m, top_msl_m],
             summary.max_mach,
         ));
-        Ok(Flight {
+        Ok(Self {
             result,
             summary,
             issue_warnings,

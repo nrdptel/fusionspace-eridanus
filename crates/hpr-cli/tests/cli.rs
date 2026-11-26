@@ -10027,3 +10027,428 @@ fn mc_bounds_its_flags_and_shares() {
         shown.err
     );
 }
+
+/// One of `hpr fit`'s parameters, by name.
+fn fit_parameter<'a>(document: &'a Value, name: &str) -> &'a Value {
+    document["parameters"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["parameter"] == name)
+        .unwrap()
+}
+
+/// Whether a fitted parameter's 90% interval holds `value`.
+fn fit_holds(document: &Value, name: &str, value: f64) -> bool {
+    let interval = &fit_parameter(document, name)["interval_90"];
+    interval["low"].as_f64().unwrap() <= value && value <= interval["high"].as_f64().unwrap()
+}
+
+/// M7.3f: `hpr fit` fits a design's simulation to its log. A log of the simulation's own flight
+/// fits to scales of 1; each parameter prints with its least-squares 90% interval or why it has
+/// none; each thing read from the log says where it came from; the drag scale's interval carries
+/// ADR-368's caveat beside it; and the document is what its schema says.
+#[test]
+fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let args = [
+        "fit",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+    ];
+    let document = json(&args, 0, "fit.schema.json");
+    assert_eq!(document["kind"], "fitted");
+    assert_eq!(document["height_read_as"], "barometer");
+    assert_eq!(document["flown_in"]["conditions"], "as_designed");
+    assert_eq!(document["converged"], true);
+    let names: Vec<&str> = document["parameters"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row["parameter"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        names,
+        [
+            "drag_scale",
+            "impulse_scale",
+            "burn_time_scale",
+            "wind_east_m_s",
+            "wind_north_m_s",
+            "mass_scale"
+        ]
+    );
+    // Its own flight: each scale's interval holds 1, and is narrower than what was stated.
+    for name in ["drag_scale", "impulse_scale", "mass_scale"] {
+        let row = fit_parameter(&document, name);
+        assert!(fit_holds(&document, name, 1.0), "{row}");
+        assert!((row["value"].as_f64().unwrap() - 1.0).abs() < 0.05, "{row}");
+        assert_eq!(row["no_interval"], Value::Null);
+        assert_eq!(row["stated_mean"], 1.0);
+    }
+    let drag = fit_parameter(&document, "drag_scale");
+    let width = drag["interval_90"]["high"].as_f64().unwrap()
+        - drag["interval_90"]["low"].as_f64().unwrap();
+    assert!(width < 3.29 * drag["stated_sd"].as_f64().unwrap(), "{drag}");
+    // The burn time's scale isn't asked of the fit; a log of height alone can't tell the wind.
+    let burn = fit_parameter(&document, "burn_time_scale");
+    assert_eq!(
+        (&burn["interval_90"], &burn["no_interval"]),
+        (&Value::Null, &json!("not_asked"))
+    );
+    for wind in ["wind_east_m_s", "wind_north_m_s"] {
+        let wind = fit_parameter(&document, wind);
+        assert_eq!(
+            (&wind["interval_90"], &wind["no_interval"], &wind["caveat"]),
+            (&Value::Null, &json!("height_alone"), &Value::Null)
+        );
+    }
+    // ADR-368's caveat: on the drag scale's interval, and on no other.
+    let caveat = &drag["caveat"];
+    assert_eq!(
+        (&caveat["below"], &caveat["flights"], &caveat["meant"]),
+        (&json!(80), &json!(1000), &json!(50))
+    );
+    let message = caveat["message"].as_str().unwrap();
+    assert!(
+        message.contains(
+            "80 truths lay below the interval, where a 90% interval leaves 50. So its lower end \
+             can read too high: take the fitted drag scale as reading high, and a flight \
+             predicted with it as reading low."
+        ),
+        "{message}"
+    );
+    assert!(
+        message.ends_with("https://github.com/nrdptel/fusionspace-eridanus/issues/1108"),
+        "{message}"
+    );
+    for name in ["impulse_scale", "burn_time_scale", "mass_scale"] {
+        assert_eq!(fit_parameter(&document, name)["caveat"], Value::Null);
+    }
+    // What was read, and where from.
+    let read = &document["readings"];
+    for reading in ["liftoff", "apogee", "height_track"] {
+        assert_eq!(
+            (&read[reading]["source"], &read[reading]["provenance"]),
+            (&json!("altitude_channel"), &json!("measured")),
+            "{reading}: {read}"
+        );
+    }
+    assert_eq!(read["horizontal_track"], Value::Null);
+    assert!(read["height_track"]["bins"].as_u64().unwrap() > 40);
+    assert!(
+        read["height_track"]["bins_read"].as_u64().unwrap()
+            <= read["height_track"]["bins"].as_u64().unwrap()
+    );
+    // The fitted flight is the log's: the residual is small, and its apogee the log's.
+    assert!(document["rms_m"].as_f64().unwrap() < 2.0, "{document}");
+    let fitted_apogee = document["fitted_apogee_m"].as_f64().unwrap();
+    let stated_apogee = document["stated_apogee_m"].as_f64().unwrap();
+    assert!((fitted_apogee - stated_apogee).abs() < 15.0);
+
+    // The text prints the same: each parameter's line, each reading's provenance under it, the
+    // caveat beside the intervals on standard output, the trust note, and the warnings.
+    let printed = streams(&[&args[..], &["--color", "never"]].concat());
+    let out = &printed.out;
+    for said in [
+        "Read from the log\n  liftoff  ",
+        "           measured, from the barometric altitude channel\n  apogee   ",
+        "  drift    none: the log holds no latitude and longitude\n",
+        "\n\nFitted by least squares\n                         fitted  ",
+        "  90% interval      told before the log\n  drag scale             ",
+        " *  1.000 ± 0.109\n  impulse scale          ",
+        "    1.000 ± 0.033\n  burn time scale        ",
+        "  none              1.000 ± 0.055\n  wind toward the east   ",
+        "  none              0.0 ± 3.9 m/s (0 ± 13 ft/s)\n  wind toward the north  ",
+        "  none              0.0 ± 3.9 m/s (0 ± 13 ft/s)\n  structure mass scale   ",
+        "    1.000 ± 0.011\n  * This interval fails its test: the caveat below.\n  The burn time \
+         scale states no interval: not asked of the fit.\n  The wind states no interval: a log \
+         of height alone can't tell the wind.\n  Caveat. The drag scale's 90% interval fails its \
+         test.",
+        "The fitted flight\n  heights' residual  ",
+        "How far to trust it. Fitted: ",
+        "More: https://hpr.fusionspace.co/fitting-a-flight.html\n",
+    ] {
+        assert!(out.contains(said), "{said:?} in\n{out}");
+    }
+    // One interval is marked, the drag scale's.
+    let marked: Vec<&str> = out.lines().filter(|line| line.contains(" *  ")).collect();
+    assert_eq!(marked.len(), 1, "{out}");
+    assert!(marked[0].starts_with("  drag scale  "), "{out}");
+    // Three provenance lines: the liftoff's, the apogee's and the heights'.
+    assert_eq!(
+        out.matches("           measured, from the barometric altitude channel\n")
+            .count(),
+        3,
+        "{out}"
+    );
+    for line in out.lines() {
+        assert!(line.chars().count() <= 100, "{line:?}");
+    }
+    assert!(
+        printed.err.contains("warning: stability: issue #172: "),
+        "{}",
+        printed.err
+    );
+    // A height stated as climbed is fitted as one.
+    let stated = json(
+        &[&args[..], &["--height-reads", "height-climbed"]].concat(),
+        0,
+        "fit.schema.json",
+    );
+    assert_eq!(stated["height_read_as"], "height_climbed");
+    assert!(!stated["notes"].to_string().contains("--height-reads"));
+    assert!(document["notes"].to_string().contains("--height-reads"));
+}
+
+/// M7.3f: a fit carries the warning of each known issue its flight meets (ADR-163 §4), as
+/// `hpr sim` of the same flight raises them. The synthetic two-stage rocket, flown as one stack
+/// past Mach 1.6, meets the drag issues of a transonic and supersonic flight; the 54 mm rocket,
+/// which only just passes Mach 1, meets its own and none that wait for a higher speed.
+#[test]
+fn fit_carries_the_warnings_its_flight_meets() {
+    let numbers = |document: &Value| -> Vec<u64> {
+        document["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|issue| issue["issue"].as_u64().unwrap())
+            .collect()
+    };
+    let folder = tempfile::tempdir().unwrap();
+    let fast = repo_file("validation/designs/synthetic-two-stage-75mm-54mm.json");
+    let (log, mapping) = compare_log(folder.path(), &fast);
+    let args = ["fit", &log, &fast, "--mapping", &mapping];
+    let fitted = json(&args, 0, "fit.schema.json");
+    assert!(fitted["fitted_max_mach"].as_f64().unwrap() > 1.5);
+    let flown = json(&["sim", &fast, "--offline"], 0, "sim.schema.json");
+    let met = numbers(&fitted);
+    assert_eq!(met, numbers(&flown));
+    for number in [67, 68, 222, 172] {
+        assert!(met.contains(&number), "#{number} in {met:?}");
+    }
+    // Each is the flight's own message, and prints as a warning.
+    let err = streams(&[&args[..], &["--color", "never"]].concat()).err;
+    for issue in fitted["issues"].as_array().unwrap() {
+        let number = issue["issue"].as_u64().unwrap();
+        let message = issue["message"].as_str().unwrap();
+        assert!(
+            message.starts_with(&format!("issue #{number}: ")),
+            "{message}"
+        );
+        assert_eq!(
+            issue["url"],
+            format!("https://github.com/nrdptel/fusionspace-eridanus/issues/{number}")
+        );
+        let kind = issue["kind"].as_str().unwrap();
+        assert!(
+            err.contains(&format!("warning: {kind}: issue #{number}: ")),
+            "#{number} in {err}"
+        );
+    }
+    assert!(
+        err.contains(
+            "help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>"
+        ),
+        "{err}"
+    );
+    // A flight that only just passes Mach 1 meets what `hpr sim` of it meets, and none of the
+    // issues that wait for a higher speed or a shape it doesn't have.
+    let slow = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let (log, mapping) = compare_log(folder.path(), &slow);
+    let fitted = json(
+        &["fit", &log, &slow, "--mapping", &mapping],
+        0,
+        "fit.schema.json",
+    );
+    assert!(fitted["fitted_max_mach"].as_f64().unwrap() < 1.1);
+    let met = numbers(&fitted);
+    let flown = json(&["sim", &slow, "--offline"], 0, "sim.schema.json");
+    assert_eq!(met, numbers(&flown));
+    assert!(met.contains(&172), "{met:?}");
+    for number in [70, 72, 87, 120, 121] {
+        assert!(!met.contains(&number), "#{number} in {met:?}");
+    }
+}
+
+/// M7.3f on the guide's invented log, which CI holds: flown in a 6 m/s wind and read 4% low, it
+/// fits with less impulse and more drag than stated, and the launch day's wind, given, is what
+/// the fit is told.
+#[test]
+fn fit_reads_the_guides_log_and_takes_the_wind_given() {
+    let log = repo_file("validation/fixtures/logs/compare/level-1-flown.csv");
+    let design = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let mapping = repo_file("validation/fixtures/logs/compare/level-1.mapping.json");
+    let args = ["fit", &log, &design, "--mapping", &mapping];
+    let calm = json(&args, 0, "fit.schema.json");
+    // Heights read 4% low: the fit finds a lower flight than the one stated.
+    let fitted_apogee = calm["fitted_apogee_m"].as_f64().unwrap();
+    let logged_apogee = calm["readings"]["apogee"]["height_m"].as_f64().unwrap();
+    assert!(fitted_apogee < calm["stated_apogee_m"].as_f64().unwrap() - 30.0);
+    assert!((fitted_apogee - logged_apogee).abs() < 10.0);
+    assert!(
+        fit_parameter(&calm, "impulse_scale")["value"]
+            .as_f64()
+            .unwrap()
+            < 1.0
+    );
+    assert!(!fit_holds(&calm, "impulse_scale", 1.0));
+    assert_eq!(fit_parameter(&calm, "wind_east_m_s")["stated_mean"], 0.0);
+    // Told the wind: 6 m/s from the west blows toward the east.
+    let windy = json(
+        &[&args[..], &["--wind", "6", "--wind-from", "270"]].concat(),
+        0,
+        "fit.schema.json",
+    );
+    assert_eq!(windy["flown_in"]["conditions"], "launch_day");
+    let east = fit_parameter(&windy, "wind_east_m_s")["stated_mean"]
+        .as_f64()
+        .unwrap();
+    assert!((east - 6.0).abs() < 1e-9, "{east}");
+    assert!(
+        fit_parameter(&windy, "wind_north_m_s")["stated_mean"]
+            .as_f64()
+            .unwrap()
+            .abs()
+            < 1e-9
+    );
+}
+
+/// What can't be fitted is refused with its reason and where to look: a log with no flight in
+/// it, and a log no flight of the design passes through.
+#[test]
+fn fit_refuses_a_log_it_cant_fit() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let (log, mapping) = compare_log(folder.path(), &design);
+    // The rocket's own heights on a clock running at half speed: no drag, impulse or mass takes
+    // twice as long to reach the same height.
+    let slowed: String = std::fs::read_to_string(&log)
+        .unwrap()
+        .lines()
+        .map(|line| match line.split_once(',') {
+            Some((time, height)) if time != "Time" => {
+                format!("{},{height}\n", 2.0 * time.parse::<f64>().unwrap())
+            }
+            _ => format!("{line}\n"),
+        })
+        .collect();
+    let slow_log = folder
+        .path()
+        .join("slowed.csv")
+        .to_string_lossy()
+        .into_owned();
+    std::fs::write(&slow_log, slowed).unwrap();
+    let output = hpr(&["fit", &slow_log, &design, "--mapping", &mapping]);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    let error = text(&output.stderr);
+    assert!(
+        error.contains(
+            "no flight of this design passes through the log: the best misses its heights by "
+        ),
+        "{error}"
+    );
+    assert!(
+        error.contains("`hpr compare` with the same options"),
+        "{error}"
+    );
+    assert!(output.stdout.is_empty(), "{output:?}");
+    // A log that never leaves the pad.
+    let mut flat = String::from("Time,Altitude\n");
+    for step in 0..400 {
+        flat.push_str(&format!("{},0\n", f64::from(step) * 0.05));
+    }
+    std::fs::write(&log, flat).unwrap();
+    let output = hpr(&["fit", &log, &design, "--mapping", &mapping]);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    let error = text(&output.stderr);
+    assert!(
+        error.contains("the log can't be fitted: its apogee is withheld: "),
+        "{error}"
+    );
+    assert!(error.contains("`hpr analyze` on the log"), "{error}");
+}
+
+/// M7.3f on a public flight, by the command a person would type: NDRT 2020's Featherweight Raven
+/// log fitted by RocketPy's example of the rocket. Needs RocketPy's checkout.
+#[test]
+fn fit_fits_a_public_flight() {
+    let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
+    if !log.exists() {
+        eprintln!("skipped: {} isn't fetched", log.display());
+        return;
+    }
+    let log = log.to_string_lossy().into_owned();
+    let design = repo_file("validation/designs/rocketpy-ndrt-2020-nose-to-tail.json");
+    let args = [
+        "fit",
+        log.as_str(),
+        design.as_str(),
+        "--config",
+        "example",
+        "--latitude",
+        "41.7",
+        "--longitude",
+        "-86.2",
+        "--elevation",
+        "230",
+        "--rail-length",
+        "3.6",
+    ];
+    let document = json(&args, 0, "fit.schema.json");
+    assert_eq!(document["logger"], "Featherweight Raven");
+    assert_eq!(document["converged"], true);
+    // Each of the three scales states an interval about its value, inside 0.4 to 1.6.
+    for name in ["drag_scale", "impulse_scale", "mass_scale"] {
+        let row = fit_parameter(&document, name);
+        let value = row["value"].as_f64().unwrap();
+        assert!(fit_holds(&document, name, value), "{row}");
+        assert!((0.4..1.6).contains(&value), "{row}");
+        assert!(row["standard_error"].as_f64().unwrap() > 0.0, "{row}");
+    }
+    // The drag this flight points to is below the design's: the same lean the committed report
+    // of the public flights' fits holds for it in ERA5's air (`from-boost.json`: 0.71).
+    let drag = fit_parameter(&document, "drag_scale");
+    assert!(!fit_holds(&document, "drag_scale", 1.0), "{drag}");
+    assert!(
+        (drag["value"].as_f64().unwrap() - 0.71).abs() < 0.1,
+        "{drag}"
+    );
+    assert_eq!(drag["caveat"]["below"], 80);
+    // The log's readings, each with where it came from.
+    let read = &document["readings"];
+    assert_eq!(read["apogee"]["source"], "barometer");
+    assert_eq!(read["apogee"]["provenance"], "measured");
+    assert_eq!(read["liftoff"]["provenance"], "measured");
+    assert!((read["apogee"]["height_m"].as_f64().unwrap() - 1320.0).abs() < 5.0);
+    // The fitted flight passes through the log, to about 1% of its heights' spread.
+    assert!(
+        document["misfit_share"].as_f64().unwrap() < 0.03,
+        "{document}"
+    );
+    let fitted_apogee = document["fitted_apogee_m"].as_f64().unwrap();
+    assert!((fitted_apogee - 1320.0).abs() < 15.0, "{fitted_apogee}");
+    // The warnings of the flight it meets: the steep boattail's rule, friction and the margin.
+    let met: Vec<u64> = document["issues"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|issue| issue["issue"].as_u64().unwrap())
+        .collect();
+    assert_eq!(met, [73, 18, 172]);
+    let out = streams(&[&args[..], &["--color", "never"]].concat()).out;
+    assert!(
+        out.contains(
+            "ndrt_2020_flight_data.csv (Featherweight Raven), its simulation fitted to it"
+        ),
+        "{out}"
+    );
+    assert!(out.contains("  Caveat. The drag scale's 90% interval fails its test."));
+}

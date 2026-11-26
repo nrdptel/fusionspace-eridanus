@@ -325,6 +325,20 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         anchor: OWN,
     },
     CommandHelp {
+        path: &["fit"],
+        examples: &[
+            Example {
+                what: "Fit a design's simulation to its flight's log",
+                line: "hpr fit flight.pf2 rocket.ork --motor CTI-J350",
+            },
+            Example {
+                what: "The same, told the launch day's wind and temperature",
+                line: "hpr fit flight.pf2 rocket.ork --motor CTI-J350 --wind 4 --temperature 28",
+            },
+        ],
+        anchor: OWN,
+    },
+    CommandHelp {
         path: &["completions"],
         examples: &[
             Example {

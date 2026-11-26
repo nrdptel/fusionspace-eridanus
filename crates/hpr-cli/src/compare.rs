@@ -137,7 +137,7 @@ pub enum HeightReads {
 
 impl CompareArgs {
     /// What `hpr analyze` needs to read the log.
-    fn log_args(&self) -> AnalyzeArgs {
+    pub(crate) fn log_args(&self) -> AnalyzeArgs {
         AnalyzeArgs {
             mapping: self.mapping.clone(),
             layout: self.layout.clone(),
@@ -289,20 +289,20 @@ enum Flown {
 }
 
 /// The launch day's conditions, and where they came from in words.
-struct LaunchDay {
-    environment: Environment,
-    said: String,
+pub(crate) struct LaunchDay {
+    pub(crate) environment: Environment,
+    pub(crate) said: String,
 }
 
 /// Where the site came from.
-struct Site {
-    from: SiteFrom,
+pub(crate) struct Site {
+    pub(crate) from: SiteFrom,
 }
 
 /// The flight's options with the site the comparison flies from: the one given, or, where neither
 /// --latitude nor --longitude is, the log's GNSS fixes before liftoff (or its first fix), placed
 /// as `hpr analyze --ghost` places its pad. A log with no fix leaves the options as they are.
-fn sited(
+pub(crate) fn sited(
     args: &CompareArgs,
     log: &FlightLog,
     read: &Readings,
@@ -358,7 +358,7 @@ fn sited(
 
 /// The launch day's conditions, if any are given: Open-Meteo's archive at `--launch-time`, the
 /// `--weather` profile, or the values entered (`--wind`, `--temperature`, `--pressure`).
-fn launch_day(
+pub(crate) fn launch_day(
     args: &CompareArgs,
     (log, read): (&FlightLog, &Readings),
     flight: &FlightArgs,
@@ -598,7 +598,7 @@ fn entered(
 }
 
 /// The conditions as designed, in words.
-const DESIGNED: &str = "the 1976 standard atmosphere and no wind, at the site";
+pub(crate) const DESIGNED: &str = "the 1976 standard atmosphere and no wind, at the site";
 
 /// The figure's lines on the conditions: the site, each simulation's conditions, as sentences.
 fn conditions_lines(

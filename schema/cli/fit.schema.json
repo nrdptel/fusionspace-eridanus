@@ -1,0 +1,793 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fit",
+  "description": "`hpr fit`, as JSON: a design's simulation fitted to its flight's log by least squares, each\nparameter with its 90% interval, each thing read from the log with where it came from.",
+  "type": "object",
+  "properties": {
+    "clock_offset_s": {
+      "description": "The log's clock at the simulation's zero, s.",
+      "type": "number",
+      "format": "double"
+    },
+    "configuration": {
+      "description": "The configuration flown.",
+      "type": "string"
+    },
+    "converged": {
+      "description": "Whether the fit ended where no step lowered its misfit further.",
+      "type": "boolean"
+    },
+    "design": {
+      "description": "The design's file.",
+      "type": "string"
+    },
+    "fitted_apogee_m": {
+      "description": "The apogee of the flight at the fitted parameters, m above the pad; null if it reaches\nnone.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "fitted_apogee_time_s": {
+      "description": "When the flight at the fitted parameters reaches its apogee, s from its liftoff.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "fitted_max_mach": {
+      "description": "The top Mach number of the flight at the fitted parameters.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "flights_flown": {
+      "description": "Simulations flown for the fit.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "flown_in": {
+      "description": "The conditions the fit's flights flew in, but for the wind, which the fit moves: the\nlaunch day's where any are given, else as designed.",
+      "$ref": "#/$defs/CompareFlownIn"
+    },
+    "height_offset_m": {
+      "description": "What the log's pad reads above the simulation's, m.",
+      "type": "number",
+      "format": "double"
+    },
+    "height_read_as": {
+      "description": "What the log's height stands for, and so how each simulated flight's is read.",
+      "$ref": "#/$defs/HeightReadAs"
+    },
+    "issues": {
+      "description": "The known issues the flight at the fitted parameters meets: where HPR Sim's drag or\nstability is known to read wrong on this flight, the fit's numbers take that error in.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimIssue"
+      }
+    },
+    "kind": {
+      "description": "What kind of result this is: a model fitted to a measurement.",
+      "$ref": "#/$defs/Kind"
+    },
+    "log": {
+      "description": "The log, as given.",
+      "type": "string"
+    },
+    "logger": {
+      "description": "The logger, as the log names it.",
+      "type": "string"
+    },
+    "misfit_share": {
+      "description": "That residual as a share of the spread of the heights read.",
+      "type": "number",
+      "format": "double"
+    },
+    "notes": {
+      "description": "What to bear in mind in reading them, as the text form's notes say.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parameters": {
+      "description": "Each parameter, in the fit's order: the drag scale, the impulse scale, the burn time's\nscale, the wind toward the east and the north, and the structure's mass scale.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FitParameter"
+      }
+    },
+    "readings": {
+      "description": "What the fit read from the log, each with its source and provenance.",
+      "$ref": "#/$defs/FitReadings"
+    },
+    "rms_m": {
+      "description": "The heights' residual's RMS, m: the log's height less the fitted flight's, over the bins\nread.",
+      "type": "number",
+      "format": "double"
+    },
+    "site": {
+      "description": "The launch site flown from, and where its place came from.",
+      "$ref": "#/$defs/CompareSite"
+    },
+    "stated_apogee_m": {
+      "description": "The apogee of the flight as stated, before the fit, m above the pad.",
+      "type": "number",
+      "format": "double"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "trust": {
+      "description": "The trust note the text form ends with.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool",
+    "kind",
+    "trust",
+    "log",
+    "logger",
+    "design",
+    "configuration",
+    "site",
+    "flown_in",
+    "height_read_as",
+    "readings",
+    "parameters",
+    "rms_m",
+    "misfit_share",
+    "converged",
+    "clock_offset_s",
+    "height_offset_m",
+    "flights_flown",
+    "stated_apogee_m",
+    "issues",
+    "notes"
+  ],
+  "$defs": {
+    "CompareConditions": {
+      "description": "As designed, or on the launch day.",
+      "oneOf": [
+        {
+          "description": "The 1976 standard atmosphere and no wind, at the site.",
+          "type": "string",
+          "const": "as_designed"
+        },
+        {
+          "description": "The launch day's air and wind: from Open-Meteo's archive, a weather profile, or values\nentered.",
+          "type": "string",
+          "const": "launch_day"
+        }
+      ]
+    },
+    "CompareFlownIn": {
+      "description": "The conditions a comparison's simulation flew in.",
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "description": "As designed, or on the launch day.",
+          "$ref": "#/$defs/CompareConditions"
+        },
+        "detail": {
+          "description": "Where the air and wind came from, in words: the weather source, its time, place and\ncredit, or the values entered.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conditions",
+        "detail"
+      ]
+    },
+    "CompareSite": {
+      "description": "The launch site `hpr compare` flies from.",
+      "type": "object",
+      "properties": {
+        "elevation_m": {
+          "description": "Height above sea level, m, as given.",
+          "type": "number",
+          "format": "double"
+        },
+        "from": {
+          "description": "Where the latitude and longitude came from.",
+          "$ref": "#/$defs/SiteFrom"
+        },
+        "latitude_deg": {
+          "description": "Latitude, degrees north.",
+          "type": "number",
+          "format": "double"
+        },
+        "longitude_deg": {
+          "description": "Longitude, degrees east.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "latitude_deg",
+        "longitude_deg",
+        "elevation_m",
+        "from"
+      ]
+    },
+    "FitApogee": {
+      "description": "The apogee a fit's window ends at.",
+      "type": "object",
+      "properties": {
+        "bound_m": {
+          "description": "The bound the height's error stays within, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_m": {
+          "description": "Its height above the pad, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "provenance": {
+          "description": "Whether it was measured or derived.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "The track it was read from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_bound_s": {
+          "description": "The bound the time's error stays within, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "Its time, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "time_bound_s",
+        "height_m",
+        "bound_m",
+        "source",
+        "provenance"
+      ]
+    },
+    "FitCaveat": {
+      "description": "The caveat on a fitted parameter's interval that fails its test on the synthetic flights and\nis recorded as failing.",
+      "type": "object",
+      "properties": {
+        "below": {
+          "description": "The synthetic flights whose truth lay below the interval, as recorded.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "flights": {
+          "description": "The flights of the set.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "meant": {
+          "description": "How many a 90% interval is meant to leave below it.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "message": {
+          "description": "The caveat in sentences, with which way the interval errs.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "below",
+        "flights",
+        "meant",
+        "message"
+      ]
+    },
+    "FitLiftoff": {
+      "description": "The liftoff a fit's window starts by.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound its error stays within, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "provenance": {
+          "description": "Whether it was measured or derived.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "The track it was read from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "Its time, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "source",
+        "provenance"
+      ]
+    },
+    "FitNoInterval": {
+      "description": "Why a fitted parameter states no 90% interval.",
+      "oneOf": [
+        {
+          "description": "The fit isn't asked for it: the burn time's scale.",
+          "type": "string",
+          "const": "not_asked"
+        },
+        {
+          "description": "A log of height alone can't tell the wind.",
+          "type": "string",
+          "const": "height_alone"
+        }
+      ]
+    },
+    "FitParameter": {
+      "description": "One parameter as `hpr fit` found it.",
+      "type": "object",
+      "properties": {
+        "caveat": {
+          "description": "The caveat its interval carries; null for an interval that passes its test.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FitCaveat"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "interval_90": {
+          "description": "Its least-squares 90% interval; null where none is stated (`no_interval` says why).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "no_interval": {
+          "description": "Why it states no interval; null where it states one.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FitNoInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameter": {
+          "description": "Which parameter.",
+          "$ref": "#/$defs/FitParameterName"
+        },
+        "standard_error": {
+          "description": "Its standard error, from the fit's own residuals.",
+          "type": "number",
+          "format": "double"
+        },
+        "stated_mean": {
+          "description": "The middle of what the fit was told of it before the log.",
+          "type": "number",
+          "format": "double"
+        },
+        "stated_sd": {
+          "description": "The standard deviation of what the fit was told of it.",
+          "type": "number",
+          "format": "double"
+        },
+        "value": {
+          "description": "The fit's value: a factor, or for the wind a speed in m/s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "parameter",
+        "value",
+        "standard_error",
+        "stated_mean",
+        "stated_sd"
+      ]
+    },
+    "FitParameterName": {
+      "description": "A parameter of the fit.",
+      "oneOf": [
+        {
+          "description": "The factor on the rocket's zero-lift drag.",
+          "type": "string",
+          "const": "drag_scale"
+        },
+        {
+          "description": "The factor on the motor's total impulse.",
+          "type": "string",
+          "const": "impulse_scale"
+        },
+        {
+          "description": "The factor on the motor's burn time: moved by the fit, not asked of it.",
+          "type": "string",
+          "const": "burn_time_scale"
+        },
+        {
+          "description": "The constant wind's speed toward the east, m/s.",
+          "type": "string",
+          "const": "wind_east_m_s"
+        },
+        {
+          "description": "The constant wind's speed toward the north, m/s.",
+          "type": "string",
+          "const": "wind_north_m_s"
+        },
+        {
+          "description": "The factor on the structure's mass: the rocket without its motors.",
+          "type": "string",
+          "const": "mass_scale"
+        }
+      ]
+    },
+    "FitReadings": {
+      "description": "What `hpr fit` read from the log.",
+      "type": "object",
+      "properties": {
+        "apogee": {
+          "description": "The apogee the window ends at.",
+          "$ref": "#/$defs/FitApogee"
+        },
+        "height_track": {
+          "description": "The heights read.",
+          "$ref": "#/$defs/FitTrack"
+        },
+        "horizontal_track": {
+          "description": "The horizontal track read, east and north of the pad from the log's latitude and\nlongitude; null for a log of height alone.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FitTrack"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "liftoff": {
+          "description": "The liftoff the fit's window starts a second before; null for a log that starts in\nflight, whose first sample stands for it.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FitLiftoff"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "apogee",
+        "height_track"
+      ]
+    },
+    "FitTrack": {
+      "description": "A track of the log a fit read.",
+      "type": "object",
+      "properties": {
+        "bins": {
+          "description": "Its quarter-second bins that hold a sample, liftoff to apogee.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "bins_read": {
+          "description": "The bins the fit read: a barometer's at or past Mach 0.8 on the fitted flight are left\nout.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "provenance": {
+          "description": "Whether its values were measured or derived.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "The sensor it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        }
+      },
+      "required": [
+        "source",
+        "provenance",
+        "bins",
+        "bins_read"
+      ]
+    },
+    "HeightReadAs": {
+      "description": "What a log's height stands for.",
+      "oneOf": [
+        {
+          "description": "A barometer's reading: the standard atmosphere's altitude of the pressure, less the pad's.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "A height climbed: a GNSS receiver's, or the accelerometer's integral.",
+          "type": "string",
+          "const": "height_climbed"
+        }
+      ]
+    },
+    "IssueKind": {
+      "description": "Which numbers a known issue bears on.",
+      "oneOf": [
+        {
+          "description": "The drag: the apogee, the top speed, the drift, the flutter margin.",
+          "type": "string",
+          "const": "drag"
+        },
+        {
+          "description": "The stability margin and the center of pressure.",
+          "type": "string",
+          "const": "stability"
+        },
+        {
+          "description": "The flight's path, through something other than the drag or the margin (a moment, the\ndamping, the wind): the apogee and the drift.",
+          "type": "string",
+          "const": "flight"
+        }
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        },
+        {
+          "description": "A measurement set against a model: a log against a simulation of it.",
+          "type": "string",
+          "const": "compared"
+        },
+        {
+          "description": "A model fitted to a measurement: a simulation's inputs moved until it passes through a\nlog.",
+          "type": "string",
+          "const": "fitted"
+        }
+      ]
+    },
+    "Peak": {
+      "description": "A metric's extreme and when it came.",
+      "type": "object",
+      "properties": {
+        "after_apogee": {
+          "description": "Whether it came after apogee, in the fall. With no recovery device opened, a peak in the\nfall is not a prediction: the fall rests on small-angle aerodynamics far outside their\nrange.",
+          "type": "boolean"
+        },
+        "height_above_ground_m": {
+          "description": "The height above the launch site then, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "value": {
+          "description": "The value, in the unit the field's name gives.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "value",
+        "time_s",
+        "height_above_ground_m",
+        "after_apogee"
+      ]
+    },
+    "ReadingInterval": {
+      "description": "A reading's 90% interval: on the synthetic flights, the truth lay below `low` about 5% of the\ntime and above `high` about 5% (`hpr_flightdata::readings::interval`).",
+      "type": "object",
+      "properties": {
+        "high": {
+          "description": "Its upper end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        },
+        "low": {
+          "description": "Its lower end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "low",
+        "high"
+      ]
+    },
+    "ReadingProvenance": {
+      "description": "Whether a reading was measured on the track, derived from it, or clipped by it.",
+      "oneOf": [
+        {
+          "description": "A time or height read off the filtered track.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "Worked out from the track, such as a speed from its slope.",
+          "type": "string",
+          "const": "derived"
+        },
+        {
+          "description": "Measured, but at the sensor's range, so the true value may lie beyond it.",
+          "type": "string",
+          "const": "clipped"
+        },
+        {
+          "description": "A provenance this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingSource": {
+      "description": "The height track a reading came from.",
+      "oneOf": [
+        {
+          "description": "The logger's own barometric altitude, the record's primary track.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "A pressure channel, turned into a height by the 1976 standard atmosphere.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A barometric altitude kept in a channel, above the pad or above sea level.",
+          "type": "string",
+          "const": "altitude_channel"
+        },
+        {
+          "description": "A GNSS receiver's altitude: no reading is taken from it.",
+          "type": "string",
+          "const": "gnss"
+        },
+        {
+          "description": "The accelerometer along the rocket's axis.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "A source this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "SimIssue": {
+      "description": "A known error in HPR Sim's drag, stability or flight path that the flight meets.",
+      "type": "object",
+      "properties": {
+        "issue": {
+          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325, 326, 1198 or 1290\nfor stability; 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "kind": {
+          "description": "Which numbers it bears on.",
+          "$ref": "#/$defs/IssueKind"
+        },
+        "max_mach": {
+          "description": "The flight's top Mach number.",
+          "$ref": "#/$defs/Peak"
+        },
+        "message": {
+          "description": "What the issue means for this flight, with which way its numbers lean.",
+          "type": "string"
+        },
+        "parts": {
+          "description": "The ids of the parts whose shape meets the issue's condition; empty for base drag (68)\nand friction (18), which every rocket has, for 121, 172, 1198 and 1290, for a separated\npart's (179, 354), and for the wind's (8) and the center of gravity's (219). For 213 the\nsingle pod sets, for 106 the body parts the supersonic join covers.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "description": "The issue's address.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "issue",
+        "kind",
+        "url",
+        "max_mach",
+        "parts",
+        "message"
+      ]
+    },
+    "SiteFrom": {
+      "description": "Where a comparison's site came from.",
+      "oneOf": [
+        {
+          "description": "`--latitude` or `--longitude` gave it.",
+          "type": "string",
+          "const": "given"
+        },
+        {
+          "description": "The median of the log's last GNSS fixes before liftoff.",
+          "type": "string",
+          "const": "log_fixes_before_liftoff"
+        },
+        {
+          "description": "The log's first GNSS fix: it holds none before liftoff.",
+          "type": "string",
+          "const": "log_first_fix"
+        },
+        {
+          "description": "Neither: no site was given and the log holds no GNSS fix, so 0° N, 0° E.",
+          "type": "string",
+          "const": "default"
+        }
+      ]
+    }
+  }
+}

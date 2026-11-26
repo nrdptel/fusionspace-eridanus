@@ -273,6 +273,16 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
     )
 }
 
+/// As [`observations`], its heights read as `kind` whatever track the apogee came from: for a
+/// log whose owner says what its height stands for, as `hpr compare --height-reads` takes it.
+#[must_use]
+pub fn observations_as(log: &FlightLog, read: &Readings, kind: HeightKind) -> Option<Observations> {
+    let Reading::Read(apogee) = &read.apogee else {
+        return None;
+    };
+    observations_until(log, read, apogee.time_s, kind, false)
+}
+
 /// A log's height and any horizontal track, on `read`'s pad, from a second before `read`'s
 /// liftoff up to `to_s` (not including it), its heights of `kind`; `None` where the reader
 /// withheld the pad, the log holds no height track, the climb from liftoff to `to_s` (to its last

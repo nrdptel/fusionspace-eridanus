@@ -9,8 +9,8 @@ designed and, if you give it, under the launch day's weather ([Draw it](#draw-it
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
-> tell them apart. It says neither is right. The simulated numbers state no error here. A fit that would explain a residual is in the Rust library,
-> [not yet on the command line](decisions-and-roadmap.md#m7-3f). Its drag interval fails one synthetic test
+> tell them apart. It says neither is right. The simulated numbers state no error here. To move the simulation onto the log, there is
+> [`hpr fit`](fitting-a-flight.md). Its drag interval fails one synthetic test
 > ([the fit's page](physics/flight-fit.md#how-well-it-holds)). The method is tested on flights with a known answer. It has
 > been run on 7 of the 12 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)).
 > Those show what it gives, not that it is right about them.
@@ -238,7 +238,7 @@ read the log, the speed says why.
 - The weather source's air and wind are a model's, hourly, on a grid some kilometers wide, not a
   measurement at the pad. The figure shows the gap between the log and each simulation; it doesn't
   say which part is the weather's.
-- It fits nothing: the [least-squares fit](physics/flight-fit.md) is in the library, with no
-  command yet ([M7.3f](decisions-and-roadmap.md#m7-3f)).
+- It fits nothing. [`hpr fit`](fitting-a-flight.md) fits the drag, impulse, wind and mass to the
+  log.
 
 For a record or a certification, the altimeter's own reading is the one to log, and the RSO decides.

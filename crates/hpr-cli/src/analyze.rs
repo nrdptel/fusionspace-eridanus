@@ -557,7 +557,7 @@ fn interval(interval: readings::Interval) -> ReadingInterval {
     }
 }
 
-fn source(source: Source) -> ReadingSource {
+pub(crate) fn source(source: Source) -> ReadingSource {
     match source {
         Source::Barometer => ReadingSource::Barometer,
         Source::Pressure => ReadingSource::Pressure,
@@ -568,7 +568,7 @@ fn source(source: Source) -> ReadingSource {
     }
 }
 
-fn provenance(provenance: Provenance) -> ReadingProvenance {
+pub(crate) fn provenance(provenance: Provenance) -> ReadingProvenance {
     match provenance {
         Provenance::Measured => ReadingProvenance::Measured,
         Provenance::Derived => ReadingProvenance::Derived,

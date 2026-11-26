@@ -23,6 +23,7 @@ use hpr_flightdata::readings::interval::{Interval, Shares};
 use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::fits::{
     self, ASKED, Asked, Check, FlightFit, Identification, Method, POSTERIOR_DRAWS, POSTERIOR_PILOT,
+    known_gap,
 };
 use hpr_forensics::synthetic::intervals::{INSIDE_SHARE, Test};
 use hpr_forensics::synthetic::smoothed::MISS_SHARE;
@@ -725,28 +726,11 @@ impl Apart {
     }
 }
 
-/// Least-squares intervals that fail ADR-257's test and are recorded as failing (ADR-368): each
-/// has more truths below it than the 5% a 90% interval allows, on the set named, and holds its
-/// other two counts. The number is the count below as recorded. A cell listed here must come
-/// out so. The run stops if it passes, so that a gap that closes leaves the list. It stops if
-/// the cell fails on another count. And it stops if the count below is past the recorded one:
-/// by any flight on the platform that writes the report, and by more than the other platforms'
-/// room ([`OTHER_PLATFORM_FLIGHTS`]) elsewhere. The report's page and the fit's page both say
-/// which cells these are.
-const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 80)];
-
-/// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
-/// list.
-fn known_gap(set: Set, asked: Asked) -> Option<u64> {
-    KNOWN_GAPS
-        .iter()
-        .find(|gap| (gap.0, gap.1) == (set, asked))
-        .map(|gap| gap.2)
-}
-
-/// The known gaps of `sets` that have grown: a count below more than `room` flights past the
-/// recorded one. `room` is 0 where the report is written or read as committed, and the other
-/// platforms' room where another platform makes the fits.
+/// The known gaps of `sets` ([`fits::KNOWN_GAPS`], ADR-368) that have grown: a count below more than
+/// `room` flights past the recorded one, by any flight on the platform that writes the report and
+/// by more than the other platforms' room ([`OTHER_PLATFORM_FLIGHTS`]) elsewhere. `room` is 0
+/// where the report is written or read as committed, and the other platforms' room where another
+/// platform makes the fits.
 fn grown_gaps(sets: &[SetReport], room: u64) -> Vec<String> {
     let mut grown = Vec::new();
     for set in sets {
@@ -772,11 +756,11 @@ fn grown_gaps(sets: &[SetReport], room: u64) -> Vec<String> {
     }
     grown
 }
-/// The record of the [`KNOWN_GAPS`], a file under `docs/decisions`.
+/// The record of the [`fits::KNOWN_GAPS`], a file under `docs/decisions`.
 const KNOWN_GAPS_RECORD: &str =
     "0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md";
 
-/// Whether `test` fails as a known gap does ([`KNOWN_GAPS`]): the band on the share below lies
+/// Whether `test` fails as a known gap does ([`fits::KNOWN_GAPS`]): the band on the share below lies
 /// above 5%, and the bands on the share above and the share inside hold 5% and 90%.
 fn fails_below_alone(test: &Test) -> bool {
     test.below.low > MISS_SHARE && test.above.holds(MISS_SHARE) && test.inside.holds(INSIDE_SHARE)
@@ -784,7 +768,7 @@ fn fails_below_alone(test: &Test) -> bool {
 
 /// What doesn't come out as it must in `set`'s `checks` by `method`: a least-squares interval
 /// failing ADR-257's test or a probe of it passing, and on set A a scale not identified by either
-/// method. A least-squares interval among the [`KNOWN_GAPS`] must fail as recorded instead. The
+/// method. A least-squares interval among the [`fits::KNOWN_GAPS`] must fail as recorded instead. The
 /// Bayesian option's counts and probes break nothing yet: they don't pass on either
 /// set, and passing is M7.3c4's (ADR-320 §8). It reads each test's stored bands, worked out from
 /// its counts when the report was made; `fit --slice` reads a committed report's so, and doesn't
@@ -2032,6 +2016,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 )]
 mod tests {
     use super::*;
+    use hpr_forensics::synthetic::fits::KNOWN_GAPS;
     use hpr_forensics::synthetic::logger::Profile;
 
     fn files() -> DesignFiles {

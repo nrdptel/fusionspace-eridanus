@@ -3800,7 +3800,7 @@ pub(crate) fn flag_kind(flag: &EnvelopeFlag) -> FlagKind {
     }
 }
 
-fn peak(peak: metrics::Peak, apogee_s: Option<f64>) -> Peak {
+pub(crate) fn peak(peak: metrics::Peak, apogee_s: Option<f64>) -> Peak {
     Peak {
         value: peak.value,
         time_s: peak.time_s,

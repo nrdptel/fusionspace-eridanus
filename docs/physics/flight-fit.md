@@ -39,8 +39,8 @@ impulse, wind and mass, and where the fit fails its tests.
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
-  told the design, rail, site and the day's air, and takes them as right. It's in the library only,
-  with no `hpr` command yet. Its [prediction from the boost](#apogee-from-the-boost) has been
+  told the design, rail, site and the day's air, and takes them as right. `hpr fit` and Python's
+  `FlightLog.fit` run it ([Fitting a simulation to a flight](../fitting-a-flight.md)). Its [prediction from the boost](#apogee-from-the-boost) has been
   compared with a logged apogee on 2 public flights, both cut after their burn, on logs that
   stay under 227.7 m/s (747 ft/s): an anecdote, not a measure.
 
@@ -232,7 +232,7 @@ the wind first, then the rest. Its 90% intervals don't pass
 their test yet: 7 of the 10 tests pass, 5 parameters on each of 2 sets. Set A's drag, set B's drag
 and set B's impulse miss too many truths on one side, so there they're too narrow or off center.
 Until they pass, read the least-squares intervals, which fail one test of their own 10
-([set B's drag](#how-well-it-holds)). Like the fit, it's in the library only, and no real flight has checked
+([set B's drag](#how-well-it-holds)). It's in the Rust library only, and like the fit, no real flight has checked
 it.
 
 The posterior is what the fit's unknowns could be, given the log and the stated ranges. The

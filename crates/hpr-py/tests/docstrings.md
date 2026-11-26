@@ -226,6 +226,53 @@ What the logger says happened and when: each a dict of its ``time_s`` and ``name
 
 The logger's firmware version, as the file states it, or ``None``.
 
+### `FlightLog.fit`
+
+Fits ``rocket``'s simulation to this log by least squares, as ``hpr fit`` does, and gives
+the fit as a dict. The simulation's drag, its motor's impulse and burn time, a constant
+wind and the structure's mass are moved until its flight, read as the log's sensor reads
+it, passes through the log's heights from liftoff to apogee. A log with latitude and
+longitude is fitted through its drift too.
+
+``fit(rocket, environment, rail_length_m, *, inclination_deg=90.0, heading_deg=0.0,
+tip_off=True, height_reads=None)``: the launch is given as ``Flight`` takes it. The
+environment's air is flown as given. Its wind, averaged over the climb, is what the fit is
+told of the wind before the log. ``height_reads`` is ``"barometer"`` or
+``"height_climbed"``; with ``None`` the log's main altitude is taken as a barometer's.
+
+``parameters`` lists six dicts, in the fit's order: ``drag_scale``, ``impulse_scale``,
+``burn_time_scale``, ``wind_east_m_s``, ``wind_north_m_s`` and ``mass_scale``, named by
+``parameter``. Each holds its ``value``, a factor or for the wind a speed in m/s, its
+``standard_error``, and what the fit was told of it, ``stated`` (``mean`` and ``sd``).
+``interval_90`` is its least-squares 90% interval, ``low`` and ``high``, or ``None`` with
+``no_interval`` saying why: ``"not_asked"`` for the burn time's scale, and
+``"height_alone"`` for the wind on a log with no latitude and longitude.
+
+``caveat`` is ``None`` for an interval that passes its test on the synthetic flights. The
+drag scale's doesn't: on flights flown with a model unlike the fit's own, ``below`` of
+``flights`` truths lay below it where ``meant`` are meant. Its ``message`` says which way
+that errs: the fitted drag may read high, and a flight predicted from it low.
+
+``readings`` says what was read from the log and where each came from: ``liftoff`` (or
+``None`` for a log that starts in flight), ``apogee``, ``height_track`` and
+``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
+measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
+
+``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
+``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read
+wrong on this flight, the fitted scales take that error in.
+
+The dict also holds ``height_read_as``, in ``height_reads``' two words, the residual's
+``rms_m`` and ``misfit_share``, ``converged``, ``clock_offset_s``, ``height_offset_m``,
+``flights_flown``, ``stated_apogee_m``, ``fitted_apogee_m``, ``fitted_apogee_time_s``
+and ``fitted_max_mach``. ``text`` is the whole fit as lines of text to print.
+
+The intervals were tested on synthetic flights only. A scale is the factor that best fits
+this one flight, not the rocket's drag at every speed.
+
+Raises ``HprError`` for a log with no apogee or too little of its climb, a flight that
+separates, a launch that can't be flown, and a log no flight of the design passes through.
+
 ### `FlightLog.flight_number`
 
 The flight's number in the logger's memory, as the file states it, or ``None``.
