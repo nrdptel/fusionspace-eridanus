@@ -121,28 +121,28 @@ Each fit also says whether it stopped at the bottom of $\chi^2$ within 60 steps 
 
 On a log with a track, $\chi^2$ can have a second low in the wind, far from the flight's
 ([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)). A rocket turns into
-the wind under thrust and flies upwind, and the air then carries it back, so its drift doesn't grow
+the wind under thrust and flies upwind. The air then carries it back. So its drift doesn't grow
 steadily with the wind. The search steps downhill from where it starts, so it can settle in the
-wrong low. On the 54 mm (2.1 in) synthetic design flown in 9 m/s (20 mph) toward the east, a
-search from calm air settled at 1.4 m/s (4.6 ft/s) toward the west, with an interval under 2 m/s
+wrong low. Take the 54 mm (2.1 in) synthetic design, flown in 9 m/s (20 mph) toward the east. A
+search from calm air settled at 1.4 m/s (4.6 ft/s) toward the west. Its interval was under 2 m/s
 (7 ft/s) wide.
 
-So after the first pass the fit scans the wind. It flies 97 constant winds with its other inputs
-held where that pass left them: calm air, and every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s) in
-12 directions 30° apart. A point of the scan whose $\chi^2$ is no higher than its neighbors' is a
-low. One within 1.5 m/s of the first answer's wind lies in the low the search already found, and
+So after the first pass the fit scans the wind. It flies 97 constant winds, its other inputs held
+where that pass left them. They're calm air and every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s),
+in 12 directions 30° apart. A point of the scan whose $\chi^2$ is no higher than its neighbors' is a
+low. One within 1.5 m/s (4.9 ft/s) of the first answer's wind lies in the low the search already found, and
 is passed over. The search starts again from the three lowest of the rest. Every answer goes on to
-the second pass, and the one with the lowest $\chi^2$ there stands. An answer found from a low of
-the scan counts only if its wind lies within the scan's 12 m/s. Past it lie lows the scan never
-saw: before this rule, two such searches on the synthetic flights ran out to about 14 m/s on flights
-flown in about 6 m/s ([the decision record][adr-382]). The search from the stated wind counts
-wherever it ends. The answers are compared at the
-second pass because its noise sets the track's weight: at the first pass's guess, twice the floor,
-the wind's stated range could favor the wrong low. The scan's lowest point needn't be the flight's
-wind, since the other inputs are held where a wrong wind left them. That's why it starts from
-several lows. A low between the scan's points can still be missed, and a flight's wind past
-12 m/s (27 mph), past what a launch is flown in, is found only by a search from a wind given near
-it.
+the second pass, and the one with the lowest $\chi^2$ there stands. That pass's noise sets the
+track's weight. At the first pass's guess, twice the floor, the wind's stated range could favor
+the wrong low.
+
+An answer found from a low of the scan counts only if its wind lies within 12 m/s (39 ft/s). Past that lie
+lows the scan never saw. Before this rule, two such searches on the synthetic flights ran out to
+about 14 m/s (46 ft/s). Those flights were flown in about 6 m/s (20 ft/s) ([the decision record][adr-382]). The search
+from the stated wind counts wherever it ends. The scan's lowest point needn't be the flight's wind,
+since the other inputs are held where a wrong wind left them. That's why it starts from several
+lows. A low between the scan's points can still be missed. A wind past 12 m/s (27 mph), more than
+a launch is flown in, is found only from a wind given near it.
 
 ### When a log has nothing to fit
 
@@ -167,7 +167,7 @@ Flight 140 of set A flies the Calisto design (one of the
 [example rockets](../glossary.md#example-rockets)) in its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
-Its heights fit to 0.98 m (3.2 ft), in 84 simulated flights. The table is the least-squares fit's;
+Its heights fit to 0.98 m (3.2 ft), in 181 simulated flights. The table is the least-squares fit's;
 21 of those flights are the Bayesian option's, finding where to start its draws. A factor is times the simulator's
 value; the mass's, times the weighed mass:
 
@@ -322,9 +322,9 @@ How it draws:
   set. All of set B's and 299 of set A's are among the 1,497 counted. A receiver of another shape is outside this model. So is one that also measures its
   speed from the satellites' Doppler shift and lags under 1 m (3.3 ft). No real flight has checked it.
 
-A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
+A fit with something to fit flies about 1,000 times. Least squares flies about 80 on set A's logs of height alone, and 180 on those with a track.
 On a log with a track, the search for the posterior's peak adds about 21. In one run on a 10-core
-Mac, the whole report took 1 hour 56 minutes, against about 16 minutes by least squares alone. So each pull request checks every
+Mac before the wind's scan, the whole report took 1 hour 56 minutes, against about 16 minutes by least squares alone. So each pull request checks every
 21st fit, its posterior with it, and CI fits the whole each night
 ([In CI](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 

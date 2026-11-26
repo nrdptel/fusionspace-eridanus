@@ -1,7 +1,7 @@
 # ADR-382: The fit's wind scan on a log with a track (2026-11-26)
 
 - **Status:** accepted; fixes [issue #1646][i1646]; amends [ADR-316][adr-316]'s search and supersedes [ADR-381][adr-381] §12's caveat
-- **Summary:** On a log with a track the least-squares fit's misfit can hold a second low in the wind, far from the flight's, and a search from calm air settled there with a narrow interval. After the first pass the fit now scans the wind on a polar grid, searches again from the scan's lows, carries every answer to the second pass and keeps the lowest misfit there, of the answers that stay within the scan's 12 m/s reach. The caveat every fit of a track printed goes. The fit's report is regenerated on the new search.
+- **Summary:** On a log with a track the least-squares fit's misfit can hold a second low in the wind, far from the flight's, and a search from calm air settled there with a narrow interval. After the first pass the fit now scans the wind on a polar grid, searches again from the scan's lows, carries every answer to the second pass and keeps the lowest misfit there, of the answers that stay within the scan's 12 m/s (27 mph) reach. The caveat every fit of a track printed goes. The fit's report is regenerated on the new search.
 
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
 [adr-381]: 0381-m7-3f-the-fit-on-the-command-line-and-in-python.md
