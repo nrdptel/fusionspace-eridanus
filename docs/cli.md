@@ -2076,7 +2076,7 @@ hpr fit flight.pf2 rocket.ork --motor CTI-J350
 
 The launch day's air and wind come from `--launch-time`, `--weather`, or values entered. The wind
 given, averaged over the climb, is what the fit is told of the wind before the log. On a log with
-no latitude and longitude it is raised to 5.2 m/s (17 ft/s) if it is slower
+no latitude and longitude it is raised to 5.16 m/s (16.9 ft/s) if it is slower
 ([why](fitting-a-flight.md#the-wind-on-a-log-of-height-alone)).
 
 ```text
@@ -2085,8 +2085,9 @@ hpr fit flight.pf2 rocket.ork --motor CTI-J350 --wind 4 --temperature 28
 
 The drag scale's interval fails one of its tests on synthetic flights, so it prints with a caveat
 that says which way it errs ([the caveat](fitting-a-flight.md#the-caveat)). On a log with latitude
-and longitude the wind prints with a caveat of its own: it can settle on another wind that leaves
-much the same drift ([the wind on a log with a track](fitting-a-flight.md#the-wind-on-a-log-with-a-track)). The warnings of each
+and longitude the wind prints with a caveat of its own: it can settle far from the flight's wind,
+with a narrow interval about it
+([the wind on a log with a track](fitting-a-flight.md#the-wind-on-a-log-with-a-track)). The warnings of each
 known issue the fitted flight meets follow the result, as `hpr sim` gives them. A fitted value
 outside the range the intervals were tested over prints with a `†`
 ([the mark](fitting-a-flight.md#the-mark-on-a-value-outside-the-tested-range)). A log with no

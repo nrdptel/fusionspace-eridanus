@@ -16,12 +16,13 @@ simulation of it. Seeing how far the two lie apart, with nothing fitted, is
 > the drag scale's lower end reads too high more often than a 90% interval should
 > ([the caveat](#the-caveat)).
 
+On a log with latitude and longitude the fitted wind can be wrong, with a narrow interval about it
+([why](#the-wind-on-a-log-with-a-track)).
+
 The tests run the command on one public logged flight, NDRT's 2020 flight, on a machine that has
 fetched its log. CI runs it on the invented log below. The public flight shows that the command runs
 on a real log, not that its answer is right. Its fitted drag scale lies below 0.8, outside the range
 the intervals were tested over, and prints [marked so](#the-mark-on-a-value-outside-the-tested-range).
-On a log with latitude and longitude the fitted wind can be wrong, with a narrow interval about it
-([why](#the-wind-on-a-log-with-a-track)).
 
 ## Run it
 
@@ -31,8 +32,9 @@ says which column is which ([Reading a flight log](reading-a-flight-log.md#from-
 This example's log is invented. It is the repository's Level 1
 guide rocket flown in a 6 m/s (13 mph) wind. Its heights are read 4% low and rounded to a foot
 ([how it is made](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/compare/make.py)).
-The fit is told the day's wind. It has no parameter for a logger that reads low, so you can see
-where it puts that error:
+The fit is told the day's wind. It is also told that a barometer's scale lies within ±0.25% of 1,
+an MS5607 pressure sensor's figure and far less than 4%
+([the method](physics/flight-fit.md#how-it-works)). See where the error goes:
 
 <!-- cli: example `hpr fit validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json --wind 6`; written by `cargo xtask cli`; do not edit -->
 
@@ -65,7 +67,7 @@ Fitted by least squares
   * This interval fails its test: the caveat below.
   The burn time scale states no interval: not asked of the fit.
   The wind states no interval: a log of height alone can't tell the wind.
-  So the fit is told a wind of at least 5.2 m/s (17 ft/s), the wind its intervals were sized in.
+  So the fit is told a wind of at least 5.16 m/s (16.9 ft/s), the wind its intervals were sized in.
   Caveat. The drag scale's 90% interval fails its test. On 1,000 synthetic flights flown with a
   model unlike the fit's own, 80 truths lay below the interval, where a 90% interval leaves 50. So
   its lower end can read too high: take the fitted drag scale as reading high, and a flight
@@ -104,6 +106,9 @@ an impulse scale of 0.955 and a drag scale of 1.036. Neither is what happened. T
 whole impulse and the logger read low. A close fit shows that some set of scales explains the log.
 It doesn't show that those scales are the cause.
 
+The line that starts "So the fit is told a wind of at least" prints on every log of height alone
+([why](#the-wind-on-a-log-of-height-alone)).
+
 ## Read the result
 
 A **scale** is a factor on what the design or the motor's file states. A scale of 1 leaves it as
@@ -121,7 +126,8 @@ it.
 - The **impulse scale** multiplies the motor's total impulse, and the **burn time scale** its burn
   time. The burn time's scale is moved so that a longer or shorter burn doesn't lean on the other
   scales. Its interval was never tested, so it states none: "not asked of the fit".
-- The **wind** is one constant wind, toward the east and toward the north. A log of height alone
+- The **wind** is one constant wind, toward the east and toward the north. The example's wind
+  blows from 0°, the north, so it is −6 m/s (−20 ft/s) toward the north. A log of height alone
   can't tell a wind. There it has no interval, and its fitted value mostly repeats what the fit
   was told ([the wind on a log of height alone](#the-wind-on-a-log-of-height-alone)).
 - The **structure mass scale** multiplies the mass of the rocket without its motors.
@@ -134,7 +140,8 @@ on each one. Each printed end is rounded outward, so the interval never claims l
 deviation. Those ranges are the ones the intervals were sized with, so the command has no option to
 change them. Compare each fitted value with it. A scale that lands several of those deviations away
 is a sign that the design, the motor or the log isn't the flight's. In the example the impulse
-scale sits more than one deviation low, which is the logger's lean.
+scale sits more than one deviation low. In this invented log that comes from the heights read 4%
+low, not from the motor.
 
 **The fitted flight** gives the heights' residual, the fitted flight's apogee beside the apogee as
 stated, and how many simulations the fit flew. Both apogees are the climb's as the fit flies it,
@@ -142,35 +149,40 @@ with no recovery device opening.
 
 The **notes** at the end say what the fit took on trust. They name the units your mapping states
 and the kind of height it took the log's for. They also say that nothing opened on the way up.
+One note is `hpr sim`'s own, on how the file's recovery devices fly: the flight the warnings come
+from is flown whole.
 
 ### The wind on a log of height alone
 
 A wind from any direction lowers a flight's top, and heights alone can't tell how much of a low
-flight is wind. Told calm air, the fit would put the whole loss into the drag and the impulse, and
-state narrower intervals than its tests covered. So on a log with no latitude and longitude the fit
-is told a wind of at least 5.2 m/s (17 ft/s). That is the wind its intervals were sized in
-([the method](physics/flight-fit.md#how-it-works)). A slower wind you give is raised to that along
-its own direction, and calm air to that toward the east. A stronger wind stands as given, as the
+flight is wind. The intervals were sized on fits told a wind of 5.16 m/s (16.9 ft/s)
+([the method](physics/flight-fit.md#how-it-works)), and no test covers a fit told less. So on a log
+with no latitude and longitude the fit is told a wind of at least that. A slower wind you give is
+raised to it along its own direction, and calm air to that toward the east. A stronger wind stands as given, as the
 example's 6 m/s (13 mph) does. A line under the table states the floor. A log with a track is told the wind
 you give, with no floor.
 
 The fit's last digits can differ from one computer to another, since its search stops on a
 tolerance. The outputs on this page were written on macOS. The tests hold them exactly there, and
-on Linux and Windows hold everything but the digits.
+on Linux and Windows hold their words. There a number only has to be a number, a run of spaces
+counts as one, and the warnings are left out.
 
 ### The wind on a log with a track
 
 A log with latitude and longitude lets the fit state the wind's interval. Read it with care. The
-drift a wind leaves doesn't grow steadily with the wind. A stable rocket turns into the wind and
-flies upwind under thrust, and the air then carries it back. So two winds can leave much the same
-track. The search starts at the wind the fit is told and can stop at the nearer of the two.
+fitted wind can settle far from the flight's, with a narrow interval about it.
 
-In a test, a 54 mm (2.1 in) design flies its own flight in a wind of 9 m/s (20 mph). Fitted from calm air,
-it comes out as a wind the other way, and its narrow interval misses the true wind. Told the true wind, the
-fit stays within 1 m/s (3 ft/s) of it. So give the day's wind, and take a fitted wind that
-disagrees with the field's as unsettled. Every fit of a log with a track prints a caveat under its
-intervals that says so. I've recorded the gap and not fixed it
-([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)).
+A test shows it
+([the record of this command's choices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0381-m7-3f-the-fit-on-the-command-line-and-in-python.md)).
+A 54 mm (2.1 in) design flies its own flight in a wind of 9 m/s (20 mph). Fitted from calm air, it comes out as a wind the other way. Its
+interval is under 2 m/s (7 ft/s) wide and misses the true wind. The heights' residual doesn't show
+it: it lies within 0.5 m (1.6 ft) of the residual of the fit told the true wind. Told the true
+wind, the fit stays within 1 m/s (3 ft/s) of it. No test says how near the wind told has to be, and
+I haven't found the cause.
+
+So give the day's wind, and take a fitted wind that disagrees with the field's as unsettled. Every
+fit of a log with a track prints a caveat under its intervals that says so. I've recorded the gap
+and not fixed it ([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)).
 
 ### The mark on a value outside the tested range
 
@@ -192,7 +204,7 @@ isn't shown right by it.
 
 The drag scale's interval is marked with a `*`, and a caveat under the table says why. On 1,000
 synthetic flights flown with a model unlike the fit's own, 80 true values lay below the interval,
-where a 90% interval leaves 50. The message calls them truths. So the fitted drag can read high, and a flight predicted with it reads low:
+where a 90% interval leaves 50. So the fitted drag can read high, and a flight predicted with it reads low:
 the side that flatters a field's ceiling
 ([which miss flatters](trusting-a-simulation.md#which-miss-flatters)). I've recorded that gap and
 not widened the interval to hide it
@@ -212,8 +224,8 @@ Without weather options the fit flies the 1976 standard atmosphere. Give the lau
 wind with the options `hpr sim` takes: `--wind` and `--wind-from`, `--temperature`, `--pressure`, a
 `--weather` file, or `--launch-time` for Open-Meteo's archive at the site
 ([Launch-day weather](weather.md)). The air is flown as given. The wind, averaged over the climb,
-becomes what the fit is told before the log. On a log of height alone a wind slower than 5.2 m/s
-(17 ft/s) is raised to that ([why](#the-wind-on-a-log-of-height-alone)):
+becomes what the fit is told before the log. On a log of height alone a wind slower than 5.16 m/s
+(16.9 ft/s) is raised to that ([why](#the-wind-on-a-log-of-height-alone)):
 
 ```text
 hpr fit flight.pf2 rocket.ork --motor CTI-J350 --wind 4 --wind-from 270 --temperature 28
@@ -286,7 +298,9 @@ nearest thousandth, where the command rounds it outward. The last line counts th
 The environment's wind, averaged over the climb, is what the fit is told before the log. The same
 floor holds on a log of height alone. Each parameter's `stated` holds that mean and its standard
 deviation. `tested_range` holds the range the intervals were tested over, and
-`outside_tested_range` says whether the value lies outside it. `readings` holds what was read from
+`outside_tested_range` says whether the value lies outside it. `wind_caveat` holds
+[the wind's caveat](#the-wind-on-a-log-with-a-track) on a log with a track, and `None` on a log
+of height alone. `readings` holds what was read from
 the log, with each `source` and `provenance`. `fitted["text"]` is the whole result as
 lines to print, in SI units.
 
@@ -297,8 +311,10 @@ lines to print, in SI units.
 - A parachute that opened before apogee. The fit flies the climb with nothing open, so an early
   ejection's drag goes into the drag scale. A note says so.
 - A wind that changes with height. The fitted wind is one constant wind.
-- A logger that reads low or high. The fit has no parameter for it, so its error goes into the
-  scales, as in the example.
+- A logger that reads far low or high. The fit is told a barometer's scale within ±0.25% of 1, and
+  the example's 4% error shows up in the other scales.
+- A fitted wind to rely on, on a log with a track
+  ([it can settle far from the flight's](#the-wind-on-a-log-with-a-track)).
 - A flight that separates in the air, which is refused.
 - A check on a real flight's fitted values against something measured apart from the log, such as a
   weighed mass or a static test's impulse. I have no such flight yet

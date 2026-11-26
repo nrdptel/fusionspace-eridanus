@@ -124,7 +124,7 @@ def test_a_fit_is_the_one_hpr_fit_prints(repo, hpr_cli):
     assert rows["wind_east_m_s"]["stated"]["mean"] == pytest.approx(20 * 0.44704 / 3**0.5, abs=1e-12)
     assert rows["wind_north_m_s"]["stated"]["mean"] == 0.0
     assert (
-        "\n  So the fit is told a wind of at least 5.2 m/s, the wind its intervals were sized in.\n"
+        "\n  So the fit is told a wind of at least 5.16 m/s, the wind its intervals were sized in.\n"
         in fitted["text"]
     )
     assert " bins of 0.25 s from 1 s before liftoff, read as " in fitted["text"]

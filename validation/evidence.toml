@@ -1318,7 +1318,7 @@ claim = "Each of the drag scale, impulse scale, wind on logs with a track, and m
 pages = ["physics/flight-fit.md#in-short", "fitting-a-flight.md#what-it-leaves-out", "accuracy.md#where-each-model-stands"]
 kind = "calibration"
 wanted = "real"
-not_checked = "a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind"
+not_checked = "a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. Nor that the wind fitted from a log with a track is the flight's when the fit is told another: in one test it settles far from it (#1646)"
 issue = 1104
 
 [[row.searched]]

@@ -26,14 +26,14 @@ MARKED = re.compile(
     "^" + re.escape(PYTHON_EXAMPLE) + r"\n(.*?)^" + re.escape(PYTHON_END) + "$", re.DOTALL | re.MULTILINE
 )
 WRITE = os.environ.get("HPR_WRITE_DOCS") == "1"
-# The pages whose examples run the least-squares fit. Its iteration stops on a tolerance, so its
-# last digits follow the platform's math library: of one run, Linux printed a wind of 0.100 m/s
+# The pages whose examples run the least-squares fit. Its last digits differ from one platform to
+# another, likely with the platform's math library: of one run, Linux printed a wind of 0.100 m/s
 # where macOS printed 0.101. Their outputs are held exactly on the platform that writes them,
 # macOS on Apple silicon, and by their words on the others, as `cargo xtask cli` holds the same
 # pages' command-line examples.
 FITTED = {"docs/fitting-a-flight.md"}
 WRITING_PLATFORM = sys.platform == "darwin" and platform.machine() == "arm64"
-NUMBER = re.compile(r"[-−]?\d+(?:[.,]\d+)*")
+NUMBER = re.compile(r"(?:(?<=[ (])[-−])?\d+(?:[.,]\d+)*")
 
 
 def words(text):

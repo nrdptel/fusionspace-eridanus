@@ -37,11 +37,10 @@ travel with every fit.
    So the command has no option for them. The one stated value that follows the launch is the
    wind's mean: the wind given, averaged over the stated climb in 100 levels. On a log of height
    alone that mean has a floor. The synthetic flights' fits of such logs were told a wind of 20 mph
-   over √3, 5.16 m/s, toward the east ([the method's page][fit-page]), since a wind from any side
-   lowers the top and a fit told calm air puts that loss into the drag and the impulse. A fit told
-   less wind than that would state narrower intervals than any test covered, with the drag on its
-   flattering side. So on such a log a wind slower than 5.16 m/s is raised to it along its own
-   direction, calm air to that toward the east, and a stronger wind stands. The table says so. A
+   over √3, 5.16 m/s, toward the east ([the method's page][fit-page]). No test covers the
+   intervals of a fit told less wind than that. So on such a log a wind slower than 5.16 m/s is
+   raised to it along its own direction, calm air to that toward the east, and a stronger wind
+   stands. The table says so. A
    log with a track is told the wind given, as its synthetic fits were.
 3. **Each row says what the fit was told, and a value outside the tested range is marked.** The
    fit will bend a scale far from its stated value to pass a log. A committed test,
@@ -61,8 +60,8 @@ travel with every fit.
    the wind." Both still print their fitted values, since they are part of the flight that was
    fitted. Every printed interval and bound is rounded outward, so none claims less than it holds.
 5. **"Each reading's provenance" means what the fit took from the log.** Those are the liftoff and
-   the apogee, which bound the samples fitted, the height track and the horizontal track if the log
-   has one. Each prints its source and whether it was measured or derived, in `hpr analyze`'s
+   the apogee, which set the window fitted (from a second before the liftoff to the apogee), the
+   height track and the horizontal track if the log has one. Each prints its source and whether it was measured or derived, in `hpr analyze`'s
    words. The other readings of a log, such as its top speed, aren't inputs to the fit and aren't
    printed.
 6. **The warnings are the fitted flight's own.** After the fit, the flight at the fitted parameters
@@ -91,7 +90,8 @@ travel with every fit.
     only, and that the RSO decides. It links [the new page][page].
 
 11. **The page's examples are held exactly on one platform and by their words on the others.**
-    The fit's search stops on a tolerance, so its last digits follow the platform's math library.
+    The fit's search stops on a tolerance, and its last digits differ from one platform to
+    another. The platforms' math libraries are the likely cause, which I haven't isolated.
     On this change's first run in CI, Windows printed a burn time scale of 1.036 where macOS
     printed 1.037, and Linux a wind of 0.100 m/s where macOS printed 0.101. The outputs on
     [the page][page] are written on macOS on Apple silicon and held character for character there,
@@ -100,16 +100,17 @@ travel with every fit.
     `warning:` lines, since a known issue's warning turns on at a Mach number and the example's
     fitted flight tops out near Mach 0.8. The fit's own reports are already held this way
     (`cargo xtask fit --other-platform`). The tests that hold the Python dict to the command's
-    document still compare with `==` on every platform, since both run one build's library.
+    document still compare with `==` on every platform, since both are built and run on one
+    machine.
 
 12. **The wind of a log with a track carries a caveat of its own.** A review found, and a
     committed test reproduces
-    (`fit_can_settle_on_another_wind_that_leaves_the_same_drift`), that the fitted wind can settle
-    on another wind that leaves much the same drift. The 54 mm synthetic design's own flight in a
-    9 m/s wind, fitted from calm air, comes out as a wind the other way with a narrow interval that
-    misses the true one. Told the true wind, the fit stays within 1 m/s of it. The cause is the
-    flight, not the wrapper: a stable rocket flies upwind under thrust and the air carries it back,
-    so the drift isn't monotonic in the wind, and the search stops at the nearer of two winds. The
+    (`fit_can_settle_far_from_the_wind_a_track_was_flown_in`), that the fitted wind can settle
+    far from the flight's, with a narrow interval about it. The 54 mm synthetic design's own
+    flight in a 9 m/s wind, fitted from calm air, comes out as a wind the other way. Its interval
+    is under 2 m/s wide and misses the true wind, and the heights' residual lies within 0.5 m of
+    the residual of the fit told the true wind. Told the true wind, the fit stays within 1 m/s of
+    it. The cause isn't isolated, and no test says how near the wind told has to be. The
     wind's interval still passes its test on the synthetic flights, so that test doesn't see it.
     The search is the one the intervals were sized with, and changing it here would leave them
     untested. So every fit of a log with a track prints a caveat that says what can happen and to
@@ -119,9 +120,9 @@ travel with every fit.
 **Evidence.** A fit of a log of the design's own simulated flight, flown at a drag scale of 1.15,
 returns an interval that holds 1.15. On NDRT's 2020 public flight the command fits a drag scale
 within 0.1 of the 0.71 that `validation/reports/from-boost.json` holds for that flight, and the
-test asserts it. The two aren't one fit. The report's is the fit from the boost in ERA5's air, and
-the command's is the whole climb in standard air, so the agreement is of the lean, not of the
-inputs. Thirteen mutation probes each fail the tests that pin them. Seven came before review: a
+test asserts it. The two aren't one fit. Both fit the whole climb. The report's flies ERA5's air
+and is told ERA5's wind, and the command's flies standard air and is told the floor's wind, so the
+agreement is of the lean, not of the inputs. Thirteen mutation probes each fail the tests that pin them. Seven came before review: a
 fit with no caveat, a caveat with its lean swapped, a fit that drops its warnings, a wind given but
 not told to the fit, a staged flight not refused, an apogee's provenance changed, and the two
 reasons for no interval swapped. Six came with the review's fixes: no floor on the wind of a log of

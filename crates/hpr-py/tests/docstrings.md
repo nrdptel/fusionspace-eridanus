@@ -269,9 +269,8 @@ that errs: the fitted drag may read high, and a flight predicted from it low.
 measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
 
 ``wind_caveat`` is ``None`` for a log of height alone. On a log with latitude and
-longitude it is a sentence to read with the wind: the fitted wind can settle on another
-wind that leaves much the same drift, with a narrow interval about it, so give the day's
-wind.
+longitude it is a sentence to read with the wind: the fitted wind can settle far from
+the flight's, with a narrow interval about it, so give the day's wind.
 
 ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
 ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read

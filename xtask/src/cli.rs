@@ -58,9 +58,9 @@ const GUIDES: [&str; 9] = [
     "docs/comparing-a-flight.md",
     "docs/fitting-a-flight.md",
 ];
-/// The guides whose examples run the least-squares fit. Its iteration stops on a tolerance, so
-/// its last digits follow the platform's math library: of one run, Windows printed a burn time
-/// scale of 1.036 where macOS printed 1.037. Their committed outputs are held exactly on the
+/// The guides whose examples run the least-squares fit. Its last digits differ from one platform
+/// to another: of one run, Windows printed a burn time scale of 1.036 where macOS printed 1.037.
+/// The platforms' math libraries are the likely cause, not an isolated one. Their committed outputs are held exactly on the
 /// platform that writes them ([`WRITING_PLATFORM`]) and by their words on the others ([`words`]),
 /// as the fit's own reports are (`cargo xtask fit --other-platform`).
 const FITTED_GUIDES: [&str; 1] = ["docs/fitting-a-flight.md"];
@@ -69,23 +69,30 @@ const FITTED_GUIDES: [&str; 1] = ["docs/fitting-a-flight.md"];
 /// which CI's macOS runners are too.
 const WRITING_PLATFORM: bool = cfg!(all(target_os = "macos", target_arch = "aarch64"));
 
-/// `text` without what a fit's last digits can move: each number is a `#`, each run of spaces one
-/// space, since a column is as wide as its widest number, and each `warning:` line is left out,
-/// since a known issue's warning turns on at a Mach number and a fitted flight can sit on one.
+/// `text` without what a fit's last digits can move: each number is a `#`, with the minus sign
+/// before it if a space or a bracket comes before that; each run of spaces is one space, since a
+/// column is as wide as its widest number; and each `warning:` line is left out, since a known
+/// issue's warning turns on at a Mach number and a fitted flight can sit on one.
 fn words(text: &str) -> String {
     let mut out = String::new();
     for line in text.lines().filter(|line| !line.starts_with("warning: ")) {
-        let mut chars = line.chars().peekable();
-        while let Some(c) = chars.next() {
+        let chars: Vec<char> = line.chars().collect();
+        let digit = |at: usize| chars.get(at).is_some_and(char::is_ascii_digit);
+        let mut at = 0;
+        while at < chars.len() {
+            let c = chars[at];
+            at += 1;
             if c.is_ascii_digit() {
-                // The rest of the number: its digits, points and commas, and the sign before it.
-                while chars
-                    .peek()
-                    .is_some_and(|next| next.is_ascii_digit() || matches!(next, '.' | ','))
-                {
-                    chars.next();
+                // The rest of the number: its digits, and a point or comma between two of them.
+                while digit(at) || (matches!(chars.get(at), Some('.' | ',')) && digit(at + 1)) {
+                    at += 1;
                 }
-                if out.ends_with(['-', '−']) {
+                // The sign before it, after a space or a bracket: a value that rounds to zero
+                // can lose its own. A hyphen inside a name stays.
+                if [" -", "(-", " −", "(−"]
+                    .iter()
+                    .any(|sign| out.ends_with(sign))
+                {
                     out.pop();
                 }
                 out.push('#');
@@ -641,6 +648,10 @@ mod tests {
             "\x20drag scale # † # to # * # ± #\n wind # m/s (# ft/s)\nnote: # flights\n"
         );
         assert_eq!(words(one), words(other));
+        // A point, a comma or a hyphen that isn't part of a number stays.
+        assert_eq!(words("H170M-10, 3.\n"), "H#M-#, #.\n");
+        assert_ne!(words("leaves 50.\n"), words("leaves 50\n"));
+        assert_ne!(words("1, 2\n"), words("1 2\n"));
         // A word, a mark or a line that differs still differs.
         for moved in [
             one.replace("drag scale", "drag factor"),

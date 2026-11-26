@@ -16,9 +16,9 @@
 //! and the wind about the wind the launch gives. On a log of height alone that wind is at least
 //! the one the shares were fitted in ([`fit`]). Three things come with the numbers:
 //!
-//! - **Where each reading came from.** The fit reads the log between its liftoff and its apogee,
-//!   so [`LogFit::readings`] gives both, and the tracks read, each with its sensor and whether it
-//!   was measured or derived.
+//! - **Where each reading came from.** The fit reads the log from a second before its liftoff to
+//!   its apogee, so [`LogFit::readings`] gives both, and the tracks read, each with its sensor
+//!   and whether it was measured or derived.
 //! - **The known issues the fitted flight meets** ([`LogFit::issue_warnings`]): the fit's model is
 //!   HPR Sim's, so where its drag is known to read wrong ([`hpr_sim::issues`]) the fitted scale
 //!   takes that error in.
@@ -133,8 +133,8 @@ pub enum NoInterval {
     /// A log of height alone can't tell the wind: nothing in a height speaks to it, so its
     /// value is what was stated of it and an interval would only be the stated range's.
     HeightAlone,
-    /// The fit gave it no standard error to size an interval with: one that isn't a number, or
-    /// isn't above zero.
+    /// Its standard error sizes no interval: it isn't a number above zero, or an end of the
+    /// interval it gives isn't finite.
     NoStandardError,
 }
 
@@ -145,7 +145,7 @@ impl NoInterval {
         match self {
             Self::NotAsked => "not asked of the fit",
             Self::HeightAlone => "a log of height alone can't tell the wind",
-            Self::NoStandardError => "the fit gave it no standard error",
+            Self::NoStandardError => "its standard error sizes none",
         }
     }
 }
@@ -350,20 +350,20 @@ impl LogFit {
     /// The caveat on the wind of a log with a horizontal track; `None` for a log of height alone,
     /// whose wind states no interval.
     ///
-    /// The drift a wind leaves isn't monotonic in the wind: a stable rocket flies upwind under
-    /// thrust and the air then carries it back, so two winds can leave much the same track. The
-    /// search starts at the wind it was told and can stop at the nearer of the two. On one design a
-    /// true wind of 9 m/s, fitted from calm air, came out as a wind the other way with a narrow
-    /// interval about it ([the issue][WIND_ISSUE_URL]; a test of the command reproduces it).
+    /// The search starts at the wind the fit is told and can stop far from the flight's. On one
+    /// design a true wind of 9 m/s, fitted from calm air, came out as a wind the other way with a
+    /// narrow interval about it, and the heights' residual didn't show it
+    /// ([the issue][WIND_ISSUE_URL]; a test of the command reproduces it). Why isn't settled: on
+    /// that design the drift at apogee isn't monotonic in the wind, which the issue records.
     #[must_use]
     pub fn wind_caveat(&self) -> Option<String> {
         self.readings.horizontal_track.as_ref().map(|_| {
             format!(
-                "The fitted wind can settle on another wind that leaves much the same drift, \
-                 with a narrow interval about it: started from calm air, a true wind of 9 m/s \
-                 (20 mph) has fitted as a wind the other way. So give the day's wind, and take a \
-                 fitted wind that disagrees with the field's as unsettled. Recorded, not fixed: \
-                 {WIND_ISSUE_URL}"
+                "The fitted wind can settle far from the flight's, with a narrow interval about \
+                 it: on one design, started from calm air, a true wind of 9 m/s (20 mph) fitted \
+                 as a wind the other way, and the heights' residual didn't show it. So give the \
+                 day's wind, and take a fitted wind that disagrees with the field's as unsettled. \
+                 Recorded, not fixed: {WIND_ISSUE_URL}"
             )
         })
     }
@@ -435,9 +435,9 @@ impl LogFit {
             let interval = match &fitted.interval_90 {
                 // Rounded outward: a printed interval never claims less than it holds.
                 Some(interval) => format!(
-                    "{:.digits$} to {:.digits$}{unit}{}",
-                    down(interval.low, digits),
-                    up(interval.high, digits),
+                    "{} to {}{unit}{}",
+                    shown(down(interval.low, digits), digits),
+                    shown(up(interval.high, digits), digits),
                     if fitted.caveat.is_some() { " *" } else { "" },
                 ),
                 None => "none".to_owned(),
@@ -445,8 +445,8 @@ impl LogFit {
             rows.push([
                 fitted.parameter.name().to_owned(),
                 format!(
-                    "{:.digits$}{unit}{}",
-                    fitted.value,
+                    "{}{unit}{}",
+                    shown(fitted.value, digits),
                     if fitted.outside_tested_range {
                         " †"
                     } else {
@@ -455,8 +455,9 @@ impl LogFit {
                 ),
                 interval,
                 format!(
-                    "{:.digits$} ± {:.digits$}{unit}",
-                    fitted.stated.mean, fitted.stated.sd
+                    "{} ± {:.digits$}{unit}",
+                    shown(fitted.stated.mean, digits),
+                    fitted.stated.sd
                 ),
             ]);
         }
@@ -494,10 +495,11 @@ impl LogFit {
             .iter()
             .any(|f| f.no_interval == Some(NoInterval::HeightAlone))
         {
+            // A floor is rounded down: the fit is never told less than the line says.
             lines.push(format!(
-                "  So the fit is told a wind of at least {:.1} m/s, the wind its intervals were sized \
+                "  So the fit is told a wind of at least {:.2} m/s, the wind its intervals were sized \
                  in.",
-                height_alone_wind_m_s()
+                down(height_alone_wind_m_s(), 2)
             ));
         }
         for fitted in &self.parameters {
@@ -561,12 +563,21 @@ impl LogFit {
                     "  † The {} lies outside {:.3} to {:.3}, the range the intervals were tested \
                      over.",
                     fitted.parameter.name(),
-                    tested.low,
-                    tested.high
+                    up(tested.low, 3),
+                    down(tested.high, 3)
                 ));
             }
         }
         lines
+    }
+}
+
+/// `value` to `digits` decimal places, one that rounds to zero written without a sign.
+fn shown(value: f64, digits: usize) -> String {
+    let text = format!("{value:.digits$}");
+    match text.strip_prefix('-') {
+        Some(rest) if rest.chars().all(|c| c == '0' || c == '.') => rest.to_owned(),
+        _ => text,
     }
 }
 
@@ -774,13 +785,13 @@ fn mean_wind(environment: &hpr_sim::Environment, climb_m: f64) -> Result<(f64, f
 /// launch's `mean` wind.
 ///
 /// On a log with a track it is the launch's. A log of height alone can't tell the wind, and a
-/// wind of either sign lowers a flight's top, so a fit told calm air puts an unknown wind's loss
-/// into the drag and the impulse. The synthetic flights' fits of such logs were told the stated
-/// range's RMS speed ([`hpr_forensics::synthetic::fits::stated_for`]), and the shares that size
-/// the intervals were fitted that way. So on a log of height alone a launch's wind slower than
-/// that is raised to it, along its own direction, or toward the east in calm air, as those fits
-/// were told. A stronger wind stands: the fit's spread over the wind grows with the wind it is
-/// told, so its intervals are then no narrower than the shares were fitted on.
+/// wind of either sign lowers a flight's top, which a fit in no wind puts in the drag and the
+/// impulse ([`hpr_forensics::synthetic::fits::stated_for`]). The synthetic flights' fits of such
+/// logs were told the stated range's RMS speed, and the shares that size the intervals were
+/// fitted that way: no test covers a fit told less. So on a log of height alone a launch's wind
+/// slower than that is raised to it, along its own direction, or toward the east in calm air, as
+/// those fits were told. A stronger wind stands: the variance the fit adds for the wind it can't
+/// tell grows with the wind it is told (`hpr_forensics::fit`'s strong wind).
 fn stated_wind(mean: (f64, f64), height_alone: bool) -> (f64, f64) {
     let (east, north) = mean;
     let least = height_alone_wind_m_s();

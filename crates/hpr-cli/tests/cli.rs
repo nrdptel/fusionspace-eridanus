@@ -10205,8 +10205,8 @@ fn fit_prints_each_parameter_its_interval_and_each_readings_provenance() {
         "  (0 ± 13 ft/s)\n  structure mass scale   ",
         "    1.000 ± 0.011\n  * This interval fails its test: the caveat below.\n  The burn time \
          scale states no interval: not asked of the fit.\n  The wind states no interval: a log \
-         of height alone can't tell the wind.\n  So the fit is told a wind of at least 5.2 m/s \
-         (17 ft/s), the wind its intervals were sized in.\n  Caveat. The drag scale's 90% \
+         of height alone can't tell the wind.\n  So the fit is told a wind of at least 5.16 m/s \
+         (16.9 ft/s), the wind its intervals were sized in.\n  Caveat. The drag scale's 90% \
          interval fails its test.",
         " quarter-second bins from 1 s before liftoff to apogee\n",
         "The fitted flight\n  heights' residual  ",
@@ -10376,6 +10376,12 @@ fn fit_reads_the_guides_log_and_takes_the_wind_given() {
             < 1.0
     );
     assert!(!fit_holds(&calm, "impulse_scale", 1.0));
+    assert!(
+        fit_parameter(&calm, "drag_scale")["value"]
+            .as_f64()
+            .unwrap()
+            > 1.0
+    );
     // No wind given: a log of height alone is told the wind its intervals were sized in.
     let told = fit_parameter(&calm, "wind_east_m_s")["stated_mean"]
         .as_f64()
@@ -10530,8 +10536,8 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
     let caveat = document["wind_caveat"].as_str().unwrap();
     assert!(
         caveat.starts_with(
-            "The fitted wind can settle on another wind that leaves much the same drift, with a \
-             narrow interval about it: "
+            "The fitted wind can settle far from the flight's, with a narrow interval about it: \
+             on one design, "
         ),
         "{caveat}"
     );
@@ -10541,8 +10547,8 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
     );
     assert!(
         out.contains(
-            "\n  Caveat. The fitted wind can settle on another wind that leaves much the same \
-             drift, with a narrow\n  interval about it: "
+            "\n  Caveat. The fitted wind can settle far from the flight's, with a narrow interval \
+             about it: on one\n  design, "
         ),
         "{out}"
     );
@@ -10570,15 +10576,15 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
 }
 
 /// A known gap, reproduced so it stays in sight ([issue #1646]): on a log with a track the fitted
-/// wind can settle on another wind that leaves much the same drift. The 54 mm design's own
-/// flight in a 9 m/s wind toward the east, fitted from calm air, comes out as a wind the other
-/// way, and its 90% interval misses the true wind by far. Told the true wind, the fit stays by
-/// it. The caveat every such fit carries says so. When the fit is fixed this test fails: turn it
-/// around and take the caveat out.
+/// wind can settle far from the flight's. The 54 mm design's own flight in a 9 m/s wind toward
+/// the east, fitted from calm air, comes out as a wind the other way, and its 90% interval, under
+/// 2 m/s wide, misses the true wind by far. The heights' residual is as small as when the fit is
+/// told the true wind, where it stays within 1 m/s of it. The caveat every such fit carries says
+/// so. When the fit is fixed this test fails: turn it around and take the caveat out.
 ///
 /// [issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
 #[test]
-fn fit_can_settle_on_another_wind_that_leaves_the_same_drift() {
+fn fit_can_settle_far_from_the_wind_a_track_was_flown_in() {
     let folder = tempfile::tempdir().unwrap();
     let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
     let (log, mapping) = track_log(folder.path(), &design, "9", "270");
@@ -10586,19 +10592,19 @@ fn fit_can_settle_on_another_wind_that_leaves_the_same_drift() {
     let from_calm = json(&args, 0, "fit.schema.json");
     let east = fit_parameter(&from_calm, "wind_east_m_s");
     assert!(east["value"].as_f64().unwrap() < 0.0, "{east}");
-    assert!(
-        east["interval_90"]["high"].as_f64().unwrap() < 4.5,
-        "{east}"
+    let (low, high) = (
+        east["interval_90"]["low"].as_f64().unwrap(),
+        east["interval_90"]["high"].as_f64().unwrap(),
     );
+    // Narrow, and nowhere near the 9 m/s flown.
+    assert!(high - low < 2.0 && high < 4.5, "{east}");
     assert!(!fit_holds(&from_calm, "wind_east_m_s", 9.0), "{east}");
-    // Nothing else in the fit shows it: the heights are passed as closely as on any fit here.
-    assert!(from_calm["rms_m"].as_f64().unwrap() < 2.0, "{from_calm}");
     assert_eq!(from_calm["converged"], true);
     assert!(
         from_calm["wind_caveat"]
             .as_str()
             .unwrap()
-            .contains("a true wind of 9 m/s (20 mph) has fitted as a wind the other way"),
+            .contains("a true wind of 9 m/s (20 mph) fitted as a wind the other way"),
         "{from_calm}"
     );
     // Told the day's wind, as the caveat asks, the fit stays within 1 m/s of it.
@@ -10611,6 +10617,18 @@ fn fit_can_settle_on_another_wind_that_leaves_the_same_drift() {
     assert!(
         (east["value"].as_f64().unwrap() - 9.0).abs() < 1.0,
         "{east}"
+    );
+    let north = fit_parameter(&told, "wind_north_m_s");
+    assert!(north["value"].as_f64().unwrap().abs() < 1.0, "{north}");
+    // The heights' residual doesn't show which fit is the flight's: both pass within 2 m, and
+    // the two residuals lie within half a meter of each other.
+    let (wrong, right) = (
+        from_calm["rms_m"].as_f64().unwrap(),
+        told["rms_m"].as_f64().unwrap(),
+    );
+    assert!(
+        wrong < 2.0 && right < 2.0 && (wrong - right).abs() < 0.5,
+        "{wrong} {right}"
     );
 }
 

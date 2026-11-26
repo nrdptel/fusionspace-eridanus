@@ -28,7 +28,7 @@ use crate::output::{
     ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
 };
 use crate::sim::{FlightArgs, Setup, file_name, flight_refused};
-use crate::units::{fixed, meters, meters_bound, rounded_down, rounded_up, seconds_bound, speed};
+use crate::units::{fixed, meters, meters_bound, rounded_down, rounded_up, seconds_bound};
 use crate::{Failure, Out};
 
 /// The widest line of the text form's own sentences, as the trust note is wrapped.
@@ -570,8 +570,10 @@ fn text_lines(document: &Fit) -> Vec<String> {
         if is_speed(fitted.parameter) {
             if !wind_said {
                 lines.push(format!(
-                    "  † The wind is faster than {}, the fastest the intervals were tested in.",
-                    speed(tested.high)
+                    "  † The wind is faster than {} m/s ({} ft/s), the fastest the intervals were \
+                     tested in.",
+                    fixed(rounded_down(tested.high, 1), 1),
+                    fixed(rounded_down(feet(tested.high), 0), 0)
                 ));
             }
             wind_said = true;
@@ -579,8 +581,9 @@ fn text_lines(document: &Fit) -> Vec<String> {
             lines.push(format!(
                 "  † The {} lies outside {} to {}, the range the intervals were tested over.",
                 parameter_name(fitted.parameter),
-                fixed(tested.low, 3),
-                fixed(tested.high, 3)
+                // Inward: a value just past an end isn't printed as lying on it.
+                fixed(rounded_up(tested.low, 3), 3),
+                fixed(rounded_down(tested.high, 3), 3)
             ));
         }
     }
@@ -595,9 +598,13 @@ fn text_lines(document: &Fit) -> Vec<String> {
             "  The wind states no interval: {}.",
             NoInterval::HeightAlone.words()
         ));
+        // A floor is rounded down: the fit is never told less than the line says.
+        let least = library::height_alone_wind_m_s();
         lines.push(format!(
-            "  So the fit is told a wind of at least {}, the wind its intervals were sized in.",
-            speed(library::height_alone_wind_m_s())
+            "  So the fit is told a wind of at least {} m/s ({} ft/s), the wind its intervals were \
+             sized in.",
+            fixed(rounded_down(least, 2), 2),
+            fixed(rounded_down(feet(least), 1), 1)
         ));
     }
     for fitted in &document.parameters {

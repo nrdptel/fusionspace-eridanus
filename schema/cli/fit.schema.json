@@ -149,7 +149,7 @@
       "type": "string"
     },
     "wind_caveat": {
-      "description": "The caveat on the wind of a log with a horizontal track: the fitted wind can settle on\nanother wind that leaves much the same drift. Null for a log of height alone, whose wind\nstates no interval.",
+      "description": "The caveat on the wind of a log with a horizontal track: the fitted wind can settle far\nfrom the flight's, with a narrow interval about it. Null for a log of height alone, whose\nwind states no interval.",
       "type": [
         "string",
         "null"

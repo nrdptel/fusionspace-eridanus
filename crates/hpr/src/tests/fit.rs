@@ -127,8 +127,7 @@ enum Tail {
 }
 
 /// A 54 mm rocket on an I377 with this nose, these fins' edges and this tail. Its fins span
-/// 90 mm, which holds its static margin near 1 caliber with each tail, so it flies straight in a
-/// wind as in still air.
+/// 90 mm, wide enough that it flies straight in the wind a fit of a log of height alone is told.
 fn shaped(nose: NoseShape, nose_length_m: f64, edges: FinCrossSection, tail: Tail) -> Rocket {
     let mut rocket = Rocket::new("A 54 mm test rocket", 0.0563).unwrap();
     rocket
@@ -309,7 +308,7 @@ fn a_fit_finds_the_drag_a_log_was_flown_with() {
         "  none  ",
         "  * This interval fails its test: the caveat below.\n  The burn time scale states no \
          interval: not asked of the fit.\n  The wind states no interval: a log of height alone \
-         can't tell the wind.\n  So the fit is told a wind of at least 5.2 m/s, the wind its \
+         can't tell the wind.\n  So the fit is told a wind of at least 5.16 m/s, the wind its \
          intervals were sized in.\n",
         "Caveat. The drag scale's 90% interval fails its test.",
         "Warning. issue #172",
@@ -390,8 +389,8 @@ fn a_log_with_a_track_states_the_wind() {
     let caveat = fitted.wind_caveat().unwrap();
     assert!(
         caveat.starts_with(
-            "The fitted wind can settle on another wind that leaves much the same drift, with a \
-             narrow interval about it: "
+            "The fitted wind can settle far from the flight's, with a narrow interval about it: \
+             on one design, "
         ) && caveat.ends_with(fit::WIND_ISSUE_URL),
         "{caveat}"
     );
@@ -403,7 +402,7 @@ fn a_log_with_a_track_states_the_wind() {
     )
     .unwrap();
     assert_eq!(by_height.wind_caveat(), None);
-    assert!(!by_height.lines().join("\n").contains("can settle on"));
+    assert!(!by_height.lines().join("\n").contains("can settle far"));
     // On a log with a track, the wind given is the wind told: calm here.
     assert_eq!(east.stated.mean, 0.0);
     assert_eq!(row(&fitted, Parameter::WindNorth).stated.mean, 0.0);
@@ -416,8 +415,7 @@ fn a_log_with_a_track_states_the_wind() {
 }
 
 /// What a log of height alone is told of the wind: at least the wind its intervals' shares were
-/// fitted in, along the wind the launch gives. A fit told calm air on such a log would have
-/// narrower intervals than any test covered, on the drag's flattering side.
+/// fitted in, along the wind the launch gives. No test covers a fit of such a log told less.
 #[test]
 fn a_log_of_height_alone_is_told_at_least_the_wind_its_intervals_were_sized_in() {
     let rocket = built();
