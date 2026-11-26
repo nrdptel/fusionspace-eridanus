@@ -703,3 +703,116 @@ fn a_log_that_cant_be_fitted_is_refused() {
         "{refused}"
     );
 }
+
+/// `hpr fit`'s forward model ([`fit::Flown`]) flies what the synthetic fits' does
+/// ([`hpr_forensics::synthetic::fits::Flown`]), the model whose fits sized the 90% intervals the
+/// command states: one public design, the first draw of set A on it, flown under one set of
+/// parameters, none of them 1 or 0, in a constant wind and in a sheared one. Each flight is held
+/// equal to the other's bit for bit: every moment's height climbed, barometer's reading, their
+/// rates, the drift east and north and the Mach number ([`Simulated`]'s equality), and its heights
+/// as each sensor reads them. [issue #1647](https://github.com/nrdptel/fusionspace-eridanus/issues/1647).
+///
+/// The launch is stated to the command as a person would: the design file, its configuration, the
+/// draw's site, air and rail, through [`FlightBuilder`]. Where the two models are told different
+/// things, it is meant, and the test tells them alike:
+///
+/// - The synthetic fit's structure is `weighed` times the true one (its kitchen scale's error,
+///   [`WEIGHED_WITHIN`](hpr_forensics::synthetic::fits::WEIGHED_WITHIN)); the command's is the one
+///   the person states, which is what was weighed. So the synthetic one is flown at `weighed` 1.
+/// - Each flies a sheared wind from the pad's height above mean sea level: the command's from the
+///   site's height less the geoid's undulation, the synthetic one's from the draw's elevation. A
+///   draw's site has no undulation, so the two are the same height.
+#[test]
+fn hpr_fit_flies_the_flight_its_intervals_were_sized_with() {
+    use hpr_atmos::{AtmosphereModel, Ussa76};
+    use hpr_forensics::fit::{Forward, Parameters};
+    use hpr_forensics::residuals::Simulated;
+    use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
+    use hpr_forensics::synthetic::truth::RAIL_LENGTH_M;
+    use hpr_forensics::synthetic::{self, Model};
+    use std::collections::BTreeMap;
+
+    const DESIGN: &str = "rocketpy-calisto-getting-started-motor-at-minus-1.255";
+    let json = include_str!(
+        "../../../../validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json"
+    );
+    let design = DESIGNS.iter().position(|d| d.name == DESIGN).unwrap();
+    let draw = (0..)
+        .map(|index| synthetic::draw(Set::A, index))
+        .find(|draw| draw.design == design)
+        .unwrap();
+    assert_eq!(draw.model, Model::Same);
+    // Only the drawn design's file is read; the others are left empty.
+    let mut files = vec![String::new(); DESIGNS.len()];
+    files[design] = json.to_owned();
+    let files = DesignFiles::new(files).unwrap();
+
+    // The launch as the command is told it.
+    let rocket = Rocket::from_design(
+        serde_json::from_str(json).unwrap(),
+        DESIGNS[design].configuration,
+    )
+    .unwrap();
+    let environment = Environment::new(
+        synthetic::truth::SITE_LATITUDE_DEG,
+        synthetic::truth::SITE_LONGITUDE_DEG,
+        draw.elevation_m,
+    )
+    .unwrap()
+    .with_atmosphere(AtmosphereModel::Standard(
+        // The draws' air: the 1976 standard, offset, over sea-level pressure.
+        Ussa76::with_offset(draw.temperature_offset_k, 101_325.0).unwrap(),
+    ));
+    let launch = Flight::builder(&rocket, &environment, RAIL_LENGTH_M).rail(hpr_sim::Rail {
+        elevation_rad: std::f64::consts::FRAC_PI_2 - draw.tilt_rad,
+        azimuth_rad: draw.azimuth_rad,
+        ..hpr_sim::Rail::vertical(RAIL_LENGTH_M)
+    });
+    let mut inputs = launch.inputs().unwrap();
+    inputs.recovery.clear();
+    let mut command = fit::Flown::new(inputs);
+
+    let mut tables = BTreeMap::new();
+    let mut sized = synthetic::fits::Flown::new(&draw, &files, 1.0, &mut tables);
+
+    let p = Parameters {
+        drag_scale: 1.07,
+        impulse_scale: 0.97,
+        burn_time_scale: 1.04,
+        wind_east_m_s: 3.1,
+        wind_north_m_s: -1.7,
+        mass_scale: 1.012,
+    };
+    let until_s = 60.0;
+    let held = |of: &str, command: &Simulated, sized: &Simulated| {
+        for kind in [HeightKind::Barometric, HeightKind::Geometric] {
+            let (command_heights, _) = command.read_lines(kind, 0.0);
+            let (sized_heights, _) = sized.read_lines(kind, 0.0);
+            assert!(
+                command_heights.len() > 100,
+                "{of}: a climb of a few moments"
+            );
+            assert_eq!(command_heights, sized_heights, "{of}: {kind:?} heights");
+            assert!(command.top_reading_m(kind).is_some(), "{of}: no apogee");
+            assert_eq!(
+                command.top_reading_m(kind),
+                sized.top_reading_m(kind),
+                "{of}: {kind:?} apogee"
+            );
+        }
+        assert!(
+            command == sized,
+            "{of}: a moment's drift, rate or Mach number"
+        );
+    };
+    held(
+        "constant wind",
+        &command.fly(&p, until_s).unwrap(),
+        &sized.fly(&p, until_s).unwrap(),
+    );
+    held(
+        "sheared wind",
+        &command.fly_sheared(&p, until_s, 1.0 / 7.0).unwrap(),
+        &sized.fly_sheared(&p, until_s, 1.0 / 7.0).unwrap(),
+    );
+}
