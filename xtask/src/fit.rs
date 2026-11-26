@@ -2960,7 +2960,7 @@ mod tests {
         assert_eq!(
             grown(6, OTHER_PLATFORM_FLIGHTS),
             [
-                "B, least squares, drag scale: 86 below, past the 80 recorded and the 5 another \
+                "B, least squares, drag scale: 85 below, past the 79 recorded and the 5 another \
               platform may stand off: the known gap has grown (ADR-368)"
             ]
         );
@@ -2971,7 +2971,7 @@ mod tests {
                 c.below += 1;
                 drag_b(r).test = Test::of(c);
             },
-            "B, least squares, drag scale: 81 below, past the 80 recorded: the known gap has grown",
+            "B, least squares, drag scale: 80 below, past the 79 recorded: the known gap has grown",
         );
         assert!(!known.passes() && fails_below_alone(&known), "{known:?}");
         fails(
@@ -2989,7 +2989,7 @@ mod tests {
                 c.above += 60;
                 drag_b(r).test = Test::of(c);
             },
-            "B, least squares, drag scale: 80 below, 829 inside, 91 above of 1000: fails the test \
+            "B, least squares, drag scale: 79 below, 830 inside, 91 above of 1000: fails the test \
              past its lower tail",
         );
         fails(
@@ -2997,14 +2997,14 @@ mod tests {
                 let failing = r.sets[1].checks[0].test;
                 r.sets[1].checks[1].test = failing;
             },
-            "B, least squares, impulse scale: 80 below, 889 inside, 31 above of 1000: fails the test",
+            "B, least squares, impulse scale: 79 below, 890 inside, 31 above of 1000: fails the test",
         );
         fails(
             &|r| {
                 let failing = r.sets[1].checks[0].test;
                 r.sets[0].checks[0].test = failing;
             },
-            "A, least squares, drag scale: 80 below, 889 inside, 31 above of 1000: fails the test",
+            "A, least squares, drag scale: 79 below, 890 inside, 31 above of 1000: fails the test",
         );
         // The Bayesian option's counts and probes break nothing until M7.3c4 (ADR-320 §8); its
         // identification does, on set A and on noise.
