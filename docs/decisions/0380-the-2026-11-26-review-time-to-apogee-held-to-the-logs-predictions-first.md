@@ -164,12 +164,12 @@ Six hazards shape the rule.
      - **What it refuses.** A log whose liftoff or apogee the analyzer withholds, among them one
        that starts off the pad and one whose top a disturbance spoils, such as a deployment's
        pressure pulse; one whose apogee is a floor; one that ends before its apogee; and one with
-       no barometer's track. On the synthetic set, which pulses must be refused is fixed from the
-       generator's truth before the reading runs, never from what the analyzer withholds: a pulse
-       that moves the time of the track's highest reading by more than the width line's bound for
-       its level. The analyzer must withhold each of those. A smaller pulse it may read or
-       withhold; those it reads belong to the pulse level below. No refusal is decided from a
-       time read, a prediction or an error.
+       no barometer's track. On the synthetic set, the rule fixes beforehand which pulse logs
+       must be refused and which must be read. It fixes them from the generator's truth, the
+       pulse's size and timing against the same track without it on the same noise draw, and
+       never from what the analyzer withholds. A pulse log that must be read and is withheld
+       counts as a miss in the pulse level's coverage. No refusal is decided from a time read, a
+       prediction or an error.
      - **The synthetic check.** Before it reads any real log, the reading is checked on
        synthetic logs whose liftoff and apogee times are known. The rule states, with a source
        for each, the levels the set covers:
