@@ -256,7 +256,8 @@ fn binned(samples: impl Iterator<Item = (f64, f64)>, from_s: f64, to_s: f64) -> 
         .collect()
 }
 
-/// A log's height and any horizontal track, on `read`'s pad, from `read`'s liftoff to its apogee;
+/// A log's height and any horizontal track, on `read`'s pad, from a second before `read`'s liftoff
+/// to its apogee;
 /// `None` where the reader withheld the apogee, the pad, or too few bins hold a sample to fit, so
 /// the log can say nothing.
 #[must_use]

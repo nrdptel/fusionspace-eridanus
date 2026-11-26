@@ -364,7 +364,7 @@
           "const": "height_alone"
         },
         {
-          "description": "The fit gave it no standard error to size an interval with.",
+          "description": "Its standard error sizes no interval: it isn't a number above zero, or an end of the\ninterval it gives isn't finite.",
           "type": "string",
           "const": "no_standard_error"
         }

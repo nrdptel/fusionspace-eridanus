@@ -32,9 +32,9 @@ says which column is which ([Reading a flight log](reading-a-flight-log.md#from-
 This example's log is invented. It is the repository's Level 1
 guide rocket flown in a 6 m/s (13 mph) wind. Its heights are read 4% low and rounded to a foot
 ([how it is made](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/compare/make.py)).
-The fit is told the day's wind. It is also told that a barometer's scale lies within ±0.25% of 1,
-an MS5607 pressure sensor's figure and far less than 4%
-([the method](physics/flight-fit.md#how-it-works)). See where the error goes:
+The fit is told the day's wind. It also solves for a barometer's scale
+([the method](physics/flight-fit.md#how-it-works)), but is told that it is 1 give or take 0.14%,
+one standard deviation. That is far less than 4%. See where the error goes:
 
 <!-- cli: example `hpr fit validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json --wind 6`; written by `cargo xtask cli`; do not edit -->
 
@@ -162,8 +162,7 @@ raised to it along its own direction, and calm air to that toward the east. A st
 example's 6 m/s (13 mph) does. A line under the table states the floor. A log with a track is told the wind
 you give, with no floor.
 
-The fit's last digits can differ from one computer to another, since its search stops on a
-tolerance. The outputs on this page were written on macOS. The tests hold them exactly there, and
+The fit's last digits can differ from one computer to another. The outputs on this page were written on macOS. The tests hold them exactly there, and
 on Linux and Windows hold their words. There a number only has to be a number, a run of spaces
 counts as one, and the warnings are left out.
 
@@ -176,9 +175,9 @@ A test shows it
 ([the record of this command's choices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0381-m7-3f-the-fit-on-the-command-line-and-in-python.md)).
 A 54 mm (2.1 in) design flies its own flight in a wind of 9 m/s (20 mph). Fitted from calm air, it comes out as a wind the other way. Its
 interval is under 2 m/s (7 ft/s) wide and misses the true wind. The heights' residual doesn't show
-it: it lies within 0.5 m (1.6 ft) of the residual of the fit told the true wind. Told the true
-wind, the fit stays within 1 m/s (3 ft/s) of it. No test says how near the wind told has to be, and
-I haven't found the cause.
+it: it lies within 0.5 m (1.7 ft) of the residual of the fit told the true wind. Told the true
+wind, the fit stays within 1 m/s (3.3 ft/s) of it. No test says how near the wind told has to be,
+or what a wind fitted wrong does to the other scales, and I haven't found the cause.
 
 So give the day's wind, and take a fitted wind that disagrees with the field's as unsettled. Every
 fit of a log with a track prints a caveat under its intervals that says so. I've recorded the gap
@@ -311,8 +310,8 @@ lines to print, in SI units.
 - A parachute that opened before apogee. The fit flies the climb with nothing open, so an early
   ejection's drag goes into the drag scale. A note says so.
 - A wind that changes with height. The fitted wind is one constant wind.
-- A logger that reads far low or high. The fit is told a barometer's scale within ±0.25% of 1, and
-  the example's 4% error shows up in the other scales.
+- A logger that reads far low or high. The fit is told a barometer's scale is 1 give or take
+  0.14%, and the example's 4% error shows up in the other scales.
 - A fitted wind to rely on, on a log with a track
   ([it can settle far from the flight's](#the-wind-on-a-log-with-a-track)).
 - A flight that separates in the air, which is refused.

@@ -554,7 +554,7 @@ impl LogFit {
                     lines.push(format!(
                         "  † The wind is faster than {:.1} m/s, the fastest the intervals were tested \
                          in.",
-                        tested.high
+                        down(tested.high, 1)
                     ));
                 }
                 wind = true;

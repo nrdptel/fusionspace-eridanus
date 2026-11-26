@@ -127,7 +127,7 @@ enum Tail {
 }
 
 /// A 54 mm rocket on an I377 with this nose, these fins' edges and this tail. Its fins span
-/// 90 mm, wide enough that it flies straight in the wind a fit of a log of height alone is told.
+/// 90 mm.
 fn shaped(nose: NoseShape, nose_length_m: f64, edges: FinCrossSection, tail: Tail) -> Rocket {
     let mut rocket = Rocket::new("A 54 mm test rocket", 0.0563).unwrap();
     rocket

@@ -2240,7 +2240,8 @@ pub enum FitNoInterval {
     NotAsked,
     /// A log of height alone can't tell the wind.
     HeightAlone,
-    /// The fit gave it no standard error to size an interval with.
+    /// Its standard error sizes no interval: it isn't a number above zero, or an end of the
+    /// interval it gives isn't finite.
     NoStandardError,
 }
 

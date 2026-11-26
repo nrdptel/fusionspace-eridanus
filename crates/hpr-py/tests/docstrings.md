@@ -250,7 +250,7 @@ log's main altitude is taken as a barometer's.
 ``interval_90`` is its least-squares 90% interval, ``low`` and ``high``, or ``None`` with
 ``no_interval`` saying why: ``"not_asked"`` for the burn time's scale,
 ``"height_alone"`` for the wind on a log with no latitude and longitude, and
-``"no_standard_error"`` where the fit gave it no standard error.
+``"no_standard_error"`` where its standard error sizes none.
 
 ``tested_range`` is the range the intervals were tested over, ``low`` and ``high``: what
 the synthetic flights drew that parameter's true value from, and for a wind component the
