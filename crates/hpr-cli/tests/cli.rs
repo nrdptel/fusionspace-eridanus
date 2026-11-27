@@ -9203,8 +9203,8 @@ fn ndrt_2020_log() -> Option<String> {
 /// which must then be a folder; else RocketPy's checkout under `refs/`. `None`, and a line saying
 /// so, where neither holds it.
 ///
-/// CI's Linux jobs fetch the logs these tests read with `scripts/fetch-rocketpy-logs.py`, at the
-/// pinned commit with each file's SHA-256 checked, and name the folder in the variable. So on one
+/// CI's Linux test jobs fetch the logs these tests read with `scripts/fetch-rocketpy-logs.py`, at
+/// the pinned commit with each file's SHA-256 checked, and name the folder in the variable. So on one
 /// of GitHub's Linux runners a run without the variable fails: the workflow has lost its fetch,
 /// and the tests would pass over the logs unseen ([issue #1657]).
 ///

@@ -293,10 +293,11 @@ jobs:
       # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
       - if: env.RUN == 'true'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-      # NDRT 2020's public log for `FlightLog.fit`'s test of that flight, fetched as in `test-part`.
+      # NDRT 2020's public log for `FlightLog.fit`'s test of that flight, fetched as in `test-part`
+      # but alone.
       - if: env.RUN == 'true' && startsWith(matrix.os, 'ubuntu')
         run: |
-          python3 scripts/fetch-rocketpy-logs.py target/rocketpy-rockets
+          python3 scripts/fetch-rocketpy-logs.py target/rocketpy-rockets NDRT_2020/ndrt_2020_flight_data.csv
           echo "HPR_NDRT_2020_LOG=$PWD/target/rocketpy-rockets/NDRT_2020/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
       # CPython's Windows on ARM builds start at 3.11, so there the oldest Python tested is 3.11.
       - if: env.RUN == 'true'

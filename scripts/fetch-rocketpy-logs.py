@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """Fetches the real flight logs in RocketPy's data that hpr's tests read, at the commit
 `validation/refs.lock.toml` pins RocketPy to, checks each file's SHA-256 and writes them under the
-folder given, laid out as RocketPy's `data/rockets` folder is.
+folder given, laid out as RocketPy's `data/rockets` folder is. Every file is fetched and checked
+before any is written, so a mismatch leaves the folder as it was.
 
 A machine with RocketPy's checkout under `refs/` has them there; CI has no `refs/`, so its Linux
-jobs fetch these files and name the folder in `HPR_ROCKETPY_ROCKETS` (and NDRT 2020's log in
-`HPR_NDRT_2020_LOG`), which makes the tests that read them fail where they'd otherwise pass over
-them (issues #1648, #1657). Only these files are fetched: a partial checkout under `refs/rocketpy`
-would switch on checks that need the whole of it.
+test jobs fetch these files and name the folder in `HPR_ROCKETPY_ROCKETS` and NDRT 2020's log in
+`HPR_NDRT_2020_LOG`, which makes the tests that read them fail where they'd otherwise pass over
+them (issues #1648, #1657). Its Python jobs fetch NDRT 2020's log alone, naming it after the
+folder. Only these files are fetched: a partial checkout under `refs/rocketpy` would switch on
+checks that need the whole of it.
 
-Two tests that read fetched files are left out, each because its file can't be fetched here:
-`analyze_reads_the_public_pnut_log_as_it_states` (a log whose upstream terms are unclear) and
-`hpr-net`'s `each_record_is_the_raw_snapshots_own` (ThrustCurve.org's answer as recorded on
-2026-10-28, which a search today needn't match). Each says so in its doc comment.
+Issue #1657 named two more tests that pass over a file CI lacks; this script doesn't fetch
+their files, and each test says why in its doc comment: `analyze_reads_the_public_pnut_log_as_it_states`
+(a log whose upstream terms are unclear, so it isn't fetched for CI) and `hpr-net`'s
+`each_record_is_the_raw_snapshots_own` (ThrustCurve.org's answer as recorded on 2026-10-28, which a
+search today needn't match).
 
 The logs are RocketPy's (MIT; data files carry their own terms; THIRD-PARTY-NOTICES.md). They are
 fetched, never committed.
 
-Usage: python3 scripts/fetch-rocketpy-logs.py <out-folder>
+Usage: python3 scripts/fetch-rocketpy-logs.py <out-folder> [<file under data/rockets> ...]
 """
 
 import hashlib
@@ -82,26 +85,33 @@ def fetch(url: str) -> bytes:
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
     out = pathlib.Path(sys.argv[1])
+    names = sys.argv[2:] or list(FILES)
+    unknown = [name for name in names if name not in FILES]
+    if unknown:
+        print(f"not among the files this script fetches: {', '.join(unknown)}", file=sys.stderr)
+        return 2
     commit = pinned_commit()
-    total = 0
-    for name, sha256 in FILES.items():
+    fetched = {}
+    for name in names:
         url = f"https://raw.githubusercontent.com/RocketPy-Team/RocketPy/{commit}/{FOLDER}/{name}"
         data = fetch(url)
         digest = hashlib.sha256(data).hexdigest()
-        if digest != sha256:
+        if digest != FILES[name]:
             raise SystemExit(
-                f"{url}: SHA-256 {digest}, expected {sha256}. If {LOCK.name}'s rocketpy pin moved, "
-                f"check the file and update FILES in {pathlib.Path(__file__).name}"
+                f"{url}: SHA-256 {digest}, expected {FILES[name]}. If {LOCK.name}'s rocketpy pin "
+                f"moved, check the file and update FILES in {pathlib.Path(__file__).name}"
             )
+        fetched[name] = data
+    for name, data in fetched.items():
         path = out / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-        total += len(data)
-    print(f"{out}: {len(FILES)} files, {total} bytes, each SHA-256 checked")
+    total = sum(len(data) for data in fetched.values())
+    print(f"{out}: {len(fetched)} files, {total} bytes, each SHA-256 checked")
     return 0
 
 
