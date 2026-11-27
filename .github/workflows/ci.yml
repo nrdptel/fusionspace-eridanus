@@ -439,8 +439,8 @@ jobs:
   # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
   # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
   # six parts on macos-latest and windows-latest, the slowest, and three on the rest but
-  # ubuntu-latest, which runs four (below): by least squares the slowest's jobs took up to 943 s on macos-latest and 904 s a half on windows-latest. In four
-  # parts a macos-latest job took 356 to 1,251 s on main's four runs to 2026-11-23, the longest past
+  # ubuntu-latest, which runs four (below): by least squares the slowest's jobs took up to 943 s
+  # on macos-latest and 904 s a half on windows-latest. In four parts a macos-latest job took 356 to 1,251 s on main's four runs to 2026-11-23, the longest past
   # the 20 minutes, so it runs in six. On ubuntu-latest, part 2/3 of three took 1,208 and 1,214 s
   # on main's two runs at e533d0aa, so it runs in four there (issue #1658).
   fit-slice-part:
