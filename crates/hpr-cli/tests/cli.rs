@@ -9168,6 +9168,10 @@ fn compare_refuses_a_log_it_cant_line_up() {
 /// under `refs/`. `None`, and a line saying so, where neither holds it.
 ///
 /// [issue #1648]: https://github.com/nrdptel/fusionspace-eridanus/issues/1648
+#[allow(
+    clippy::print_stderr,
+    reason = "a test that passes over the flight says so in its output"
+)]
 fn ndrt_2020_log() -> Option<String> {
     if let Some(named) = std::env::var_os("HPR_NDRT_2020_LOG") {
         let named = PathBuf::from(named);
