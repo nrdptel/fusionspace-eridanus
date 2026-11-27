@@ -75,8 +75,8 @@ numbers. No committed test makes those runs again, so this record gives none of 
    of the 195 fits of a track say one, set A's flight 1305 among them, and both are wrong
    (`the_slice_says_a_second_answer_twice_and_both_are_wrong`). Those two fits each gain a line
    in the slice; no other line of the report changes. **Rejected:** taking the answer left where
-   its `χ²` is far lower (about 15 against 128 on the flight in 12.5 m/s; 99.7 against 128 and
-   221 against 230 on the slice's two), since a cut between them would rest on four flights;
+   its `χ²` is far lower (about 15 against 128 and about 13 against 127 on the flights in 12.5
+   and 13 m/s; 99.7 against 128 and 221 against 230 on the slice's two), since a cut between them would rest on four flights;
    and a wider scan, under which flight 1305's low at 14.0 m/s would count. **Not counted:** how
    often it is said over the whole sets ([issue #1652][i1652]).
 

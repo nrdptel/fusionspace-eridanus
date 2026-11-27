@@ -449,7 +449,11 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
          that wind given. If you have no record of the day's wind, take the fitted wind, and \
          the scales fitted with it, as unsettled."
     );
-    assert_eq!(past.misfits_told(), (15.3, 127.8, 1));
+    let told = |past: &WindPastScan| {
+        let (chi2, standing_chi2) = past.misfits_told();
+        format!("{chi2} against {standing_chi2}")
+    };
+    assert_eq!(told(&past), "15.3 against 127.8");
     // Two misfits that one decimal place would print crossed, or as equals, get the places
     // that keep the lower one lower.
     let fits = |chi2: f64, standing_chi2: f64| WindPastScan {
@@ -457,17 +461,45 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
         standing_chi2,
         ..past
     };
-    assert_eq!(fits(15.02, 15.04).misfits_told(), (15.02, 15.04, 2));
+    assert_eq!(told(&fits(15.02, 15.04)), "15.02 against 15.04");
     assert!(
         fits(15.02, 15.04)
             .message()
             .contains("a misfit (χ²) of 15.02 against 15.04."),
     );
-    assert_eq!(fits(15.0, 15.1).misfits_told(), (15.0, 15.1, 1));
-    assert_eq!(fits(15.01, 15.19).misfits_told(), (15.01, 15.19, 2));
-    assert_eq!(fits(99.7, 128.0).misfits_told(), (99.7, 128.0, 1));
-    // Closer than the sixth place, they print as they round there.
-    assert_eq!(fits(15.0, 15.0 + 1e-9).misfits_told().2, 6);
+    assert_eq!(told(&fits(15.0, 15.1)), "15.0 against 15.1");
+    assert_eq!(told(&fits(15.01, 15.19)), "15.01 against 15.19");
+    assert_eq!(told(&fits(99.7, 128.0)), "99.7 against 128.0");
+    // Two that six places can't tell apart print as found: rounded toward each other there,
+    // these would print as 15.000001 against 15.000000, the higher one first.
+    let close = fits(15.000_000_2, 15.000_000_4);
+    assert_eq!(told(&close), "15.0000002 against 15.0000004");
+    assert!(
+        close
+            .message()
+            .contains("a misfit (χ²) of 15.0000002 against 15.0000004."),
+    );
+    assert_eq!(told(&fits(15.0, 15.0 + 1e-9)), "15 against 15.000000001");
+    // A standing answer with no finite misfit prints as that.
+    assert_eq!(told(&fits(15.236, f64::INFINITY)), "15.3 against inf");
+    // Over misfits of every size and gaps from 10 down to a part in 10¹²: the pair prints in
+    // its order, and the gap printed is no wider than the gap found.
+    for base in [0.004, 0.5, 15.0, 127.804, 99_999.5] {
+        for power in 0..=12 {
+            let (chi2, standing_chi2) = (base, base * (1.0 + 10_f64.powi(1 - power)));
+            let case = fits(chi2, standing_chi2);
+            let (first, second) = case.misfits_told();
+            let (first, second): (f64, f64) = (first.parse().unwrap(), second.parse().unwrap());
+            assert!(
+                first < second,
+                "{chi2} against {standing_chi2}: {first}, {second}"
+            );
+            assert!(
+                first >= chi2 * (1.0 - 1e-8) && second <= standing_chi2 * (1.0 + 1e-8),
+                "{chi2} against {standing_chi2}: {first}, {second}"
+            );
+        }
+    }
     // The way a wind blows from, each quarter: toward the north is from the south.
     let toward = |east: f64, north: f64| WindPastScan {
         wind_east_m_s: east,

@@ -256,12 +256,13 @@ impl WindPastScan {
         )
     }
 
-    /// The two misfits as the message prints them, this answer's and the fitted wind's, and the
-    /// decimal places they are printed to. This answer's is rounded up and the fitted wind's
-    /// down, so the gap printed is never wider than the gap found; the places are the fewest,
-    /// from 1 to 6, at which the first still prints lower than the second.
+    /// The two misfits as the message prints them, this answer's and then the fitted wind's.
+    /// This answer's is rounded up and the fitted wind's down, so the gap printed is never wider
+    /// than the gap found, to the fewest decimal places, from 1 to 6, at which the first still
+    /// prints lower. Two that six places can't tell apart print as found, with every digit, so
+    /// the pair never prints crossed or as equals where one is lower.
     #[must_use]
-    pub fn misfits_told(&self) -> (f64, f64, usize) {
+    pub fn misfits_told(&self) -> (String, String) {
         const MOST_PLACES: usize = 6;
         (1..=MOST_PLACES)
             .map(|places| {
@@ -271,21 +272,29 @@ impl WindPastScan {
                     places,
                 )
             })
-            .find(|(chi2, standing_chi2, places)| chi2 < standing_chi2 || *places == MOST_PLACES)
-            .unwrap_or((self.chi2, self.standing_chi2, MOST_PLACES))
+            .find(|(chi2, standing_chi2, _)| chi2 < standing_chi2)
+            .map_or_else(
+                || (self.chi2.to_string(), self.standing_chi2.to_string()),
+                |(chi2, standing_chi2, places)| {
+                    (
+                        format!("{chi2:.places$}"),
+                        format!("{standing_chi2:.places$}"),
+                    )
+                },
+            )
     }
 
     /// The notice in sentences.
     #[must_use]
     pub fn message(&self) -> String {
         let (speed_m_s, from_deg) = self.told();
-        let (chi2, standing_chi2, places) = self.misfits_told();
+        let (chi2, standing_chi2) = self.misfits_told();
         let reach_m_s = least_squares::wind_scan_reach_m_s();
         format!(
             "The wind has a second answer, which the fit didn't take. A search ended at a wind of \
              {speed_m_s:.1} m/s ({:.1} mph) from {from_deg:.0}°, past the {reach_m_s:.0} m/s \
              ({:.1} mph) the fit's scan of the wind reaches. It fits the log better than the \
-             fitted wind: a misfit (χ²) of {chi2:.places$} against {standing_chi2:.places$}. \
+             fitted wind: a misfit (χ²) of {chi2} against {standing_chi2}. \
              Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the \
              fitted wind stands. If the day's wind was near the second answer, fit again with \
              that wind given. If you have no record of the day's wind, take the fitted wind, and \

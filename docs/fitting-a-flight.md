@@ -207,9 +207,10 @@ Caveat. The wind has a second answer, which the fit didn't take. A search ended 
 A wind toward the east blows from the west, which is 270° clockwise from north. The misfit, χ², is
 the sum the fit makes as small as it can: each height's and each track point's miss over its noise,
 squared, plus a term for the ranges the fit is told
-([the method](physics/flight-fit.md#how-it-works)). The lower of two fits the log better. The line
-of options is left off a fit given `--weather` or `--launch-time`, which `--wind` can't be given
-beside.
+([the method](physics/flight-fit.md#how-it-works)). The lower of two fits the log better. A fit
+given `--weather` or `--launch-time` prints the caveat without its last line of options, as
+`--wind` can't be given beside either. To fit again there, give `--wind` and `--wind-from` in
+their place.
 
 The fitted wind on that flight blew more than 4 m/s (9 mph) the other way, and its interval
 missed the flight's wind. Fitted again with those two options, the fit ends within 0.5 m/s
@@ -221,10 +222,10 @@ by a little, as the fitted wind reads slow
 
 The caveat doesn't say which answer is the flight's. On the fit report's slice of
 [synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it
-(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). No fit of a track in the slice has a
-true wind past the scan's reach, so there a second answer past it can only be the
-wrong one, and both times it is: the report's true wind for each lies within 1 m/s (3.3 ft/s) of
-the fitted one. So where the caveat prints, check it against the wind on the field that day. If
+(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). Both times the second answer is the
+wrong one: it lies more than 3 m/s (9.8 ft/s) from the report's true wind, which is within 1 m/s
+(3.3 ft/s) of the fitted one. The slice can't show the other case, as none of its fits of a track
+has a true wind past the scan's reach; the flight in 12.5 m/s (28 mph) above does. So where the caveat prints, check it against the wind on the field that day. If
 that was near the second answer, fit again from it. If it was near the fitted wind, the fitted
 wind stands. With no record of the day's wind, take the fitted wind and the scales as unsettled.
 The caveat isn't counted over all the synthetic flights yet
