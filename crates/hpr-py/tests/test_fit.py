@@ -4,6 +4,7 @@ from, the warnings of the flight it meets and the caveat on the interval that fa
 (M7.3f)."""
 
 import json
+import math
 import os
 import pathlib
 import subprocess
@@ -16,6 +17,7 @@ LEVEL_1 = "validation/fixtures/ork/guides/level-1.ork"
 LEVEL_1_LOG = "validation/fixtures/logs/compare/level-1-flown.csv"
 LEVEL_1_MAPPING = "validation/fixtures/logs/compare/level-1.mapping.json"
 NDRT = "validation/designs/rocketpy-ndrt-2020-nose-to-tail.json"
+SYNTHETIC = "validation/designs/synthetic-54mm-three-fin.json"
 NDRT_LOG = "refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv"
 
 SITE = (41.7, -86.2, 230.0)
@@ -83,8 +85,8 @@ def same_fit(fitted, printed):
         "fitted_max_mach",
     ]:
         assert fitted[number] == printed[number], number
+    assert (fitted["wind_past_scan"] is None) == (printed["wind_past_scan"] is None)
     assert fitted["height_read_as"] == printed["height_read_as"]
-    assert fitted["wind_caveat"] == printed["wind_caveat"]
     for reading in ["liftoff", "apogee", "height_track", "horizontal_track"]:
         mine, theirs = fitted["readings"][reading], printed["readings"][reading]
         assert (mine is None) == (theirs is None), reading
@@ -161,8 +163,8 @@ def test_a_fit_is_the_one_hpr_fit_prints(repo, hpr_cli):
         assert readings[reading]["source"] == "barometer"
         assert readings[reading]["provenance"] == "measured"
     assert readings["horizontal_track"] is None
-    # With no track the wind states no interval, so the wind's caveat isn't this fit's.
-    assert fitted["wind_caveat"] is None
+    # A log of height alone has no track for a second answer in the wind to fit.
+    assert fitted["wind_past_scan"] is None
     assert 0 < readings["height_track"]["bins_read"] <= readings["height_track"]["bins"]
 
 
@@ -171,9 +173,9 @@ def test_the_interval_that_fails_its_test_carries_the_caveat(repo):
     log = hpr.FlightLog.read(repo / LEVEL_1_LOG, mapping=mapping)
     fitted = log.fit(hpr.Rocket.from_file(repo / LEVEL_1), hpr.Environment(*SITE), RAIL_M)
     rows = by_name(fitted)
-    # ADR-368: the drag scale's interval left 80 of 1,000 truths below it, where 50 are meant.
+    # ADR-368: the drag scale's interval left 79 of 1,000 truths below it, where 50 are meant.
     caveat = rows["drag_scale"]["caveat"]
-    assert (caveat["below"], caveat["flights"], caveat["meant"]) == (80, 1000, 50)
+    assert (caveat["below"], caveat["flights"], caveat["meant"]) == (79, 1000, 50)
     # The committed report of the intervals' test holds the same count.
     report = json.loads((repo / "validation/reports/fit-intervals.json").read_text())
     (set_b,) = [row for row in report["sets"] if row["set"] == "b"]
@@ -182,7 +184,7 @@ def test_the_interval_that_fails_its_test_carries_the_caveat(repo):
     assert (counts["below"], counts["given"]) == (caveat["below"], caveat["flights"])
     # Which way it errs: the fitted drag high, a flight predicted with it low.
     assert (
-        "80 truths lay below the interval, where a 90% interval leaves 50. So its lower end can "
+        "79 truths lay below the interval, where a 90% interval leaves 50. So its lower end can "
         "read too high: take the fitted drag scale as reading high, and a flight predicted with "
         "it as reading low." in caveat["message"]
     )
@@ -250,7 +252,7 @@ def test_a_public_flight_fits_as_hpr_fit_prints_it(repo, hpr_cli):
     drag = rows["drag_scale"]
     assert abs(drag["value"] - 0.71) < 0.1
     assert drag["interval_90"]["high"] < 1.0
-    assert drag["caveat"]["below"] == 80
+    assert drag["caveat"]["below"] == 79
     # Below the 0.8 the intervals were tested down to, and marked so.
     assert drag["outside_tested_range"] and drag["value"] < drag["tested_range"]["low"]
     assert not rows["mass_scale"]["outside_tested_range"]
@@ -263,3 +265,107 @@ def test_a_public_flight_fits_as_hpr_fit_prints_it(repo, hpr_cli):
     assert [w["issue"] for w in fitted["issue_warnings"]] == [73, 18, 172]
     assert fitted["misfit_share"] < 0.03
     print(fitted["text"])
+
+
+def test_a_fit_gives_the_second_answer_it_leaves_past_the_wind_scan(repo, hpr_cli, tmp_path):
+    # The 54 mm design flown in 13 m/s toward the east, past the 12 m/s the fit's scan of the wind
+    # reaches, and fitted from calm air (issue #1646, ADR-382 §7). `hpr sim` flies it; its heights
+    # and its track, as latitude and longitude about the site, are the log.
+    design = repo / SYNTHETIC
+    latitude, longitude, elevation = SITE
+    export = tmp_path / "flown.csv"
+    flown = subprocess.run(
+        [
+            str(hpr_cli),
+            "sim",
+            str(design),
+            "--offline",
+            "--wind=13",
+            "--wind-from=270",
+            f"--export={export}",
+            "--interval=0.05",
+            f"--latitude={latitude!r}",
+            f"--longitude={longitude!r}",
+            f"--elevation={elevation!r}",
+            f"--rail-length={RAIL_M!r}",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert flown.returncode == 0, flown.stdout + flown.stderr
+    header, *lines = export.read_text().splitlines()
+    names = header.split(",")
+    columns = [
+        names.index(name)
+        for name in [
+            "time [s]",
+            "height above ground [m]",
+            "position east [m]",
+            "position north [m]",
+        ]
+    ]
+    rows = [[float(line.split(",")[column]) for column in columns] for line in lines]
+    first, last = rows[0], rows[-1]
+    # The mean radius of the Earth (IUGG R1), as the fit turns a fix's angles into meters.
+    radius_m = 6_371_008.8
+
+    def fix(time_s, row):
+        north_deg = math.degrees((row[3] - first[3]) / radius_m)
+        east_deg = math.degrees(
+            (row[2] - first[2]) / (radius_m * math.cos(math.radians(latitude)))
+        )
+        return f"{time_s!r},{row[1]!r},{latitude + north_deg!r},{longitude + east_deg!r}"
+
+    # Ten seconds on the pad, the flight, ten seconds where it ended.
+    pad_s = 10.0
+    track = ["Time,Altitude,Lat,Lon"]
+    track += [fix(step * 0.05, first) for step in range(200)]
+    track += [fix(row[0] + pad_s, row) for row in rows]
+    track += [fix(last[0] + pad_s + step * 0.05, last) for step in range(1, 201)]
+    log_path = tmp_path / "track.csv"
+    log_path.write_text("\n".join(track) + "\n")
+    mapping = {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": False,
+        "clock": 0,
+        "columns": [
+            {"name": "Time", "quantity": None, "unit": "s"},
+            {"name": "Altitude", "quantity": "altitude_above_ground", "unit": "m"},
+            {"name": "Lat", "quantity": "latitude", "unit": "deg"},
+            {"name": "Lon", "quantity": "longitude", "unit": "deg"},
+        ],
+    }
+    mapping_path = tmp_path / "track.mapping.json"
+    mapping_path.write_text(json.dumps(mapping))
+
+    log = hpr.FlightLog.read(log_path, mapping=mapping)
+    fitted = log.fit(hpr.Rocket.from_file(design), hpr.Environment(*SITE), RAIL_M)
+    printed = hpr_fit(hpr_cli, log_path, design, f"--mapping={mapping_path}")
+    assert same_fit(fitted, printed)
+    # Which way it errs: the fitted wind blows the other way, and its interval misses the flight's.
+    east = by_name(fitted)["wind_east_m_s"]
+    assert east["value"] < 0 and east["interval_90"]["high"] < 13.0
+    # So the fit gives the answer it left, which lies by the flight's wind and fits far better.
+    past, theirs = fitted["wind_past_scan"], printed["wind_past_scan"]
+    assert set(past) == set(theirs) == {
+        "wind_east_m_s",
+        "wind_north_m_s",
+        "speed_m_s",
+        "from_deg",
+        "chi2",
+        "standing_chi2",
+        "message",
+    }
+    for number in set(past) - {"message"}:
+        assert past[number] == theirs[number], number
+    assert abs(past["wind_east_m_s"] - 13.0) < 1.0 and abs(past["wind_north_m_s"]) < 0.5
+    assert past["speed_m_s"] == math.hypot(past["wind_east_m_s"], past["wind_north_m_s"]) > 12.0
+    assert abs(past["from_deg"] - 270.0) < 1.0
+    assert past["chi2"] < 0.25 * past["standing_chi2"]
+    assert past["message"].startswith("The wind has a second answer, which the fit didn't take.")
+    assert f"\n\nCaveat. {past['message']}\n" in fitted["text"] + "\n"
+    # The command adds how to fit again from that wind on its own line of options.
+    said = math.ceil(past["speed_m_s"] * 10 - 1e-6) / 10
+    assert theirs["message"] == f"{past['message']} On the command line: `--wind {said:.1f} --wind-from 270`."

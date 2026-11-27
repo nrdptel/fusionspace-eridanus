@@ -25,7 +25,12 @@
 //! its weighed uncertainty" means, and it is why a log with no word on the wind gives back the
 //! wind's stated range. `σ` is the fit's own residual, floored at [`FLOOR_M`], and `σ_r` likewise
 //! at [`FLOOR_HORIZONTAL_M`], re-estimated once after a first pass. A barometer's bins at or past
-//! Mach 0.8 are left out, as its port's pressure there follows no one coefficient.
+//! Mach 0.8 are left out, as its port's pressure there follows no one coefficient. On a log with a
+//! track, `χ²` can hold a second low in the wind far from the flight's, so after the first pass's
+//! search the fit scans the wind and searches again from the scan's lows (`wind_starts`); the
+//! lowest `χ²` at the second pass stands. An answer from a scan low counts only within the scan's
+//! reach, the search from the stated wind's wherever it ends, and a lower one left past the reach
+//! is said with the fit ([`PastScan`]).
 //!
 //! Each parameter's standard error is the square root of the diagonal of `σ² (JᵀJ)⁻¹`, `J` the
 //! Jacobian of the weighted residuals at the solution, and its 90% interval is that error times the
@@ -44,7 +49,7 @@
 //! shares.
 //!
 //! **How far to trust it.** The errors are linearized about the solution, so they say nothing of a
-//! second solution elsewhere. The 90% intervals are tested on synthetic flights
+//! second solution elsewhere; the wind's scan looks for one, and can miss one between its points. The 90% intervals are tested on synthetic flights
 //! ([`crate::synthetic::fits`] and the committed report), where the fit knows the design, rail,
 //! site and day's air. They hold there but for the drag scale's on the set flown with a model
 //! unlike the fit's own: too many of its truths lie below the interval, so the fitted drag reads
@@ -464,6 +469,33 @@ pub struct Fit {
     /// whose noise the fit takes from the log, its search for the posterior's peak (21). The
     /// posterior's draws are counted apart.
     pub flown: u64,
+    /// An answer past the wind scan's reach that fits the log better than the one given here,
+    /// and wasn't taken; `None` where the fit found none.
+    pub past_scan: Option<PastScan>,
+}
+
+/// An answer a fit of a log with a track found and didn't take ([ADR-382][adr-382] §7): a search
+/// from a low of the wind's scan that ended past the scan's reach of 12 m/s, at a lower `χ²` than
+/// the answer that stands.
+///
+/// The fit can't tell which of the two is the flight's. Past the scan's reach lie lows the scan
+/// never saw: on a synthetic flight flown in 6.5 m/s such a search ended at 14.0 m/s, and it was
+/// wrong (set A's flight 1305 in the fit report's slice). On the 54 mm synthetic design flown in
+/// 12.5 m/s and fitted from calm air it
+/// ended within 0.5 m/s of the flight's own wind, where the answer that stands lay more than
+/// 16 m/s from it. So the fit keeps the answer within the scan's reach and says what it left.
+///
+/// [adr-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct PastScan {
+    /// The wind it ended at, toward the east, m/s.
+    pub wind_east_m_s: f64,
+    /// The wind it ended at, toward the north, m/s.
+    pub wind_north_m_s: f64,
+    /// Its misfit `χ²` at the fit's last pass.
+    pub chi2: f64,
+    /// The `χ²` there of the answer that stands, which is higher.
+    pub standing_chi2: f64,
 }
 
 impl Fit {
@@ -483,6 +515,7 @@ impl Fit {
             misfit_share: None,
             read: Vec::new(),
             flown: 0,
+            past_scan: None,
         }
     }
 }
@@ -659,6 +692,259 @@ fn best_offset_s(observed: &Observations, flown: &Simulated, first_s: f64) -> f6
     best.1
 }
 
+/// The step between the wind scan's rings, m/s ([`wind_starts`]).
+const WIND_SCAN_STEP_M_S: f64 = 1.5;
+/// The scan's rings about calm air: to 12 m/s, past the fastest wind the intervals were tested
+/// on ([`crate::synthetic::MAX_WIND_M_S`], 8.9 m/s).
+const WIND_SCAN_RINGS: u32 = 8;
+/// The ways each ring is scanned in, 30° apart.
+const WIND_SCAN_WAYS: u32 = 12;
+/// The most lows of the scan a search starts again from.
+const WIND_SCAN_STARTS: usize = 3;
+
+/// Whether `x`'s wind lies within the scan's reach, [`WIND_SCAN_RINGS`] steps of
+/// [`WIND_SCAN_STEP_M_S`] from calm air: 12 m/s, past the 20 mph (8.9 m/s) the NAR's high-power
+/// safety code allows ([`crate::synthetic::MAX_WIND_M_S`]). A search from a low of the scan that
+/// runs out past it has found a low the scan never saw, and isn't taken: on a synthetic flight
+/// flown in 6.5 m/s such a search ended at 14.0 m/s (ADR-382's decision 3, only inside the scan's
+/// reach).
+fn within_scan(x: &[f64; UNKNOWNS]) -> bool {
+    x[WIND_EAST].hypot(x[WIND_NORTH]) <= wind_scan_reach_m_s()
+}
+
+/// The wind scan's reach, m/s: its outer ring, 12 m/s. An answer searched from a low of the scan
+/// counts only within it, and one left past it is said ([`PastScan`]).
+#[must_use]
+pub fn wind_scan_reach_m_s() -> f64 {
+    WIND_SCAN_STEP_M_S * f64::from(WIND_SCAN_RINGS)
+}
+
+/// The winds a fit of a log with a track starts its search again from (issue #1646): the lows of
+/// `χ²` on a polar grid of constant winds about calm air, every [`WIND_SCAN_STEP_M_S`] to
+/// [`WIND_SCAN_RINGS`] rings in [`WIND_SCAN_WAYS`] ways, the other unknowns where `x` holds them.
+///
+/// A rocket turns into the wind under thrust and flies upwind, and the air then carries it back,
+/// so its drift isn't monotonic in the wind, and the track's misfit can hold a second minimum far
+/// from the flight's wind: on the 54 mm synthetic design flown in 9 m/s, a search from calm air
+/// once settled at a wind the other way (issue #1646). A low is a grid point
+/// whose `χ²` is no higher than its neighbors' (the next ways on its ring, the next rings in its
+/// way, or every point of the first ring for calm air). A low within one step of `x`'s own wind
+/// lies in the basin the search already settled in, and is passed over. The
+/// [`WIND_SCAN_STARTS`] lowest of the rest are returned, lowest first, each as the wind toward
+/// the east and the north, m/s. The scan holds the rest at a wrong wind's best, so its lowest
+/// point needn't be the flight's wind; that is why the search starts from several lows rather
+/// than the lowest alone.
+fn wind_starts(
+    problem: &Problem<'_>,
+    fly: &mut dyn FnMut(&[f64; UNKNOWNS]) -> Option<Simulated>,
+    x: &[f64; UNKNOWNS],
+) -> Vec<(f64, f64)> {
+    let wind = |ring: u32, way: u32| {
+        let speed = WIND_SCAN_STEP_M_S * f64::from(ring);
+        let toward = std::f64::consts::TAU * f64::from(way) / f64::from(WIND_SCAN_WAYS);
+        (speed * toward.sin(), speed * toward.cos())
+    };
+    let mut cost = |(east, north): (f64, f64)| {
+        let mut at = *x;
+        at[WIND_EAST] = east;
+        at[WIND_NORTH] = north;
+        fly(&at).map_or(f64::INFINITY, |flight| {
+            chi2(&problem.residuals(&at, &flight))
+        })
+    };
+    let calm = cost((0.0, 0.0));
+    // `rings[i][k]`: ring `i + 1`, way `k`.
+    let rings: Vec<Vec<f64>> = (1..=WIND_SCAN_RINGS)
+        .map(|ring| {
+            (0..WIND_SCAN_WAYS)
+                .map(|way| cost(wind(ring, way)))
+                .collect()
+        })
+        .collect();
+    let mut lows = Vec::new();
+    if rings[0].iter().all(|&c| calm <= c) && calm.is_finite() {
+        lows.push((calm, (0.0, 0.0)));
+    }
+    let ways = WIND_SCAN_WAYS as usize;
+    for (i, ring) in rings.iter().enumerate() {
+        for (k, &c) in ring.iter().enumerate() {
+            let inner = if i == 0 { calm } else { rings[i - 1][k] };
+            let outer = rings.get(i + 1).map_or(f64::INFINITY, |next| next[k]);
+            let beside = [ring[(k + 1) % ways], ring[(k + ways - 1) % ways]];
+            if c.is_finite() && c <= inner && c <= outer && beside.iter().all(|&b| c <= b) {
+                #[expect(
+                    clippy::cast_possible_truncation,
+                    reason = "a ring's index and a way's are below WIND_SCAN_RINGS and WIND_SCAN_WAYS"
+                )]
+                let (ring, way) = (i as u32 + 1, k as u32);
+                lows.push((c, wind(ring, way)));
+            }
+        }
+    }
+    let settled = (x[WIND_EAST], x[WIND_NORTH]);
+    lows.retain(|(_, (east, north))| {
+        (east - settled.0).hypot(north - settled.1) > WIND_SCAN_STEP_M_S
+    });
+    lows.sort_by(|a, b| a.0.total_cmp(&b.0));
+    lows.into_iter()
+        .take(WIND_SCAN_STARTS)
+        .map(|(_, start)| start)
+        .collect()
+}
+
+/// Which of a pass's answers stands, and the answer left past the scan's reach that fits the log
+/// better, where there is one. `ends` holds where each search ended and its `χ²` there, the
+/// search from the stated wind first, then those from the scan's lows.
+///
+/// The lowest `χ²` stands, the first of equals. The first answer always counts. One searched
+/// from a low of the scan counts only inside the scan's reach ([`within_scan`]), as past it lie
+/// lows the scan never saw, and only with a finite cost: `total_cmp` would rank a NaN with its
+/// sign bit set below every number.
+///
+/// An answer left out for its reach is said, not dropped in silence ([`PastScan`]), where its
+/// `χ²` is lower than the standing answer's: the flight's own wind can lie past the scan's
+/// reach. It is said only where its wind lies more than one step of the scan from the standing
+/// answer's, as the scan's own lows are told apart: nearer, it is the same low found twice, and
+/// two searches of one low end a rounding apart. Of several, the lowest is said.
+fn stands(ends: &[([f64; UNKNOWNS], f64)]) -> (usize, Option<PastScan>) {
+    let best = ends
+        .iter()
+        .enumerate()
+        .filter(|(k, (x, cost))| *k == 0 || (cost.is_finite() && within_scan(x)))
+        .min_by(|a, b| a.1.1.total_cmp(&b.1.1).then(a.0.cmp(&b.0)))
+        .map_or(0, |(k, _)| k);
+    let Some((standing, standing_chi2)) = ends.get(best) else {
+        return (best, None);
+    };
+    let apart = |x: &[f64; UNKNOWNS]| {
+        (x[WIND_EAST] - standing[WIND_EAST]).hypot(x[WIND_NORTH] - standing[WIND_NORTH])
+    };
+    // Only an answer past the reach can lie below the standing one, the lowest within it, and a
+    // NaN lies below nothing.
+    let past_scan = ends
+        .iter()
+        .skip(1)
+        .filter(|(x, cost)| cost < standing_chi2 && apart(x) > WIND_SCAN_STEP_M_S)
+        .min_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(x, cost)| PastScan {
+            wind_east_m_s: x[WIND_EAST],
+            wind_north_m_s: x[WIND_NORTH],
+            chi2: *cost,
+            standing_chi2: *standing_chi2,
+        });
+    (best, past_scan)
+}
+
+/// Where a pass of Levenberg–Marquardt ends: the unknowns, the flight they fly, the misfit `χ²`
+/// there, and whether the pass converged.
+struct Descent {
+    x: [f64; UNKNOWNS],
+    at_x: Simulated,
+    cost: f64,
+    converged: bool,
+}
+
+/// One pass of Levenberg–Marquardt on `problem` from `x`, whose flight is `at_x`: the Jacobian by
+/// forward differences, the damped normal equations solved for each step, a step taken only where
+/// it lowers `χ²`. It ends after [`MAX_ITERATIONS`], on a step that lowers `χ²` by less than
+/// [`CONVERGED_CHI2`] (converged), where no damping finds a step down (converged, to rounding),
+/// or where a flight of the Jacobian won't fly.
+fn descend(
+    problem: &Problem<'_>,
+    fly: &mut dyn FnMut(&[f64; UNKNOWNS]) -> Option<Simulated>,
+    x: [f64; UNKNOWNS],
+    at_x: Simulated,
+) -> Descent {
+    let (mut x, mut at_x) = (x, at_x);
+    let mut information = [[0.0; UNKNOWNS]; UNKNOWNS];
+    let mut converged = false;
+    let mut lambda = 1e-3;
+    let mut r = problem.residuals(&x, &at_x);
+    let mut cost = chi2(&r);
+    for _ in 0..MAX_ITERATIONS {
+        // The Jacobian of the residuals against the unknowns, by forward differences.
+        let mut columns: Vec<Vec<f64>> = Vec::with_capacity(UNKNOWNS);
+        let mut failed = false;
+        for (j, step) in STEPS.iter().enumerate() {
+            let mut ahead = x;
+            ahead[j] += step;
+            match fly(&ahead) {
+                Some(flight) => {
+                    let mut column = problem.residuals(&ahead, &flight);
+                    for (c, b) in column.iter_mut().zip(&r) {
+                        *c = (*c - b) / step;
+                    }
+                    columns.push(column);
+                }
+                None => {
+                    failed = true;
+                    break;
+                }
+            }
+        }
+        if failed {
+            break;
+        }
+        columns.extend(problem.sensor_columns(&x, &at_x));
+        let mut gradient = [0.0; UNKNOWNS];
+        for i in 0..UNKNOWNS {
+            gradient[i] = columns[i].iter().zip(&r).map(|(a, b)| a * b).sum();
+            for j in 0..=i {
+                let value: f64 = columns[i].iter().zip(&columns[j]).map(|(a, b)| a * b).sum();
+                information[i][j] = value;
+                information[j][i] = value;
+            }
+        }
+        let mut improved = None;
+        while lambda < 1e8 {
+            let mut damped = information;
+            for (i, row) in damped.iter_mut().enumerate() {
+                row[i] *= 1.0 + lambda;
+            }
+            let Some(l) = cholesky(&damped) else {
+                lambda *= 10.0;
+                continue;
+            };
+            let step = solve(&l, &gradient.map(|g| -g));
+            let mut next = x;
+            for (value, delta) in next.iter_mut().zip(step) {
+                *value += delta;
+            }
+            let tried = fly(&next).and_then(|flight| {
+                let tried = problem.residuals(&next, &flight);
+                let tried_cost = chi2(&tried);
+                (tried_cost < cost).then_some((flight, tried, tried_cost))
+            });
+            if let Some(better) = tried {
+                x = next;
+                improved = Some(better);
+                lambda = (lambda * 0.1).max(1e-9);
+                break;
+            }
+            lambda *= 10.0;
+        }
+        let Some((flight, tried, tried_cost)) = improved else {
+            // No step down at any damping: it stands at the bottom, to rounding.
+            converged = true;
+            break;
+        };
+        let drop = cost - tried_cost;
+        at_x = flight;
+        r = tried;
+        cost = tried_cost;
+        if drop < CONVERGED_CHI2 {
+            converged = true;
+            break;
+        }
+    }
+    Descent {
+        x,
+        at_x,
+        cost,
+        converged,
+    }
+}
+
 /// Fits `forward` to `observed`, each parameter held to `stated`. A log that says nothing, or a
 /// flight that won't fly on what was stated, gives [`Fit::of_nothing`].
 pub fn fit(
@@ -823,7 +1109,6 @@ fn fit_and_sample(
     };
     x[FLOWN] = problem.clock_mean_s;
     x[FLOWN + 4] = problem.port_mean;
-    let mut information = [[0.0; UNKNOWNS]; UNKNOWNS];
     let mut converged = false;
     // A first pass on the stated flight, then one on what it found: the noise from its residuals
     // and the bins it reads from the flight it found, as a rocket faster than stated passes
@@ -833,6 +1118,8 @@ fn fit_and_sample(
     } else {
         2
     };
+    let mut starts = vec![(x, at_x.clone())];
+    let mut past_scan = None;
     for pass in 0..passes {
         problem.read = observed
             .heights
@@ -844,86 +1131,34 @@ fn fit_and_sample(
         if problem.read.iter().filter(|read| **read).count() <= UNKNOWNS {
             return (nothing(), None);
         }
-        converged = false;
-        let mut lambda = 1e-3;
-        let mut r = problem.residuals(&x, &at_x);
-        let mut cost = chi2(&r);
-        for _ in 0..MAX_ITERATIONS {
-            // The Jacobian of the residuals against the unknowns, by forward differences.
-            let mut columns: Vec<Vec<f64>> = Vec::with_capacity(UNKNOWNS);
-            let mut failed = false;
-            for (j, step) in STEPS.iter().enumerate() {
-                let mut ahead = x;
-                ahead[j] += step;
-                match fly(&ahead) {
-                    Some(flight) => {
-                        let mut column = problem.residuals(&ahead, &flight);
-                        for (c, b) in column.iter_mut().zip(&r) {
-                            *c = (*c - b) / step;
-                        }
-                        columns.push(column);
-                    }
-                    None => {
-                        failed = true;
-                        break;
-                    }
+        // Each answer the last pass found is searched on from here, at this pass's noise.
+        let mut descents: Vec<Descent> = Vec::with_capacity(1 + WIND_SCAN_STARTS);
+        for (from, flight) in starts {
+            descents.push(descend(&problem, &mut fly, from, flight));
+        }
+        // On a log with a track the misfit can hold a second minimum in the wind far from the
+        // flight's (issue #1646): so on the first pass the search starts again from each low the
+        // wind's scan finds. Each answer is carried to the last pass, whose noise sizes the
+        // track's weight against the wind's stated range, and the lowest misfit there stands.
+        if pass == 0 && !observed.horizontal.is_empty() {
+            for (east, north) in wind_starts(&problem, &mut fly, &descents[0].x) {
+                let mut from = descents[0].x;
+                from[WIND_EAST] = east;
+                from[WIND_NORTH] = north;
+                if let Some(flight) = fly(&from) {
+                    descents.push(descend(&problem, &mut fly, from, flight));
                 }
-            }
-            if failed {
-                break;
-            }
-            columns.extend(problem.sensor_columns(&x, &at_x));
-            let mut gradient = [0.0; UNKNOWNS];
-            for i in 0..UNKNOWNS {
-                gradient[i] = columns[i].iter().zip(&r).map(|(a, b)| a * b).sum();
-                for j in 0..=i {
-                    let value: f64 = columns[i].iter().zip(&columns[j]).map(|(a, b)| a * b).sum();
-                    information[i][j] = value;
-                    information[j][i] = value;
-                }
-            }
-            let mut improved = None;
-            while lambda < 1e8 {
-                let mut damped = information;
-                for (i, row) in damped.iter_mut().enumerate() {
-                    row[i] *= 1.0 + lambda;
-                }
-                let Some(l) = cholesky(&damped) else {
-                    lambda *= 10.0;
-                    continue;
-                };
-                let step = solve(&l, &gradient.map(|g| -g));
-                let mut next = x;
-                for (value, delta) in next.iter_mut().zip(step) {
-                    *value += delta;
-                }
-                let tried = fly(&next).and_then(|flight| {
-                    let tried = problem.residuals(&next, &flight);
-                    let tried_cost = chi2(&tried);
-                    (tried_cost < cost).then_some((flight, tried, tried_cost))
-                });
-                if let Some(better) = tried {
-                    x = next;
-                    improved = Some(better);
-                    lambda = (lambda * 0.1).max(1e-9);
-                    break;
-                }
-                lambda *= 10.0;
-            }
-            let Some((flight, tried, tried_cost)) = improved else {
-                // No step down at any damping: it stands at the bottom, to rounding.
-                converged = true;
-                break;
-            };
-            let drop = cost - tried_cost;
-            at_x = flight;
-            r = tried;
-            cost = tried_cost;
-            if drop < CONVERGED_CHI2 {
-                converged = true;
-                break;
             }
         }
+        let ends: Vec<([f64; UNKNOWNS], f64)> = descents.iter().map(|d| (d.x, d.cost)).collect();
+        // The last pass's word on an answer left past the scan's reach stands, as its noise is
+        // the one the answers are compared at.
+        let best;
+        (best, past_scan) = stands(&ends);
+        x = descents[best].x;
+        at_x = descents[best].at_x.clone();
+        converged = descents[best].converged;
+        starts = descents.into_iter().map(|d| (d.x, d.at_x)).collect();
         if pass + 1 < passes && matches!(noise, Noise::FromResiduals) {
             let (height, horizontal) = residual_noise(&problem, &x, &at_x);
             problem.height_sd_m = height.max(FLOOR_M);
@@ -939,6 +1174,7 @@ fn fit_and_sample(
         problem.horizontal_sd_m *= inflation(horizontal).sqrt();
     }
     // The Jacobian at the solution, with the noise as it ends.
+    let mut information = [[0.0; UNKNOWNS]; UNKNOWNS];
     let r = problem.residuals(&x, &at_x);
     let mut columns: Vec<Vec<f64>> = Vec::with_capacity(UNKNOWNS);
     for (j, step) in STEPS.iter().enumerate() {
@@ -1136,6 +1372,7 @@ fn fit_and_sample(
         misfit_share: Some(misfit_share),
         read: problem.read,
         flown: flown.get(),
+        past_scan,
     };
     (fit, posterior)
 }
@@ -1663,6 +1900,87 @@ mod tests {
     use super::*;
 
     use crate::residuals::tests_support::simulated_of;
+
+    /// The scan's reach is 12 m/s of wind speed in any direction, its edge counted in (ADR-382 §3).
+    #[test]
+    fn the_scans_reach_is_twelve_meters_a_second_its_edge_in() {
+        let wind = |east: f64, north: f64| {
+            let mut x = [1.0; UNKNOWNS];
+            x[WIND_EAST] = east;
+            x[WIND_NORTH] = north;
+            x
+        };
+        assert_eq!(WIND_SCAN_STEP_M_S * f64::from(WIND_SCAN_RINGS), 12.0);
+        assert!(within_scan(&wind(0.0, 0.0)));
+        assert!(within_scan(&wind(12.0, 0.0)));
+        assert!(within_scan(&wind(0.0, -12.0)));
+        // 7.2 and 9.6 make 12 exactly in f64.
+        assert!(within_scan(&wind(-7.2, 9.6)));
+        assert!(!within_scan(&wind(12.0_f64.next_up(), 0.0)));
+        assert!(!within_scan(&wind(8.5, 8.5)));
+        assert!(!within_scan(&wind(f64::NAN, 0.0)));
+        assert_eq!(wind_scan_reach_m_s(), 12.0);
+    }
+
+    /// Which answer stands, and what it leaves past the scan's reach (ADR-382 §3, §7).
+    #[test]
+    fn an_answer_left_past_the_scans_reach_is_said_where_it_fits_better() {
+        let end = |east: f64, north: f64, cost: f64| {
+            let mut x = [1.0; UNKNOWNS];
+            x[WIND_EAST] = east;
+            x[WIND_NORTH] = north;
+            (x, cost)
+        };
+        let said = |east: f64, north: f64, chi2: f64, standing_chi2: f64| {
+            Some(PastScan {
+                wind_east_m_s: east,
+                wind_north_m_s: north,
+                chi2,
+                standing_chi2,
+            })
+        };
+        // The flight of the issue's follow-up: flown in 12.5 m/s, the search from calm air ends
+        // more than 4 m/s the other way, and the search from a low of the scan ends past its
+        // reach.
+        let calm = end(-4.8, -0.6, 128.0);
+        assert_eq!(
+            stands(&[calm, end(12.1, 0.0, 15.2)]),
+            (0, said(12.1, 0.0, 15.2, 128.0))
+        );
+        // Within reach the better answer is taken, and nothing is left to say.
+        assert_eq!(stands(&[calm, end(12.0, 0.0, 15.2)]), (1, None));
+        // One that fits no better than the standing answer isn't said: equal, higher, or a NaN
+        // of either sign.
+        for cost in [128.0, 130.0, f64::NAN, -f64::NAN, f64::INFINITY] {
+            assert_eq!(stands(&[calm, end(12.1, 0.0, cost)]), (0, None), "{cost}");
+        }
+        // A NaN within reach doesn't stand either, whatever its sign.
+        assert_eq!(stands(&[calm, end(3.0, 0.0, -f64::NAN)]), (0, None));
+        // Of several past the reach the lowest is said, and one within reach still stands.
+        assert_eq!(
+            stands(&[
+                calm,
+                end(13.0, 0.0, 40.0),
+                end(6.0, 0.0, 90.0),
+                end(0.0, -14.0, 20.0),
+            ]),
+            (2, said(0.0, -14.0, 20.0, 90.0))
+        );
+        // The first answer stands wherever it ends. Another search that ends within one step of
+        // the scan of it found the same low, and isn't a second answer: 1.5 m/s away is within,
+        // the next number past it isn't.
+        let told = end(12.1, 0.0, 15.2);
+        assert_eq!(stands(&[told, end(13.6, 0.0, 15.1)]), (0, None));
+        assert_eq!(stands(&[told, end(12.1, 1.5, 15.1)]), (0, None));
+        assert_eq!(
+            stands(&[told, end(12.1, 1.5_f64.next_up(), 15.1)]),
+            (0, said(12.1, 1.5_f64.next_up(), 15.1, 15.2))
+        );
+        // The first of equals stands, and the search from the stated wind alone leaves nothing.
+        assert_eq!(stands(&[calm, end(5.0, 0.0, 128.0)]), (0, None));
+        assert_eq!(stands(&[calm]), (0, None));
+        assert_eq!(stands(&[]), (0, None));
+    }
 
     /// A straight-line "flight": height `a t + b t²`, `a` from the drag scale, `b` from the impulse
     /// scale; drift from the wind: the fit's linear case, whose answer and errors are closed form.
