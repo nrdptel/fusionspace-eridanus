@@ -10566,10 +10566,10 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
 /// [Issue #1646]: on a log with a track the misfit can hold a second minimum in the wind, far
 /// from the flight's, as the drift isn't monotonic in the wind: the 54 mm design flown in 9 m/s
 /// toward the east drifts 56 m east, in 4 m/s 52 m west. A search from calm air once settled
-/// there, at 1.41 m/s toward the west with an interval under 2 m/s wide. So the fit starts its
-/// search again from the lows of a scan of the wind. Each of the issue's flights, fitted from
-/// calm air or from a wrong wind, now states an interval that holds the wind it was flown in,
-/// and no caveat on the wind is printed.
+/// there, at a wind the other way with a narrow interval (the issue has the numbers). So the fit
+/// starts its search again from the lows of a scan of the wind. Each of the issue's flights,
+/// fitted from calm air or from a wrong wind, now states an interval that holds the wind it was
+/// flown in, and no caveat on the wind is printed.
 ///
 /// [Issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
 #[test]
@@ -10643,7 +10643,7 @@ fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
 }
 
 /// [Issue #1646], past the scan's reach. The 54 mm design flown in 12.5 or 13 m/s toward the
-/// east and fitted from calm air: the search from calm air ends about 4.7 m/s toward the west,
+/// east and fitted from calm air: the search from calm air ends more than 4 m/s toward the west,
 /// and the search from a low of the scan ends near the flight's wind, past the 12 m/s the scan
 /// reaches, where the fit doesn't take it ([ADR-382] §3).
 ///
@@ -10710,8 +10710,9 @@ fn fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach() {
         for sentence in [
             "The wind has a second answer, which the fit didn't take.",
             &format!("A search ended at a wind of {said} m/s ("),
-            " mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind reaches.",
-            "Until then take the fitted wind, and the scales fitted with it, as unsettled.",
+            " mph) from 270°, past the 12 m/s (26.8 mph) the fit's scan of the wind reaches.",
+            "fit again with that wind given.",
+            "take the fitted wind, and the scales fitted with it, as unsettled.",
             &on_the_command_line,
         ] {
             assert!(message.contains(sentence), "{sentence:?} in {message}");
@@ -10729,6 +10730,36 @@ fn fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach() {
         for line in out.lines() {
             assert!(line.chars().count() <= 100, "{line:?}");
         }
+        // The guide quotes this run's caveat: to the digit on macOS, where its outputs were
+        // written, and elsewhere with any number standing for a number.
+        let guide = std::fs::read_to_string(repo_file("docs/fitting-a-flight.md")).unwrap();
+        let quoted = format!("```text,wrap\nCaveat. {message}\n```\n");
+        let numbers_masked = |text: &str| {
+            let chars: Vec<char> = text.chars().collect();
+            let digit = |k: usize| chars.get(k).is_some_and(char::is_ascii_digit);
+            let mut masked = String::new();
+            for (k, c) in chars.iter().enumerate() {
+                let in_number = digit(k) || (*c == '.' && k > 0 && digit(k - 1) && digit(k + 1));
+                if !in_number {
+                    masked.push(*c);
+                } else if !masked.ends_with('#') {
+                    masked.push('#');
+                }
+            }
+            masked
+        };
+        if cfg!(target_os = "macos") {
+            assert!(guide.contains(&quoted), "the guide lacks\n{quoted}");
+        } else {
+            assert!(
+                numbers_masked(&guide).contains(&numbers_masked(&quoted)),
+                "the guide lacks, numbers aside,\n{quoted}"
+            );
+        }
+        assert_eq!(
+            numbers_masked("12.2 m/s (27.3 mph), 270°."),
+            "# m/s (# mph), #°."
+        );
         // Fitted again as the notice says.
         let told = [&args[..], &["--wind", said, "--wind-from", "270"]].concat();
         let document = json(&told, 0, "fit.schema.json");

@@ -2086,7 +2086,8 @@ hpr fit flight.pf2 rocket.ork --motor CTI-J350 --wind 4 --temperature 28
 The drag scale's interval fails one of its tests on synthetic flights, so it prints with a caveat
 that says which way it errs ([the caveat](fitting-a-flight.md#the-caveat)). On a log with latitude
 and longitude the fit scans the wind for a second answer before it settles. Where a search ended
-past the scan's 12 m/s (27 mph) and fits the log better, a caveat says so
+past the scan's 12 m/s (27 mph) and fits the log better, a caveat says so, and `--json` gives it
+as `wind_past_scan`
 ([the wind on a log with a track](fitting-a-flight.md#the-wind-on-a-log-with-a-track)). The warnings of each
 known issue the fitted flight meets follow the result, as `hpr sim` gives them. A fitted value
 outside the range the intervals were tested over prints with a `†`

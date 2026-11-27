@@ -124,8 +124,8 @@ On a log with a track, $\chi^2$ can have a second low in the wind, far from the 
 the wind under thrust and flies upwind. The air then carries it back. So its drift doesn't grow
 steadily with the wind. The search steps downhill from where it starts, so it can settle in the
 wrong low. Take the 54 mm (2.1 in) synthetic design, flown in 9 m/s (20 mph) toward the east. A
-search from calm air settled at 1.4 m/s (4.6 ft/s) toward the west. Its interval was under 2 m/s
-(7 ft/s) wide.
+search from calm air once settled at a wind toward the west, with a narrow interval (the issue has
+the numbers).
 
 So after the first pass the fit scans the wind. It flies 97 constant winds, its other inputs held
 where that pass left them. They're calm air and every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s),
@@ -137,8 +137,9 @@ track's weight. At the first pass's guess, twice the floor, the wind's stated ra
 the wrong low.
 
 An answer found from a low of the scan counts only if its wind lies within 12 m/s (39 ft/s). Past that lie
-lows the scan never saw. Before this rule, two such searches on the synthetic flights ran out to
-about 14 m/s (46 ft/s). Those flights were flown in about 6 m/s (20 ft/s) ([the decision record][adr-382]). The search
+lows the scan never saw. One such search is in [the report's slice][slice]: set A's flight 1,305 flew in
+6.5 m/s (15 mph), and its search from a low of the scan ends at 14.0 m/s (31 mph), with a lower
+$\chi^2$ than the answer near the flight's wind ([the decision record][adr-382]). The search
 from the stated wind counts wherever it ends. The scan's lowest point needn't be the flight's wind,
 since the other inputs are held where a wrong wind left them. That's why it starts from several
 lows. A low between the scan's points can still be missed. A wind past 12 m/s (27 mph), past the
@@ -152,9 +153,12 @@ with its wind and both values of $\chi^2$ at the last pass. It must lie more tha
 doesn't choose between the two. Take the 54 mm (2.1 in) design flown in 12.5 m/s (28 mph) and
 fitted from calm air. The answer left is the flight's wind, at a $\chi^2$ of about 15 against
 about 128. On the [report's slice][slice], 2 of the 195 fits of a track report one. Both are
-wrong, at 99.7 against 128 and at 221 against 230. No cut on that gap was tested, so the fit
-applies none. A count over all the synthetic flights is
+wrong, at 99.7 against 128 and at 221 against 230. The synthetic flights draw no wind faster than
+20 mph (8.9 m/s), so on them an answer past 12 m/s (27 mph) can only be wrong. No cut on that gap
+was tested, so the fit applies none. A count over all the synthetic flights is
 [issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652).
+[The guide](../fitting-a-flight.md#the-wind-on-a-log-with-a-track) shows the caveat `hpr fit`
+prints and what to do about it.
 
 ### When a log has nothing to fit
 
@@ -336,7 +340,8 @@ How it draws:
 
 A fit with something to fit flies about 1,000 times. Least squares flies about 80 on set A's logs of height alone, and 180 on those with a track.
 On a log with a track, the search for the posterior's peak adds about 21. In one run on a 10-core
-Mac before the wind's scan, the whole report took 1 hour 56 minutes, against about 16 minutes by least squares alone. So each pull request checks every
+Mac before the wind's scan, the whole report took 1 hour 48 minutes, against about 16 minutes by least squares alone
+([ADR-320](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md), the Bayesian option in two blocks). So each pull request checks every
 21st fit, its posterior with it, and CI fits the whole each night
 ([In CI](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 

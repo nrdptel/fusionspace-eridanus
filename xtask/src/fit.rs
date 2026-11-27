@@ -2513,10 +2513,13 @@ mod tests {
 
     /// How often a fit says a second answer past the wind scan's reach, and how often that
     /// answer is the wrong one, on the committed slice ([ADR-382] §7): 2 of its 195 fits of a
-    /// track, and both are wrong. Each of the two flights flew within the scan's reach, in a wind
-    /// the fit's own answer lies within 1 m/s of, and the answer left lies more than 3 m/s from
-    /// it. `fit --slice` makes the slice again on every platform, so the lines stand for today's
-    /// fit.
+    /// track, and both are wrong. The report's true wind for each of the two lies within the
+    /// scan's reach and within 1 m/s of the fit's own answer, and the answer left lies more than
+    /// 3 m/s from it. It can only be so on this slice: none of its fits of a track has a true
+    /// wind past the reach, as the synthetic flights draw no wind faster than 20 mph (8.9 m/s).
+    /// The answer left being the flight's own is the command's test of flights in 12.5 and
+    /// 13 m/s. `fit --slice` makes the slice again on every platform, so the lines stand for
+    /// today's fit.
     ///
     /// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
     #[test]
@@ -2537,6 +2540,37 @@ mod tests {
                 .filter_map(|word| word.parse().ok())
                 .collect()
         };
+        // A flight's line of one wind: its value, its standard error and its truth.
+        let wind = |flight: &crate::slice::Flight, asked: Asked| {
+            let line = flight
+                .made
+                .iter()
+                .find(|line| line.starts_with(&format!("{}: ", asked.name())))
+                .unwrap();
+            numbers(line)
+        };
+        let reach = hpr_forensics::fit::wind_scan_reach_m_s();
+        // No fit of a track in the slice has a true wind past the scan's reach.
+        let fastest = slice
+            .flights
+            .iter()
+            .filter(|flight| flight.made[0].contains(", with a track, "))
+            .map(|flight| {
+                let (east, north) = (
+                    wind(flight, Asked::WindEast),
+                    wind(flight, Asked::WindNorth),
+                );
+                let speed = east[2].hypot(north[2]);
+                assert!(
+                    speed < reach,
+                    "{} flight {}: {speed}",
+                    flight.set,
+                    flight.index
+                );
+                speed
+            })
+            .fold(0.0, f64::max);
+        assert!(fastest > 11.0 && fastest < reach, "{fastest}");
         let said: Vec<(&str, u64, Vec<f64>, Vec<f64>)> = slice
             .flights
             .iter()
@@ -2545,16 +2579,10 @@ mod tests {
                     .made
                     .iter()
                     .find(|line| line.starts_with(SECOND_ANSWER))?;
-                let wind = |name: &str| {
-                    let line = flight
-                        .made
-                        .iter()
-                        .find(|line| line.starts_with(&format!("{name}: ")))
-                        .unwrap();
-                    // Its value, its standard error and its truth.
-                    numbers(line)
-                };
-                let (east, north) = (wind(Asked::WindEast.name()), wind(Asked::WindNorth.name()));
+                let (east, north) = (
+                    wind(flight, Asked::WindEast),
+                    wind(flight, Asked::WindNorth),
+                );
                 // Fitted and true, each toward the east and the north.
                 Some((
                     flight.set.as_str(),
@@ -2569,7 +2597,6 @@ mod tests {
             said.iter().map(|s| (s.0, s.1)).collect::<Vec<_>>(),
             [("a", 1305), ("calibration", 4667)]
         );
-        let reach = hpr_forensics::fit::wind_scan_reach_m_s();
         for (set, index, fitted, second) in &said {
             let case = format!("{set} flight {index}: {fitted:?}, {second:?}");
             let (fitted_wind, truth) = ((fitted[0], fitted[1]), (fitted[2], fitted[3]));

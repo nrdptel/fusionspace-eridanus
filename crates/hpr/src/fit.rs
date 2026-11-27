@@ -196,9 +196,9 @@ impl Caveat {
 }
 
 /// A second answer in the wind that a fit of a log with a track found and didn't take
-/// ([`hpr_forensics::fit::PastScan`], [ADR-382][adr-382] §7): a search from a low of the wind's
-/// scan that ended past the scan's reach of 12 m/s and fits the log better than the wind the fit
-/// gives.
+/// ([`hpr_forensics::fit::PastScan`]; [ADR-382][adr-382]'s decision 7, an answer left past the
+/// reach is said): a search from a low of the wind's scan that ended past the scan's reach of
+/// 12 m/s and fits the log better than the wind the fit gives.
 ///
 /// The fit can't tell which of the two is the flight's. Past the scan's reach lie lows the scan
 /// never saw, and an answer there has been the flight's own wind on some tested flights and a
@@ -232,15 +232,22 @@ impl WindPastScan {
     /// The way its wind blows from, degrees clockwise from north, in `[0, 360)`.
     #[must_use]
     pub fn from_deg(&self) -> f64 {
-        (-self.wind_east_m_s)
+        let from_deg = (-self.wind_east_m_s)
             .atan2(-self.wind_north_m_s)
             .to_degrees()
-            .rem_euclid(360.0)
+            .rem_euclid(360.0);
+        // `rem_euclid` rounds a way a hair short of north up to 360 itself, and gives a wind
+        // straight from the north as −0: both are 0°.
+        if from_deg >= 360.0 {
+            0.0
+        } else {
+            from_deg + 0.0
+        }
     }
 
     /// The speed and the way a fit can be told to search from this answer, as the message
-    /// prints them: the speed to a tenth of a m/s, rounded up so that it stays past the scan's
-    /// reach, and the way to a whole degree in `[0, 360)`.
+    /// prints them: the speed rounded up to a tenth of a m/s, and the way to a whole degree in
+    /// `[0, 360)`.
     #[must_use]
     pub fn told(&self) -> (f64, f64) {
         (
@@ -249,23 +256,42 @@ impl WindPastScan {
         )
     }
 
+    /// The two misfits as the message prints them, this answer's and the fitted wind's, and the
+    /// decimal places they are printed to. This answer's is rounded up and the fitted wind's
+    /// down, so the gap printed is never wider than the gap found; the places are the fewest,
+    /// from 1 to 6, at which the first still prints lower than the second.
+    #[must_use]
+    pub fn misfits_told(&self) -> (f64, f64, usize) {
+        const MOST_PLACES: usize = 6;
+        (1..=MOST_PLACES)
+            .map(|places| {
+                (
+                    up(self.chi2, places),
+                    down(self.standing_chi2, places),
+                    places,
+                )
+            })
+            .find(|(chi2, standing_chi2, places)| chi2 < standing_chi2 || *places == MOST_PLACES)
+            .unwrap_or((self.chi2, self.standing_chi2, MOST_PLACES))
+    }
+
     /// The notice in sentences.
     #[must_use]
     pub fn message(&self) -> String {
         let (speed_m_s, from_deg) = self.told();
+        let (chi2, standing_chi2, places) = self.misfits_told();
         let reach_m_s = least_squares::wind_scan_reach_m_s();
         format!(
             "The wind has a second answer, which the fit didn't take. A search ended at a wind of \
-             {speed_m_s:.1} m/s ({:.0} mph) from {from_deg:.0}°, past the {reach_m_s:.0} m/s \
-             ({:.0} mph) the fit's scan of the wind reaches. It fits the log better than the \
-             fitted wind: a misfit (χ²) of {:.1} against {:.1}. Past the scan's reach the fit \
-             can't tell the flight's wind from a wrong one, so the fitted wind stands. If the \
-             day's wind was near the second answer, fit again told that wind. Until then take \
-             the fitted wind, and the scales fitted with it, as unsettled.",
+             {speed_m_s:.1} m/s ({:.1} mph) from {from_deg:.0}°, past the {reach_m_s:.0} m/s \
+             ({:.1} mph) the fit's scan of the wind reaches. It fits the log better than the \
+             fitted wind: a misfit (χ²) of {chi2:.places$} against {standing_chi2:.places$}. \
+             Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the \
+             fitted wind stands. If the day's wind was near the second answer, fit again with \
+             that wind given. If you have no record of the day's wind, take the fitted wind, and \
+             the scales fitted with it, as unsettled.",
             speed_m_s / MPH_M_S,
             reach_m_s / MPH_M_S,
-            up(self.chi2, 1),
-            down(self.standing_chi2, 1),
         )
     }
 }

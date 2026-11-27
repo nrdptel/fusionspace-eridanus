@@ -28,8 +28,9 @@
 //! Mach 0.8 are left out, as its port's pressure there follows no one coefficient. On a log with a
 //! track, `χ²` can hold a second low in the wind far from the flight's, so after the first pass's
 //! search the fit scans the wind and searches again from the scan's lows (`wind_starts`); the
-//! lowest `χ²` at the second pass stands, of the answers within the scan's reach, and a lower one
-//! left past it is said with the fit ([`PastScan`]).
+//! lowest `χ²` at the second pass stands. An answer from a scan low counts only within the scan's
+//! reach, the search from the stated wind's wherever it ends, and a lower one left past the reach
+//! is said with the fit ([`PastScan`]).
 //!
 //! Each parameter's standard error is the square root of the diagonal of `σ² (JᵀJ)⁻¹`, `J` the
 //! Jacobian of the weighted residuals at the solution, and its 90% interval is that error times the
@@ -478,8 +479,9 @@ pub struct Fit {
 /// the answer that stands.
 ///
 /// The fit can't tell which of the two is the flight's. Past the scan's reach lie lows the scan
-/// never saw: on two synthetic flights flown in winds near 6 m/s such a search ended near 14 m/s,
-/// and it was wrong. On the 54 mm synthetic design flown in 12.5 m/s and fitted from calm air it
+/// never saw: on a synthetic flight flown in 6.5 m/s such a search ended at 14.0 m/s, and it was
+/// wrong (set A's flight 1305 in the fit report's slice). On the 54 mm synthetic design flown in
+/// 12.5 m/s and fitted from calm air it
 /// ended within 0.5 m/s of the flight's own wind, where the answer that stands lay more than
 /// 16 m/s from it. So the fit keeps the answer within the scan's reach and says what it left.
 ///
@@ -703,8 +705,9 @@ const WIND_SCAN_STARTS: usize = 3;
 /// Whether `x`'s wind lies within the scan's reach, [`WIND_SCAN_RINGS`] steps of
 /// [`WIND_SCAN_STEP_M_S`] from calm air: 12 m/s, past the 20 mph (8.9 m/s) the NAR's high-power
 /// safety code allows ([`crate::synthetic::MAX_WIND_M_S`]). A search from a low of the scan that
-/// runs out past it has found a low the scan never saw, and isn't taken: on the synthetic flights
-/// such searches ended near 14 m/s on flights in winds near 6 m/s (ADR-382).
+/// runs out past it has found a low the scan never saw, and isn't taken: on a synthetic flight
+/// flown in 6.5 m/s such a search ended at 14.0 m/s (ADR-382's decision 3, only inside the scan's
+/// reach).
 fn within_scan(x: &[f64; UNKNOWNS]) -> bool {
     x[WIND_EAST].hypot(x[WIND_NORTH]) <= wind_scan_reach_m_s()
 }
@@ -723,7 +726,7 @@ pub fn wind_scan_reach_m_s() -> f64 {
 /// A rocket turns into the wind under thrust and flies upwind, and the air then carries it back,
 /// so its drift isn't monotonic in the wind, and the track's misfit can hold a second minimum far
 /// from the flight's wind: on the 54 mm synthetic design flown in 9 m/s, a search from calm air
-/// settled at 1.4 m/s the other way, `χ²` 82 against 15.6 at the flight's. A low is a grid point
+/// once settled at a wind the other way (issue #1646). A low is a grid point
 /// whose `χ²` is no higher than its neighbors' (the next ways on its ring, the next rings in its
 /// way, or every point of the first ring for calm air). A low within one step of `x`'s own wind
 /// lies in the basin the search already settled in, and is passed over. The
@@ -1937,7 +1940,8 @@ mod tests {
             })
         };
         // The flight of the issue's follow-up: flown in 12.5 m/s, the search from calm air ends
-        // 4.8 m/s the other way, and the search from a low of the scan ends past its reach.
+        // more than 4 m/s the other way, and the search from a low of the scan ends past its
+        // reach.
         let calm = end(-4.8, -0.6, 128.0);
         assert_eq!(
             stands(&[calm, end(12.1, 0.0, 15.2)]),

@@ -418,8 +418,8 @@ fn a_log_with_a_track_states_the_wind() {
 
 /// The second answer a fit leaves past its wind scan's reach ([ADR-382] §7) says the wind it
 /// ended at as a speed and the way it blows from, how the two answers fit, and what to do. Its
-/// speed is rounded up, so that a fit told it starts past the scan's reach; the two misfits are
-/// rounded toward each other, so that the gap printed is never wider than the gap found.
+/// speed is rounded up; the two misfits are rounded toward each other, so that the gap printed
+/// is never wider than the gap found, and to enough places that the lower still prints lower.
 ///
 /// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
 #[test]
@@ -442,13 +442,32 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
     assert_eq!(
         past.message(),
         "The wind has a second answer, which the fit didn't take. A search ended at a wind of \
-         12.2 m/s (27 mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind \
+         12.2 m/s (27.3 mph) from 270°, past the 12 m/s (26.8 mph) the fit's scan of the wind \
          reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against \
          127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so \
-         the fitted wind stands. If the day's wind was near the second answer, fit again told \
-         that wind. Until then take the fitted wind, and the scales fitted with it, as \
-         unsettled."
+         the fitted wind stands. If the day's wind was near the second answer, fit again with \
+         that wind given. If you have no record of the day's wind, take the fitted wind, and \
+         the scales fitted with it, as unsettled."
     );
+    assert_eq!(past.misfits_told(), (15.3, 127.8, 1));
+    // Two misfits that one decimal place would print crossed, or as equals, get the places
+    // that keep the lower one lower.
+    let fits = |chi2: f64, standing_chi2: f64| WindPastScan {
+        chi2,
+        standing_chi2,
+        ..past
+    };
+    assert_eq!(fits(15.02, 15.04).misfits_told(), (15.02, 15.04, 2));
+    assert!(
+        fits(15.02, 15.04)
+            .message()
+            .contains("a misfit (χ²) of 15.02 against 15.04."),
+    );
+    assert_eq!(fits(15.0, 15.1).misfits_told(), (15.0, 15.1, 1));
+    assert_eq!(fits(15.01, 15.19).misfits_told(), (15.01, 15.19, 2));
+    assert_eq!(fits(99.7, 128.0).misfits_told(), (99.7, 128.0, 1));
+    // Closer than the sixth place, they print as they round there.
+    assert_eq!(fits(15.0, 15.0 + 1e-9).misfits_told().2, 6);
     // The way a wind blows from, each quarter: toward the north is from the south.
     let toward = |east: f64, north: f64| WindPastScan {
         wind_east_m_s: east,
@@ -470,6 +489,21 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
     assert!(nearly_north.from_deg() > 359.7);
     assert_eq!(nearly_north.told(), (13.1, 0.0));
     assert_eq!(toward(12.0, 0.0).told().0, 12.0);
+    // The way stays under 360° where the turn rounds up to it, and a wind straight from the
+    // north is 0°, not −0°.
+    let hair_short = toward(1e-20, -13.0).from_deg();
+    assert!((0.0..360.0).contains(&hair_short), "{hair_short}");
+    assert_eq!(hair_short, 0.0);
+    let from_north = toward(0.0, -13.0).from_deg();
+    assert!(
+        from_north == 0.0 && from_north.is_sign_positive(),
+        "{from_north}"
+    );
+    let from_north = toward(-0.0, -13.0).from_deg();
+    assert!(
+        from_north == 0.0 && from_north.is_sign_positive(),
+        "{from_north}"
+    );
 }
 
 /// What a log of height alone is told of the wind: at least the wind its intervals' shares were

@@ -170,13 +170,14 @@ wind under thrust and flies upwind, and the air then carries it back. So its dri
 steadily with the wind, and a track can be fitted fairly well by two winds: the flight's, and
 another far from it. A search from the wind you give can settle at the wrong one. The 54 mm
 (2.1 in) design's own flight in a wind of 9 m/s (20 mph) toward the east, fitted from calm air,
-once came out as a wind of 1.4 m/s (4.6 ft/s) the other way, with an interval under 2 m/s
-(7 ft/s) wide ([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)).
+once came out as a wind the other way, with a narrow interval
+([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646) has the numbers).
 
 So after its first search the fit scans the wind. It flies the flight in calm air and in winds
 every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s), in 12 directions, and searches again from the
 three lowest of that scan's lows (points no higher than their neighbors) away from its first answer. The answer that fits the log best
-stands, of those within 12 m/s (27 mph)
+stands. One found from the scan counts only within 12 m/s (27 mph), and the search from the wind
+you give counts wherever it ends
 ([the method](physics/flight-fit.md#a-second-answer-in-the-wind)). A test fits that design's
 flights in winds of 2 m/s (4.5 mph), 4, 6 and 9 m/s (20 mph) from calm air, one of them off a
 3 m (9.8 ft) rail and one told a wrong wind of 3 m/s (6.7 mph). Each interval holds the wind the
@@ -184,35 +185,49 @@ flight was flown in (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`).
 
 The scan found the wind on each of that test's flights, but it doesn't rule out a wrong answer,
 and no test counts how often one remains. It can miss a second answer between its points. It was
-tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md), not on
-a real flight's log. If the fitted wind differs
+tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md). It
+also ran on the two real logs with a track in
+[the report of fits of real logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md),
+but no real flight has its wind measured apart from its log to check the fitted one against. If the fitted wind differs
 from the field's by more than its interval, distrust the other scales too. The scan
 adds 97 flights of the simulation to a fit of a log with a track, and each search from it more.
 
 **A second answer past 12 m/s (27 mph).** A search from the scan that ends past that speed isn't
-taken. It is past the 20 mph (8.9 m/s) the NAR's high-power safety code allows, and past it lie
-lows the scan never saw. But a flight can be flown in such a wind, and then the answer left out is
+taken. That speed is more than the 20 mph (8.9 m/s) the NAR's high-power safety code allows, and
+beyond it lie lows the scan never saw. But a flight can be flown in such a wind, and then the answer left out is
 the flight's. So the fit says when a search ended past the scan's reach and fits the log better than the
-fitted wind. A caveat prints under the table, and `--json` gives it as `wind_past_scan`. On that
-design's flight in 12.5 m/s (28 mph), fitted from calm air, it reads:
+fitted wind. A caveat prints under the table, and `--json` gives it as `wind_past_scan`. On a
+simulated flight of that design in a wind of 12.5 m/s (28 mph) toward the east, fitted from calm
+air, it reads:
 
 ```text,wrap
-Caveat. The wind has a second answer, which the fit didn't take. A search ended at a wind of 12.2 m/s (27 mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against 127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the fitted wind stands. If the day's wind was near the second answer, fit again told that wind. Until then take the fitted wind, and the scales fitted with it, as unsettled. On the command line: `--wind 12.2 --wind-from 270`.
+Caveat. The wind has a second answer, which the fit didn't take. A search ended at a wind of 12.2 m/s (27.3 mph) from 270°, past the 12 m/s (26.8 mph) the fit's scan of the wind reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against 127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the fitted wind stands. If the day's wind was near the second answer, fit again with that wind given. If you have no record of the day's wind, take the fitted wind, and the scales fitted with it, as unsettled. On the command line: `--wind 12.2 --wind-from 270`.
 ```
+
+A wind toward the east blows from the west, which is 270° clockwise from north. The misfit, χ², is
+the sum the fit makes as small as it can: each height's and each track point's miss over its noise,
+squared, plus a term for the ranges the fit is told
+([the method](physics/flight-fit.md#how-it-works)). The lower of two fits the log better. The line
+of options is left off a fit given `--weather` or `--launch-time`, which `--wind` can't be given
+beside.
 
 The fitted wind on that flight blew more than 4 m/s (9 mph) the other way, and its interval
 missed the flight's wind. Fitted again with those two options, the fit ends within 0.5 m/s
 (1.6 ft/s) of the flight's wind and says no second answer
-(`fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach`). Its interval can still miss
+(`fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach`, which also holds the block
+above to a run). Its interval can still miss
 by a little, as the fitted wind reads slow
 ([issue #1651](https://github.com/nrdptel/fusionspace-eridanus/issues/1651)).
 
 The caveat doesn't say which answer is the flight's. On the fit report's slice of
-[synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it. Both
-times the second answer is the wrong one: each flight flew in a wind within 1 m/s (3.3 ft/s) of
+[synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it
+(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). The synthetic flights draw no wind
+faster than 20 mph (8.9 m/s), so on them a second answer past the scan's reach can only be the
+wrong one, and both times it is: the report's true wind for each lies within 1 m/s (3.3 ft/s) of
 the fitted one. So where the caveat prints, check it against the wind on the field that day. If
 that was near the second answer, fit again from it. If it was near the fitted wind, the fitted
-wind stands. The caveat isn't counted over all the synthetic flights yet
+wind stands. With no record of the day's wind, take the fitted wind and the scales as unsettled.
+The caveat isn't counted over all the synthetic flights yet
 ([issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652)).
 
 ### The mark on a value outside the tested range
