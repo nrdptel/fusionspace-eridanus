@@ -417,8 +417,9 @@ fn timed_jobs_verdict(whose: &str, run: &Run, jobs: &[Job]) -> Result<Verdict, S
 /// The jobs' check for a branch that may repair it ([ADR-383]): `main`'s verdict stands unless it
 /// fails (a job over the budget, or no run of a pull request's jobs found) and one of `own` is a
 /// passing run of a pull request's jobs ([`pull_request_jobs`]) on `head` itself that speaks for
-/// it ([`speaks_for`]); that run's jobs are then held to the budget in main's place. `own` holds the passing hand-started runs on the branch's own commits,
-/// each with its jobs and whether it speaks for the head.
+/// it ([`speaks_for`]); that run's jobs are then held to the budget in main's place. `own` holds
+/// the passing hand-started runs on the branch's own commits, each with its jobs and whether it
+/// speaks for the head.
 ///
 /// A run on an earlier commit doesn't count, though only pages changed since: a page moves the
 /// site's jobs. A run on a commit behind main doesn't speak for the head, so it doesn't count
