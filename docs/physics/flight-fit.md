@@ -265,8 +265,9 @@ Those counts have limits:
   ([ADR-368, the gap recorded and not fitted away][adr-368]), and
   [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix. A first
   try fitted the shares apart for flights whose heights fit within 1 m (3.3 ft) and for the rest.
-  It failed set B. Its drag interval left too few truths above it, and its wind toward the north
-  grew too wide. So it isn't in force ([ADR-384, the split measured][adr-384]).
+  It failed set B. Its drag interval left only 27 truths above it, too few to pass. Its wind
+  toward the north, which passes today, held more truths inside than a 90% interval should. So
+  it isn't in force ([ADR-384, the split measured][adr-384]).
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 125 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse

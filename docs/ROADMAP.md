@@ -502,10 +502,11 @@ log corpus came from Debrief.
   - [ ] **M7.3g The least-squares intervals pass again** (#1108, ADR-377; in three, ADR-384; met
     when M7.3g3 is).
     - [ ] **M7.3g2 A rule chosen on the calibration set.** *Done when:* a rule for the shares,
-      chosen on the calibration set's fits alone, with its counts on sets A and B predicted in
-      writing before they are counted, is measured on both by a full `cargo xtask fit` at a pushed
-      commit, and a record sets the counts against the predictions (ADR-384 decision 4). Two rules
-      in a row that fail set B end M7.3g: the gap stays recorded (ADR-368), the pages say so.
+      chosen on the calibration set's fits alone, with its counts on sets A and B predicted on
+      #1108 before any of their fits is read for it, is measured on both by a full `cargo xtask
+      fit` at a pushed commit, and a record sets the counts against the predictions (ADR-384
+      decision 4). A rule fails when any row or class fails on set A or B; the split was the
+      first, and one more that fails ends M7.3g with M7.3g3 open (decision 5).
     - [ ] **M7.3g3 The intervals pass again.** *Done when:* with M7.3g2's rule in force, every
       least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*,
       the check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
