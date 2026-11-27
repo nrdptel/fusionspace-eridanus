@@ -1,7 +1,7 @@
 # ADR-384: M7.3g in three: the split by the residual, measured, fails set B (2026-11-27)
 
 - **Status:** accepted; splits [M7.3g][m7-3g] into M7.3g1, M7.3g2 and M7.3g3, each with its own *done when*, M7.3g's own *done when* whole in M7.3g3; changes no share, band, count or flight; [ADR-368][adr-368]'s gap stands
-- **Summary:** M7.3g's first rule for the least-squares fit's interval shares, as [issue #1108][i1108] stated it before any count, fits the shares apart for fits whose heights' residual is within 1 m and for the rest. Fitted on the calibration set and measured on sets A and B, it passes every row and class on set A but fails three rows and classes on set B. Its drag scale moves from too many truths below to too few above, and its wind toward the north, which passes today, fails as too wide. So the split isn't put in force. M7.3g1 ships the tools that measured it and this record. M7.3g2 chooses a second rule on the calibration set alone, its counts predicted before sets A and B are counted. M7.3g3 puts a rule that passes in force.
+- **Summary:** The first rule M7.3g tried, as issue #1108 stated it before any count, fits the least-squares fit's interval shares apart for fits whose heights' residual is within 1 m (3.3 ft) and for the rest. Measured on sets A and B, it passes every row and class on set A but fails three rows and classes on set B, among them the wind toward the north, which passes today. So it isn't put in force. M7.3g1 ships the tools that measured it and this record. M7.3g2 chooses a second rule on the calibration set alone, its counts predicted first. M7.3g3 puts a rule that passes in force.
 
 [m7-3g]: ../ROADMAP.md
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
