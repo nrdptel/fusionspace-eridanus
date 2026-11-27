@@ -112,7 +112,7 @@ They do share one thing with most loggers. At apogee the truth lies above the sp
 far more often than below it: on the calibration set, 69 times against 7 in 1,638 smoothed logs,
 with no misses at all on the AltOS logger. A truth above means the smoother reads the vertical
 speed low, as if the rocket had started down. Each side's misses stay under 5%, so every cell
-holds, but the interval isn't centred.
+holds, but the interval isn't centered.
 [Issue #1664](https://github.com/nrdptel/fusionspace-eridanus/issues/1664) holds the lean.
 
 The check also runs a setting made to fail. Each log with a GNSS track is smoothed again with
