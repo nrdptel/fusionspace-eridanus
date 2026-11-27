@@ -257,9 +257,9 @@ impl WindPastScan {
     }
 
     /// The two misfits as the message prints them, this answer's and then the fitted wind's.
-    /// This answer's is rounded up and the fitted wind's down, so the gap printed is never wider
-    /// than the gap found, to the fewest decimal places, from 1 to 6, at which the first still
-    /// prints lower. Two that six places can't tell apart print as found, with every digit, so
+    /// This answer's is rounded up and the fitted wind's down, so the gap printed is no wider
+    /// than the gap found (but for the part in 10⁹ of each value that the rounding lets go), to
+    /// the fewest decimal places, from 1 to 6, at which the first still prints lower. Two that six places can't tell apart print as found, with every digit, so
     /// the pair never prints crossed or as equals where one is lower.
     #[must_use]
     pub fn misfits_told(&self) -> (String, String) {

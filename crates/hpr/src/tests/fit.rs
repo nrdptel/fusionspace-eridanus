@@ -418,8 +418,8 @@ fn a_log_with_a_track_states_the_wind() {
 
 /// The second answer a fit leaves past its wind scan's reach ([ADR-382] §7) says the wind it
 /// ended at as a speed and the way it blows from, how the two answers fit, and what to do. Its
-/// speed is rounded up; the two misfits are rounded toward each other, so that the gap printed
-/// is never wider than the gap found, and to enough places that the lower still prints lower.
+/// speed is rounded up; the two misfits are rounded toward each other, to enough places that
+/// the lower still prints lower, and print as found where six places can't tell them apart.
 ///
 /// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
 #[test]
@@ -482,8 +482,9 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
     assert_eq!(told(&fits(15.0, 15.0 + 1e-9)), "15 against 15.000000001");
     // A standing answer with no finite misfit prints as that.
     assert_eq!(told(&fits(15.236, f64::INFINITY)), "15.3 against inf");
-    // Over misfits of every size and gaps from 10 down to a part in 10¹²: the pair prints in
-    // its order, and the gap printed is no wider than the gap found.
+    // Over five sizes of misfit and gaps from 10 times the value down to a part in 10¹¹ of
+    // it: the pair prints in its order, and the gap printed is no wider than the gap found,
+    // but for the part in 10⁹ that the rounding lets go.
     for base in [0.004, 0.5, 15.0, 127.804, 99_999.5] {
         for power in 0..=12 {
             let (chi2, standing_chi2) = (base, base * (1.0 + 10_f64.powi(1 - power)));
@@ -495,7 +496,7 @@ fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
                 "{chi2} against {standing_chi2}: {first}, {second}"
             );
             assert!(
-                first >= chi2 * (1.0 - 1e-8) && second <= standing_chi2 * (1.0 + 1e-8),
+                first >= chi2 * (1.0 - 2e-9) && second <= standing_chi2 * (1.0 + 2e-9),
                 "{chi2} against {standing_chi2}: {first}, {second}"
             );
         }

@@ -2515,8 +2515,8 @@ mod tests {
     /// answer is the wrong one, on the committed slice ([ADR-382] §7): 2 of its 195 fits of a
     /// track, and both are wrong. The report's true wind for each of the two lies within the
     /// scan's reach and within 1 m/s of the fit's own answer, and the answer left lies more than
-    /// 3 m/s from it. The slice can't show the other case: none of its fits of a track has a
-    /// true wind past the reach, though the fastest is over 11 m/s.
+    /// 3 m/s from it. The slice can't show an answer left that is right: none of its fits of a
+    /// track has a true wind past the reach, though the fastest is over 11 m/s.
     /// The answer left being the flight's own is the command's test of flights in 12.5 and
     /// 13 m/s. `fit --slice` makes the slice again on every platform, so the lines stand for
     /// today's fit.
