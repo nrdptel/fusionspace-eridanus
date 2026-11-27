@@ -268,9 +268,15 @@ that errs: the fitted drag may read high, and a flight predicted from it low.
 ``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
 measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
 
-``wind_caveat`` is ``None`` for a log of height alone. On a log with latitude and
-longitude it is a sentence to read with the wind: the fitted wind can settle far from
-the flight's, with a narrow interval about it, so give the day's wind.
+``wind_past_scan`` is ``None`` unless the fit left a second answer in the wind, which it
+can on a log with latitude and longitude. The fit scans the wind to 12 m/s and searches
+again from the scan's lows, and a search that ends past 12 m/s isn't taken. Where one
+ended there and fits the log better than the fitted wind, this is a dict of its wind
+(``wind_east_m_s``, ``wind_north_m_s``, ``speed_m_s``, ``from_deg``), its misfit
+``chi2``, the fitted answer's ``standing_chi2``, which is higher, and a ``message``. The
+fit can't tell which of the two is the flight's wind: take the fitted wind and the scales
+fitted with it as unsettled, and if the day's wind was near the second answer, fit again
+from an ``Environment`` with that wind.
 
 ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
 ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read

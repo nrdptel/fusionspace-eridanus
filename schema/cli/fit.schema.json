@@ -148,11 +148,15 @@
       "description": "The trust note the text form ends with.",
       "type": "string"
     },
-    "wind_caveat": {
-      "description": "The caveat on the wind of a log with a horizontal track: the fitted wind can settle far\nfrom the flight's, with a narrow interval about it. Null for a log of height alone, whose\nwind states no interval.",
-      "type": [
-        "string",
-        "null"
+    "wind_past_scan": {
+      "description": "A second answer in the wind that fits the log better than the wind in `parameters` and\nwasn't taken, as it lies past the 12 m/s the fit's scan of the wind reaches. Null where\nthe fit found none, as on every log of height alone. Where it is given, the fitted wind\nand the scales fitted with it are unsettled.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FitWindPastScan"
+        },
+        {
+          "type": "null"
+        }
       ]
     }
   },
@@ -555,6 +559,55 @@
         "provenance",
         "bins",
         "bins_read"
+      ]
+    },
+    "FitWindPastScan": {
+      "description": "A second answer in the wind that `hpr fit` found on a log with a track and didn't take: a\nsearch that ended past the reach of the fit's scan of the wind, at a lower misfit than the\nanswer the fit gives.",
+      "type": "object",
+      "properties": {
+        "chi2": {
+          "description": "Its misfit, the fit's χ² at its last pass.",
+          "type": "number",
+          "format": "double"
+        },
+        "from_deg": {
+          "description": "The way that wind blows from, degrees clockwise from north.",
+          "type": "number",
+          "format": "double"
+        },
+        "message": {
+          "description": "The notice in sentences, with what to do about it.",
+          "type": "string"
+        },
+        "speed_m_s": {
+          "description": "That wind's speed, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "standing_chi2": {
+          "description": "The χ² there of the answer the fit gives, which is higher.",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_east_m_s": {
+          "description": "The wind the search ended at, toward the east, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_north_m_s": {
+          "description": "The wind the search ended at, toward the north, m/s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "wind_east_m_s",
+        "wind_north_m_s",
+        "speed_m_s",
+        "from_deg",
+        "chi2",
+        "standing_chi2",
+        "message"
       ]
     },
     "HeightReadAs": {

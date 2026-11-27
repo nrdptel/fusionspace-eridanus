@@ -24,8 +24,8 @@ use crate::compare::{self, CompareArgs, HeightReads};
 use crate::console::Level;
 use crate::output::{
     CompareConditions, CompareFlownIn, CompareSite, Fit, FitApogee, FitCaveat, FitLiftoff,
-    FitNoInterval, FitParameter, FitParameterName, FitReadings, FitTrack, HeightReadAs, IssueKind,
-    ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
+    FitNoInterval, FitParameter, FitParameterName, FitReadings, FitTrack, FitWindPastScan,
+    HeightReadAs, IssueKind, ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
 };
 use crate::sim::{FlightArgs, Setup, file_name, flight_refused};
 use crate::units::{fixed, meters, meters_bound, rounded_down, rounded_up, seconds_bound};
@@ -102,6 +102,18 @@ pub struct FitArgs {
         conflicts_with = "weather"
     )]
     pub pressure: Option<f64>,
+}
+
+/// A second answer's notice as the command gives it: the library's sentences, then the options
+/// that fit again from it. The options are left out of a run whose air came from `--weather` or
+/// `--launch-time`, which `--wind` can't be given beside (`takes_wind` false).
+fn past_scan_message(past: &hpr::fit::WindPastScan, takes_wind: bool) -> String {
+    let message = past.message();
+    if !takes_wind {
+        return message;
+    }
+    let (speed_m_s, from_deg) = past.told();
+    format!("{message} On the command line: `--wind {speed_m_s:.1} --wind-from {from_deg:.0}`.")
 }
 
 impl FitArgs {
@@ -230,7 +242,18 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         fitted_apogee_m: fitted.fitted_apogee_m,
         fitted_apogee_time_s: fitted.fitted_apogee_time_s,
         fitted_max_mach: fitted.fitted_max_mach,
-        wind_caveat: fitted.wind_caveat(),
+        wind_past_scan: fitted.wind_past_scan.map(|past| FitWindPastScan {
+            wind_east_m_s: past.wind_east_m_s,
+            wind_north_m_s: past.wind_north_m_s,
+            speed_m_s: past.speed_m_s(),
+            from_deg: past.from_deg(),
+            chi2: past.chi2,
+            standing_chi2: past.standing_chi2,
+            message: past_scan_message(
+                &past,
+                args.flight.weather.is_none() && args.launch_time.is_none(),
+            ),
+        }),
         issues: fitted
             .issue_warnings
             .iter()
@@ -625,9 +648,9 @@ fn text_lines(document: &Fit) -> Vec<String> {
             );
         }
     }
-    if let Some(caveat) = &document.wind_caveat {
+    if let Some(past) = &document.wind_past_scan {
         lines.extend(
-            crate::trust::wrap(&format!("Caveat. {caveat}"), WIDTH - 2)
+            crate::trust::wrap(&format!("Caveat. {}", past.message), WIDTH - 2)
                 .iter()
                 .map(|line| format!("  {line}")),
         );
@@ -653,4 +676,47 @@ fn text_lines(document: &Fit) -> Vec<String> {
     }
     lines.push(format!("  simulations flown  {}", document.flights_flown));
     lines
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The notice of a second answer names `--wind` and `--wind-from` only on a run that can
+    /// take them: `--weather` and `--launch-time` each refuse `--wind` beside them.
+    #[test]
+    fn a_second_answers_notice_names_the_wind_options_only_where_they_can_be_given() {
+        let past = hpr::fit::WindPastScan {
+            wind_east_m_s: 12.123,
+            wind_north_m_s: 0.003,
+            chi2: 15.236,
+            standing_chi2: 127.804,
+        };
+        let options = " On the command line: `--wind 12.2 --wind-from 270`.";
+        assert_eq!(
+            past_scan_message(&past, true),
+            format!("{}{options}", past.message())
+        );
+        assert_eq!(past_scan_message(&past, false), past.message());
+        // The two options that refuse `--wind` are the two the notice leaves the clause out for.
+        for refused in [
+            &["--weather", "air.json"][..],
+            &["--launch-time", "2026-05-01T18:00:00Z"],
+        ] {
+            let args = [
+                &["hpr", "fit", "log.csv", "design.json"],
+                refused,
+                &["--wind", "5"],
+            ]
+            .concat();
+            let error = <crate::Cli as clap::Parser>::try_parse_from(&args)
+                .err()
+                .map(|error| error.kind());
+            assert_eq!(
+                error,
+                Some(clap::error::ErrorKind::ArgumentConflict),
+                "{refused:?}"
+            );
+        }
+    }
 }

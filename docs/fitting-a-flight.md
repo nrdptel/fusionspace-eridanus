@@ -16,9 +16,6 @@ simulation of it. Seeing how far the two lie apart, with nothing fitted, is
 > the drag scale's lower end reads too high more often than a 90% interval should
 > ([the caveat](#the-caveat)).
 
-On a log with latitude and longitude (a track) the fitted wind can be wrong, with a narrow interval
-about it ([why](#the-wind-on-a-log-with-a-track)).
-
 The tests run the command on one public logged flight, NDRT's 2020 flight, on a machine that has
 fetched its log. CI runs it on the invented log below. The public flight shows that the command runs
 on a real log, not that its answer is right. Its fitted drag scale lies below 0.8, outside the range
@@ -69,7 +66,7 @@ Fitted by least squares
   The wind states no interval: a log of height alone can't tell the wind.
   So the fit is told a wind of at least 5.16 m/s (16.9 ft/s), the wind its intervals were sized in.
   Caveat. The drag scale's 90% interval fails its test. On 1,000 synthetic flights flown with a
-  model unlike the fit's own, 80 truths lay below the interval, where a 90% interval leaves 50. So
+  model unlike the fit's own, 79 truths lay below the interval, where a 90% interval leaves 50. So
   its lower end can read too high: take the fitted drag scale as reading high, and a flight
   predicted with it as reading low. Recorded, not fixed:
   https://github.com/nrdptel/fusionspace-eridanus/issues/1108
@@ -168,23 +165,71 @@ number counts as a number, a run of spaces counts as one, and the warnings aren'
 
 ### The wind on a log with a track
 
-A log with latitude and longitude lets the fit state the wind's interval. Read it with care. The
-fitted wind can settle far from the flight's, with a narrow interval about it.
+A log with latitude and longitude lets the fit state the wind's interval. A rocket turns into the
+wind under thrust and flies upwind, and the air then carries it back. So its drift doesn't grow
+steadily with the wind, and a track can be fitted fairly well by two winds: the flight's, and
+another far from it. A search from the wind you give can settle at the wrong one. The 54 mm
+(2.1 in) design's own flight in a wind of 9 m/s (20 mph) toward the east, fitted from calm air,
+once came out as a wind the other way, with a narrow interval
+([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646) has the numbers).
 
-A test shows it (`fit_can_settle_far_from_the_wind_a_track_was_flown_in`;
-[the record of this command's choices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0381-m7-3f-the-fit-on-the-command-line-and-in-python.md)).
-A 54 mm (2.1 in) design flies its own flight in a wind of 9 m/s (20 mph). Fitted from calm air, it
-comes out as a wind the other way. Its interval is under 2 m/s (7 ft/s) wide and misses the true
-wind. The heights' residual doesn't show it: it lies within 0.5 m (1.7 ft) of the residual of the
-fit told the true wind. Told the true wind, each component of the fitted wind stays within 1 m/s
-(3.3 ft/s) of it. The wind's interval passes its test on the synthetic flights, so that test doesn't
-see this. No test says how near the wind told has to be, and none isolates what a wind fitted wrong
-does to the other scales. I haven't found the cause.
+So after its first search the fit scans the wind. It flies the flight in calm air and in winds
+every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s), in 12 directions, and searches again from the
+three lowest of that scan's lows (points no higher than their neighbors) away from its first answer. The answer that fits the log best
+stands. One found from the scan counts only within 12 m/s (27 mph), and the search from the wind
+you give counts wherever it ends
+([the method](physics/flight-fit.md#a-second-answer-in-the-wind)). A test fits that design's
+flights in winds of 2 m/s (4.5 mph), 4, 6 and 9 m/s (20 mph) from calm air, one of them off a
+3 m (9.8 ft) rail and one told a wrong wind of 3 m/s (6.7 mph). Each interval holds the wind the
+flight was flown in (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`).
 
-So give the day's wind, and take a fitted wind that disagrees with the field's as unsettled. Every
-fit of a log with a track prints a caveat under its intervals that says so. Take the other scales
-of such a fit as unsettled too. I've recorded the gap and not fixed it
-([issue #1646](https://github.com/nrdptel/fusionspace-eridanus/issues/1646)).
+The scan found the wind on each of that test's flights, but it doesn't rule out a wrong answer,
+and no test counts how often one remains. It can miss a second answer between its points. It was
+tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md). It
+also ran on the two real logs with a track that
+[the report of fits of real logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md) fits,
+but no real flight has its wind measured apart from its log to check the fitted one against. If the fitted wind differs
+from the field's by more than its interval, distrust the other scales too. The scan
+adds 97 flights of the simulation to a fit of a log with a track, and each search from it more.
+
+**A second answer past 12 m/s (27 mph).** A search from the scan that ends past that speed isn't
+taken. That speed is more than the 20 mph (8.9 m/s) the NAR's high-power safety code allows, and
+beyond it lie lows the scan never saw. But a flight can be flown in such a wind, and then the answer left out is
+the flight's. So the fit says when a search ended past the scan's reach and fits the log better than the
+fitted wind. A caveat prints under the table, and `--json` gives it as `wind_past_scan`. On a
+simulated flight of that design in a wind of 12.5 m/s (28 mph) toward the east, fitted from calm
+air, it reads:
+
+```text,wrap
+Caveat. The wind has a second answer, which the fit didn't take. A search ended at a wind of 12.2 m/s (27.3 mph) from 270°, past the 12 m/s (26.8 mph) the fit's scan of the wind reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against 127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the fitted wind stands. If the day's wind was near the second answer, fit again with that wind given. If you have no record of the day's wind, take the fitted wind, and the scales fitted with it, as unsettled. On the command line: `--wind 12.2 --wind-from 270`.
+```
+
+A wind toward the east blows from the west, which is 270° clockwise from north. The misfit, χ², is
+the sum the fit makes as small as it can: each height's and each track point's miss over its noise,
+squared, plus a term for the ranges the fit is told
+([the method](physics/flight-fit.md#how-it-works)). The lower of two fits the log better. A fit
+given `--weather` or `--launch-time` prints the caveat without its last line of options, as
+`--wind` can't be given beside either. To fit again there, give `--wind` and `--wind-from` in
+place of that option. The refit then flies without that option's air.
+
+The fitted wind on that flight blew more than 4 m/s (9 mph) the other way, and its interval
+missed the flight's wind. Fitted again with those two options, the fit ends within 0.5 m/s
+(1.6 ft/s) of the flight's wind and says no second answer
+(`fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach`, which also holds the block
+above to a run). Its interval can still miss
+by a little, as the fitted wind reads slow
+([issue #1651](https://github.com/nrdptel/fusionspace-eridanus/issues/1651)).
+
+The caveat doesn't say which answer is the flight's. On the fit report's slice of
+[synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it
+(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). Both times the second answer is the
+wrong one: it lies more than 3 m/s (9.8 ft/s) from the report's true wind. The fitted wind is
+within 1 m/s (3.3 ft/s) of that true wind. The slice can't show a second answer that is right, as none of its fits of a track
+has a true wind past the scan's reach; the flight in 12.5 m/s (28 mph) above does. So where the caveat prints, check it against the wind on the field that day. If
+that was near the second answer, fit again from it. If it was near the fitted wind, the fitted
+wind stands. With no record of the day's wind, take the fitted wind and the scales as unsettled.
+The caveat isn't counted over all the synthetic flights yet
+([issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652)).
 
 ### The mark on a value outside the tested range
 
@@ -205,7 +250,7 @@ isn't shown right by it.
 ### The caveat
 
 The drag scale's interval is marked with a `*`, and a caveat under the table says why. On 1,000
-synthetic flights flown with a model unlike the fit's own, 80 true values, the message's "truths", lay below the interval,
+synthetic flights flown with a model unlike the fit's own, 79 true values, the message's "truths", lay below the interval,
 where a 90% interval leaves 50. So the fitted drag can read high, and a flight predicted with it reads low:
 the side that flatters a field's ceiling
 ([which miss flatters](trusting-a-simulation.md#which-miss-flatters)). I've recorded that gap and
@@ -286,13 +331,11 @@ burn_time_scale: 1.035, not_asked
 wind_east_m_s: 0.014, height_alone
 wind_north_m_s: -6.375, height_alone
 mass_scale: 1.003, 0.985 to 1.021
-80 of 1000 truths lay below the drag's
+79 of 1000 truths lay below the drag's
 6 known issues met
 ```
 <!-- python: end -->
 
-`wind_caveat` holds the [caveat on a track's wind](#the-wind-on-a-log-with-a-track), or `None` on
-a log of height alone.
 `not_asked` is the burn time's scale, whose interval was never tested, and `height_alone` is the
 wind on a log with no latitude and longitude. The example rounds each end of an interval to the
 nearest thousandth, where the command rounds it outward. The last line counts the
@@ -301,8 +344,9 @@ The environment's wind, averaged over the climb, is what the fit is told before 
 floor holds on a log of height alone. Each parameter's `stated` holds that mean and its standard
 deviation. `tested_range` holds the range the intervals were tested over, and
 `outside_tested_range` says whether the value lies outside it. `readings` holds what was read from
-the log, with each `source` and `provenance`. `fitted["text"]` is the whole result as
-lines to print, in SI units.
+the log, with each `source` and `provenance`. `wind_past_scan` is `None`, or
+[the second answer past the scan](#the-wind-on-a-log-with-a-track) as a dict with its `message`.
+`fitted["text"]` is the whole result as lines to print, in SI units.
 
 ## What it leaves out
 
@@ -311,10 +355,11 @@ lines to print, in SI units.
 - A parachute that opened before apogee. The fit flies the climb with nothing open, so an early
   ejection's drag goes into the drag scale. A note says so.
 - A wind that changes with height. The fitted wind is one constant wind.
+- A second answer for the wind that the scan misses between its points, on a log with a track.
+  One past 12 m/s (27 mph) is said only where a search from the scan ended there
+  ([the scan](#the-wind-on-a-log-with-a-track)).
 - A logger that reads far low or high. The fit is told a barometer's scale is 1 give or take
   0.14%, and the example's 4% error shows up in the other scales.
-- A fitted wind you can rely on, on a log with a track
-  ([it can settle far from the flight's](#the-wind-on-a-log-with-a-track)).
 - A flight that separates in the air, which is refused.
 - A check on a real flight's fitted values against something measured apart from the log, such as a
   weighed mass or a static test's impulse. I have no such flight yet

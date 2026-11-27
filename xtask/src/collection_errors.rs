@@ -1622,6 +1622,7 @@ mod tests {
             misfit_share: None,
             read: Vec::new(),
             flown: 1,
+            past_scan: None,
         }
     }
 

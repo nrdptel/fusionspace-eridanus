@@ -405,6 +405,10 @@ pub struct FlightFit {
     pub rms_m: Option<f64>,
     /// Flights flown for it, the noise-free fit's included, the Bayesian option's draws not.
     pub flown: u64,
+    /// The answer past the wind scan's reach that its fit left, where it said one
+    /// ([`crate::fit::Fit::past_scan`]); a noise-free fit's isn't kept.
+    #[serde(default)]
+    pub past_scan: Option<crate::fit::PastScan>,
     /// The Bayesian option's posterior of the flown parameters, where it was asked for and the
     /// least-squares fit had something to fit.
     pub posterior: Option<Posterior<FLOWN>>,
@@ -585,6 +589,7 @@ pub fn fit_log(
         compared,
         rms_m: answer.rms_m,
         flown,
+        past_scan: answer.past_scan,
         posterior,
     })
 }
@@ -700,6 +705,7 @@ pub fn fit_noise_bins(
         }),
         rms_m: answer.rms_m,
         flown: answer.flown,
+        past_scan: answer.past_scan,
         posterior,
     }
 }
@@ -923,8 +929,8 @@ pub fn shares(asked: Asked, drift: bool) -> Shares {
         (Asked::WindEast, false) => (-0.412, 3.23),
         (Asked::WindNorth, false) => (-1.8, 1.78),
         (Asked::MassScale, false) => (-1.65, 1.67),
-        (Asked::DragScale, true) => (-1.28, 2.09),
-        (Asked::ImpulseScale, true) => (-1.5, 1.84),
+        (Asked::DragScale, true) => (-1.28, 2.1),
+        (Asked::ImpulseScale, true) => (-1.5, 1.85),
         (Asked::WindEast, true) => (-1.38, 1.35),
         (Asked::WindNorth, true) => (-1.5, 1.47),
         (Asked::MassScale, true) => (-1.68, 1.72),
@@ -942,7 +948,7 @@ pub fn shares(asked: Asked, drift: bool) -> Shares {
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 /// [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
-pub const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 80)];
+pub const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 79)];
 
 /// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
 /// list.
@@ -1031,6 +1037,7 @@ mod tests {
             compared: [compared; ASKED.len()],
             rms_m: Some(0.5),
             flown: 70,
+            past_scan: None,
             posterior: Some(posterior),
         };
         // The posterior's 5% and 95% points as they come, for the parameter's own row.
