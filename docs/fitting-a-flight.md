@@ -182,10 +182,12 @@ flights in winds of 2 m/s (4.5 mph), 4, 6 and 9 m/s (20 mph) from calm air, one 
 3 m (9.8 ft) rail and one told a wrong wind of 3 m/s (6.7 mph). Each interval holds the wind the
 flight was flown in (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`).
 
-The scan lowers the odds of a wrong answer, but doesn't rule it out. It can miss a second answer
-that lies between its points, and it was tested on one design's flights and on the
-[synthetic flights](physics/synthetic-flights.md). A wind past 12 m/s (27 mph), faster than a
-launch is flown in, is found only from a wind you give near it. Giving the day's wind still helps. The scan
+The scan found the wind on each of that test's flights, but it doesn't rule out a wrong answer,
+and no test counts how often one remains. It can miss a second answer between its points. It was
+tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md), not on
+a real flight's log. A wind past 12 m/s (27 mph) is past the 20 mph (8.9 m/s) the NAR's high-power
+safety code allows; only the search from the wind you give can find it. If the fitted wind differs
+from the field's by more than its interval, distrust the other scales too. The scan
 adds 97 flights of the simulation to a fit of a log with a track, and each search from it more.
 
 ### The mark on a value outside the tested range
@@ -311,6 +313,8 @@ lines to print, in SI units.
 - A parachute that opened before apogee. The fit flies the climb with nothing open, so an early
   ejection's drag goes into the drag scale. A note says so.
 - A wind that changes with height. The fitted wind is one constant wind.
+- A second answer for the wind that the scan misses, between its points or past 12 m/s (27 mph),
+  on a log with a track ([the scan](#the-wind-on-a-log-with-a-track)).
 - A logger that reads far low or high. The fit is told a barometer's scale is 1 give or take
   0.14%, and the example's 4% error shows up in the other scales.
 - A flight that separates in the air, which is refused.

@@ -141,8 +141,9 @@ lows the scan never saw. Before this rule, two such searches on the synthetic fl
 about 14 m/s (46 ft/s). Those flights were flown in about 6 m/s (20 ft/s) ([the decision record][adr-382]). The search
 from the stated wind counts wherever it ends. The scan's lowest point needn't be the flight's wind,
 since the other inputs are held where a wrong wind left them. That's why it starts from several
-lows. A low between the scan's points can still be missed. A wind past 12 m/s (27 mph), more than
-a launch is flown in, is found only from a wind given near it.
+lows. A low between the scan's points can still be missed. A wind past 12 m/s (27 mph), past the
+20 mph (8.9 m/s) the NAR's high-power safety code allows, is found only by the search from the
+wind given.
 
 ### When a log has nothing to fit
 

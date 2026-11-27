@@ -1,6 +1,6 @@
 # ADR-381: M7.3f, the fit on the command line and in Python (2026-11-26)
 
-- **Status:** accepted; carries out [M7.3f][m7-3f] ([ADR-377][adr-377]); changes no number the fit's reports hold
+- **Status:** accepted; carries out [M7.3f][m7-3f] ([ADR-377][adr-377]); changes no number the fit's reports hold; §12's caveat superseded by [ADR-382][adr-382]
 - **Summary:** `hpr fit` and Python's `FlightLog.fit` run one library function, `hpr::fit::fit`, so both give the same numbers. It fits a design's simulation to its log by least squares and gives each parameter with its 90% interval or why it has none, what the fit was told, and each reading's provenance. The fitted flight's known-issue warnings come with it, and the drag scale's interval carries [ADR-368][adr-368]'s caveat. A log of height alone is told at least the wind its intervals were sized in, a value outside the tested range is marked, a track's wind carries its own caveat, a flight that separates is refused, and no threshold calls a fit good or bad.
 
 [m7-3f]: ../decisions-and-roadmap.md#m7-3f
@@ -10,6 +10,7 @@
 [adr-278]: 0278-an-evidence-register-for-every-claim.md
 [adr-368]: 0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
 [adr-377]: 0377-no-release-waits-on-users-and-release-0-2-comes-next.md
+[adr-382]: 0382-the-fits-wind-scan-on-a-log-with-a-track.md
 [page]: ../fitting-a-flight.md
 [fit-page]: ../physics/flight-fit.md
 [i1104]: https://github.com/nrdptel/fusionspace-eridanus/issues/1104
