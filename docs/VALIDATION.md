@@ -507,7 +507,11 @@ fails, saying why, when it can't read GitHub's runs. It fails when:
   lacked is added. A branch with no full gate yet gets a note, not a failure.
 - any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run
   is one started by a push to main, or by hand without the `full` box ticked; a push that changed
-  only research notes skips most checks, so the run before it is read.
+  only research notes skips most checks, so the run before it is read. When main's run fails
+  this, a passing run started by hand without `full` on the branch's own head, on top of main,
+  stands in for it, its jobs held to the same 20 minutes: otherwise the change that splits a slow
+  job couldn't open
+  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md)).
 - no *full run* on main has passed in the last 26 hours. A full run is the one that adds the
   censuses: each night, or by hand with `full` ticked. It passes when every `census` job and the
   fit's whole check passed, and its age is counted from its first attempt, so a run made again

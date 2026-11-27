@@ -118,16 +118,29 @@ jobs:
   # issue #438). Their math libraries round some functions differently in the last bit, so each
   # platform is checked, not assumed.
   #
-  # The tests run in two halves per OS, side by side: each half builds the workspace and runs
-  # every other test (nextest's `count:` partition), so every test still runs once on each OS.
-  # The doctests run in the first half.
+  # The tests run in parts per OS, side by side: part K of N builds the workspace and runs every
+  # Nth test from the Kth (nextest's `count:K/N` partition), so every test still runs once on each
+  # OS. The doctests run in the first part. Two parts on most platforms; three on windows-latest
+  # and macos-latest, whose second half took 1,214 to 1,269 s on main's runs of 2026-11-27, past
+  # the 20 minutes a job may take, its build alone about 9 minutes (issue #1658).
   test-part:
-    name: test (${{ matrix.os }}, ${{ matrix.part }}/2)
+    name: test (${{ matrix.os }}, ${{ matrix.part }})
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
-        part: [1, 2]
+        include:
+          - { os: ubuntu-latest, part: 1/2 }
+          - { os: ubuntu-latest, part: 2/2 }
+          - { os: ubuntu-24.04-arm, part: 1/2 }
+          - { os: ubuntu-24.04-arm, part: 2/2 }
+          - { os: macos-latest, part: 1/3 }
+          - { os: macos-latest, part: 2/3 }
+          - { os: macos-latest, part: 3/3 }
+          - { os: windows-latest, part: 1/3 }
+          - { os: windows-latest, part: 2/3 }
+          - { os: windows-latest, part: 3/3 }
+          - { os: windows-11-arm, part: 1/2 }
+          - { os: windows-11-arm, part: 2/2 }
     runs-on: ${{ matrix.os }}
     env:
       # Warnings that only appear on macOS or Windows fail too (clippy covers Linux).
@@ -149,7 +162,7 @@ jobs:
         with:
           python-version: "3.12"
       # nextest runs each test as its own process, in parallel (ADR-149). It doesn't run doctests,
-      # so `cargo test --doc` runs in the first half. Together they run what `cargo test` runs.
+      # so `cargo test --doc` runs in the first part. Together they run what `cargo test` runs.
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
@@ -161,12 +174,12 @@ jobs:
         run: |
           python3 scripts/fetch-ndrt-2020-log.py target/public-flights/ndrt_2020_flight_data.csv
           echo "HPR_NDRT_2020_LOG=$PWD/target/public-flights/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
-      - run: cargo nextest run --workspace --all-features --locked --no-fail-fast --partition count:${{ matrix.part }}/2
-      - if: matrix.part == 1
+      - run: cargo nextest run --workspace --all-features --locked --no-fail-fast --partition count:${{ matrix.part }}
+      - if: startsWith(matrix.part, '1/')
         run: cargo test --workspace --all-features --locked --doc
 
-  # The checks branch protection requires are `test (<os>)`: each passes only when both halves
-  # passed on every OS, so a failing half shows by name above and fails these too.
+  # The checks branch protection requires are `test (<os>)`: each passes only when every part
+  # passed on every OS, so a failing part shows by name above and fails these too.
   test:
     name: test (${{ matrix.os }})
     needs: test-part
@@ -176,7 +189,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ubuntu-latest
     steps:
-      - name: Both halves passed
+      - name: Every part passed
         run: test "${{ needs.test-part.result }}" = success
 
   # Runs every example program, such as the Getting started page's first flight, and checks that
@@ -427,7 +440,9 @@ jobs:
   # three parts on each platform and six on macos-latest and windows-latest, the slowest: by least
   # squares their jobs took up to 943 s on macos-latest and 904 s a half on windows-latest. In four
   # parts a macos-latest job took 356 to 1,251 s on main's four runs to 2026-11-23, the longest past
-  # the 20 minutes, so it runs in six.
+  # the 20 minutes, so it runs in six. The wind's scan on a log with a track (issue #1646) took
+  # ubuntu-latest's part 2/3 to 1,208 to 1,214 s on main's runs of 2026-11-27, so it runs in four
+  # (issue #1658).
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
@@ -435,9 +450,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, part: 1/3 }
-          - { os: ubuntu-latest, part: 2/3 }
-          - { os: ubuntu-latest, part: 3/3 }
+          - { os: ubuntu-latest, part: 1/4 }
+          - { os: ubuntu-latest, part: 2/4 }
+          - { os: ubuntu-latest, part: 3/4 }
+          - { os: ubuntu-latest, part: 4/4 }
           - { os: ubuntu-24.04-arm, part: 1/3 }
           - { os: ubuntu-24.04-arm, part: 2/3 }
           - { os: ubuntu-24.04-arm, part: 3/3 }
@@ -658,16 +674,17 @@ jobs:
           tool: cargo-deny@0.20.2
       - run: cargo deny check
 
-  # The site's checks run in three parts, one machine each: each builds the site and runs every
-  # check but two, which take a third each: the layout check a third of the widths (`--widths
-  # K/3`), and the vitals check a third of the pages; the canaries of both run in every part. The
-  # layout check is most of the job's time and splits evenly by width.
+  # The site's checks run in four parts, one machine each: each builds the site and runs every
+  # check but two, which take a quarter each: the layout check a quarter of the widths
+  # (`--widths K/4`), and the vitals check a quarter of the pages; the canaries of both run in
+  # every part. The layout check is most of the job's time and splits evenly by width. In three
+  # parts a job took up to 1,066 s on main's runs of 2026-11-27 (issue #1658).
   site-part:
-    name: site (${{ matrix.part }}/3)
+    name: site (${{ matrix.part }}/4)
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3]
+        part: [1, 2, 3, 4]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -684,7 +701,7 @@ jobs:
       # Checks the pages' links and labels, builds the site with mdBook into target/site and the
       # workspace's rustdoc into target/site/api, checks every link in the built HTML, and checks
       # the pages' layout at this part's widths.
-      - run: cargo run --locked --quiet --package xtask -- site --locked --widths ${{ matrix.part }}/3
+      - run: cargo run --locked --quiet --package xtask -- site --locked --widths ${{ matrix.part }}/4
       # The built site, packed as GitHub Pages takes it, from one part: each part builds the same
       # commit with the same mdBook and rustdoc, so their sites match. The deploy job publishes it
       # from main.

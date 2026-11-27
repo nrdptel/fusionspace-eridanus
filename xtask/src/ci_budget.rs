@@ -15,8 +15,12 @@
 //!    started by a push, or by hand without `full`, in which no `census` job ran (ADR-149 §2) and
 //!    `types` did. A run that skipped `types` changed research notes alone, so most of its checks
 //!    ran no step; the check reads the run before it. A job whose run, from `started_at` to
-//!    `completed_at`, passes 1,200 s fails. The night's jobs are a full run's, not a pull
-//!    request's; they are printed, not held.
+//!    `completed_at`, passes 1,200 s fails, unless the branch repairs the jobs: a passing run
+//!    started by hand without `full` on the branch's own head, holding every commit of main as
+//!    GitHub has it, with every job within 1,200 s, stands in for main's ([ADR-383]). Only the
+//!    head's own run counts: a change of pages alone can move the site's jobs. Without that, no
+//!    split of a job main's runs found over the budget could open. The night's jobs are a full
+//!    run's, not a pull request's; they are printed, not held.
 //! 3. **The night.** A passing run on main, nightly or started by hand with `full`, in which every
 //!    `census` job and `fit intervals` passed, made within the last 26 hours by its first
 //!    attempt's time (a re-run of an old night's failed jobs is no new night). None fails,
@@ -31,6 +35,7 @@
 //!
 //! [ADR-149]: ../../docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 //! [ADR-365]: ../../docs/decisions/0365-a-smoothed-track-past-earths-escape-speed-is-withheld-as-diverged.md
+//! [ADR-383]: ../../docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md
 
 use std::collections::HashMap;
 use std::fmt::Write as _;
@@ -45,7 +50,9 @@ pub const USAGE: &str = "  ci-budget [--head <commit>]
                            newest passing full gate on the branch whose head is HEAD (or
                            <commit>) within 30 minutes, every job of main's last passing
                            CI run with a pull request's jobs (pushed, or by hand without
-                           `full`) within 20, and a passing nightly (or hand-started full)
+                           `full`) within 20, or of a passing one started by hand without
+                           `full` on the branch's own head (ADR-383), and a passing nightly
+                           (or hand-started full)
                            run on main within 26 hours, or a passing hand-started full run
                            on the branch's own head, the repair of a failed night (ADR-365).
                            Reads the gate's history and GitHub's runs with `gh`.";
@@ -70,7 +77,8 @@ const FIT_JOB: &str = "fit intervals";
 const PUSH_RUNS: usize = 30;
 /// Hand-started runs read, full or not.
 const HAND_RUNS: usize = 10;
-/// The branch's newest commits whose own hand-started runs are read when main's night fails.
+/// The branch's newest commits whose own hand-started runs are read when main's night or jobs
+/// fail.
 const OWN_COMMITS: usize = 20;
 /// Nightly runs read.
 const NIGHT_RUNS: usize = 5;
@@ -363,6 +371,16 @@ pub(crate) fn pull_request_jobs(jobs: &[Job]) -> bool {
 /// The jobs' check on main's last passing push run that changed more than research notes: every
 /// job within the budget, the longest named either way.
 pub(crate) fn jobs_verdict(run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
+    timed_jobs_verdict(
+        "main's last passing run with a pull request's jobs",
+        run,
+        jobs,
+    )
+}
+
+/// The jobs' check on `run`, which `whose` names: every job within the budget, the longest
+/// named either way.
+fn timed_jobs_verdict(whose: &str, run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
     let mut timed = Vec::new();
     for job in jobs {
         if let Some(seconds) = job_seconds(job)? {
@@ -374,8 +392,7 @@ pub(crate) fn jobs_verdict(run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
         return Err(format!("run {}: no job with a start and an end", run.id));
     };
     let what = format!(
-        "jobs: main's last passing run with a pull request's jobs, {} ({}) at {} ({} jobs), \
-         longest `{name}` {longest} s ({})",
+        "jobs: {whose}, {} ({}) at {} ({} jobs), longest `{name}` {longest} s ({})",
         run.id,
         run.event,
         short(&run.head_sha),
@@ -395,6 +412,48 @@ pub(crate) fn jobs_verdict(run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
             over.join(", ")
         ))
     })
+}
+
+/// The jobs' check for a branch that may repair it ([ADR-383]): `main`'s verdict stands unless it
+/// fails and one of `own` is a passing run of a pull request's jobs ([`pull_request_jobs`]) on
+/// `head` itself that speaks for it ([`speaks_for`]); that run's jobs are then held to the
+/// budget in main's place. `own` holds the passing hand-started runs on the branch's own commits,
+/// each with its jobs and whether it speaks for the head.
+///
+/// A run on an earlier commit doesn't count, though only pages changed since: a page moves the
+/// site's jobs. A run on a commit behind main doesn't speak for the head, so it doesn't count
+/// either: main's jobs it never ran may be the slow ones.
+///
+/// [ADR-383]: ../../docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md
+pub(crate) fn repaired_jobs_verdict(
+    main: Verdict,
+    own: &[(Run, Vec<Job>, bool)],
+    head: &str,
+) -> Result<Verdict, String> {
+    let Verdict::Fail(why) = main else {
+        return Ok(main);
+    };
+    let found = own.iter().find(|(run, jobs, speaks)| {
+        *speaks
+            && run.head_sha == head
+            && run.conclusion.as_deref() == Some("success")
+            && pull_request_jobs(jobs)
+    });
+    let Some((run, jobs, _)) = found else {
+        return Ok(Verdict::Fail(format!(
+            "{why}; a branch that splits them passes on a hand-started run of its own head, main \
+             merged in, every job within {JOB_BUDGET_S} s (`gh workflow run ci.yml --ref \
+             <branch>`, without `full`; ADR-383)"
+        )));
+    };
+    Ok(
+        match timed_jobs_verdict("this branch's own hand-started run on its head", run, jobs)? {
+            Verdict::Ok(text) => Verdict::Ok(format!("{text}: the repair of {why} (ADR-383)")),
+            Verdict::Fail(text) | Verdict::Note(text) => {
+                Verdict::Fail(format!("{why}; and {text}"))
+            }
+        },
+    )
 }
 
 /// Whether a run is a passing full one: it passed, every `census` job (at least one) passed,
@@ -535,7 +594,8 @@ fn main_head() -> Result<String, String> {
 
 /// The passing hand-started runs on the branch's own commits, newest commit first, each with its
 /// jobs and whether it speaks for `head` ([`speaks_for`], against main's head on GitHub). A
-/// head with no commit of its own past main has none: main's own runs are the night's.
+/// head with no commit of its own past main has none: main's own runs are the night's and the
+/// jobs'.
 fn own_runs(head: &str) -> Result<Vec<(Run, Vec<Job>, bool)>, String> {
     let head_sha = git(&[
         "rev-parse",
@@ -737,12 +797,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
             break;
         }
     }
-    verdicts.push(jobs_found.unwrap_or_else(|| {
+    let jobs = jobs_found.unwrap_or_else(|| {
         Verdict::Fail(format!(
             "jobs: none of main's last {PUSH_RUNS} passing push runs and {HAND_RUNS} hand-started \
              ones ran a pull request's jobs; read further back"
         ))
-    }));
+    });
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -769,12 +829,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     }
     let night = night_verdict(&with_jobs, now)?;
-    // The branch's own runs are read only when main's night fails: the repair's case.
-    let own = if matches!(night, Verdict::Fail(_)) {
+    // The branch's own runs are read only when main's jobs or night fail: the repairs' case.
+    let own = if matches!(jobs, Verdict::Fail(_)) || matches!(night, Verdict::Fail(_)) {
         own_runs(head)?
     } else {
         Vec::new()
     };
+    let head_sha = git(&[
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        &format!("{head}^{{commit}}"),
+    ])?;
+    verdicts.push(repaired_jobs_verdict(jobs, &own, &head_sha)?);
     verdicts.push(repaired_night_verdict(night, &own));
 
     for verdict in &verdicts {
@@ -1160,6 +1227,157 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
             matches!(v, Verdict::Ok(ref t) if t.contains("run, 7 on")),
             "{v:?}"
         );
+    }
+
+    /// A pull request's jobs on a branch's own run: `types` passed, no census, and a test part
+    /// that ran `seconds` on its runner.
+    fn branch_jobs(seconds: u32) -> Vec<Job> {
+        let start = "2026-11-27T10:00:00Z";
+        let end = format!("2026-11-27T10:{:02}:{:02}Z", seconds / 60, seconds % 60);
+        vec![
+            job("types", "success", start, "2026-11-27T10:01:00Z"),
+            job("census (windows-latest)", "skipped", start, start),
+            job("test (windows-latest, 2/3)", "success", start, &end),
+        ]
+    }
+
+    #[test]
+    fn a_branchs_own_run_on_its_head_stands_in_for_main_s_jobs() {
+        let failed = || {
+            Verdict::Fail(
+                "jobs: main's last passing run, `test (windows-latest, 2/2)` 1269 s".to_owned(),
+            )
+        };
+        let head = "0123456789abcdef";
+        let hand = run(9, "workflow_dispatch", "2026-11-27T10:00:00Z");
+        // Main's jobs within the budget are left as they are, whatever the branch ran.
+        let ok = repaired_jobs_verdict(Verdict::Ok("jobs: fine".to_owned()), &[], head).unwrap();
+        assert_eq!(ok, Verdict::Ok("jobs: fine".to_owned()));
+        // Main's over the budget with no run of the branch's own fails, and says what would pass.
+        let v = repaired_jobs_verdict(failed(), &[], head).unwrap();
+        assert!(
+            matches!(v, Verdict::Fail(ref t) if t.contains("1269 s") && t.contains("without `full`")),
+            "{v:?}"
+        );
+        // The branch's own run on its head, every job within the budget: passes, naming the run.
+        let v = repaired_jobs_verdict(failed(), &[(hand.clone(), branch_jobs(1000), true)], head)
+            .unwrap();
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if t.contains("own hand-started run on its head, 9 ")
+                && t.contains("`test (windows-latest, 2/3)` 1000 s")
+                && t.contains("the repair of jobs: main's")),
+            "{v:?}"
+        );
+        // At the budget passes; a second over it fails, naming both runs' jobs.
+        let v = repaired_jobs_verdict(failed(), &[(hand.clone(), branch_jobs(1200), true)], head)
+            .unwrap();
+        assert!(matches!(v, Verdict::Ok(_)), "{v:?}");
+        let v = repaired_jobs_verdict(failed(), &[(hand.clone(), branch_jobs(1201), true)], head)
+            .unwrap();
+        assert!(
+            matches!(v, Verdict::Fail(ref t) if t.contains("1269 s")
+                && t.contains("`test (windows-latest, 2/3)` 1201 s")),
+            "{v:?}"
+        );
+        // A run on a commit that doesn't hold main speaks for nothing: not counted.
+        let v = repaired_jobs_verdict(failed(), &[(hand.clone(), branch_jobs(1000), false)], head)
+            .unwrap();
+        assert!(
+            matches!(v, Verdict::Fail(ref t) if t.contains("without `full`")),
+            "{v:?}"
+        );
+        // A run on an earlier commit of the branch isn't the head's, though it speaks for it
+        // (pages alone since): not counted.
+        let mut earlier = hand.clone();
+        earlier.head_sha = "fedcba9876543210".to_owned();
+        let v =
+            repaired_jobs_verdict(failed(), &[(earlier, branch_jobs(1000), true)], head).unwrap();
+        assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        // A full run (a census ran), one that skipped `types`, and one that didn't pass whole
+        // are no pull request's passing run.
+        let mut full = branch_jobs(1000);
+        full[1].conclusion = Some("success".to_owned());
+        let mut notes = branch_jobs(1000);
+        notes[0].conclusion = Some("skipped".to_owned());
+        for jobs in [full, notes] {
+            let v = repaired_jobs_verdict(failed(), &[(hand.clone(), jobs, true)], head).unwrap();
+            assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        }
+        let mut red = hand.clone();
+        red.conclusion = Some("failure".to_owned());
+        let v = repaired_jobs_verdict(failed(), &[(red, branch_jobs(1000), true)], head).unwrap();
+        assert!(matches!(v, Verdict::Fail(_)), "{v:?}");
+        // The first that qualifies is taken, past one that doesn't.
+        let own = [
+            (
+                run(10, "workflow_dispatch", "2026-11-27T11:00:00Z"),
+                branch_jobs(1000),
+                false,
+            ),
+            (hand, branch_jobs(1100), true),
+        ];
+        let v = repaired_jobs_verdict(failed(), &own, head).unwrap();
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if t.contains("head, 9 ") && t.contains("1100 s")),
+            "{v:?}"
+        );
+    }
+
+    /// Each platform's test parts are 1 to n of one split, the doctests in the first part alone,
+    /// and nextest takes the part as `count:K/N`, so every test runs once on each platform.
+    #[test]
+    fn every_platforms_test_parts_cover_its_tests_once() {
+        let root = crate::designs::root().unwrap();
+        let ci = std::fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+        let ci = ci.replace("\r\n", "\n");
+        let job = &ci[ci.find("\n  test-part:\n").unwrap()..];
+        let job = &job[..=job[1..].find("\n  # ").unwrap()];
+        let mut parts: std::collections::BTreeMap<&str, Vec<(usize, usize)>> =
+            std::collections::BTreeMap::new();
+        for line in job
+            .lines()
+            .filter(|l| l.trim_start().starts_with("- { os: "))
+        {
+            let line = line
+                .trim()
+                .trim_start_matches("- { os: ")
+                .trim_end_matches(" }");
+            let (os, part) = line.split_once(", part: ").unwrap();
+            let (k, n) = part.split_once('/').unwrap();
+            parts
+                .entry(os)
+                .or_default()
+                .push((k.parse().unwrap(), n.parse().unwrap()));
+        }
+        let platforms: Vec<&str> = parts.keys().copied().collect();
+        assert_eq!(
+            platforms,
+            [
+                "macos-latest",
+                "ubuntu-24.04-arm",
+                "ubuntu-latest",
+                "windows-11-arm",
+                "windows-latest"
+            ]
+        );
+        for (os, split) in &parts {
+            let of = split[0].1;
+            assert!(of >= 2 && split.iter().all(|p| p.1 == of), "{os}");
+            let numbers: Vec<usize> = split.iter().map(|p| p.0).collect();
+            assert_eq!(numbers, (1..=of).collect::<Vec<_>>(), "{os}");
+        }
+        assert!(job.contains("    name: test (${{ matrix.os }}, ${{ matrix.part }})\n"));
+        assert!(job.contains("    runs-on: ${{ matrix.os }}\n"));
+        assert!(job.contains("--partition count:${{ matrix.part }}\n"));
+        assert!(job.contains(
+            "      - if: startsWith(matrix.part, '1/')\n        run: cargo test --workspace \
+             --all-features --locked --doc\n"
+        ));
+        for unseen in ["continue-on-error", "exclude:", "    if:"] {
+            assert!(!job.contains(unseen), "{unseen}");
+        }
+        let all = &ci[ci.find("\n  test:\n").unwrap()..];
+        assert!(all.contains("    needs: test-part\n    if: always()\n"));
     }
 
     /// `git <args>` in `dir`, as a committer with a name.
