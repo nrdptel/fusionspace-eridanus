@@ -153,8 +153,8 @@ with its wind and both values of $\chi^2$ at the last pass. It must lie more tha
 doesn't choose between the two. Take the 54 mm (2.1 in) design flown in 12.5 m/s (28 mph) and
 fitted from calm air. The answer left is the flight's wind, at a $\chi^2$ of about 15 against
 about 128. On the [report's slice][slice], 2 of the 195 fits of a track report one. Both are
-wrong, at 99.7 against 128 and at 221 against 230. The synthetic flights draw no wind faster than
-20 mph (8.9 m/s), so on them an answer past 12 m/s (27 mph) can only be wrong. No cut on that gap
+wrong, at 99.7 against 128 and at 221 against 230. No fit of a track in the slice has a true wind
+past 12 m/s (27 mph), so there an answer past it can only be wrong. No cut on that gap
 was tested, so the fit applies none. A count over all the synthetic flights is
 [issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652).
 [The guide](../fitting-a-flight.md#the-wind-on-a-log-with-a-track) shows the caveat `hpr fit`

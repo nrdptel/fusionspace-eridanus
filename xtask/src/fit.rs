@@ -2516,7 +2516,7 @@ mod tests {
     /// track, and both are wrong. The report's true wind for each of the two lies within the
     /// scan's reach and within 1 m/s of the fit's own answer, and the answer left lies more than
     /// 3 m/s from it. It can only be so on this slice: none of its fits of a track has a true
-    /// wind past the reach, as the synthetic flights draw no wind faster than 20 mph (8.9 m/s).
+    /// wind past the reach, though the fastest is over 11 m/s.
     /// The answer left being the flight's own is the command's test of flights in 12.5 and
     /// 13 m/s. `fit --slice` makes the slice again on every platform, so the lines stand for
     /// today's fit.

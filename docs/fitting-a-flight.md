@@ -186,8 +186,8 @@ flight was flown in (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`).
 The scan found the wind on each of that test's flights, but it doesn't rule out a wrong answer,
 and no test counts how often one remains. It can miss a second answer between its points. It was
 tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md). It
-also ran on the two real logs with a track in
-[the report of fits of real logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md),
+also ran on the two real logs with a track that
+[the report of fits of real logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md) fits,
 but no real flight has its wind measured apart from its log to check the fitted one against. If the fitted wind differs
 from the field's by more than its interval, distrust the other scales too. The scan
 adds 97 flights of the simulation to a fit of a log with a track, and each search from it more.
@@ -221,8 +221,8 @@ by a little, as the fitted wind reads slow
 
 The caveat doesn't say which answer is the flight's. On the fit report's slice of
 [synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it
-(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). The synthetic flights draw no wind
-faster than 20 mph (8.9 m/s), so on them a second answer past the scan's reach can only be the
+(`the_slice_says_a_second_answer_twice_and_both_are_wrong`). No fit of a track in the slice has a
+true wind past the scan's reach, so there a second answer past it can only be the
 wrong one, and both times it is: the report's true wind for each lies within 1 m/s (3.3 ft/s) of
 the fitted one. So where the caveat prints, check it against the wind on the field that day. If
 that was near the second answer, fit again from it. If it was near the fitted wind, the fitted
