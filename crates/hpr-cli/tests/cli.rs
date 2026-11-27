@@ -5784,19 +5784,18 @@ fn analyze_refuses_what_a_second_log_cannot_go_with() {
     );
 }
 
-/// RocketPy's Prometheus flight, its two boards' logs, where `refs/` has them (`cargo xtask refs
-/// fetch`): read side by side, and the offset held to the one their GPS time gives. Each row's
-/// time and its receiver's UTC second, taken where the second ticks, say what the log's zero is in
-/// UTC; the two zeros differ by the true offset, to about the logging step.
+/// RocketPy's Prometheus flight, its two boards' logs ([`rocketpy_rockets`]): read side by side,
+/// and the offset held to the one their GPS time gives. Each row's time and its receiver's UTC
+/// second, taken where the second ticks, say what the log's zero is in UTC; the two zeros differ
+/// by the true offset, to about the logging step.
 #[test]
 fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
-    let folder = root().join("refs/rocketpy/data/rockets/prometheus");
+    let Some(rockets) = rocketpy_rockets() else {
+        return;
+    };
+    let folder = rockets.join("prometheus");
     let telemetrum = folder.join("2022-06-24-serial-5115-flight-0001-TeleMetrum.csv");
     let telemega = folder.join("2022-06-24-serial-6583-flight-0003-TeleMega.csv");
-    if !telemetrum.exists() || !telemega.exists() {
-        eprintln!("skipped: {} isn't fetched", telemetrum.display());
-        return;
-    }
     let (telemetrum, telemega) = (
         telemetrum.to_string_lossy().into_owned(),
         telemega.to_string_lossy().into_owned(),
@@ -5998,15 +5997,14 @@ fn analyze_writes_a_ghost_file_in_each_format_and_changes_nothing_else() {
     );
 }
 
-/// Every real flight log in RocketPy's repository with an altitude or a GNSS track, by the command
-/// a person would type; `cargo xtask ghost --check` reads their files back with outside readers.
+/// Every real flight log in RocketPy's repository with an altitude or a GNSS track
+/// ([`rocketpy_rockets`]), by the command a person would type; `cargo xtask ghost --check` reads
+/// their files back with outside readers.
 #[test]
 fn analyze_writes_a_ghost_of_each_of_rocketpys_logs() {
-    let rockets = root().join("refs/rocketpy/data/rockets");
-    if !rockets.exists() {
-        eprintln!("skipped: {} isn't fetched", rockets.display());
+    let Some(rockets) = rocketpy_rockets() else {
         return;
-    }
+    };
     let mappings = root().join("validation/fixtures/logs/rocketpy-mappings");
     let folder = tempfile::tempdir().unwrap();
     let out = folder.path().join("g.json").to_string_lossy().into_owned();
@@ -9167,7 +9165,7 @@ fn compare_refuses_a_log_it_cant_line_up() {
 /// shows the name); else RocketPy's checkout under `refs/`. `None`, and a line saying so, where
 /// neither holds it.
 ///
-/// CI's Linux jobs fetch the log with `scripts/fetch-ndrt-2020-log.py` and name it in the
+/// CI's Linux jobs fetch the log with `scripts/fetch-rocketpy-logs.py` and name it in the
 /// variable. So on one of GitHub's Linux runners a run without the variable fails: the workflow
 /// has lost its fetch, and the tests would pass over the flight unseen ([issue #1648]).
 ///
@@ -9191,7 +9189,7 @@ fn ndrt_2020_log() -> Option<String> {
     assert!(
         !on_a_linux_runner,
         "HPR_NDRT_2020_LOG isn't set on a Linux runner: CI's Linux jobs fetch NDRT 2020's log \
-         with scripts/fetch-ndrt-2020-log.py and name it there"
+         with scripts/fetch-rocketpy-logs.py and name it there"
     );
     let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
     if !log.exists() {
@@ -9199,6 +9197,45 @@ fn ndrt_2020_log() -> Option<String> {
         return None;
     }
     Some(log.to_string_lossy().into_owned())
+}
+
+/// RocketPy's `data/rockets` folder of real flight logs: the folder `HPR_ROCKETPY_ROCKETS` names,
+/// which must then be a folder; else RocketPy's checkout under `refs/`. `None`, and a line saying
+/// so, where neither holds it.
+///
+/// CI's Linux test jobs fetch the logs these tests read with `scripts/fetch-rocketpy-logs.py`, at
+/// the pinned commit with each file's SHA-256 checked, and name the folder in the variable. So on one
+/// of GitHub's Linux runners a run without the variable fails: the workflow has lost its fetch,
+/// and the tests would pass over the logs unseen ([issue #1657]).
+///
+/// [issue #1657]: https://github.com/nrdptel/fusionspace-eridanus/issues/1657
+#[allow(
+    clippy::print_stderr,
+    reason = "a test that passes over the logs says so in its output"
+)]
+fn rocketpy_rockets() -> Option<PathBuf> {
+    if let Some(named) = std::env::var_os("HPR_ROCKETPY_ROCKETS") {
+        let named = PathBuf::from(named);
+        assert!(
+            named.is_dir(),
+            "HPR_ROCKETPY_ROCKETS names {}, which isn't a folder",
+            named.display()
+        );
+        return Some(named);
+    }
+    let on_a_linux_runner = std::env::var_os("GITHUB_ACTIONS").is_some()
+        && std::env::var("RUNNER_OS").is_ok_and(|os| os == "Linux");
+    assert!(
+        !on_a_linux_runner,
+        "HPR_ROCKETPY_ROCKETS isn't set on a Linux runner: CI's Linux jobs fetch RocketPy's logs \
+         with scripts/fetch-rocketpy-logs.py and name the folder there"
+    );
+    let rockets = root().join("refs/rocketpy/data/rockets");
+    if !rockets.is_dir() {
+        eprintln!("skipped: {} isn't fetched", rockets.display());
+        return None;
+    }
+    Some(rockets)
 }
 
 /// A real flight, by the command a person would type: NDRT 2020's log ([`ndrt_2020_log`]).
@@ -9652,17 +9689,17 @@ fn compare_refuses_launch_days_and_figures_it_cant_use() {
 
 /// M7.3e on a public flight, by the command a person would type: Prometheus's TeleMetrum log
 /// places the site by its GNSS fixes and dates the launch by its GPS time, and Open-Meteo's
-/// recorded answer for them gives the day's air and wind. Needs RocketPy's checkout.
+/// recorded answer for them gives the day's air and wind. The log is RocketPy's
+/// ([`rocketpy_rockets`]).
 #[test]
 fn compare_plots_a_public_flight_on_its_logs_own_site_and_day() {
-    let log = root().join(
-        "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
-    );
-    if !log.exists() {
-        eprintln!("skipped: {} isn't fetched", log.display());
+    let Some(rockets) = rocketpy_rockets() else {
         return;
-    }
-    let log = log.to_string_lossy().into_owned();
+    };
+    let log = rockets
+        .join("prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv")
+        .to_string_lossy()
+        .into_owned();
     let design = root()
         .join("validation/designs/rocketpy-prometheus-2022-generic-motor.json")
         .to_string_lossy()
