@@ -59,7 +59,14 @@ pub const USAGE: &str =
   fit --check --other-platform --parts <dir>
                            The check above, on the fits of every part in <dir>. Fails unless they
                            are parts 1 to n of one split, and fit each flight once.
-  fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
+  fit --calibrate [--fits <file>]
+                           Fit the calibration set and print each parameter's shares, then the
+                           shares of the flights whose heights fit within 1 m and of the rest,
+                           with how many fits each is of. Writes nothing, or with --fits every
+                           fit to <file> as JSON.
+  fit --fits <a|b> <file>  Fit a test set's flights as the report does and write to <file>, as
+                           JSON, the fits it counts the drag, impulse and mass on, then the
+                           fits it counts the wind on. Checks nothing.
   fit --try <set> <count> [--track]
                            Fit a set's first flights, or with --track its first flights with a
                            track logger, print each parameter's shares and counts on them by both
@@ -250,6 +257,19 @@ fn fit_with_track(
     let more = fit_set(set, &extra, files, None)?;
     let tracked = tracked(&track, &made, &more);
     Ok((made, tracked))
+}
+
+/// The fits of `fits` whose heights' residual lies within [`fits::RESIDUAL_SPLIT_M`], by `within`,
+/// or at it and past it: the two classes the report counts apart, which the shares, one pair for
+/// both, cover unequally (issue #1108). A fit with no residual is in neither.
+fn of_residual(fits: &[FlightFit], within: bool) -> Vec<FlightFit> {
+    fits.iter()
+        .filter(|f| {
+            f.rms_m
+                .is_some_and(|rms_m| (rms_m < fits::RESIDUAL_SPLIT_M) == within)
+        })
+        .cloned()
+        .collect()
 }
 
 /// One run of fits the report reads: flights `indices` of `set`, each fitted to its log, or to
@@ -1839,21 +1859,54 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = crate::synthetic::design_files(&root)?;
     match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
-        ["--calibrate"] => {
+        ["--calibrate"] | ["--calibrate", "--fits", _] => {
             let (made, tracked) = fit_with_track(
                 Set::Calibration,
                 Set::Calibration.count(),
                 CALIBRATION_TRACK_FLIGHTS,
                 &files,
             )?;
+            if let Some(path) = args.get(2) {
+                let json = serde_json::to_string(&(&made, &tracked)).map_err(|e| e.to_string())?;
+                fs::write(path, json + "\n").map_err(|e| format!("{path}: {e}"))?;
+            }
             for asked in ASKED {
                 println!(
                     "{asked:?}: height {:?}, track {:?}",
                     fits::fitted(asked, false, &made),
                     fits::fitted(asked, true, &tracked)
                 );
+                for (class, within) in [
+                    ("heights fit within 1 m", true),
+                    ("heights fit to 1 m or worse", false),
+                ] {
+                    let (height, track) =
+                        (of_residual(&made, within), of_residual(&tracked, within));
+                    println!(
+                        "  {class}: height {:?} of {} fits, track {:?} of {} fits",
+                        fits::fitted(asked, false, &height),
+                        height.iter().filter(|f| f.fitted && !f.drift).count(),
+                        fits::fitted(asked, true, &track),
+                        track.iter().filter(|f| f.fitted && f.drift).count()
+                    );
+                }
             }
             Ok(())
+        }
+        ["--fits", set, path] => {
+            let set = match set {
+                "a" => Set::A,
+                "b" => Set::B,
+                other => return Err(format!("--fits takes a or b, not {other}")),
+            };
+            let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, &files)?;
+            let counted: Vec<&FlightFit> = made
+                .iter()
+                .filter(|f| f.fitted)
+                .take(COUNTED_FLIGHTS)
+                .collect();
+            let json = serde_json::to_string(&(&counted, &tracked)).map_err(|e| e.to_string())?;
+            fs::write(path, json + "\n").map_err(|e| format!("{path}: {e}"))
         }
         ["--try", set, count] | ["--try", set, count, "--track"] => {
             let tracked = args.len() == 4;
