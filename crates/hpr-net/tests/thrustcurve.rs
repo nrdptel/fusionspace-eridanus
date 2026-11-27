@@ -281,6 +281,8 @@ fn each_solid_record_is_the_snapshots_own() {
 /// request on another day (`validation/oracles/thrustcurve/snapshot.py`), and that answer holds
 /// no other record of the three makers. The raw answer lives under the gitignored `refs/`, so
 /// the gate's `refs` step runs this (evidence row G23's sample); elsewhere it prints `skipped:`.
+/// CI can't fetch it: it is the answer as recorded that day, which a search today needn't match
+/// (issue #1657).
 #[test]
 fn each_record_is_the_raw_snapshots_own() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))

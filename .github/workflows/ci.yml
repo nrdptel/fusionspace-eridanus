@@ -167,14 +167,16 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
-      # NDRT 2020's public log, fetched from RocketPy's data at its pinned commit and named in
-      # HPR_NDRT_2020_LOG, so the tests of `hpr fit` and `hpr compare` that read it run on the
-      # Linux rows; a Linux run here without the variable fails them (issue #1648). The macOS
-      # and Windows rows pass over the flight.
+      # RocketPy's public flight logs, fetched at its pinned commit with each file's SHA-256
+      # checked; the folder is named in HPR_ROCKETPY_ROCKETS and NDRT 2020's log in
+      # HPR_NDRT_2020_LOG, so the tests that read them (`hpr fit`, `hpr compare`, `hpr analyze`)
+      # run on the Linux rows; a Linux run here without the variables fails them (issues #1648,
+      # #1657). The macOS and Windows rows pass over the logs.
       - if: startsWith(matrix.os, 'ubuntu')
         run: |
-          python3 scripts/fetch-ndrt-2020-log.py target/public-flights/ndrt_2020_flight_data.csv
-          echo "HPR_NDRT_2020_LOG=$PWD/target/public-flights/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
+          python3 scripts/fetch-rocketpy-logs.py target/rocketpy-rockets
+          echo "HPR_ROCKETPY_ROCKETS=$PWD/target/rocketpy-rockets" >> "$GITHUB_ENV"
+          echo "HPR_NDRT_2020_LOG=$PWD/target/rocketpy-rockets/NDRT_2020/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
       - run: cargo nextest run --workspace --all-features --locked --no-fail-fast --partition count:${{ matrix.part }}
       - if: startsWith(matrix.part, '1/')
         run: cargo test --workspace --all-features --locked --doc
@@ -291,11 +293,11 @@ jobs:
       # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
       - if: env.RUN == 'true'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-      # NDRT 2020's public log for `FlightLog.fit`'s test of that flight, as in `test-part`.
+      # NDRT 2020's public log for `FlightLog.fit`'s test of that flight, fetched as in `test-part`.
       - if: env.RUN == 'true' && startsWith(matrix.os, 'ubuntu')
         run: |
-          python3 scripts/fetch-ndrt-2020-log.py target/public-flights/ndrt_2020_flight_data.csv
-          echo "HPR_NDRT_2020_LOG=$PWD/target/public-flights/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
+          python3 scripts/fetch-rocketpy-logs.py target/rocketpy-rockets
+          echo "HPR_NDRT_2020_LOG=$PWD/target/rocketpy-rockets/NDRT_2020/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
       # CPython's Windows on ARM builds start at 3.11, so there the oldest Python tested is 3.11.
       - if: env.RUN == 'true'
         run: scripts/python-tests.sh ${{ matrix.os == 'windows-11-arm' && '3.11 3.13' || '' }}
