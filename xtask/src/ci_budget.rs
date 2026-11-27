@@ -82,6 +82,9 @@ const HAND_RUNS: usize = 10;
 const OWN_COMMITS: usize = 20;
 /// Nightly runs read.
 const NIGHT_RUNS: usize = 5;
+/// Runs listed a query, GitHub's most: the list isn't filtered by status (#1660), so failed and
+/// unfinished runs share it with the passing ones kept from it.
+const RUNS_PAGE: usize = 100;
 /// Jobs read a page. GitHub allows 100, but on 2026-11-08 it answered every page of 100 of a
 /// rerun nightly (91 jobs) with HTTP 502 and pages of 50 at once, so a run is read in pages of 50.
 const JOBS_PAGE: usize = 50;
@@ -610,19 +613,18 @@ fn own_runs(head: &str) -> Result<Vec<(Run, Vec<Job>, bool)>, String> {
     })?;
     let mut own = Vec::new();
     for commit in commits.lines().take(OWN_COMMITS) {
-        let path = format!(
-            "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs?status=success\
-             &event=workflow_dispatch&head_sha={commit}&per_page={HAND_RUNS}"
-        );
-        let mut runs: Runs = serde_json::from_str(&gh_api(&path)?)
-            .map_err(|error| format!("reading {commit}'s hand-started runs: {error}"))?;
+        let mut runs = passing_of(
+            &gh_api(&own_runs_path(commit))?,
+            HAND_RUNS,
+            &format!("{commit}'s hand-started runs"),
+        )?;
         // The query's own filter, held here too: a run on another commit never counts.
-        runs.workflow_runs.retain(|run| run.head_sha == commit);
-        if runs.workflow_runs.is_empty() {
+        runs.retain(|run| run.head_sha == commit);
+        if runs.is_empty() {
             continue;
         }
         let speaks = speaks_for(None, &main, commit, &head_sha)?;
-        for run in runs.workflow_runs {
+        for run in runs {
             let jobs = run_jobs(&run)?;
             own.push((run, jobs, speaks));
         }
@@ -666,15 +668,49 @@ fn gh_api(path: &str) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-/// Main's passing runs of CI started by `event`, newest first.
+/// Main's passing runs of CI started by `event`, newest first: at most `count` of the newest
+/// [`RUNS_PAGE`] runs, by [`passing_of`].
 fn passing_runs(event: &str, count: usize) -> Result<Vec<Run>, String> {
-    let path = format!(
-        "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs?branch=main&status=success\
-         &event={event}&per_page={count}"
-    );
-    let runs: Runs = serde_json::from_str(&gh_api(&path)?)
-        .map_err(|error| format!("reading {event} runs: {error}"))?;
-    Ok(runs.workflow_runs)
+    passing_of(
+        &gh_api(&main_runs_path(event))?,
+        count,
+        &format!("{event} runs"),
+    )
+}
+
+/// The query for main's newest [`RUNS_PAGE`] runs started by `event`, any status (#1660).
+fn main_runs_path(event: &str) -> String {
+    format!(
+        "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs?branch=main\
+         &event={event}&per_page={RUNS_PAGE}"
+    )
+}
+
+/// The query for the newest [`RUNS_PAGE`] hand-started runs on `commit`, any status (#1660).
+fn own_runs_path(commit: &str) -> String {
+    format!(
+        "repos/{REPOSITORY}/actions/workflows/{WORKFLOW}/runs\
+         ?event=workflow_dispatch&head_sha={commit}&per_page={RUNS_PAGE}"
+    )
+}
+
+/// The first `count` runs of a page of GitHub's runs API whose own `conclusion` is `success`,
+/// in the page's order (newest first); `what` names the page in an error.
+///
+/// The page is read unfiltered and the runs are kept here: on 2026-11-27 the API's
+/// `status=success` filter left main's newest passing run (46011041210) out of every filtered
+/// query for more than two and a half hours after it finished, while an unfiltered query listed
+/// it completed and passed (#1660). A run still going has no conclusion, and a failed one
+/// another, so neither counts.
+fn passing_of(page: &str, count: usize, what: &str) -> Result<Vec<Run>, String> {
+    let runs: Runs =
+        serde_json::from_str(page).map_err(|error| format!("reading {what}: {error}"))?;
+    Ok(runs
+        .workflow_runs
+        .into_iter()
+        .filter(|run| run.conclusion.as_deref() == Some("success"))
+        .take(count)
+        .collect())
 }
 
 /// A run's jobs, its latest attempt's, read page by page.
@@ -800,8 +836,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     let jobs = jobs_found.unwrap_or_else(|| {
         Verdict::Fail(format!(
-            "jobs: none of main's last {PUSH_RUNS} passing push runs and {HAND_RUNS} hand-started \
-             ones ran a pull request's jobs; read further back"
+            "jobs: none of the passing runs among main's last {RUNS_PAGE} push runs (at most \
+             {PUSH_RUNS} read) and {RUNS_PAGE} hand-started ones (at most {HAND_RUNS}) ran a pull \
+             request's jobs; read further back"
         ))
     });
 
@@ -1501,6 +1538,42 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         )
         .unwrap();
         assert_eq!(job_seconds(&jobs.jobs[0]), Ok(None));
+    }
+
+    /// A page holding two passing runs, a failed one and one still going keeps only the passing
+    /// ones, at most `count` of them, in the page's order (#1660).
+    #[test]
+    fn a_page_of_runs_keeps_the_passing_ones() {
+        let page = r#"{"total_count":4,"workflow_runs":[
+            {"id":4,"event":"push","status":"in_progress","conclusion":null,
+             "created_at":"2026-11-27T20:33:57Z","head_sha":"d"},
+            {"id":3,"event":"push","status":"completed","conclusion":"success",
+             "created_at":"2026-11-27T13:53:42Z","head_sha":"c"},
+            {"id":2,"event":"push","status":"completed","conclusion":"failure",
+             "created_at":"2026-11-27T06:21:34Z","head_sha":"b"},
+            {"id":1,"event":"push","status":"completed","conclusion":"success",
+             "created_at":"2026-11-26T23:23:28Z","head_sha":"a"}]}"#;
+        let ids = |runs: Vec<Run>| runs.iter().map(|run| run.id).collect::<Vec<_>>();
+        assert_eq!(ids(passing_of(page, 10, "push runs").unwrap()), [3, 1]);
+        assert_eq!(ids(passing_of(page, 1, "push runs").unwrap()), [3]);
+        assert_eq!(
+            ids(passing_of(page, 0, "push runs").unwrap()),
+            Vec::<u64>::new()
+        );
+        let error = passing_of("{", 10, "push runs").unwrap_err();
+        assert!(error.starts_with("reading push runs: "), "{error}");
+    }
+
+    /// Neither query asks GitHub to filter by status: its `status=success` left a passing run
+    /// out for hours (#1660), so the runs are kept by their own conclusion.
+    #[test]
+    fn the_runs_queries_carry_no_status_filter() {
+        for path in [main_runs_path("push"), own_runs_path("abc")] {
+            assert!(!path.contains("status="), "{path}");
+            assert!(path.contains(&format!("per_page={RUNS_PAGE}")), "{path}");
+        }
+        assert!(main_runs_path("push").contains("branch=main&event=push&"));
+        assert!(own_runs_path("abc").contains("?event=workflow_dispatch&head_sha=abc&"));
     }
 
     /// The names the check reads are `ci.yml`'s: `types` skips on a change to research notes
