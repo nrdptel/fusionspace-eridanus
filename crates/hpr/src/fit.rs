@@ -10,7 +10,8 @@
 //!
 //! **What it states.** Each parameter comes with its standard error and, where one can be stated,
 //! a 90% interval: the standard error times the shares fitted on synthetic flights
-//! ([`hpr_forensics::synthetic::fits::shares`]). The shares were fitted with each parameter held
+//! ([`hpr_forensics::synthetic::fits::shares`]), those of fits like this one: with a track or
+//! without, and with heights that fit within 1 m or not. The shares were fitted with each parameter held
 //! to one stated range ([`hpr_forensics::synthetic::fits::stated`]), so the fit holds a real
 //! flight's to the same: a drag scale and an impulse scale about 1, the mass about the design's,
 //! and the wind about the wind the launch gives. On a log of height alone that wind is at least
@@ -41,7 +42,7 @@ use hpr_flightdata::readings::{self, Provenance, Reading, Source};
 use hpr_forensics::fit::{self as least_squares, Forward, Noise, Parameters, Prior, Stated};
 use hpr_forensics::residuals::{HeightKind, Simulated, Track};
 use hpr_forensics::synthetic::BURN_TIME_SCALE_DRAWN;
-use hpr_forensics::synthetic::fits::{self as calibrated, Asked};
+use hpr_forensics::synthetic::fits::{self as calibrated, Asked, Residual};
 use hpr_forensics::synthetic::truth::SHEAR_REFERENCE_HEIGHT_M;
 use hpr_sim::{IssueWarning, Simulation};
 use serde::{Deserialize, Serialize};
@@ -991,6 +992,8 @@ pub fn fit(
         });
     }
     let track = !observed.horizontal.is_empty();
+    // The shares of the fit's class: its track, and how well its heights fit (ADR-384).
+    let residual = Residual::of(answer.rms_m);
     let values = answer.parameters.to_array();
     let wind_speed_m_s = answer
         .parameters
@@ -1010,7 +1013,9 @@ pub fn fit(
             };
             let interval_90 = asked
                 .filter(|_| no_interval.is_none())
-                .and_then(|asked| calibrated::shares(asked, track).interval(value, standard_error));
+                .and_then(|asked| {
+                    calibrated::shares(asked, track, residual).interval(value, standard_error)
+                });
             // Shares state no interval only on a standard error that isn't a number above zero.
             let no_interval = no_interval
                 .or_else(|| interval_90.is_none().then_some(NoInterval::NoStandardError));

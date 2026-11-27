@@ -22,7 +22,7 @@ use hpr_flightdata::readings::{self, Reading, Reason};
 use hpr_forensics::boost::{self, Cut, NoCut, Unpredicted};
 use hpr_forensics::fit::{self, Fit, Forward, Noise, Observations, Parameters, Stated};
 use hpr_forensics::residuals::{HeightKind, Simulated, Track};
-use hpr_forensics::synthetic::fits::{self as synthetic_fits, Asked, shares};
+use hpr_forensics::synthetic::fits::{self as synthetic_fits, Asked, Residual, shares};
 use hpr_forensics::synthetic::truth::SHEAR_REFERENCE_HEIGHT_M;
 use hpr_sim::{Environment, FlightSettings, Simulation};
 use hpr_validate::real_flight::{
@@ -142,7 +142,8 @@ pub struct Fitted {
     /// Its standard error.
     pub standard_error: f64,
     /// Its 90% interval, the standard error times the shares fitted on the calibration set's
-    /// whole-log fits (`hpr_forensics::synthetic::fits::shares`). `None` for the burn time's
+    /// whole-log fits of its class, by its track and how well its heights fit
+    /// (`hpr_forensics::synthetic::fits::shares`). `None` for the burn time's
     /// scale, which the fit isn't asked for; for the wind on a log with no track, whose shares
     /// were fitted with the synthetic flights' own stated wind and don't carry over to a flight's
     /// own; and for every parameter of a fit up to the cut, which no shares were fitted on.
@@ -194,7 +195,7 @@ impl FitRow {
                             && (drift || !matches!(asked, Asked::WindEast | Asked::WindNorth))
                     })
                     .and_then(|asked| {
-                        shares(asked, drift)
+                        shares(asked, drift, Residual::of(fit.rms_m))
                             .interval(value, standard_error)
                             .map(|i| (i.low, i.high))
                     }),

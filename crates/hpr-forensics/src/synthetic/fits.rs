@@ -633,11 +633,12 @@ pub fn noise_log(log: &FlightLog, size_m: f64, seed: u64, index: u64) -> FlightL
     }
 }
 
-/// The shares a flight's parameter takes: those of what its log holds, and on a log that said
-/// nothing, its stated range's own, the normal's, as the fit held it to.
+/// The shares a flight's parameter takes: those of what its log holds and of how well its heights
+/// fit, and on a log that said nothing, its stated range's own, the normal's, as the fit held it
+/// to.
 fn shares_of(fit: &FlightFit, asked: Asked) -> Shares {
     if fit.fitted {
-        shares(asked, fit.drift)
+        shares(asked, fit.drift, Residual::of(fit.rms_m))
     } else {
         Shares {
             low: -Z_90,
@@ -781,9 +782,48 @@ impl Identification {
     }
 }
 
-/// The residual that splits [`Check::by_residual`], m: past it a flight's errors run larger than
-/// its standard errors say, and the shares, one pair for both sides, cover it less.
+/// The residual that splits the shares and [`Check::by_residual`], m: past it a flight's errors
+/// run larger than its standard errors say, so a fit at it or past it takes shares of its own
+/// ([`Residual`]; issue #1108).
 pub const RESIDUAL_SPLIT_M: f64 = 1.0;
+
+/// How well a fit's heights fit: the RMS of their residual within [`RESIDUAL_SPLIT_M`], or at it
+/// or past it. The shares are fitted on each class apart ([`shares`]), as a fit whose heights miss
+/// by more has errors larger than its standard errors say (issue #1108, [ADR-384][adr-384]).
+///
+/// [adr-384]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0384-m7-3g-the-fits-shares-by-how-well-the-heights-fit.md
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Residual {
+    /// The heights' RMS residual is under [`RESIDUAL_SPLIT_M`].
+    Within,
+    /// It is [`RESIDUAL_SPLIT_M`] or more, or not a number, or the fit has none.
+    Worse,
+}
+
+impl Residual {
+    /// Both classes, the better fit first.
+    pub const ALL: [Self; 2] = [Self::Within, Self::Worse];
+
+    /// The class of a fit whose heights' RMS residual is `rms_m`. A fit with no residual, or one
+    /// that isn't a number, is [`Residual::Worse`]: its shares are the wider in all but two
+    /// pairs, and a fit with something to fit always has one.
+    #[must_use]
+    pub fn of(rms_m: Option<f64>) -> Self {
+        match rms_m {
+            Some(rms_m) if rms_m < RESIDUAL_SPLIT_M => Self::Within,
+            _ => Self::Worse,
+        }
+    }
+
+    /// The class's name, as the report gives it.
+    #[must_use]
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Within => "heights fit within 1 m",
+            Self::Worse => "heights fit to 1 m or worse",
+        }
+    }
+}
 
 /// One parameter's check on one set.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -798,8 +838,8 @@ pub struct Check {
     pub by_design: BTreeMap<String, Counts>,
     /// The counts of flights whose log holds a horizontal track, and of those that don't.
     pub by_drift: BTreeMap<String, Counts>,
-    /// The counts by how well the flight's heights fit, [`RESIDUAL_SPLIT_M`]: the shares are one
-    /// pair for both, so each side's coverage shows here.
+    /// The counts by how well the flight's heights fit ([`Residual`]): each class takes shares
+    /// of its own, and each must pass on its own.
     pub by_residual: BTreeMap<String, Counts>,
     /// The mean error, fit less truth, with its sign.
     pub mean_error: f64,
@@ -866,19 +906,10 @@ pub fn check_by(method: Method, asked: Asked, fits: &[FlightFit]) -> Check {
             )
             .or_default()
             .add(interval, compared.truth);
-        if let Some(rms_m) = fit.rms_m {
-            by_residual
-                .entry(
-                    if rms_m < RESIDUAL_SPLIT_M {
-                        "heights fit within 1 m"
-                    } else {
-                        "heights fit to 1 m or worse"
-                    }
-                    .to_owned(),
-                )
-                .or_default()
-                .add(interval, compared.truth);
-        }
+        by_residual
+            .entry(Residual::of(fit.rms_m).name().to_owned())
+            .or_default()
+            .add(interval, compared.truth);
         error_sum += point_of(method, fit, asked, slot) - compared.truth;
     }
     Check {
@@ -905,35 +936,57 @@ pub fn track_flights(set: Set, count: u64) -> Vec<u64> {
 }
 
 /// The shares of `asked`, fitted on the fits of `fits` whose logs hold a horizontal track or don't,
-/// by `drift`: its share's 5% and 95% points; `None` for fewer than 20, or one that isn't a number.
+/// by `drift`, and whose heights fit as `residual` says, or either way for `None`: its share's 5%
+/// and 95% points; `None` for fewer than 20, or one that isn't a number.
 #[must_use]
-pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
+pub fn fitted(
+    asked: Asked,
+    drift: bool,
+    residual: Option<Residual>,
+    fits: &[FlightFit],
+) -> Option<Shares> {
     let slot = ASKED.iter().position(|a| *a == asked)?;
     let shares: Vec<f64> = fits
         .iter()
         .filter(|f| f.fitted && f.drift == drift)
+        .filter(|f| residual.is_none_or(|r| Residual::of(f.rms_m) == r))
         .map(|f| f.compared[slot].share())
         .collect();
     hpr_flightdata::readings::interval::fit(&shares)
 }
 
-/// The shares in force on a log that holds a horizontal track, or doesn't, by `drift`, fitted on
-/// [`Set::Calibration`]: `cargo xtask fit --calibrate` prints them. A
-/// track speaks to the wind, so its errors are small and of another kind: the two are told apart,
-/// as the log itself says which it is.
+/// The shares in force on a log that holds a horizontal track, or doesn't, by `drift`, whose
+/// heights fit as `residual` says, fitted on [`Set::Calibration`]: `cargo xtask fit --calibrate`
+/// prints them. A track speaks to the wind, so its errors are small and of another kind; a fit
+/// whose heights miss by a metre or more has errors larger than its standard errors say (issue
+/// #1108). Each of the four is told apart, as the log and the fit itself say which it is
+/// ([ADR-384][adr-384]).
+///
+/// [adr-384]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0384-m7-3g-the-fits-shares-by-how-well-the-heights-fit.md
 #[must_use]
-pub fn shares(asked: Asked, drift: bool) -> Shares {
-    let (low, high) = match (asked, drift) {
-        (Asked::DragScale, false) => (-1.33, 1.48),
-        (Asked::ImpulseScale, false) => (-1.58, 1.48),
-        (Asked::WindEast, false) => (-0.412, 3.23),
-        (Asked::WindNorth, false) => (-1.8, 1.78),
-        (Asked::MassScale, false) => (-1.65, 1.67),
-        (Asked::DragScale, true) => (-1.28, 2.1),
-        (Asked::ImpulseScale, true) => (-1.5, 1.85),
-        (Asked::WindEast, true) => (-1.38, 1.35),
-        (Asked::WindNorth, true) => (-1.5, 1.47),
-        (Asked::MassScale, true) => (-1.68, 1.72),
+pub fn shares(asked: Asked, drift: bool, residual: Residual) -> Shares {
+    use Residual::{Within, Worse};
+    let (low, high) = match (asked, drift, residual) {
+        (Asked::DragScale, false, Within) => (-1.33, 1.48),
+        (Asked::DragScale, false, Worse) => (-1.33, 1.48),
+        (Asked::ImpulseScale, false, Within) => (-1.58, 1.48),
+        (Asked::ImpulseScale, false, Worse) => (-1.58, 1.48),
+        (Asked::WindEast, false, Within) => (-0.412, 3.23),
+        (Asked::WindEast, false, Worse) => (-0.412, 3.23),
+        (Asked::WindNorth, false, Within) => (-1.8, 1.78),
+        (Asked::WindNorth, false, Worse) => (-1.8, 1.78),
+        (Asked::MassScale, false, Within) => (-1.65, 1.67),
+        (Asked::MassScale, false, Worse) => (-1.65, 1.67),
+        (Asked::DragScale, true, Within) => (-1.28, 2.1),
+        (Asked::DragScale, true, Worse) => (-1.28, 2.1),
+        (Asked::ImpulseScale, true, Within) => (-1.5, 1.85),
+        (Asked::ImpulseScale, true, Worse) => (-1.5, 1.85),
+        (Asked::WindEast, true, Within) => (-1.38, 1.35),
+        (Asked::WindEast, true, Worse) => (-1.38, 1.35),
+        (Asked::WindNorth, true, Within) => (-1.5, 1.47),
+        (Asked::WindNorth, true, Worse) => (-1.5, 1.47),
+        (Asked::MassScale, true, Within) => (-1.68, 1.72),
+        (Asked::MassScale, true, Worse) => (-1.68, 1.72),
     };
     Shares { low, high }
 }
@@ -1045,10 +1098,20 @@ mod tests {
         assert_eq!((bayes.low, bayes.high), (0.9, 1.3));
         let mass = interval_of(Method::Bayesian, &fit, Asked::MassScale).unwrap();
         assert!((mass.low - 0.4).abs() < 1e-12 && (mass.high - 1.8).abs() < 1e-12);
-        // The least squares' from its shares.
-        let shares = shares(Asked::DragScale, false);
+        // The least squares' from its shares, its class's: its heights fit within 1 m.
+        let shares = shares(Asked::DragScale, false, Residual::Within);
         let least = interval_of(Method::LeastSquares, &fit, Asked::DragScale).unwrap();
         assert!((least.low - (1.0 - shares.high * 0.1)).abs() < 1e-12);
+        assert!((least.high - (1.0 - shares.low * 0.1)).abs() < 1e-12);
+        // Its heights fit to 1 m or worse: the other class's.
+        let worse = FlightFit {
+            rms_m: Some(1.0),
+            ..fit.clone()
+        };
+        let shares = super::shares(Asked::DragScale, false, Residual::Worse);
+        let least = interval_of(Method::LeastSquares, &worse, Asked::DragScale).unwrap();
+        assert!((least.low - (1.0 - shares.high * 0.1)).abs() < 1e-12);
+        assert!((least.high - (1.0 - shares.low * 0.1)).abs() < 1e-12);
         // A fitted log whose posterior had no weight states none; a log that said nothing states
         // its stated range by either.
         let without = FlightFit {
@@ -1064,6 +1127,19 @@ mod tests {
         let both = Method::ALL.map(|m| interval_of(m, &nothing, Asked::DragScale).unwrap());
         assert_eq!(both[0], both[1]);
         assert!((both[0].high - (1.0 + Z_90 * 0.1)).abs() < 1e-12);
+    }
+
+    /// The split falls at 1 m, which is the worse class's; a fit with no residual or one that
+    /// isn't a number takes the worse class's shares.
+    #[test]
+    fn a_fits_residual_class_splits_at_one_metre() {
+        assert_eq!(Residual::of(Some(0.0)), Residual::Within);
+        assert_eq!(Residual::of(Some(0.999_999)), Residual::Within);
+        assert_eq!(Residual::of(Some(RESIDUAL_SPLIT_M)), Residual::Worse);
+        assert_eq!(Residual::of(Some(7.0)), Residual::Worse);
+        assert_eq!(Residual::of(Some(f64::NAN)), Residual::Worse);
+        assert_eq!(Residual::of(None), Residual::Worse);
+        assert_eq!(RESIDUAL_SPLIT_M, 1.0);
     }
 
     #[test]
