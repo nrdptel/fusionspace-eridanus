@@ -1823,6 +1823,26 @@ mod tests {
 
     use crate::residuals::tests_support::simulated_of;
 
+    /// The scan's reach is 12 m/s of wind speed in any direction, its edge counted in (ADR-382 §3).
+    #[test]
+    fn the_scans_reach_is_twelve_meters_a_second_its_edge_in() {
+        let wind = |east: f64, north: f64| {
+            let mut x = [1.0; UNKNOWNS];
+            x[WIND_EAST] = east;
+            x[WIND_NORTH] = north;
+            x
+        };
+        assert_eq!(WIND_SCAN_STEP_M_S * f64::from(WIND_SCAN_RINGS), 12.0);
+        assert!(within_scan(&wind(0.0, 0.0)));
+        assert!(within_scan(&wind(12.0, 0.0)));
+        assert!(within_scan(&wind(0.0, -12.0)));
+        // 7.2 and 9.6 make 12 exactly in f64.
+        assert!(within_scan(&wind(-7.2, 9.6)));
+        assert!(!within_scan(&wind(12.0_f64.next_up(), 0.0)));
+        assert!(!within_scan(&wind(8.5, 8.5)));
+        assert!(!within_scan(&wind(f64::NAN, 0.0)));
+    }
+
     /// A straight-line "flight": height `a t + b t²`, `a` from the drag scale, `b` from the impulse
     /// scale; drift from the wind: the fit's linear case, whose answer and errors are closed form.
     struct Line;
