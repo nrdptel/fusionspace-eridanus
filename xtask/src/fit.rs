@@ -59,7 +59,17 @@ pub const USAGE: &str =
   fit --check --other-platform --parts <dir>
                            The check above, on the fits of every part in <dir>. Fails unless they
                            are parts 1 to n of one split, and fit each flight once.
-  fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
+  fit --calibrate [--fits <file>]
+                           Fit the calibration set and print each parameter's shares, then the
+                           shares of the flights whose heights fit within 1 m and of the rest,
+                           with how many fits each is of. Writes nothing, or with --fits to
+                           <file>, as CBOR, the pair the shares are fitted on: every fit of
+                           the set, then its fits of flights with a track logger (the first
+                           2,000's among them again).
+  fit --fits <a|b> <file>  Fit a test set's flights as the report does and write to <file>, as
+                           CBOR, the fits it counts the drag, impulse and mass on, then the
+                           fits of flights with a track logger, the wind's. Checks nothing.
+                           Read a set's kept fits only as ADR-384 decision 4 allows.
   fit --try <set> <count> [--track]
                            Fit a set's first flights, or with --track its first flights with a
                            track logger, print each parameter's shares and counts on them by both
@@ -250,6 +260,35 @@ fn fit_with_track(
     let more = fit_set(set, &extra, files, None)?;
     let tracked = tracked(&track, &made, &more);
     Ok((made, tracked))
+}
+
+/// The fits of `fits` whose heights' residual lies within [`fits::RESIDUAL_SPLIT_M`], by `within`,
+/// or at it and past it: the two classes the report counts apart, which the shares, one pair for
+/// both, cover unequally (issue #1108). A fit with no residual is in neither.
+fn of_residual(fits: &[FlightFit], within: bool) -> Vec<FlightFit> {
+    fits.iter()
+        .filter(|f| {
+            f.rms_m
+                .is_some_and(|rms_m| (rms_m < fits::RESIDUAL_SPLIT_M) == within)
+        })
+        .cloned()
+        .collect()
+}
+
+/// Writes kept fits, a pair of runs, to `path` as CBOR: JSON has no NaN, and a fit's truth, misfit
+/// or standard error may be one, so a JSON file couldn't be read back as fits (the parts are
+/// written so too, [`write_part`]).
+fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<(), String> {
+    let mut bytes = Vec::new();
+    ciborium::into_writer(&(first, second), &mut bytes).map_err(|e| e.to_string())?;
+    fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+/// Kept fits written by [`write_kept`].
+#[cfg(test)]
+fn read_kept(path: &Path) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
+    let bytes = fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    ciborium::from_reader(bytes.as_slice()).map_err(|e| format!("{}: {e}", path.display()))
 }
 
 /// One run of fits the report reads: flights `indices` of `set`, each fitted to its log, or to
@@ -1839,21 +1878,53 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = crate::synthetic::design_files(&root)?;
     match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
-        ["--calibrate"] => {
+        ["--calibrate"] | ["--calibrate", "--fits", _] => {
             let (made, tracked) = fit_with_track(
                 Set::Calibration,
                 Set::Calibration.count(),
                 CALIBRATION_TRACK_FLIGHTS,
                 &files,
             )?;
+            if let Some(path) = args.get(2) {
+                write_kept(Path::new(path), &made, &tracked)?;
+            }
             for asked in ASKED {
                 println!(
                     "{asked:?}: height {:?}, track {:?}",
                     fits::fitted(asked, false, &made),
                     fits::fitted(asked, true, &tracked)
                 );
+                for (class, within) in [
+                    ("heights fit within 1 m", true),
+                    ("heights fit to 1 m or worse", false),
+                ] {
+                    let (height, track) =
+                        (of_residual(&made, within), of_residual(&tracked, within));
+                    println!(
+                        "  {class}: height {:?} of {} fits, track {:?} of {} fits",
+                        fits::fitted(asked, false, &height),
+                        height.iter().filter(|f| f.fitted && !f.drift).count(),
+                        fits::fitted(asked, true, &track),
+                        track.iter().filter(|f| f.fitted && f.drift).count()
+                    );
+                }
             }
             Ok(())
+        }
+        ["--fits", set, path] => {
+            let set = match set {
+                "a" => Set::A,
+                "b" => Set::B,
+                other => return Err(format!("--fits takes a or b, not {other}")),
+            };
+            let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, &files)?;
+            let counted: Vec<&FlightFit> = made
+                .iter()
+                .filter(|f| f.fitted)
+                .take(COUNTED_FLIGHTS)
+                .collect();
+            let counted: Vec<FlightFit> = counted.into_iter().cloned().collect();
+            write_kept(Path::new(path), &counted, &tracked)
         }
         ["--try", set, count] | ["--try", set, count, "--track"] => {
             let tracked = args.len() == 4;
@@ -2995,6 +3066,53 @@ mod tests {
         let (_, broken) = slice_of(&made, &drawn).unwrap();
         assert_eq!(broken.len(), 1, "{broken:?}");
         assert!(broken[0].starts_with("A flight 21: "), "{broken:?}");
+    }
+
+    /// `--calibrate`'s classes split at 1 m, which is the worse class's, as the report's counts
+    /// by residual do (ADR-384); a fit with no residual is in neither.
+    #[test]
+    fn the_residual_classes_split_at_one_meter() {
+        let with = |index: u64, rms_m: Option<f64>| FlightFit {
+            rms_m,
+            ..a_fit(index)
+        };
+        let made = [
+            with(0, Some(0.2)),
+            with(1, Some(0.999)),
+            with(2, Some(fits::RESIDUAL_SPLIT_M)),
+            with(3, Some(4.0)),
+            with(4, None),
+        ];
+        let indices = |fits: Vec<FlightFit>| fits.iter().map(|f| f.index).collect::<Vec<_>>();
+        assert_eq!(indices(of_residual(&made, true)), [0, 1]);
+        assert_eq!(indices(of_residual(&made, false)), [2, 3]);
+        // The classes' printed names say 1 m.
+        assert_eq!(fits::RESIDUAL_SPLIT_M, 1.0);
+    }
+
+    /// Kept fits read back as they were written, a NaN truth and misfit among them, which JSON
+    /// would have written as nothing.
+    #[test]
+    fn kept_fits_read_back_whole() {
+        let mut said_nothing = a_fit(3);
+        said_nothing.fitted = false;
+        said_nothing.misfit_share = Some(f64::NAN);
+        said_nothing.compared[0].truth = f64::NAN;
+        said_nothing.compared[1].standard_error = f64::INFINITY;
+        let first = vec![a_fit(1), said_nothing];
+        let second = vec![a_fit(2)];
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("kept.cbor");
+        write_kept(&path, &first, &second).unwrap();
+        let (got_first, got_second) = read_kept(&path).unwrap();
+        assert_eq!(got_second, second);
+        assert_eq!(got_first[0], first[0]);
+        let got = &got_first[1];
+        assert!(got.misfit_share.unwrap().is_nan());
+        assert!(got.compared[0].truth.is_nan());
+        assert_eq!(got.compared[1].standard_error, f64::INFINITY);
+        assert_eq!(got.index, 3);
+        assert!(!got.fitted);
     }
 
     /// The shares hold the library's at their three figures where they were written, and within a

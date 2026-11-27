@@ -263,7 +263,11 @@ Those counts have limits:
   model differs as set B's does, take the drag interval's lower end as too high about 8 times in
   100. A 90% interval means 5. The interval isn't widened to pass. The gap is recorded
   ([ADR-368, the gap recorded and not fitted away][adr-368]), and
-  [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix.
+  [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108) holds the fix. A first
+  try fitted the shares apart for flights whose heights fit within 1 m (3.3 ft) and for the rest.
+  It failed set B. Its drag interval left only 27 truths above it, too few to pass. Its wind
+  toward the north, which passes today, held more truths inside than a 90% interval should. So
+  it isn't in force ([ADR-384, the split measured][adr-384]).
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 125 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
@@ -650,6 +654,7 @@ little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It rea
 [adr-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
 [adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
+[adr-384]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0384-m7-3g-in-three-the-split-by-the-residual-measured.md
 [m7-3c4]: ../decisions-and-roadmap.md#m7-3c4
 [m7-3c6]: ../decisions-and-roadmap.md#m7-3c6
 [m7-3c7]: ../decisions-and-roadmap.md#m7-3c7

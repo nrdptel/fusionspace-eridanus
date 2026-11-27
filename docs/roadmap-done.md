@@ -430,6 +430,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3d7 The scoreboard row ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3e The post-flight comparison ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3f The fit on the command line and in Python ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3g1 The split by the residual, measured ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.5 The bias every simulator shares ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5a The rule before the fit ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5b The correction, fitted and judged ([Phase 6](#phase-6-design-experience-library-level))
@@ -2234,6 +2235,13 @@ One line per milestone or increment, in the order it was archived within its pha
     ADR-163 §4's list carries that issue's warning, and an interval that fails ADR-257 §1's test
     carries ADR-368's caveat; a test runs both on a public flight, and one pins each warning and the
     caveat.
+  - **M7.3g** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.3g1 The split by the residual, measured.** *Done when:* `cargo xtask fit
+      --calibrate` prints the calibration set's shares on each of the four classes (height alone or
+      a track; heights fit within 1 m or not) with the count of fits each pair is of; ADR-384
+      records the split's counts on sets A and B, whole and by class, from a full `cargo xtask fit`
+      at a pushed commit that puts the split in force, and its verdict; the shares in force and the
+      committed report are unchanged.
 ## Phase 6: Design experience (library level)
 
 - [x] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on
