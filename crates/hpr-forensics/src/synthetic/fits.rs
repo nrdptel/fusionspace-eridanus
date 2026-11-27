@@ -805,8 +805,8 @@ impl Residual {
     pub const ALL: [Self; 2] = [Self::Within, Self::Worse];
 
     /// The class of a fit whose heights' RMS residual is `rms_m`. A fit with no residual, or one
-    /// that isn't a number, is [`Residual::Worse`]: its shares are the wider in all but two
-    /// pairs, and a fit with something to fit always has one.
+    /// that isn't a number, is [`Residual::Worse`]: its shares are the wider in every pair,
+    /// and a fit with something to fit always has one.
     #[must_use]
     pub fn of(rms_m: Option<f64>) -> Self {
         match rms_m {
@@ -967,26 +967,26 @@ pub fn fitted(
 pub fn shares(asked: Asked, drift: bool, residual: Residual) -> Shares {
     use Residual::{Within, Worse};
     let (low, high) = match (asked, drift, residual) {
-        (Asked::DragScale, false, Within) => (-1.33, 1.48),
-        (Asked::DragScale, false, Worse) => (-1.33, 1.48),
-        (Asked::ImpulseScale, false, Within) => (-1.58, 1.48),
-        (Asked::ImpulseScale, false, Worse) => (-1.58, 1.48),
-        (Asked::WindEast, false, Within) => (-0.412, 3.23),
-        (Asked::WindEast, false, Worse) => (-0.412, 3.23),
-        (Asked::WindNorth, false, Within) => (-1.8, 1.78),
-        (Asked::WindNorth, false, Worse) => (-1.8, 1.78),
-        (Asked::MassScale, false, Within) => (-1.65, 1.67),
-        (Asked::MassScale, false, Worse) => (-1.65, 1.67),
-        (Asked::DragScale, true, Within) => (-1.28, 2.1),
-        (Asked::DragScale, true, Worse) => (-1.28, 2.1),
-        (Asked::ImpulseScale, true, Within) => (-1.5, 1.85),
-        (Asked::ImpulseScale, true, Worse) => (-1.5, 1.85),
-        (Asked::WindEast, true, Within) => (-1.38, 1.35),
-        (Asked::WindEast, true, Worse) => (-1.38, 1.35),
-        (Asked::WindNorth, true, Within) => (-1.5, 1.47),
-        (Asked::WindNorth, true, Worse) => (-1.5, 1.47),
-        (Asked::MassScale, true, Within) => (-1.68, 1.72),
-        (Asked::MassScale, true, Worse) => (-1.68, 1.72),
+        (Asked::DragScale, false, Within) => (-0.893, 1.25),
+        (Asked::DragScale, false, Worse) => (-1.73, 1.83),
+        (Asked::ImpulseScale, false, Within) => (-1.55, 1.4),
+        (Asked::ImpulseScale, false, Worse) => (-1.71, 1.62),
+        (Asked::WindEast, false, Within) => (-0.393, 3.11),
+        (Asked::WindEast, false, Worse) => (-0.45, 3.4),
+        (Asked::WindNorth, false, Within) => (-1.72, 1.72),
+        (Asked::WindNorth, false, Worse) => (-1.86, 1.9),
+        (Asked::MassScale, false, Within) => (-1.64, 1.63),
+        (Asked::MassScale, false, Worse) => (-1.68, 1.73),
+        (Asked::DragScale, true, Within) => (-1.27, 1.6),
+        (Asked::DragScale, true, Worse) => (-1.32, 2.96),
+        (Asked::ImpulseScale, true, Within) => (-1.51, 1.7),
+        (Asked::ImpulseScale, true, Worse) => (-1.5, 2.23),
+        (Asked::WindEast, true, Within) => (-1.27, 1.19),
+        (Asked::WindEast, true, Worse) => (-1.67, 1.71),
+        (Asked::WindNorth, true, Within) => (-1.44, 1.27),
+        (Asked::WindNorth, true, Worse) => (-1.76, 1.93),
+        (Asked::MassScale, true, Within) => (-1.66, 1.72),
+        (Asked::MassScale, true, Worse) => (-1.76, 1.75),
     };
     Shares { low, high }
 }
@@ -1001,7 +1001,7 @@ pub fn shares(asked: Asked, drift: bool, residual: Residual) -> Shares {
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 /// [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
-pub const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 79)];
+pub const KNOWN_GAPS: [(Set, Asked, u64); 0] = [];
 
 /// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
 /// list.
