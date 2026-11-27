@@ -2,10 +2,10 @@
 """Fetches NDRT 2020's Featherweight Raven log from RocketPy's data, at the commit
 `validation/refs.lock.toml` pins RocketPy to, checks its SHA-256 and writes it to the path given.
 
-The public-flight tests of `hpr fit`, `hpr compare` and Python's `FlightLog.fit` read this log.
-A machine with RocketPy's checkout under `refs/` has it there; CI has no `refs/`, so it fetches
-this one file and names it in `HPR_NDRT_2020_LOG`, which makes the tests fail where they'd
-otherwise pass over the flight (issue #1648). Only this file is fetched: a partial checkout under
+The tests of `hpr fit`, `hpr compare` and Python's `FlightLog.fit` on NDRT 2020's flight read
+this log. A machine with RocketPy's checkout under `refs/` has it there; CI has no `refs/`, so
+its Linux jobs fetch this one file and name it in `HPR_NDRT_2020_LOG`, which makes the tests
+fail where they'd otherwise pass over the flight (issue #1648). Only this file is fetched: a partial checkout under
 `refs/rocketpy` would switch on checks that need the whole of it.
 
 The log is RocketPy's (MIT; THIRD-PARTY-NOTICES.md). It is fetched, never committed.
@@ -14,6 +14,7 @@ Usage: python3 scripts/fetch-ndrt-2020-log.py <out.csv>
 """
 
 import hashlib
+import http.client
 import pathlib
 import sys
 import time
@@ -48,13 +49,16 @@ def main() -> int:
             with urllib.request.urlopen(url, timeout=60) as response:
                 data = response.read()
             break
-        except OSError as error:
+        except (OSError, http.client.HTTPException) as error:
             if attempt == ATTEMPTS:
                 raise SystemExit(f"{url}: {error}") from error
             time.sleep(5 * attempt)
     digest = hashlib.sha256(data).hexdigest()
     if digest != SHA256:
-        raise SystemExit(f"{url}: SHA-256 {digest}, expected {SHA256}")
+        raise SystemExit(
+            f"{url}: SHA-256 {digest}, expected {SHA256}. If {LOCK.name}'s rocketpy pin moved, "
+            f"check the file and update SHA256 in {pathlib.Path(__file__).name}"
+        )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
     print(f"{out}: {len(data)} bytes, SHA-256 {digest}")

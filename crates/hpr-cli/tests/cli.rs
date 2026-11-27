@@ -9163,9 +9163,13 @@ fn compare_refuses_a_log_it_cant_line_up() {
 }
 
 /// NDRT 2020's Featherweight Raven log, from RocketPy's data: the file `HPR_NDRT_2020_LOG`
-/// names, which must then exist (CI fetches it with `scripts/fetch-ndrt-2020-log.py`, so a test
-/// there fails rather than passes over the flight: [issue #1648]); else RocketPy's checkout
-/// under `refs/`. `None`, and a line saying so, where neither holds it.
+/// names, which must then be a file, under the name RocketPy gives it (the commands' output
+/// shows the name); else RocketPy's checkout under `refs/`. `None`, and a line saying so, where
+/// neither holds it.
+///
+/// CI's Linux jobs fetch the log with `scripts/fetch-ndrt-2020-log.py` and name it in the
+/// variable. So on one of GitHub's Linux runners a run without the variable fails: the workflow
+/// has lost its fetch, and the tests would pass over the flight unseen ([issue #1648]).
 ///
 /// [issue #1648]: https://github.com/nrdptel/fusionspace-eridanus/issues/1648
 #[allow(
@@ -9182,6 +9186,13 @@ fn ndrt_2020_log() -> Option<String> {
         );
         return Some(named.to_string_lossy().into_owned());
     }
+    let on_a_linux_runner = std::env::var_os("GITHUB_ACTIONS").is_some()
+        && std::env::var("RUNNER_OS").is_ok_and(|os| os == "Linux");
+    assert!(
+        !on_a_linux_runner,
+        "HPR_NDRT_2020_LOG isn't set on a Linux runner: CI's Linux jobs fetch NDRT 2020's log \
+         with scripts/fetch-ndrt-2020-log.py and name it there"
+    );
     let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
     if !log.exists() {
         eprintln!("skipped: {} isn't fetched", log.display());

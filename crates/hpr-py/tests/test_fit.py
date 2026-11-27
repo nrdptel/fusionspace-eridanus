@@ -25,13 +25,20 @@ RAIL_M = 3.6
 
 
 def ndrt_log(repo):
-    """NDRT 2020's log: the file `HPR_NDRT_2020_LOG` names, which must then exist (CI fetches
-    it with `scripts/fetch-ndrt-2020-log.py`, issue #1648); else RocketPy's checkout under
-    `refs/`, or a skip where it isn't fetched."""
+    """NDRT 2020's log: the file `HPR_NDRT_2020_LOG` names, which must then be a file, under
+    the name RocketPy gives it; else RocketPy's checkout under `refs/`, or a skip where it
+    isn't fetched. CI's Linux jobs fetch it with `scripts/fetch-ndrt-2020-log.py` and name it
+    in the variable, so on one of GitHub's Linux runners a run without the variable fails
+    (issue #1648)."""
     named = os.environ.get("HPR_NDRT_2020_LOG")
     if named is not None:
         assert pathlib.Path(named).is_file(), f"HPR_NDRT_2020_LOG names {named}, which isn't a file"
         return pathlib.Path(named)
+    on_a_linux_runner = "GITHUB_ACTIONS" in os.environ and os.environ.get("RUNNER_OS") == "Linux"
+    assert not on_a_linux_runner, (
+        "HPR_NDRT_2020_LOG isn't set on a Linux runner: CI's Linux jobs fetch NDRT 2020's log "
+        "with scripts/fetch-ndrt-2020-log.py and name it there"
+    )
     if not (repo / NDRT_LOG).is_file():
         pytest.skip(f"{NDRT_LOG} isn't fetched")
     return repo / NDRT_LOG

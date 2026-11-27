@@ -135,4 +135,5 @@ wind without its "at least".
 apart from the log. The evidence register's row on the fit ([ADR-278][adr-278]) already says so,
 and [issue #1104][i1104] asks for such a flight. The public-flight tests need a checkout that CI
 doesn't have, so in CI the command runs on the committed invented log and the local gate runs the
-public flight. The Bayesian option and the prediction from the boost stay in the library.
+public flight. (Since 2026-11-27, [issue #1648](https://github.com/nrdptel/fusionspace-eridanus/issues/1648):
+CI's Linux jobs fetch NDRT 2020's log and run that flight's tests.) The Bayesian option and the prediction from the boost stay in the library.

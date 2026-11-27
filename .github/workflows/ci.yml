@@ -154,10 +154,10 @@ jobs:
         with:
           tool: cargo-nextest
       # NDRT 2020's public log, fetched from RocketPy's data at its pinned commit and named in
-      # HPR_NDRT_2020_LOG, so the public-flight tests of `hpr fit` and `hpr compare` run here and
-      # fail rather than pass over the flight (issue #1648). One OS is enough: they hold the
-      # command's numbers by tolerances, not digits.
-      - if: matrix.os == 'ubuntu-latest'
+      # HPR_NDRT_2020_LOG, so the tests of `hpr fit` and `hpr compare` that read it run on the
+      # Linux rows; a Linux run here without the variable fails them (issue #1648). The macOS
+      # and Windows rows pass over the flight.
+      - if: startsWith(matrix.os, 'ubuntu')
         run: |
           python3 scripts/fetch-ndrt-2020-log.py target/public-flights/ndrt_2020_flight_data.csv
           echo "HPR_NDRT_2020_LOG=$PWD/target/public-flights/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"
@@ -277,8 +277,8 @@ jobs:
       # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
       - if: env.RUN == 'true'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-      # NDRT 2020's public log for `FlightLog.fit`'s public-flight test, as in `test-part`.
-      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
+      # NDRT 2020's public log for `FlightLog.fit`'s test of that flight, as in `test-part`.
+      - if: env.RUN == 'true' && startsWith(matrix.os, 'ubuntu')
         run: |
           python3 scripts/fetch-ndrt-2020-log.py target/public-flights/ndrt_2020_flight_data.csv
           echo "HPR_NDRT_2020_LOG=$PWD/target/public-flights/ndrt_2020_flight_data.csv" >> "$GITHUB_ENV"

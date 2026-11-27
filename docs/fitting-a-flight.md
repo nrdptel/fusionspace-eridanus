@@ -17,8 +17,10 @@ simulation of it. Seeing how far the two lie apart, with nothing fitted, is
 > ([the caveat](#the-caveat)).
 
 The tests run the command on one public logged flight, NDRT's 2020 flight, and on the invented log
-below. CI's Linux jobs fetch that flight's log from RocketPy's data, so the tests can't pass it over
-there. The public flight shows that the command runs on a real log, not that its answer is right. Its fitted drag scale lies below 0.8, outside the range
+below. The project's automated checks (CI) fetch that flight's log from RocketPy's public data on
+Linux, and fail there without it. On macOS and Windows, and on a machine that hasn't fetched the
+log, the tests skip the public flight. That flight shows that the command runs on a real log, not
+that its answer is right. Its fitted drag scale lies below 0.8, outside the range
 the intervals were tested over, and prints [marked so](#the-mark-on-a-value-outside-the-tested-range).
 
 ## Run it
