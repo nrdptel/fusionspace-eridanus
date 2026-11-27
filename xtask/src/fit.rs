@@ -3053,7 +3053,7 @@ mod tests {
     /// `--calibrate`'s classes split at 1 m, which is the worse class's, as the report's counts
     /// by residual do (ADR-384); a fit with no residual is in neither.
     #[test]
-    fn the_residual_classes_split_at_one_metre() {
+    fn the_residual_classes_split_at_one_meter() {
         let with = |index: u64, rms_m: Option<f64>| FlightFit {
             rms_m,
             ..a_fit(index)
