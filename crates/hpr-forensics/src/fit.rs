@@ -1070,11 +1070,12 @@ fn fit_and_sample(
         }
         // The lowest, the first of equals. The first answer, the search from the stated wind's,
         // always counts; one searched from a low of the scan counts only inside the scan's reach,
-        // as past it lie lows the scan never saw.
+        // as past it lie lows the scan never saw, and only with a finite cost: `total_cmp` would
+        // rank a NaN with its sign bit set below every number.
         let best = descents
             .iter()
             .enumerate()
-            .filter(|(k, d)| *k == 0 || within_scan(&d.x))
+            .filter(|(k, d)| *k == 0 || (d.cost.is_finite() && within_scan(&d.x)))
             .min_by(|a, b| a.1.cost.total_cmp(&b.1.cost).then(a.0.cmp(&b.0)))
             .map_or(0, |(k, _)| k);
         x = descents[best].x;
