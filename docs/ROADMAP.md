@@ -499,12 +499,19 @@ log corpus came from Debrief.
           failing, and no Bayesian count that passed before it fails; whatever the posterior states of the
           wind's shear on heights alone is stated with its source, not fitted.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
-  - [ ] **M7.3g The least-squares intervals pass again** (#1108, ADR-377). *Done when:* every
-    least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*, the
-    check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
-    narrowed, widened and shifted probes still fail; an ADR amends ADR-368; the pages that state the
-    caveat follow the regenerated report. If the shares are split by the fit's residual (#1108), each
-    class passes too.
+  - [ ] **M7.3g The least-squares intervals pass again** (#1108, ADR-377; in three, ADR-384; met
+    when M7.3g3 is).
+    - [ ] **M7.3g2 A rule chosen on the calibration set.** *Done when:* a rule for the shares,
+      chosen on the calibration set's fits alone, with its counts on sets A and B predicted in
+      writing before they are counted, is measured on both by a full `cargo xtask fit` at a pushed
+      commit, and a record sets the counts against the predictions (ADR-384 decision 4). Two rules
+      in a row that fail set B end M7.3g: the gap stays recorded (ADR-368), the pages say so.
+    - [ ] **M7.3g3 The intervals pass again.** *Done when:* with M7.3g2's rule in force, every
+      least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*,
+      the check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
+      narrowed, widened and shifted probes still fail; an ADR amends ADR-368; the pages that state
+      the caveat follow the regenerated report. If the rule splits the shares into classes, each
+      class passes too.
 - [ ] **M7.4 Fault diagnosis.**
   - A hypothesis library with simulate-able fault models: motor under/over-performance, CATO or
     early burnout, high drag or damage, weathercocking, marginal stability/coning,

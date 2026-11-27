@@ -3050,6 +3050,26 @@ mod tests {
         assert!(broken[0].starts_with("A flight 21: "), "{broken:?}");
     }
 
+    /// `--calibrate`'s classes split at 1 m, which is the worse class's, as the report's counts
+    /// by residual do (ADR-384); a fit with no residual is in neither.
+    #[test]
+    fn the_residual_classes_split_at_one_metre() {
+        let with = |index: u64, rms_m: Option<f64>| FlightFit {
+            rms_m,
+            ..a_fit(index)
+        };
+        let made = [
+            with(0, Some(0.2)),
+            with(1, Some(0.999)),
+            with(2, Some(fits::RESIDUAL_SPLIT_M)),
+            with(3, Some(4.0)),
+            with(4, None),
+        ];
+        let indices = |fits: Vec<FlightFit>| fits.iter().map(|f| f.index).collect::<Vec<_>>();
+        assert_eq!(indices(of_residual(&made, true)), [0, 1]);
+        assert_eq!(indices(of_residual(&made, false)), [2, 3]);
+    }
+
     /// The shares hold the library's at their three figures where they were written, and within a
     /// few percent elsewhere; NaN holds nowhere.
     #[test]
