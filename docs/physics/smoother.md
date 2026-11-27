@@ -21,7 +21,8 @@ sensors, and how well its 90% intervals hold.
   is a synthetic flight's true height or speed. Two logger cells fall under 90%, which the check's
   rule allows. One is 88.7% on set B. The other is 80% on the tuning set, the synthetic flights the
   smoother's rules were set on ([the sets](synthetic-flights.md#the-sets)): 24 of 30 truths, the
-  RRC3 logger's speed at apogee. Sets A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
+  RRC3 logger's speed at apogee. On 344 flights of the same model that cell reads 95.3%
+  ([How well it holds](#how-well-it-holds)). Sets A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)). Tracking from the ground can't stand in for one: a
   contest's optical track gives one height and no speed. Its apogee scatters about 2% (one
@@ -98,6 +99,21 @@ Across the three sets, each set's cells run from 94.1% to 98.8%. Per logger, the
 are 88.7% on set B and 90.3% on set A, both the GNSS logger's apogee height, and 80% on the
 tuning set, the RRC3's speed at apogee: of its 30 truths, 6 lay above the interval. The rule
 still allows them: their misses aren't shown to pass 5% a side.
+
+The RRC3's cell was counted again on more flights of the tuning set's model
+([issue #1595](https://github.com/nrdptel/fusionspace-eridanus/issues/1595)). The calibration
+set's 2,000 synthetic flights are drawn as the tuning set's are, and 344 of them carry an RRC3.
+Of those 344 speeds at apogee, 95.3% lie inside the interval, 1 below it and 15 above it, and the
+cell holds. `cargo xtask synthetic --smoother calibration` prints it. So the tuning set's 80% is
+taken as chance on 30 flights: its six misses fall on four designs and both of the sets' models,
+with nothing else in common that was found.
+
+They do share one thing with most loggers. At apogee the truth lies above the speed's interval
+far more often than below it: on the calibration set, 69 times against 7 in 1,638 smoothed logs,
+with no misses at all on the AltOS logger. A truth above means the smoother reads the vertical
+speed low, as if the rocket had started down. Each side's misses stay under 5%, so every cell
+holds, but the interval isn't centred.
+[Issue #1664](https://github.com/nrdptel/fusionspace-eridanus/issues/1664) holds the lean.
 
 The check also runs a setting made to fail. Each log with a GNSS track is smoothed again with
 its receiver trusted from liftoff, which is wrong on purpose: a receiver lags a climb. `hpr

@@ -77,8 +77,27 @@ pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
   synthetic --slice        Fly only the slice, every 21st flight of each set, and hold each to
                            the committed validation/reports/synthetic-flights.slice.json and to
                            the census's per-flight rules; writes nothing.
+  synthetic --smoother tuning|a|b|calibration [--count <n>] [--launch-started]
+                           Only the smoother's check on one set's first n flights (all of them
+                           by default), printed whole and by logger; writes nothing. The
+                           calibration set's flights are drawn as the tuning set's are.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
                            test them on sets A and B, print the section; writes nothing.";
+
+/// The set `--smoother` names: the census's three, or the calibration set, whose 2,000 flights
+/// are drawn as the tuning set's are, so a tuning cell can be counted again on ten times the
+/// flights of its model (#1595).
+fn probe_set(name: Option<&str>) -> Result<Set, String> {
+    match name {
+        Some("tuning") => Ok(Set::Tuning),
+        Some("a") => Ok(Set::A),
+        Some("b") => Ok(Set::B),
+        Some("calibration") => Ok(Set::Calibration),
+        other => Err(format!(
+            "--smoother takes tuning, a, b or calibration, not {other:?}"
+        )),
+    }
+}
 
 /// Whether this is the census's build. The census is flown, written and checked in one build,
 /// `report-check`'s: every crate optimized, the dev profile's debug assertions and overflow checks
@@ -531,12 +550,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 }
             }
             "--smoother" => {
-                let set = match args.next().map(String::as_str) {
-                    Some("tuning") => Set::Tuning,
-                    Some("a") => Set::A,
-                    Some("b") => Set::B,
-                    other => return Err(format!("--smoother takes tuning, a or b, not {other:?}")),
-                };
+                let set = probe_set(args.next().map(String::as_str))?;
                 probe = Some((set, set.count(), Options::default()));
             }
             "--count" => {
@@ -3406,6 +3420,20 @@ mod tests {
             made_as(truth, set).onto(&mut report);
         }
         serde_json::to_string_pretty(&report).unwrap() + "\n"
+    }
+
+    /// `--smoother` takes the calibration set as well as the census's three, and refuses any
+    /// other name or none (#1595).
+    #[test]
+    fn the_smoothers_probe_takes_the_calibration_set() {
+        assert_eq!(probe_set(Some("calibration")), Ok(Set::Calibration));
+        assert_eq!(probe_set(Some("tuning")), Ok(Set::Tuning));
+        assert_eq!(probe_set(Some("a")), Ok(Set::A));
+        assert_eq!(probe_set(Some("b")), Ok(Set::B));
+        for wrong in [Some("pair-a"), Some("Calibration"), None] {
+            let error = probe_set(wrong).unwrap_err();
+            assert!(error.contains("tuning, a, b or calibration"), "{error}");
+        }
     }
 
     #[test]
