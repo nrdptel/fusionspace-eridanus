@@ -5,6 +5,8 @@ from, the warnings of the flight it meets and the caveat on the interval that fa
 
 import json
 import math
+import os
+import pathlib
 import subprocess
 
 import pytest
@@ -20,6 +22,26 @@ NDRT_LOG = "refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv"
 
 SITE = (41.7, -86.2, 230.0)
 RAIL_M = 3.6
+
+
+def ndrt_log(repo):
+    """NDRT 2020's log: the file `HPR_NDRT_2020_LOG` names, which must then be a file, under
+    the name RocketPy gives it; else RocketPy's checkout under `refs/`, or a skip where it
+    isn't fetched. CI's Linux jobs fetch it with `scripts/fetch-ndrt-2020-log.py` and name it
+    in the variable, so on one of GitHub's Linux runners a run without the variable fails
+    (issue #1648)."""
+    named = os.environ.get("HPR_NDRT_2020_LOG")
+    if named is not None:
+        assert pathlib.Path(named).is_file(), f"HPR_NDRT_2020_LOG names {named}, which isn't a file"
+        return pathlib.Path(named)
+    on_a_linux_runner = "GITHUB_ACTIONS" in os.environ and os.environ.get("RUNNER_OS") == "Linux"
+    assert not on_a_linux_runner, (
+        "HPR_NDRT_2020_LOG isn't set on a Linux runner: CI's Linux jobs fetch NDRT 2020's log "
+        "with scripts/fetch-ndrt-2020-log.py and name it there"
+    )
+    if not (repo / NDRT_LOG).is_file():
+        pytest.skip(f"{NDRT_LOG} isn't fetched")
+    return repo / NDRT_LOG
 
 
 def hpr_fit(cli, log, design, *options):
@@ -224,14 +246,12 @@ def test_a_fit_refuses_what_it_cant_fit(repo, tmp_path):
 
 
 def test_a_public_flight_fits_as_hpr_fit_prints_it(repo, hpr_cli):
-    # NDRT 2020's Featherweight Raven log, by RocketPy's example of the rocket. Needs RocketPy's
-    # checkout, as the Rust test of the same flight does.
-    if not (repo / NDRT_LOG).is_file():
-        pytest.skip(f"{NDRT_LOG} isn't fetched")
-    log = hpr.FlightLog.read(repo / NDRT_LOG)
+    # NDRT 2020's Featherweight Raven log, by RocketPy's example of the rocket (`ndrt_log`).
+    path = ndrt_log(repo)
+    log = hpr.FlightLog.read(path)
     rocket = hpr.Rocket.from_file(repo / NDRT, "example", recovery=True)
     fitted = log.fit(rocket, hpr.Environment(*SITE), RAIL_M)
-    printed = hpr_fit(hpr_cli, repo / NDRT_LOG, repo / NDRT, "--config=example")
+    printed = hpr_fit(hpr_cli, path, repo / NDRT, "--config=example")
     assert same_fit(fitted, printed)
     rows = by_name(fitted)
     # The flight points to less drag than the design states, as the committed report of the

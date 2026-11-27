@@ -9162,15 +9162,51 @@ fn compare_refuses_a_log_it_cant_line_up() {
     assert!(error.contains("liftoff can't be read"), "{error}");
 }
 
-/// A real flight, by the command a person would type; needs RocketPy's checkout.
-#[test]
-fn compare_reports_residuals_for_a_real_flight() {
+/// NDRT 2020's Featherweight Raven log, from RocketPy's data: the file `HPR_NDRT_2020_LOG`
+/// names, which must then be a file, under the name RocketPy gives it (the commands' output
+/// shows the name); else RocketPy's checkout under `refs/`. `None`, and a line saying so, where
+/// neither holds it.
+///
+/// CI's Linux jobs fetch the log with `scripts/fetch-ndrt-2020-log.py` and name it in the
+/// variable. So on one of GitHub's Linux runners a run without the variable fails: the workflow
+/// has lost its fetch, and the tests would pass over the flight unseen ([issue #1648]).
+///
+/// [issue #1648]: https://github.com/nrdptel/fusionspace-eridanus/issues/1648
+#[allow(
+    clippy::print_stderr,
+    reason = "a test that passes over the flight says so in its output"
+)]
+fn ndrt_2020_log() -> Option<String> {
+    if let Some(named) = std::env::var_os("HPR_NDRT_2020_LOG") {
+        let named = PathBuf::from(named);
+        assert!(
+            named.is_file(),
+            "HPR_NDRT_2020_LOG names {}, which isn't a file",
+            named.display()
+        );
+        return Some(named.to_string_lossy().into_owned());
+    }
+    let on_a_linux_runner = std::env::var_os("GITHUB_ACTIONS").is_some()
+        && std::env::var("RUNNER_OS").is_ok_and(|os| os == "Linux");
+    assert!(
+        !on_a_linux_runner,
+        "HPR_NDRT_2020_LOG isn't set on a Linux runner: CI's Linux jobs fetch NDRT 2020's log \
+         with scripts/fetch-ndrt-2020-log.py and name it there"
+    );
     let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
     if !log.exists() {
         eprintln!("skipped: {} isn't fetched", log.display());
-        return;
+        return None;
     }
-    let log = log.to_string_lossy().into_owned();
+    Some(log.to_string_lossy().into_owned())
+}
+
+/// A real flight, by the command a person would type: NDRT 2020's log ([`ndrt_2020_log`]).
+#[test]
+fn compare_reports_residuals_for_a_real_flight() {
+    let Some(log) = ndrt_2020_log() else {
+        return;
+    };
     let design = root()
         .join("validation/designs/rocketpy-ndrt-2020-nose-to-tail.json")
         .to_string_lossy()
@@ -10882,15 +10918,12 @@ fn fit_refuses_a_log_it_cant_fit() {
 }
 
 /// M7.3f on a public flight, by the command a person would type: NDRT 2020's Featherweight Raven
-/// log fitted by RocketPy's example of the rocket. Needs RocketPy's checkout.
+/// log fitted by RocketPy's example of the rocket ([`ndrt_2020_log`]).
 #[test]
 fn fit_fits_a_public_flight() {
-    let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
-    if !log.exists() {
-        eprintln!("skipped: {} isn't fetched", log.display());
+    let Some(log) = ndrt_2020_log() else {
         return;
-    }
-    let log = log.to_string_lossy().into_owned();
+    };
     let design = repo_file("validation/designs/rocketpy-ndrt-2020-nose-to-tail.json");
     let args = [
         "fit",
