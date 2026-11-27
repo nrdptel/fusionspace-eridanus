@@ -134,7 +134,7 @@ struct Runs {
 /// One job of a run as GitHub's jobs API writes it.
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Job {
-    /// The job's name as the run shows it (`test (windows-latest, 1/2)`).
+    /// The job's name as the run shows it (`test (windows-latest, 1/3)`).
     pub(crate) name: String,
     /// `success`, `skipped`, `failure`, ...; absent while it runs.
     pub(crate) conclusion: Option<String>,
@@ -415,7 +415,7 @@ fn timed_jobs_verdict(whose: &str, run: &Run, jobs: &[Job]) -> Result<Verdict, S
 }
 
 /// The jobs' check for a branch that may repair it ([ADR-383]): `main`'s verdict stands unless it
-/// fails and one of `own` is a passing run of a pull request's jobs ([`pull_request_jobs`]) on
+/// fails (a job over the budget, or no run of a pull request's jobs found) and one of `own` is a passing run of a pull request's jobs ([`pull_request_jobs`]) on
 /// `head` itself that speaks for it ([`speaks_for`]); that run's jobs are then held to the
 /// budget in main's place. `own` holds the passing hand-started runs on the branch's own commits,
 /// each with its jobs and whether it speaks for the head.
@@ -1323,6 +1323,15 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         );
     }
 
+    /// CI's platforms, in `ci.yml`'s order (ADR-222).
+    const CI_PLATFORMS: [&str; 5] = [
+        "ubuntu-latest",
+        "ubuntu-24.04-arm",
+        "macos-latest",
+        "windows-latest",
+        "windows-11-arm",
+    ];
+
     /// Each platform's test parts are 1 to n of one split, the doctests in the first part alone,
     /// and nextest takes the part as `count:K/N`, so every test runs once on each platform.
     #[test]
@@ -1350,16 +1359,6 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
                 .push((k.parse().unwrap(), n.parse().unwrap()));
         }
         let platforms: Vec<&str> = parts.keys().copied().collect();
-        assert_eq!(
-            platforms,
-            [
-                "macos-latest",
-                "ubuntu-24.04-arm",
-                "ubuntu-latest",
-                "windows-11-arm",
-                "windows-latest"
-            ]
-        );
         for (os, split) in &parts {
             let of = split[0].1;
             assert!(of >= 2 && split.iter().all(|p| p.1 == of), "{os}");
@@ -1376,8 +1375,14 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         for unseen in ["continue-on-error", "exclude:", "    if:"] {
             assert!(!job.contains(unseen), "{unseen}");
         }
+        // The checks branch protection requires, one a platform, pass only when every part did.
         let all = &ci[ci.find("\n  test:\n").unwrap()..];
+        let all = &all[..=all[1..].find("\n  # ").unwrap()];
         assert!(all.contains("    needs: test-part\n    if: always()\n"));
+        assert!(all.contains(&format!("        os: [{}]\n", CI_PLATFORMS.join(", "))));
+        let mut required = CI_PLATFORMS.to_vec();
+        required.sort_unstable();
+        assert_eq!(platforms, required);
     }
 
     /// `git <args>` in `dir`, as a committer with a name.

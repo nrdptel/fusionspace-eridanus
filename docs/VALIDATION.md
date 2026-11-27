@@ -507,11 +507,13 @@ fails, saying why, when it can't read GitHub's runs. It fails when:
   lacked is added. A branch with no full gate yet gets a note, not a failure.
 - any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run
   is one started by a push to main, or by hand without the `full` box ticked; a push that changed
-  only research notes skips most checks, so the run before it is read. If main's run fails, the
-  branch's own run may stand in: one started by hand without `full`, on its head, on top of main.
-  Its jobs are held to the same 20 minutes. Without that, the change that splits a slow job
-  couldn't open
-  ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md)).
+  only research notes skips most checks, so the run before it is read.
+  - If main's run fails this, a run of the branch's own can stand in for it. It must have
+    passed, been started by hand without `full` (`gh workflow run ci.yml --ref <branch>`), and
+    run on the branch's newest commit, with every commit of main merged in. Its jobs are held to
+    the same 20 minutes. Without this rule, a pull request that splits a slow job could never be
+    opened
+    ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md)).
 - no *full run* on main has passed in the last 26 hours. A full run is the one that adds the
   censuses: each night, or by hand with `full` ticked. It passes when every `census` job and the
   fit's whole check passed, and its age is counted from its first attempt, so a run made again

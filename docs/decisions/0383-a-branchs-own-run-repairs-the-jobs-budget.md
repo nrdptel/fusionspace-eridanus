@@ -11,18 +11,20 @@
 **Context.** `cargo xtask ci-budget` runs before every pull request opens. Its second check reads
 main's newest passing run of a pull request's checks (one started by a push, or by hand without
 `full`) and fails when any job of it ran past 1,200 s on its runner. After the fit's scan of the
-wind ([issue #1646][i1646]) merged, two jobs passed that line on main's push run at e533d0aa and
-again on a run started by hand at the same commit:
+wind ([issue #1646][i1646]) merged, three jobs passed that line on main's push run at e533d0aa,
+and two of them again on a run started by hand at the same commit (the jobs' names before the
+split):
 
 | job | push run 45965513904 | hand run 45973660626 |
 |---|---:|---:|
 | `test (windows-latest, 2/2)` | 1,266 s | 1,269 s |
 | `fit slice (ubuntu-latest, 2/3)` | 1,214 s | 1,208 s |
-| `test (macos-latest, 2/2)` | 1,214 s | under 957 s |
+| `test (macos-latest, 2/2)` | 1,214 s | 740 s |
 
-The site's `site (1/3)` took 1,066 s on the first. The Windows half spent about 9 minutes
-building and 11 running its tests. So every pull request is refused until main has a faster run,
-and main gets one only through a pull request: the split that fixes it is refused too. The
+The site's `site (1/3)` took 1,066 s on the first, within the budget but close to it. The Windows
+half spent about 9 minutes building and 11 running its tests. So every pull request is refused
+until main has a faster run, and a pull request that makes main's runs faster is refused too: the
+split that fixes it among them. The
 night's check had the same trap and a repair for it (ADR-365, decision 6); the jobs' check had
 none.
 
@@ -48,9 +50,13 @@ none.
 - The pull request that splits a slow job opens after a hand-started run on its head (`gh
   workflow run ci.yml --ref <branch>`, `full` left off) passes within the budget. Once it merges,
   main's own runs are read again and the repair isn't needed.
-- More jobs run: 3 more test parts, 1 more fit-slice part and 1 more site part, each with its
-  own build. The issue stays open until main's runs show the longest job under 1,020 s three
-  times in a row, its own *done when*.
+- More jobs run: 2 more test parts (one each on `windows-latest` and `macos-latest`), 1 more
+  fit-slice part and 1 more site part, 4 more jobs in all, each with its own build. The issue
+  stays open until main's runs show the longest job under 1,020 s three times in a row, its own
+  *done when*. On the branch's own run two `fit slice (windows-latest)` parts, which this change
+  doesn't split, took 1,117 and 1,046 s, and two macOS test parts 1,060 and 1,077 s.
+- The repair also stands in when none of main's runs read ran a pull request's jobs, a failure
+  that isn't a slow job; the branch's own run is held to the budget all the same.
 - `xtask/src/ci_budget.rs`: `repaired_jobs_verdict` and its test,
   `a_branchs_own_run_on_its_head_stands_in_for_main_s_jobs`; the split's test,
   `every_platforms_test_parts_cover_its_tests_once`, beside the fit's

@@ -121,8 +121,9 @@ jobs:
   # The tests run in parts per OS, side by side: part K of N builds the workspace and runs every
   # Nth test from the Kth (nextest's `count:K/N` partition), so every test still runs once on each
   # OS. The doctests run in the first part. Two parts on most platforms; three on windows-latest
-  # and macos-latest, whose second half took 1,214 to 1,269 s on main's runs of 2026-11-27, past
-  # the 20 minutes a job may take, its build alone about 9 minutes (issue #1658).
+  # and macos-latest. In two, windows-latest's second half took 1,266 and 1,269 s on main's two
+  # runs at e533d0aa, and macos-latest's 1,214 s on one of them, past the 20 minutes a job may
+  # take; the Windows build alone took about 9 minutes (issue #1658).
   test-part:
     name: test (${{ matrix.os }}, ${{ matrix.part }})
     strategy:
@@ -437,12 +438,12 @@ jobs:
   # fitted in parts, each every Nth fit of the slice's from the Kth (`--part K/N`): by least squares
   # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
   # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
-  # three parts on each platform and six on macos-latest and windows-latest, the slowest: by least
+  # three parts on most platforms and six on macos-latest and windows-latest, the slowest: by least
   # squares their jobs took up to 943 s on macos-latest and 904 s a half on windows-latest. In four
   # parts a macos-latest job took 356 to 1,251 s on main's four runs to 2026-11-23, the longest past
-  # the 20 minutes, so it runs in six. The wind's scan on a log with a track (issue #1646) took
-  # ubuntu-latest's part 2/3 to 1,208 to 1,214 s on main's runs of 2026-11-27, so it runs in four
-  # (issue #1658).
+  # the 20 minutes, so it runs in six. On ubuntu-latest, part 2/3 took 1,208 and 1,214 s on main's
+  # two runs at e533d0aa, after the wind's scan on a log with a track merged (issue #1646), against
+  # 1,026 s on main's run before it; so it runs in four (issue #1658).
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
@@ -492,7 +493,7 @@ jobs:
         run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform --part ${{ matrix.part }}
 
   # The checks branch protection requires are `fit slice (<os>)`: each passes only when every part
-  # passed on every OS, as `test (<os>)` does for the tests' halves.
+  # passed on every OS, as `test (<os>)` does for the tests' parts.
   fit-slice:
     name: fit slice (${{ matrix.os }})
     needs: fit-slice-part
