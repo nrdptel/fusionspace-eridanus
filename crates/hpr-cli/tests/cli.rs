@@ -10575,7 +10575,8 @@ fn fit_of_a_log_with_a_track_states_the_wind_within_100_columns() {
 #[test]
 fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
     let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
-    // The wind flown toward the east, m/s, the wind the fit is told, and the rail, m.
+    // The wind flown toward the east, m/s, the wind the fit is told, and the rail, m. The last two
+    // are told the wind they were flown in: the scan mustn't pull a fit told rightly to a wrong low.
     for (flown, told, rail) in [
         ("2", "0", "1.5"),
         ("4", "0", "1.5"),
@@ -10583,6 +10584,8 @@ fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
         ("9", "0", "1.5"),
         ("9", "0", "3"),
         ("9", "3", "1.5"),
+        ("6", "6", "1.5"),
+        ("9", "9", "1.5"),
     ] {
         let folder = tempfile::tempdir().unwrap();
         let (log, mapping) = track_log(
