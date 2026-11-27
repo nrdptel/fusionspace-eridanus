@@ -142,8 +142,19 @@ about 14 m/s (46 ft/s). Those flights were flown in about 6 m/s (20 ft/s) ([the 
 from the stated wind counts wherever it ends. The scan's lowest point needn't be the flight's wind,
 since the other inputs are held where a wrong wind left them. That's why it starts from several
 lows. A low between the scan's points can still be missed. A wind past 12 m/s (27 mph), past the
-20 mph (8.9 m/s) the NAR's high-power safety code allows, is found only by the search from the
+20 mph (8.9 m/s) the NAR's high-power safety code allows, is taken only from the search from the
 wind given.
+
+An answer that rule leaves out isn't dropped in silence. Say a search from a low of the scan ends
+past 12 m/s (39 ft/s) with a lower $\chi^2$ than the answer that stands. The fit then reports it
+with its wind and both values of $\chi^2$ at the last pass. It must lie more than 1.5 m/s
+(4.9 ft/s) from the standing answer's wind. Nearer, it is the same low found twice. The fit
+doesn't choose between the two. Take the 54 mm (2.1 in) design flown in 12.5 m/s (28 mph) and
+fitted from calm air. The answer left is the flight's wind, at a $\chi^2$ of about 15 against
+about 128. On the [report's slice][slice], 2 of the 195 fits of a track report one. Both are
+wrong, at 99.7 against 128 and at 221 against 230. No cut on that gap was tested, so the fit
+applies none. A count over all the synthetic flights is
+[issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652).
 
 ### When a log has nothing to fit
 
@@ -637,3 +648,4 @@ little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It rea
 [m7-3c6]: ../decisions-and-roadmap.md#m7-3c6
 [m7-3c7]: ../decisions-and-roadmap.md#m7-3c7
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fit-intervals.md
+[slice]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fit-intervals.slice.json

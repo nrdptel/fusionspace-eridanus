@@ -2116,6 +2116,11 @@ pub struct Fit {
     /// The top Mach number of the flight at the fitted parameters, flown to the ground with the
     /// design's recovery: the Mach number its warnings speak of.
     pub fitted_max_mach: Option<f64>,
+    /// A second answer in the wind that fits the log better than the wind in `parameters` and
+    /// wasn't taken, as it lies past the 12 m/s the fit's scan of the wind reaches. Null where
+    /// the fit found none, as on every log of height alone. Where it is given, the fitted wind
+    /// and the scales fitted with it are unsettled.
+    pub wind_past_scan: Option<FitWindPastScan>,
     /// The known issues the flight at the fitted parameters meets: where HPR Sim's drag or
     /// stability is known to read wrong on this flight, the fit's numbers take that error in.
     pub issues: Vec<SimIssue>,
@@ -2252,6 +2257,27 @@ pub struct FitCaveat {
     /// How many a 90% interval is meant to leave below it.
     pub meant: u64,
     /// The caveat in sentences, with which way the interval errs.
+    pub message: String,
+}
+
+/// A second answer in the wind that `hpr fit` found on a log with a track and didn't take: a
+/// search that ended past the reach of the fit's scan of the wind, at a lower misfit than the
+/// answer the fit gives.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct FitWindPastScan {
+    /// The wind the search ended at, toward the east, m/s.
+    pub wind_east_m_s: f64,
+    /// The wind the search ended at, toward the north, m/s.
+    pub wind_north_m_s: f64,
+    /// That wind's speed, m/s.
+    pub speed_m_s: f64,
+    /// The way that wind blows from, degrees clockwise from north.
+    pub from_deg: f64,
+    /// Its misfit, the fit's χ² at its last pass.
+    pub chi2: f64,
+    /// The χ² there of the answer the fit gives, which is higher.
+    pub standing_chi2: f64,
+    /// The notice in sentences, with what to do about it.
     pub message: String,
 }
 

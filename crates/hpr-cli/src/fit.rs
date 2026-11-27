@@ -24,8 +24,8 @@ use crate::compare::{self, CompareArgs, HeightReads};
 use crate::console::Level;
 use crate::output::{
     CompareConditions, CompareFlownIn, CompareSite, Fit, FitApogee, FitCaveat, FitLiftoff,
-    FitNoInterval, FitParameter, FitParameterName, FitReadings, FitTrack, HeightReadAs, IssueKind,
-    ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
+    FitNoInterval, FitParameter, FitParameterName, FitReadings, FitTrack, FitWindPastScan,
+    HeightReadAs, IssueKind, ReadingInterval, ReadingProvenance, ReadingSource, SimIssue, SiteFrom,
 };
 use crate::sim::{FlightArgs, Setup, file_name, flight_refused};
 use crate::units::{fixed, meters, meters_bound, rounded_down, rounded_up, seconds_bound};
@@ -230,6 +230,21 @@ pub(crate) fn run(args: &FitArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         fitted_apogee_m: fitted.fitted_apogee_m,
         fitted_apogee_time_s: fitted.fitted_apogee_time_s,
         fitted_max_mach: fitted.fitted_max_mach,
+        wind_past_scan: fitted.wind_past_scan.map(|past| {
+            let (speed_m_s, from_deg) = past.told();
+            FitWindPastScan {
+                wind_east_m_s: past.wind_east_m_s,
+                wind_north_m_s: past.wind_north_m_s,
+                speed_m_s: past.speed_m_s(),
+                from_deg: past.from_deg(),
+                chi2: past.chi2,
+                standing_chi2: past.standing_chi2,
+                message: format!(
+                    "{} On the command line: `--wind {speed_m_s:.1} --wind-from {from_deg:.0}`.",
+                    past.message()
+                ),
+            }
+        }),
         issues: fitted
             .issue_warnings
             .iter()
@@ -623,6 +638,13 @@ fn text_lines(document: &Fit) -> Vec<String> {
                     .map(|line| format!("  {line}")),
             );
         }
+    }
+    if let Some(past) = &document.wind_past_scan {
+        lines.extend(
+            crate::trust::wrap(&format!("Caveat. {}", past.message), WIDTH - 2)
+                .iter()
+                .map(|line| format!("  {line}")),
+        );
     }
     lines.push(String::new());
     lines.push("The fitted flight".to_owned());

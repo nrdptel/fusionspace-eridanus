@@ -9,7 +9,9 @@ use hpr_forensics::synthetic::fits::{ASKED, Asked, KNOWN_GAPS, known_gap_of};
 use hpr_sim::{Channel, Recorder};
 
 use super::{built, environment, trapezoid};
-use crate::fit::{self, Caveat, INTERVAL_ISSUE_URL, LogFit, NoInterval, Parameter, Refused};
+use crate::fit::{
+    self, Caveat, INTERVAL_ISSUE_URL, LogFit, NoInterval, Parameter, Refused, WindPastScan,
+};
 use crate::rocket::{Fins, MotorTube, Nose, Transition, Tube, material};
 use crate::{
     CanopyType, Device, DeviceDrag, Environment, FinCrossSection, Flight, FlightBuilder, Motor,
@@ -393,6 +395,81 @@ fn a_log_with_a_track_states_the_wind() {
     assert_eq!(tested.low, -tested.high);
     assert!(!east.outside_tested_range);
     assert!(!text.contains('†'), "{text}");
+    // Within the scan's reach nothing better was left past it, so no second answer is said.
+    assert_eq!(fitted.wind_past_scan, None);
+    assert!(!text.contains("second answer"), "{text}");
+    // A fit that left one prints it as a caveat of its own, before the warnings.
+    let past = WindPastScan {
+        wind_east_m_s: 12.12,
+        wind_north_m_s: 0.0,
+        chi2: 15.24,
+        standing_chi2: 127.8,
+    };
+    let said = LogFit {
+        wind_past_scan: Some(past),
+        ..fitted
+    };
+    let lines = said.lines();
+    assert!(
+        lines.contains(&format!("Caveat. {}", past.message())),
+        "{lines:?}"
+    );
+}
+
+/// The second answer a fit leaves past its wind scan's reach ([ADR-382] §7) says the wind it
+/// ended at as a speed and the way it blows from, how the two answers fit, and what to do. Its
+/// speed is rounded up, so that a fit told it starts past the scan's reach; the two misfits are
+/// rounded toward each other, so that the gap printed is never wider than the gap found.
+///
+/// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
+#[test]
+fn a_second_answer_past_the_scan_says_its_wind_and_how_the_two_fit() {
+    // As the 54 mm design's flight in 12.5 m/s toward the east left it, fitted from calm air.
+    let past = WindPastScan {
+        wind_east_m_s: 12.123,
+        wind_north_m_s: 0.003,
+        chi2: 15.236,
+        standing_chi2: 127.804,
+    };
+    assert!((past.speed_m_s() - 12.123).abs() < 1e-3);
+    // Toward the east is from the west, 270° clockwise from north.
+    assert!(
+        (past.from_deg() - 269.986).abs() < 1e-3,
+        "{}",
+        past.from_deg()
+    );
+    assert_eq!(past.told(), (12.2, 270.0));
+    assert_eq!(
+        past.message(),
+        "The wind has a second answer, which the fit didn't take. A search ended at a wind of \
+         12.2 m/s (27 mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind \
+         reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against \
+         127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so \
+         the fitted wind stands. If the day's wind was near the second answer, fit again told \
+         that wind. Until then take the fitted wind, and the scales fitted with it, as \
+         unsettled."
+    );
+    // The way a wind blows from, each quarter: toward the north is from the south.
+    let toward = |east: f64, north: f64| WindPastScan {
+        wind_east_m_s: east,
+        wind_north_m_s: north,
+        ..past
+    };
+    for (east, north, from) in [
+        (0.0, 13.0, 180.0),
+        (-13.0, 0.0, 90.0),
+        (0.0, -13.0, 0.0),
+        (9.2, 9.2, 225.0),
+    ] {
+        let wind = toward(east, north);
+        assert!((wind.from_deg() - from).abs() < 1e-9, "{east}, {north}");
+        assert_eq!(wind.told().1, from, "{east}, {north}");
+    }
+    // A way just short of north is told as 0°, not 360°, and the speed never rounds down.
+    let nearly_north = toward(0.05, -13.01);
+    assert!(nearly_north.from_deg() > 359.7);
+    assert_eq!(nearly_north.told(), (13.1, 0.0));
+    assert_eq!(toward(12.0, 0.0).told().0, 12.0);
 }
 
 /// What a log of height alone is told of the wind: at least the wind its intervals' shares were

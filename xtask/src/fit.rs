@@ -1340,12 +1340,17 @@ fn side(interval: Option<Interval>, truth: f64) -> &'static str {
     }
 }
 
+/// How a fit's line in the slice starts where the fit left a second answer in the wind past its
+/// scan's reach ([`hpr_forensics::fit::PastScan`]).
+const SECOND_ANSWER: &str = "a second answer past the wind scan's reach";
+
 /// One fit's lines in the slice: what the fit came to, then each parameter's value, standard
 /// error, truth and error over its standard error, with where its truth fell against the interval
 /// the report counts, or "not counted" where the report counts none (a log with nothing to fit, or
 /// a wind without a track). A fit of the calibration set, `calibration`, has neither: its errors
 /// are what the shares are fitted on, so some sit on an interval's end by construction, where a
 /// side would turn on a platform's last digits and say nothing the report counts. Then the
+/// second answer in the wind the fit left past its scan's reach, where it said one. Then the
 /// Bayesian option's posterior, where the fit drew one (ADR-320): its draws, and each parameter's
 /// 5% and 95% points and median, with where its truth fell against them where the report counts
 /// it.
@@ -1401,6 +1406,17 @@ fn slice_lines(fit: &FlightFit, calibration: bool) -> Vec<String> {
             figures(c.standard_error),
             figures(c.truth),
             share(c.share()),
+        ));
+    }
+    // Said only by a fit that left one (ADR-382 §7), so that every other fit's lines stand as
+    // they were.
+    if let Some(past) = &fit.past_scan {
+        made.push(format!(
+            "{SECOND_ANSWER}: {} m/s toward the east, {} toward the north, misfit {} against {}",
+            figures(past.wind_east_m_s),
+            figures(past.wind_north_m_s),
+            figures(past.chi2),
+            figures(past.standing_chi2),
         ));
     }
     let Some(posterior) = &fit.posterior else {
@@ -2040,6 +2056,7 @@ mod tests {
             compared: [compared; ASKED.len()],
             rms_m: Some(1.5),
             flown: 70,
+            past_scan: None,
             posterior: None,
         }
     }
@@ -2491,6 +2508,78 @@ mod tests {
             )
             .replace('-', "\u{2212}");
             assert!(page.contains(&row), "the page lacks {row}");
+        }
+    }
+
+    /// How often a fit says a second answer past the wind scan's reach, and how often that
+    /// answer is the wrong one, on the committed slice ([ADR-382] §7): 2 of its 195 fits of a
+    /// track, and both are wrong. Each of the two flights flew within the scan's reach, in a wind
+    /// the fit's own answer lies within 1 m/s of, and the answer left lies more than 3 m/s from
+    /// it. `fit --slice` makes the slice again on every platform, so the lines stand for today's
+    /// fit.
+    ///
+    /// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
+    #[test]
+    fn the_slice_says_a_second_answer_twice_and_both_are_wrong() {
+        let path = crate::designs::root()
+            .unwrap()
+            .join(format!("{REPORT}.slice.json"));
+        let slice: crate::slice::Slice =
+            serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let tracks = slice
+            .flights
+            .iter()
+            .filter(|flight| flight.made[0].contains(", with a track, "))
+            .count();
+        // A line's numbers, in order.
+        let numbers = |line: &str| -> Vec<f64> {
+            line.split([' ', ','])
+                .filter_map(|word| word.parse().ok())
+                .collect()
+        };
+        let said: Vec<(&str, u64, Vec<f64>, Vec<f64>)> = slice
+            .flights
+            .iter()
+            .filter_map(|flight| {
+                let second = flight
+                    .made
+                    .iter()
+                    .find(|line| line.starts_with(SECOND_ANSWER))?;
+                let wind = |name: &str| {
+                    let line = flight
+                        .made
+                        .iter()
+                        .find(|line| line.starts_with(&format!("{name}: ")))
+                        .unwrap();
+                    // Its value, its standard error and its truth.
+                    numbers(line)
+                };
+                let (east, north) = (wind(Asked::WindEast.name()), wind(Asked::WindNorth.name()));
+                // Fitted and true, each toward the east and the north.
+                Some((
+                    flight.set.as_str(),
+                    flight.index,
+                    vec![east[0], north[0], east[2], north[2]],
+                    numbers(second),
+                ))
+            })
+            .collect();
+        assert_eq!((tracks, said.len()), (195, 2), "{said:?}");
+        assert_eq!(
+            said.iter().map(|s| (s.0, s.1)).collect::<Vec<_>>(),
+            [("a", 1305), ("calibration", 4667)]
+        );
+        let reach = hpr_forensics::fit::wind_scan_reach_m_s();
+        for (set, index, fitted, second) in &said {
+            let case = format!("{set} flight {index}: {fitted:?}, {second:?}");
+            let (fitted_wind, truth) = ((fitted[0], fitted[1]), (fitted[2], fitted[3]));
+            let (left, chi2, standing_chi2) = ((second[0], second[1]), second[2], second[3]);
+            let apart = |a: (f64, f64), b: (f64, f64)| (a.0 - b.0).hypot(a.1 - b.1);
+            assert!(left.0.hypot(left.1) > reach, "{case}");
+            assert!(chi2 < standing_chi2, "{case}");
+            assert!(truth.0.hypot(truth.1) < reach, "{case}");
+            assert!(apart(fitted_wind, truth) < 1.0, "{case}");
+            assert!(apart(left, truth) > 3.0, "{case}");
         }
     }
 

@@ -185,10 +185,35 @@ flight was flown in (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`).
 The scan found the wind on each of that test's flights, but it doesn't rule out a wrong answer,
 and no test counts how often one remains. It can miss a second answer between its points. It was
 tried on one design's flights and on the [synthetic flights](physics/synthetic-flights.md), not on
-a real flight's log. A wind past 12 m/s (27 mph) is past the 20 mph (8.9 m/s) the NAR's high-power
-safety code allows; only the search from the wind you give can find it. If the fitted wind differs
+a real flight's log. If the fitted wind differs
 from the field's by more than its interval, distrust the other scales too. The scan
 adds 97 flights of the simulation to a fit of a log with a track, and each search from it more.
+
+**A second answer past 12 m/s (27 mph).** A search from the scan that ends past that speed isn't
+taken. It is past the 20 mph (8.9 m/s) the NAR's high-power safety code allows, and past it lie
+lows the scan never saw. But a flight can be flown in such a wind, and then the answer left out is
+the flight's. So the fit says when a search ended past the scan's reach and fits the log better than the
+fitted wind. A caveat prints under the table, and `--json` gives it as `wind_past_scan`. On that
+design's flight in 12.5 m/s (28 mph), fitted from calm air, it reads:
+
+```text,wrap
+Caveat. The wind has a second answer, which the fit didn't take. A search ended at a wind of 12.2 m/s (27 mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind reaches. It fits the log better than the fitted wind: a misfit (χ²) of 15.3 against 127.8. Past the scan's reach the fit can't tell the flight's wind from a wrong one, so the fitted wind stands. If the day's wind was near the second answer, fit again told that wind. Until then take the fitted wind, and the scales fitted with it, as unsettled. On the command line: `--wind 12.2 --wind-from 270`.
+```
+
+The fitted wind on that flight blew more than 4 m/s (9 mph) the other way, and its interval
+missed the flight's wind. Fitted again with those two options, the fit ends within 0.5 m/s
+(1.6 ft/s) of the flight's wind and says no second answer
+(`fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach`). Its interval can still miss
+by a little, as the fitted wind reads slow
+([issue #1651](https://github.com/nrdptel/fusionspace-eridanus/issues/1651)).
+
+The caveat doesn't say which answer is the flight's. On the fit report's slice of
+[synthetic flights](physics/synthetic-flights.md), 2 of the 195 fits of a track print it. Both
+times the second answer is the wrong one: each flight flew in a wind within 1 m/s (3.3 ft/s) of
+the fitted one. So where the caveat prints, check it against the wind on the field that day. If
+that was near the second answer, fit again from it. If it was near the fitted wind, the fitted
+wind stands. The caveat isn't counted over all the synthetic flights yet
+([issue #1652](https://github.com/nrdptel/fusionspace-eridanus/issues/1652)).
 
 ### The mark on a value outside the tested range
 
@@ -303,8 +328,9 @@ The environment's wind, averaged over the climb, is what the fit is told before 
 floor holds on a log of height alone. Each parameter's `stated` holds that mean and its standard
 deviation. `tested_range` holds the range the intervals were tested over, and
 `outside_tested_range` says whether the value lies outside it. `readings` holds what was read from
-the log, with each `source` and `provenance`. `fitted["text"]` is the whole result as
-lines to print, in SI units.
+the log, with each `source` and `provenance`. `wind_past_scan` is `None`, or
+[the second answer past the scan](#the-wind-on-a-log-with-a-track) as a dict with its `message`.
+`fitted["text"]` is the whole result as lines to print, in SI units.
 
 ## What it leaves out
 
@@ -313,8 +339,9 @@ lines to print, in SI units.
 - A parachute that opened before apogee. The fit flies the climb with nothing open, so an early
   ejection's drag goes into the drag scale. A note says so.
 - A wind that changes with height. The fitted wind is one constant wind.
-- A second answer for the wind that the scan misses, between its points or past 12 m/s (27 mph),
-  on a log with a track ([the scan](#the-wind-on-a-log-with-a-track)).
+- A second answer for the wind that the scan misses between its points, on a log with a track.
+  One past 12 m/s (27 mph) is said only where a search from the scan ended there
+  ([the scan](#the-wind-on-a-log-with-a-track)).
 - A logger that reads far low or high. The fit is told a barometer's scale is 1 give or take
   0.14%, and the example's 4% error shows up in the other scales.
 - A flight that separates in the air, which is refused.

@@ -382,6 +382,16 @@ impl FlightLog {
     /// ``horizontal_track`` (or ``None``). Each gives its ``source`` and its ``provenance``,
     /// measured or derived. The tracks give their quarter-second ``bins`` and ``bins_read``.
     ///
+    /// ``wind_past_scan`` is ``None`` unless the fit left a second answer in the wind, which it
+    /// can on a log with latitude and longitude. The fit scans the wind to 12 m/s and searches
+    /// again from the scan's lows, and a search that ends past 12 m/s isn't taken. Where one
+    /// ended there and fits the log better than the fitted wind, this is a dict of its wind
+    /// (``wind_east_m_s``, ``wind_north_m_s``, ``speed_m_s``, ``from_deg``), its misfit
+    /// ``chi2``, the fitted answer's ``standing_chi2``, which is higher, and a ``message``. The
+    /// fit can't tell which of the two is the flight's wind: take the fitted wind and the scales
+    /// fitted with it as unsettled, and if the day's wind was near the second answer, fit again
+    /// from an ``Environment`` with that wind.
+    ///
     /// ``issue_warnings`` lists the known issues the flight at the fitted parameters meets, as
     /// ``Flight.issue_warnings`` gives them: where HPR Sim's drag or stability is known to read
     /// wrong on this flight, the fitted scales take that error in.
@@ -454,6 +464,14 @@ impl FlightLog {
                         .set_item("message", caveat.message(fitted.parameter))?;
                 }
             }
+        }
+        // The second answer in the wind with its speed, its way and its sentences.
+        if let (Some(past), Some(said)) = (fitted.wind_past_scan, dict.get_item("wind_past_scan")?)
+        {
+            let said = said.cast::<PyDict>()?;
+            said.set_item("speed_m_s", past.speed_m_s())?;
+            said.set_item("from_deg", past.from_deg())?;
+            said.set_item("message", past.message())?;
         }
         let warnings = PyList::empty(py);
         for warning in &fitted.issue_warnings {

@@ -195,6 +195,84 @@ impl Caveat {
     }
 }
 
+/// A second answer in the wind that a fit of a log with a track found and didn't take
+/// ([`hpr_forensics::fit::PastScan`], [ADR-382][adr-382] §7): a search from a low of the wind's
+/// scan that ended past the scan's reach of 12 m/s and fits the log better than the wind the fit
+/// gives.
+///
+/// The fit can't tell which of the two is the flight's. Past the scan's reach lie lows the scan
+/// never saw, and an answer there has been the flight's own wind on some tested flights and a
+/// wrong one on others. So the fit keeps the answer within reach and says what it left: the
+/// fitted wind, and the scales fitted with it, are unsettled until the day's wind tells the two
+/// apart.
+///
+/// **Which way it errs.** Without it, a flight flown in a wind past the scan's reach and fitted
+/// from calm air states a wind far from its own with nothing said.
+///
+/// [adr-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct WindPastScan {
+    /// The wind the search ended at, toward the east, m/s.
+    pub wind_east_m_s: f64,
+    /// The wind the search ended at, toward the north, m/s.
+    pub wind_north_m_s: f64,
+    /// Its misfit `χ²` at the fit's last pass.
+    pub chi2: f64,
+    /// The `χ²` there of the answer the fit gives, which is higher.
+    pub standing_chi2: f64,
+}
+
+impl WindPastScan {
+    /// Its wind's speed, m/s.
+    #[must_use]
+    pub fn speed_m_s(&self) -> f64 {
+        self.wind_east_m_s.hypot(self.wind_north_m_s)
+    }
+
+    /// The way its wind blows from, degrees clockwise from north, in `[0, 360)`.
+    #[must_use]
+    pub fn from_deg(&self) -> f64 {
+        (-self.wind_east_m_s)
+            .atan2(-self.wind_north_m_s)
+            .to_degrees()
+            .rem_euclid(360.0)
+    }
+
+    /// The speed and the way a fit can be told to search from this answer, as the message
+    /// prints them: the speed to a tenth of a m/s, rounded up so that it stays past the scan's
+    /// reach, and the way to a whole degree in `[0, 360)`.
+    #[must_use]
+    pub fn told(&self) -> (f64, f64) {
+        (
+            up(self.speed_m_s(), 1),
+            self.from_deg().round().rem_euclid(360.0),
+        )
+    }
+
+    /// The notice in sentences.
+    #[must_use]
+    pub fn message(&self) -> String {
+        let (speed_m_s, from_deg) = self.told();
+        let reach_m_s = least_squares::wind_scan_reach_m_s();
+        format!(
+            "The wind has a second answer, which the fit didn't take. A search ended at a wind of \
+             {speed_m_s:.1} m/s ({:.0} mph) from {from_deg:.0}°, past the {reach_m_s:.0} m/s \
+             ({:.0} mph) the fit's scan of the wind reaches. It fits the log better than the \
+             fitted wind: a misfit (χ²) of {:.1} against {:.1}. Past the scan's reach the fit \
+             can't tell the flight's wind from a wrong one, so the fitted wind stands. If the \
+             day's wind was near the second answer, fit again told that wind. Until then take \
+             the fitted wind, and the scales fitted with it, as unsettled.",
+            speed_m_s / MPH_M_S,
+            reach_m_s / MPH_M_S,
+            up(self.chi2, 1),
+            down(self.standing_chi2, 1),
+        )
+    }
+}
+
+/// One mile an hour, m/s.
+const MPH_M_S: f64 = 0.447_04;
+
 /// A count with a comma between its thousands, as text gives one.
 fn grouped(count: u64) -> String {
     let digits = count.to_string();
@@ -320,6 +398,10 @@ pub struct LogFit {
     pub height_offset_m: f64,
     /// Simulations flown for the fit.
     pub flights_flown: u64,
+    /// A second answer in the wind, past the scan's reach, that fits the log better than the
+    /// wind given here and wasn't taken; `None` where the fit found none, as on every log of
+    /// height alone.
+    pub wind_past_scan: Option<WindPastScan>,
     /// The apogee of the climb as stated, before the fit, m above the pad: the launch flown as the
     /// fit flies it, with no recovery device opening.
     pub stated_apogee_m: f64,
@@ -504,6 +586,10 @@ impl LogFit {
                 lines.push(String::new());
                 lines.push(format!("Caveat. {}", caveat.message(fitted.parameter)));
             }
+        }
+        if let Some(past) = &self.wind_past_scan {
+            lines.push(String::new());
+            lines.push(format!("Caveat. {}", past.message()));
         }
         for warning in &self.issue_warnings {
             lines.push(String::new());
@@ -980,6 +1066,12 @@ pub fn fit(
         clock_offset_s: answer.clock_offset_s,
         height_offset_m: answer.height_offset_m,
         flights_flown: answer.flown,
+        wind_past_scan: answer.past_scan.map(|past| WindPastScan {
+            wind_east_m_s: past.wind_east_m_s,
+            wind_north_m_s: past.wind_north_m_s,
+            chi2: past.chi2,
+            standing_chi2: past.standing_chi2,
+        }),
         stated_apogee_m,
         fitted_apogee_m: fitted_climb.apogee_m(),
         fitted_apogee_time_s: fitted_climb.apogee_time_s(),

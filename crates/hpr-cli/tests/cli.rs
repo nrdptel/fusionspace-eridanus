@@ -10623,6 +10623,12 @@ fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
             fit_parameter(&document, "wind_north_m_s")
         );
         assert!(document.get("wind_caveat").is_none(), "{case}: {document}");
+        // Within the scan's reach no better answer is left past it, so none is said.
+        assert_eq!(
+            document["wind_past_scan"],
+            Value::Null,
+            "{case}: {document}"
+        );
         if flown == "9" && told == "0" && rail == "1.5" {
             // Where the search from calm air stopped: now within 0.5 m/s of the flight's wind.
             let east = fit_parameter(&document, "wind_east_m_s")["value"]
@@ -10633,6 +10639,104 @@ fn fit_finds_the_wind_a_track_was_flown_in_from_calm_air() {
             assert!(!out.contains("Caveat. The fitted wind"), "{out}");
             assert!(!out.contains("issues/1646"), "{out}");
         }
+    }
+}
+
+/// [Issue #1646], past the scan's reach. The 54 mm design flown in 12.5 or 13 m/s toward the
+/// east and fitted from calm air: the search from calm air ends about 4.7 m/s toward the west,
+/// and the search from a low of the scan ends near the flight's wind, past the 12 m/s the scan
+/// reaches, where the fit doesn't take it ([ADR-382] §3).
+///
+/// **Which way it errs.** The fitted wind's interval doesn't hold the flight's wind. So the fit
+/// says the answer it left ([ADR-382] §7): where it ended, that it fits the log better, and how
+/// to fit again from it. Fitted again as the notice says, the fit ends within 0.5 m/s of the
+/// flight's wind, marks it as past the winds its intervals were tested in, and has no second
+/// answer left to say. The flights within the scan's reach say none either
+/// ([`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`]).
+///
+/// [Issue #1646]: https://github.com/nrdptel/fusionspace-eridanus/issues/1646
+/// [ADR-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
+#[test]
+fn fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach() {
+    let design = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    // The wind flown toward the east, m/s; the speed the notice tells the fit to start from,
+    // where the left search ended, rounded up to a tenth; and the two misfits, the left answer's
+    // and the standing one's. The first flight is fitted again as its notice says.
+    for (flown, said, misfits, again) in [
+        ("12.5", "12.2", (15.2, 127.8), true),
+        ("13", "12.7", (12.9, 126.9), false),
+    ] {
+        let folder = tempfile::tempdir().unwrap();
+        let (log, mapping) = track_log(
+            folder.path(),
+            &design,
+            flown,
+            "270",
+            &["--rail-length", "1.5"],
+        );
+        let fit = ["fit", &log, &design, "--mapping", &mapping];
+        let args = [&fit[..], &["--rail-length", "1.5"]].concat();
+        let document = json(&args, 0, "fit.schema.json");
+        let truth: f64 = flown.parse().unwrap();
+        let value = |of: &Value, key: &str| of[key].as_f64().unwrap();
+        // The wrong answer stands: a wind the other way, whose interval misses the flight's.
+        let east = fit_parameter(&document, "wind_east_m_s");
+        assert!(value(east, "value") < -4.0, "{flown}: {east}");
+        assert!(
+            !fit_holds(&document, "wind_east_m_s", truth),
+            "{flown}: {east}"
+        );
+        // And the fit says the answer it left, which is the flight's.
+        let past = &document["wind_past_scan"];
+        assert!(past.is_object(), "{flown}: {document}");
+        assert!(
+            (value(past, "wind_east_m_s") - truth).abs() < 0.5,
+            "{flown}: {past}"
+        );
+        assert!(value(past, "wind_north_m_s").abs() < 0.5, "{flown}: {past}");
+        let speed = value(past, "speed_m_s");
+        assert!(speed > 12.0 && speed < truth, "{flown}: {past}");
+        assert!(
+            (value(past, "from_deg") - 270.0).abs() < 1.0,
+            "{flown}: {past}"
+        );
+        // It fits far better: about an eighth of the standing answer's misfit.
+        let (chi2, standing_chi2) = (value(past, "chi2"), value(past, "standing_chi2"));
+        assert!((chi2 - misfits.0).abs() < 1.0, "{flown}: {past}");
+        assert!((standing_chi2 - misfits.1).abs() < 2.0, "{flown}: {past}");
+        assert!(chi2 < 0.25 * standing_chi2, "{flown}: {past}");
+        let message = past["message"].as_str().unwrap();
+        let on_the_command_line = format!("`--wind {said} --wind-from 270`");
+        for sentence in [
+            "The wind has a second answer, which the fit didn't take.",
+            &format!("A search ended at a wind of {said} m/s ("),
+            " mph) from 270°, past the 12 m/s (27 mph) the fit's scan of the wind reaches.",
+            "Until then take the fitted wind, and the scales fitted with it, as unsettled.",
+            &on_the_command_line,
+        ] {
+            assert!(message.contains(sentence), "{sentence:?} in {message}");
+        }
+        if !again {
+            continue;
+        }
+        let out = streams(&[&args[..], &["--color", "never"]].concat()).out;
+        // The notice is printed whole, as a caveat under the table, within 100 columns.
+        let one_line = out.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(
+            one_line.contains(&format!("Caveat. {message}")),
+            "{message:?} in\n{out}"
+        );
+        for line in out.lines() {
+            assert!(line.chars().count() <= 100, "{line:?}");
+        }
+        // Fitted again as the notice says.
+        let told = [&args[..], &["--wind", said, "--wind-from", "270"]].concat();
+        let document = json(&told, 0, "fit.schema.json");
+        let east = fit_parameter(&document, "wind_east_m_s");
+        assert!((value(east, "value") - truth).abs() < 0.5, "{east}");
+        assert_eq!(east["outside_tested_range"], true, "{east}");
+        assert_eq!(document["wind_past_scan"], Value::Null, "{document}");
+        assert_eq!(document["converged"], true, "{document}");
     }
 }
 

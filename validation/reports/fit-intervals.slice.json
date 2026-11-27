@@ -1080,6 +1080,7 @@
         "wind toward the east, m/s: 5.8 ± 0.308, truth 6.47, share -2.182, above",
         "wind toward the north, m/s: 0.751 ± 0.0764, truth 0.683, share 0.888, inside",
         "mass on the weighed mass: 0.992 ± 0.0105, truth 1.01, share -1.867, above",
+        "a second answer past the wind scan's reach: 13.9 m/s toward the east, 1.53 toward the north, misfit 99.7 against 128",
         "posterior: 3.88 effective of the 400 draws read, 500 made, 0 failed, too few effective",
         "drag scale, Bayesian: 1.13 to 1.18, median 1.14, inside",
         "impulse scale, Bayesian: 1.02 to 1.05, median 1.02, inside",
@@ -6611,7 +6612,8 @@
         "impulse scale: 1.02 ± 0.00975, truth 1, share 1.428",
         "wind toward the east, m/s: -8.26 ± 0.45, truth -8.98, share 1.611",
         "wind toward the north, m/s: -3.66 ± 0.233, truth -3.81, share 0.625",
-        "mass on the weighed mass: 0.995 ± 0.0105, truth 0.99, share 0.491"
+        "mass on the weighed mass: 0.995 ± 0.0105, truth 0.99, share 0.491",
+        "a second answer past the wind scan's reach: -11.7 m/s toward the east, -5.11 toward the north, misfit 221 against 230"
       ]
     },
     {
