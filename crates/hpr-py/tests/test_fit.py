@@ -29,7 +29,7 @@ def ndrt_log(repo):
     it with `scripts/fetch-ndrt-2020-log.py`, issue #1648); else RocketPy's checkout under
     `refs/`, or a skip where it isn't fetched."""
     named = os.environ.get("HPR_NDRT_2020_LOG")
-    if named:
+    if named is not None:
         assert pathlib.Path(named).is_file(), f"HPR_NDRT_2020_LOG names {named}, which isn't a file"
         return pathlib.Path(named)
     if not (repo / NDRT_LOG).is_file():
