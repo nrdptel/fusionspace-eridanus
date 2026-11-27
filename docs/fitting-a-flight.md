@@ -175,7 +175,7 @@ once came out as a wind of 1.4 m/s (4.6 ft/s) the other way, with an interval un
 
 So after its first search the fit scans the wind. It flies the flight in calm air and in winds
 every 1.5 m/s (4.9 ft/s) up to 12 m/s (39 ft/s), in 12 directions, and searches again from the
-three lowest points of that scan away from its first answer. The answer that fits the log best
+three lowest of that scan's lows (points no higher than their neighbors) away from its first answer. The answer that fits the log best
 stands, of those within 12 m/s (27 mph)
 ([the method](physics/flight-fit.md#a-second-answer-in-the-wind)). A test fits that design's
 flights in winds of 2 m/s (4.5 mph), 4, 6 and 9 m/s (20 mph) from calm air, one of them off a

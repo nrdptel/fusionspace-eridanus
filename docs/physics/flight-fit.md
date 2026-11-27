@@ -31,8 +31,8 @@ impulse, wind and mass, and where the fit fails its tests.
   scales with nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
   reading the curvature at the answer. Its intervals pass 7 of their 10 tests, 5 parameters on each
   of 2 sets. The wind passes on both sets, on a model of the receiver tuned on those same flights.
-  Set A's drag reads low, 85 above its intervals, and set B's impulse high, 79 below. Each makes the rocket look better than it flew. Set B's drag
-  fails too, with 79 below. There the drag reads high, which makes the rocket look worse. A
+  Set A's drag reads low, 85 above its intervals, and set B's impulse high, 80 below. Each makes the rocket look better than it flew. Set B's drag
+  fails too, with 78 below. There the drag reads high, which makes the rocket look worse. A
   flight predicted with it comes out low. Until all pass, use the least-squares intervals
   ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
