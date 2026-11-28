@@ -52,10 +52,10 @@ parameters and both sets.
 
 The chance ranks rules; it doesn't say how often a rule would pass. The halves are small, so it
 is low even for a perfect rule. For halves exactly at 5% / 90% / 5%, it gives each drag, impulse
-or mass row about 0.93 and each wind row 0.76 to 0.80, so about 0.25 for the 10 rows together,
-before any class or probe, which can only lower it. The chance also draws each probe apart from
-its own row, and the parameters apart, though one flight's errors in them are tied; what that does
-to it isn't measured. A rule whose intervals hold exactly 90% would pass each row of 1,000 fits
+or mass row about 0.93 and each wind row 0.76 to 0.80, so about 0.25 for the 10 rows together.
+Adding a class or a probe can only lower that. The chance also draws each probe apart from its
+own row, and the parameters apart, though one flight's errors in them are tied; what that does to
+it isn't measured. A rule whose intervals hold exactly 90% would pass each row of 1,000 fits
 0.9977 of the time and each of 1,497 0.9976, so all 10 together 0.977 (the multinomial worked
 exactly). A test of `fit --halves` pins these figures. The candidates were the
 split by the misfit's share at each 5% of its fits:
@@ -108,8 +108,8 @@ prediction:
 The predicted wind rows are of 1,500 fits; the sets count 1,497. The run's check named one count
 as failing ADR-257 §1's test, the bold one: set B's drag scale in the worse class, with 73 truths
 below of 973. That is too many: the 99.9% band on 73 of 973 runs from 5.01% to 10.7%, so it
-leaves out the 5% a 90% interval needs. It is the side of ADR-368's gap, where the drag reads high. Every row passes on both sets, and
-every probe fails. Set B's drag scale passes as a row at the edge of its band, with 74 below of
+leaves out the 5% a 90% interval needs. It is the side of ADR-368's gap, where the drag reads
+high. Every row passes on both sets, and every probe fails. Set B's drag scale passes as a row at the edge of its band, with 74 below of
 1,000 (its band runs from 4.95%), and the class fails by one truth: 72 of 973 would pass. None of
 the rules M7.3g tried before passed every row: the shares in force fail set B's drag scale, and
 the split by the residual two rows. The prediction was right that the rule fails, but wrong about

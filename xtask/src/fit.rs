@@ -298,7 +298,7 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
     fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
 
-/// Whether kept fits can be written to `path`, tried before hours of fitting: it is opened to
+/// Whether kept fits can be written to `path`, tried before the fitting: it is opened to
 /// append, so an existing file isn't emptied before the fits are made (writing them replaces it),
 /// and a missing one is created empty.
 fn writable(path: &Path) -> Result<(), String> {

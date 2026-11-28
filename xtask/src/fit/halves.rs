@@ -668,7 +668,7 @@ mod tests {
             let off = Counts {
                 given,
                 below: given * 3 / 10,
-                inside: given - given * 6 / 10,
+                inside: given - 2 * (given * 3 / 10),
                 above: given * 3 / 10,
             };
             Cell {
