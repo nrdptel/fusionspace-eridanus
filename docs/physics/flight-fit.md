@@ -264,11 +264,14 @@ Those counts have limits:
   100. A 90% interval means 5. The interval isn't widened to pass. The gap is recorded
   ([ADR-368, the gap recorded and not fitted away][adr-368];
   [issue #1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
-- Two tries to close that gap failed, so it stays. Each fitted the shares apart for two kinds of
-  fit. The first split the flights by whether their heights fit within 1 m (3.3 ft). It failed two
-  of set B's tests ([ADR-384, the first split measured][adr-384]). The second split off the
-  best-fitting 5%, by the residual's share of the heights' spread. With it every parameter passed
-  on both sets. But on set B's other 95%, too many truths still lay below the drag intervals
+- Two tries to close that gap failed, so it stays. Each fitted the interval's low and high factors
+  ([the shares](#how-it-works)) apart for two kinds of fit. The first split the flights by whether
+  their heights fit within 1 m (3.3 ft). On set B it failed two parameters and two of their
+  classes, one of them a parameter that passes today
+  ([ADR-384, the first split measured][adr-384]). The second set apart the calibration set's
+  best-fitting 5%, by how small the fit's residual is beside the spread of the heights. With it
+  every parameter passed on both sets. But the rest of set B, 973 of its 1,000 flights, left too
+  many truths below their drag intervals. There were 73, one more than the test allows
   ([ADR-385, the second split][adr-385]). Neither is in force.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 125 of 161.

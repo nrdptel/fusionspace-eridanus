@@ -32,8 +32,8 @@ pub enum Rule {
 }
 
 impl Rule {
-    /// The class of `fit`: 0, or 1 for the worse fit. A fit with no residual, or one that isn't a
-    /// number, is in the worse class.
+    /// The class of `fit`: 0, or 1 for the worse fit, which a fit with no residual, or one that
+    /// isn't a number, is in; under [`Rule::InForce`] every fit is in class 0.
     pub fn class(self, fit: &FlightFit) -> usize {
         let within = match self {
             Self::InForce => true,
@@ -53,7 +53,7 @@ impl Rule {
         match self {
             Self::InForce => "the shares in force".to_owned(),
             Self::Residual => "the split by the residual at 1 m".to_owned(),
-            Self::MisfitShare(at) => format!("the split by the misfit's share at {at:.3e}"),
+            Self::MisfitShare(at) => format!("the split by the misfit's share at {at}"),
         }
     }
 }
@@ -98,8 +98,8 @@ pub struct Cell {
 pub struct Tried {
     /// The rule.
     pub rule: Rule,
-    /// Each parameter's shares by track (height alone, then a track) and class; `None` where too
-    /// few fits.
+    /// Each parameter's shares by track (height alone, then a track) and class; `None` for fewer
+    /// than 20 fits, or a share that isn't a number.
     pub shares: Vec<(Asked, [Vec<Option<Shares>>; 2])>,
     /// Each parameter's cells on set A's model's half, then set B's.
     pub cells: Vec<(Asked, [Cell; 2])>,
@@ -159,8 +159,11 @@ pub fn tried(rule: Rule, made: &[FlightFit], tracked: &[FlightFit]) -> Tried {
             let half = &mut halves[usize::from(set_b_model(fit.index))];
             add(&mut half.row, interval, compared.truth);
             add(&mut half.classes[class], interval, compared.truth);
-            for (counts, probe) in half.probes.iter_mut().zip(Probe::ALL) {
-                add(counts, interval.map(|i| probe.apply(i)), compared.truth);
+            // The report counts no probe of an interval that can't be stated.
+            if let Some(interval) = interval {
+                for (counts, probe) in half.probes.iter_mut().zip(Probe::ALL) {
+                    add(counts, Some(probe.apply(interval)), compared.truth);
+                }
             }
         }
         shares.push((asked, by_track));
@@ -317,11 +320,9 @@ pub fn misfit_quantiles(made: &[FlightFit], tracked: &[FlightFit], at: &[f64]) -
 fn draw_counts(from: Counts, to: f64, rng: &mut hpr_core::random::SeededRng) -> Counts {
     let n = from.given as f64;
     let given = to.round().max(0.0) as u64;
+    // A class with no fits in the half has none in the set either.
     if from.given == 0 || given == 0 {
-        return Counts {
-            given,
-            ..Counts::default()
-        };
+        return Counts::default();
     }
     let share = |x: u64| (x as f64 + 0.5) / (n + 1.5);
     let (pb, pa) = (share(from.below), share(from.above));
@@ -519,7 +520,7 @@ mod tests {
         let (asked, [a, b]) = &tried.cells[0];
         assert_eq!(*asked, Asked::DragScale);
         assert_eq!((a.row.given, b.row.given), (1_000, 1_000));
-        // The shares cover 10% of both halves together.
+        // The shares miss 10% of both halves together, 5% a side.
         let missed = a.row.below + a.row.above + b.row.below + b.row.above;
         assert!((190..=210).contains(&missed), "{missed}");
         // Set A's model's half sits inside them, set B's half misses for both.
@@ -529,6 +530,83 @@ mod tests {
         // The wind is counted on fits with a track alone, and there are none.
         let (_, [wind, _]) = &tried.cells[2];
         assert_eq!(wind.row.given, 0);
+    }
+
+    /// Fits made up in two classes by the misfit, the worse twice as spread, each class split
+    /// evenly between the halves: flight `k`'s class is `(k % 4) / 2`, its half `k % 2`.
+    fn two_classes(count: u64) -> Vec<FlightFit> {
+        (0..count)
+            .map(|k| {
+                let mut fit = a_fit(k);
+                let class = (k % 4) / 2;
+                let quarter = count / 4;
+                let u = ((k / 4) * 7_919 % quarter) as f64 / quarter as f64;
+                for c in &mut fit.compared {
+                    c.standard_error = 1.0;
+                    c.truth = 0.0;
+                    c.value = (1.0 + class as f64) * (2.0 * u - 1.0);
+                }
+                fit.misfit_share = Some(if class == 0 { 0.1 } else { 0.9 });
+                fit
+            })
+            .collect()
+    }
+
+    /// A split fits each class's shares on its own fits and counts each half by class: here each
+    /// class's shares are its own spread's 5% and 95% points, so each class misses about 10% on
+    /// both halves, and the drag, impulse and mass pass.
+    #[test]
+    fn a_split_fits_and_counts_each_class_apart() {
+        let made = two_classes(2_000);
+        let tried = tried(Rule::MisfitShare(0.5), &made, &[]);
+        let (asked, by_track) = &tried.shares[0];
+        assert_eq!(*asked, Asked::DragScale);
+        for (class, spread) in [(0, 1.0), (1, 2.0)] {
+            let shares = by_track[0][class].unwrap();
+            assert!((shares.low + 0.9 * spread).abs() < 0.02, "{shares:?}");
+            assert!((shares.high - 0.9 * spread).abs() < 0.02, "{shares:?}");
+        }
+        assert!(by_track[1].iter().all(Option::is_none));
+        let (_, halves) = &tried.cells[0];
+        for half in halves {
+            assert_eq!(half.row.given, 1_000);
+            for class in &half.classes {
+                assert_eq!(class.given, 500);
+                let missed = class.below + class.above;
+                assert!((40..=60).contains(&missed), "{class:?}");
+            }
+        }
+        let failing = failures(&tried);
+        assert!(
+            !failing.iter().any(|f| f.contains("drag scale")),
+            "{failing:?}"
+        );
+        // The wind has no fit with a track to be counted on.
+        assert!(failing.contains(&"A, wind toward the east, m/s: the row".to_owned()));
+    }
+
+    /// The misfit's points are taken over the fits with something to fit, each flight once,
+    /// leaving out a misfit that is missing or isn't a number.
+    #[test]
+    fn the_misfits_points_count_each_fitted_flight_once() {
+        let fit = |index: u64, share: Option<f64>, fitted: bool| FlightFit {
+            misfit_share: share,
+            fitted,
+            ..a_fit(index)
+        };
+        let made = [
+            fit(0, Some(0.1), true),
+            fit(1, Some(0.2), true),
+            fit(2, Some(f64::NAN), true),
+            fit(3, None, true),
+            fit(4, Some(0.4), false),
+        ];
+        let tracked = [fit(1, Some(0.2), true), fit(10, Some(0.3), true)];
+        assert_eq!(
+            misfit_quantiles(&made, &tracked, &[0.0, 0.5, 1.0]),
+            [0.1, 0.2, 0.3]
+        );
+        assert!(misfit_quantiles(&[], &[], &[0.5])[0].is_nan());
     }
 
     /// A cell that holds its test with room passes nearly always; one far outside it, nearly

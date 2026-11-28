@@ -500,8 +500,8 @@ log corpus came from Debrief.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
   - [ ] **M7.3g The least-squares intervals pass again** (#1108, ADR-377; in three, ADR-384; met
     when M7.3g3 is). *Result (ADR-385):* ended under ADR-384 decision 5, not met; off the queue.
-    - [ ] [blocked] **M7.3g3 The intervals pass again** (ended, ADR-385: a third rule, or a new
-      test, needs a record). *Done when:* with M7.3g2's rule in force, every
+    - [ ] [blocked] **M7.3g3 The intervals pass again** (ended, not met, ADR-385: a third rule,
+      or a new test, needs a record). *Done when:* with M7.3g2's rule in force, every
       least-squares row on sets A and B of `validation/reports/fit-intervals.md` reads *passes*,
       the check enforced in `cargo xtask fit`; set B's drag scale leaves `KNOWN_GAPS`; ADR-257's
       narrowed, widened and shifted probes still fail; an ADR amends ADR-368; the pages that state

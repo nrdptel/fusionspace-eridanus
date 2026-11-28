@@ -72,14 +72,18 @@ pub const USAGE: &str =
                            Read the calibration set's kept fits (--calibrate --fits) and try
                            rules for the shares on them alone (ADR-384 decision 4): fit each
                            rule's shares on the whole set and count them on its two halves, set
-                           A's model's and set B's, as the report counts sets A and B. Prints what
-                           fails for the shares in force, the split by the residual and splits by
-                           the misfit's share at each 5% of its fits, then the first two in full; with
-                           --misfit, the split at <share> in full. Fits nothing, writes nothing.
+                           A's model's and set B's, as the report counts sets A and B, with the
+                           chance that a rule passes on sets of their size. Prints what fails
+                           and the chance for the shares in force, the split by the residual and
+                           splits by the misfit's share at each 5% of its fits, then the first
+                           two in full; with --misfit, the split at <share> in full. Fits
+                           nothing, writes nothing.
   fit --fits <a|b> <file>  Fit a test set's flights as the report does and write to <file>, as
                            CBOR, the fits it counts the drag, impulse and mass on, then the
-                           fits of flights with a track logger, the wind's. Checks nothing.
-                           Read a set's kept fits only as ADR-384 decision 4 allows.
+                           fits of flights with a track logger, the wind's. Checks first that
+                           <file> can be written, and refuses fewer than the 1,000 fits the
+                           report counts. Read a set's kept fits only as ADR-384 decision 4
+                           allows.
   fit --try <set> <count> [--track]
                            Fit a set's first flights, or with --track its first flights with a
                            track logger, print each parameter's shares and counts on them by both
@@ -295,8 +299,8 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
 }
 
 /// Whether kept fits can be written to `path`, tried before hours of fitting: it is opened to
-/// append, created empty if it isn't there, and an existing file is left as it is until the fits
-/// are made and written whole.
+/// append, so an existing file isn't emptied before the fits are made (writing them replaces it),
+/// and a missing one is created empty.
 fn writable(path: &Path) -> Result<(), String> {
     fs::OpenOptions::new()
         .append(true)
@@ -1937,7 +1941,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
         ["--halves", path] | ["--halves", path, "--misfit", _] => {
             let (made, tracked) = read_kept(Path::new(path))?;
+            let track = fits::track_flights(Set::Calibration, CALIBRATION_TRACK_FLIGHTS);
             if made.len() != Set::Calibration.count() as usize
+                || tracked.iter().map(|f| f.index).ne(track.iter().copied())
                 || made
                     .iter()
                     .map(|f| f.index)
@@ -3181,8 +3187,8 @@ mod tests {
         assert_eq!(fits::RESIDUAL_SPLIT_M, 1.0);
     }
 
-    /// Kept fits read back as they were written, a NaN truth and misfit among them, which JSON
-    /// would have written as nothing.
+    /// A path for kept fits is tried before the fitting: an existing file is left as it is, a missing
+    /// one is created empty, and one that can't be written is refused.
     #[test]
     fn kept_fits_need_a_writable_path_and_keep_an_old_file_until_written() {
         let dir = tempfile::tempdir().unwrap();
@@ -3196,6 +3202,8 @@ mod tests {
         assert!(writable(&dir.path().join("no such directory").join("kept.cbor")).is_err());
     }
 
+    /// Kept fits read back as they were written, a NaN truth and misfit among them, which JSON
+    /// would have written as nothing.
     #[test]
     fn kept_fits_read_back_whole() {
         let mut said_nothing = a_fit(3);
