@@ -30,6 +30,8 @@ use hpr_forensics::synthetic::smoothed::MISS_SHARE;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
+mod halves;
+
 pub const USAGE: &str =
     "  fit [--check]            Fit every flight of the synthetic sets A and B by least squares (
                            ADR-316) and the calibration set, draw each fit's posterior by the
@@ -66,6 +68,14 @@ pub const USAGE: &str =
                            <file>, as CBOR, the pair the shares are fitted on: every fit of
                            the set, then its fits of flights with a track logger (the first
                            2,000's among them again).
+  fit --halves <file> [--misfit <share>]
+                           Read the calibration set's kept fits (--calibrate --fits) and try
+                           rules for the shares on them alone (ADR-384 decision 4): fit each
+                           rule's shares on the whole set and count them on its two halves, set
+                           A's model's and set B's, as the report counts sets A and B. Prints what
+                           fails for the shares in force, the split by the residual and splits by
+                           the misfit's share at each 5% of its fits, then the first two in full; with
+                           --misfit, the split at <share> in full. Fits nothing, writes nothing.
   fit --fits <a|b> <file>  Fit a test set's flights as the report does and write to <file>, as
                            CBOR, the fits it counts the drag, impulse and mass on, then the
                            fits of flights with a track logger, the wind's. Checks nothing.
@@ -285,7 +295,6 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
 }
 
 /// Kept fits written by [`write_kept`].
-#[cfg(test)]
 fn read_kept(path: &Path) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
     let bytes = fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
     ciborium::from_reader(bytes.as_slice()).map_err(|e| format!("{}: {e}", path.display()))
@@ -1908,6 +1917,60 @@ pub fn run(args: &[String]) -> Result<(), String> {
                         track.iter().filter(|f| f.fitted && f.drift).count()
                     );
                 }
+            }
+            Ok(())
+        }
+        ["--halves", path] | ["--halves", path, "--misfit", _] => {
+            let (made, tracked) = read_kept(Path::new(path))?;
+            if made.len() != Set::Calibration.count() as usize
+                || made.iter().map(|f| f.index).ne(first(Set::Calibration.count()))
+            {
+                return Err(format!(
+                    "{path}: not the calibration set's kept fits (`fit --calibrate --fits`)"
+                ));
+            }
+            if let Some(share) = args.get(3) {
+                let share: f64 = share
+                    .parse()
+                    .ok()
+                    .filter(|s: &f64| s.is_finite() && *s > 0.0)
+                    .ok_or("--misfit takes a share above 0")?;
+                let tried = halves::tried(halves::Rule::MisfitShare(share), &made, &tracked);
+                print!("{}", halves::table(&tried));
+                let (chance, each) = halves::pass_chance(&tried);
+                println!("chance both sets pass {chance:.3}");
+                for (name, c) in each {
+                    println!("  {name}: {c:.3}");
+                }
+                return Ok(());
+            }
+            let twentieths: Vec<f64> = (1..20).map(|k| f64::from(k) / 20.0).collect();
+            let points = halves::misfit_quantiles(&made, &tracked, &twentieths);
+            println!("the misfit's share at each 5% of its fits: {points:?}");
+            let rules = [halves::Rule::InForce, halves::Rule::Residual]
+                .into_iter()
+                .chain(points.iter().map(|&p| halves::Rule::MisfitShare(p)));
+            for rule in rules {
+                let tried = halves::tried(rule, &made, &tracked);
+                let failing = halves::failures(&tried);
+                let (chance, each) = halves::pass_chance(&tried);
+                let least: Vec<String> = each
+                    .iter()
+                    .filter(|(_, c)| *c < 0.9)
+                    .map(|(name, c)| format!("{name} {c:.3}"))
+                    .collect();
+                println!(
+                    "{}: {} failing; chance both sets pass {chance:.3}; under 0.9: {}",
+                    rule.name(),
+                    failing.len(),
+                    least.join(", ")
+                );
+                for line in failing {
+                    println!("  {line}");
+                }
+            }
+            for rule in [halves::Rule::InForce, halves::Rule::Residual] {
+                print!("{}", halves::table(&halves::tried(rule, &made, &tracked)));
             }
             Ok(())
         }
