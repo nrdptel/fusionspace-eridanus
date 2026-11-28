@@ -1010,7 +1010,10 @@ pub fn fit(
             };
             let interval_90 = asked
                 .filter(|_| no_interval.is_none())
-                .and_then(|asked| calibrated::shares(asked, track).interval(value, standard_error));
+                .and_then(|asked| {
+                    calibrated::shares(asked, track, calibrated::Misfit::of(answer.misfit_share))
+                        .interval(value, standard_error)
+                });
             // Shares state no interval only on a standard error that isn't a number above zero.
             let no_interval = no_interval
                 .or_else(|| interval_90.is_none().then_some(NoInterval::NoStandardError));

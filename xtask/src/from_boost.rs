@@ -194,7 +194,7 @@ impl FitRow {
                             && (drift || !matches!(asked, Asked::WindEast | Asked::WindNorth))
                     })
                     .and_then(|asked| {
-                        shares(asked, drift)
+                        shares(asked, drift, synthetic_fits::Misfit::of(fit.misfit_share))
                             .interval(value, standard_error)
                             .map(|i| (i.low, i.high))
                     }),

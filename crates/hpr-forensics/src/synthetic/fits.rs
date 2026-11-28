@@ -637,7 +637,7 @@ pub fn noise_log(log: &FlightLog, size_m: f64, seed: u64, index: u64) -> FlightL
 /// nothing, its stated range's own, the normal's, as the fit held it to.
 fn shares_of(fit: &FlightFit, asked: Asked) -> Shares {
     if fit.fitted {
-        shares(asked, fit.drift)
+        shares(asked, fit.drift, Misfit::of(fit.misfit_share))
     } else {
         Shares {
             low: -Z_90,
@@ -785,6 +785,43 @@ impl Identification {
 /// its standard errors say, and the shares, one pair for both sides, cover it less.
 pub const RESIDUAL_SPLIT_M: f64 = 1.0;
 
+/// The misfit's share of the heights' spread that splits the shares ([`Misfit`]), chosen on the
+/// calibration set alone by `cargo xtask fit --halves` (ADR-384 decision 4; M7.3g2).
+pub const MISFIT_SPLIT_SHARE: f64 = 0.000_634;
+
+/// How well a fit's heights fit: its residual's share of their spread under
+/// [`MISFIT_SPLIT_SHARE`], or not. The shares are fitted on each class apart ([`shares`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum Misfit {
+    /// The misfit's share is under [`MISFIT_SPLIT_SHARE`].
+    Within,
+    /// It is [`MISFIT_SPLIT_SHARE`] or more, or not a number, or the fit has none.
+    Worse,
+}
+
+impl Misfit {
+    /// Both classes, the better fit first.
+    pub const ALL: [Self; 2] = [Self::Within, Self::Worse];
+
+    /// The class of a fit whose misfit's share is `share`.
+    #[must_use]
+    pub fn of(share: Option<f64>) -> Self {
+        match share {
+            Some(share) if share < MISFIT_SPLIT_SHARE => Self::Within,
+            _ => Self::Worse,
+        }
+    }
+
+    /// The class's name, as the report gives it.
+    #[must_use]
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Within => "misfit under 0.0634% of the heights' spread",
+            Self::Worse => "misfit at 0.0634% of the heights' spread or more",
+        }
+    }
+}
+
 /// One parameter's check on one set.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Check {
@@ -801,6 +838,9 @@ pub struct Check {
     /// The counts by how well the flight's heights fit, [`RESIDUAL_SPLIT_M`]: the shares are one
     /// pair for both, so each side's coverage shows here.
     pub by_residual: BTreeMap<String, Counts>,
+    /// The counts by the shares' class ([`Misfit`]): each must pass on its own.
+    #[serde(default)]
+    pub by_misfit: BTreeMap<String, Counts>,
     /// The mean error, fit less truth, with its sign.
     pub mean_error: f64,
     /// What the log can tell of it.
@@ -823,6 +863,7 @@ pub fn check_by(method: Method, asked: Asked, fits: &[FlightFit]) -> Check {
     let mut by_design: BTreeMap<String, Counts> = BTreeMap::new();
     let mut by_drift: BTreeMap<String, Counts> = BTreeMap::new();
     let mut by_residual: BTreeMap<String, Counts> = BTreeMap::new();
+    let mut by_misfit: BTreeMap<String, Counts> = BTreeMap::new();
     let mut error_sum = 0.0;
     let mut stated_count = 0_u32;
     for fit in fits {
@@ -879,6 +920,10 @@ pub fn check_by(method: Method, asked: Asked, fits: &[FlightFit]) -> Check {
                 .or_default()
                 .add(interval, compared.truth);
         }
+        by_misfit
+            .entry(Misfit::of(fit.misfit_share).name().to_owned())
+            .or_default()
+            .add(interval, compared.truth);
         error_sum += point_of(method, fit, asked, slot) - compared.truth;
     }
     Check {
@@ -888,6 +933,7 @@ pub fn check_by(method: Method, asked: Asked, fits: &[FlightFit]) -> Check {
         by_design,
         by_drift,
         by_residual,
+        by_misfit,
         mean_error: error_sum / f64::from(stated_count.max(1)),
         identification: Identification::by(method, asked, fits),
     }
@@ -907,11 +953,17 @@ pub fn track_flights(set: Set, count: u64) -> Vec<u64> {
 /// The shares of `asked`, fitted on the fits of `fits` whose logs hold a horizontal track or don't,
 /// by `drift`: its share's 5% and 95% points; `None` for fewer than 20, or one that isn't a number.
 #[must_use]
-pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
+pub fn fitted(
+    asked: Asked,
+    drift: bool,
+    misfit: Option<Misfit>,
+    fits: &[FlightFit],
+) -> Option<Shares> {
     let slot = ASKED.iter().position(|a| *a == asked)?;
     let shares: Vec<f64> = fits
         .iter()
         .filter(|f| f.fitted && f.drift == drift)
+        .filter(|f| misfit.is_none_or(|m| Misfit::of(f.misfit_share) == m))
         .map(|f| f.compared[slot].share())
         .collect();
     hpr_flightdata::readings::interval::fit(&shares)
@@ -922,18 +974,29 @@ pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
 /// track speaks to the wind, so its errors are small and of another kind: the two are told apart,
 /// as the log itself says which it is.
 #[must_use]
-pub fn shares(asked: Asked, drift: bool) -> Shares {
-    let (low, high) = match (asked, drift) {
-        (Asked::DragScale, false) => (-1.33, 1.48),
-        (Asked::ImpulseScale, false) => (-1.58, 1.48),
-        (Asked::WindEast, false) => (-0.412, 3.23),
-        (Asked::WindNorth, false) => (-1.8, 1.78),
-        (Asked::MassScale, false) => (-1.65, 1.67),
-        (Asked::DragScale, true) => (-1.28, 2.1),
-        (Asked::ImpulseScale, true) => (-1.5, 1.85),
-        (Asked::WindEast, true) => (-1.38, 1.35),
-        (Asked::WindNorth, true) => (-1.5, 1.47),
-        (Asked::MassScale, true) => (-1.68, 1.72),
+pub fn shares(asked: Asked, drift: bool, misfit: Misfit) -> Shares {
+    use Misfit::{Within, Worse};
+    let (low, high) = match (asked, drift, misfit) {
+        (Asked::DragScale, false, Within) => (-0.782, 1.25),
+        (Asked::DragScale, false, Worse) => (-1.36, 1.51),
+        (Asked::ImpulseScale, false, Within) => (-1.72, 1.65),
+        (Asked::ImpulseScale, false, Worse) => (-1.58, 1.48),
+        (Asked::WindEast, false, Within) => (-0.76, 3.07),
+        (Asked::WindEast, false, Worse) => (-0.42, 3.23),
+        (Asked::WindNorth, false, Within) => (-2.27, 1.74),
+        (Asked::WindNorth, false, Worse) => (-1.8, 1.81),
+        (Asked::MassScale, false, Within) => (-1.74, 1.79),
+        (Asked::MassScale, false, Worse) => (-1.65, 1.67),
+        (Asked::DragScale, true, Within) => (-1.49, 2.23),
+        (Asked::DragScale, true, Worse) => (-1.28, 2.1),
+        (Asked::ImpulseScale, true, Within) => (-1.78, 2.03),
+        (Asked::ImpulseScale, true, Worse) => (-1.5, 1.84),
+        (Asked::WindEast, true, Within) => (-1.32, 1.72),
+        (Asked::WindEast, true, Worse) => (-1.38, 1.31),
+        (Asked::WindNorth, true, Within) => (-1.96, 2.04),
+        (Asked::WindNorth, true, Worse) => (-1.49, 1.43),
+        (Asked::MassScale, true, Within) => (-2.0, 1.89),
+        (Asked::MassScale, true, Worse) => (-1.68, 1.71),
     };
     Shares { low, high }
 }
@@ -948,7 +1011,7 @@ pub fn shares(asked: Asked, drift: bool) -> Shares {
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 /// [adr-368]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
-pub const KNOWN_GAPS: [(Set, Asked, u64); 1] = [(Set::B, Asked::DragScale, 79)];
+pub const KNOWN_GAPS: [(Set, Asked, u64); 0] = [];
 
 /// The recorded count below of a known gap ([`KNOWN_GAPS`]), for a least-squares cell on the
 /// list.
@@ -1046,7 +1109,7 @@ mod tests {
         let mass = interval_of(Method::Bayesian, &fit, Asked::MassScale).unwrap();
         assert!((mass.low - 0.4).abs() < 1e-12 && (mass.high - 1.8).abs() < 1e-12);
         // The least squares' from its shares.
-        let shares = shares(Asked::DragScale, false);
+        let shares = shares(Asked::DragScale, false, Misfit::Worse);
         let least = interval_of(Method::LeastSquares, &fit, Asked::DragScale).unwrap();
         assert!((least.low - (1.0 - shares.high * 0.1)).abs() < 1e-12);
         // A fitted log whose posterior had no weight states none; a log that said nothing states

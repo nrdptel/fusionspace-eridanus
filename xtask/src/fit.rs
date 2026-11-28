@@ -22,8 +22,8 @@ use std::time::Instant;
 use hpr_flightdata::readings::interval::{Interval, Shares};
 use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::fits::{
-    self, ASKED, Asked, Check, FlightFit, Identification, Method, POSTERIOR_DRAWS, POSTERIOR_PILOT,
-    known_gap,
+    self, ASKED, Asked, Check, FlightFit, Identification, Method, Misfit, POSTERIOR_DRAWS,
+    POSTERIOR_PILOT, known_gap,
 };
 use hpr_forensics::synthetic::intervals::{INSIDE_SHARE, Test};
 use hpr_forensics::synthetic::smoothed::MISS_SHARE;
@@ -644,10 +644,24 @@ struct NoiseReport {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Report {
     about: String,
-    /// Each parameter's shares on a log of height alone, then one with a horizontal track.
-    shares: BTreeMap<Asked, [Shares; 2]>,
+    /// Each parameter's shares, in [`CLASSES`]'s order.
+    shares: BTreeMap<Asked, [Shares; 4]>,
     sets: Vec<SetReport>,
     noise: Vec<NoiseReport>,
+}
+
+/// The four classes the shares are fitted on apart: whether the log holds a horizontal track,
+/// and the misfit's class ([`fits::Misfit`]).
+const CLASSES: [(bool, Misfit); 4] = [
+    (false, Misfit::Within),
+    (false, Misfit::Worse),
+    (true, Misfit::Within),
+    (true, Misfit::Worse),
+];
+
+/// `asked`'s shares in the library, in [`CLASSES`]'s order.
+fn library_shares(asked: Asked) -> [Shares; 4] {
+    CLASSES.map(|(drift, misfit)| fits::shares(asked, drift, misfit))
 }
 
 fn three(x: f64) -> f64 {
@@ -853,6 +867,31 @@ fn check_problems(set: Set, method: Method, checks: &[Check]) -> Vec<String> {
                 c.given
             ));
         }
+        // Each of the shares' classes must pass on its own too (ADR-384 decision 5).
+        if held && !known {
+            for misfit in Misfit::ALL {
+                let Some(&counts) = check.by_misfit.get(misfit.name()) else {
+                    broken.push(format!(
+                        "{set:?}, {name}, {}, {}: no fit counted in the class",
+                        check.asked.name(),
+                        misfit.name()
+                    ));
+                    continue;
+                };
+                if !Test::of(counts).passes() {
+                    broken.push(format!(
+                        "{set:?}, {name}, {}, {}: {} below, {} inside, {} above of {}: fails the \
+                         test",
+                        check.asked.name(),
+                        misfit.name(),
+                        counts.below,
+                        counts.inside,
+                        counts.above,
+                        counts.given
+                    ));
+                }
+            }
+        }
         for (probe, test) in &check.probes {
             let c = test.counts;
             if held && test.passes() {
@@ -929,7 +968,7 @@ fn report_problems(report: &Report) -> Vec<String> {
         }
     }
     for asked in ASKED {
-        let library = [fits::shares(asked, false), fits::shares(asked, true)];
+        let library = library_shares(asked);
         if report.shares.get(&asked) != Some(&library) {
             broken.push(format!(
                 "{asked:?}: the report's shares aren't the library's, {library:?}"
@@ -1122,6 +1161,23 @@ fn page(report: &Report) -> String {
                 .iter()
                 .map(|c| {
                     let d = c.by_residual.get(name).copied().unwrap_or_default();
+                    format!("{} / {} / {}", d.below, d.inside, d.above)
+                })
+                .collect();
+            let _ = writeln!(out, "| {name} | {} |", cells.join(" | "));
+        }
+        let _ = writeln!(
+            out,
+            "\nBy the shares' class, each held to the test (below / inside / above):\n"
+        );
+        let _ = writeln!(out, "| Class | {} |", header.join(" | "));
+        let _ = writeln!(out, "|---|{}", "---:|".repeat(set.checks.len()));
+        for name in Misfit::ALL.map(Misfit::name) {
+            let cells: Vec<String> = set
+                .checks
+                .iter()
+                .map(|c| {
+                    let d = c.by_misfit.get(name).copied().unwrap_or_default();
                     format!("{} / {} / {}", d.below, d.inside, d.above)
                 })
                 .collect();
@@ -1347,7 +1403,7 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>, Vec<u
                 .to_owned(),
             shares: ASKED
                 .iter()
-                .map(|&a| (a, [fits::shares(a, false), fits::shares(a, true)]))
+                .map(|&a| (a, library_shares(a)))
                 .collect(),
             sets,
             noise,
@@ -1442,7 +1498,8 @@ fn slice_lines(fit: &FlightFit, calibration: bool) -> Vec<String> {
             String::new()
         } else if counted {
             // The shares the report's counts use on a log with something to fit.
-            let interval = fits::shares(asked, fit.drift).interval(c.value, c.standard_error);
+            let interval = fits::shares(asked, fit.drift, Misfit::of(fit.misfit_share))
+                .interval(c.value, c.standard_error);
             format!(", {}", side(interval, c.truth))
         } else {
             ", not counted".to_owned()
@@ -1637,12 +1694,14 @@ fn shares_problems(made_runs: &[Vec<FlightFit>], exact: bool) -> Vec<String> {
     let mut broken = Vec::new();
     let mut most = 0.0_f64;
     for asked in ASKED {
-        for (drift, on) in [(false, made.as_slice()), (true, tracked.as_slice())] {
-            let in_force = fits::shares(asked, drift);
-            let Some(got) = fits::fitted(asked, drift, on) else {
+        for (drift, misfit) in CLASSES {
+            let on = if drift { tracked.as_slice() } else { made.as_slice() };
+            let in_force = fits::shares(asked, drift, misfit);
+            let Some(got) = fits::fitted(asked, drift, Some(misfit), on) else {
                 broken.push(format!(
-                    "{asked:?}, track {drift}: too few flights to fit its shares, or one that isn't \
-                     a number"
+                    "{asked:?}, track {drift}, {}: too few flights to fit its shares, or one that \
+                     isn't a number",
+                    misfit.name()
                 ));
                 continue;
             };
@@ -1651,8 +1710,13 @@ fn shares_problems(made_runs: &[Vec<FlightFit>], exact: bool) -> Vec<String> {
             }
             if !shares_hold(got, in_force, exact) {
                 broken.push(format!(
-                    "{asked:?}, track {drift}: the shares fit {} and {}; the library has {} and {}",
-                    got.low, got.high, in_force.low, in_force.high
+                    "{asked:?}, track {drift}, {}: the shares fit {} and {}; the library has {} \
+                     and {}",
+                    misfit.name(),
+                    got.low,
+                    got.high,
+                    in_force.low,
+                    in_force.high
                 ));
             }
         }
@@ -1900,8 +1964,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
             for asked in ASKED {
                 println!(
                     "{asked:?}: height {:?}, track {:?}",
-                    fits::fitted(asked, false, &made),
-                    fits::fitted(asked, true, &tracked)
+                    fits::fitted(asked, false, None, &made),
+                    fits::fitted(asked, true, None, &tracked)
                 );
                 for (class, within) in [
                     ("heights fit within 1 m", true),
@@ -1911,9 +1975,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
                         (of_residual(&made, within), of_residual(&tracked, within));
                     println!(
                         "  {class}: height {:?} of {} fits, track {:?} of {} fits",
-                        fits::fitted(asked, false, &height),
+                        fits::fitted(asked, false, None, &height),
                         height.iter().filter(|f| f.fitted && !f.drift).count(),
-                        fits::fitted(asked, true, &track),
+                        fits::fitted(asked, true, None, &track),
                         track.iter().filter(|f| f.fitted && f.drift).count()
                     );
                 }
@@ -2019,8 +2083,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 println!(
                     "{:32} shares, height {:?}, track {:?}; as stated {}/{}/{}; mean error {:.4}; median width {:.4} of {:.4}",
                     asked.name(),
-                    fits::fitted(asked, false, &made),
-                    fits::fitted(asked, true, &made),
+                    fits::fitted(asked, false, None, &made),
+                    fits::fitted(asked, true, None, &made),
                     c.below,
                     c.inside,
                     c.above,
@@ -2622,7 +2686,7 @@ mod tests {
                 .contains("calisto")
         );
         for (compared, asked) in made[0].compared.iter().zip(ASKED) {
-            let shares = fits::shares(asked, made[0].drift);
+            let shares = fits::shares(asked, made[0].drift, Misfit::of(made[0].misfit_share));
             let interval = shares
                 .interval(compared.value, compared.standard_error)
                 .unwrap();
