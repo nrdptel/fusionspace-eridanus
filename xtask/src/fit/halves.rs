@@ -387,3 +387,166 @@ pub fn pass_chance(tried: &Tried) -> (f64, Vec<(String, f64)>) {
     }
     (whole, each)
 }
+
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    reason = "a test stops at the failure (clippy.toml)"
+)]
+mod tests {
+    use super::*;
+    use crate::fit::tests::a_fit;
+
+    /// A rule's classes: the better fit is class 0, and a fit with no misfit or residual, or one
+    /// that isn't a number, is in the worse.
+    #[test]
+    fn a_rules_classes_put_a_missing_misfit_in_the_worse() {
+        let mut fit = a_fit(0);
+        assert_eq!(Rule::InForce.class(&fit), 0);
+        fit.misfit_share = Some(0.000_5);
+        assert_eq!(Rule::MisfitShare(0.000_634).class(&fit), 0);
+        fit.misfit_share = Some(0.000_634);
+        assert_eq!(Rule::MisfitShare(0.000_634).class(&fit), 1);
+        for missing in [None, Some(f64::NAN)] {
+            fit.misfit_share = missing;
+            fit.rms_m = missing;
+            assert_eq!(Rule::MisfitShare(0.000_634).class(&fit), 1);
+            assert_eq!(Rule::Residual.class(&fit), 1);
+        }
+        fit.rms_m = Some(0.999);
+        assert_eq!(Rule::Residual.class(&fit), 0);
+        fit.rms_m = Some(fits::RESIDUAL_SPLIT_M);
+        assert_eq!(Rule::Residual.class(&fit), 1);
+        assert_eq!(
+            [Rule::InForce, Rule::Residual, Rule::MisfitShare(0.1)].map(Rule::classes),
+            [1, 2, 2]
+        );
+    }
+
+    /// A count is the report's: a truth on an end is inside, and one that isn't a number, or an
+    /// interval that can't be stated, misses on both sides.
+    #[test]
+    fn a_truth_is_counted_as_the_report_counts_it() {
+        let mut counts = Counts::default();
+        let interval = Some(Interval {
+            low: 1.0,
+            high: 2.0,
+        });
+        for truth in [0.5, 1.0, 1.5, 2.0, 2.5] {
+            add(&mut counts, interval, truth);
+        }
+        add(&mut counts, interval, f64::NAN);
+        add(&mut counts, None, 1.5);
+        assert_eq!(
+            counts,
+            Counts {
+                given: 7,
+                below: 3,
+                inside: 3,
+                above: 3,
+            }
+        );
+    }
+
+    /// Scaling keeps the three counts adding up to the set's size.
+    #[test]
+    fn scaled_counts_add_up() {
+        let half = Counts {
+            given: 838,
+            below: 27,
+            inside: 765,
+            above: 46,
+        };
+        let set = scaled(half, 838, 1_000);
+        assert_eq!((set.given, set.below, set.above), (1_000, 32, 55));
+        assert_eq!(set.below + set.inside + set.above, set.given);
+        assert_eq!(scaled(half, 838, 838), half);
+    }
+
+    /// Whether flight `index` of the calibration set flies set B's model: the odd ones.
+    #[test]
+    fn the_calibration_sets_halves_alternate() {
+        assert!((0..40).all(|k| set_b_model(k) == (k % 2 == 1)));
+    }
+
+    /// Fits made up so that the shares and the halves are known: the share of flight `k` is drawn
+    /// evenly, set A's model's halfway as wide as set B's, so one pair of shares covers set A's
+    /// half too well and set B's too little, and its classes split by the misfit at `k`.
+    fn made_up(count: u64) -> Vec<FlightFit> {
+        (0..count)
+            .map(|k| {
+                let mut fit = a_fit(k);
+                let spread = if k % 2 == 1 { 2.0 } else { 1.0 };
+                // An even spread of shares over each half, in a scrambled order.
+                let u = ((k / 2) * 7_919 % (count / 2)) as f64 / (count / 2) as f64;
+                for c in &mut fit.compared {
+                    c.standard_error = 1.0;
+                    c.truth = 0.0;
+                    c.value = spread * (2.0 * u - 1.0);
+                }
+                fit.misfit_share = Some(k as f64 / count as f64);
+                fit
+            })
+            .collect()
+    }
+
+    /// The halves are counted apart, each against shares fitted on both: set B's model's half,
+    /// twice as spread, misses more often, and set A's model's fewer than a 90% interval allows.
+    #[test]
+    fn each_half_is_counted_on_the_shares_of_both() {
+        let made = made_up(2_000);
+        let tracked: Vec<FlightFit> = Vec::new();
+        let tried = tried(Rule::InForce, &made, &tracked);
+        let (asked, [a, b]) = &tried.cells[0];
+        assert_eq!(*asked, Asked::DragScale);
+        assert_eq!((a.row.given, b.row.given), (1_000, 1_000));
+        // The shares cover 10% of both halves together.
+        let missed = a.row.below + a.row.above + b.row.below + b.row.above;
+        assert!((190..=210).contains(&missed), "{missed}");
+        // Set A's model's half sits inside them, set B's half misses for both.
+        assert_eq!(a.row.below + a.row.above, 0);
+        assert!(!Test::of(a.row).passes() && !Test::of(b.row).passes());
+        assert!(failures(&tried).contains(&"A, drag scale: the row".to_owned()));
+        // The wind is counted on fits with a track alone, and there are none.
+        let (_, [wind, _]) = &tried.cells[2];
+        assert_eq!(wind.row.given, 0);
+    }
+
+    /// A cell that holds its test with room passes nearly always; one far outside it, nearly
+    /// never; and the chance is the same on every run.
+    #[test]
+    fn the_chance_follows_the_room_a_cell_has() {
+        let cell = |below: u64, above: u64| Cell {
+            row: Counts {
+                given: 2_000,
+                below,
+                inside: 2_000 - below - above,
+                above,
+            },
+            classes: vec![Counts {
+                given: 2_000,
+                below,
+                inside: 2_000 - below - above,
+                above,
+            }],
+            // Probes far off, which fail on every draw.
+            probes: [Counts {
+                given: 2_000,
+                below: 600,
+                inside: 800,
+                above: 600,
+            }; 3],
+        };
+        let of = |below: u64, above: u64| Tried {
+            rule: Rule::InForce,
+            shares: Vec::new(),
+            cells: vec![(Asked::DragScale, [cell(below, above), cell(below, above)])],
+        };
+        let (good, _) = pass_chance(&of(100, 100));
+        let (bad, _) = pass_chance(&of(200, 100));
+        assert!(good > 0.9, "{good}");
+        assert!(bad < 0.01, "{bad}");
+        assert_eq!(pass_chance(&of(100, 100)).0, good);
+    }
+}

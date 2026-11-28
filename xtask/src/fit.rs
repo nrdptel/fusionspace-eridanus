@@ -294,6 +294,12 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
     fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
 
+/// Whether kept fits can be written to `path`, tried before hours of fitting: it is created empty,
+/// or emptied, and written whole once the fits are made.
+fn writable(path: &Path) -> Result<(), String> {
+    fs::write(path, []).map_err(|e| format!("{}: {e}", path.display()))
+}
+
 /// Kept fits written by [`write_kept`].
 fn read_kept(path: &Path) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
     let bytes = fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -1888,6 +1894,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let files = crate::synthetic::design_files(&root)?;
     match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
         ["--calibrate"] | ["--calibrate", "--fits", _] => {
+            if let Some(path) = args.get(2) {
+                writable(Path::new(path))?;
+            }
             let (made, tracked) = fit_with_track(
                 Set::Calibration,
                 Set::Calibration.count(),
@@ -1980,13 +1989,23 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 "b" => Set::B,
                 other => return Err(format!("--fits takes a or b, not {other}")),
             };
+            writable(Path::new(path))?;
             let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, &files)?;
-            let counted: Vec<&FlightFit> = made
+            let counted: Vec<FlightFit> = made
                 .iter()
                 .filter(|f| f.fitted)
                 .take(COUNTED_FLIGHTS)
+                .cloned()
                 .collect();
-            let counted: Vec<FlightFit> = counted.into_iter().cloned().collect();
+            // The report counts the first 1,000 fits with something to fit: fewer, and these
+            // aren't the fits it counts.
+            if counted.len() < COUNTED_FLIGHTS {
+                return Err(format!(
+                    "{set:?}: only {} of {FIT_FLIGHTS} flights had something to fit, short of the \
+                     {COUNTED_FLIGHTS} the report counts",
+                    counted.len()
+                ));
+            }
             write_kept(Path::new(path), &counted, &tracked)
         }
         ["--try", set, count] | ["--try", set, count, "--track"] => {
@@ -2174,7 +2193,7 @@ mod tests {
     }
 
     /// A made-up fit of flight `index`, for the parts' bookkeeping: nothing is flown.
-    fn a_fit(index: u64) -> FlightFit {
+    pub(super) fn a_fit(index: u64) -> FlightFit {
         let compared = fits::Compared {
             value: 1.0,
             standard_error: 0.5,
