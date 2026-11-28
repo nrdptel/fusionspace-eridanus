@@ -1492,7 +1492,7 @@
         "fit: fitted, with a track, converged, residual 0.001 of the spread, residual RMS 1.04 m, 181 flown, rocketpy-calisto-tests-motor-at-minus-1.373",
         "drag scale: 0.902 ± 0.0171, truth 0.863, share 2.270, below",
         "impulse scale: 1.01 ± 0.0102, truth 0.991, share 2.228, below",
-        "wind toward the east, m/s: -0.0337 ± 0.095, truth -0.161, share 1.341, inside",
+        "wind toward the east, m/s: -0.0337 ± 0.095, truth -0.161, share 1.341, below",
         "wind toward the north, m/s: 4.52 ± 0.175, truth 4.69, share -1.006, inside",
         "mass on the weighed mass: 0.999 ± 0.0105, truth 0.985, share 1.374, inside",
         "posterior: 263 effective of the 400 draws read, 500 made, 0 failed, enough",
@@ -2834,7 +2834,7 @@
       "index": 798,
       "made": [
         "fit: fitted, height alone, converged, residual 0.001 of the spread, residual RMS 0.817 m, 649 flown, rocketpy-prometheus-2022-generic-motor",
-        "drag scale: 0.852 ± 0.0245, truth 0.874, share -0.902, inside",
+        "drag scale: 0.852 ± 0.0245, truth 0.874, share -0.902, above",
         "impulse scale: 1.06 ± 0.0127, truth 1.06, share -0.157, inside",
         "wind toward the east, m/s: 5.04 ± 3.87, truth 5.41, share -0.094, not counted",
         "wind toward the north, m/s: 0.943 ± 3.64, truth 2.81, share -0.513, not counted",
