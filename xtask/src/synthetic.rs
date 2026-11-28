@@ -77,10 +77,14 @@ pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
   synthetic --slice        Fly only the slice, every 21st flight of each set, and hold each to
                            the committed validation/reports/synthetic-flights.slice.json and to
                            the census's per-flight rules; writes nothing.
-  synthetic --smoother tuning|a|b|calibration [--count <n>] [--launch-started]
+  synthetic --smoother tuning|a|b|calibration [--count <n>] [--trust-gnss-from-liftoff]
+                           [--launch-started]
                            Only the smoother's check on one set's first n flights (all of them
                            by default), printed whole and by logger; writes nothing. The
                            calibration set's flights are drawn as the tuning set's are.
+                           --trust-gnss-from-liftoff trusts each GNSS receiver from liftoff (the
+                           check's setting made to fail); --launch-started smooths each log as a
+                           logger writing only from launch would have written it.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
                            test them on sets A and B, print the section; writes nothing.";
 

@@ -72,7 +72,8 @@ the calibration set, fits the points that scale the readings' 90% intervals
 ([The 90% intervals](log-readings.md#the-90-intervals)). Its 2,000 flights are drawn as the tuning
 set's are, alternating A's model and B's, on seed `2026102900`. That seed was fixed on
 October 29, 2026, after the readings and the smoother were tuned and before any reading's interval
-existed. The census and the smoother's check don't fly it. Flight $k$
+existed. The census and the smoother's check don't fly it; `cargo xtask synthetic --smoother
+calibration` smooths its logs on request. Flight $k$
 of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and
 logger) from its own stream. The stream is keyed by the set's seed, $k$ and the group. So a
 set's first flights stay the same if it grows, and an input added to one group moves no other group.
