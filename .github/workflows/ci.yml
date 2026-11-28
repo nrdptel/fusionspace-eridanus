@@ -441,12 +441,15 @@ jobs:
   # fitted in parts, each every Nth fit of the slice's from the Kth (`--part K/N`): by least squares
   # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
   # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
-  # six parts on macos-latest and windows-latest, the slowest, and three on the rest but
-  # ubuntu-latest, which runs four (below): by least squares the slowest's jobs took up to 943 s
-  # on macos-latest and 904 s a half on windows-latest. In four parts a macos-latest job took 356
-  # to 1,251 s on main's four runs to 2026-11-23, the longest past the 20 minutes, so it runs in
-  # six. On ubuntu-latest, part 2/3 of three took 1,208 and 1,214 s on main's two runs at
-  # e533d0aa, so it runs in four there (issue #1658).
+  # six parts on macos-latest, ten on windows-latest, five on ubuntu-latest, four on
+  # windows-11-arm and three on ubuntu-24.04-arm: by least squares the slowest's jobs took up to
+  # 943 s on macos-latest and 904 s a half on windows-latest. In four parts a macos-latest job took
+  # 356 to 1,251 s on main's four runs to 2026-11-23, the longest past the 20 minutes, so it runs
+  # in six. Each part builds the workspace first, so a part's job is a build and its share of
+  # the fits (issue #1658): on main's runs at 2b685c71 and 2243398f, windows-latest's six parts
+  # took 340 to 607 s besides their fits and 362 to 611 s fitting, up to 1,183 s a job, past the
+  # 17 minutes a job is held to; windows-11-arm's three up to 989 s (about 600 s fitting each);
+  # ubuntu-latest's four up to 1,029 s (750 s fitting).
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
@@ -454,10 +457,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, part: 1/4 }
-          - { os: ubuntu-latest, part: 2/4 }
-          - { os: ubuntu-latest, part: 3/4 }
-          - { os: ubuntu-latest, part: 4/4 }
+          - { os: ubuntu-latest, part: 1/5 }
+          - { os: ubuntu-latest, part: 2/5 }
+          - { os: ubuntu-latest, part: 3/5 }
+          - { os: ubuntu-latest, part: 4/5 }
+          - { os: ubuntu-latest, part: 5/5 }
           - { os: ubuntu-24.04-arm, part: 1/3 }
           - { os: ubuntu-24.04-arm, part: 2/3 }
           - { os: ubuntu-24.04-arm, part: 3/3 }
@@ -467,15 +471,20 @@ jobs:
           - { os: macos-latest, part: 4/6 }
           - { os: macos-latest, part: 5/6 }
           - { os: macos-latest, part: 6/6 }
-          - { os: windows-latest, part: 1/6 }
-          - { os: windows-latest, part: 2/6 }
-          - { os: windows-latest, part: 3/6 }
-          - { os: windows-latest, part: 4/6 }
-          - { os: windows-latest, part: 5/6 }
-          - { os: windows-latest, part: 6/6 }
-          - { os: windows-11-arm, part: 1/3 }
-          - { os: windows-11-arm, part: 2/3 }
-          - { os: windows-11-arm, part: 3/3 }
+          - { os: windows-latest, part: 1/10 }
+          - { os: windows-latest, part: 2/10 }
+          - { os: windows-latest, part: 3/10 }
+          - { os: windows-latest, part: 4/10 }
+          - { os: windows-latest, part: 5/10 }
+          - { os: windows-latest, part: 6/10 }
+          - { os: windows-latest, part: 7/10 }
+          - { os: windows-latest, part: 8/10 }
+          - { os: windows-latest, part: 9/10 }
+          - { os: windows-latest, part: 10/10 }
+          - { os: windows-11-arm, part: 1/4 }
+          - { os: windows-11-arm, part: 2/4 }
+          - { os: windows-11-arm, part: 3/4 }
+          - { os: windows-11-arm, part: 4/4 }
     runs-on: ${{ matrix.os }}
     env:
       # No step runs for a change to research notes alone (`scope`).

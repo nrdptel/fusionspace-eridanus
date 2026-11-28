@@ -197,6 +197,24 @@ the command, so a later run can be compared like for like.
   byte (`cargo xtask validate --check`, `examples --check` and the `refs` checks). The tests pass
   at either level.
 
+## The flight crates optimized in test builds (#1658)
+
+- **What this is.** `fusionspace-hpr-sim`, `-design`, `-motor`, `-atmos` and `fusionspace-hpr` are
+  built at `opt-level = 3` in the test profile too, beside the aerodynamics crate (above), and the
+  test profile keeps only file-and-line debug information (`debug = "line-tables-only"`). A test
+  that fits a flight flies it hundreds of times, and unoptimized the vector arithmetic of every
+  step stays a function call. The CLI test that fits eight tracked flights from calm air took
+  362 s of CI's `test (windows-latest, 2/3)` job, which also builds for 523 s, so the job ran 1,023
+  to 1,160 s on main, past the 17 minutes a job is held to.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main eabf3561: the whole workspace's
+  nextest run, 4,598 tests, 264 s → 143 s wall and 2,811 → 1,210 CPU-seconds, one run each; that
+  CLI test 128 s → 26 s; a fresh build of every test 2 min 13 s (2 min 38 s with full debug
+  information), its build folder 6.9 GB instead of 32 GB.
+- **What moves.** Nothing committed, and every test passes unchanged. `fusionspace-hpr-core` stays
+  unoptimized: at opt-level 3 three tests failed, as its geodesic table, the aerodynamic fixture's
+  check against the curves and a fit's quoted guide example moved in their last digits (one
+  geodesic error 10.30 → 10.27 nm). The dev profile, which writes the reports, is unchanged.
+
 ## The analysis crate optimized in test builds (#397)
 
 - **What this is.** `fusionspace-hpr-analysis` (Monte Carlo statistics, the optimizers) is built

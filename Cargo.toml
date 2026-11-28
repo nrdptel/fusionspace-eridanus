@@ -171,6 +171,27 @@ opt-level = 3
 # apogee's relative error 1.2320332389% → 1.2320332403% in `ork-flights`), so they stay as they are.
 [profile.test.package.fusionspace-hpr-aero]
 opt-level = 3
+# The flights the tests fly (the fits, the wind scan) at opt-level 3 too, in the test profile only:
+# the CLI test that fits eight tracked flights from calm air took 362 s of windows-latest's test
+# job, which builds for 523 s, past the 17 minutes a job is held to (issue #1658), and 128 s on a
+# 10-core Mac; 26 s here. The whole suite's CPU time on that Mac fell from 2,811 s to 1,210 s.
+# Every test passes unchanged so; `fusionspace-hpr-core` stays unoptimized, since at opt-level 3
+# the geodesic test's committed table, the aerodynamic fixture's check and a fit's guide example
+# all move in their last digits.
+[profile.test.package.fusionspace-hpr-sim]
+opt-level = 3
+[profile.test.package.fusionspace-hpr-design]
+opt-level = 3
+[profile.test.package.fusionspace-hpr-motor]
+opt-level = 3
+[profile.test.package.fusionspace-hpr-atmos]
+opt-level = 3
+[profile.test.package.fusionspace-hpr]
+opt-level = 3
+# File and line in a test's backtrace, without the rest of the debug information: a fresh build
+# of every test took 2 min 13 s, not 2 min 38 s, on that Mac, and 6.9 GB, not 32 GB.
+[profile.test]
+debug = "line-tables-only"
 
 # The flight-log survey (`cargo xtask logs`) reads about 1,000 sample logs, some of 20 MB, hashes
 # them and writes each record as JSON: 167 s unoptimized, 25 s with the readers, SHA-256 and
