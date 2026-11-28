@@ -268,8 +268,8 @@ Those counts have limits:
   fit. The first split the flights by whether their heights fit within 1 m (3.3 ft). It failed two
   of set B's tests ([ADR-384, the first split measured][adr-384]). The second split off the
   best-fitting 5%, by the residual's share of the heights' spread. With it every parameter passed
-  on both sets, but set B's other 95% still left too many truths below their drag intervals
-  ([ADR-385, the second split measured][adr-385]). Neither is in force.
+  on both sets. But on set B's other 95%, too many truths still lay below the drag intervals
+  ([ADR-385, the second split][adr-385]). Neither is in force.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 125 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
