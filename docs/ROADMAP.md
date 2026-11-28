@@ -196,11 +196,20 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       after M2.3d9). *Done when:* ADR-341 decision 2's for M2.3d14.
   - [ ] **M2.3d9 The inertia with a motor aboard** (ADR-336; ADR-342; #1424). *Done when:*
     ADR-342 decision 3's for M2.3d9.
-- [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
-  dispersion, and the report gives how often its 50% and 90% apogee ranges hold the log, on both
-  halves, with two-sided 95% Clopper–Pearson bounds, a failed run counted as a miss; and #401
-  closed, that spread beside each flight's apogee and as the plot's band. Moves: honest
-  uncertainty.
+- [ ] **M2.8 Honest uncertainty** (ADR-209 §5; in two, ADR-386; met when both are). *Done when:*
+  each logged flight is also flown as a dispersion, and the report gives how often its 50% and 90%
+  apogee ranges hold the log, on both halves, with two-sided 95% Clopper–Pearson bounds, a failed
+  run counted as a miss; and #401 closed, that spread beside each flight's apogee and as the
+  plot's band. Moves: honest uncertainty.
+  - [ ] **M2.8a The ranges' coverage** (ADR-386). *Done when:* `cargo xtask fixture-flights` also
+    flies each flight it compares with its log as a dispersion on spreads stated before any count
+    (ADR-386 decision 3); `validation/reports/apogee-ranges.md` gives how often the 50% and 90%
+    apogee ranges hold the log, over every flight compared and each half, with two-sided 95%
+    Clopper–Pearson bounds, a failed run a miss; `--check` reproduces it; the scoreboard's two
+    cells read it; the accuracy page gives the counts.
+  - [ ] **M2.8b The spread on the readout and the plot** (#401; ADR-386). *Done when:* #401
+    closed, that spread beside each flight's apogee and as the plot's band, each with the share
+    of logs its range held (M2.8a's report) beside it; its acceptance pass (ADR-282).
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
   way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.

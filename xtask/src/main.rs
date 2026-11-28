@@ -30,6 +30,7 @@ mod aero_lip;
 mod aero_mach;
 mod aero_override;
 mod aero_roll;
+mod apogee_ranges;
 mod census;
 mod check_cases;
 mod ci_budget;

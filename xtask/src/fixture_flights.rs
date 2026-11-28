@@ -345,6 +345,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         &forward,
         check,
     )?;
+    crate::apogee_ranges::run(&root, &entries, &forward, check)?;
     if check {
         let text = fs::read_to_string(root.join(REPORT_JSON))
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;
