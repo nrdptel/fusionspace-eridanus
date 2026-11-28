@@ -177,7 +177,7 @@ opt-level = 3
 # issue #1658 asks of a job; the CLI test that fits eight tracked flights took 362 s of it at
 # 50af2af6. On a 10-core Mac (docs/perf.md, #1658) that test took 128 s unoptimized, 38 s here and
 # 26 s at opt-level 3, but opt-level 3 lengthened windows-latest's test builds by minutes, so 1.
-# `fusionspace-hpr-core` stays at 0: at opt-level 3 three tests move in their last digits.
+# `fusionspace-hpr-core` stays at 0: at opt-level 3 three tests fail on last digits (docs/perf.md).
 [profile.test.package.fusionspace-hpr-sim]
 opt-level = 1
 [profile.test.package.fusionspace-hpr-design]

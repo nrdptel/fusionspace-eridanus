@@ -448,11 +448,11 @@ jobs:
   # windows-11-arm and three on ubuntu-24.04-arm: by least squares the slowest's jobs took up to
   # 943 s on macos-latest and 904 s a half on windows-latest. In four parts a macos-latest job took
   # 356 to 1,251 s on main's four runs to 2026-11-23, the longest past the 20 minutes, so it runs
-  # in six. Each part builds the workspace first, so a part's job is a build and its share of
-  # the fits (issue #1658): on main's runs at 2b685c71 and 2243398f, windows-latest's six parts
-  # took 340 to 607 s besides their fits and 371 to 611 s fitting, up to 1,183 s a job, past the
-  # 17 minutes (1,020 s) issue #1658 asks of a job; windows-11-arm's three up to 989 s (547 to
-  # 608 s fitting); ubuntu-latest's four up to 1,029 s (750 s fitting).
+  # in six. Each part builds xtask and the crates under it first, so a part's job is a build and
+  # its share of the fits (issue #1658): on main's runs at 2b685c71 and 2243398f, windows-latest's
+  # six parts took 340 to 607 s besides their fits and 371 to 611 s fitting, up to 1,183 s a job,
+  # past the 17 minutes (1,020 s) issue #1658 asks of a job; windows-11-arm's three up to 989 s
+  # (547 to 608 s fitting); ubuntu-latest's four up to 1,029 s (750 s fitting).
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
