@@ -13,7 +13,7 @@ use std::fmt::Write as _;
 
 use hpr_flightdata::readings::interval::{self, Interval, Shares};
 use hpr_forensics::synthetic::fits::{self, ASKED, Asked, FlightFit};
-use hpr_forensics::synthetic::intervals::{Counts, INSIDE_SHARE, Probe, Test};
+use hpr_forensics::synthetic::intervals::{Counts, INSIDE_SHARE, Probe, Test, three_figures};
 use hpr_forensics::synthetic::smoothed::MISS_SHARE;
 use hpr_forensics::synthetic::{self, Model, Set};
 
@@ -113,7 +113,8 @@ fn counted_on<'a>(asked: Asked, made: &'a [FlightFit], tracked: &'a [FlightFit])
 
 /// `rule` tried on the calibration set's kept fits: `made`, every fit of the set, which the shares
 /// on a log of height alone are fitted on; `tracked`, its fits of flights with a track logger,
-/// which the shares on a log with a track are fitted on.
+/// which the shares on a log with a track are fitted on. The shares are taken at three figures,
+/// as the library holds them.
 pub fn tried(rule: Rule, made: &[FlightFit], tracked: &[FlightFit]) -> Tried {
     let mut shares = Vec::new();
     let mut cells = Vec::new();
@@ -127,7 +128,11 @@ pub fn tried(rule: Rule, made: &[FlightFit], tracked: &[FlightFit]) -> Tried {
                         .filter(|f| f.fitted && f.drift == drift && rule.class(f) == class)
                         .map(|f| f.compared[slot].share())
                         .collect();
-                    interval::fit(&points)
+                    // At three figures, as the library holds the shares in force.
+                    interval::fit(&points).map(|s| Shares {
+                        low: three_figures(s.low),
+                        high: three_figures(s.high),
+                    })
                 })
                 .collect()
         };
