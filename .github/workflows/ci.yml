@@ -151,8 +151,14 @@ jobs:
       - run: rustup toolchain install
       - run: scripts/native-toolchain.sh
         shell: bash
+      # The cache's key follows the workspace's Cargo.toml, where the test profile is set. The
+      # action's own key reads only the dependencies, so after a profile edit a run restores the
+      # old cache as an exact match and rebuilds every dependency (windows-latest's build took
+      # 13 min 37 s, not 8 min 43 s, on issue #1658's change), and the action doesn't save a
+      # cache it restored exactly ("Cache up-to-date."), so main's runs would stay that slow.
       - uses: Swatinem/rust-cache@v2
         with:
+          key: ${{ hashFiles('Cargo.toml') }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
       # The design format's generated TypeScript and Python readers run in xtask's tests (M3.3c):
       # Node.js runs TypeScript as it is from 22.18, and the Python needs 3.11.
