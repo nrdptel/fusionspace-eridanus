@@ -329,11 +329,17 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.8",
-          "cannot": null
+          "value": 30.0,
+          "count": 60,
+          "source": "validation/reports/apogee-ranges.json /sets/0/coverage/levels/0/held_percent",
+          "milestone": null,
+          "cannot": null,
+          "held_by": {
+            "value": 35.14,
+            "count": 37,
+            "what": "the calibration half",
+            "source": "validation/reports/apogee-ranges.json /sets/3/coverage/levels/0/held_percent"
+          }
         },
         {
           "tool": "openrocket",
@@ -351,7 +357,8 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`uncertainty.range-50`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a sample that fails narrows its range, and a run left with no range is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 35.14% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
     },
     {
       "id": "uncertainty.range-90",
@@ -369,11 +376,17 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.8",
-          "cannot": null
+          "value": 83.33,
+          "count": 60,
+          "source": "validation/reports/apogee-ranges.json /sets/0/coverage/levels/1/held_percent",
+          "milestone": null,
+          "cannot": null,
+          "held_by": {
+            "value": 86.49,
+            "count": 37,
+            "what": "the calibration half",
+            "source": "validation/reports/apogee-ranges.json /sets/3/coverage/levels/1/held_percent"
+          }
         },
         {
           "tool": "openrocket",
@@ -391,7 +404,8 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`uncertainty.range-90`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a sample that fails narrows its range, and a run left with no range is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 86.49% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
     },
     {
       "id": "speed.flight",

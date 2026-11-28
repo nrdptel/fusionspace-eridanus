@@ -498,7 +498,11 @@ These are left out of a flight, or approximated:
   Python.** A [Monte Carlo](glossary.md#monte-carlo) run flies a rocket many times with its mass,
   drag, motor, wind and rail scattered. It's seeded and reproducible
   ([Monte Carlo dispersion](monte-carlo.md)), and it draws the ellipse its landings fall in
-  ([Landing ellipses](monte-carlo.md#landing-ellipses)). [`hpr mc`](cli.md#hpr-mc) runs one on
+  ([Landing ellipses](monte-carlo.md#landing-ellipses)). On 60 logged flights, with wide spreads
+  from published figures, a run's 90% apogee range held the log on 50. Its 50% range held it on
+  18. Most misses were flights that ended below the range
+  ([how often the ranges hold](accuracy.md#how-often-the-apogee-ranges-hold-the-logs)).
+  [`hpr mc`](cli.md#hpr-mc) runs one on
   any design `hpr sim` flies, and exports every flight as CSV. For a design without staging,
   `hpr.MonteCarlo` returns the same flights to Python as NumPy arrays, but not the ellipses
   ([Python](python.md#monte-carlo)). Morris screening and Sobol' indices rank which inputs matter

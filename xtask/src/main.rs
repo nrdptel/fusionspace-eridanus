@@ -30,6 +30,7 @@ mod aero_lip;
 mod aero_mach;
 mod aero_override;
 mod aero_roll;
+mod apogee_ranges;
 mod census;
 mod check_cases;
 mod ci_budget;
@@ -157,6 +158,7 @@ Commands:
 {GHOST}
 {REAL_FLIGHTS}
 {DESCENT_WIND}
+{APOGEE_RANGES}
 {PUBLIC_PREDICTIONS}
 {MAPLEAF_FLIGHTS}
 {RECORDS}
@@ -204,6 +206,7 @@ fn usage() -> String {
         .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
         .replace("{DESCENT_WIND}", descent_wind::USAGE)
+        .replace("{APOGEE_RANGES}", apogee_ranges::USAGE)
         .replace("{PUBLIC_PREDICTIONS}", public_predictions::USAGE)
         .replace("{MAPLEAF_FLIGHTS}", mapleaf_flights::USAGE)
         .replace("{RECORDS}", records::USAGE)
@@ -248,6 +251,7 @@ fn main() -> ExitCode {
         Some("fixture-flights") => fixture_flights::run(&args.collect::<Vec<_>>()),
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
         Some("descent-wind") => descent_wind::run(&args.collect::<Vec<_>>()),
+        Some("apogee-ranges") => apogee_ranges::run(&args.collect::<Vec<_>>()),
         Some("public-predictions") => public_predictions::run(&args.collect::<Vec<_>>()),
         Some("mapleaf-flights") => mapleaf_flights::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),

@@ -17,18 +17,22 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 ([From Python](#from-python)).
 
 > **How far to trust it.** The spread a run gives is only as good as the uncertainties you give it
-> and HPR Sim's flight models. Those models aren't yet validated against real flights
-> ([Accuracy](accuracy.md)).
+> and HPR Sim's flight models. Against real flights' logs those models' apogees miss by more than
+> the project's target ([Accuracy](accuracy.md)).
 >
 > - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
 >   tests pin the sampling (below).
 > - The [landing ellipses](#landing-ellipses) are tested against normal spreads with known answers.
-> - Nothing checks whether the spread matches that of real flights. No measured set of repeated
->   flights has been compared yet.
+> - On 60 logged flights flown with a design file's spreads, the 90% apogee range held the log
+>   on 50 and the 50% range on 18
+>   ([the count](#a-set-that-has-been-counted-against-real-flights)).
+> - No landing spread or ellipse has been compared with a real flight.
 > - A run leaves out correlations between inputs, distributions other than the
 >   [normal](glossary.md#normal-distribution), and the inputs listed under
->   [What is not dispersed](#what-is-not-dispersed). It flies what `Flight::builder` sets up, a
->   staged flight's separations included. Events of your own can't be part of one yet.
+>   [What is not dispersed](#what-is-not-dispersed).
+
+A run flies what `Flight::builder` sets up, a staged flight's separations included. Events of
+your own can't be part of one yet.
 
 Sampling tests check that:
 
@@ -499,6 +503,44 @@ code's next revision
 The draft's first revisions, FR-7 and FR-8, keep both sentences
 ([`1125_A2021_PYR_AAA_FD_FRStatements.pdf`](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf)).
 The edition in force today hasn't been checked.
+
+### A set that has been counted against real flights
+
+One set of numbers has been checked against logs. It's for a rocket known only by its design file
+and its motor's published curve, with nothing weighed or measured:
+
+| input | standard deviation | `hpr mc` option |
+|---|---:|---|
+| mass without motors | 10.75% | `--mass-sd 0.1075` |
+| drag coefficient | 16.3% | `--drag-sd 0.163` |
+| total impulse | 3.56% | `--impulse-sd 0.0356` |
+| burn time | 9.2% | `--burn-time-sd 0.092` |
+| rail's tilt | 1° | `--inclination-sd 1` |
+| rail's heading | 5° | `--heading-sd 5` |
+
+Each comes from a published figure
+([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md)
+names each source, and the wider figures it didn't take). The impulse and burn-time figures are
+wider than the starting points above on purpose. Those starting points follow the newer
+certification reports, each of motors fired together. The table's figures are for a motor bought
+later than the one its file was measured on: the same motor types tested a second time, years
+apart where the dates are known.
+
+With these, on 60 logged flights, a run's 90% apogee range held the log on 50 and its 50% range on
+18. By that count the 50% range is wrong: it holds too few. The 90% range can't be told from a
+right one, with bounds that reach down to 71%. Most misses were flights that ended below the
+range. On those 60 flights HPR Sim's apogees from a design file run above the logs on average,
+and a run scatters its inputs about the file's values
+([how often the ranges hold](accuracy.md#how-often-the-apogee-ranges-hold-the-logs)).
+
+The count isn't quite the run these options give you. It flew each rocket with nothing deployed,
+in the day's wind and air with no spread on either, 1,000 flights a run (`--runs 1000`), and took
+the apogee as the height climbed. `hpr mc` prints the run's 5% and 95% points, the edges of its
+90% range; it doesn't print the 50% range's edges.
+
+So these numbers are a place to start for a rocket you haven't weighed. On those 60 flights the
+log ended below the middle of its run more often than above it. No count covers a run on tighter
+spreads yet.
 
 ### What is not dispersed
 

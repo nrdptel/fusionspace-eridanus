@@ -159,7 +159,7 @@ MIT, reusable with attribution: [3, 5, 6, 10]. US Government works or public use
 - RocketPy's journal paper [24] is closed access; its Monte Carlo table may be the Valetudo notebook [5].
 - No measured spread for rail-exit speed, misalignment, grain temperature or a hobby motor's burn time at H and up.
 - Not reached: NASA TN D-2142, DTIC AD0680177, Sandia SC-DR-69-291 (field wind weighting); FAA AC 450.117-1.
-- How often a hobby apogee falls inside a published-sigma band over many flights is unmeasured (M2.8's count).
+- How often a hobby apogee falls inside a published-sigma band over many flights: counted on 60 flights (M2.8a, `validation/reports/apogee-ranges.md`).
 
 ## Sources (read 2026-10-17; rechecked 2026-11-05)
 

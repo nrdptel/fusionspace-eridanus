@@ -92,7 +92,7 @@ const MASS_STATED: Stated = Stated {
 };
 
 /// A design file's mass, with no record of a weighing.
-const MASS_DESIGN_FILE: Stated = Stated {
+pub(crate) const MASS_DESIGN_FILE: Stated = Stated {
     sigma: 0.1075,
     basis: "a design file's mass, with no record that the rocket was weighed as flown",
     from: "docs/research/as-built-mass-growth.md: over 24 rockets with both a design-file mass \

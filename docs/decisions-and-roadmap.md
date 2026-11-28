@@ -414,6 +414,7 @@ until someone rewrites it in plainer words.
 | [ADR-383: A branch's own run repairs the jobs' budget][adr-383] | When main's last run of a pull request's checks has a job over the 20 minutes, the budget check before a pull request now takes a passing run started by hand on the branch's own head, without `full`, in main's place, and holds its jobs to the same 20 minutes. Without it the pull request that splits a slow job could not open. CI's slowest jobs are split in the same change: the tests in three parts on `windows-latest` and `macos-latest`, the fit's slice in four on `ubuntu-latest`, and the site's checks in four. |  |
 | [ADR-384: M7.3g in three: the split by the residual, measured, fails set B][adr-384] | The first rule [M7.3g](#m7-3g) tried, named on issue #1108 before any count, fits the least-squares interval shares apart for fits whose heights' residual is within 1 m (3.3 ft) and for the rest. It passes every row and class on set A but fails two rows and two classes on set B, one of them a row that passes today. It mends 12 of the 14 classes that fail today, but a rule in force must pass every row, so it isn't put in force. [M7.3g1](#m7-3g1) ships the tool that fitted the classes' shares, and this record. [M7.3g2](#m7-3g2) chooses a second rule on the calibration set alone, its counts predicted first. [M7.3g3](#m7-3g3) puts a rule that passes in force. |  |
 | [ADR-385: M7.3g2: a second rule passes every row and fails a class, so M7.3g ends][adr-385] | [M7.3g](#m7-3g)'s second rule, chosen on the calibration set's fits alone, fits the least-squares shares apart for the calibration set's best-fitting 5%, by the misfit's share of the heights' spread, and for the rest. Its counts were predicted on issue #1108 before the full fit. With it every least-squares row passes on both sets, but set B's drag scale fails in the worse class, with too many truths below. A rule fails when any row or class fails, so [M7.3g](#m7-3g) ends with [M7.3g3](#m7-3g3) open. Release 0.2 goes ahead without it. The tool that chose the rule, `cargo xtask fit --halves`, ships. |  |
+| [ADR-386: M2.8 in two: the ranges' coverage measured first][adr-386] | [M2.8a](#m2-8a) flies each of the private collection's 60 compared flights 1,000 times more as the run `hpr mc` flies, on six input spreads stated from published figures before any count, and reports how often the run's 50% and 90% apogee ranges hold the logged apogee, with two-sided 95% Clopper-Pearson bounds, over every flight and each half. [M2.8b](#m2-8b) puts that spread on `hpr sim`'s readout and plot, with the measured share beside it, and closes #401. The counts were predicted here before the first run: about 20 of 60 at 50% and about 47 of 60 at 90%, both short of their levels, the misses on the side where the run flew higher than the log. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -781,6 +782,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-7a"></a>[M2.7a][done-1] | The halves and the fits' guard | done |
 | <a id="m2-7b"></a>[M2.7b][done-1] | New flights predicted first | done |
 | <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
+| <a id="m2-8a"></a>[M2.8a][done-1] | The ranges' coverage | done |
+| <a id="m2-8b"></a>[M2.8b][phase-1] | The spread on the readout and the plot | not yet done |
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
 | <a id="m2-10"></a>[M2.10][done-1] | Evidence register | done |
 | <a id="m2-11"></a>[M2.11][phase-1] | Fin flutter held to measurement | not yet done |
@@ -1525,6 +1528,7 @@ is the milestone that added or will add that test.
 [adr-383]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md
 [adr-384]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0384-m7-3g-in-three-the-split-by-the-residual-measured.md
 [adr-385]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0385-m7-3g2-a-second-rule-passes-every-row-and-fails-a-class.md
+[adr-386]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

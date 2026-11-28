@@ -52,6 +52,7 @@ pub use metrics::{Measured, Reference, ReferenceValue};
 pub use report::{Comparison, Gap, NotReproduced, Report, Source, Verdict};
 pub use run::{CaseRun, ValidateError, run_case, run_lock};
 
+pub mod apogee_ranges;
 pub mod correction;
 pub mod data_uncertainty;
 pub mod descent_wind;

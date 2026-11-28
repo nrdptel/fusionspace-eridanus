@@ -378,6 +378,131 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+/// The manifest's flights, and each flight this report compares with its log as it flies it by
+/// default, by id: what the report of the apogee ranges (`cargo xtask apogee-ranges`, M2.8a)
+/// starts from. It writes nothing.
+///
+/// The flights are [`fly_all`]'s compared ones, chosen by the same rules: the collection gives a
+/// configuration, hpr flies it three ways, OpenRocket's record holds an apogee for it and the
+/// manifest doesn't leave it out. OpenRocket's record is read for which flights it flew alone,
+/// so it isn't held to the conditions' bytes, which move in their last digits on another build
+/// profile: `cargo xtask fixture-flights --check` holds it to them. The caller holds the
+/// flights' errors to this report's committed ones (`apogee_ranges`).
+pub(crate) fn compared(
+    root: &Path,
+) -> Result<(Vec<Entry>, BTreeMap<String, ForwardFlight>), String> {
+    let entries = manifest(root)?;
+    crate::predict_first::admit(root, &entries)?;
+    let index = era5_index(root)?;
+    let supply = crate::ork_supply::Supply::load(root, true)?;
+    if !supply.is_present() {
+        return Err(format!(
+            "{} is missing; run validation/oracles/openrocket/motor_database.py",
+            crate::ork_supply::RECORD
+        ));
+    }
+    let record = openrocket_record(root, None)?;
+    let mut kept = BTreeMap::new();
+    for entry in &entries {
+        let at = &entry.flight_id;
+        let design = design(root, entry, &supply)?;
+        let Ok(chosen) = collection_cause(&design, entry) else {
+            continue;
+        };
+        if chosen.left_out.is_some() || entry.excluded_class.is_some() {
+            continue;
+        }
+        if openrocket_apogee(&record, at)?.is_err() {
+            continue;
+        }
+        let weather = weather(root, entry, &index)?;
+        let (earth, day) = day(entry, &weather)?;
+        let rail = rail(entry);
+        let standard = openrocket_air(entry, &weather, earth)?;
+        let Ok((hpr_m, _, _)) = hpr_apogees(&design, chosen, &day, standard, rail) else {
+            continue;
+        };
+        let logged_m = logged_height_m(entry, &weather)?;
+        kept.insert(
+            at.clone(),
+            ForwardFlight {
+                design: design.clone(),
+                configuration: chosen.clone(),
+                day,
+                rail,
+                hpr_m,
+                logged_m,
+                early: entry.early_deployment == Some(true),
+            },
+        );
+    }
+    Ok((entries, kept))
+}
+
+/// OpenRocket's air for a flight: the standard atmosphere through the pad's temperature and
+/// pressure, in the day's wind.
+fn openrocket_air(entry: &Plan, weather: &Weather, earth: Earth) -> Result<Environment, String> {
+    let at = &entry.flight_id;
+    let pad = weather
+        .sounding
+        .air(entry.elevation_m)
+        .map_err(|error| format!("{at}: {error}"))?
+        .air;
+    let anchored = Ussa76::anchored(entry.elevation_m, pad.temperature_k, pad.pressure_pa)
+        .map_err(|error| format!("{at}: {error}"))?;
+    Ok(Environment::new(earth, anchored, weather.wind.clone()))
+}
+
+/// hpr's three apogees of a flight, m: as it flies by default in the day's air, then held
+/// straight on the rail in the day's air and in OpenRocket's (`standard`).
+fn hpr_apogees(
+    design: &ork::Design,
+    configuration: &ork::MotorConfiguration,
+    day: &Environment,
+    standard: Environment,
+    rail: Rail,
+) -> Result<(f64, f64, f64), String> {
+    let guided =
+        |environment: Environment| climbed_m(&guided_of(design, configuration, environment, rail)?);
+    let hpr_m = hpr_apogee(design, configuration, day.clone(), rail)?;
+    Ok((hpr_m, guided(day.clone())?, guided(standard)?))
+}
+
+/// OpenRocket's apogee of flight `at` in its record, m, or why it refused the flight.
+fn openrocket_apogee(
+    record: &BTreeMap<String, Value>,
+    at: &str,
+) -> Result<Result<f64, String>, String> {
+    let openrocket = record
+        .get(at)
+        .ok_or_else(|| format!("{RECORD} has no flight {at}; run {ORACLE} again"))?;
+    match (
+        openrocket["refused"].as_str(),
+        openrocket["apogee_m"].as_f64(),
+    ) {
+        (Some(why), _) => Ok(Err(why.to_owned())),
+        (None, Some(apogee)) if apogee.is_finite() => Ok(Ok(apogee)),
+        _ => Err(format!(
+            "{RECORD}: {at} has neither an apogee nor a refusal"
+        )),
+    }
+}
+
+/// A flight's logged apogee as a height climbed in the day's air, m: a satellite height as it
+/// is, a barometric or fused reading as the height above the pad that reads it.
+fn logged_height_m(entry: &Entry, weather: &Weather) -> Result<f64, String> {
+    let at = &entry.flight_id;
+    match entry.logged_kind {
+        LoggedKind::Gps => Ok(entry.logged_apogee_m),
+        LoggedKind::Barometric | LoggedKind::Fused => {
+            Barometer::on_pad(&weather.sounding, entry.elevation_m, 0.0)
+                .map_err(|error| format!("{at}: {error}"))?
+                .height_m(entry.logged_apogee_m)
+                .map_err(|error| format!("{at}: {error}"))
+        }
+    }
+}
+
 /// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown. A flight
 /// whose design holds no such configuration, no curve, more than one motor or a staging event has
 /// none: a later stage's or delayed motor's burn could end after any one curve's.
@@ -870,8 +995,12 @@ pub(crate) struct ForwardFlight {
 
 /// The record's flights by id, after checking it was written by OpenRocket 24.12, by the
 /// current oracle and the scripts it imports, from `conditions`: the conditions as the manifest
-/// and the ERA5 files give them now, not as [`CONDITIONS`] last wrote them.
-fn openrocket_record(root: &Path, conditions: &str) -> Result<BTreeMap<String, Value>, String> {
+/// and the ERA5 files give them now, not as [`CONDITIONS`] last wrote them. With no conditions
+/// that last check is left to a caller that has them ([`compared`]).
+fn openrocket_record(
+    root: &Path,
+    conditions: Option<&str>,
+) -> Result<BTreeMap<String, Value>, String> {
     let record = crate::ork_flights::read_json(&root.join(RECORD))
         .map_err(|error| format!("{error}; run {ORACLE}"))?;
     let stale = |what: &str| {
@@ -890,8 +1019,9 @@ fn openrocket_record(root: &Path, conditions: &str) -> Result<BTreeMap<String, V
             return Err(stale(&format!("scripts ({path} differs)")));
         }
     }
-    if record["conditions_sha256"].as_str()
-        != Some(crate::ork_supply::sha256(conditions.as_bytes()).as_str())
+    if let Some(conditions) = conditions
+        && record["conditions_sha256"].as_str()
+            != Some(crate::ork_supply::sha256(conditions.as_bytes()).as_str())
     {
         return Err(stale("conditions"));
     }
@@ -924,7 +1054,7 @@ struct Compared {
     held_out: bool,
 }
 
-fn percent(simulated: f64, reference: f64) -> f64 {
+pub(crate) fn percent(simulated: f64, reference: f64) -> f64 {
     100.0 * (simulated - reference) / reference
 }
 
@@ -1001,7 +1131,7 @@ fn fly_all(
     String,
 > {
     let written = conditions(root, entries, index, supply)?;
-    let record = openrocket_record(root, &written)?;
+    let record = openrocket_record(root, Some(&written))?;
     let (inputs, histories) = crate::histories::collection_inputs(root, &written)?;
     let nose_columns = crate::nose_line::collection_columns(root, &written)?;
     let mut splits = Vec::new();
@@ -1047,52 +1177,25 @@ fn fly_all(
 
         // hpr, in the whole profile as it flies by default, and held straight on the rail in the
         // whole profile and in OpenRocket's air for the comparisons with OpenRocket.
-        let mut openrocket_air = None;
+        let mut standard_air = None;
         let hpr = match &chosen.left_out {
             Some(out) => Err(named_cause(
                 &out.message,
                 crate::ork_motors::not_flown(out.why),
             )),
             None => {
-                let pad = weather
-                    .sounding
-                    .air(entry.elevation_m)
-                    .map_err(|error| format!("{at}: {error}"))?
-                    .air;
-                let anchored =
-                    Ussa76::anchored(entry.elevation_m, pad.temperature_k, pad.pressure_pa)
-                        .map_err(|error| format!("{at}: {error}"))?;
-                let standard = Environment::new(earth, anchored, weather.wind.clone());
-                openrocket_air = Some(standard.clone());
-                let guided = |environment: Environment| {
-                    climbed_m(&guided_of(&design, chosen, environment, rail)?)
-                };
-                hpr_apogee(&design, chosen, day.clone(), rail)
-                    .and_then(|hpr_m| Ok((hpr_m, guided(day.clone())?, guided(standard)?)))
-                    .map_err(|error| {
-                        let cause = named_cause(&error, FLIGHT_FAILED);
-                        if cause == FLIGHT_FAILED {
-                            eprintln!("{at}: {FLIGHT_FAILED}: {error}");
-                        }
-                        cause
-                    })
+                let standard = openrocket_air(entry, &weather, earth)?;
+                standard_air = Some(standard.clone());
+                hpr_apogees(&design, chosen, &day, standard, rail).map_err(|error| {
+                    let cause = named_cause(&error, FLIGHT_FAILED);
+                    if cause == FLIGHT_FAILED {
+                        eprintln!("{at}: {FLIGHT_FAILED}: {error}");
+                    }
+                    cause
+                })
             }
         };
-        let openrocket = record
-            .get(at)
-            .ok_or_else(|| format!("{RECORD} has no flight {at}; run {ORACLE} again"))?;
-        let openrocket = match (
-            openrocket["refused"].as_str(),
-            openrocket["apogee_m"].as_f64(),
-        ) {
-            (Some(why), _) => Err(why.to_owned()),
-            (None, Some(apogee)) if apogee.is_finite() => Ok(apogee),
-            _ => {
-                return Err(format!(
-                    "{RECORD}: {at} has neither an apogee nor a refusal"
-                ));
-            }
-        };
+        let openrocket = openrocket_apogee(&record, at)?;
         let hpr_flew = hpr.is_ok();
         counts.flown_by_hpr += usize::from(hpr_flew);
         counts.flown_by_openrocket += usize::from(openrocket.is_ok());
@@ -1118,8 +1221,8 @@ fn fly_all(
                 crate::histories::ORACLE
             )
         })?;
-        let openrocket_air = openrocket_air
-            .ok_or_else(|| format!("{at}: HPR Sim flew it with no OpenRocket air"))?;
+        let openrocket_air =
+            standard_air.ok_or_else(|| format!("{at}: HPR Sim flew it with no OpenRocket air"))?;
         let build = |air: crate::gap_split::Air| {
             let environment = match air {
                 crate::gap_split::Air::Day => day.clone(),
@@ -1244,26 +1347,15 @@ fn fly_all(
         }
 
         // The logged apogee as a height climbed in the day's air.
-        let logged_m = match entry.logged_kind {
-            LoggedKind::Gps => {
-                logged.gps += 1;
-                entry.logged_apogee_m
-            }
-            kind => {
-                if kind == LoggedKind::Fused {
-                    logged.fused += 1;
-                } else {
-                    logged.barometric += 1;
-                }
-                let barometer = Barometer::on_pad(&weather.sounding, entry.elevation_m, 0.0)
-                    .map_err(|error| format!("{at}: {error}"))?;
-                let height = barometer
-                    .height_m(entry.logged_apogee_m)
-                    .map_err(|error| format!("{at}: {error}"))?;
-                ratios.push(height / entry.logged_apogee_m);
-                height
-            }
-        };
+        let logged_m = logged_height_m(entry, &weather)?;
+        match entry.logged_kind {
+            LoggedKind::Gps => logged.gps += 1,
+            LoggedKind::Fused => logged.fused += 1,
+            LoggedKind::Barometric => logged.barometric += 1,
+        }
+        if entry.logged_kind != LoggedKind::Gps {
+            ratios.push(logged_m / entry.logged_apogee_m);
+        }
         if let Some(band_at) = band_at {
             bands[band_at].logged_m = Some(logged_m);
         }

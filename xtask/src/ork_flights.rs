@@ -810,7 +810,18 @@ pub(crate) fn staged(
     simulation: Simulation,
     stagings: &[ork::Staging],
 ) -> Result<Simulation, SimError> {
-    let assembly = simulation.assembly();
+    let (devices, separations) = staged_parts(simulation.assembly(), stagings)?;
+    simulation
+        .with_recovery(devices)?
+        .with_separations(separations)
+}
+
+/// What [`staged`] adds to a flight of `assembly`: each part's tumbling device, then
+/// `stagings`' separations.
+pub(crate) fn staged_parts(
+    assembly: &hpr_design::Assembly,
+    stagings: &[ork::Staging],
+) -> Result<(Vec<Device>, Vec<hpr_sim::Separation>), SimError> {
     let separations = hpr::ork::separations(stagings, assembly)?;
     let stage_count = assembly.layout.stages.len();
     let stages = |body: usize| {
@@ -837,9 +848,7 @@ pub(crate) fn staged(
         };
         devices.push(Device::new(name, drag, Trigger::Time { time_s: 0.0 }).on_body(body));
     }
-    simulation
-        .with_recovery(devices)?
-        .with_separations(separations)
+    Ok((devices, separations))
 }
 
 /// The separations of `stagings` the climb flies: all of them, but for a lone separation with

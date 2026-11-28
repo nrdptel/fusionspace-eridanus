@@ -21,7 +21,7 @@ fn root() -> PathBuf {
 }
 
 /// The checks the `refs` step runs, each as the lane the step's line must name.
-const REFS_CHECKS: [&str; 19] = [
+const REFS_CHECKS: [&str; 20] = [
     "'$XTASK ork-flights --check'",
     "'$XTASK roll-drev --check'",
     "'$XTASK check-cases --check'",
@@ -34,6 +34,7 @@ const REFS_CHECKS: [&str; 19] = [
     "'$XTASK ghost --check'",
     "'$XTASK ork-cli --check'",
     "'$XTASK fixture-flights --check'",
+    "'cargo run --locked --quiet --package xtask --profile report-check -- apogee-ranges --check'",
     "'$XTASK ork-export-flights --check'",
     "'$XTASK logs --check'",
     "'$XTASK evidence --samples'",
