@@ -60,7 +60,10 @@ impl Rule {
 
 /// Whether flight `index` of the calibration set flies set B's model.
 fn set_b_model(index: u64) -> bool {
-    matches!(synthetic::draw(Set::Calibration, index).model, Model::Other { .. })
+    matches!(
+        synthetic::draw(Set::Calibration, index).model,
+        Model::Other { .. }
+    )
 }
 
 /// Counts `truth` against `interval` as the report does: a truth that isn't a number, or an
@@ -103,7 +106,11 @@ pub struct Tried {
 }
 
 /// The fits a parameter is counted on: on a log of height alone too, or only with a track.
-fn counted_on<'a>(asked: Asked, made: &'a [FlightFit], tracked: &'a [FlightFit]) -> &'a [FlightFit] {
+fn counted_on<'a>(
+    asked: Asked,
+    made: &'a [FlightFit],
+    tracked: &'a [FlightFit],
+) -> &'a [FlightFit] {
     if asked.stated_on_height_alone() {
         made
     } else {
@@ -207,7 +214,11 @@ pub fn failures(tried: &Tried) -> Vec<String> {
             }
             for (counts, probe) in cell.probes.iter().zip(Probe::ALL) {
                 if Test::of(*counts).passes() {
-                    out.push(format!("{half}, {}: probe {} passes", asked.name(), probe.name()));
+                    out.push(format!(
+                        "{half}, {}: probe {} passes",
+                        asked.name(),
+                        probe.name()
+                    ));
                 }
             }
         }
@@ -315,7 +326,11 @@ fn draw_counts(from: Counts, to: f64, rng: &mut hpr_core::random::SeededRng) -> 
     let share = |x: u64| (x as f64 + 0.5) / (n + 1.5);
     let (pb, pa) = (share(from.below), share(from.above));
     let inflate = to * (1.0 + to / n);
-    let (vb, va, cba) = (pb * (1.0 - pb) * inflate, pa * (1.0 - pa) * inflate, -pb * pa * inflate);
+    let (vb, va, cba) = (
+        pb * (1.0 - pb) * inflate,
+        pa * (1.0 - pa) * inflate,
+        -pb * pa * inflate,
+    );
     let l11 = vb.sqrt();
     let l21 = cba / l11;
     let l22 = (va - l21 * l21).max(0.0).sqrt();
@@ -351,7 +366,10 @@ pub fn pass_chance(tried: &Tried) -> (f64, Vec<(String, f64)>) {
                     inside: x,
                     above: x,
                 });
-                (test.below.holds(MISS_SHARE), test.inside.holds(INSIDE_SHARE))
+                (
+                    test.below.holds(MISS_SHARE),
+                    test.inside.holds(INSIDE_SHARE),
+                )
             })
         };
         holds(c.below).0 && holds(c.above).0 && holds(c.inside).1

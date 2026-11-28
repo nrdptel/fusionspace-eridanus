@@ -1932,7 +1932,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
         ["--halves", path] | ["--halves", path, "--misfit", _] => {
             let (made, tracked) = read_kept(Path::new(path))?;
             if made.len() != Set::Calibration.count() as usize
-                || made.iter().map(|f| f.index).ne(first(Set::Calibration.count()))
+                || made
+                    .iter()
+                    .map(|f| f.index)
+                    .ne(first(Set::Calibration.count()))
             {
                 return Err(format!(
                     "{path}: not the calibration set's kept fits (`fit --calibrate --fits`)"
