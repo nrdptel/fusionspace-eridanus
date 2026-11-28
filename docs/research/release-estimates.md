@@ -131,7 +131,9 @@ of its month.
   starts two days later. So 1.0's padded date moved one day, from March 31 to April 1, 2028, and
   the rounding carried its posted month into April. At the pace unrounded, 13.52 a week, the same
   arithmetic gives March 31.
-- **Some targets may not be met.** The fit's intervals (M7.3g) may not pass their test again.
+- **Some targets may not be met.** The fit's intervals (M7.3g) didn't pass their test again: M7.3g
+  ended with its gap recorded, and release 0.2 goes ahead without it
+  ([ADR-385](../decisions/0385-m7-3g2-a-second-rule-passes-every-row-and-fails-a-class.md)).
   Release 0.3 needs HPR Sim's mean apogee error on the held-out flights below OpenRocket's
   ([M10.3](../ROADMAP.md#phase-8-releases-adr-162)). On the private collection, HPR Sim's apogees miss by
   12.10% on average (mean absolute) and OpenRocket's by 11.26% ([the plan](../plan.md#how-feasible-each-goal-is)).

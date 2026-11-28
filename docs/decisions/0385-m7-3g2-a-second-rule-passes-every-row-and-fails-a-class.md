@@ -1,0 +1,129 @@
+# ADR-385: M7.3g2: a second rule passes every row and fails a class, so M7.3g ends (2026-11-27)
+
+- **Status:** accepted; meets [M7.3g2][m7-3g]; ends M7.3g under [ADR-384][adr-384] decision 5, with M7.3g3 left open and marked blocked; release 0.2 goes ahead with M7.3g ended, as [ADR-377][adr-377] left to this record, amending [M10.2][m10-2]'s *done when*; changes no share, band, count or flight; [ADR-368][adr-368]'s gap stands
+- **Summary:** The second rule M7.3g tried was chosen on the calibration set's fits alone: the least-squares shares fitted apart for the best-fitting 5% of fits, by the misfit's share of the heights' spread, and for the rest. Its counts on sets A and B were predicted on issue #1108 before the full fit counted them. With it, every least-squares row passes on both sets, set B's drag scale among them, at the edge of its band. But the worse class of set B's drag scale fails, with too many truths below it, on the side of ADR-368's gap. A rule fails when any row or class fails, so it isn't put in force, and M7.3g ends with M7.3g3 open. Release 0.2 goes ahead without it, the drag interval's caveat in place. The tool that chose the rule ships: `cargo xtask fit --halves`.
+
+[m7-3g]: ../decisions-and-roadmap.md#m7-3g
+[adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+[adr-368]: 0368-the-fits-drag-interval-fails-set-bs-test-on-the-default-flight-recorded.md
+[adr-377]: 0377-no-release-waits-on-users-and-release-0-2-comes-next.md
+[adr-384]: 0384-m7-3g-in-three-the-split-by-the-residual-measured.md
+[m10-2]: ../decisions-and-roadmap.md#m10-2
+[posted]: https://github.com/nrdptel/fusionspace-eridanus/issues/1108#issuecomment-7232299686
+[rule]: https://github.com/nrdptel/fusionspace-eridanus/commit/fce39fdf51b3d4f477c1941c8f1deff0d3bb9e5b
+[measured]: https://github.com/nrdptel/fusionspace-eridanus/tree/m7.3g2-misfit-measured
+[measured-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/425d4c803d47286017f512dd49cd598b5eff611a/validation/reports/fit-intervals.md
+
+**Context.** The least-squares fit states each parameter's 90% interval as its standard error
+times two shares, fitted on the calibration set ([ADR-257][adr-257] §1). On set B the drag scale's
+interval leaves 79 of 1,000 truths below it, where a tail passes with 29 to 74 (ADR-368's gap).
+M7.3g is to make every least-squares row pass. Its first rule, the split by the heights' RMS
+residual at 1 m, failed set B ([ADR-384][adr-384]). Decision 4 there has a second rule chosen on
+the calibration set alone, with its counts on sets A and B predicted in writing before the full
+fit counts them. Decision 5 says a rule fails when any least-squares row or class fails on set A
+or set B, and that a second failing rule ends M7.3g. This record reads "class" as the rule's own
+classes, the ones its shares are fitted on: here the misfit's two. The report's classes by the
+heights' RMS residual are still shown, but not held.
+
+**How the rule was chosen, on the calibration set alone.** `cargo xtask fit --calibrate --fits`
+kept the calibration set's fits (11 min on a 10-core Mac; its shares are ADR-384's to the last
+digit). `cargo xtask fit --halves` reads them and tries rules on them. The calibration set
+alternates set A's model (even flights) and set B's (odd). For each rule, `--halves` fits the
+shares on the whole set, at three figures as the library holds them. It counts them on each
+model's half as the report counts sets A and B: the drag, impulse and mass on the fits with
+something to fit (838 in set A's half, 800 in set B's), and the wind on the fits of flights with
+a track logger (536 and 461). A half's counts, scaled to the 1,000 or 1,500 fits a test set
+counts, are the rule's prediction for that set. No kept fits of set A or B were read.
+
+Counts alone can't choose. The shares in force pass on both halves, yet they failed on set B
+(79 below), where their half's count scales to 61. A half is a sample, and so is a set. So
+`--halves` also works out a *chance*. It draws 20,000 test sets' counts about each half's, the
+counts below and above jointly normal, with the multinomial's covariance times
+`1 + n_set/n_half`: the set's own sampling and the half's error together. The chance is the share
+of draws in which every row and class passes ADR-257 §1's test and every probe fails, multiplied
+over the parameters and both sets as if they were apart. The candidates were the split by the
+misfit's share at each 5% of its fits:
+
+| rule | chance both sets pass | measured on sets A and B |
+|---|---|---|
+| the shares in force | 0.042 | fails (set B's drag scale) |
+| the split by the residual at 1 m | 0.002 | fails (two rows, two classes) |
+| the split by the misfit's share at its 5% point, 0.000634 | 0.022 | below |
+| the split at its 90% point, 0.00338 | 0.012 | |
+| the split at any other 5% step from 10% to 85% | 0.001 to 0.007 | |
+| the split at its 95% point | 0.000 | |
+
+The split at the 5% point has the highest chance and was chosen. Two findings come from the
+calibration set alone. First, the misfit's share hardly separates the models. At its median, 56%
+of set A's half and 55% of set B's fall under it, so its classes can't fit set B's errors apart
+from set A's. Second, no rule tried has a chance above 0.05, the shares in force included. Nine of
+their 10 rows pass with a chance under 0.9, the least 0.57 (set B's wind toward the east), so all
+10 passing together is unlikely.
+
+**The prediction.** The rule was put in force, with set B's drag scale off `KNOWN_GAPS` so that
+every cell is held, at commit [fce39fdf][rule]. Its counts were [posted on #1108][posted] before
+the full fit ran. The prediction was that the rule fails, with a chance of 0.022 that it passes
+everything. Taken as they stood, the predicted counts failed in one cell, set A's wind toward
+the north in the better class.
+
+**What was measured.** The full `cargo xtask fit` at fce39fdf ran for 2 h 17 min on a 10-core
+Mac and wrote the report at commit 425d4c80 of the branch [`m7.3g2-misfit-measured`][measured]
+([its report][measured-report]). Its least-squares counts, below / inside / above, against the
+prediction:
+
+| set, parameter | row, predicted | row, measured | better class, predicted | better class, measured | worse class, predicted | worse class, measured |
+|---|---|---|---|---|---|---|
+| A, drag scale | 32 / 913 / 55 | 32 / 907 / 61 | 0 / 77 / 4 | 2 / 89 / 4 | 32 / 836 / 51 | 30 / 818 / 57 |
+| A, impulse scale | 36 / 919 / 45 | 34 / 913 / 53 | 2 / 79 / 0 | 0 / 91 / 4 | 33 / 841 / 45 | 34 / 822 / 49 |
+| A, wind east | 62 / 1374 / 64 | 82 / 1345 / 70 | 3 / 84 / 0 | 2 / 70 / 2 | 59 / 1290 / 64 | 80 / 1275 / 68 |
+| A, wind north | 64 / 1372 / 64 | 58 / 1380 / 59 | 0 / 87 / 0 | 1 / 72 / 1 | 64 / 1285 / 64 | 57 / 1308 / 58 |
+| A, mass | 44 / 907 / 49 | 39 / 910 / 51 | 4 / 75 / 2 | 1 / 89 / 5 | 41 / 831 / 47 | 38 / 821 / 46 |
+| B, drag scale | 59 / 902 / 39 | 74 / 895 / 31 | 3 / 28 / 0 | 1 / 24 / 2 | 56 / 874 / 39 | **73 / 871 / 29** |
+| B, impulse scale | 56 / 896 / 48 | 51 / 912 / 37 | 0 / 28 / 3 | 0 / 26 / 1 | 56 / 868 / 45 | 51 / 886 / 36 |
+| B, wind east | 85 / 1334 / 81 | 74 / 1350 / 73 | 0 / 20 / 0 | 1 / 10 / 0 | 85 / 1314 / 81 | 73 / 1340 / 73 |
+| B, wind north | 78 / 1344 / 78 | 66 / 1370 / 61 | 0 / 20 / 0 | 0 / 11 / 0 | 78 / 1324 / 78 | 66 / 1359 / 61 |
+| B, mass | 43 / 908 / 49 | 43 / 900 / 57 | 0 / 31 / 0 | 0 / 26 / 1 | 43 / 877 / 49 | 43 / 874 / 56 |
+
+The predicted wind rows are of 1,500 fits; the sets count 1,497. The run's check named one count
+as failing ADR-257 §1's test, the bold one: set B's drag scale in the worse class, with 73 truths
+below of 973. That is too many: the 99.9% band on 73 of 973 runs from 5.01% to 10.7%, and must hold
+5%. It is the side of ADR-368's gap, where the drag reads high. Every row passes on both sets, and
+every probe fails. Set B's drag scale passes as a row at the edge of its band, with 74 below of
+1,000 (its band runs from 4.95%). No rule had passed every row before. The
+prediction was right that the rule fails, but wrong about where: the cell it named passes, and
+the cell that failed had a chance of 0.72 to pass.
+
+**Decisions.**
+
+1. **The rule isn't put in force.** A class fails, so by ADR-384 decision 5 the rule fails. The
+   shares in force, the committed report and ADR-368's caveat stay as they are.
+2. **M7.3g ends.** The second rule failed, so by decision 5, M7.3g ends: M7.3g2 is met, M7.3g3
+   stays open, marked blocked, and M7.3g leaves the queue. M2.8 is next. A third rule, or a
+   change to the test that M7.3g3 holds a rule to, needs a new record. The gap stays recorded under
+   ADR-368, and the fit's page says what was tried.
+3. **Release 0.2 goes ahead with M7.3g ended.** ADR-377 said that if M7.3g's fix couldn't pass
+   its test, release 0.2 would wait on this decision, not on users. It doesn't wait for a third
+   rule. Every surface that states the fit's drag interval already carries ADR-368's caveat, and
+   the report keeps the gap visible. M10.2's *done when* now reads "M7.3g (met, or ended with its
+   gap recorded: ADR-385)".
+4. **The tool ships.** `cargo xtask fit --halves <file>` tries rules on the calibration set's kept
+   fits. It prints what fails and the chance for the shares in force, the split by the residual
+   and the splits by the misfit's share at each 5% of its fits; `--misfit <share>` prints one
+   split in full. It reads no test set's fits and changes no report. `fit --fits` now checks
+   that it can write its file before it fits, and refuses a set with fewer than the 1,000 fits
+   the report counts.
+
+**What this does not decide.** Whether M7.3g3's test, every row and every class on both sets
+together, is the right bar for any rule. By `--halves`' chance, even the shares in force pass it
+about 4 times in 100. A *done when* isn't loosened to get green, so the bar stands. Whether it should change is a question for the next review of the
+goals, with these numbers. Nor does it decide whether set B's model is the right test of a fit's
+intervals: ADR-257 and ADR-368 hold it.
+
+**Consequences.**
+
+- Nothing a user sees changes: `hpr fit` and `FlightLog.fit` state the same intervals with the
+  same caveat.
+- The measured report stays on the branch `m7.3g2-misfit-measured` at 425d4c80, beside ADR-384's
+  `m7.3g-split-measured`. Running `cargo run --profile report-check -p xtask -- fit` there writes
+  it again, then fails its check on the one count.
+- `xtask/src/fit/halves.rs`: `--halves` and its chance (M7.3g2).
