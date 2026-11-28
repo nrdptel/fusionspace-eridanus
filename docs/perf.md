@@ -197,6 +197,39 @@ the command, so a later run can be compared like for like.
   byte (`cargo xtask validate --check`, `examples --check` and the `refs` checks). The tests pass
   at either level.
 
+## The flight crates optimized in test builds (#1658)
+
+- **What this is.** The simulator, design, motor and atmosphere crates (`fusionspace-hpr-sim`,
+  `-design`, `-motor`, `-atmos`) and the library crate `fusionspace-hpr` are built at
+  `opt-level = 1` in the test profile, which `cargo test` and `cargo nextest` use, but not in the
+  dev profile that `cargo xtask` writes the reports with. A test that fits a flight flies it many
+  times (about 180 with a track and the wind scan), and these crates run slowly unoptimized (one
+  such test took 128 s, against 38 s at opt-level 1; below). On CI, `test (windows-latest, 2/3)` ran 1,023 to 1,160 s on main's runs at
+  50af2af6, 8f2074a4 and 2b685c71, over the 17 minutes (1,020 s) that
+  [issue #1658](https://github.com/nrdptel/fusionspace-eridanus/issues/1658), CI's slowest jobs,
+  asks of a job (the budget check allows 20). One CLI test, which fits eight tracked flights, took
+  362 s of it at 50af2af6.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main eabf3561, one run each, so no spread:
+  the whole workspace's run, 4,598 tests (`cargo nextest run --workspace --all-features
+  --locked`, nextest's own time, the build apart), 264 s → 148 s; that CLI test
+  (`fit_finds_the_wind_a_track_was_flown_in_from_calm_air`) 128 s → 38 s. Rebuilding every
+  workspace crate's tests with the dependencies built (`cargo build --workspace --all-features
+  --locked --tests --profile test` after touching every source file, CI's environment) took 70 s
+  unoptimized and 80 s at opt-level 1. At opt-level 3 the test took 26 s but the rebuild took 91 s,
+  and on CI (run 46156953780) windows-latest's test builds took 9 min 54 s to 13 min 37 s, against
+  5 min 9 s to 9 min 3 s on main's four runs to 2243398f, which cost more than the tests saved.
+- **What moves.** No committed report or example output: the dev profile writes them and is
+  unchanged. Every test passes at opt-level 1 as it does unoptimized. `fusionspace-hpr-core` is
+  left out: built at opt-level 3 over this setting (`cargo nextest run --workspace --all-features
+  --locked --config 'profile.test.package.fusionspace-hpr-core.opt-level=3'`), 4,595 of the 4,598
+  tests passed, and three failed because the values they compute moved in the last digits against
+  committed files: `geodtest::the_whole_test_set_where_fetched` (the geodesic table),
+  `aero::tests::fixture_matches_the_curves_when_the_checkout_is_present` (the aerodynamic fixture)
+  and the CLI's `fit_says_the_second_answer_it_leaves_past_the_wind_scans_reach` (a fit's example
+  quoted in its guide). Should a test ever fail only because an optimized crate
+  moves a last digit, take that crate out of the list; never loosen the check or write its file
+  from the test build.
+
 ## The analysis crate optimized in test builds (#397)
 
 - **What this is.** `fusionspace-hpr-analysis` (Monte Carlo statistics, the optimizers) is built

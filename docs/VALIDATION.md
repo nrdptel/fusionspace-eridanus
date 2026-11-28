@@ -560,7 +560,7 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 
 | Where | Command | What it holds |
 |---|---|---|
-| A pull request, on all five platforms | `fit --slice --other-platform --part K/N`, part K of N: N is 3 on Linux, Linux on ARM and Windows on ARM, and 6 on macos-latest and windows-latest | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ), the Bayesian option's posterior among them; the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
+| A pull request, on all five platforms | `fit --slice --other-platform --part K/N`, part K of N: N is 5 on Linux, 3 on Linux on ARM, 4 on Windows on ARM, 6 on macos-latest and 10 on windows-latest | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ), the Bayesian option's posterior among them; the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
 | The gate, before each merge | `fit --slice` | The same, each line byte for byte |
 | Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
