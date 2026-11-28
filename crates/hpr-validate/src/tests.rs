@@ -5569,6 +5569,10 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // MAPLEAF's whole flights of three public designs (M1.14b8): an independent code's own
         // top Mach number a flight, read below with RocketPy's and OpenRocket's.
         "mapleaf-flights.json",
+        // How often a Monte Carlo run's apogee ranges hold the private collection's logs
+        // (M2.8a): counts of flights and shares of apogees over sets of the flights
+        // `fixture-flights.json` already holds: no Mach number in it.
+        "apogee-ranges.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")
