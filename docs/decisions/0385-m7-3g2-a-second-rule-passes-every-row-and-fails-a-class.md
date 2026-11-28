@@ -53,10 +53,11 @@ parameters and both sets.
 The chance ranks rules; it doesn't say how often a rule would pass. The halves are small, so it
 is low even for a perfect rule. For halves exactly at 5% / 90% / 5%, it gives each drag, impulse
 or mass row about 0.93 and each wind row 0.76 to 0.80, so about 0.25 for the 10 rows together,
-before any class or probe. It also draws each probe apart from its own row, and the parameters
-apart, though one flight's errors in them are tied; both pull it lower still. A rule whose
-intervals hold exactly 90% would pass each row of 1,000 fits 0.9977 of the time and each of
-1,497 0.9976, so all 10 together 0.977 (the multinomial worked exactly). The candidates were the
+before any class or probe, which can only lower it. The chance also draws each probe apart from
+its own row, and the parameters apart, though one flight's errors in them are tied; what that does
+to it isn't measured. A rule whose intervals hold exactly 90% would pass each row of 1,000 fits
+0.9977 of the time and each of 1,497 0.9976, so all 10 together 0.977 (the multinomial worked
+exactly). A test of `fit --halves` pins these figures. The candidates were the
 split by the misfit's share at each 5% of its fits:
 
 | rule | chance both sets pass | measured on sets A and B |
@@ -106,8 +107,8 @@ prediction:
 
 The predicted wind rows are of 1,500 fits; the sets count 1,497. The run's check named one count
 as failing ADR-257 §1's test, the bold one: set B's drag scale in the worse class, with 73 truths
-below of 973. That is too many: the 99.9% band on 73 of 973 runs from 5.01% to 10.7%, and must hold
-5%. It is the side of ADR-368's gap, where the drag reads high. Every row passes on both sets, and
+below of 973. That is too many: the 99.9% band on 73 of 973 runs from 5.01% to 10.7%, so it
+leaves out the 5% a 90% interval needs. It is the side of ADR-368's gap, where the drag reads high. Every row passes on both sets, and
 every probe fails. Set B's drag scale passes as a row at the edge of its band, with 74 below of
 1,000 (its band runs from 4.95%), and the class fails by one truth: 72 of 973 would pass. None of
 the rules M7.3g tried before passed every row: the shares in force fail set B's drag scale, and
@@ -126,10 +127,10 @@ chance of 0.72 to pass (`fit --halves --misfit 0.000634`).
 3. **Release 0.2 goes ahead with M7.3g ended.** ADR-377 said that if M7.3g's fix couldn't pass
    its test, release 0.2 would wait on this decision, not on users. It doesn't wait for a third
    rule. The gap errs on the side that flatters: a drag scale that reads high makes a flight
-   predicted with it come out low, the error a waiver's ceiling is most hurt by (ADR-368). That is
-   why it is a recorded gap with a caveat, not a number left unsaid. ADR-368 and ADR-381 already
-   shipped the fit with this interval and its caveat, and every surface that states the drag
-   interval carries it. This decision adds no surface, and the report keeps the gap visible.
+   predicted with it come out low, the wrong side for a waiver's ceiling (ADR-368). That is why
+   it is a recorded gap with a caveat, not a number left unsaid. ADR-381 put the fit on main with
+   this interval and ADR-368's caveat, and every surface that states the drag interval carries
+   it. This decision adds no surface, and the report keeps the gap visible.
    M10.2's *done when* now reads "M7.3g (met, or ended with its gap recorded: ADR-385)". That
    clause can no longer fail on M7.3g.
 4. **The tool ships.** `cargo xtask fit --halves <file>` tries rules on the calibration set's kept

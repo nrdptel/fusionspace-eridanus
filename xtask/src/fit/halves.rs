@@ -577,12 +577,133 @@ mod tests {
             }
         }
         let failing = failures(&tried);
-        assert!(
-            !failing.iter().any(|f| f.contains("drag scale")),
-            "{failing:?}"
-        );
+        for asked in [Asked::DragScale, Asked::ImpulseScale, Asked::MassScale] {
+            assert!(
+                !failing.iter().any(|f| f.contains(asked.name())),
+                "{failing:?}"
+            );
+        }
         // The wind has no fit with a track to be counted on.
         assert!(failing.contains(&"A, wind toward the east, m/s: the row".to_owned()));
+    }
+
+    /// A fit whose interval can't be stated, here in a class of fewer than 20 fits and so with no
+    /// shares, misses on both sides of its row and class, as the report counts it, and no probe
+    /// counts it, as the report's probes don't.
+    #[test]
+    fn a_fit_with_no_interval_misses_in_its_row_and_not_in_its_probes() {
+        let made = made_up(200);
+        // The flights under 0.05 are the first 10, 5 in each half.
+        let tried = tried(Rule::MisfitShare(0.05), &made, &[]);
+        let (_, by_track) = &tried.shares[0];
+        assert!(by_track[0][0].is_none() && by_track[0][1].is_some());
+        let (_, halves) = &tried.cells[0];
+        for half in halves {
+            let none = half.classes[0];
+            assert_eq!(
+                (none.given, none.below, none.inside, none.above),
+                (5, 5, 0, 5)
+            );
+            assert_eq!(half.row.given, 100);
+            for probe in half.probes {
+                assert_eq!(probe.given, 95);
+            }
+        }
+    }
+
+    /// A test set's chance of passing a row exactly: each row of `n` fits drawn from intervals
+    /// that hold exactly 5% / 90% / 5%, summed over the counts ADR-257 §1's test passes.
+    fn exact_row_chance(n: u64) -> f64 {
+        let ln_factorial: Vec<f64> = std::iter::once(0.0)
+            .chain((1..=n).scan(0.0, |sum, k| {
+                *sum += (k as f64).ln();
+                Some(*sum)
+            }))
+            .collect();
+        let binomial = |k: u64, of: u64, p: f64| -> f64 {
+            (ln_factorial[of as usize] - ln_factorial[k as usize] - ln_factorial[(of - k) as usize]
+                + k as f64 * p.ln()
+                + (of - k) as f64 * (1.0 - p).ln())
+            .exp()
+        };
+        let verdict = |x: u64| {
+            let test = Test::of(Counts {
+                given: n,
+                below: x,
+                inside: x,
+                above: x,
+            });
+            (
+                test.below.holds(MISS_SHARE),
+                test.inside.holds(INSIDE_SHARE),
+            )
+        };
+        let tails: Vec<u64> = (0..=n / 5).filter(|&x| verdict(x).0).collect();
+        let mut chance = 0.0;
+        for &below in &tails {
+            for &above in tails.iter().filter(|&&a| a <= n - below) {
+                if verdict(n - below - above).1 {
+                    chance += binomial(below, n, MISS_SHARE)
+                        * binomial(above, n - below, MISS_SHARE / (1.0 - MISS_SHARE));
+                }
+            }
+        }
+        chance
+    }
+
+    /// What ADR-385 says of the chance: for halves exactly at 5% / 90% / 5% of the calibration
+    /// set's sizes, about 0.93 a row of the drag, impulse or mass, 0.76 to 0.80 a row of the wind
+    /// and about 0.25 for the 10 rows; and exactly, intervals that hold 90% pass a row of 1,000
+    /// fits 0.9977 of the time, one of 1,497 0.9976, all 10 together 0.977.
+    #[test]
+    fn the_chance_tops_out_near_a_quarter_where_the_test_passes_a_true_rule() {
+        let centered = |given: u64| {
+            let tail = (given as f64 * MISS_SHARE).round() as u64;
+            let counts = Counts {
+                given,
+                below: tail,
+                inside: given - 2 * tail,
+                above: tail,
+            };
+            let off = Counts {
+                given,
+                below: given * 3 / 10,
+                inside: given - given * 6 / 10,
+                above: given * 3 / 10,
+            };
+            Cell {
+                row: counts,
+                classes: vec![counts],
+                probes: [off; 3],
+            }
+        };
+        let cells = ASKED
+            .into_iter()
+            .map(|asked| {
+                let (a, b) = if asked.stated_on_height_alone() {
+                    (838, 800)
+                } else {
+                    (536, 461)
+                };
+                (asked, [centered(a), centered(b)])
+            })
+            .collect();
+        let (whole, each) = pass_chance(&Tried {
+            rule: Rule::InForce,
+            shares: Vec::new(),
+            cells,
+        });
+        for (name, chance) in &each {
+            let wind = name.contains("wind");
+            let (low, high) = if wind { (0.74, 0.82) } else { (0.92, 0.95) };
+            assert!((low..=high).contains(chance), "{name} {chance}");
+        }
+        assert!((0.22..=0.27).contains(&whole), "{whole}");
+        let (thousand, wind) = (exact_row_chance(1_000), exact_row_chance(1_497));
+        assert!((thousand - 0.9977).abs() < 0.000_05, "{thousand}");
+        assert!((wind - 0.9976).abs() < 0.000_05, "{wind}");
+        let all = thousand.powi(6) * wind.powi(4);
+        assert!((all - 0.977).abs() < 0.000_5, "{all}");
     }
 
     /// The misfit's points are taken over the fits with something to fit, each flight once,

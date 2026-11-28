@@ -72,9 +72,9 @@ pub const USAGE: &str =
                            Read the calibration set's kept fits (--calibrate --fits) and try
                            rules for the shares on them alone (ADR-384 decision 4): fit each
                            rule's shares on the whole set and count them on its two halves, set
-                           A's model's and set B's, as the report counts sets A and B, with the
-                           chance that a rule passes on sets of their size. Prints what fails
-                           and the chance for the shares in force, the split by the residual and
+                           A's model's and set B's, as the report counts sets A and B, with a
+                           chance that ranks the rules. Prints what fails and the chance for the
+                           shares in force, the split by the residual and
                            splits by the misfit's share at each 5% of its fits, then the first
                            two in full; with --misfit, the split at <share> in full. Fits
                            nothing, writes nothing.
