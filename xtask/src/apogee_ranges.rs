@@ -2,17 +2,28 @@
 //! logged apogees ([M2.8a][m2-8a]; [the decision][adr-386]).
 //!
 //! `cargo xtask fixture-flights` flies each flight it compares with its log once
-//! ([`crate::fixture_flights`]). This flies each of them [`SAMPLES`] times more, as the run
-//! `hpr mc` flies, on the spreads a design file is known by
+//! ([`crate::fixture_flights`]). `cargo xtask apogee-ranges` flies each of them [`SAMPLES`] times
+//! more, as the run `hpr mc` flies, on the spreads a design file is known by
 //! (`hpr_validate::apogee_ranges::SPREADS`), and counts how often the run's ranges hold the
 //! logged apogee, over every flight compared and over each half
 //! (`hpr_validate::apogee_ranges::Coverage`). The report holds counts and medians over sets of
 //! flights, nothing of one flight: the collection's license allows only aggregates (ADR-151).
 //!
-//! A flight's nominal inputs are the ones the collection's report flew: the design as read, in
+//! A flight's nominal inputs are the ones the collection's report flies: the design as read, in
 //! the day's ERA5 air, from its rail, with the separations the climb flies and nothing deployed
-//! ([`inputs_of`]). Before a run its nominal flight is flown again from those inputs and held to
-//! the report's apogee, so the run is of the flight the errors are of.
+//! ([`inputs_of`]). Two checks keep the runs on the flights the collection's errors are of.
+//! Before a run its nominal flight is flown again from the run's inputs and held to the apogee
+//! the collection's code gives it. And before any run, the nominal flights' errors against the
+//! logs are held to the collection report's committed ones, set by set ([`hold_to_collection`]).
+//!
+//! **The build.** The report is written and checked on the `report-check` profile
+//! (`cargo run --package xtask --profile report-check -- apogee-ranges`): every crate optimized,
+//! the dev profile's assertions and overflow checks still on. Its 60,000 flights take about 15
+//! minutes on the dev profile, where the simulator isn't optimized. The dev profile reproduces
+//! the committed report too (`cargo xtask apogee-ranges --check`), but the two profiles' numbers
+//! aren't the same to the last bit (the hash of the collection's flight conditions differs
+//! between them), so a log at a range's very edge could be placed differently: write and check
+//! on the same one.
 //!
 //! [m2-8a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-8a
 //! [adr-386]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md
@@ -37,6 +48,15 @@ use crate::fixture_flights::{
     CALIBRATION_HALF, CATALOG_TIER_A, CatalogTier, EVERY_FLIGHT, Entry, ForwardFlight,
     HELD_OUT_HALF, WITHOUT_EARLY,
 };
+
+pub const USAGE: &str =
+    "  apogee-ranges [--check]  Fly each flight of the private collection that is compared with
+                           its log 1,000 times more, its inputs scattered as `hpr mc` scatters
+                           them, and count how often the run's 50% and 90% apogee ranges hold
+                           the logged apogee (M2.8a); needs what fixture-flights needs. Run it
+                           on the report-check profile. Writes
+                           validation/reports/apogee-ranges.{md,json}, aggregates only; --check
+                           writes nothing and fails unless they reproduce.";
 
 /// The report, as data.
 pub const REPORT_JSON: &str = "validation/reports/apogee-ranges.json";
@@ -92,12 +112,79 @@ pub struct Report {
     pub runs_failed: BTreeMap<String, usize>,
 }
 
-/// One compared flight's run, with what sorts it into the sets.
-struct Flown {
+/// What sorts a compared flight into the sets.
+#[derive(Debug, Clone, Copy)]
+struct Sorted {
     held_out: bool,
     early: bool,
     below_tier_a: bool,
+}
+
+/// Whether a flight, by how it is sorted, is in a set.
+type InSet = fn(&Sorted) -> bool;
+
+/// The collection report's five sets, each with the flights it keeps.
+const SETS: [(&str, InSet); 5] = [
+    (EVERY_FLIGHT, |_| true),
+    (WITHOUT_EARLY, |flight| !flight.early),
+    (CATALOG_TIER_A, |flight| !flight.below_tier_a),
+    (CALIBRATION_HALF, |flight| !flight.held_out),
+    (HELD_OUT_HALF, |flight| flight.held_out),
+];
+
+/// One compared flight's run, with what sorts it into the sets.
+struct Flown {
+    sorted: Sorted,
     ranges: Result<FlightRanges, String>,
+}
+
+/// How far a mean, a median, a mean absolute or an RMS error of the nominal flights may stand
+/// from the collection report's, in points: the report rounds each to 0.01, and an apogee moves
+/// in its ninth digit between build profiles, so a figure on a rounding edge can land either
+/// side of it.
+const ERRORS_WITHIN_POINTS: f64 = 0.011;
+
+/// Holds the runs' nominal flights to the collection report's committed errors: for each of its
+/// five sets, the same number of flights, the same histogram and counts within 5% and 10%, and
+/// the same mean, median, mean absolute and RMS error to the report's rounding. A flight flown
+/// here that the report doesn't compare, or flown differently, moves one of them.
+fn hold_to_collection(root: &Path, flights: &[(Sorted, &ForwardFlight)]) -> Result<(), String> {
+    let path = crate::fixture_flights::REPORT_JSON;
+    let text =
+        fs::read_to_string(root.join(path)).map_err(|error| format!("reading {path}: {error}"))?;
+    let collection: crate::fixture_flights::Report =
+        serde_json::from_str(&text).map_err(|error| format!("reading {path}: {error}"))?;
+    for (name, keep) in SETS {
+        let committed = collection
+            .sets
+            .iter()
+            .find(|set| set.name == name)
+            .ok_or_else(|| format!("{path} has no set `{name}`"))?;
+        let ours = crate::fixture_flights::Stats::of(
+            flights
+                .iter()
+                .filter(|(sorted, _)| keep(sorted))
+                .map(|(_, flight)| crate::fixture_flights::percent(flight.hpr_m, flight.logged_m)),
+        );
+        let theirs = &committed.hpr;
+        let near = |a: f64, b: f64| (a - b).abs() <= ERRORS_WITHIN_POINTS;
+        if ours.n != committed.flights
+            || ours.n != theirs.n
+            || ours.histogram != theirs.histogram
+            || ours.within_5_percent != theirs.within_5_percent
+            || ours.within_10_percent != theirs.within_10_percent
+            || !near(ours.mean_percent, theirs.mean_percent)
+            || !near(ours.median_percent, theirs.median_percent)
+            || !near(ours.mean_absolute_percent, theirs.mean_absolute_percent)
+            || !near(ours.rms_percent, theirs.rms_percent)
+        {
+            return Err(format!(
+                "the runs' nominal flights aren't the ones {path} compares: over {name}, \
+                 {ours:?} here against {theirs:?} there"
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// The inputs of `flight` as the collection's report flew it ([`crate::fixture_flights`]'s
@@ -150,42 +237,57 @@ fn fly_one(id: &str, flight: &ForwardFlight) -> Result<Result<FlightRanges, Stri
     )
 }
 
-/// Flies every compared flight's run, the flights side by side.
-fn fly_all(
+/// Each compared flight with what sorts it into the sets, in the order of the ids.
+fn sorted<'a>(
     entries: &[Entry],
-    forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
-) -> Result<Vec<Flown>, String> {
+    forward: &'a BTreeMap<String, ForwardFlight>,
+) -> Vec<(&'a String, Sorted, &'a ForwardFlight)> {
     let tiers: BTreeMap<&str, CatalogTier> = entries
         .iter()
         .map(|entry| (entry.flight_id.as_str(), entry.catalog_tier))
         .collect();
-    let flights: Vec<(&String, &ForwardFlight)> = forward
+    forward
         .iter()
-        .filter_map(|(id, flight)| flight.as_ref().ok().map(|flight| (id, flight)))
-        .collect();
+        .map(|(id, flight)| {
+            let sorted = Sorted {
+                held_out: crate::collection_boost::held_out(id),
+                early: flight.early,
+                below_tier_a: tiers
+                    .get(id.as_str())
+                    .is_none_or(|tier| *tier != CatalogTier::A),
+            };
+            (id, sorted, flight)
+        })
+        .collect()
+}
+
+/// A run's ranges, or why the run couldn't be set up; an outer error stops the report.
+type Run = Result<Result<FlightRanges, String>, String>;
+
+/// Flies every compared flight's run, the flights side by side.
+fn fly_all(flights: &[(&String, Sorted, &ForwardFlight)]) -> Result<Vec<Flown>, String> {
     let threads = std::thread::available_parallelism().map_or(4, usize::from);
     let next = AtomicUsize::new(0);
-    let mut flown: Vec<(usize, Result<Result<FlightRanges, String>, String>)> =
-        std::thread::scope(|scope| {
-            let workers: Vec<_> = (0..threads.min(flights.len().max(1)))
-                .map(|_| {
-                    scope.spawn(|| {
-                        let mut done = Vec::new();
-                        loop {
-                            let index = next.fetch_add(1, Ordering::Relaxed);
-                            let Some((id, flight)) = flights.get(index) else {
-                                return done;
-                            };
-                            done.push((index, fly_one(id, flight)));
-                        }
-                    })
+    let mut flown: Vec<(usize, Run)> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..threads.min(flights.len().max(1)))
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut done = Vec::new();
+                    loop {
+                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        let Some((id, _, flight)) = flights.get(index) else {
+                            return done;
+                        };
+                        done.push((index, fly_one(id, flight)));
+                    }
                 })
-                .collect();
-            workers
-                .into_iter()
-                .flat_map(|worker| worker.join().unwrap_or_default())
-                .collect()
-        });
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|worker| worker.join().unwrap_or_default())
+            .collect()
+    });
     if flown.len() != flights.len() {
         return Err("a thread flying the runs panicked".to_owned());
     }
@@ -193,7 +295,7 @@ fn fly_all(
     flown
         .into_iter()
         .map(|(index, ranges)| {
-            let (id, flight) = flights[index];
+            let (id, sorted, _) = flights[index];
             let ranges = ranges?;
             match &ranges {
                 Ok(run) => println!(
@@ -207,14 +309,7 @@ fn fly_all(
                 ),
                 Err(why) => println!("apogee-ranges: {id:<48} no run: {why}"),
             }
-            Ok(Flown {
-                held_out: crate::collection_boost::held_out(id),
-                early: flight.early,
-                below_tier_a: tiers
-                    .get(id.as_str())
-                    .is_none_or(|tier| *tier != CatalogTier::A),
-                ranges,
-            })
+            Ok(Flown { sorted, ranges })
         })
         .collect()
 }
@@ -232,12 +327,12 @@ fn place_word(place: Place) -> &'static str {
 impl Report {
     /// The report of `flown`, the compared flights' runs.
     fn of(flown: &[Flown]) -> Self {
-        let set = |name: &str, keep: &dyn Fn(&Flown) -> bool| Set {
+        let set = |(name, keep): (&str, fn(&Sorted) -> bool)| Set {
             name: name.to_owned(),
             coverage: Coverage::of(
                 &flown
                     .iter()
-                    .filter(|flight| keep(flight))
+                    .filter(|flight| keep(&flight.sorted))
                     .map(|flight| flight.ranges.as_ref().ok().copied())
                     .collect::<Vec<_>>(),
             ),
@@ -256,13 +351,7 @@ impl Report {
             seed_label: SEED_LABEL.to_owned(),
             bounds_confidence: BOUNDS_CONFIDENCE,
             spreads: spreads(),
-            sets: vec![
-                set(EVERY_FLIGHT, &|_| true),
-                set(WITHOUT_EARLY, &|flight| !flight.early),
-                set(CATALOG_TIER_A, &|flight| !flight.below_tier_a),
-                set(CALIBRATION_HALF, &|flight| !flight.held_out),
-                set(HELD_OUT_HALF, &|flight| flight.held_out),
-            ],
+            sets: SETS.into_iter().map(set).collect(),
             runs_failed,
         }
     }
@@ -288,19 +377,12 @@ impl Report {
         {
             return fail("the run's settings or spreads aren't the code's".to_owned());
         }
-        let names = [
-            EVERY_FLIGHT,
-            WITHOUT_EARLY,
-            CATALOG_TIER_A,
-            CALIBRATION_HALF,
-            HELD_OUT_HALF,
-        ];
-        if self.sets.len() != names.len()
+        if self.sets.len() != SETS.len()
             || self
                 .sets
                 .iter()
-                .zip(names)
-                .any(|(set, name)| set.name != name)
+                .zip(SETS)
+                .any(|(set, (name, _))| set.name != name)
         {
             return fail("the sets aren't the collection report's five, in its order".to_owned());
         }
@@ -328,7 +410,7 @@ impl Report {
         {
             return fail("the two halves don't add up to every flight compared".to_owned());
         }
-        for index in 0..LEVELS.len() {
+        for (index, level) in LEVELS.iter().enumerate() {
             let (all, a, b) = (
                 &every.levels[index],
                 &calibration.levels[index],
@@ -340,8 +422,7 @@ impl Report {
                 || a.no_range + b.no_range != all.no_range
             {
                 return fail(format!(
-                    "the two halves' counts at {} don't add up to every flight's",
-                    LEVELS[index]
+                    "the two halves' counts at {level} don't add up to every flight's"
                 ));
             }
             for part in [&without_early.coverage, &tier_a.coverage] {
@@ -383,7 +464,7 @@ impl Report {
         let _ = writeln!(page, "# How often the apogee ranges hold the logs\n");
         let _ = writeln!(
             page,
-            "Written by `cargo xtask fixture-flights`; do not edit ({}, decision record \
+            "Written by `cargo xtask apogee-ranges`; do not edit ({}, decision record \
              [{}](../../docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). \
              A Monte Carlo run flies a design many times with its inputs scattered, and gives a \
              range of apogees. A 90% range says that nine real flights in ten end inside it. \
@@ -446,7 +527,7 @@ impl Report {
             "\nLeft at the values flown, each of which would widen a range: the wind and the \
              air, the center of mass, and the altimeter's own scatter. The \
              [decision record](../../docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md) \
-             sizes them.\n"
+             says what is known of each one's size.\n"
         );
         for (index, level) in LEVELS.into_iter().enumerate() {
             let _ = writeln!(page, "## The {:.0}% range\n", 100.0 * level);
@@ -590,15 +671,41 @@ fn trimmed(percent: f64) -> String {
     text.trim_end_matches('0').trim_end_matches('.').to_owned()
 }
 
+/// Flies the collection's compared flights, then their runs, and writes or checks the report.
+pub fn run(args: &[String]) -> Result<(), String> {
+    let mut check = false;
+    for arg in args {
+        match arg.as_str() {
+            "--check" => check = true,
+            other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
+        }
+    }
+    let root = crate::designs::root()?;
+    let (entries, forward) = crate::fixture_flights::compared(&root)?;
+    write_or_check(&root, &entries, &forward, check)
+}
+
 /// Flies the runs and writes, or with `check` checks, the report.
-pub fn run(
+fn write_or_check(
     root: &Path,
     entries: &[Entry],
-    forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
+    forward: &BTreeMap<String, ForwardFlight>,
     check: bool,
 ) -> Result<(), String> {
+    let flights = sorted(entries, forward);
+    hold_to_collection(
+        root,
+        &flights
+            .iter()
+            .map(|&(_, sorted, flight)| (sorted, flight))
+            .collect::<Vec<_>>(),
+    )?;
+    println!(
+        "apogee-ranges: the {} nominal flights' errors are the collection report's",
+        flights.len()
+    );
     let started = Instant::now();
-    let flown = fly_all(entries, forward)?;
+    let flown = fly_all(&flights)?;
     let report = Report::of(&flown);
     let page = report.to_markdown();
     report.check_consistent(&page)?;
@@ -628,20 +735,21 @@ pub fn run(
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;
         if stored != report {
             return Err(format!(
-                "{REPORT_JSON} does not reproduce; run `cargo xtask fixture-flights`"
+                "{REPORT_JSON} does not reproduce; run `cargo run --package xtask --profile \
+                 report-check -- apogee-ranges`"
             ));
         }
         let committed = fs::read_to_string(root.join(REPORT_MD))
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         stored.check_consistent(&committed)?;
-        println!("fixture-flights: the apogee ranges' counts reproduce");
+        println!("apogee-ranges: the committed report reproduces");
         return Ok(());
     }
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     for (path, text) in [(REPORT_JSON, json), (REPORT_MD, page)] {
         fs::write(root.join(path), text).map_err(|error| format!("writing {path}: {error}"))?;
     }
-    println!("fixture-flights: wrote {REPORT_JSON} and {REPORT_MD}");
+    println!("apogee-ranges: wrote {REPORT_JSON} and {REPORT_MD}");
     Ok(())
 }
 
@@ -685,9 +793,11 @@ mod tests {
         };
         let flown: Vec<Flown> = (0..9)
             .map(|k| Flown {
-                held_out: k % 3 == 0,
-                early: k % 4 == 0,
-                below_tier_a: k == 5,
+                sorted: Sorted {
+                    held_out: k % 3 == 0,
+                    early: k % 4 == 0,
+                    below_tier_a: k == 5,
+                },
                 ranges: if k == 8 {
                     Err("a motor this can't disperse".to_owned())
                 } else {

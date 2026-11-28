@@ -17,18 +17,19 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 ([From Python](#from-python)).
 
 > **How far to trust it.** The spread a run gives is only as good as the uncertainties you give it
-> and HPR Sim's flight models. Those models aren't yet validated against real flights
+> and HPR Sim's flight models. Against real flights those models' apogees run high on average
 > ([Accuracy](accuracy.md)).
 >
 > - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
 >   tests pin the sampling (below).
 > - The [landing ellipses](#landing-ellipses) are tested against normal spreads with known answers.
-> - Nothing checks whether the spread matches that of real flights. No measured set of repeated
->   flights has been compared yet.
+> - On 60 logged flights flown with a design file's spreads, the 90% apogee range held the log
+>   on 50 and the 50% range on 18
+>   ([the count](#a-set-that-has-been-counted-against-real-flights)).
+> - No landing spread or ellipse has been compared with a real flight.
 > - A run leaves out correlations between inputs, distributions other than the
 >   [normal](glossary.md#normal-distribution), and the inputs listed under
->   [What is not dispersed](#what-is-not-dispersed). It flies what `Flight::builder` sets up, a
->   staged flight's separations included. Events of your own can't be part of one yet.
+>   [What is not dispersed](#what-is-not-dispersed).
 
 Sampling tests check that:
 
@@ -499,6 +500,30 @@ code's next revision
 The draft's first revisions, FR-7 and FR-8, keep both sentences
 ([`1125_A2021_PYR_AAA_FD_FRStatements.pdf`](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf)).
 The edition in force today hasn't been checked.
+
+### A set that has been counted against real flights
+
+One set of numbers has been checked against logs. It's for a rocket known only by its design file
+and its motor's published curve, with nothing weighed or measured:
+
+| input | standard deviation | `hpr mc` option |
+|---|---:|---|
+| mass without motors | 10.75% | `--mass-sd 0.1075` |
+| drag coefficient | 16.3% | `--drag-sd 0.163` |
+| total impulse | 3.56% | `--impulse-sd 0.0356` |
+| burn time | 9.2% | `--burn-time-sd 0.092` |
+| rail's tilt | 1° | `--inclination-sd 1` |
+| rail's heading | 5° | `--heading-sd 5` |
+
+Each comes from a published figure, and where a source gives a range, this is its wider end
+([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md)
+names each source). With these, on 60 logged flights, a run's 90% apogee range held the log on 50
+and its 50% range on 18. Most misses were flights that ended below the range. HPR Sim's apogees
+from a design file run above the logs on average, and a run is centered on the file's flight
+([how often the ranges hold](accuracy.md#how-often-the-apogee-ranges-hold-the-logs)).
+
+So these numbers are a place to start for a rocket you haven't weighed, not a tested recipe. A
+rocket weighed ready to fly earns a smaller mass spread. No count covers such a run yet.
 
 ### What is not dispersed
 

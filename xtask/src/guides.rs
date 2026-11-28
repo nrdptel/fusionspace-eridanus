@@ -46,10 +46,14 @@ guides [--check]         Write the guide rocket's center-of-pressure, flutter an
 /// HPR Sim's apogees against the public flights' logs (M2.3b).
 const REAL: &str = "validation/reports/real-flights.json";
 
+/// How often a Monte Carlo run's apogee ranges hold the private collection's logs (M2.8a).
+const RANGES: &str = crate::apogee_ranges::REPORT_JSON;
+
 /// The reports a quote or a figure may read, as JSON.
-const REPORTS: [&str; 8] = [
+const REPORTS: [&str; 9] = [
     FIXTURE,
     REAL,
+    RANGES,
     crate::scoreboard::SCOREBOARD_JSON,
     stability::REPORT,
     stability::TUNNEL,
@@ -280,6 +284,24 @@ impl Reports {
         }
     }
 
+    /// The pointer of the ranges' report's set of every flight compared, its name and its two
+    /// levels checked.
+    fn every_ranged(&self) -> Result<&'static str, String> {
+        let name = self.text(RANGES, "/sets/0/name")?;
+        if name != "every flight compared" {
+            return Err(format!(
+                "{RANGES}'s first set is \"{name}\", not every flight compared"
+            ));
+        }
+        for (at, level) in [(0, 0.5), (1, 0.9)] {
+            let found = self.number(RANGES, &format!("/sets/0/coverage/levels/{at}/level"))?;
+            if found != level {
+                return Err(format!("{RANGES}'s level {at} is {found}, not {level}"));
+            }
+        }
+        Ok("/sets/0")
+    }
+
     /// HPR Sim's error histogram over every flight compared: counts in the bins
     /// [`BINS_PERCENT`] bounds, below the first bound, between each pair and at or above the last.
     fn histogram(&self) -> Result<Vec<usize>, String> {
@@ -397,6 +419,21 @@ fn trust_quotes() -> Vec<Quote> {
                 Ok(vec![
                     set_count(r, "hpr_over_openrocket", "within_5_percent")?.to_string(),
                     set_count(r, "hpr_over_openrocket", "n")?.to_string(),
+                ])
+            },
+        },
+        Quote {
+            template: "The run's 90% apogee range held the logged apogee on {} of the {}, and \
+                       its 50% range on {}",
+            holes: |r| {
+                let every = r.every_ranged()?;
+                Ok(vec![
+                    r.count(RANGES, &format!("{every}/coverage/levels/1/held"))?
+                        .to_string(),
+                    r.count(RANGES, &format!("{every}/coverage/flights"))?
+                        .to_string(),
+                    r.count(RANGES, &format!("{every}/coverage/levels/0/held"))?
+                        .to_string(),
                 ])
             },
         },

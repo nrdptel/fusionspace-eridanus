@@ -35,6 +35,10 @@ claimed for them. Seven of the 12 altimeters' kinds are assumed, and none is cal
 average. They miss by 12.10% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
+**On those 60 flights, a Monte Carlo run's 90% apogee range held the logged apogee on 50 (83.33%)
+and its 50% range on 18 (30.00%), the misses mostly flights that ended below the range**
+([how often the ranges hold](#how-often-the-apogee-ranges-hold-the-logs), [report][ranges-report]).
+
 No flight here is blind yet: all were seen during development. [Blind
 flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Five of the
 public flights had their predictions merged before they were compared
@@ -1472,6 +1476,73 @@ The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positiv
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
+#### How often the apogee ranges hold the logs
+
+A [Monte Carlo](glossary.md#monte-carlo) run flies a design many times with its inputs scattered,
+and gives a range of apogees. A 90% range claims that nine real flights in ten end inside it.
+[This check](decisions-and-roadmap.md#m2-8a) ([the decision][adr-386]) counts whether they do, on
+the 60 flights above. **In short: with input spreads taken from published figures, the 90% range
+held the logged apogee on 50 of the 60 flights (83.33%), and the 50% range on 18 (30.00%). By this
+count the 50% range is wrong. The 90% range can't be told from right, nor from one that holds
+71.48% of flights** ([report][ranges-report]).
+
+| [range and flights][ranges-report] | flights compared | flights it held | share held | 95% bounds on the share |
+|---|---:|---:|---:|---:|
+| [the 50% range, every flight compared][ranges-report] | 60 | 18 | 30.00% | 18.85% to 43.21% |
+| [the 50% range, the calibration half][ranges-report] | 37 | 13 | 35.14% | 20.21% to 52.54% |
+| [the 50% range, the held-out half][ranges-report] | 23 | 5 | 21.74% | 7.46% to 43.70% |
+| [the 90% range, every flight compared][ranges-report] | 60 | 50 | 83.33% | 71.48% to 91.71% |
+| [the 90% range, the calibration half][ranges-report] | 37 | 32 | 86.49% | 71.23% to 95.46% |
+| [the 90% range, the held-out half][ranges-report] | 23 | 18 | 78.26% | 56.30% to 92.54% |
+
+Each flight is flown 1,000 times more, by the run [`hpr mc`](cli.md#hpr-mc) flies, from the inputs
+the comparison above flew: the design as read, the day's air and wind, its rail
+([report][ranges-report]). Six inputs are drawn about the design file's values, each with a
+[standard deviation](glossary.md#standard-deviation) stated before any flight was counted: the
+mass without motors (10.75%), the drag coefficient (16.3%), the motor's total impulse (3.56%), its
+burn time (9.2%), the rail's tilt (1°) and its heading (5°).
+
+The [report][ranges-report] gives each one's source. None was fitted to these flights. The 50%
+range runs from the run's 25% point to its 75% point, and the 90% range from its 5% point to its
+95% point. A sample that fails counts against its range. None of the 60,000 did.
+
+The bounds are two-sided 95% [Clopper-Pearson](glossary.md#clopper-pearson-bound) intervals: the
+shares, over all such flights, that a count this size could have come from. A level outside its
+bounds is a range these flights show to be wrong. A level inside them is only one they can't tell
+from right. The held-out half's 23 flights can't tell a 90% range from one that holds 56.30%
+([report][ranges-report]).
+
+What the misses show:
+
+- **The ranges sit too high** ([report][ranges-report]). At 50%, the log is below the range on 31
+  of the 60 flights and above it on 11. At 90%, it's below on 9 and above on 1. The logged apogee
+  sits a median 6.76% below its run's median apogee. That is the same lean as the
+  over-prediction in the table above. A run scatters its inputs about the file's values, so its
+  middle is near the file's flight.
+- **How wide the runs are** ([report][ranges-report]). A run's standard deviation is a median
+  10.37% of its apogee, from 8.60% to 17.83%. Its 50% range is a median 13.42% of the apogee wide,
+  and its 90% range 33.49%.
+- **The held-out half does worse** ([report][ranges-report]): 5 of its 23 flights at 50%, and 18
+  at 90%. Its errors against the logs are the larger ones too.
+- **Without the early deployments** ([report][ranges-report]), over 41 flights, the 90% range
+  holds 38 (92.68%). The 50% range still holds only 13 (31.71%).
+
+The counts were predicted before the first run: about 20 of the 60 at 50% and about 47 at 90%,
+the misses mostly logs below the range ([the decision][adr-386]). They came out at 18 and 50
+([report][ranges-report]).
+
+The wind, the air, the center of mass and the altimeter's own scatter stay at the values flown.
+Each would widen a range. [The decision][adr-386] gives what is known of each one's size: the
+wind's, the air's and the altimeter's parts are small beside the spreads drawn, and no stated
+spread was found for the center of mass. The landing spread isn't part of this count.
+
+> **How far to trust it.** One count, over 60 flights that fliers chose to publish, all seen
+> during development ([report][ranges-report]). The spreads were stated, and the counts
+> predicted, before the first run, and nothing was tuned afterward. It checks one set of spreads:
+> a design file's. A run on tighter ones, for a rocket weighed and measured, makes a claim this
+> count doesn't cover. It checks the apogee only. No landing spread or ellipse has been compared
+> with a real flight.
+
 #### The gap between the two codes, by cause
 
 The last row above is over the 60 flights compared with a log. Both codes fly 68: those 60 and
@@ -2235,6 +2306,7 @@ rest.
 [real-band]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md#the-band-each-error-against-its-validation-uncertainty
 [check-cases]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/check-cases.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[ranges-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md
 [fixture-report-json]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.json
 [drag-terms-record]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-drag-terms.json
 [drag-terms-script]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/drag_terms.py
@@ -2248,6 +2320,7 @@ rest.
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
+[adr-386]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md
 [adr-350]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0350-m2-3c13-the-nose-s-line-and-why-222-s-flight-is-not-in-it.md
 [adr-359]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0359-drag-below-mach-0-8-next-the-drag-part-of-the-gap-to-openrocket-by-mach-band.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md

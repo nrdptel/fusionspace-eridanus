@@ -288,6 +288,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3d10 A parallel stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d5 The Macie XL predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d2 The errors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.8a The ranges' coverage ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1574,6 +1575,13 @@ One line per milestone or increment, in the order it was archived within its pha
       it all five predictions are on `main`.
   - [x] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
+- **M2.8** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+  - [x] **M2.8a The ranges' coverage** (ADR-386). *Done when:* `cargo xtask apogee-ranges` flies
+    each flight the collection's report compares with its log as a dispersion on spreads stated
+    before any count (ADR-386 decision 3); `validation/reports/apogee-ranges.md` gives how often the 50% and 90%
+    apogee ranges hold the log, over every flight compared and each half, with two-sided 95%
+    Clopper–Pearson bounds, a failed run a miss; `--check` reproduces it; the scoreboard's two
+    cells read it; the accuracy page gives the counts.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,

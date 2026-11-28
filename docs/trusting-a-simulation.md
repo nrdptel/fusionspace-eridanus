@@ -199,6 +199,12 @@ files' own input errors. Read the spread as how far the flight moves if the mode
 inputs are off by about the scatter given. Read the miss as how far files like this one have been
 from the sky.
 
+How often a spread alone holds a real flight has been counted once. Each of those flights was
+flown as a Monte Carlo run on a design file's spreads, wide ones. The run's 90% apogee range held
+the logged apogee on 50 of the 60, and its 50% range on 18. Most misses were flights that ended
+below the range, the same lean high as the miss above
+([how often the ranges hold](accuracy.md#how-often-the-apogee-ranges-hold-the-logs)).
+
 ## What this guide leaves out
 
 - It checks nothing but apogee against real flights. No comparison here checks a top speed, a

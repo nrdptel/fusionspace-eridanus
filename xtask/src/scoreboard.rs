@@ -64,6 +64,8 @@ const REAL_FLIGHTS: &str = "validation/reports/real-flights.json";
 const FIXTURE_FLIGHTS: &str = "validation/reports/fixture-flights.json";
 /// Its page, which names the OpenRocket release its record came from.
 const FIXTURE_FLIGHTS_MD: &str = "validation/reports/fixture-flights.md";
+/// How often the apogee ranges of a Monte Carlo run hold the collection's logs (M2.8a).
+const APOGEE_RANGES: &str = "validation/reports/apogee-ranges.json";
 /// The private collection's apogee predicted from the boost, by halves (M7.3d6, ADR-329).
 const COLLECTION_BOOST: &str = crate::collection_boost::REPORT_JSON;
 /// That report's page.
@@ -755,6 +757,7 @@ pub(crate) struct Reports {
     pub real_flights: Value,
     pub fixture_flights: Value,
     pub fixture_flights_page: String,
+    pub apogee_ranges: Value,
     pub collection_boost: Value,
     pub export_flights: Value,
     pub openrocket_flights: Value,
@@ -771,6 +774,7 @@ impl Reports {
             fixture_flights: report(root, FIXTURE_FLIGHTS)?,
             fixture_flights_page: fs::read_to_string(root.join(FIXTURE_FLIGHTS_MD))
                 .map_err(|error| format!("reading {FIXTURE_FLIGHTS_MD}: {error}"))?,
+            apogee_ranges: report(root, APOGEE_RANGES)?,
             collection_boost: report(root, COLLECTION_BOOST)?,
             export_flights: report(root, EXPORT_FLIGHTS)?,
             openrocket_flights: report(root, OPENROCKET_FLIGHTS)?,
@@ -897,6 +901,71 @@ fn fixture_set<'a>(reports: &'a Reports, name: &str) -> Result<(&'a Value, Strin
         }
     }
     Ok((set, pointer, flights))
+}
+
+/// The share of the set named `name` whose range at `level` (0 for 50%, 1 for 90%) held the
+/// logged apogee, per cent, in the report of the apogee ranges, with its pointer and the set's
+/// flight count, checked to be the count of that set in the collection's report: the two fly
+/// the same flights.
+fn range_share(reports: &Reports, name: &str, level: usize) -> Result<(f64, String, u64), String> {
+    let sets = reports
+        .apogee_ranges
+        .pointer("/sets")
+        .and_then(Value::as_array)
+        .ok_or_else(|| format!("{APOGEE_RANGES} has no sets"))?;
+    let index = sets
+        .iter()
+        .position(|set| set.get("name").and_then(Value::as_str) == Some(name))
+        .ok_or_else(|| format!("{APOGEE_RANGES} has no set named \"{name}\""))?;
+    let flights = whole(&sets[index], APOGEE_RANGES, "/coverage/flights")?;
+    let (_, _, compared) = fixture_set(reports, name)?;
+    if flights != compared {
+        return Err(format!(
+            "{APOGEE_RANGES}: {name} counts {flights} flights, {FIXTURE_FLIGHTS} {compared}"
+        ));
+    }
+    let pointer = format!("/sets/{index}/coverage/levels/{level}/held_percent");
+    let share = number(&reports.apogee_ranges, APOGEE_RANGES, &pointer)?;
+    Ok((share, pointer, flights))
+}
+
+/// HPR Sim's cell for the range at `level` (0 for 50%, 1 for 90%): the share over every flight
+/// compared, held by the calibration half's, as the collection's error cells are (ADR-332 §4).
+fn range_cell(reports: &Reports, level: usize) -> Result<Cell, String> {
+    let (share, pointer, flights) = range_share(reports, EVERY_FLIGHT, level)?;
+    let (held, held_pointer, held_flights) = range_share(reports, CALIBRATION_HALF, level)?;
+    let mut cell = measured(
+        Tool::Hpr,
+        share,
+        2,
+        flights,
+        format!("{APOGEE_RANGES} {pointer}"),
+    );
+    cell.held_by = Some(Held {
+        value: rounded(held, 2),
+        count: held_flights,
+        what: CALIBRATION_HALF.to_owned(),
+        source: format!("{APOGEE_RANGES} {held_pointer}"),
+    });
+    Ok(cell)
+}
+
+/// The note under a range's row: what the run is, what the check holds, and where the bounds
+/// are.
+fn range_note(id: &str, cell: &Cell) -> Option<String> {
+    let held = cell.held_by.as_ref()?;
+    Some(format!(
+        "**`{id}`**: each flight compared is flown 1,000 times more with its inputs scattered \
+         as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is \
+         placed against that run's range; a failed run is a miss \
+         ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/\
+         reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson \
+         bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/\
+         main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The \
+         scoreboard's check holds HPR Sim's cell by {}'s {:.2}% over {} flights, not by the \
+         cell's own, so the held-out half alone can't block a change of model.",
+        held.what, held.value, held.count
+    ))
 }
 
 /// The half of the collection's errors named `name` in the from-boost report, and its index.
@@ -1143,6 +1212,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             held.what, held.count
         ))
     };
+    let (range_50, range_90) = (range_cell(reports, 0)?, range_cell(reports, 1)?);
     let public_cell = |pointer: &str| -> Result<Cell, String> {
         Ok(measured(
             Hpr,
@@ -1336,11 +1406,12 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             false,
             Worse::FartherFrom { level: 50.0 },
             vec![
-                later(Hpr, "M2.8"),
+                range_50.clone(),
                 later(Openrocket, "M2.9"),
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .with_note_if(range_note("uncertainty.range-50", &range_50)),
         percent(
             Axis::Uncertainty,
             "uncertainty.range-90",
@@ -1348,11 +1419,12 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             false,
             Worse::FartherFrom { level: 90.0 },
             vec![
-                later(Hpr, "M2.8"),
+                range_90.clone(),
                 later(Openrocket, "M2.9"),
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .with_note_if(range_note("uncertainty.range-90", &range_90)),
         Row {
             id: "speed.flight".to_owned(),
             axis: Axis::Speed,
@@ -2382,12 +2454,21 @@ mod tests {
                 let n = whole(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("a count");
                 *reports.fixture_flights.pointer_mut(&at).expect("a count") = (n - 1).into();
             }
+            // The ranges' report counts the same flights, set by set, in the same order.
+            let at = format!("{set}/coverage/flights");
+            let n = whole(&reports.apogee_ranges, APOGEE_RANGES, &at).expect("a count");
+            *reports.apogee_ranges.pointer_mut(&at).expect("a count") = (n - 1).into();
             scoreboard(&reports).expect("the scoreboard")
         };
         for set in [&calibration, &every] {
             let error =
                 gate(&committed, &fewer(set), &release, &none).expect_err("fewer flights fail");
-            for id in ["accuracy.collection.hpr", "bias.collection.hpr"] {
+            for id in [
+                "accuracy.collection.hpr",
+                "bias.collection.hpr",
+                "uncertainty.range-50.hpr",
+                "uncertainty.range-90.hpr",
+            ] {
                 assert!(error.contains(id), "{set}: {error}");
             }
             // The calibration half's count is named as its; the cell's own count isn't.
@@ -2807,7 +2888,7 @@ mod tests {
         let (_, reports, _) = committed();
         let scoreboard = scoreboard(&reports).expect("the scoreboard");
         let open = "- [ ] **M0.8a x\n  - [ ] **M2.3c7 x\n- [ ] **M2.6 x\n\
-                    - [ ] **M2.7 x\n- [ ] **M2.8 x\n- [ ] [blocked] **M2.9 x\n- [ ] **M9.1 x\n";
+                    - [ ] **M2.7 x\n- [ ] [blocked] **M2.9 x\n- [ ] **M9.1 x\n";
         check_milestones(&scoreboard, open).expect("all open");
         // A cell a tool can't fill needs no milestone, but a measured one can't say it can't.
         let cant = |cell: &Cell| cell.cannot.is_some() && cell.milestone.is_none();
@@ -2839,9 +2920,9 @@ mod tests {
         let closed = open.replace("- [ ] **M9.1", "- [x] **M9.1");
         let error = check_milestones(&scoreboard, &closed).expect_err("M9.1 closed");
         assert!(error.contains("steps.window-clicks.hpr"), "{error}");
-        let closed = open.replace("- [ ] **M2.8", "- [x] **M2.8");
-        let error = check_milestones(&scoreboard, &closed).expect_err("M2.8 closed");
-        assert!(error.contains("uncertainty.range-50.hpr"), "{error}");
+        let closed = open.replace("- [ ] **M2.3c7", "- [x] **M2.3c7");
+        let error = check_milestones(&scoreboard, &closed).expect_err("M2.3c7 closed");
+        assert!(error.contains("accuracy.supersonic.hpr"), "{error}");
         // A milestone the page has no words for fails, open or not.
         let mut unknown = scoreboard.clone();
         let unmeasured = unknown
@@ -2854,6 +2935,92 @@ mod tests {
         let open = format!("{open}- [ ] **M9.99 x\n");
         let error = check_milestones(&unknown, &open).expect_err("no words");
         assert!(error.contains("M9.99"), "{error}");
+    }
+
+    /// The two range cells read the ranges' report (M2.8a, ADR-386): the share over every flight
+    /// compared, held by the calibration half's. A calibration half's share farther from its
+    /// level fails, one nearer it doesn't, a share over every flight that moves alone is shown
+    /// and fails nothing, and a ranges' report that counts other flights than the collection's
+    /// report builds no scoreboard.
+    #[test]
+    fn the_range_cells_read_the_ranges_report() {
+        let (root, reports, committed) = committed();
+        let release = next_release(&root).expect("the release");
+        let none = BTreeSet::new();
+        let cell = |board: &Scoreboard, id: &str| -> Cell {
+            board
+                .rows
+                .iter()
+                .find(|row| row.id == id)
+                .and_then(|row| row.cells.iter().find(|cell| cell.tool == Tool::Hpr))
+                .cloned()
+                .expect("the cell")
+        };
+        // One share of the ranges' report moved by `step` points, the scoreboard built again.
+        let moved = |pointer: &str, step: f64| -> Scoreboard {
+            let mut reports = Reports::read(&root).expect("the committed reports");
+            let value = number(&reports.apogee_ranges, APOGEE_RANGES, pointer).expect("a share");
+            *reports
+                .apogee_ranges
+                .pointer_mut(pointer)
+                .expect("the share") = (value + step).into();
+            scoreboard(&reports).expect("the scoreboard")
+        };
+        for (id, level, percent) in [
+            ("uncertainty.range-50", 0, 50.0),
+            ("uncertainty.range-90", 1, 90.0),
+        ] {
+            let (share, pointer, flights) =
+                range_share(&reports, EVERY_FLIGHT, level).expect("every flight's share");
+            let (held, held_pointer, held_flights) =
+                range_share(&reports, CALIBRATION_HALF, level).expect("the calibration half's");
+            assert_ne!(pointer, held_pointer);
+            assert!(held_flights < flights, "{held_flights} of {flights}");
+            let shown = cell(&committed, id);
+            assert_eq!(shown.value, Some(share), "{id}");
+            assert_eq!(
+                shown.source,
+                Some(format!("{APOGEE_RANGES} {pointer}")),
+                "{id}"
+            );
+            let by = shown.held_by.expect("held by the calibration half");
+            assert_eq!(by.value, held, "{id}");
+            assert_eq!(by.source, format!("{APOGEE_RANGES} {held_pointer}"), "{id}");
+            // Farther from the level, whichever side the share is on: refused, as the half's.
+            let away = if held < percent { -0.01 } else { 0.01 };
+            let error = gate(&committed, &moved(&held_pointer, away), &release, &none)
+                .expect_err("a calibration half farther from its level fails");
+            assert!(error.contains(&format!("{id}.hpr")), "{error}");
+            assert!(error.contains("on the calibration half"), "{error}");
+            // Nearer the level: nothing fails.
+            assert!(
+                gate(&committed, &moved(&held_pointer, -away), &release, &none).is_ok(),
+                "{id}"
+            );
+            // Past the level by more than it was short of it: farther, so refused.
+            let past = 2.0 * (percent - held) + away.signum() * -0.01;
+            let error = gate(&committed, &moved(&held_pointer, past), &release, &none)
+                .expect_err("a share past its level by more than it was short fails");
+            assert!(error.contains(&format!("{id}.hpr")), "{error}");
+            // Every flight's share alone, which only the held-out half can move: shown, not held.
+            let alone = moved(&pointer, away);
+            assert_ne!(cell(&alone, id).value, Some(share), "{id}");
+            assert!(gate(&committed, &alone, &release, &none).is_ok(), "{id}");
+        }
+        // The two reports count their sets' flights apart: no scoreboard.
+        let mut apart = Reports::read(&root).expect("the committed reports");
+        let (_, pointer, flights) =
+            range_share(&apart, CALIBRATION_HALF, 0).expect("the calibration half's");
+        let at = pointer.replace("/levels/0/held_percent", "/flights");
+        *apart.apogee_ranges.pointer_mut(&at).expect("its count") = (flights - 1).into();
+        let error = scoreboard(&apart).expect_err("counts that differ fail");
+        assert!(
+            error.contains(&format!(
+                "the calibration half counts {} flights, {FIXTURE_FLIGHTS} {flights}",
+                flights - 1
+            )),
+            "{error}"
+        );
     }
 
     /// A worse rule at its edges.

@@ -640,10 +640,21 @@ mod tests {
     fn no_spread_is_the_narrower_end_of_its_sources_range() {
         // The impulse's range is 2.5% to 3.56%, the drag's 10% to 16%, the burn time's 4.1% to
         // 9.2%, the heading's 1° to 5°.
-        assert!(IMPULSE_OTHER_END > 0.025);
-        assert!(DRAG_SIGMA > 0.10);
-        assert!(BURN_TIME_SIGMA > 0.041);
-        assert!(RAIL_AZIMUTH_SIGMA_DEG > 1.0);
+        let narrower_ends = [
+            ("total impulse", 0.025),
+            ("zero-lift drag coefficient", 0.10),
+            ("burn time, at the same impulse", 0.041),
+            ("rail's heading", 1.0),
+        ];
+        for (input, narrower) in narrower_ends {
+            let taken: Vec<f64> = SPREADS
+                .iter()
+                .filter(|spread| spread.input == input)
+                .map(|spread| spread.sigma)
+                .collect();
+            assert_eq!(taken.len(), 1, "{input}");
+            assert!(taken[0] > narrower, "{input}: {} taken", taken[0]);
+        }
     }
 
     /// Seeds computed outside this code: Python's

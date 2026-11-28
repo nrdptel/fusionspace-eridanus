@@ -1,7 +1,7 @@
 # ADR-386: M2.8 in two: the ranges' coverage measured first (2026-11-28)
 
 - **Status:** accepted; splits [M2.8][m2-8] into M2.8a and M2.8b, each with its own *done when*, M2.8's own *done when* whole across the two; carries out [ADR-209][adr-209] §5; changes no tolerance, model or flight
-- **Summary:** M2.8a flies each of the private collection's 60 compared flights 1,000 times more as the run `hpr mc` flies, on six input spreads stated from published figures before any count, and reports how often the run's 50% and 90% apogee ranges hold the logged apogee, with two-sided 95% Clopper–Pearson bounds, over every flight and each half. M2.8b puts that spread on `hpr sim`'s readout and plot, with the measured share beside it, and closes #401. The counts were predicted here before the first run: about 20 of 60 at 50% and about 47 of 60 at 90%, both short of their levels, the misses on the side where the run flew higher than the log.
+- **Summary:** M2.8a flies each of the private collection's 60 compared flights 1,000 times more as the run `hpr mc` flies, on six input spreads stated from published figures before any count, and reports how often the run's 50% and 90% apogee ranges hold the logged apogee, with two-sided 95% Clopper-Pearson bounds, over every flight and each half. M2.8b puts that spread on `hpr sim`'s readout and plot, with the measured share beside it, and closes #401. The counts were predicted here before the first run: about 20 of 60 at 50% and about 47 of 60 at 90%, both short of their levels, the misses on the side where the run flew higher than the log.
 
 [m2-8]: ../decisions-and-roadmap.md#m2-8
 [adr-134]: 0134-monte-carlo-dispersion-independent-normals-one.md
@@ -35,12 +35,14 @@ has a number: a band drawn at "90%" claims a share of real flights, and the shar
 **Decision.**
 
 1. **M2.8 in two.** M2.8 is met when both increments are.
-   - **M2.8a, the ranges' coverage.** *Done when:* `cargo xtask fixture-flights` also flies each
-     flight it compares with its log as a dispersion on spreads stated before any count (decision
-     3); `validation/reports/apogee-ranges.md` gives how often the 50% and 90% apogee ranges hold
-     the log, over every flight compared and each half, with two-sided 95% Clopper–Pearson bounds,
-     a failed run a miss; `--check` reproduces it; the scoreboard's two cells read it; the accuracy
-     page gives the counts.
+   - **M2.8a, the ranges' coverage.** *Done when:* `cargo xtask apogee-ranges` flies each flight
+     the collection's report compares with its log as a dispersion on spreads stated before any
+     count (decision 3); `validation/reports/apogee-ranges.md` gives how often the 50% and 90%
+     apogee ranges hold the log, over every flight compared and each half, with two-sided 95%
+     Clopper-Pearson bounds, a failed run a miss; `--check` reproduces it; the scoreboard's two
+     cells read it; the accuracy page gives the counts. (As first written, before the run, this
+     named `cargo xtask fixture-flights` as the command. The runs have their own, for the reason
+     under *What was measured*; nothing else in it changed.)
    - **M2.8b, the spread on the readout and the plot.** *Done when:* #401 closed, that spread
      beside each flight's apogee and as the plot's band, each with the share of logs its range
      held (M2.8a's report) beside it; its acceptance pass ([ADR-282][adr-282]).
@@ -92,7 +94,7 @@ has a number: a band drawn at "90%" claims a share of real flights, and the shar
    they have no simulated apogee either, and stay in the collection's report under their issues.
    Counting them as misses would lower a share for a reason that isn't the range's width, and
    could hide a 50% range that is too wide.
-6. **The bounds and what they mean.** Each share carries its two-sided 95% Clopper–Pearson
+6. **The bounds and what they mean.** Each share carries its two-sided 95% Clopper-Pearson
    interval. A level outside the interval is a range these flights show to be wrong. A level
    inside it is one they can't tell from right: 23 flights can't tell 90% from 75%.
 7. **Nothing is tuned to the count.** The spreads stay as decision 3 states them whatever the
@@ -110,7 +112,51 @@ has a number: a band drawn at "90%" claims a share of real flights, and the shar
    - the held-out half, whose errors are the larger (+13.54% mean), does worse than the
      calibration half: about 5 of 23 and 15 of 23 against about 15 of 37 and 32 of 37.
 
-**What was measured.** To be written from the report once the runs have flown.
+**What was measured.** The [report][report] has every count; these are the ones the prediction
+named.
+
+| | predicted | measured | 95% bounds |
+|---|---|---|---|
+| 50% range, the 60 | about 20 (14 to 25) | 18 (30.00%) | 18.85% to 43.21% |
+| 90% range, the 60 | about 47 (43 to 53) | 50 (83.33%) | 71.48% to 91.71% |
+| 50% range, the held-out 23 | about 5 | 5 (21.74%) | 7.46% to 43.70% |
+| 90% range, the held-out 23 | about 15 | 18 (78.26%) | 56.30% to 92.54% |
+| 50% range, the calibration 37 | about 15 | 13 (35.14%) | 20.21% to 52.54% |
+| 90% range, the calibration 37 | about 32 | 32 (86.49%) | 71.23% to 95.46% |
+
+- **The levels.** 50% is outside its bounds over the 60, as predicted. 90% is inside its bounds
+  over the 60 and over each half, which the prediction's "short of 90%" didn't settle either way:
+  the share is below 90% in every set but one, and no set can tell it from 90%.
+- **The side.** At 50% the log is below the range on 31 flights and above it on 11; at 90%, on 9
+  and 1. The logged apogee sits a median 6.76% below its run's median. The lean is the collection
+  report's mean error seen again, as predicted.
+- **The width.** A run's standard deviation is a median 10.37% of its apogee (8.60% to 17.83%),
+  against the "near 10%" the prediction assumed.
+- **The held-out half** does worse than the calibration half at both levels, as predicted, and
+  better at 90% than the 15 predicted.
+- **No sample failed** of the 60,000, and every run was set up, so decision 5's rule moved no
+  count.
+
+Three things about the run itself:
+
+- **Its own command.** The runs fly 60,000 flights. In the unoptimized build `cargo xtask
+  fixture-flights` runs in, they took 827 s and 919 s on two runs; in the workspace's
+  `report-check` profile (optimized, its debug assertions on) they take 93 s. The collection's report can't move to that profile: a
+  record it reads is keyed to a hash of the conditions it flew, and those bytes differ between
+  the two builds in their last places. So `cargo xtask apogee-ranges` is its own command, written
+  and checked on `report-check`, and it sets up the 60 flights from the same inputs by the same
+  functions the collection's report uses.
+- **Tied to the collection's report twice.** Each run's nominal flight is flown again and held to
+  the apogee the same build computes within one part in a million (decision 2). And each set's
+  nominal errors are held to the committed collection report's own row: the count, the histogram
+  and the flights within 5% and 10% exactly, the mean, median, mean absolute and RMS within
+  0.011 points, the report's rounding and the builds' last places together.
+- **The two builds give the same report.** The committed report was written on `report-check`.
+  `cargo xtask apogee-ranges --check` passes in the unoptimized build too: it flies the runs again
+  and reproduces every number the report holds.
+
+Nothing was changed after the first count: the spreads, the seed rule, the sample count and the
+rule for failed samples are as committed before it, in the commit that carries the prediction.
 
 **Consequences.** The Monte Carlo guide and the accuracy page say how often the ranges held,
 with the counts. Issue #401 stays open for M2.8b, which may not print a range as "90%" without
