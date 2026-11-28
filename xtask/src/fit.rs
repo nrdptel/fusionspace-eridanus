@@ -294,10 +294,16 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
     fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
 
-/// Whether kept fits can be written to `path`, tried before hours of fitting: it is created empty,
-/// or emptied, and written whole once the fits are made.
+/// Whether kept fits can be written to `path`, tried before hours of fitting: it is opened to
+/// append, created empty if it isn't there, and an existing file is left as it is until the fits
+/// are made and written whole.
 fn writable(path: &Path) -> Result<(), String> {
-    fs::write(path, []).map_err(|e| format!("{}: {e}", path.display()))
+    fs::OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(path)
+        .map(drop)
+        .map_err(|e| format!("{}: {e}", path.display()))
 }
 
 /// Kept fits written by [`write_kept`].
@@ -3177,6 +3183,19 @@ mod tests {
 
     /// Kept fits read back as they were written, a NaN truth and misfit among them, which JSON
     /// would have written as nothing.
+    #[test]
+    fn kept_fits_need_a_writable_path_and_keep_an_old_file_until_written() {
+        let dir = tempfile::tempdir().unwrap();
+        let old = dir.path().join("old.cbor");
+        fs::write(&old, b"kept").unwrap();
+        writable(&old).unwrap();
+        assert_eq!(fs::read(&old).unwrap(), b"kept");
+        let new = dir.path().join("new.cbor");
+        writable(&new).unwrap();
+        assert_eq!(fs::read(&new).unwrap(), b"");
+        assert!(writable(&dir.path().join("no such directory").join("kept.cbor")).is_err());
+    }
+
     #[test]
     fn kept_fits_read_back_whole() {
         let mut said_nothing = a_fit(3);
