@@ -174,7 +174,7 @@ opt-level = 3
 # The flights the tests fly (the fits, the wind scan) at opt-level 3 too, in the test profile only:
 # the CLI test that fits eight tracked flights from calm air took 362 s of windows-latest's test
 # job, which builds for 523 s, past the 17 minutes a job is held to (issue #1658), and 128 s on a
-# 10-core Mac; 26 s here. The whole suite's CPU time on that Mac fell from 2,811 s to 1,210 s.
+# 10-core Mac; 26 s here. The whole suite's run on that Mac fell from 264 s to 143 s.
 # Every test passes unchanged so; `fusionspace-hpr-core` stays unoptimized, since at opt-level 3
 # the geodesic test's committed table, the aerodynamic fixture's check and a fit's guide example
 # all move in their last digits.

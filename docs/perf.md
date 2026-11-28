@@ -207,7 +207,7 @@ the command, so a later run can be compared like for like.
   362 s of CI's `test (windows-latest, 2/3)` job, which also builds for 523 s, so the job ran 1,023
   to 1,160 s on main, past the 17 minutes a job is held to.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main eabf3561: the whole workspace's
-  nextest run, 4,598 tests, 264 s → 143 s wall and 2,811 → 1,210 CPU-seconds, one run each; that
+  nextest run, 4,598 tests, 264 s → 143 s (nextest's own time, the build apart), one run each; that
   CLI test 128 s → 26 s; a fresh build of every test 2 min 13 s (2 min 38 s with full debug
   information), its build folder 6.9 GB instead of 32 GB.
 - **What moves.** Nothing committed, and every test passes unchanged. `fusionspace-hpr-core` stays
