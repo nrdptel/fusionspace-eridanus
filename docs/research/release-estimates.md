@@ -22,7 +22,9 @@ only when its checklist passes.
 1. **The queue.** On November 26, 2026, [the roadmap's queue](../ROADMAP.md#queue) put release
    0.2 at place 5, 0.3 at 21, 0.4 at 34, 0.5 at 38 and 1.0 at 49. The queue is worked in
    order, so a release comes after the entries ahead of it, not only those its checklist names.
-   M7.3f, at place 1 here, has merged since, so each place on the live queue is one lower.
+   M7.3f, at place 1 here, has merged since, and M7.3g, at place 2, ended and left the queue
+   ([ADR-385](../decisions/0385-m7-3g2-a-second-rule-passes-every-row-and-fails-a-class.md)), so
+   each place on the live queue is two lower.
 2. **What a milestone takes.** An entry is split into increments as it is worked, each merged on
    its own. Counted in [the finished roadmap](../roadmap-done.md) as increments with no parts of
    their own, the log importers (M7.1) took 27, though
@@ -131,7 +133,9 @@ of its month.
   starts two days later. So 1.0's padded date moved one day, from March 31 to April 1, 2028, and
   the rounding carried its posted month into April. At the pace unrounded, 13.52 a week, the same
   arithmetic gives March 31.
-- **Some targets may not be met.** The fit's intervals (M7.3g) may not pass their test again.
+- **Some targets may not be met.** The fit's intervals (M7.3g) didn't pass their test again: M7.3g
+  ended with its gap recorded, and release 0.2 goes ahead without it
+  ([ADR-385](../decisions/0385-m7-3g2-a-second-rule-passes-every-row-and-fails-a-class.md)).
   Release 0.3 needs HPR Sim's mean apogee error on the held-out flights below OpenRocket's
   ([M10.3](../ROADMAP.md#phase-8-releases-adr-162)). On the private collection, HPR Sim's apogees miss by
   12.10% on average (mean absolute) and OpenRocket's by 11.26% ([the plan](../plan.md#how-feasible-each-goal-is)).

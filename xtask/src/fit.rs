@@ -30,6 +30,8 @@ use hpr_forensics::synthetic::smoothed::MISS_SHARE;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
+mod halves;
+
 pub const USAGE: &str =
     "  fit [--check]            Fit every flight of the synthetic sets A and B by least squares (
                            ADR-316) and the calibration set, draw each fit's posterior by the
@@ -66,10 +68,22 @@ pub const USAGE: &str =
                            <file>, as CBOR, the pair the shares are fitted on: every fit of
                            the set, then its fits of flights with a track logger (the first
                            2,000's among them again).
+  fit --halves <file> [--misfit <share>]
+                           Read the calibration set's kept fits (--calibrate --fits) and try
+                           rules for the shares on them alone (ADR-384 decision 4): fit each
+                           rule's shares on the whole set and count them on its two halves, set
+                           A's model's and set B's, as the report counts sets A and B, with a
+                           chance that ranks the rules. Prints what fails and the chance for the
+                           shares in force, the split by the residual and
+                           splits by the misfit's share at each 5% of its fits, then the first
+                           two in full; with --misfit, the split at <share> in full. Fits
+                           nothing, writes nothing.
   fit --fits <a|b> <file>  Fit a test set's flights as the report does and write to <file>, as
                            CBOR, the fits it counts the drag, impulse and mass on, then the
-                           fits of flights with a track logger, the wind's. Checks nothing.
-                           Read a set's kept fits only as ADR-384 decision 4 allows.
+                           fits of flights with a track logger, the wind's. Checks first that
+                           <file> can be written, and refuses fewer than the 1,000 fits the
+                           report counts. Read a set's kept fits only as ADR-384 decision 4
+                           allows.
   fit --try <set> <count> [--track]
                            Fit a set's first flights, or with --track its first flights with a
                            track logger, print each parameter's shares and counts on them by both
@@ -284,8 +298,19 @@ fn write_kept(path: &Path, first: &[FlightFit], second: &[FlightFit]) -> Result<
     fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
 
+/// Whether kept fits can be written to `path`, tried before the fitting: it is opened to
+/// append, so an existing file isn't emptied before the fits are made (writing them replaces it),
+/// and a missing one is created empty.
+fn writable(path: &Path) -> Result<(), String> {
+    fs::OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(path)
+        .map(drop)
+        .map_err(|e| format!("{}: {e}", path.display()))
+}
+
 /// Kept fits written by [`write_kept`].
-#[cfg(test)]
 fn read_kept(path: &Path) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
     let bytes = fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
     ciborium::from_reader(bytes.as_slice()).map_err(|e| format!("{}: {e}", path.display()))
@@ -1879,6 +1904,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let files = crate::synthetic::design_files(&root)?;
     match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
         ["--calibrate"] | ["--calibrate", "--fits", _] => {
+            if let Some(path) = args.get(2) {
+                writable(Path::new(path))?;
+            }
             let (made, tracked) = fit_with_track(
                 Set::Calibration,
                 Set::Calibration.count(),
@@ -1911,19 +1939,88 @@ pub fn run(args: &[String]) -> Result<(), String> {
             }
             Ok(())
         }
+        ["--halves", path] | ["--halves", path, "--misfit", _] => {
+            let (made, tracked) = read_kept(Path::new(path))?;
+            let track = fits::track_flights(Set::Calibration, CALIBRATION_TRACK_FLIGHTS);
+            if made.len() != Set::Calibration.count() as usize
+                || tracked.iter().map(|f| f.index).ne(track.iter().copied())
+                || made
+                    .iter()
+                    .map(|f| f.index)
+                    .ne(first(Set::Calibration.count()))
+            {
+                return Err(format!(
+                    "{path}: not the calibration set's kept fits (`fit --calibrate --fits`)"
+                ));
+            }
+            if let Some(share) = args.get(3) {
+                let share: f64 = share
+                    .parse()
+                    .ok()
+                    .filter(|s: &f64| s.is_finite() && *s > 0.0)
+                    .ok_or("--misfit takes a share above 0")?;
+                let tried = halves::tried(halves::Rule::MisfitShare(share), &made, &tracked);
+                print!("{}", halves::table(&tried));
+                let (chance, each) = halves::pass_chance(&tried);
+                println!("chance both sets pass {chance:.3}");
+                for (name, c) in each {
+                    println!("  {name}: {c:.3}");
+                }
+                return Ok(());
+            }
+            let twentieths: Vec<f64> = (1..20).map(|k| f64::from(k) / 20.0).collect();
+            let points = halves::misfit_quantiles(&made, &tracked, &twentieths);
+            println!("the misfit's share at each 5% of its fits: {points:?}");
+            let rules = [halves::Rule::InForce, halves::Rule::Residual]
+                .into_iter()
+                .chain(points.iter().map(|&p| halves::Rule::MisfitShare(p)));
+            for rule in rules {
+                let tried = halves::tried(rule, &made, &tracked);
+                let failing = halves::failures(&tried);
+                let (chance, each) = halves::pass_chance(&tried);
+                let least: Vec<String> = each
+                    .iter()
+                    .filter(|(_, c)| *c < 0.9)
+                    .map(|(name, c)| format!("{name} {c:.3}"))
+                    .collect();
+                println!(
+                    "{}: {} failing; chance both sets pass {chance:.3}; under 0.9: {}",
+                    rule.name(),
+                    failing.len(),
+                    least.join(", ")
+                );
+                for line in failing {
+                    println!("  {line}");
+                }
+            }
+            for rule in [halves::Rule::InForce, halves::Rule::Residual] {
+                print!("{}", halves::table(&halves::tried(rule, &made, &tracked)));
+            }
+            Ok(())
+        }
         ["--fits", set, path] => {
             let set = match set {
                 "a" => Set::A,
                 "b" => Set::B,
                 other => return Err(format!("--fits takes a or b, not {other}")),
             };
+            writable(Path::new(path))?;
             let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, &files)?;
-            let counted: Vec<&FlightFit> = made
+            let counted: Vec<FlightFit> = made
                 .iter()
                 .filter(|f| f.fitted)
                 .take(COUNTED_FLIGHTS)
+                .cloned()
                 .collect();
-            let counted: Vec<FlightFit> = counted.into_iter().cloned().collect();
+            // The report counts the first 1,000 fits with something to fit: fewer, and these
+            // aren't the fits it counts.
+            if counted.len() < COUNTED_FLIGHTS {
+                return Err(format!(
+                    "{set:?}: only {} of {FIT_FLIGHTS} flights had something to fit, short of the \
+                     {COUNTED_FLIGHTS} the report counts",
+                    counted.len()
+                ));
+            }
             write_kept(Path::new(path), &counted, &tracked)
         }
         ["--try", set, count] | ["--try", set, count, "--track"] => {
@@ -2111,7 +2208,7 @@ mod tests {
     }
 
     /// A made-up fit of flight `index`, for the parts' bookkeeping: nothing is flown.
-    fn a_fit(index: u64) -> FlightFit {
+    pub(super) fn a_fit(index: u64) -> FlightFit {
         let compared = fits::Compared {
             value: 1.0,
             standard_error: 0.5,
@@ -3088,6 +3185,21 @@ mod tests {
         assert_eq!(indices(of_residual(&made, false)), [2, 3]);
         // The classes' printed names say 1 m.
         assert_eq!(fits::RESIDUAL_SPLIT_M, 1.0);
+    }
+
+    /// A path for kept fits is tried before the fitting: an existing file is left as it is, a missing
+    /// one is created empty, and one that can't be written is refused.
+    #[test]
+    fn kept_fits_need_a_writable_path_and_keep_an_old_file_until_written() {
+        let dir = tempfile::tempdir().unwrap();
+        let old = dir.path().join("old.cbor");
+        fs::write(&old, b"kept").unwrap();
+        writable(&old).unwrap();
+        assert_eq!(fs::read(&old).unwrap(), b"kept");
+        let new = dir.path().join("new.cbor");
+        writable(&new).unwrap();
+        assert_eq!(fs::read(&new).unwrap(), b"");
+        assert!(writable(&dir.path().join("no such directory").join("kept.cbor")).is_err());
     }
 
     /// Kept fits read back as they were written, a NaN truth and misfit among them, which JSON

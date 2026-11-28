@@ -58,6 +58,7 @@ below / inside / above, against main's report with the shares in force:
 | B, wind north | 62 / 1373 / 62 | 21 / 939 / 21 | 41 / 434 / 41 | **49 / 1396 / 52** | **32 / 923 / 26** | 17 / 473 / 26 |
 | B, mass | 42 / 900 / 58 | 20 / 505 / 36 | 22 / 395 / 22 | 43 / 899 / 58 | 24 / 499 / 38 | 19 / 400 / 20 |
 
+The in-force columns are main's committed report as it stood at 751badd8 (written at 8a1e1fe2).
 The run's check named the four bold counts as failing [ADR-257][adr-257] §1's test, two rows
 and two classes, and every other row and class as passing. On set B's wind toward the north the
 narrowed probe passed too, where each probe must fail. Each row's probes failed on set A.

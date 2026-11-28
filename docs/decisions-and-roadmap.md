@@ -413,6 +413,7 @@ until someone rewrites it in plainer words.
 | [ADR-382: The fit's wind scan on a log with a track][adr-382] | On a log with a track the fit's misfit can hold a second low in the wind, far from the flight's, and a search from calm air settled there with a narrow interval. After its first pass the fit now scans the wind on a polar grid, searches again from the scan's lows and keeps the answer with the lowest misfit at the second pass. An answer found from the scan counts only within the scan's 12 m/s (27 mph) reach; the search from the stated wind counts wherever it ends. A better-fitting answer left past that reach is said with the fit, not dropped. The caveat every fit of a track printed goes, and the fit's report is regenerated. |  |
 | [ADR-383: A branch's own run repairs the jobs' budget][adr-383] | When main's last run of a pull request's checks has a job over the 20 minutes, the budget check before a pull request now takes a passing run started by hand on the branch's own head, without `full`, in main's place, and holds its jobs to the same 20 minutes. Without it the pull request that splits a slow job could not open. CI's slowest jobs are split in the same change: the tests in three parts on `windows-latest` and `macos-latest`, the fit's slice in four on `ubuntu-latest`, and the site's checks in four. |  |
 | [ADR-384: M7.3g in three: the split by the residual, measured, fails set B][adr-384] | The first rule [M7.3g](#m7-3g) tried, named on issue #1108 before any count, fits the least-squares interval shares apart for fits whose heights' residual is within 1 m (3.3 ft) and for the rest. It passes every row and class on set A but fails two rows and two classes on set B, one of them a row that passes today. It mends 12 of the 14 classes that fail today, but a rule in force must pass every row, so it isn't put in force. [M7.3g1](#m7-3g1) ships the tool that fitted the classes' shares, and this record. [M7.3g2](#m7-3g2) chooses a second rule on the calibration set alone, its counts predicted first. [M7.3g3](#m7-3g3) puts a rule that passes in force. |  |
+| [ADR-385: M7.3g2: a second rule passes every row and fails a class, so M7.3g ends][adr-385] | [M7.3g](#m7-3g)'s second rule, chosen on the calibration set's fits alone, fits the least-squares shares apart for the calibration set's best-fitting 5%, by the misfit's share of the heights' spread, and for the rest. Its counts were predicted on issue #1108 before the full fit. With it every least-squares row passes on both sets, but set B's drag scale fails in the worse class, with too many truths below. A rule fails when any row or class fails, so [M7.3g](#m7-3g) ends with [M7.3g3](#m7-3g3) open. Release 0.2 goes ahead without it. The tool that chose the rule, `cargo xtask fit --halves`, ships. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -983,8 +984,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3f"></a>[M7.3f][done-5] | The fit on the command line and in Python | done |
 | <a id="m7-3g"></a>[M7.3g][phase-5] | The least-squares intervals pass again | not yet done |
 | <a id="m7-3g1"></a>[M7.3g1][done-5] | The split by the residual, measured | done |
-| <a id="m7-3g2"></a>[M7.3g2][phase-5] | A rule chosen on the calibration set | not yet done |
-| <a id="m7-3g3"></a>[M7.3g3][phase-5] | The intervals pass again | not yet done |
+| <a id="m7-3g2"></a>[M7.3g2][done-5] | A rule chosen on the calibration set | done |
+| <a id="m7-3g3"></a>[M7.3g3][phase-5] | The intervals pass again | blocked |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][done-6] | The bias every simulator shares | done |
 | <a id="m7-5a"></a>[M7.5a][done-6] | The rule before the fit | done |
@@ -1523,6 +1524,7 @@ is the milestone that added or will add that test.
 [adr-382]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0382-the-fits-wind-scan-on-a-log-with-a-track.md
 [adr-383]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0383-a-branchs-own-run-repairs-the-jobs-budget.md
 [adr-384]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0384-m7-3g-in-three-the-split-by-the-residual-measured.md
+[adr-385]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0385-m7-3g2-a-second-rule-passes-every-row-and-fails-a-class.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

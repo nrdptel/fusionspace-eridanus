@@ -431,6 +431,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3e The post-flight comparison ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3f The fit on the command line and in Python ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3g1 The split by the residual, measured ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3g2 A rule chosen on the calibration set ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.5 The bias every simulator shares ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5a The rule before the fit ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5b The correction, fitted and judged ([Phase 6](#phase-6-design-experience-library-level))
@@ -2242,6 +2243,13 @@ One line per milestone or increment, in the order it was archived within its pha
       records the split's counts on sets A and B, whole and by class, from a full `cargo xtask fit`
       at a pushed commit that puts the split in force, and its verdict; the shares in force and the
       committed report are unchanged.
+    - [x] **M7.3g2 A rule chosen on the calibration set.** *Done when:* a rule for the shares,
+      chosen on the calibration set's fits alone, with its counts on sets A and B predicted on
+      #1108 before any of their fits is read for it, is measured on both by a full `cargo xtask
+      fit` at a pushed commit, and a record sets the counts against the predictions (ADR-384
+      decision 4). A rule fails when any row or class fails on set A or B; the split was the
+      first, and one more that fails ends M7.3g with M7.3g3 open (decision 5). *Result (ADR-385):*
+      the split by the misfit's share passes every row, fails set B's drag scale's worse class.
 ## Phase 6: Design experience (library level)
 
 - [x] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on
