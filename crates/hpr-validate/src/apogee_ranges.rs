@@ -202,7 +202,7 @@ pub enum Place {
 ///
 /// # Errors
 ///
-/// [`AnalysisError::Domain`] for a level outside `(0, 1)`.
+/// `AnalysisError::Domain` for a level outside `(0, 1)`.
 pub fn narrowest_range(
     apogees: &Distribution,
     level: f64,
@@ -249,7 +249,7 @@ impl FlightRanges {
     ///
     /// # Errors
     ///
-    /// [`AnalysisError::Domain`] for a logged apogee that isn't finite.
+    /// `AnalysisError::Domain` for a logged apogee that isn't finite.
     pub fn of(apogees: &Distribution, logged_m: f64) -> Result<Self, AnalysisError> {
         if !logged_m.is_finite() {
             return Err(AnalysisError::Domain {
