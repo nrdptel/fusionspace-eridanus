@@ -532,39 +532,38 @@ mod tests {
     }
 
     /// A cell that holds its test with room passes nearly always; one far outside it, nearly
-    /// never; and the chance is the same on every run.
+    /// never; one counted on a half far smaller than the set, much less surely, as the half's own
+    /// error in its shares widens the draws; and the chance is the same on every run.
     #[test]
     fn the_chance_follows_the_room_a_cell_has() {
-        let cell = |below: u64, above: u64| Cell {
-            row: Counts {
-                given: 2_000,
-                below,
-                inside: 2_000 - below - above,
-                above,
-            },
-            classes: vec![Counts {
-                given: 2_000,
-                below,
-                inside: 2_000 - below - above,
-                above,
-            }],
-            // Probes far off, which fail on every draw.
-            probes: [Counts {
-                given: 2_000,
-                below: 600,
-                inside: 800,
-                above: 600,
-            }; 3],
+        let counts = |given: u64, below: u64, above: u64| Counts {
+            given,
+            below,
+            inside: given - below - above,
+            above,
         };
-        let of = |below: u64, above: u64| Tried {
+        let cell = |given: u64, below: u64, above: u64| Cell {
+            row: counts(given, below, above),
+            classes: vec![counts(given, below, above)],
+            // Probes far off, which fail on every draw.
+            probes: [counts(given, given * 3 / 10, given * 3 / 10); 3],
+        };
+        let of = |given: u64, below: u64, above: u64| Tried {
             rule: Rule::InForce,
             shares: Vec::new(),
-            cells: vec![(Asked::DragScale, [cell(below, above), cell(below, above)])],
+            cells: vec![(
+                Asked::DragScale,
+                [cell(given, below, above), cell(given, below, above)],
+            )],
         };
-        let (good, _) = pass_chance(&of(100, 100));
-        let (bad, _) = pass_chance(&of(200, 100));
+        let (good, _) = pass_chance(&of(2_000, 100, 100));
+        let (bad, _) = pass_chance(&of(2_000, 200, 100));
+        // 5% each side, but of 200 fits for a set of 1,000: the draws' spread is the set's times
+        // 1 + 1,000/200 = 6. Without that factor the chance is above 0.9 here too.
+        let (small, _) = pass_chance(&of(200, 10, 10));
         assert!(good > 0.9, "{good}");
         assert!(bad < 0.01, "{bad}");
-        assert_eq!(pass_chance(&of(100, 100)).0, good);
+        assert!(small < 0.75, "{small}");
+        assert_eq!(pass_chance(&of(2_000, 100, 100)).0, good);
     }
 }
