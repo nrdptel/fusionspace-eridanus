@@ -106,7 +106,8 @@ pub struct Report {
     pub spreads: Vec<SpreadRow>,
     /// The sets: every flight compared, then the collection report's other four.
     pub sets: Vec<Set>,
-    /// Why a run couldn't be set up, by the error's words, with the flights of each.
+    /// Why a run couldn't be set up, as one of a fixed list of reasons ([`reason`]), with the
+    /// flights of each.
     pub runs_failed: BTreeMap<String, usize>,
 }
 

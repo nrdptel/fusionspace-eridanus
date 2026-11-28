@@ -1519,7 +1519,7 @@ flights can't tell a 90% range from one that holds 56.29% ([report][ranges-repor
 
 What the misses show:
 
-- **The logs mostly fall below the ranges** ([report][ranges-report]). At 50%, the log is below
+- **The misses are mostly logs below the range** ([report][ranges-report]). At 50%, the log is below
   the range on 31 of the 60 flights and above it on 11. At 90%, it's below on 9 and above on 1.
   The logged apogee sits a median 6.76% below its run's median apogee. That is the same lean as
   the over-prediction in the table above: a run scatters its inputs about the file's values.

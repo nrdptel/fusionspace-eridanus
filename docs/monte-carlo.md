@@ -521,9 +521,10 @@ and its motor's published curve, with nothing weighed or measured:
 Each comes from a published figure
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md)
 names each source, and the wider figures it didn't take). The impulse and burn-time figures are
-wider than the starting points above on purpose. Those bullets are what single certification
-reports show for motors fired together. The table's figures are for a motor bought later than the
-one its file was measured on: the same motor types tested again, years apart.
+wider than the starting points above on purpose. Those starting points follow the newer
+certification reports, each of motors fired together. The table's figures are for a motor bought
+later than the one its file was measured on: the same motor types tested a second time, years
+apart where the dates are known.
 
 With these, on 60 logged flights, a run's 90% apogee range held the log on 50 and its 50% range on
 18. By that count the 50% range is wrong: it holds too few. The 90% range can't be told from a
@@ -537,9 +538,9 @@ in the day's wind and air with no spread on either, 1,000 flights a run (`--runs
 the apogee as the height climbed. `hpr mc` prints the run's 5% and 95% points, the edges of its
 90% range; it doesn't print the 50% range's edges.
 
-So these numbers are a place to start for a rocket you haven't weighed. Expect the flight to end
-below the middle of the range more often than above it. No count covers a run on tighter spreads
-yet.
+So these numbers are a place to start for a rocket you haven't weighed. On those 60 flights the
+log ended below the middle of its run more often than above it. No count covers a run on tighter
+spreads yet.
 
 ### What is not dispersed
 
