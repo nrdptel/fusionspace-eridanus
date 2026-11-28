@@ -98,8 +98,14 @@ pub const RAIL_AZIMUTH_SIGMA_DEG: f64 = 5.0;
 
 /// The spreads a design file's flight is flown with: what is known of a rocket from its design
 /// file and its motor's published curve, with no record of a weighing, a test firing or a
-/// flight. Where a source gives a range for a spread, the wider end is taken: a range that is
-/// too narrow is the error that flatters.
+/// flight. Where the figure a row cites is itself a range (the impulse's, the drag's, the burn
+/// time's, the heading's), its wider end is taken: a range that is too narrow is the error that
+/// flatters. The notes hold wider figures still, which aren't taken and would each widen a
+/// range: an impulse of 5.03% if each certification figure is the mean of three motors
+/// ([`crate::input_uncertainty::IMPULSE_MEAN_OF_THREE_END`]), a burn time of 10.7% measured in
+/// one hobby source and up to 19% assumed in others, a tilt of 1.5° and 2° in two of seven
+/// sources, and a heading drawn evenly over a full turn (`docs/research/dispersion-sigmas.md`,
+/// its table and §5).
 ///
 /// Left at their nominal values, each of which would widen a range: the wind and the air (the
 /// run's wind spread is a share of the speed, which is no measure of a reanalysis's error, and
@@ -119,8 +125,8 @@ pub const SPREADS: [Spread; 6] = [
         from: "docs/research/flight-derived-cd.md, §2: 14 published fits of a coasting rocket's \
                drag stand at 0.89 to 1.11 of the design code's at the quartiles, a standard \
                deviation of 16.3% for a normal spread (the range over 1.349); the note behind \
-               the run's inputs, docs/research/dispersion-sigmas.md, §4, gives 10% to 16% for a \
-               design file's drag, and this is its wider end",
+               the run's inputs, docs/research/dispersion-sigmas.md, under What this suggests, \
+               item 1, gives 10% to 16% for a design file's drag, and this is its wider end",
     },
     Spread {
         input: "total impulse",
@@ -129,7 +135,9 @@ pub const SPREADS: [Spread; 6] = [
         from: "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli \
                Motor Testing tested a second time differ by a standard deviation of 3.56 points \
                between their two tests; a flown motor stands from 2.5% to 3.56% off its file's \
-               curve where each test fired one motor, and the wider end is taken",
+               curve where each test fired one motor, and that range's wider end is taken; \
+               where each test's figure is the mean of three motors the top would be 5.03%, \
+               which isn't taken",
     },
     Spread {
         input: "burn time, at the same impulse",
@@ -138,21 +146,24 @@ pub const SPREADS: [Spread; 6] = [
         from: "docs/research/hpr-burn-time-scatter.md, §3: over 14 AeroTech H to L motors \
                tested again years apart, one test's burn time stands 9.2% from its motor's \
                mean; within one lot and session the same note finds 4.1%, and the wider is \
-               taken",
+               taken; docs/research/dispersion-sigmas.md's table lists 10.7% measured in one \
+               hobby source and up to 19% assumed in others, which aren't taken",
     },
     Spread {
         input: "rail's angle above the horizon",
         sigma: RAIL_ELEVATION_SIGMA_DEG,
         unit: "degrees",
         from: "docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby \
-               sources that disperse a launch angle; each assumes it and none measured it",
+               sources that disperse a launch angle, 1.5° and 2° in the other two; each \
+               assumes it and none measured it",
     },
     Spread {
         input: "rail's heading",
         sigma: RAIL_AZIMUTH_SIGMA_DEG,
         unit: "degrees",
         from: "docs/research/dispersion-sigmas.md, §5: 1° to 5° of heading in the hobby sources \
-               that disperse one, each assumed; the wider end is taken",
+               that disperse one by a standard deviation, each assumed, and that range's wider \
+               end is taken; some draw it evenly over a full turn instead, which isn't taken",
     },
 ];
 
@@ -179,6 +190,7 @@ pub fn seed(flight_id: &str) -> u64 {
         .chain_update(SEED_LABEL.as_bytes())
         .finalize();
     let mut first = [0_u8; 8];
+    // A SHA-256 digest is 32 bytes, so its first eight are there.
     first.copy_from_slice(&digest[..8]);
     u64::from_be_bytes(first)
 }
@@ -225,21 +237,21 @@ pub fn narrowest_range(
 
 /// One logged flight against its run: where the log sits, and how wide the run is. Every figure
 /// is a ratio or a count, none a height.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct FlightRanges {
     /// The samples flown or tried.
     pub attempted: usize,
     /// Of those, the ones that failed.
     pub failed: usize,
     /// Where the logged apogee sits against the range at each of [`LEVELS`].
-    pub places: [Place; 2],
+    pub places: [Place; LEVELS.len()],
     /// The share of the samples that flew whose apogee is below the logged one; `None` when
     /// none flew.
     pub rank: Option<f64>,
     /// The logged apogee less the run's median, over the median; `None` when none flew.
     pub offset: Option<f64>,
     /// The width of the range at each of [`LEVELS`] over the run's median; `None` with no range.
-    pub widths: [Option<f64>; 2],
+    pub widths: [Option<f64>; LEVELS.len()],
     /// The run's standard deviation over its median; `None` with fewer than two flown.
     pub spread: Option<f64>,
 }
@@ -328,9 +340,10 @@ pub struct LevelCount {
     /// `held` over the set's flights, per cent, to two decimals.
     pub held_percent: f64,
     /// The lower edge of the two-sided Clopper–Pearson interval on the share at
-    /// [`BOUNDS_CONFIDENCE`], per cent, to two decimals.
+    /// [`BOUNDS_CONFIDENCE`], per cent, rounded down to two decimals.
     pub lower_percent: f64,
-    /// Its upper edge, per cent, to two decimals.
+    /// Its upper edge, per cent, rounded up to two decimals: the printed interval is never
+    /// narrower than the exact one.
     pub upper_percent: f64,
     /// Whether the level lies inside that interval, edges included, before rounding: whether
     /// this many flights can tell the share from the level.
@@ -359,8 +372,8 @@ impl LevelCount {
             no_range,
             // Cast: counts of flights, far below 2⁵³.
             held_percent: round2(100.0 * held as f64 / flights.max(1) as f64),
-            lower_percent: round2(100.0 * lower),
-            upper_percent: round2(100.0 * upper),
+            lower_percent: outward(lower, upper).0,
+            upper_percent: outward(lower, upper).1,
             level_inside: flights > 0 && lower <= level && level <= upper,
         }
     }
@@ -384,6 +397,17 @@ pub fn bounds(held: usize, flights: usize) -> (f64, f64) {
     (
         clopper_pearson_lower(x, n, BOUNDS_CONFIDENCE),
         clopper_pearson_upper(x, n, BOUNDS_CONFIDENCE),
+    )
+}
+
+/// An interval of fractions as per cent to two decimals, rounded outward: the lower edge down
+/// and the upper edge up, so the printed interval holds the exact one. An edge already at two
+/// decimals to within 10⁻⁹ of a point (0 and 100 are) stays there.
+fn outward(lower: f64, upper: f64) -> (f64, f64) {
+    const SLACK: f64 = 1e-7;
+    (
+        (lower * 10_000.0 + SLACK).floor() / 100.0,
+        (upper * 10_000.0 - SLACK).ceil() / 100.0,
     )
 }
 
@@ -634,8 +658,8 @@ mod tests {
         assert_eq!(table, [0.1075, 0.163, 0.0356, 0.092, 1.0, 5.0]);
     }
 
-    /// The wider end is the one taken wherever a source gives two: a narrower impulse, drag or
-    /// burn time than the rejected end fails here.
+    /// Where the figure a row cites is a range, its wider end is the one taken: an impulse,
+    /// drag, burn time or heading at or below the range's other end fails here.
     #[test]
     fn no_spread_is_the_narrower_end_of_its_sources_range() {
         // The impulse's range is 2.5% to 3.56%, the drag's 10% to 16%, the burn time's 4.1% to
@@ -781,6 +805,45 @@ mod tests {
         assert!((upper - (1.0 - 0.025_f64.powf(1.0 / 23.0))).abs() < 1e-12);
         assert_eq!(bounds(0, 0), (0.0, 1.0));
         assert_eq!(bounds(3, 2), (0.0, 1.0));
+    }
+
+    /// A count's printed bounds are rounded outward, so the printed interval is never narrower
+    /// than the exact one: 30 of 60, 36.806% to 63.194%, prints as 36.80% to 63.20%, and 18 of
+    /// 60, 18.845% to 43.208%, as 18.84% to 43.21%. The ends that are exact, 0 and 100%, stay.
+    #[test]
+    fn printed_bounds_are_rounded_outward() {
+        let printed = |held: usize, flights: usize| {
+            let places = (0..flights).map(|flight| {
+                if flight < held {
+                    Place::Inside
+                } else {
+                    Place::Below
+                }
+            });
+            let count = LevelCount::of(0.5, places);
+            (count.lower_percent, count.upper_percent)
+        };
+        assert_eq!(printed(30, 60), (36.80, 63.20));
+        assert_eq!(printed(18, 60), (18.84, 43.21));
+        assert_eq!(printed(0, 23), (0.0, 14.82));
+        assert_eq!(printed(23, 23), (85.18, 100.0));
+        for flights in 1..=60 {
+            for held in 0..=flights {
+                let (lower, upper) = bounds(held, flights);
+                let (low, high) = printed(held, flights);
+                assert!(low <= 100.0 * lower + 1e-9, "{held} of {flights}: {low}");
+                assert!(high >= 100.0 * upper - 1e-9, "{held} of {flights}: {high}");
+                // And by less than one printed step.
+                assert!(
+                    100.0 * lower - low < 0.01 + 1e-9,
+                    "{held} of {flights}: {low}"
+                );
+                assert!(
+                    high - 100.0 * upper < 0.01 + 1e-9,
+                    "{held} of {flights}: {high}"
+                );
+            }
+        }
     }
 
     /// One seed, pinned: 400 invented flights whose runs are drawn as their truths are. The 50%

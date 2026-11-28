@@ -358,7 +358,7 @@
           "cannot": null
         }
       ],
-      "note": "**`uncertainty.range-50`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a failed run is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 35.14% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
+      "note": "**`uncertainty.range-50`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a sample that fails narrows its range, and a run left with no range is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 35.14% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
     },
     {
       "id": "uncertainty.range-90",
@@ -405,7 +405,7 @@
           "cannot": null
         }
       ],
-      "note": "**`uncertainty.range-90`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a failed run is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 86.49% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
+      "note": "**`uncertainty.range-90`**: each flight compared is flown 1,000 times more with its inputs scattered as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is placed against that run's range; a sample that fails narrows its range, and a run left with no range is a miss ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md)). The scoreboard's check holds HPR Sim's cell by the calibration half's 86.49% over 37 flights, not by the cell's own, so the held-out half alone can't block a change of model."
     },
     {
       "id": "speed.flight",

@@ -18,12 +18,9 @@
 //!
 //! **The build.** The report is written and checked on the `report-check` profile
 //! (`cargo run --package xtask --profile report-check -- apogee-ranges`): every crate optimized,
-//! the dev profile's assertions and overflow checks still on. Its 60,000 flights take about 15
-//! minutes on the dev profile, where the simulator isn't optimized. The dev profile reproduces
-//! the committed report too (`cargo xtask apogee-ranges --check`), but the two profiles' numbers
-//! aren't the same to the last bit (the hash of the collection's flight conditions differs
-//! between them), so a log at a range's very edge could be placed differently: write and check
-//! on the same one.
+//! the dev profile's assertions and overflow checks still on. On the dev profile, where the
+//! simulator isn't optimized, its 60,000 flights take about ten times as long (the command
+//! prints the runs' time). Write and check on the same profile: the gate does.
 //!
 //! [m2-8a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-8a
 //! [adr-386]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md
@@ -35,6 +32,7 @@ use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
+use hpr::hpr_analysis::AnalysisError;
 use hpr::hpr_analysis::montecarlo::FlightInputs;
 use hpr_io::ork;
 use hpr_sim::FlightSettings;
@@ -139,15 +137,18 @@ struct Flown {
 }
 
 /// How far a mean, a median, a mean absolute or an RMS error of the nominal flights may stand
-/// from the collection report's, in points: the report rounds each to 0.01, and an apogee moves
-/// in its ninth digit between build profiles, so a figure on a rounding edge can land either
-/// side of it.
+/// from the collection report's, in points: the report rounds each to 0.01, and the two build
+/// profiles' apogees aren't the same to the last place, so a figure on a rounding edge can land
+/// either side of it.
 const ERRORS_WITHIN_POINTS: f64 = 0.011;
 
 /// Holds the runs' nominal flights to the collection report's committed errors: for each of its
 /// five sets, the same number of flights, the same histogram and counts within 5% and 10%, and
 /// the same mean, median, mean absolute and RMS error to the report's rounding. A flight flown
-/// here that the report doesn't compare, or flown differently, moves one of them.
+/// here that the report doesn't compare, or flown differently, moves one of them. The
+/// statistics' room would let one flight's logged height move by a fraction of a point unseen;
+/// the logged heights are read by the function the collection's report reads them with
+/// (`fixture_flights::logged_height_m`), which that report's own check holds.
 fn hold_to_collection(root: &Path, flights: &[(Sorted, &ForwardFlight)]) -> Result<(), String> {
     let path = crate::fixture_flights::REPORT_JSON;
     let text =
@@ -225,7 +226,9 @@ fn fly_one(id: &str, flight: &ForwardFlight) -> Result<Result<FlightRanges, Stri
         .apogee
         .and_then(|apogee| apogee.gain_m)
         .ok_or_else(|| format!("{id}: the nominal flight has no apogee"))?;
-    if (nominal - flight.hpr_m).abs() > NOMINAL_SHARE * flight.hpr_m.abs() {
+    // A nominal apogee that isn't a number is not the report's flight either.
+    let off = (nominal - flight.hpr_m).abs();
+    if !off.is_finite() || off > NOMINAL_SHARE * flight.hpr_m.abs() {
         return Err(format!(
             "{id}: the run's nominal flight isn't the report's: {nominal} m against {} m",
             flight.hpr_m
@@ -233,8 +236,24 @@ fn fly_one(id: &str, flight: &ForwardFlight) -> Result<Result<FlightRanges, Stri
     }
     Ok(
         fly(inputs, design_file(), seed(id), SAMPLES, flight.logged_m)
-            .map_err(|error| error.to_string()),
+            .map_err(|error| reason(&error).to_owned()),
     )
+}
+
+/// Why a run couldn't be set up, as one of a fixed list of reasons. The error's own text can
+/// hold a part's name or a value of a private design, and this goes into a public report, so
+/// only the kind of error is kept.
+fn reason(error: &AnalysisError) -> &'static str {
+    match error {
+        AnalysisError::Domain { .. } => "an input or an apogee out of range",
+        AnalysisError::Count { .. } | AnalysisError::TooFew { .. } => "too many or too few samples",
+        AnalysisError::Unsupported(_) => "an input the run can't disperse on this design",
+        AnalysisError::NoConfiguration(_) => "no configuration to fly",
+        AnalysisError::Design(_) => "the design couldn't be built with its inputs",
+        AnalysisError::Motor(_) => "a motor couldn't be dispersed",
+        AnalysisError::Sim(_) => "the flight couldn't be set up",
+        _ => "another error",
+    }
 }
 
 /// Each compared flight with what sorts it into the sets, in the order of the ids.
@@ -527,7 +546,9 @@ impl Report {
             "\nLeft at the values flown, each of which would widen a range: the wind and the \
              air, the center of mass, and the altimeter's own scatter. The \
              [decision record](../../docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md) \
-             says what is known of each one's size.\n"
+             says what is known of each one's size. The mass is drawn stage by stage, so a \
+             staged rocket's whole mass spreads by less than the figure above. Each bound is \
+             rounded outward, the lower one down and the upper one up.\n"
         );
         for (index, level) in LEVELS.into_iter().enumerate() {
             let _ = writeln!(page, "## The {:.0}% range\n", 100.0 * level);
@@ -827,7 +848,7 @@ mod tests {
         assert_eq!(report.set(CATALOG_TIER_A).unwrap().flights, 8);
         assert_eq!(report.runs_failed.values().sum::<usize>(), 1);
         assert!(
-            page.contains("| every flight compared | 9 | 4 | 44.44% | 13.70% to 78.80% | yes |")
+            page.contains("| every flight compared | 9 | 4 | 44.44% | 13.69% to 78.80% | yes |")
         );
         assert!(page.contains("- a motor this can't disperse: 1"));
 

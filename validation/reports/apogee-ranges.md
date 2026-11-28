@@ -16,33 +16,33 @@ The standard deviation of each input drawn, the same for every flight:
 | input | standard deviation | where it is stated |
 |---|---:|---|
 | mass without motors | 10.75% | docs/research/as-built-mass-growth.md: over 24 rockets with both a design-file mass and a scale mass, the scale's stands −1.4% to +13.1% from the file's at the quartiles, a standard deviation of 10.75% for a normal spread (the range over 1.349) |
-| zero-lift drag coefficient | 16.3% | docs/research/flight-derived-cd.md, §2: 14 published fits of a coasting rocket's drag stand at 0.89 to 1.11 of the design code's at the quartiles, a standard deviation of 16.3% for a normal spread (the range over 1.349); the note behind the run's inputs, docs/research/dispersion-sigmas.md, §4, gives 10% to 16% for a design file's drag, and this is its wider end |
-| total impulse | 3.56% | docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor Testing tested a second time differ by a standard deviation of 3.56 points between their two tests; a flown motor stands from 2.5% to 3.56% off its file's curve where each test fired one motor, and the wider end is taken |
-| burn time, at the same impulse | 9.2% | docs/research/hpr-burn-time-scatter.md, §3: over 14 AeroTech H to L motors tested again years apart, one test's burn time stands 9.2% from its motor's mean; within one lot and session the same note finds 4.1%, and the wider is taken |
-| rail's angle above the horizon | 1° | docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby sources that disperse a launch angle; each assumes it and none measured it |
-| rail's heading | 5° | docs/research/dispersion-sigmas.md, §5: 1° to 5° of heading in the hobby sources that disperse one, each assumed; the wider end is taken |
+| zero-lift drag coefficient | 16.3% | docs/research/flight-derived-cd.md, §2: 14 published fits of a coasting rocket's drag stand at 0.89 to 1.11 of the design code's at the quartiles, a standard deviation of 16.3% for a normal spread (the range over 1.349); the note behind the run's inputs, docs/research/dispersion-sigmas.md, under What this suggests, item 1, gives 10% to 16% for a design file's drag, and this is its wider end |
+| total impulse | 3.56% | docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor Testing tested a second time differ by a standard deviation of 3.56 points between their two tests; a flown motor stands from 2.5% to 3.56% off its file's curve where each test fired one motor, and that range's wider end is taken; where each test's figure is the mean of three motors the top would be 5.03%, which isn't taken |
+| burn time, at the same impulse | 9.2% | docs/research/hpr-burn-time-scatter.md, §3: over 14 AeroTech H to L motors tested again years apart, one test's burn time stands 9.2% from its motor's mean; within one lot and session the same note finds 4.1%, and the wider is taken; docs/research/dispersion-sigmas.md's table lists 10.7% measured in one hobby source and up to 19% assumed in others, which aren't taken |
+| rail's angle above the horizon | 1° | docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby sources that disperse a launch angle, 1.5° and 2° in the other two; each assumes it and none measured it |
+| rail's heading | 5° | docs/research/dispersion-sigmas.md, §5: 1° to 5° of heading in the hobby sources that disperse one by a standard deviation, each assumed, and that range's wider end is taken; some draw it evenly over a full turn instead, which isn't taken |
 
-Left at the values flown, each of which would widen a range: the wind and the air, the center of mass, and the altimeter's own scatter. The [decision record](../../docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md) says what is known of each one's size.
+Left at the values flown, each of which would widen a range: the wind and the air, the center of mass, and the altimeter's own scatter. The [decision record](../../docs/decisions/0386-m2-8-in-two-the-ranges-coverage-measured-first.md) says what is known of each one's size. The mass is drawn stage by stage, so a staged rocket's whole mass spreads by less than the figure above. Each bound is rounded outward, the lower one down and the upper one up.
 
 ## The 50% range
 
 | flights | count | held | share | 95% bounds | 50% inside the bounds | log below the range | log above the range | no range |
 |---|---:|---:|---:|---|---|---:|---:|---:|
-| every flight compared | 60 | 18 | 30.00% | 18.85% to 43.21% | no | 31 | 11 | 0 |
+| every flight compared | 60 | 18 | 30.00% | 18.84% to 43.21% | no | 31 | 11 | 0 |
 | without the early deployments | 41 | 13 | 31.71% | 18.08% to 48.09% | no | 17 | 11 | 0 |
-| without the flights the catalog proposes below tier A | 49 | 14 | 28.57% | 16.58% to 43.26% | no | 25 | 10 | 0 |
-| the calibration half | 37 | 13 | 35.14% | 20.21% to 52.54% | yes | 15 | 9 | 0 |
-| the held-out half | 23 | 5 | 21.74% | 7.46% to 43.70% | no | 16 | 2 | 0 |
+| without the flights the catalog proposes below tier A | 49 | 14 | 28.57% | 16.58% to 43.27% | no | 25 | 10 | 0 |
+| the calibration half | 37 | 13 | 35.14% | 20.20% to 52.54% | yes | 15 | 9 | 0 |
+| the held-out half | 23 | 5 | 21.74% | 7.46% to 43.71% | no | 16 | 2 | 0 |
 
 ## The 90% range
 
 | flights | count | held | share | 95% bounds | 90% inside the bounds | log below the range | log above the range | no range |
 |---|---:|---:|---:|---|---|---:|---:|---:|
-| every flight compared | 60 | 50 | 83.33% | 71.48% to 91.71% | yes | 9 | 1 | 0 |
-| without the early deployments | 41 | 38 | 92.68% | 80.08% to 98.46% | yes | 2 | 1 | 0 |
-| without the flights the catalog proposes below tier A | 49 | 42 | 85.71% | 72.76% to 94.06% | yes | 7 | 0 | 0 |
-| the calibration half | 37 | 32 | 86.49% | 71.23% to 95.46% | yes | 4 | 1 | 0 |
-| the held-out half | 23 | 18 | 78.26% | 56.30% to 92.54% | yes | 5 | 0 | 0 |
+| every flight compared | 60 | 50 | 83.33% | 71.47% to 91.71% | yes | 9 | 1 | 0 |
+| without the early deployments | 41 | 38 | 92.68% | 80.07% to 98.47% | yes | 2 | 1 | 0 |
+| without the flights the catalog proposes below tier A | 49 | 42 | 85.71% | 72.75% to 94.06% | yes | 7 | 0 | 0 |
+| the calibration half | 37 | 32 | 86.49% | 71.22% to 95.47% | yes | 4 | 1 | 0 |
+| the held-out half | 23 | 18 | 78.26% | 56.29% to 92.54% | yes | 5 | 0 | 0 |
 
 A log below its range is a flight the run flew higher than; a log above it, one the run kept lower than.
 

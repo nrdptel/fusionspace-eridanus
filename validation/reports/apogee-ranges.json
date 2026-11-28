@@ -15,31 +15,31 @@
       "input": "zero-lift drag coefficient",
       "sigma": 0.163,
       "unit": "fraction",
-      "from": "docs/research/flight-derived-cd.md, §2: 14 published fits of a coasting rocket's drag stand at 0.89 to 1.11 of the design code's at the quartiles, a standard deviation of 16.3% for a normal spread (the range over 1.349); the note behind the run's inputs, docs/research/dispersion-sigmas.md, §4, gives 10% to 16% for a design file's drag, and this is its wider end"
+      "from": "docs/research/flight-derived-cd.md, §2: 14 published fits of a coasting rocket's drag stand at 0.89 to 1.11 of the design code's at the quartiles, a standard deviation of 16.3% for a normal spread (the range over 1.349); the note behind the run's inputs, docs/research/dispersion-sigmas.md, under What this suggests, item 1, gives 10% to 16% for a design file's drag, and this is its wider end"
     },
     {
       "input": "total impulse",
       "sigma": 0.0356,
       "unit": "fraction",
-      "from": "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor Testing tested a second time differ by a standard deviation of 3.56 points between their two tests; a flown motor stands from 2.5% to 3.56% off its file's curve where each test fired one motor, and the wider end is taken"
+      "from": "docs/research/hpr-lot-impulse.md, §2: 21 AeroTech H to L motors that Tripoli Motor Testing tested a second time differ by a standard deviation of 3.56 points between their two tests; a flown motor stands from 2.5% to 3.56% off its file's curve where each test fired one motor, and that range's wider end is taken; where each test's figure is the mean of three motors the top would be 5.03%, which isn't taken"
     },
     {
       "input": "burn time, at the same impulse",
       "sigma": 0.092,
       "unit": "fraction",
-      "from": "docs/research/hpr-burn-time-scatter.md, §3: over 14 AeroTech H to L motors tested again years apart, one test's burn time stands 9.2% from its motor's mean; within one lot and session the same note finds 4.1%, and the wider is taken"
+      "from": "docs/research/hpr-burn-time-scatter.md, §3: over 14 AeroTech H to L motors tested again years apart, one test's burn time stands 9.2% from its motor's mean; within one lot and session the same note finds 4.1%, and the wider is taken; docs/research/dispersion-sigmas.md's table lists 10.7% measured in one hobby source and up to 19% assumed in others, which aren't taken"
     },
     {
       "input": "rail's angle above the horizon",
       "sigma": 1.0,
       "unit": "degrees",
-      "from": "docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby sources that disperse a launch angle; each assumes it and none measured it"
+      "from": "docs/research/dispersion-sigmas.md, §5: a tilt of 1° in five of the seven hobby sources that disperse a launch angle, 1.5° and 2° in the other two; each assumes it and none measured it"
     },
     {
       "input": "rail's heading",
       "sigma": 5.0,
       "unit": "degrees",
-      "from": "docs/research/dispersion-sigmas.md, §5: 1° to 5° of heading in the hobby sources that disperse one, each assumed; the wider end is taken"
+      "from": "docs/research/dispersion-sigmas.md, §5: 1° to 5° of heading in the hobby sources that disperse one by a standard deviation, each assumed, and that range's wider end is taken; some draw it evenly over a full turn instead, which isn't taken"
     }
   ],
   "sets": [
@@ -59,7 +59,7 @@
             "log_above": 11,
             "no_range": 0,
             "held_percent": 30.0,
-            "lower_percent": 18.85,
+            "lower_percent": 18.84,
             "upper_percent": 43.21,
             "level_inside": false
           },
@@ -70,7 +70,7 @@
             "log_above": 1,
             "no_range": 0,
             "held_percent": 83.33,
-            "lower_percent": 71.48,
+            "lower_percent": 71.47,
             "upper_percent": 91.71,
             "level_inside": true
           }
@@ -124,8 +124,8 @@
             "log_above": 1,
             "no_range": 0,
             "held_percent": 92.68,
-            "lower_percent": 80.08,
-            "upper_percent": 98.46,
+            "lower_percent": 80.07,
+            "upper_percent": 98.47,
             "level_inside": true
           }
         ],
@@ -168,7 +168,7 @@
             "no_range": 0,
             "held_percent": 28.57,
             "lower_percent": 16.58,
-            "upper_percent": 43.26,
+            "upper_percent": 43.27,
             "level_inside": false
           },
           {
@@ -178,7 +178,7 @@
             "log_above": 0,
             "no_range": 0,
             "held_percent": 85.71,
-            "lower_percent": 72.76,
+            "lower_percent": 72.75,
             "upper_percent": 94.06,
             "level_inside": true
           }
@@ -221,7 +221,7 @@
             "log_above": 9,
             "no_range": 0,
             "held_percent": 35.14,
-            "lower_percent": 20.21,
+            "lower_percent": 20.2,
             "upper_percent": 52.54,
             "level_inside": true
           },
@@ -232,8 +232,8 @@
             "log_above": 1,
             "no_range": 0,
             "held_percent": 86.49,
-            "lower_percent": 71.23,
-            "upper_percent": 95.46,
+            "lower_percent": 71.22,
+            "upper_percent": 95.47,
             "level_inside": true
           }
         ],
@@ -276,7 +276,7 @@
             "no_range": 0,
             "held_percent": 21.74,
             "lower_percent": 7.46,
-            "upper_percent": 43.7,
+            "upper_percent": 43.71,
             "level_inside": false
           },
           {
@@ -286,7 +286,7 @@
             "log_above": 0,
             "no_range": 0,
             "held_percent": 78.26,
-            "lower_percent": 56.3,
+            "lower_percent": 56.29,
             "upper_percent": 92.54,
             "level_inside": true
           }

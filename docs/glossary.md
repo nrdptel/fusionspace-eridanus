@@ -240,7 +240,7 @@ The formula for moist air's density, from its temperature, pressure and humidity
 
 ### Clopper-Pearson bound
 
-A bound on a share that was counted on a sample: 50 flights of 60 is one sample's share, and the share over all such flights could be higher or lower. The Clopper-Pearson interval gives the shares the count could have come from, at a stated confidence, with no assumption beyond each flight counting or not (C. J. Clopper and E. S. Pearson, *Biometrika* 26(4), 404–413, 1934). It is never narrower than its confidence claims, so it errs wide. [Monte Carlo](monte-carlo.md#failed-flights-are-counted) uses its one-sided form for the share of flights that reach a height, and [Accuracy](accuracy.md#how-often-the-apogee-ranges-hold-the-logs) its two-sided form for how often a run's apogee ranges hold real flights.
+A bound on a share that was counted on a sample: 50 flights of 60 is one sample's share, and the share over all such flights could be higher or lower. The Clopper-Pearson interval gives the shares the count could have come from, at a stated confidence, with no assumption beyond each flight counting or not (C. J. Clopper and E. S. Pearson, *Biometrika* 26(4), 404–413, 1934). It is never narrower than its confidence claims, so it errs wide. How often a range holds what it claims to hold is its *coverage*; a bound like this one says how well a count of flights pins that down. [Monte Carlo](monte-carlo.md#failed-flights-are-counted) uses its one-sided form for the share of flights that reach a height, and [Accuracy](accuracy.md#how-often-the-apogee-ranges-hold-the-logs) its two-sided form for how often a run's apogee ranges hold real flights.
 
 ### Closed form
 

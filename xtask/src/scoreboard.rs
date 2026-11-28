@@ -957,7 +957,8 @@ fn range_note(id: &str, cell: &Cell) -> Option<String> {
     Some(format!(
         "**`{id}`**: each flight compared is flown 1,000 times more with its inputs scattered \
          as `hpr mc` scatters them, on spreads stated before any count, and the logged apogee is \
-         placed against that run's range; a failed run is a miss \
+         placed against that run's range; a sample that fails narrows its range, and a run left \
+         with no range is a miss \
          ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/\
          reports/apogee-ranges.md), which gives each share's two-sided 95% Clopper–Pearson \
          bounds and each half; [ADR-386](https://github.com/nrdptel/fusionspace-eridanus/blob/\

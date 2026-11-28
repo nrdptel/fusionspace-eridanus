@@ -17,8 +17,8 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 ([From Python](#from-python)).
 
 > **How far to trust it.** The spread a run gives is only as good as the uncertainties you give it
-> and HPR Sim's flight models. Against real flights those models' apogees run high on average
-> ([Accuracy](accuracy.md)).
+> and HPR Sim's flight models. Against real flights' logs those models' apogees miss by more than
+> the project's target ([Accuracy](accuracy.md)).
 >
 > - [`montecarlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/src/montecarlo.rs)'s
 >   tests pin the sampling (below).
@@ -30,6 +30,9 @@ to choose the numbers. Its examples need some Rust and follow on from [The build
 > - A run leaves out correlations between inputs, distributions other than the
 >   [normal](glossary.md#normal-distribution), and the inputs listed under
 >   [What is not dispersed](#what-is-not-dispersed).
+
+A run flies what `Flight::builder` sets up, a staged flight's separations included. Events of
+your own can't be part of one yet.
 
 Sampling tests check that:
 
@@ -515,15 +518,28 @@ and its motor's published curve, with nothing weighed or measured:
 | rail's tilt | 1° | `--inclination-sd 1` |
 | rail's heading | 5° | `--heading-sd 5` |
 
-Each comes from a published figure, and where a source gives a range, this is its wider end
+Each comes from a published figure
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/apogee-ranges.md)
-names each source). With these, on 60 logged flights, a run's 90% apogee range held the log on 50
-and its 50% range on 18. Most misses were flights that ended below the range. HPR Sim's apogees
-from a design file run above the logs on average, and a run is centered on the file's flight
+names each source, and the wider figures it didn't take). The impulse and burn-time figures are
+wider than the starting points above on purpose. Those bullets are what single certification
+reports show for motors fired together. The table's figures are for a motor bought later than the
+one its file was measured on: the same motor types tested again, years apart.
+
+With these, on 60 logged flights, a run's 90% apogee range held the log on 50 and its 50% range on
+18. By that count the 50% range is wrong: it holds too few. The 90% range can't be told from a
+right one, with bounds that reach down to 71%. Most misses were flights that ended below the
+range. On those 60 flights HPR Sim's apogees from a design file run above the logs on average,
+and a run scatters its inputs about the file's values
 ([how often the ranges hold](accuracy.md#how-often-the-apogee-ranges-hold-the-logs)).
 
-So these numbers are a place to start for a rocket you haven't weighed, not a tested recipe. A
-rocket weighed ready to fly earns a smaller mass spread. No count covers such a run yet.
+The count isn't quite the run these options give you. It flew each rocket with nothing deployed,
+in the day's wind and air with no spread on either, 1,000 flights a run (`--runs 1000`), and took
+the apogee as the height climbed. `hpr mc` prints the run's 5% and 95% points, the edges of its
+90% range; it doesn't print the 50% range's edges.
+
+So these numbers are a place to start for a rocket you haven't weighed. Expect the flight to end
+below the middle of the range more often than above it. No count covers a run on tighter spreads
+yet.
 
 ### What is not dispersed
 

@@ -46,7 +46,7 @@
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `apogee-ranges --check` (M2.8a, ADR-386: each flight that report compares flown 1,000 times more
 # as a Monte Carlo run, against the committed counts; on the `report-check` profile, which step
-# validate builds, since the runs take 14 minutes unoptimized)
+# validate builds, since the runs take about ten times as long unoptimized)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)
 # `logs --check` (M7.1a, ADR-251: every flight-log sample read, its report reproduced)
 # and `evidence --samples` (M2.10, ADR-278: each real sample the evidence register lists is there,

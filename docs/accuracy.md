@@ -35,8 +35,9 @@ claimed for them. Seven of the 12 altimeters' kinds are assumed, and none is cal
 average. They miss by 12.10% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
-**On those 60 flights, a Monte Carlo run's 90% apogee range held the logged apogee on 50 (83.33%)
-and its 50% range on 18 (30.00%), the misses mostly flights that ended below the range**
+**On those 60 flights, with wide input spreads taken from published figures, a Monte Carlo run's
+90% apogee range held the logged apogee on 50 (83.33%, bounds 71.47% to 91.71%) and its 50% range
+on 18 (30.00%, bounds 18.84% to 43.21%). Most misses were flights that ended below the range**
 ([how often the ranges hold](#how-often-the-apogee-ranges-hold-the-logs), [report][ranges-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
@@ -1483,20 +1484,24 @@ and gives a range of apogees. A 90% range claims that nine real flights in ten e
 [This check](decisions-and-roadmap.md#m2-8a) ([the decision][adr-386]) counts whether they do, on
 the 60 flights above. **In short: with input spreads taken from published figures, the 90% range
 held the logged apogee on 50 of the 60 flights (83.33%), and the 50% range on 18 (30.00%). By this
-count the 50% range is wrong. The 90% range can't be told from right, nor from one that holds
-71.48% of flights** ([report][ranges-report]).
+count the 50% range is wrong: it holds too few. The 90% range can't be told from a right one,
+nor from one that holds only 71.47% of flights** ([report][ranges-report]).
 
 | [range and flights][ranges-report] | flights compared | flights it held | share held | 95% bounds on the share |
 |---|---:|---:|---:|---:|
-| [the 50% range, every flight compared][ranges-report] | 60 | 18 | 30.00% | 18.85% to 43.21% |
-| [the 50% range, the calibration half][ranges-report] | 37 | 13 | 35.14% | 20.21% to 52.54% |
-| [the 50% range, the held-out half][ranges-report] | 23 | 5 | 21.74% | 7.46% to 43.70% |
-| [the 90% range, every flight compared][ranges-report] | 60 | 50 | 83.33% | 71.48% to 91.71% |
-| [the 90% range, the calibration half][ranges-report] | 37 | 32 | 86.49% | 71.23% to 95.46% |
-| [the 90% range, the held-out half][ranges-report] | 23 | 18 | 78.26% | 56.30% to 92.54% |
+| [the 50% range, every flight compared][ranges-report] | 60 | 18 | 30.00% | 18.84% to 43.21% |
+| [the 50% range, the calibration half][ranges-report] | 37 | 13 | 35.14% | 20.20% to 52.54% |
+| [the 50% range, the held-out half][ranges-report] | 23 | 5 | 21.74% | 7.46% to 43.71% |
+| [the 90% range, every flight compared][ranges-report] | 60 | 50 | 83.33% | 71.47% to 91.71% |
+| [the 90% range, the calibration half][ranges-report] | 37 | 32 | 86.49% | 71.22% to 95.47% |
+| [the 90% range, the held-out half][ranges-report] | 23 | 18 | 78.26% | 56.29% to 92.54% |
 
-Each flight is flown 1,000 times more, by the run [`hpr mc`](cli.md#hpr-mc) flies, from the inputs
-the comparison above flew: the design as read, the day's air and wind, its rail
+The halves are the split described under *Held out* above ([report][ranges-report]): 23 flights
+that fits across flights leave out, and the other 37, the calibration half. No spread here was
+fitted to either, so the split shows only whether the count holds across it.
+
+Each flight was flown 1,000 more times, as [`hpr mc`](cli.md#hpr-mc) flies a run, from the same
+inputs as the comparison above: the design as read, the day's air and wind, its rail
 ([report][ranges-report]). Six inputs are drawn about the design file's values, each with a
 [standard deviation](glossary.md#standard-deviation) stated before any flight was counted: the
 mass without motors (10.75%), the drag coefficient (16.3%), the motor's total impulse (3.56%), its
@@ -1506,26 +1511,26 @@ The [report][ranges-report] gives each one's source. None was fitted to these fl
 range runs from the run's 25% point to its 75% point, and the 90% range from its 5% point to its
 95% point. A sample that fails counts against its range. None of the 60,000 did.
 
-The bounds are two-sided 95% [Clopper-Pearson](glossary.md#clopper-pearson-bound) intervals: the
-shares, over all such flights, that a count this size could have come from. A level outside its
-bounds is a range these flights show to be wrong. A level inside them is only one they can't tell
-from right. The held-out half's 23 flights can't tell a 90% range from one that holds 56.30%
-([report][ranges-report]).
+The bounds are two-sided 95% [Clopper-Pearson](glossary.md#clopper-pearson-bound) intervals, each
+rounded outward. They give the shares, over all such flights, that could have given a count like
+this one. A level outside its bounds is a range these flights show to be wrong. A level inside
+them isn't shown to be right: the flights only can't tell it from right. The held-out half's 23
+flights can't tell a 90% range from one that holds 56.29% ([report][ranges-report]).
 
 What the misses show:
 
-- **The ranges sit too high** ([report][ranges-report]). At 50%, the log is below the range on 31
-  of the 60 flights and above it on 11. At 90%, it's below on 9 and above on 1. The logged apogee
-  sits a median 6.76% below its run's median apogee. That is the same lean as the
-  over-prediction in the table above. A run scatters its inputs about the file's values, so its
-  middle is near the file's flight.
+- **The logs mostly fall below the ranges** ([report][ranges-report]). At 50%, the log is below
+  the range on 31 of the 60 flights and above it on 11. At 90%, it's below on 9 and above on 1.
+  The logged apogee sits a median 6.76% below its run's median apogee. That is the same lean as
+  the over-prediction in the table above: a run scatters its inputs about the file's values.
 - **How wide the runs are** ([report][ranges-report]). A run's standard deviation is a median
   10.37% of its apogee, from 8.60% to 17.83%. Its 50% range is a median 13.42% of the apogee wide,
   and its 90% range 33.49%.
 - **The held-out half does worse** ([report][ranges-report]): 5 of its 23 flights at 50%, and 18
-  at 90%. Its errors against the logs are the larger ones too.
-- **Without the early deployments** ([report][ranges-report]), over 41 flights, the 90% range
-  holds 38 (92.68%). The 50% range still holds only 13 (31.71%).
+  at 90%. Its logs sit a median 10.99% below their runs' medians, against 3.91% in the calibration
+  half.
+- **Without the early deployments** ([report][ranges-report]; *Early deployments*, below), over
+  41 flights, the 90% range holds 38 (92.68%). The 50% range still holds only 13 (31.71%).
 
 The counts were predicted before the first run: about 20 of the 60 at 50% and about 47 at 90%,
 the misses mostly logs below the range ([the decision][adr-386]). They came out at 18 and 50
